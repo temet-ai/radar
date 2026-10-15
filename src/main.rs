@@ -8,13 +8,15 @@ fn main() -> anyhow::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("mcp") {
         std::process::exit(tokio.block_on(radar_sessions::tools::relay_main(std::env::args().skip(2))));
     }
-    for (old, moved) in radar_core::runner::move_folders_from_gg(&radar_core::runner::folder_bases()) {
+    let parts = radar::parts();
+    let ids: Vec<&str> = parts.iter().map(|p| p.id()).collect();
+    for (old, moved) in radar_core::runner::move_folders_from_gg(&radar_core::runner::folder_bases(), &ids) {
         if let Err(e) = moved {
             eprintln!("radar: could not move {} to its new name radar: {e}", old.display());
         }
     }
     unpack_runtime();
-    tokio.block_on(radar_core::runner::main(radar::parts(), radar::DEFAULT_RENDERER))
+    tokio.block_on(radar_core::runner::main(parts, radar::DEFAULT_RENDERER))
 }
 
 /// A release build carries radar's runtime (the Ink renderer and the Claude Code

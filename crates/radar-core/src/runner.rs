@@ -97,27 +97,29 @@ pub fn folder_bases() -> Vec<PathBuf> {
     bases
 }
 
-/// What radar kept in a folder called `gg` before the rename. Other programs
-/// are called gg too and share those folders, so only these names move.
-const OWN_UNDER_GG: [&str; 21] = [
+/// What the host kept in a folder called `gg` before the rename. Other programs
+/// are called gg too and share those folders, so only these names move, with
+/// each part's old `<id>.json` cache.
+const OWN_UNDER_GG: [&str; 13] = [
     "config.toml", "icons", "recipes", "journal", "cache.sqlite3", "cache.sqlite3-wal",
     "cache.sqlite3-shm", "gg.log", "gg.log.1", "runtime", "images", "reviews", "terminals",
-    "gitlab.json", "github.json", "jira.json", "slack.json", "git.json", "workspace.json",
-    "workbench.json", "sessions.json",
 ];
 
 /// Before the rename to radar these folders were called `gg`. Each of radar's
-/// own entries in `<base>/gg` ([`OWN_UNDER_GG`]) moves to `<base>/radar`, once,
+/// own entries in `<base>/gg` ([`OWN_UNDER_GG`], and `<id>.json` for each id in
+/// `parts`) moves to `<base>/radar`, once,
 /// unless that name is already there; anything else in `<base>/gg` stays. The
 /// `gg` folder is removed when that leaves it empty. Returns each move tried.
-pub fn move_folders_from_gg(bases: &[PathBuf]) -> Vec<(PathBuf, std::io::Result<()>)> {
+pub fn move_folders_from_gg(bases: &[PathBuf], parts: &[&str]) -> Vec<(PathBuf, std::io::Result<()>)> {
+    let caches: Vec<String> = parts.iter().map(|id| format!("{id}.json")).collect();
+    let names: Vec<&str> = OWN_UNDER_GG.iter().copied().chain(caches.iter().map(String::as_str)).collect();
     let mut done: Vec<(PathBuf, std::io::Result<()>)> = Vec::new();
     for base in bases {
         let (old, new) = (base.join("gg"), base.join("radar"));
         if !old.is_dir() || done.iter().any(|(o, _)| o.parent() == Some(old.as_path())) {
             continue;
         }
-        for name in OWN_UNDER_GG {
+        for name in &names {
             let (from, to) = (old.join(name), new.join(name));
             if from.exists() && !to.exists() {
                 let moved = std::fs::create_dir_all(&new).and_then(|()| std::fs::rename(&from, &to));
@@ -1547,24 +1549,26 @@ mod tests {
         write(shared.join("gg/journal/actions.sqlite3"), "j");
         write(shared.join("gg/state.json"), "theirs");
         write(shared.join("gg/config.yaml"), "theirs");
+        write(shared.join("gg/owls.json"), "cache");
         write(both.join("gg/config.toml"), "old");
         write(both.join("radar/config.toml"), "new");
         let bases = [config.clone(), state.clone(), shared.clone(), both.clone(), config.clone()];
 
-        let moved = move_folders_from_gg(&bases);
+        let moved = move_folders_from_gg(&bases, &["owls"]);
         assert!(moved.iter().all(|(_, r)| r.is_ok()), "{moved:?}");
-        assert_eq!(moved.len(), 3, "config.toml, icons, journal: {moved:?}");
+        assert_eq!(moved.len(), 4, "config.toml, icons, journal, a part's cache: {moved:?}");
         assert_eq!(std::fs::read_to_string(config.join("radar/config.toml")).unwrap(), "x");
         assert_eq!(std::fs::read_to_string(config.join("radar/icons/mine.toml")).unwrap(), "i");
         assert!(!config.join("gg").exists(), "emptied, so removed");
         assert!(!state.join("radar").exists(), "nothing to move, nothing made");
         assert_eq!(std::fs::read_to_string(shared.join("radar/journal/actions.sqlite3")).unwrap(), "j");
+        assert_eq!(std::fs::read_to_string(shared.join("radar/owls.json")).unwrap(), "cache");
         assert_eq!(std::fs::read_to_string(shared.join("gg/state.json")).unwrap(), "theirs", "not radar's: stays");
         assert_eq!(std::fs::read_to_string(shared.join("gg/config.yaml")).unwrap(), "theirs");
         assert_eq!(std::fs::read_to_string(both.join("radar/config.toml")).unwrap(), "new", "never over radar's own");
         assert_eq!(std::fs::read_to_string(both.join("gg/config.toml")).unwrap(), "old");
 
-        assert!(move_folders_from_gg(&bases).is_empty(), "the second start moves nothing");
+        assert!(move_folders_from_gg(&bases, &["owls"]).is_empty(), "the second start moves nothing");
         std::fs::remove_dir_all(&root).unwrap();
     }
 

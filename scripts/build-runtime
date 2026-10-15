@@ -51,7 +51,9 @@ chmod u+w "$base"
 case "$(uname -s)" in
     Darwin)
         codesign --remove-signature "$base"
-        strip -x "$base"
+        # Xcode's strip cannot process some node builds (Intel: "file not in an
+        # order that can be processed"); the runtime then keeps node's symbols.
+        strip -x "$base" 2>/dev/null || echo "build-runtime: strip refused $(node --version)'s binary; keeping its symbols" >&2
         ;;
     Linux)
         strip "$base"

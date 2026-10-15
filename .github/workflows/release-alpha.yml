@@ -64,7 +64,13 @@ jobs:
       - name: Build the runtime
         if: matrix.os == 'unix'
         shell: bash
-        run: echo "RADAR_RUNTIME_EMBED=$(scripts/build-runtime target/runtime | tail -n 1)" >> "$GITHUB_ENV"
+        # A failed build stops here (a failure inside $(...) would not).
+        run: |
+          set -euo pipefail
+          scripts/build-runtime target/runtime > "$RUNNER_TEMP/runtime.out"
+          runtime=$(tail -n 1 "$RUNNER_TEMP/runtime.out")
+          test -x "$runtime"
+          echo "RADAR_RUNTIME_EMBED=$runtime" >> "$GITHUB_ENV"
       - name: Build
         run: cargo build --release --locked
       - name: Package Unix binary

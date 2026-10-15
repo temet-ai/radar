@@ -76,7 +76,11 @@ jobs:
           target/release/radar --version | grep -F "$version"
           target/release/radar config path >/dev/null
           # The runtime came out of the binary and runs with no node on PATH.
-          runtime=$(find ~/.cache/radar/runtime ~/Library/Caches/radar/runtime -name radar-js -type f 2>/dev/null | head -n 1)
+          # (find fails on a folder that does not exist, so only the platform's own is searched.)
+          cache=${XDG_CACHE_HOME:-$HOME/.cache}
+          [ "$(uname -s)" = Darwin ] && cache=$HOME/Library/Caches
+          runtime=$(find "$cache/radar/runtime" -name radar-js -type f | head -n 1)
+          test -x "$runtime"
           printf '{"id":1,"op":"hello"}\n' | env PATH=/usr/bin:/bin "$runtime" claude-agent | grep -F '"type":"ready"'
           mkdir -p dist
           # The binary, its licence and the notices of what it carries (scripts/notices).

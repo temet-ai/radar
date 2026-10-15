@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      # .cargo/config.toml links with mold on Linux.
+      - uses: rui314/setup-mold@v1
       - name: Check tag and workspace version
         shell: bash
         run: |
@@ -50,6 +52,8 @@ jobs:
       CARGO_INCREMENTAL: 0
     steps:
       - uses: actions/checkout@v4
+      - uses: rui314/setup-mold@v1
+        if: runner.os == 'Linux'
       - uses: actions/setup-node@v4
         if: matrix.os == 'unix'
         with:

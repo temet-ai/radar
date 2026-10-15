@@ -1118,59 +1118,6 @@ exports[`recorded view fixtures > jira_tickets-page1-overview-comments-links-cod
  updated       ↺ 1h ago"
 `;
 
-exports[`recorded view fixtures > sessions_settings-agents at 80x24 1`] = `
-"── settings ──
- COMMAND LINE TOOLS
- ◷ Copilot       checking
- ◷ Codex         checking
- ◷ Claude Code   checking
- NEW SESSIONS · FOR EVERY WORKSPACE
- provider              Copilot
- model                 the provider's own
- working folder        where radar was started
- permitted folders     none
- skill folders         none
- CLI's own config      yes
- always allow          none
- always deny           none
- local only            yes
- reviewer commands     yes
- RECIPES AND REVIEWS
- recipes folder        ~/.config/radar/recipes
- recipe ask            v2 · built-in
- recipe review-mr      v2 · built-in
-── Copilot ──
- ◷ Reading the CLI's status…"
-`;
-
-exports[`recorded view fixtures > sessions_settings-agents at 160x40 1`] = `
-"── settings ──
- COMMAND LINE TOOLS
- ◷ Copilot       checking
- ◷ Codex         checking
- ◷ Claude Code   checking
- NEW SESSIONS · FOR EVERY WORKSPACE
- provider              Copilot
- model                 the provider's own
- working folder        where radar was started
- permitted folders     none
- skill folders         none
- CLI's own config      yes
- always allow          none
- always deny           none
- local only            yes
- reviewer commands     yes
- RECIPES AND REVIEWS
- recipes folder        ~/.config/radar/recipes
- recipe ask            v2 · built-in
- recipe review-mr      v2 · built-in
- reviews folder        radar's state folder
- WHILE YOU ARE AWAY
- desktop notifications no
-── Copilot ──
- ◷ Reading the CLI's status…"
-`;
-
 exports[`recorded view fixtures > slack_feed at 80x24 1`] = `
 "── feed ──
  @ For you                                                                    4

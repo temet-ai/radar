@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Code   Tickets   Slack 4   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
+ Slack › ask for review
+ Ask for review in #team                                                                                                                          posted as you
+ mentions @review-squad · the review channel
+╭ as it will post in #team ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ @review-squad :gitlab: mr Add a stats endpoint for the dashboard                                                                                             │
+│ ✗ Slack did not take it: Slack is busy (rate limited): it was not sent, and radar does not send it again; try again in 30s                                   │
+│                                                                                                                                                              │
+│ THE TEXT SENT                                                                                                                                                │
+│ <!subteam^S0REVIEW01> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ merge requests in it ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ api !263  Add a stats endpoint for the dashboard                                                                                                             │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   ✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent, and radar does not send it again 7 new · 4 for you  slack

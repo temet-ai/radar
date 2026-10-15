@@ -1,0 +1,28 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "text(&host, 80, 24)"
+---
+ radar    Jira   History   Settings (,)                                  ✎ edit
+╭ settings ────────────╮╭ views ───────────────────────────────────────────────╮
+│General               ││  + new view                                          │
+│  ├─ parts            ││  My tickets        assigned to you, not done         │
+│  ├─ mode             ││  This sprint       in an open sprint, in your watche │
+│  ├─ colours          ││  Recently updated  in your watched projects, updated │
+│  └─ icons            ││                                                      │
+│Jira                  ││                                                      │
+│  ├─ connection       ││                                                      │
+│  ├─ projects         ││                                                      │
+│  ├─ views            ││                                                      │
+│  └─ look             │╰──────────────────────────────────────────────────────╯
+│                      │╭ new view ────────────────────────────────────────────╮
+│                      ││ Make another view for the Jira nav pane.             │
+│                      ││                                                      │
+│                      ││ Give it a name; it starts with your open tickets.    │
+│                      ││ Then add conditions from its menu: who it is         │
+│                      ││ assigned to, status, sprint, project, type, label,   │
+│                      ││ when it changed, or words. JQL by hand is there too. │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate                                jira

@@ -1,0 +1,294 @@
+{
+  "chrome": {
+    "height": 24,
+    "keys_at": "body",
+    "screen_keys": [
+      "B"
+    ],
+    "status": {
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "bulk",
+          "keys": "b",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "b"
+                }
+              },
+              "label": "b",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "bulk"
+        },
+        {
+          "icon": "fold",
+          "keys": "+/-",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "+"
+                }
+              },
+              "label": "+",
+              "target": "chrome:key:2:0"
+            },
+            {
+              "chord": {
+                "key": {
+                  "char": "-"
+                }
+              },
+              "label": "-",
+              "target": "chrome:key:2:1"
+            }
+          ],
+          "label": "expand/collapse"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:4:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:5:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:5:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:5:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:5:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "BRANCHES"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "not synced yet · every 1m"
+      }
+    },
+    "version": 1,
+    "width": 80
+  },
+  "focus": "middle",
+  "height": 24,
+  "screen": {
+    "actions": [
+      {
+        "id": "git.branch.read_again",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "read the clones again"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "target": "view:0",
+              "text": [
+                {
+                  "icon": "views"
+                },
+                {
+                  "text": "all"
+                }
+              ]
+            },
+            {
+              "target": "view:1",
+              "text": [
+                {
+                  "icon": "warning"
+                },
+                {
+                  "text": "dirty"
+                }
+              ]
+            },
+            {
+              "target": "view:2",
+              "text": [
+                {
+                  "icon": "commit"
+                },
+                {
+                  "text": "ahead of remote"
+                }
+              ]
+            },
+            {
+              "target": "view:3",
+              "text": [
+                {
+                  "icon": "folder"
+                },
+                {
+                  "text": "stashes"
+                }
+              ]
+            }
+          ],
+          "selected": 0
+        },
+        "pane": "nav",
+        "title": "views",
+        "width": 26
+      },
+      {
+        "body": {
+          "node": "state",
+          "state": "empty",
+          "text": "No clones known yet. Press , for settings, then add a folder under git › checkouts."
+        },
+        "notes": [
+          [
+            {
+              "ink": "secondary",
+              "text": "every clone, its worktrees and its local branches"
+            }
+          ]
+        ],
+        "pane": "middle",
+        "title": "all"
+      },
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "Select a clone, a worktree or a branch."
+                }
+              ]
+            }
+          ],
+          "node": "rich"
+        },
+        "pane": "detail",
+        "title": "branches"
+      }
+    ],
+    "scope": "branch-screen",
+    "version": 1
+  },
+  "section": null,
+  "width": 80
+}

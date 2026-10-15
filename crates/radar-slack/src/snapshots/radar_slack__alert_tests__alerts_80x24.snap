@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/alert_tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 5   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+╭ Alerts ──────────────────────────────────────────────────────────────────────╮
+│ firing first, then what resolved                  PRIORITY NOTIFIED FOR      │
+│firing                                                                        │
+│  ├─ api  prod                                                                │
+│  │  └─ ▲ api-HighErrorRate ×2                     P1       1h       3h 07m   │
+│  └─ unmapped  prod                                                           │
+│     └─ ▲ DiskFull                                 P2       1h       1h 01m   │
+│failed jobs                                                                   │
+│  └─ unmapped  prod                                                           │
+│     └─ ✗ Nightly export                                    2h       —        │
+│recently resolved                                                             │
+│  └─ api  staging                                                             │
+│     └─ ✓ api-LatencyHigh                          P3       5h       40m 00s  │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ 1 bot message not read as alerts: the log says why.                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   b bulk   +/- expand/collapse   q quit   x menu                   slack

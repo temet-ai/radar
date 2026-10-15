@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>radar in Ink</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:64px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.h3{font-family:"GGMono",monospace;font-weight:700;font-size:17px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;min-height:22.645px}
+.p{color:#f8f8f2}.s{color:#e9d5ff}.m{color:#6272a4}.e{color:#fff;font-weight:700}.a{color:#e135ff}.am{color:#9580ff}.k{color:#80ffea}.t3{color:#ff6ac1}.ok{color:#50fa7b}.wn{color:#f1fa8c}.bd{color:#ff6363}.in{color:#82aaff}.n{color:#ffb86c}.bb{color:#0a0812}.ov{color:#1a162a}
+.Bs{background:#12101a}.Bo{background:#1a162a}.Bsel{background:#44475a}.Bh{background:#2a263e}.Ba{background:#e135ff}
+.b{font-weight:700}.u{text-decoration:underline;text-underline-offset:3px}
+.grad{background:linear-gradient(90deg,#e135ff,#ff6ac1 50%,#80ffea);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cell{display:inline-block;width:24px;height:60px;vertical-align:top}
+@keyframes rowglow{0%{background:#5b1f70}12%{background:#4a1a5e}60%{background:#12101a}100%{background:#12101a}}
+.glowrow{animation:rowglow 2.6s cubic-bezier(.39,.58,.57,1) infinite}
+@keyframes blink{0%,69%{opacity:1}70%,100%{opacity:0}}
+.blink{animation:blink 1.1s steps(1) infinite}
+@keyframes shim{0%{background-position:-240px 0}100%{background-position:520px 0}}
+.shimmer{background:linear-gradient(90deg,transparent 0,rgba(149,128,255,.20) 60px,transparent 120px) no-repeat #12101a;background-size:120px 100%;animation:shim 1.4s linear infinite}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; gap: 72px; align-items: center">
+    <div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 28px; min-width: 0">
+      <p class="eyebrow">radar · design language · for the Ink renderer</p>
+      <h1 class="h1">SilkCircuit Neon,<br>drawn cell by cell.</h1>
+      <p class="lede">radar now draws through Ink. The host still owns the data, the keys and the theme; the renderer now has a real layout engine, a frame clock and the terminal's whole feature set behind it. This guide is the look we build to: one cell grid, one palette, meaning before decoration, and a rich screen wherever richness tells you something.</p>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+        <span class="tag ship">shipped</span><span class="note" style="font-size: 14px">in radar today, in both renderers</span>
+        <span style="width: 16px"></span>
+        <span class="tag new">new in ink</span><span class="note" style="font-size: 14px">what this guide proposes next</span>
+      </div>
+    </div>
+    <div class="panel" style="flex: 0 0 auto; padding: 36px 40px 30px; display: flex; flex-direction: column; gap: 22px; background: #0d0b16; box-shadow: 0 40px 120px rgba(225,53,255,.10)">
+      <div style="display: flex; flex-direction: column" aria-label="radar wordmark drawn in half-block cells" role="img">
+        <sc-for list="{{mark}}" as="row" hint-placeholder-count="4">
+          <div style="display: flex; height: 60px"><sc-for list="{{row.cells}}" as="c" hint-placeholder-count="16"><span class="{{c.cls}}" style="{{c.st}}"></span></sc-for></div>
+        </sc-for>
+      </div>
+      <div class="term">
+        <div class="r"><span class="m">GitLab · GitHub · Jira · Slack · Git</span></div>
+        <div class="r"><span class="s">one screen, one set of keys</span><span class="a blink">█</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; align-items: baseline; gap: 20px">
+      <h2 class="h2">What Ink opens up</h2>
+      <p class="note">The terminal could always do these. Ratatui's widget set kept most of them out of reach; Ink's output buffer and frame clock put them in ours.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Sub-cell drawing</h3><span class="tag new">new in ink</span></div>
+        <div class="term">
+          <div class="r"><span class="m">coverage </span><span class="ok">██████████▋</span><span style="color:#2a263e">▁▁▁▁▁</span><span class="n"> 68%</span></div>
+          <div class="r"><span class="m">runs     </span><span class="in">▁▂▄▃▅▇▆▄▅█▇▅▃▂</span></div>
+          <div class="r"><span class="m">latency  </span><span class="k">⣀⣠⣤⣴⣶⣾⣿⣷⣶⣤⣄⣀⣠⣴</span></div>
+        </div>
+        <p class="note">Eighth blocks give a meter eight steps a cell; braille gives a chart two by four dots a cell. Bars stop looking chunky.</p>
+      </div>
+
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Per-cell truecolour</h3><span class="tag new">new in ink</span></div>
+        <div class="term">
+          <div class="r"><span class="grad">╭─ </span><span class="e">Everything</span><span class="grad"> ───────────────╮</span></div>
+          <div class="r"><span class="m">on 256 and 16 colours</span></div>
+          <div class="r"><span class="a">╭─ </span><span class="e">Everything</span><span class="a"> ───────────────╮</span></div>
+        </div>
+        <p class="note">Each cell can take its own colour, so a focus border, a wordmark or a meter can run purple to pink to cyan. Lower tiers get the slot's single colour.</p>
+      </div>
+
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">A frame clock</h3><span class="tag ship">shipped</span></div>
+        <div class="term" style="background: #12101a; border-radius: 4px">
+          <div class="r"><span class="a"></span><span class="p"> !198 change 198    </span><span class="ok"> passed</span></div>
+          <div class="r glowrow"><span class="a"></span><span class="p"> !187 change 187    </span><span class="ok"> ready  </span></div>
+          <div class="r shimmer"><span class="m">  loading pipelines…           </span></div>
+        </div>
+        <p class="note">Ink ticks every 30 ms only while an effect runs. A synced row glows, a loading panel shimmers, a key cancels it all.</p>
+      </div>
+
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Pictures</h3><span class="tag ship">shipped in ratatui</span></div>
+        <div style="display: flex; gap: 18px; align-items: center">
+          <div style="width: 126px; height: 90px; border-radius: 3px; background: radial-gradient(circle at 30% 35%, #ff6ac1 0, transparent 45%), radial-gradient(circle at 75% 70%, #80ffea 0, transparent 50%), linear-gradient(135deg, #3c2d55, #12101a); display: flex; align-items: flex-end; padding: 6px; box-sizing: border-box"><span class="term" style="font-size: 11px; line-height: 14px; color: #fff">[preview]</span></div>
+          <div class="term">
+            <div class="r"><span class="m">fallback</span></div>
+            <div class="r"><span class="s">▣ image </span><span class="a u">graph.png</span></div>
+          </div>
+        </div>
+        <p class="note">Slack's images already draw in the Ratatui renderer through ratatui-image (kitty, then sixel or iTerm2). Ink needs that ported: its media code exists but is not wired up yet. Avatars and drawn charts come after. The text line is always there.</p>
+      </div>
+
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Layers</h3><span class="tag new">new in ink</span></div>
+        <div class="term" style="background: #0a0812; border-radius: 4px">
+          <div class="r"><span style="color:#3a3552">  api   alice/ABC-12   passed    </span></div>
+          <div class="r"><span style="color:#3a3552">  web  </span><span class="Bo k">╭ actions ──────╮</span><span style="color:#3a3552">  4d   </span></div>
+          <div class="r"><span style="color:#3a3552">   !1 </span><span class="Bo k">│</span><span class="Bsel e"> c  checkout   </span><span class="Bo k">│</span><span style="background:#05040a"> </span><span style="color:#3a3552"> 16m  </span></div>
+          <div class="r"><span style="color:#3a3552">   !1 </span><span class="Bo k">│</span><span class="Bo p"> o  open in web</span><span class="Bo k">│</span><span style="background:#05040a"> </span><span style="color:#3a3552"> 16m  </span></div>
+          <div class="r"><span style="color:#3a3552">  docs </span><span class="Bo k">╰───────────────╯</span><span style="background:#05040a"> </span><span style="color:#3a3552">       </span></div>
+          <div class="r"><span style="color:#3a3552">        </span><span style="background:#05040a">                 </span><span style="color:#3a3552">       </span></div>
+        </div>
+        <p class="note">A menu composites over the screen: the screen behind dims to a scrim, and a one-cell shadow sits under the menu's right and bottom edges.</p>
+      </div>
+
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Pointer &amp; links</h3><span class="tag ship">shipped</span></div>
+        <div class="term" style="background: #12101a; border-radius: 4px">
+          <div class="r"><span class="p"> web   </span><span class="k"> main</span><span class="p">     </span><span class="bd"> failed  </span></div>
+          <div class="r Bh"><span class="p"> api   </span><span class="k"> alice/ABC-12</span><span class="ok">  passed  </span></div>
+          <div class="r"><span class="m"> see </span><span class="k u">acme/api!263</span><span class="m"> · </span><span class="k u">ABC-12</span></div>
+        </div>
+        <p class="note">The row under the pointer takes the hover shade and the pointer becomes a hand. Every url is an OSC 8 link the terminal opens on a click.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 56px">
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 class="h2">Five rules</h2>
+      <p class="note">Everything on the following sheets follows from these. When a choice is unclear, decide by them.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #e135ff; padding-top: 18px"><span class="term a b">01</span><h3 class="h3">The cell is the pixel</h3><p class="note">Every mark lands on the grid. Nothing half a cell wide, nothing that only looks right in a browser.</p></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #f075e3; padding-top: 18px"><span class="term t3 b">02</span><h3 class="h3">Colour carries meaning</h3><p class="note">Status colours only for status. Accents for focus and action. Glow is for one thing at a time.</p></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #ff6ac1; padding-top: 18px"><span class="term t3 b">03</span><h3 class="h3">Rich where it informs</h3><p class="note">Icons on headings, chips, people, states and tabs; several to a row when each says something.</p></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #bfb5f5; padding-top: 18px"><span class="term am b">04</span><h3 class="h3">Motion explains change</h3><p class="note">It shows where a thing came from or that it changed. It never holds back a key.</p></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #80ffea; padding-top: 18px"><span class="term k b">05</span><h3 class="h3">Every layer degrades</h3><p class="note">truecolour to 256 to 16 to none; nerd to unicode to off; full to subtle to off; picture to text.</p></div>
+    </div>
+  </div>
+
+  <div class="term" style="display: flex; gap: 28px; flex-wrap: wrap; padding-top: 28px; border-top: 1px solid #2a263e; font-size: 15px">
+    <span class="m">sheets</span><span><span class="a">01</span><span class="s"> colour</span></span><span><span class="a">02</span><span class="s"> cells &amp; type</span></span><span><span class="a">03</span><span class="s"> icons</span></span><span><span class="a">04</span><span class="s"> components</span></span><span><span class="a">05</span><span class="s"> data</span></span><span><span class="a">06</span><span class="s"> surfaces &amp; layers</span></span><span><span class="a">07</span><span class="s"> motion</span></span><span><span class="a">08</span><span class="s"> the screen</span></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1680}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var art = [
+      '.####.#..####.#..CC',
+      '##..###.##..###..CC',
+      '##...##.##...##..CC',
+      '##..###.##..###..CC',
+      '.###.##..###.##..CC',
+      '.....##......##....',
+      '##..##..##..##.....',
+      '.####....####......'
+    ];
+    var stops = [[0xe1, 0x35, 0xff], [0xff, 0x6a, 0xc1], [0x80, 0xff, 0xea]];
+    function mix(t) {
+      var seg = t < 0.5 ? 0 : 1;
+      var u = seg === 0 ? t / 0.5 : (t - 0.5) / 0.5;
+      var a = stops[seg], b = stops[seg + 1];
+      return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(',') + ')';
+    }
+    var w = art[0].length;
+    var rows = [];
+    for (var r = 0; r < art.length; r += 2) {
+      var cells = [];
+      for (var x = 0; x < w; x++) {
+        var col = mix(Math.min(1, x / 12));
+        var ct = art[r][x], cb = art[r + 1][x];
+        var top = ct === '#' ? col : ct === 'C' ? '#f8f8f2' : 'transparent';
+        var bot = cb === '#' ? col : cb === 'C' ? '#f8f8f2' : 'transparent';
+        cells.push({ cls: (ct === 'C' || cb === 'C') ? 'cell blink' : 'cell', st: 'background:linear-gradient(' + top + ' 0 50%,' + bot + ' 50% 100%)' });
+      }
+      rows.push({ cells: cells });
+    }
+    return { mark: rows };
+  }
+}
+</script>
+</body>
+</html>

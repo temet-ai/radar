@@ -1,0 +1,92 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "create a group or add a repository"
+    },
+    {
+      "id": "github.repositories.edit",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "change it"
+    },
+    {
+      "id": "github.repositories.activate_add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "create group or add repository"
+    },
+    {
+      "id": "github.repositories.check",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "check GitHub connection"
+    },
+    {
+      "id": "github.repositories.browse",
+      "key": {
+        "key": {
+          "char": "a"
+        }
+      },
+      "label": "browse repositories this token can access"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "setting:0",
+        "text": [
+          {
+            "text": "create a group or add a repository"
+          }
+        ]
+      },
+      {
+        "target": "setting:1",
+        "text": [
+          {
+            "text": "◆  github.com/acme"
+          }
+        ]
+      },
+      {
+        "target": "setting:2",
+        "text": [
+          {
+            "text": "  ├─ api"
+          }
+        ]
+      },
+      {
+        "target": "setting:3",
+        "text": [
+          {
+            "text": "  └─ docs"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "secondary",
+        "text": "Create groups and choose repositories. Press a to browse, e to edit, d to remove, or m to move a repository."
+      }
+    ]
+  ],
+  "detail_title": "create a group or add a repository",
+  "scope": "repositories",
+  "version": 1
+}

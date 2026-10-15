@@ -1,0 +1,8 @@
+{
+  "name": "radar-docgen-typescript",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript 5 for Storybook react-docgen-typescript only (TypeScript 7.0 has no JS API); radar itself checks with TypeScript 7.",
+  "main": "index.cjs",
+  "dependencies": { "typescript": "5.9.3" }
+}

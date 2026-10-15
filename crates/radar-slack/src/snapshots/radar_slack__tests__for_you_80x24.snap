@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 4   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+╭ For you ─────────────────────────────────────────────────────────────────────╮
+│ last 7 days                                              REPLIES  WHEN       │
+│mentions you                                                                  │
+│  └─ ● #team Bob B.  @Alice Example could you take this o          1d         │
+│direct messages                                                               │
+│  └─ ● #D0000CAROL Carol C.  hi @Alice Example, quick que          1h         │
+│threads you are in                                                            │
+│  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main 1        1d         │
+│  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stat 2        2d         │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ mentions, messages and new replies in the last 7 days                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   b bulk   +/- expand/collapse   q quit   x menu                   slack

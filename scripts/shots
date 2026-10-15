@@ -1,0 +1,309 @@
+#!/usr/bin/env bash
+# Pictures of every place radar draws, from sample data, and a page to look at them.
+#
+#   scripts/shots                       every place at 80x24 and 160x40 into shots/,
+#                                       with shots/index.html (a grid, dark and light)
+#   scripts/shots --out DIR             another folder
+#   scripts/shots --compare REF         the same places at git ref REF (built in a
+#                                       temporary worktree) beside the working tree:
+#                                       each place that changed shows before | after,
+#                                       unchanged ones are folded away
+#   scripts/shots --sizes 80x24,120x30  other sizes
+#   scripts/shots --no-png              SVG only (no PNG; browsers show SVG fine)
+#
+# A place is a screen, a settings section or a gallery page (`radar shot --list`).
+# Pictures are SVG (deterministic: two renders of the same screen are the same
+# bytes, so "changed" is a byte comparison) and PNG. Open DIR/index.html.
+#
+# If REF is older than `radar shot`, the commits that bring it (the ones touching
+# visual.rs, shot.rs, the gallery stories or a part's demo.rs) are cherry-picked
+# onto it in the temporary worktree, so both sides are drawn by the same tool
+# (story panels added later for newer kit features, commits named
+# `gallery stories: ...`, are left out: the ref's kit may not have them).
+#
+# Works with bash 3.2 (macOS) and GNU or BSD tools. Needs cargo and git;
+# RADAR_BIN=path/to/radar skips the build of the working tree.
+
+set -e
+
+cd "$(dirname "$0")/.."
+root=$(pwd)
+
+# Where cargo builds (CARGO_TARGET_DIR if set); the ref's build goes under it.
+target=${CARGO_TARGET_DIR:-$root/target}
+out=shots
+ref=
+sizes=80x24,160x40
+format=both
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --out) out=$2; shift 2 ;;
+        --compare) ref=$2; shift 2 ;;
+        --sizes) sizes=$2; shift 2 ;;
+        --no-png) format=svg; shift ;;
+        -h|--help) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) echo "scripts/shots: unknown option $1 (see --help)" >&2; exit 2 ;;
+    esac
+done
+
+size_args=()
+old_ifs=$IFS
+IFS=,
+for s in $sizes; do
+    size_args+=(--size "$s")
+done
+IFS=$old_ifs
+
+rm -rf "$out"
+mkdir -p "$out"
+out=$(cd "$out" && pwd)
+
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/radar-shots.XXXXXX")
+cleanup() {
+    if [ -n "${worktree:-}" ] && [ -d "$worktree" ]; then
+        git worktree remove --force "$worktree" >/dev/null 2>&1 || true
+    fi
+    rm -rf "$tmp"
+}
+trap cleanup EXIT
+
+# Build the radar of the tree in $1 into target dir $2; print the binary's path.
+build() {
+    (cd "$1" && CARGO_TARGET_DIR="$2" cargo build -q >&2) || return 1
+    echo "$2/debug/radar"
+}
+
+esc() {
+    sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'
+}
+
+# radar shot's places, "name<TAB>title" a line.
+places() {
+    "$1" shot --list
+}
+
+# Draw every place with binary $1 into folder $2.
+draw() {
+    mkdir -p "$2"
+    "$1" shot --out "$2" --format "$format" ${size_args[@]+"${size_args[@]}"} >/dev/null
+}
+
+ext=png
+[ "$format" = svg ] && ext=svg
+
+# --- the working tree -------------------------------------------------------
+if [ -n "${RADAR_BIN:-}" ]; then
+    after_bin=$RADAR_BIN
+else
+    echo "building the working tree..." >&2
+    after_bin=$(build "$root" "$target")
+fi
+
+# --- the page ------------------------------------------------------------------
+page_head() {
+    cat <<'EOF'
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>radar shots</title>
+<style>
+:root { --page: #f4f4f6; --ink: #1c1c22; --muted: #5d5d68; --line: #cfcfd8; --chip: #e5e5ec; }
+@media (prefers-color-scheme: dark) { :root:not([data-page="light"]) { --page: #15151a; --ink: #e6e6ee; --muted: #9a9aa8; --line: #34343e; --chip: #26262e; } }
+:root[data-page="dark"] { --page: #15151a; --ink: #e6e6ee; --muted: #9a9aa8; --line: #34343e; --chip: #26262e; }
+:root[data-page="light"] { --page: #f4f4f6; --ink: #1c1c22; --muted: #5d5d68; --line: #cfcfd8; --chip: #e5e5ec; }
+body { margin: 0; padding: 0 16px 48px; background: var(--page); color: var(--ink); font: 15px/1.45 system-ui, sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; padding: 16px 0 8px; position: sticky; top: 0; background: var(--page); z-index: 1; border-bottom: 1px solid var(--line); }
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+.note { color: var(--muted); }
+button { font: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; cursor: pointer; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 640px), 1fr)); gap: 24px; margin-top: 20px; }
+figure { margin: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+figcaption { margin-bottom: 8px; }
+figcaption code { color: var(--muted); font-size: 12px; margin-left: 6px; }
+.size { color: var(--muted); font-size: 12px; margin: 10px 0 4px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pair div > span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 2px; }
+img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+details { margin-top: 24px; }
+summary { cursor: pointer; color: var(--muted); }
+details ul { columns: 3 260px; padding-left: 18px; }
+</style>
+</head>
+<body>
+EOF
+}
+
+page_foot() {
+    cat <<'EOF'
+<script>
+(function () {
+  var root = document.documentElement, b = document.getElementById("page");
+  try { var saved = localStorage.getItem("radar-shots-page"); if (saved) root.setAttribute("data-page", saved); } catch (e) {}
+  function now() { return root.getAttribute("data-page") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
+  function label() { b.textContent = "page: " + now() + " (switch)"; }
+  b.onclick = function () {
+    var next = now() === "dark" ? "light" : "dark";
+    root.setAttribute("data-page", next);
+    try { localStorage.setItem("radar-shots-page", next); } catch (e) {}
+    label();
+  };
+  label();
+})();
+</script>
+</body>
+</html>
+EOF
+}
+
+# Every size drawn, as the names of the files for place $1: "WxH" a line.
+sizes_of() {
+    echo "$sizes" | tr ',' '\n'
+}
+
+if [ -z "$ref" ]; then
+    # --- one tree ---------------------------------------------------------------
+    draw "$after_bin" "$out"
+    places "$after_bin" > "$tmp/places"
+    {
+        page_head
+        echo '<header><h1>radar shots</h1><span class="note">'"$(wc -l < "$tmp/places" | tr -d ' ')"' places, from sample data</span><button id="page"></button></header>'
+        echo '<div class="grid">'
+        while IFS="$(printf '\t')" read -r name title; do
+            echo "<figure><figcaption><strong>$(printf '%s' "$title" | esc)</strong><code>$name</code></figcaption>"
+            sizes_of | while read -r size; do
+                echo "<div class=\"size\">$size</div><a href=\"${name}_${size}.svg\"><img loading=\"lazy\" alt=\"$name at $size\" src=\"${name}_${size}.${ext}\"></a>"
+            done
+            echo "</figure>"
+        done < "$tmp/places"
+        echo '</div>'
+        page_foot
+    } > "$out/index.html"
+    echo "$out/index.html"
+    exit 0
+fi
+
+# --- compare --------------------------------------------------------------------
+git rev-parse --verify --quiet "$ref^{commit}" >/dev/null || {
+    echo "scripts/shots: $ref is not a git ref" >&2
+    exit 2
+}
+worktree="$tmp/ref"
+git worktree add --detach "$worktree" "$ref" >/dev/null 2>&1
+
+if ! grep -q 'pub mod shot' "$worktree/crates/radar-core/src/lib.rs" 2>/dev/null; then
+    # The commits that bring the tooling, oldest first. A commit named
+    # `gallery stories: ...` adds panels for kit features that may be newer
+    # than REF (it would not build there), so it is left out.
+    picks=$(git rev-list --reverse --invert-grep --grep='^gallery stories:' "$ref"..HEAD -- \
+        crates/radar-core/src/visual.rs crates/radar-core/src/shot.rs \
+        crates/radar-core/src/ui/stories.rs crates/radar-gitlab/src/demo.rs)
+    echo "$ref predates radar shot: bringing the tooling onto it ($(echo "$picks" | wc -l | tr -d ' ') commits)" >&2
+    picked=1
+    for c in $picks; do
+        if ! (cd "$worktree" && git -c user.name=shots -c user.email=shots@localhost cherry-pick --no-commit "$c" >/dev/null 2>&1); then
+            picked=0
+            break
+        fi
+        (cd "$worktree" && git -c user.name=shots -c user.email=shots@localhost commit -q --no-verify -m "tooling $c" >/dev/null 2>&1) || true
+    done
+    if [ "$picked" -eq 0 ]; then
+        # Conflicts (the ref changed what the tooling moved). When REF is an
+        # ancestor of HEAD, the tooling is what this branch committed since:
+        # apply that whole difference, so only uncommitted edits show.
+        (cd "$worktree" && git cherry-pick --abort >/dev/null 2>&1; git reset -q --hard "$ref" >/dev/null 2>&1; git clean -fdq) || true
+        if git merge-base --is-ancestor "$ref" HEAD; then
+            echo "conflicts: putting everything committed since $ref on it instead; only uncommitted changes will show as changed" >&2
+            git diff --binary "$ref" HEAD | (cd "$worktree" && git apply) || {
+                echo "scripts/shots: could not apply HEAD's difference from $ref" >&2
+                exit 1
+            }
+        else
+            echo "scripts/shots: could not put the tooling on $ref: conflicts." >&2
+            echo "Compare against a ref that has radar shot, or merge the tooling first." >&2
+            exit 1
+        fi
+    fi
+fi
+
+echo "building $ref..." >&2
+before_bin=$(build "$worktree" "$target/shots-ref")
+draw "$before_bin" "$out/before"
+draw "$after_bin" "$out/after"
+places "$after_bin" > "$tmp/places"
+places "$before_bin" > "$tmp/places-before"
+
+# What changed: a place is changed when any of its SVGs differs, new when only
+# the working tree has it, gone when only the ref does.
+: > "$tmp/changed"
+: > "$tmp/same"
+: > "$tmp/new"
+while IFS="$(printf '\t')" read -r name title; do
+    if ! cut -f1 "$tmp/places-before" | grep -qx -- "$name"; then
+        echo "$name" >> "$tmp/new"
+        continue
+    fi
+    diff_found=0
+    for size in $(sizes_of); do
+        cmp -s "$out/before/${name}_${size}.svg" "$out/after/${name}_${size}.svg" || diff_found=1
+    done
+    if [ "$diff_found" -eq 1 ]; then
+        echo "$name" >> "$tmp/changed"
+    else
+        echo "$name" >> "$tmp/same"
+    fi
+done < "$tmp/places"
+cut -f1 "$tmp/places-before" | while read -r name; do
+    cut -f1 "$tmp/places" | grep -qx -- "$name" || echo "$name"
+done > "$tmp/gone"
+
+title_of() {
+    awk -F '\t' -v n="$1" '$1 == n { print $2; exit }' "$tmp/places"
+}
+
+n_changed=$(wc -l < "$tmp/changed" | tr -d ' ')
+n_same=$(wc -l < "$tmp/same" | tr -d ' ')
+n_new=$(wc -l < "$tmp/new" | tr -d ' ')
+n_gone=$(wc -l < "$tmp/gone" | tr -d ' ')
+{
+    page_head
+    echo '<header><h1>radar shots: '"$(printf '%s' "$ref" | esc)"' | working tree</h1><span class="note">'"$n_changed changed, $n_new new, $n_gone gone, $n_same unchanged"'</span><button id="page"></button></header>'
+    if [ "$n_changed" -eq 0 ]; then
+        echo '<p class="note">Nothing drawn differs from '"$(printf '%s' "$ref" | esc)"'.</p>'
+    fi
+    echo '<div class="grid">'
+    while read -r name; do
+        echo "<figure><figcaption><strong>$(title_of "$name" | esc)</strong><code>$name</code></figcaption>"
+        for size in $(sizes_of); do
+            if ! cmp -s "$out/before/${name}_${size}.svg" "$out/after/${name}_${size}.svg"; then
+                echo "<div class=\"size\">$size</div><div class=\"pair\">"
+                echo "<div><span>before ($(printf '%s' "$ref" | esc))</span><a href=\"before/${name}_${size}.svg\"><img loading=\"lazy\" alt=\"before\" src=\"before/${name}_${size}.${ext}\"></a></div>"
+                echo "<div><span>after (working tree)</span><a href=\"after/${name}_${size}.svg\"><img loading=\"lazy\" alt=\"after\" src=\"after/${name}_${size}.${ext}\"></a></div>"
+                echo "</div>"
+            fi
+        done
+        echo "</figure>"
+    done < "$tmp/changed"
+    while read -r name; do
+        echo "<figure><figcaption><strong>$(title_of "$name" | esc)</strong> <em>(new)</em><code>$name</code></figcaption>"
+        for size in $(sizes_of); do
+            echo "<div class=\"size\">$size</div><a href=\"after/${name}_${size}.svg\"><img loading=\"lazy\" alt=\"$name\" src=\"after/${name}_${size}.${ext}\"></a>"
+        done
+        echo "</figure>"
+    done < "$tmp/new"
+    echo '</div>'
+    if [ "$n_gone" -gt 0 ]; then
+        echo '<details><summary>'"$n_gone"' only in '"$(printf '%s' "$ref" | esc)"' (gone)</summary><ul>'
+        while read -r name; do echo "<li><code>$name</code></li>"; done < "$tmp/gone"
+        echo '</ul></details>'
+    fi
+    echo '<details><summary>'"$n_same"' unchanged</summary><ul>'
+    while read -r name; do echo "<li>$(title_of "$name" | esc) <code>$name</code></li>"; done < "$tmp/same"
+    echo '</ul></details>'
+    page_foot
+} > "$out/index.html"
+
+echo "compared with $ref: $n_changed changed, $n_new new, $n_gone gone, $n_same unchanged" >&2
+echo "$out/index.html"

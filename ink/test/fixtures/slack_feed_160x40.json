@@ -1,0 +1,603 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "chat",
+      "id": "",
+      "label": "Bob Builder's message"
+    },
+    {
+      "id": "slack.feed.open_thread",
+      "key": {
+        "key": "enter"
+      },
+      "label": "open its thread"
+    },
+    {
+      "id": "slack.feed.open_in_slack",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open it in Slack"
+    },
+    {
+      "id": "slack.feed.copy_message_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy its link"
+    },
+    {
+      "id": "slack.feed.mark_read",
+      "key": {
+        "key": {
+          "char": "m"
+        }
+      },
+      "label": "mark read up to here, in radar only"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "on Slack"
+    },
+    {
+      "change": "add",
+      "id": "slack.feed.reply",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "reply in its thread…"
+    },
+    {
+      "change": "add",
+      "id": "slack.feed.react",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "react to it…"
+    },
+    {
+      "heading": true,
+      "icon": "bot",
+      "id": "",
+      "label": "with an agent"
+    },
+    {
+      "id": "agent.send",
+      "key": {
+        "key": {
+          "char": "A"
+        }
+      },
+      "label": "ask an agent about it…"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "list"
+    },
+    {
+      "id": "slack.feed.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    },
+    {
+      "id": "slack.feed.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh"
+    },
+    {
+      "id": "slack.feed.filter",
+      "key": {
+        "key": {
+          "char": "/"
+        }
+      },
+      "label": "filter the list by words"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "panes": [
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "right": [
+              {
+                "ink": "info",
+                "text": "4"
+              }
+            ],
+            "target": "rail:0",
+            "text": [
+              {
+                "icon": "mention"
+              },
+              {
+                "ink": "emphasis",
+                "text": "For you"
+              }
+            ]
+          },
+          {
+            "target": "rail:1",
+            "text": [
+              {
+                "icon": "thread"
+              },
+              {
+                "ink": "emphasis",
+                "text": "Discussions"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "info",
+                "text": "6 NEW"
+              }
+            ],
+            "target": "rail:2",
+            "text": [
+              {
+                "look": "slack.cyan",
+                "text": "▌ "
+              },
+              {
+                "icon": "channel"
+              },
+              {
+                "ink": "emphasis",
+                "text": "#team"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "info",
+                "text": "1 NEW"
+              }
+            ],
+            "target": "rail:3",
+            "text": [
+              {
+                "look": "slack.orange",
+                "text": "▌ "
+              },
+              {
+                "icon": "channel"
+              },
+              {
+                "ink": "emphasis",
+                "text": "#svc"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "pane": "nav",
+      "title": "feed",
+      "width": 26
+    },
+    {
+      "body": {
+        "columns": [
+          {
+            "heading": "replies",
+            "icon": "reply",
+            "keep": 1,
+            "width": 9
+          },
+          {
+            "heading": "when",
+            "icon": "time",
+            "keep": 2,
+            "width": 10
+          }
+        ],
+        "header": [
+          {
+            "ink": "secondary",
+            "text": "last 7 days"
+          }
+        ],
+        "look": {
+          "band": "bg.overlay",
+          "band_level": 1,
+          "heading": "bg.overlay",
+          "lines": "text.muted"
+        },
+        "name_width": 30,
+        "node": "tree",
+        "open": [
+          [
+            "dms"
+          ],
+          [
+            "mentions"
+          ],
+          [
+            "threads"
+          ]
+        ],
+        "rows": [
+          {
+            "children": [
+              {
+                "cells": [
+                  {
+                    "heading": "when",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "1d"
+                      }
+                    ]
+                  }
+                ],
+                "id": "C0000TEAM1-1791184300.606900",
+                "name": [
+                  {
+                    "icon": "unread",
+                    "icon_lead": true,
+                    "ink": "accent",
+                    "text": "● "
+                  },
+                  {
+                    "look": "text.primary bold",
+                    "text": "#team "
+                  },
+                  {
+                    "ink": "emphasis",
+                    "text": "Bob B."
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "  @Alice Example could you take this one?"
+                  }
+                ]
+              }
+            ],
+            "id": "mentions",
+            "name": [
+              {
+                "icon": "mention"
+              },
+              {
+                "ink": "emphasis",
+                "text": "mentions you"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "cells": [
+                  {
+                    "heading": "when",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "1h"
+                      }
+                    ]
+                  }
+                ],
+                "id": "D0000CAROL-1791267400.000000",
+                "name": [
+                  {
+                    "icon": "unread",
+                    "icon_lead": true,
+                    "ink": "accent",
+                    "text": "● "
+                  },
+                  {
+                    "look": "text.primary bold",
+                    "text": "#D0000CAROL "
+                  },
+                  {
+                    "ink": "emphasis",
+                    "text": "Carol C."
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "  hi @Alice Example, quick question about the stats"
+                  }
+                ]
+              }
+            ],
+            "id": "dms",
+            "name": [
+              {
+                "icon": "mention"
+              },
+              {
+                "ink": "emphasis",
+                "text": "direct messages"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "cells": [
+                  {
+                    "heading": "when",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "1d"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "replies",
+                    "text": [
+                      {
+                        "icon": "reply"
+                      },
+                      {
+                        "ink": "secondary",
+                        "text": "1"
+                      }
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "when",
+                        "text": [
+                          {
+                            "ink": "muted",
+                            "text": "1d"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "1791184600.604800",
+                    "name": [
+                      {
+                        "ink": "emphasis",
+                        "text": "you"
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "  @Bob Builder can you look? see https://git.example/acme/team-a/api/-/merge_requests/263"
+                      }
+                    ]
+                  }
+                ],
+                "glow": "thread:C0000TEAM1/1791184000.609000",
+                "id": "1791184000.609000",
+                "name": [
+                  {
+                    "icon": "unread",
+                    "icon_lead": true,
+                    "ink": "accent",
+                    "text": "● "
+                  },
+                  {
+                    "look": "text.primary bold",
+                    "text": "#team "
+                  },
+                  {
+                    "ink": "emphasis",
+                    "strong": true,
+                    "text": "Carol C."
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "  Anyone seen ABC-12 failing on main? pipeline and make check"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "when",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "2d"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "replies",
+                    "text": [
+                      {
+                        "icon": "reply"
+                      },
+                      {
+                        "ink": "secondary",
+                        "text": "2"
+                      }
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "when",
+                        "text": [
+                          {
+                            "ink": "muted",
+                            "text": "2d"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "1791096400.222200",
+                    "name": [
+                      {
+                        "ink": "emphasis",
+                        "text": "you"
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "  looking 👀"
+                      }
+                    ]
+                  },
+                  {
+                    "cells": [
+                      {
+                        "heading": "when",
+                        "text": [
+                          {
+                            "ink": "muted",
+                            "text": "2d"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "1791098200.209600",
+                    "name": [
+                      {
+                        "ink": "emphasis",
+                        "text": "Carol C."
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "  approved, nice one"
+                      }
+                    ]
+                  }
+                ],
+                "glow": "thread:C0000TEAM1/1791094600.234800",
+                "id": "1791094600.234800",
+                "name": [
+                  {
+                    "icon": "unread",
+                    "icon_lead": true,
+                    "ink": "accent",
+                    "text": "● "
+                  },
+                  {
+                    "look": "text.primary bold",
+                    "text": "#team "
+                  },
+                  {
+                    "ink": "emphasis",
+                    "strong": true,
+                    "text": "Bob B."
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "  @review-squad :gitlab: mr Add a stats endpoint for the dashboard"
+                  }
+                ]
+              }
+            ],
+            "id": "threads",
+            "name": [
+              {
+                "icon": "thread"
+              },
+              {
+                "ink": "emphasis",
+                "text": "threads you are in"
+              }
+            ]
+          }
+        ],
+        "selected": [
+          "mentions",
+          "C0000TEAM1-1791184300.606900"
+        ]
+      },
+      "notes": [
+        [
+          {
+            "ink": "secondary",
+            "text": "mentions, messages and new replies in the last 7 days"
+          }
+        ]
+      ],
+      "notes_most": 4,
+      "pane": "middle",
+      "title": "For you"
+    },
+    {
+      "body": {
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "secondary",
+                "text": "── #team · yesterday ──"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "accent",
+                "text": "● "
+              },
+              {
+                "ink": "muted",
+                "text": "09:11"
+              },
+              {
+                "ink": "emphasis",
+                "text": "  Bob Builder"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "primary",
+                "text": "    @Alice Example could you take this one?"
+              }
+            ]
+          }
+        ],
+        "node": "rich",
+        "pictures": "slack"
+      },
+      "pane": "detail",
+      "title": "Bob Builder's message"
+    }
+  ],
+  "scope": "feed",
+  "version": 1
+}

@@ -1,0 +1,28 @@
+---
+source: crates/radar-git/src/screen/removal_tests.rs
+expression: stale
+---
+ radar    Branches   History   Settings (,)   synced 20s ago · every 1m  ✎ edit
+╭ all ─────────────────────────────────────────────────────────────────────────╮
+│ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  DIRTY      STASH  UPDATED  │
+│api  on main  ● in use              —      —       clean      —      2961w    │
+│  ├─ api-hotfix  on hotfix          —      —       2 changed  —      2961w    │
+│  ├─ main  ● here                   —      —       clean      —      2961w    │
+│  └─ hotfix  ● in api-hotfix        —      —       2 changed  —      2961w    │
+│web  on main                        —      —       clean      —      4d       │
+│  └─ main  ● here                   —      —       clean      —      4d       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ every clone, its worktrees and its local branches                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ BRANCHES   worktree changed: press d to review removal again           1 dirty

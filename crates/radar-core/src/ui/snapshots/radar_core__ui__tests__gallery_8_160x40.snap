@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1000
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Motion
+ The kit: every element on sample data                                                                                                            colours: none
+ Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  [Motion]  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons
+╭ items ───────────────────────────────────────────────────────────────╮╭ motion ──────────────────────────────────────────────────────────────────────────────╮
+│  Atlas of the north                                          on loan ││ level  full  everything: also pages, new rows, messages and loading                  │
+│  Birds of the coast                                          shelved ││                                                                                      │
+│  Clocks and their makers                                     on loan ││  s  a screen switch: the body fades in  · subtle                                     │
+│  Dyes from plants                                            shelved ││  m  a menu or confirm sweeps open (again: closes)  · subtle                          │
+│  Engines, a history                                          missing ││  g  rows a sync changed glow and fade  · subtle                                      │
+│  Ferns of the valleys                                        shelved ││  p  an item's page slides in  · full                                                 │
+│  Glass and its uses                                          on loan ││  n  a new row sweeps in at the top  · full                                           │
+│                                                                      ││  t  a message fades in (again: fades out)  · full                                    │
+│                                                                      ││  l  a panel waiting for data shimmers (again: stops)  · full                         │
+│                                                                      ││  f  full, subtle, off                                                                │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      │╰──────────────────────────────────────────────────────────────────────────────────────╯
+│                                                                      │╭ waiting ─────────────────────────────────────────────────────────────────────────────╮
+│                                                                      ││ Nothing to wait for.                                                                 │
+╰──────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────────────────────╯
+
+ [ ] tabs   s m g p n t l effects   f level   c colours   q quit

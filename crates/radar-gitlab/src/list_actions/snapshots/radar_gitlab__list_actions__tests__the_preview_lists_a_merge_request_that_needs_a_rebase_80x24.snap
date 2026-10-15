@@ -1,0 +1,28 @@
+---
+source: crates/radar-gitlab/src/list_actions/tests.rs
+expression: "shown_preview(p, 80, 24)"
+---
+ radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+╭ views ───────────────╮╭ api !410 ────────────────────────────────────────────╮
+│ Everything           ││ a api  !410                                          █
+│ Needs my action    4 ││ ABC-410: Page the stats                              █
+│ Opened by me         ││ you · feature/ABC-410 → main · 0s ago                █
+│ Opened by teammates  ││                                                      █
+│ Opened by bots       ││  yours, and it needs fixing                          █
+│                      ││                                                      █
+│                      ││ STATE ────────────────────────────────────────────── █
+│                      ││   ▷ needs rebase                                     █
+│                      ││                                                      █
+│                      ││ ACTIONS ──────────────────────────────────────────── █
+│                      ││   rebase onto main                               [u] █
+│                      ││   merge · needs rebase                           [m] █
+│                      ││   approve                                        [e] █
+│                      ││   open in GitLab                                 [o] █
+│                      ││   copy link                                      [y] █
+│                      ││                                                      ║
+│                      ││ PIPELINE  passed · 6m 12s ────────────────────────── ║
+│                      ││   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ║
+│                      ││   ✓ build          ✓ test           ▷ deploy         ║
+│                      ││                                                      ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ REPOSITORIES   u rebase   b bulk   q quit   x menu                      gitlab

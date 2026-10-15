@@ -1,0 +1,423 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "found in /work/acme/.mcp.json"
+    },
+    {
+      "id": "jira.connection.use_offer",
+      "key": {
+        "key": "enter"
+      },
+      "label": "use it"
+    },
+    {
+      "id": "jira.connection.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " ? "
+          },
+          {
+            "ink": "secondary",
+            "text": "Found: "
+          },
+          {
+            "ink": "primary",
+            "strong": true,
+            "text": "a Jira site"
+          },
+          {
+            "ink": "muted",
+            "text": " (gamma.atlassian.net, JIRA_EMAIL)"
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": ". Use it?"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " ? "
+          },
+          {
+            "ink": "secondary",
+            "text": "Found in your environment: "
+          },
+          {
+            "ink": "primary",
+            "strong": true,
+            "text": "a Jira site"
+          },
+          {
+            "ink": "muted",
+            "text": " (JIRA_OTHER_URL, …)"
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": ". Use it?"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a site"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste its link, e.g. https://acme.atlassian.net"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   acme.atlassian.net · 2 projects"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "look": "jira.blue",
+            "text": "▌ "
+          },
+          {
+            "look": "jira.blue bold",
+            "text": "acme"
+          }
+        ]
+      },
+      {
+        "target": "row:4",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "site            "
+          },
+          {
+            "ink": "primary",
+            "text": "https://acme.atlassian.net"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "account         "
+          },
+          {
+            "ink": "primary",
+            "text": "alice@example.com"
+          }
+        ]
+      },
+      {
+        "target": "row:6",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "token           "
+          },
+          {
+            "ink": "primary",
+            "text": "env:RADAR_JIRA_TEST_TOKEN"
+          }
+        ]
+      },
+      {
+        "target": "row:7",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "signed in as    "
+          },
+          {
+            "ink": "primary",
+            "text": "Alice Example"
+          }
+        ]
+      },
+      {
+        "target": "row:8",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   └─ "
+          },
+          {
+            "ink": "muted",
+            "text": "check           "
+          },
+          {
+            "ink": "muted",
+            "text": "not checked yet"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   beta.atlassian.net · 1 project"
+          }
+        ],
+        "target": "row:9",
+        "text": [
+          {
+            "look": "jira.green",
+            "text": "▌ "
+          },
+          {
+            "look": "jira.green bold",
+            "text": "beta"
+          }
+        ]
+      },
+      {
+        "target": "row:10",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "site            "
+          },
+          {
+            "ink": "primary",
+            "text": "https://beta.atlassian.net"
+          }
+        ]
+      },
+      {
+        "target": "row:11",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "account         "
+          },
+          {
+            "ink": "primary",
+            "text": "alice@example.com"
+          }
+        ]
+      },
+      {
+        "target": "row:12",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "token           "
+          },
+          {
+            "ink": "primary",
+            "text": "env:RADAR_JIRA_TEST_TOKEN"
+          }
+        ]
+      },
+      {
+        "target": "row:13",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   ├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "signed in as    "
+          },
+          {
+            "ink": "primary",
+            "text": "—"
+          }
+        ]
+      },
+      {
+        "target": "row:14",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   └─ "
+          },
+          {
+            "ink": "muted",
+            "text": "check           "
+          },
+          {
+            "ink": "muted",
+            "text": "not checked yet"
+          }
+        ]
+      },
+      {
+        "target": "row:15",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "refresh         "
+          },
+          {
+            "ink": "primary",
+            "text": "every 2m"
+          }
+        ]
+      },
+      {
+        "target": "row:16",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "on start        "
+          },
+          {
+            "ink": "primary",
+            "text": "ask first"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "radar found a Jira site in /work/acme/.mcp.json. Do you want to use it?"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "FOUND"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "gamma.atlassian.net  "
+      },
+      {
+        "ink": "secondary",
+        "text": "the site's address, as written"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "JIRA_EMAIL           "
+      },
+      {
+        "ink": "secondary",
+        "text": "the account"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "primary",
+        "text": "radar stores only the variables' names (env:NAME) and reads their values each time it starts. It never shows the values or saves them."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "primary",
+        "text": "It is the file's \"tools\" entry. It also watches GAM (acceptance criteria in customfield_10044). Its token is typed into the file: radar does not copy it, and asks which variable holds it."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "IF YOU USE IT"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "radar adds the site gamma and asks which variable holds its token."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "⏎ uses it"
+      }
+    ]
+  ],
+  "detail_title": "found in /work/acme/.mcp.json",
+  "scope": "connection",
+  "version": 1
+}

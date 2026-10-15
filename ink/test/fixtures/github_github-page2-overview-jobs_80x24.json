@@ -1,0 +1,206 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "acme/api run 501 · attempt 2"
+    },
+    {
+      "id": "github.actions.open_on_github",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open on GitHub"
+    },
+    {
+      "id": "github.actions.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the link"
+    },
+    {
+      "id": "github.actions.choose_attempt",
+      "key": {
+        "key": {
+          "char": "a"
+        }
+      },
+      "label": "choose an observed run attempt…"
+    },
+    {
+      "id": "github.actions.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh these Actions"
+    },
+    {
+      "id": "github.actions.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab"
+    },
+    {
+      "id": "github.actions.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab"
+    },
+    {
+      "id": "github.actions.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the previous page"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "medium_from": 70,
+  "page": {
+    "crumbs": [
+      {
+        "ink": "muted",
+        "text": "GitHub"
+      },
+      {
+        "ink": "secondary",
+        "text": "acme/api"
+      },
+      {
+        "ink": "secondary",
+        "text": "run 501 · attempt 2"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "workflow  Build and test"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "result  failure"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "run  #88 · id 501 · attempt 2"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "latest observed attempt  2"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "event  push"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "branch  main"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "created  2026-10-06T10:00:00Z"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "updated  2026-10-06T10:05:00Z"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "Keep responses with their request"
+                }
+              ]
+            }
+          ],
+          "node": "rich"
+        },
+        "pane": "middle",
+        "title": "Overview"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "label": "Overview"
+      },
+      {
+        "label": "Jobs"
+      }
+    ],
+    "title": [
+      {
+        "ink": "emphasis",
+        "text": "Build and test · run 501 · attempt 2"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "github",
+  "version": 1
+}

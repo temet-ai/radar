@@ -1,0 +1,357 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "workspace"
+    },
+    {
+      "id": "slack.connection.check",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "check the connection"
+    },
+    {
+      "id": "slack.connection.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "workspace       "
+          },
+          {
+            "ink": "secondary",
+            "text": "Acme · https://acme.slack.com"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "api             "
+          },
+          {
+            "ink": "primary",
+            "text": "https://slack.com"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "token           "
+          },
+          {
+            "ink": "primary",
+            "text": "xoxp…ests (typed in)"
+          }
+        ]
+      },
+      {
+        "target": "row:3",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "signed in as    "
+          },
+          {
+            "ink": "primary",
+            "text": "Alice Example"
+          },
+          {
+            "ink": "muted",
+            "text": "  alice"
+          }
+        ]
+      },
+      {
+        "target": "row:4",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "check           "
+          },
+          {
+            "ink": "muted",
+            "text": "not checked yet"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "refresh         "
+          },
+          {
+            "ink": "primary",
+            "text": "every 2m"
+          }
+        ]
+      },
+      {
+        "target": "row:6",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "read back       "
+          },
+          {
+            "ink": "primary",
+            "text": "7 days"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "✓"
+          }
+        ],
+        "target": "row:7",
+        "text": [
+          {
+            "ink": "muted",
+            "text": " permissions   "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "public channels "
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "✓"
+          }
+        ],
+        "target": "row:8",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "private channels"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "✓"
+          }
+        ],
+        "target": "row:9",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "for you         "
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "✓"
+          }
+        ],
+        "target": "row:10",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "names           "
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "✓"
+          }
+        ],
+        "target": "row:11",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "user groups     "
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "✓"
+          }
+        ],
+        "target": "row:12",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "asking and replying"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "warn",
+            "text": "needs reactions:write"
+          }
+        ],
+        "right": [
+          {
+            "ink": "warn",
+            "text": "✗"
+          }
+        ],
+        "target": "row:13",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "└─ "
+          },
+          {
+            "ink": "muted",
+            "text": "reacting        "
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "CHECKED"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "not checked yet"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "Acme · https://acme.slack.com"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "primary",
+        "text": "The Slack workspace the token is for: a user token belongs to one. The check finds it."
+      }
+    ]
+  ],
+  "detail_title": "workspace",
+  "scope": "connection",
+  "version": 1
+}

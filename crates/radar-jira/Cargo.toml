@@ -1,0 +1,27 @@
+[package]
+name = "radar-jira"
+description = "radar plugin: Jira tickets across sites, with views in words, a ticket page and sites settings"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+radar-core.workspace = true
+anyhow.workspace = true
+base64.workspace = true
+clap.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+
+# Sample data for `radar shot` (Plugin::demo); the tests always have it.
+[features]
+demo = []
+
+[dev-dependencies]
+insta.workspace = true
+tokio.workspace = true

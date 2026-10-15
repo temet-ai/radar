@@ -1,0 +1,729 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "Ship explicit work-item navigation"
+    },
+    {
+      "change": "add",
+      "id": "work.new",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "label": "create a local task…"
+    },
+    {
+      "id": "work.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh local work"
+    },
+    {
+      "id": "work.filter",
+      "key": {
+        "key": {
+          "char": "/"
+        }
+      },
+      "label": "filter this item page…"
+    },
+    {
+      "change": "add",
+      "id": "work.group",
+      "key": {
+        "key": {
+          "char": "t"
+        }
+      },
+      "label": "apply local group label…"
+    },
+    {
+      "id": "work.evidence",
+      "key": {
+        "key": {
+          "char": "v"
+        }
+      },
+      "label": "inspect bounded evidence…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "panes": [
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "[\"group\",\"all\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]",
+            "text": [
+              {
+                "text": "All items"
+              }
+            ]
+          },
+          {
+            "target": "[\"group\",\"10000000-0000-4000-8000-000000000016\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]",
+            "text": [
+              {
+                "text": "release candidate"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "footer": [
+        {
+          "ink": "muted",
+          "text": "Groups · page 1"
+        }
+      ],
+      "pane": "nav",
+      "title": "local groups",
+      "width": 25
+    },
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "task"
+              }
+            ],
+            "target": "[\"item\",\"10000000-0000-4000-8000-000000000001\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "text": [
+              {
+                "text": "Ship explicit work-item navigation"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "pull-request"
+              }
+            ],
+            "target": "[\"item\",\"10000000-0000-4000-8000-000000000006\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "text": [
+              {
+                "text": "pull-request · acme/api/7"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "ticket"
+              }
+            ],
+            "target": "[\"item\",\"10000000-0000-4000-8000-00000000000a\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "text": [
+              {
+                "text": "ticket · ABC-12"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "checkout"
+              }
+            ],
+            "target": "[\"item\",\"10000000-0000-4000-8000-00000000000e\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "text": [
+              {
+                "text": "checkout · /home/user/projects/api"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "workflow-run"
+              }
+            ],
+            "target": "[\"item\",\"10000000-0000-4000-8000-000000000012\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "text": [
+              {
+                "text": "workflow-run · acme/api/42/1"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "pane": "middle",
+      "title": "work items · page 1"
+    },
+    {
+      "body": {
+        "empty": "No linked sources.",
+        "node": "entries",
+        "rows": [
+          {
+            "before": [
+              [
+                {
+                  "ink": "muted",
+                  "text": "Exact sources · j/k select · x actions"
+                }
+              ]
+            ],
+            "body": [
+              [
+                {
+                  "ink": "info",
+                  "text": "authored"
+                }
+              ],
+              [
+                {
+                  "ink": "info",
+                  "text": "Local work saved."
+                }
+              ],
+              [
+                {
+                  "ink": "emphasis",
+                  "text": "Ship explicit work-item navigation"
+                }
+              ],
+              [
+                {
+                  "text": "Local groups: release candidate"
+                }
+              ],
+              [
+                {
+                  "text": "Selected pull-request: acme/api/7"
+                }
+              ],
+              [
+                {
+                  "ink": "info",
+                  "text": "authored link · c copy locator · x actions"
+                }
+              ],
+              [
+                {
+                  "text": "Locator event in this page: source.selected"
+                }
+              ],
+              [
+                {
+                  "text": "· requested"
+                }
+              ],
+              [
+                {
+                  "ink": "info",
+                  "text": "v history: original claims and outcomes ·"
+                }
+              ],
+              [
+                {
+                  "ink": "info",
+                  "text": "completeness not guaranteed"
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "Titles and groups are authored locally."
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "Relations do not imply identity, permission"
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "or completion."
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "Task item ID:"
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "10000000-0000-4000-8000-000000000001"
+                }
+              ],
+              [
+                {
+                  "ink": "emphasis",
+                  "text": "Source identity details"
+                }
+              ],
+              [
+                {
+                  "text": "Provider: forge"
+                }
+              ],
+              [
+                {
+                  "text": "Instance: https://forge.example/"
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "Source item:"
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "10000000-0000-4000-8000-000000000006"
+                }
+              ],
+              [
+                {
+                  "ink": "muted",
+                  "text": "Action interval: 1 through open-ended"
+                }
+              ]
+            ],
+            "head": [
+              {
+                "ink": "primary",
+                "text": "pull-request · acme/api/7"
+              }
+            ],
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-000000000006\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"pull-request\\\",\\\"id\\\":\\\"acme/api/7\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+          },
+          {
+            "body": [
+              [
+                {
+                  "ink": "info",
+                  "text": "authored"
+                }
+              ]
+            ],
+            "head": [
+              {
+                "ink": "primary",
+                "text": "ticket · ABC-12"
+              }
+            ],
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-00000000000a\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"ticket\\\",\\\"id\\\":\\\"ABC-12\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+          },
+          {
+            "body": [
+              [
+                {
+                  "ink": "info",
+                  "text": "authored"
+                }
+              ]
+            ],
+            "head": [
+              {
+                "ink": "primary",
+                "text": "checkout · /home/user/projects/api"
+              }
+            ],
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-00000000000e\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"checkout\\\",\\\"id\\\":\\\"/home/user/projects/api\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+          },
+          {
+            "body": [
+              [
+                {
+                  "ink": "info",
+                  "text": "authored"
+                }
+              ]
+            ],
+            "head": [
+              {
+                "ink": "primary",
+                "text": "workflow-run · acme/api/42/1"
+              }
+            ],
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-000000000012\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"workflow-run\\\",\\\"id\\\":\\\"acme/api/42/1\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+          }
+        ],
+        "selected": 0
+      },
+      "notes": [
+        [
+          {
+            "ink": "muted",
+            "text": "Observations only. Relations grant no identity, permission or completion."
+          }
+        ]
+      ],
+      "notes_most": 5,
+      "pane": "detail",
+      "title": "linked sources and context"
+    },
+    {
+      "body": {
+        "capability": "work.map",
+        "data": {
+          "groups": [
+            {
+              "ambiguous": false,
+              "label": "release candidate",
+              "selected": false,
+              "target": "[\"group\",\"10000000-0000-4000-8000-000000000016\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]"
+            }
+          ],
+          "items": [
+            {
+              "kind": "task",
+              "selected": true,
+              "target": "[\"item\",\"10000000-0000-4000-8000-000000000001\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "title": "Ship explicit work-item navigation"
+            },
+            {
+              "kind": "pull-request",
+              "selected": false,
+              "target": "[\"item\",\"10000000-0000-4000-8000-000000000006\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "title": "pull-request · acme/api/7"
+            },
+            {
+              "kind": "ticket",
+              "selected": false,
+              "target": "[\"item\",\"10000000-0000-4000-8000-00000000000a\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "title": "ticket · ABC-12"
+            },
+            {
+              "kind": "checkout",
+              "selected": false,
+              "target": "[\"item\",\"10000000-0000-4000-8000-00000000000e\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "title": "checkout · /home/user/projects/api"
+            },
+            {
+              "kind": "workflow-run",
+              "selected": false,
+              "target": "[\"item\",\"10000000-0000-4000-8000-000000000012\",{\"database_id\":\"82b221f6-dd1e-4fcc-bfcd-9a34a59f0608\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "title": "workflow-run · acme/api/42/1"
+            }
+          ],
+          "omitted": 0,
+          "pending": false,
+          "target": "work-area:map"
+        },
+        "fallback": {
+          "lines": [
+            [
+              {
+                "ink": "muted",
+                "text": "1 groups · 5 items on page 1"
+              }
+            ],
+            [
+              {
+                "ink": "accent",
+                "strong": true,
+                "text": "Ship explicit work-item navigation · task"
+              }
+            ],
+            [
+              {
+                "text": "pull-request · acme/api/7 · pull-request"
+              }
+            ],
+            [
+              {
+                "text": "ticket · ABC-12 · ticket"
+              }
+            ],
+            [
+              {
+                "text": "checkout · /home/user/projects/api · checkout"
+              }
+            ],
+            [
+              {
+                "text": "workflow-run · acme/api/42/1 · workflow-run"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "node": "extension",
+        "version": 1
+      },
+      "pane": "detail",
+      "title": "map"
+    },
+    {
+      "body": {
+        "capability": "work.timeline",
+        "data": {
+          "entries": [
+            {
+              "label": "map · authored",
+              "sequence": 1
+            },
+            {
+              "label": "map · authored",
+              "sequence": 2
+            },
+            {
+              "label": "map · authored",
+              "sequence": 3
+            },
+            {
+              "label": "map · authored",
+              "sequence": 6
+            },
+            {
+              "label": "map · authored",
+              "sequence": 9
+            },
+            {
+              "label": "map · authored",
+              "sequence": 12
+            },
+            {
+              "label": "map · authored",
+              "sequence": 15
+            },
+            {
+              "label": "map · authored",
+              "sequence": 16
+            },
+            {
+              "label": "map · authored",
+              "sequence": 17
+            }
+          ],
+          "omitted": 0,
+          "pending": false,
+          "status": "complete",
+          "target": "work-area:timeline"
+        },
+        "fallback": {
+          "lines": [
+            [
+              {
+                "text": "#1 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#2 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#3 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#6 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#9 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#12 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#15 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#16 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#17 map · authored"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "node": "extension",
+        "version": 1
+      },
+      "pane": "detail",
+      "title": "timeline"
+    },
+    {
+      "body": {
+        "capability": "work.tabs",
+        "data": {
+          "pending": false,
+          "tabs": [
+            {
+              "active": false,
+              "id": "item",
+              "label": "00000001"
+            },
+            {
+              "active": true,
+              "count": 4,
+              "id": "sources",
+              "label": "linked sources"
+            },
+            {
+              "active": false,
+              "id": "evidence",
+              "label": "evidence"
+            }
+          ],
+          "target": "work-area:tabs"
+        },
+        "fallback": {
+          "lines": [
+            [
+              {
+                "text": "○ 00000001"
+              }
+            ],
+            [
+              {
+                "text": "● linked sources"
+              }
+            ],
+            [
+              {
+                "text": "○ evidence"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "node": "extension",
+        "version": 1
+      },
+      "pane": "detail",
+      "title": "tabs"
+    },
+    {
+      "body": {
+        "capability": "work.rail",
+        "data": {
+          "actions": [
+            {
+              "id": "work.new",
+              "key": {
+                "key": {
+                  "char": "n"
+                }
+              },
+              "label": "create a local task…"
+            },
+            {
+              "id": "work.refresh",
+              "key": {
+                "key": {
+                  "char": "r"
+                }
+              },
+              "label": "refresh local work"
+            },
+            {
+              "id": "work.filter",
+              "key": {
+                "key": {
+                  "char": "/"
+                }
+              },
+              "label": "filter this item page…"
+            },
+            {
+              "id": "work.group",
+              "key": {
+                "key": {
+                  "char": "t"
+                }
+              },
+              "label": "apply local group label…"
+            },
+            {
+              "id": "work.evidence",
+              "key": {
+                "key": {
+                  "char": "v"
+                }
+              },
+              "label": "inspect bounded evidence…"
+            }
+          ],
+          "pending": false,
+          "target": "work-area:rail"
+        },
+        "fallback": {
+          "lines": [
+            [
+              {
+                "text": "create a local task…"
+              }
+            ],
+            [
+              {
+                "text": "refresh local work"
+              }
+            ],
+            [
+              {
+                "text": "filter this item page…"
+              }
+            ],
+            [
+              {
+                "text": "apply local group label…"
+              }
+            ],
+            [
+              {
+                "text": "inspect bounded evidence…"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "node": "extension",
+        "version": 1
+      },
+      "pane": "detail",
+      "title": "actions"
+    }
+  ],
+  "scope": "work",
+  "version": 1
+}

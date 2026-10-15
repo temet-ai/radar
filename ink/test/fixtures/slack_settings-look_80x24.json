@@ -1,0 +1,597 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "density"
+    },
+    {
+      "id": "slack.look.toggle",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "switch to cozy"
+    },
+    {
+      "id": "slack.look.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "heading": true,
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "MESSAGES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "how a thread's messages are laid out"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "compact"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "ink": "primary",
+            "text": "density  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "who wrote a message"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "links and keys"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "accent.secondary",
+            "text": "author   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the reader, in place of their own name"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "accent"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "accent.primary",
+            "text": "you      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a mention of you or your groups"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "warning · bold"
+          }
+        ],
+        "target": "row:4",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.warning bold",
+            "text": "pinged   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a mention of someone else, a group or a channel"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "third accent"
+          }
+        ],
+        "target": "row:5",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "accent.tertiary",
+            "text": "mention  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a link"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "info · underline"
+          }
+        ],
+        "target": "row:6",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.info underline",
+            "text": "link     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a custom emoji, shown as its :name:"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:7",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "emoji    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "code, inline or in a block"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "data string"
+          }
+        ],
+        "target": "row:8",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "data.string",
+            "text": "code     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a quoted line"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "secondary text · italic"
+          }
+        ],
+        "target": "row:9",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.secondary italic",
+            "text": "quote    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "what is new since you caught up"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "success · bold"
+          }
+        ],
+        "target": "row:10",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.success bold",
+            "text": "new      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "when"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:11",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "time     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a channel's name"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "main text · bold"
+          }
+        ],
+        "target": "row:12",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.primary bold",
+            "text": "channel  "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:13",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "MESSAGES TREE"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the shade behind every other thread"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "overlays"
+          }
+        ],
+        "target": "row:14",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "bg.overlay",
+            "text": "band     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the shade behind a day's or a group's heading"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "overlays"
+          }
+        ],
+        "target": "row:15",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "bg.overlay",
+            "text": "heading  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the tree lines joining threads and replies"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:16",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "lines    "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:17",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "ALERTS"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "an alert that is firing"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "error · bold"
+          }
+        ],
+        "target": "row:18",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.error bold",
+            "text": "firing   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a job that failed"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "error · bold"
+          }
+        ],
+        "target": "row:19",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.error bold",
+            "text": "failed   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "an alert that resolved"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "success"
+          }
+        ],
+        "target": "row:20",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.success",
+            "text": "resolved "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "an alert's priority"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "warning"
+          }
+        ],
+        "target": "row:21",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "status.warning",
+            "text": "priority "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "an alert no rule places, and its group"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text · italic"
+          }
+        ],
+        "target": "row:22",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted italic",
+            "text": "unmapped "
+          }
+        ]
+      }
+    ],
+    "selected": 1
+  },
+  "detail": [
+    [
+      {
+        "text": "How the messages of a thread, the detail pane and a direct message are laid out."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "compact  "
+      },
+      {
+        "ink": "good",
+        "text": "in use"
+      }
+    ],
+    [
+      {
+        "text": "One line a message: the time, the author in a column, then the text. The author is left blank for the same person within five minutes. A thin line marks a new day, and a thread's replies sit under one divider. In a narrow panel the author and time take a line and the text sits under it."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "cozy     "
+      },
+      {
+        "ink": "good"
+      }
+    ],
+    [
+      {
+        "text": "The roomier layout: the author, place and date on a line, the text under it, the reactions on a line of their own, a blank line between messages, and replies two cells in."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [slack] density = \"compact\" or \"cozy\""
+      }
+    ]
+  ],
+  "detail_title": "density",
+  "scope": "look",
+  "version": 1
+}

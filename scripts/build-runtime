@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Build radar's JavaScript runtime: the Ink renderer and the Claude Code sidecar
+# (runtime/entry.mjs) bundled into one Node single executable, radar-js, which the
+# radar binary embeds when RADAR_RUNTIME_EMBED names it (build.rs). Prints its path.
+#
+#   scripts/build-runtime            into target/runtime
+#   scripts/build-runtime DIR        into DIR
+#
+# Needs node 25.5 or later (`node --build-sea`) and npm. The executable is
+# built from the node that runs this script, so it is for this machine's
+# platform: the release builds one per target on that target's runner.
+# Works with bash 3.2 (macOS) and GNU or BSD tools; on Windows under Git Bash.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+root=$(pwd)
+out="${1:-target/runtime}"
+mkdir -p "$out"
+out=$(cd "$out" && pwd)
+
+if ! node --help 2>/dev/null | grep -q -- '--build-sea'; then
+    echo "build-runtime: node $(node --version 2>/dev/null || echo missing) cannot build a single executable; needs node 25.5 or later" >&2
+    exit 1
+fi
+
+exe=""
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) exe=".exe" ;;
+esac
+
+(cd ink && npm ci --no-audit --no-fund && npm run bundle)
+(cd sidecars/claude-agent && npm ci --omit=optional --no-audit --no-fund)
+
+# Anthropic's Agent SDK is left out: the sidecar fetches it from npm on first use
+# (sidecars/claude-agent/src/sdk.js), so radar ships none of Anthropic's code.
+"$root/ink/node_modules/.bin/esbuild" runtime/entry.mjs --bundle --platform=node --format=esm \
+    --target=node24 --outfile="$out/radar-js.mjs" --log-level=warning \
+    --external:@anthropic-ai/claude-agent-sdk
+if grep -q 'Anthropic PBC' "$out/radar-js.mjs"; then
+    echo "build-runtime: the runtime carries Anthropic's code; the SDK must stay external" >&2
+    exit 1
+fi
+
+# The executable starts as a copy of node. Debug symbols are stripped first:
+# stripping after the build drops the embedded script. macOS signatures are
+# taken off before the change and an ad hoc one put back after it.
+base="$out/node$exe"
+cp "$(node -p process.execPath)" "$base"
+chmod u+w "$base"
+case "$(uname -s)" in
+    Darwin)
+        codesign --remove-signature "$base"
+        strip -x "$base"
+        ;;
+    Linux)
+        strip "$base"
+        ;;
+esac
+
+cat > "$out/sea.json" <<EOF
+{
+  "main": "$out/radar-js.mjs",
+  "mainFormat": "module",
+  "executable": "$base",
+  "output": "$out/radar-js$exe",
+  "disableExperimentalSEAWarning": true,
+  "useCodeCache": false
+}
+EOF
+node --build-sea "$out/sea.json" >/dev/null
+rm "$base"
+if [ "$(uname -s)" = Darwin ]; then
+    codesign --sign - "$out/radar-js"
+fi
+
+# It must start and answer as the sidecar. A first start can be slow (a cold
+# disk, a fresh signature being checked), so it gets three tries.
+for try in 1 2 3; do
+    reply=$(printf '{"id":1,"op":"hello"}\n' | "$out/radar-js$exe" claude-agent 2>/dev/null | head -n 1 || true)
+    case "$reply" in
+        *'"type":"ready"'*) break ;;
+    esac
+    if [ "$try" = 3 ]; then
+        echo "build-runtime: $out/radar-js$exe did not start after 3 tries: $reply" >&2
+        exit 1
+    fi
+    sleep 2
+done
+echo "$out/radar-js$exe"

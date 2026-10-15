@@ -1,0 +1,615 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "ABC-12"
+    },
+    {
+      "id": "jira.tickets.open_in_jira",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open it in Jira"
+    },
+    {
+      "id": "jira.tickets.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy its link"
+    },
+    {
+      "id": "jira.tickets.copy_key",
+      "key": {
+        "key": {
+          "char": "Y"
+        }
+      },
+      "label": "copy ABC-12"
+    },
+    {
+      "id": "jira.tickets.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "on Jira"
+    },
+    {
+      "change": "edit",
+      "id": "jira.tickets.move",
+      "key": {
+        "key": {
+          "char": "t"
+        }
+      },
+      "label": "move ABC-12 to another status…"
+    },
+    {
+      "change": "add",
+      "id": "jira.tickets.comment",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "comment on ABC-12…"
+    },
+    {
+      "change": "edit",
+      "id": "jira.tickets.assign_me",
+      "key": {
+        "key": {
+          "char": "i"
+        }
+      },
+      "label": "assign to me · ABC-12 is already yours"
+    },
+    {
+      "change": "add",
+      "id": "jira.tickets.new_ticket",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "label": "new ticket in ABC…"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "page"
+    },
+    {
+      "id": "jira.tickets.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab: Comments"
+    },
+    {
+      "id": "jira.tickets.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab: Notes"
+    },
+    {
+      "id": "agent.send",
+      "key": {
+        "key": {
+          "char": "A"
+        }
+      },
+      "label": "ask an agent about it…"
+    },
+    {
+      "id": "jira.tickets.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the middle pane"
+    },
+    {
+      "id": "jira.tickets.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Jira"
+      },
+      {
+        "look": "jira.blue bold",
+        "text": "acme"
+      },
+      {
+        "ink": "secondary",
+        "text": "ABC"
+      },
+      {
+        "look": "accent.secondary",
+        "text": "ABC-12"
+      }
+    ],
+    "details": [
+      {
+        "icon": "in_progress",
+        "look": "status.info bold",
+        "text": "◐"
+      },
+      {
+        "look": "status.info bold",
+        "text": " In Progress"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "look": "status.success",
+        "text": "Story"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "icon": "you"
+      },
+      {
+        "look": "accent.primary",
+        "text": "you"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "loading…"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "status        "
+                },
+                {
+                  "icon": "in_progress",
+                  "look": "status.info bold",
+                  "text": "◐"
+                },
+                {
+                  "look": "status.info bold",
+                  "text": " In Progress"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "type          "
+                },
+                {
+                  "look": "status.success",
+                  "text": "Story"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "priority      "
+                },
+                {
+                  "icon": "priority_medium"
+                },
+                {
+                  "ink": "primary",
+                  "text": "Medium"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "assignee      "
+                },
+                {
+                  "icon": "you"
+                },
+                {
+                  "look": "accent.primary",
+                  "text": "you"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "reporter      "
+                },
+                {
+                  "icon": "person"
+                },
+                {
+                  "ink": "primary",
+                  "text": "Bob Example"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "sprint        "
+                },
+                {
+                  "ink": "muted",
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "parent        "
+                },
+                {
+                  "look": "accent.secondary",
+                  "text": "ABC-1 "
+                },
+                {
+                  "ink": "primary",
+                  "text": "Dashboard for the stats"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "labels        "
+                },
+                {
+                  "icon": "label"
+                },
+                {
+                  "look": "accent.secondary",
+                  "text": "#backend"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "components    "
+                },
+                {
+                  "ink": "muted",
+                  "text": "—"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "fix versions  "
+                },
+                {
+                  "ink": "muted",
+                  "text": "—"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "created       "
+                },
+                {
+                  "icon": "calendar"
+                },
+                {
+                  "ink": "primary",
+                  "text": "2w ago"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "updated       "
+                },
+                {
+                  "icon": "updated"
+                },
+                {
+                  "ink": "primary",
+                  "text": "1h ago"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "DESCRIPTION"
+                }
+              ]
+            },
+            {
+              "block": "doc",
+              "doc": [
+                {
+                  "t": "para",
+                  "text": [
+                    {
+                      "text": "What ABC-12 is about."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "ACCEPTANCE CRITERIA"
+                }
+              ]
+            },
+            {
+              "block": "doc",
+              "doc": [
+                {
+                  "items": [
+                    {
+                      "blocks": [
+                        {
+                          "t": "para",
+                          "text": [
+                            {
+                              "text": "GET /stats answers within 200 ms"
+                            }
+                          ]
+                        }
+                      ],
+                      "marker": "bullet"
+                    },
+                    {
+                      "blocks": [
+                        {
+                          "t": "para",
+                          "text": [
+                            {
+                              "text": "counts are per day"
+                            }
+                          ]
+                        }
+                      ],
+                      "marker": "bullet"
+                    }
+                  ],
+                  "t": "list"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "MERGE REQUESTS"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "api !263 · review · pipeline passed · approvals 0 of 1"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "  ABC-12: Add a stats endpoint for the dashboard"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "NOTES"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "# ABC-12: Add stats"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "Ticket: a story. Planned from 2026-01-01."
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "## What we know"
+                }
+              ]
+            }
+          ],
+          "node": "rich",
+          "pictures": "acme"
+        },
+        "pane": "middle",
+        "title": "overview"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "icon": "info",
+        "label": "Overview"
+      },
+      {
+        "icon": "thread",
+        "label": "Comments"
+      },
+      {
+        "icon": "link",
+        "label": "Links"
+      },
+      {
+        "icon": "change",
+        "label": "Code · 1"
+      },
+      {
+        "label": "Slack · 1"
+      },
+      {
+        "label": "Notes · 3"
+      }
+    ],
+    "title": [
+      {
+        "icon": "story"
+      },
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "Add a stats endpoint for the dashboard"
+      }
+    ],
+    "under": [
+      {
+        "ink": "muted",
+        "text": "parent "
+      },
+      {
+        "look": "accent.secondary",
+        "text": "ABC-1"
+      },
+      {
+        "ink": "secondary",
+        "text": " Dashboard for the stats · "
+      },
+      {
+        "ink": "secondary",
+        "text": "Acme ABC · "
+      },
+      {
+        "icon": "updated"
+      },
+      {
+        "ink": "muted",
+        "text": "updated 1h ago"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "tickets",
+  "version": 1
+}

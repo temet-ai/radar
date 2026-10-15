@@ -1,0 +1,44 @@
+---
+source: tests/github_links.rs
+expression: text
+---
+ radar    Repositories   Jira   Slack   Branches   History   Settings (,)                                                                synced 25s ago  ✎ edit
+╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
+│ Everything     2 repos ││ github.com/acme                                                            2 repos ││  local folder    /work/source   · on main    │
+│ acme           2 repos ││   acme/api                                                                   2 PRs ││ Keep background refreshes tied to their      │
+│                        ││     #42  Keep background refreshes tied to their request                      open ││ request                                      │
+│                        ││     #43  Document the public endpoints                                       draft ││                                              │
+│                        ││   acme/docs                                                                  0 PRs ││ state  open                                  │
+│                        ││                                                                                    ││ author  alice                                │
+│                        ││                                                                                    ││ from  alice/api:refresh-ownership            │
+│                        ││                                                                                    ││ into  acme/api:main                          │
+│                        ││                                ╭ acme/api #42 ──────────────────────────╮          ││ head commit                                  │
+│                        ││                                │ ⏎  open its page                       │          ││ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa     │
+│                        ││                                │ o  open on GitHub                      │          ││                                              │
+│                        ││                                │ y  copy the link                       │          ││ DESCRIPTION ──────────────────────────────── │
+│                        ││                                │ r  refresh configured repositories     │          ││   What changed                               │
+│                        ││                                │ JIRA                                   │          ││                                              │
+│                        ││                                │ v  open ABC-12                         │          ││   Responses stay with the repository and     │
+│                        ││                                │ SLACK                                  │          ││   commit they were requested for.            │
+│                        ││                                │ t  open discussion in #team            │          ││                                              │
+│                        ││                                │ GIT                                    │          ││   • Keep the selected pull request stable    │
+│                        ││                                │ e  open current folder in an editor    │          ││   • Show unavailable checks honestly         │
+│                        ││                                │    open terminal in current folder     │          ││                                              │
+│                        ││                                │ s  scan configured local folders       │          ││   See the design notes.                      │
+│                        ││                                │    link a matching local folder…       │          ││                                              │
+│                        ││                                │ HISTORY                                │          ││ TICKET ───────────────────────────────────── │
+│                        ││                                │ H  recent activity (last 24 hours)     │          ││   ABC-12 · ◐ In Progress · Story             │
+│                        ││                                │    all activity history                │          ││   Add a stats endpoint for the dashboard     │
+│                        ││                                │    history for selected item           │          ││   assigned to you                            │
+│                        ││                                ╰────────────────────────────────────────╯          ││   What ABC-12 is about.                      │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ DISCUSSED IN SLACK ───────────────────────── │
+│                        ││                                                                                    ││   #team · Alice Example · 16m ago · no       │
+│                        ││                                                                                    ││   replies                                    │
+│                        ││                                                                                    ││     https://github.com/acme/api/pull/42      │
+│                        ││                                                                                    ││   https://acme.slack.com/archives/C0000TEAM1 │
+│                        ││                                                                                    ││   /p1791270000000100                         │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ GITHUB   j/k move   ⏎ choose   esc close                                                                                                     github jira slack

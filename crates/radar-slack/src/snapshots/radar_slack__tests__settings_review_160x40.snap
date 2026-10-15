@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ channel ───────────────────────────────────────────╮
+│General               ││ channel          team                                                          ││ Where review asks go. The user group is mentioned  │
+│  ├─ parts            ││ user group       @review-squad                                                 ││ only here.                                         │
+│  ├─ mode             ││ template         {group} :gitlab: {mrs}                                        ││                                                    │
+│  ├─ colours          ││ link text        mr                                                            ││ ACCEPTS                                            │
+│  └─ icons            ││ test channel     try                                                           ││ a channel in the registry                          │
+│Slack                 ││ ask again        after 2 working days without a reply                          ││                                                    │
+│  ├─ connection       ││                                                                                ││ NOW                                                │
+│  ├─ channels         ││                                                                                ││ team                                               │
+│  ├─ review           ││                                                                                ││                                                    │
+│  ├─ alerts           ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
+│  └─ look             ││                                                                                ││ @review-squad :gitlab: mr Add a stats endpoint for │
+│                      ││                                                                                ││ the dashboard                                      │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ WITH TWO                                           │
+│                      ││                                                                                ││ @review-squad :gitlab:                             │
+│                      ││                                                                                ││ • api !263 Add a stats endpoint for the dashboard  │
+│                      ││                                                                                ││ • web !12 Show the stats                           │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ config: [slack.review] channel                     │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                               slack

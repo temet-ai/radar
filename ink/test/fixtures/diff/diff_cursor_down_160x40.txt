@@ -1,0 +1,40 @@
+ radar    Repositories 1   Jira   Slack 4   Branches   Work (I)   History   Settings (,)                                                 not synced yet  ✎ edit
+  GitLab    GitHub    Local workspaces
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
+ checkout  terminal  editor  /work/acme/api · java · on alice/ABC-12 · 1 more
+ Overview  [Changes · 5 files]  Threads · 1 open  Pipeline  Commits · 2  Tickets
+╭ files · 1 of 5 seen ───────────────────────────╮╭ docs/README.md ────────────────────────────────────────────────────────────────────────────────────────────╮
+│docs                                    +6 −1   ││ @@ -1,3 +1,8 @@                                                                                            │
+│  └─ ▎ README.md                        +6 −1   ││ 1 1   # Stats                                                                                              │
+│src                                     +93 −5  ││ 2   - Numbers.                                                                                             │
+│  ├─ main/java/acme/stats               +60 −2  ││▎  2 + Numbers per user and per day.                                                                        │
+│  │  ├─ · StatsController.java ◆1       +42 −0  ││   3 +                                                                                                      │
+│  │  └─ · StatsService.java             +18 −2  ││   4 + ## Endpoints                                                                                         │
+│  └─ test/java/acme/stats               +33 −3  ││   5 +                                                                                                      │
+│     └─ · StatsControllerTest.java      +33 −3  ││   6 + - `GET /api/stats`                                                                                   │
+│· build.gradle                          +3 −1   ││   7 + - `GET /api/stats/totals`                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+╰────────────────────────────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                     4 open · 1 to review · 1 ready  gitlab github jira slack

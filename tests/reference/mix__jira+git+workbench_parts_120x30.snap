@@ -1,0 +1,34 @@
+---
+source: tests/mix.rs
+expression: text
+---
+ radar    Jira   Branches   Work (I)   History   Settings (,)                                                       ✎ edit
+╭ settings ────────────╮╭ parts ─────────────────────────────────────────────────╮╭ Jira ──────────────────────────────╮
+│General               ││ COMPILED INTO THIS RADAR                                  ││ ○ not set up: Add a site: the Jira │
+│  ├─ parts            ││                                                        ││ address, your email and an API     │
+│  ├─ mode             ││ ○ Jira   not set up                                    ││ token.                             │
+│  ├─ colours          ││ ✓ Git    set up                                        ││                                    │
+│  └─ icons            ││ ✓ Work   set up                                        ││ has     tickets                    │
+│Jira                  ││                                                        ││ opens   tickets on their own pages │
+│  ├─ connection       ││                                                        ││                                    │
+│  ├─ projects         ││                                                        ││ OTHER PARTS CAN ADD                │
+│  ├─ views            ││                                                        ││ · chips on ticket rows and the     │
+│  └─ look             ││                                                        ││ preview                            │
+│Git                   ││                                                        ││ · a column on the Jira tree        │
+│  ├─ checkouts        ││                                                        ││ · a section on the ticket preview  │
+│  ├─ editors          ││                                                        ││ and page                           │
+│  ├─ links            ││                                                        ││ · a tab on the ticket page         │
+│  └─ branches         ││                                                        ││ · actions on tickets               │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││ JIRA ADDS                          │
+│                      ││                                                        ││ · a ticket column on its branches  │
+│                      ││                                                        ││ (a click opens it) on checkouts    │
+│                      ││                                                        ││ (once set up)                      │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────╯╰────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

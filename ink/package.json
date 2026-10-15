@@ -1,0 +1,41 @@
+{
+  "name": "radar-ink",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "bundle": "esbuild src/main.tsx --bundle --alias:react-devtools-core=./src/transport/devtools-stub.ts --alias:ink-output=./node_modules/ink/build/output.js --define:process.env.NODE_ENV=\\\"production\\\" --platform=node --format=esm --target=node22 --log-level=warning --outfile=dist/radar-ink.js",
+    "start": "node dist/radar-ink.js",
+    "storybook": "storybook dev -p 6016 --exact-port --no-open",
+    "build-storybook": "storybook build -o storybook-static",
+    "manifest": "npm run build-storybook && node .storybook/copy-manifest.mjs",
+    "typecheck-stories": "tsc -p tsconfig.storybook.json --noEmit",
+    "check-static": "node .storybook/check-static.mjs"
+  },
+  "dependencies": {
+    "@xterm/headless": "6.0.0",
+    "ink": "8.0.0",
+    "react": "^19.3.0"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "10.6.2",
+    "@storybook/addon-docs": "10.6.2",
+    "@storybook/addon-mcp": "10.6.2",
+    "@storybook/react-vite": "10.6.2",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "radar-docgen-typescript": "file:.storybook/docgen-typescript",
+    "ink-testing-library": "^4.0.0",
+    "react-dom": "19.3.0",
+    "storybook": "10.6.2",
+    "typescript": "^7.0.2",
+    "vite": "8.3.4",
+    "vitest": "^5.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

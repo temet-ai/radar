@@ -1,0 +1,28 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)         read incomplete  ✎ edit
+ GitHub › acme/api › #42
+ Keep background refreshes tied to their request
+ Overview  [Checks]  Actions
+╭ Checks ──────────────────────────────────────────────────────────────────────╮
+│ Checks in the base and available source repositories at the exact head       │
+│ commit. Merge-ref workflows may differ. No mergeability or required-check    │
+│ coverage is established.                                                     │
+│ GitHub access denied; check repository permissions                           │
+│ Checks are unknown; no results loaded.                                       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             github

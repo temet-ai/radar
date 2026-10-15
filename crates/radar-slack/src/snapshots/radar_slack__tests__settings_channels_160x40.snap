@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ channels ──────────────────────────────────────────────────────────────────────╮╭ add a channel ─────────────────────────────────────╮
+│General               ││ + add a channel   paste a link to it, or type #name                            ││ Read another channel.                              │
+│  ├─ parts            ││ ▌ #team   #acme-team · team · watched                                          ││                                                    │
+│  ├─ mode             ││   ├─ alias           team                                                      ││ PASTE OR TYPE ANY OF                               │
+│  ├─ colours          ││   ├─ purpose         where the team talks                                      ││   a link to the channel or to a message in it      │
+│  └─ icons            ││   ├─ kind            team                                                      ││   its id: C0123ABCD                                │
+│Slack                 ││   ├─ colour          ██ cyan                                                   ││   #name                                            │
+│  ├─ connection       ││   └─ watched         yes                                                       ││                                                    │
+│  ├─ channels         ││ ▌ #svc   #acme-svc · service · watched                                         ││ Slack is asked which channel it is; it is added as │
+│  ├─ review           ││   ├─ alias           svc                                                       ││ a team channel, watched, called by its name in     │
+│  ├─ alerts           ││   ├─ purpose         —                                                         ││ Slack. Change any of that below it.                │
+│  └─ look             ││   ├─ kind            service                                                   ││                                                    │
+│                      ││   ├─ colour          ██ orange                                                 ││                                                    │
+│                      ││   └─ watched         yes                                                       ││                                                    │
+│                      ││ ▌ #try   #acme-try · test · not watched                                        ││                                                    │
+│                      ││   ├─ alias           try                                                       ││                                                    │
+│                      ││   ├─ purpose         —                                                         ││                                                    │
+│                      ││   ├─ kind            test                                                      ││                                                    │
+│                      ││   ├─ colour          ██ green                                                  ││                                                    │
+│                      ││   └─ watched         no                                                        ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                      slack

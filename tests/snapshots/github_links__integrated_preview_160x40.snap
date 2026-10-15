@@ -1,0 +1,44 @@
+---
+source: tests/github_links.rs
+expression: text
+---
+ radar    Repositories   Jira   Slack   Branches   History   Settings (,)                                                                synced 25s ago  ✎ edit
+╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
+│ Everything     2 repos ││ github.com/acme                                                            2 repos ││  local folder    /work/source   · on main    │
+│ acme           2 repos ││   acme/api                                                                   2 PRs ││ Keep background refreshes tied to their      │
+│                        ││     #42  Keep background refreshes tied to their request                      open ││ request                                      │
+│                        ││     #43  Document the public endpoints                                       draft ││                                              │
+│                        ││   acme/docs                                                                  0 PRs ││ state  open                                  │
+│                        ││                                                                                    ││ author  alice                                │
+│                        ││                                                                                    ││ from  alice/api:refresh-ownership            │
+│                        ││                                                                                    ││ into  acme/api:main                          │
+│                        ││                                                                                    ││ head commit                                  │
+│                        ││                                                                                    ││ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa     │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ DESCRIPTION ──────────────────────────────── │
+│                        ││                                                                                    ││   What changed                               │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││   Responses stay with the repository and     │
+│                        ││                                                                                    ││   commit they were requested for.            │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││   • Keep the selected pull request stable    │
+│                        ││                                                                                    ││   • Show unavailable checks honestly         │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││   See the design notes.                      │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ TICKET ───────────────────────────────────── │
+│                        ││                                                                                    ││   ABC-12 · ◐ In Progress · Story             │
+│                        ││                                                                                    ││   Add a stats endpoint for the dashboard     │
+│                        ││                                                                                    ││   assigned to you                            │
+│                        ││                                                                                    ││   What ABC-12 is about.                      │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ DISCUSSED IN SLACK ───────────────────────── │
+│                        ││                                                                                    ││   #team · Alice Example · 16m ago · no       │
+│                        ││                                                                                    ││   replies                                    │
+│                        ││                                                                                    ││     https://github.com/acme/api/pull/42      │
+│                        ││                                                                                    ││   https://acme.slack.com/archives/C0000TEAM1 │
+│                        ││                                                                                    ││   /p1791270000000100                         │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                  github jira slack

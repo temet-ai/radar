@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/stand_in.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    Repositories 1   Tickets   History   Settings (,)                ⠷ not synced yet  ✎ edit
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                      alice · feature/ABC-263 → main
+ tracked as ABC-12
+ Overview  Changes · 1 file  Threads · 1 open  Pipeline  Commits  [Ticket]
+╭ ticket ──────────────────────────────────────────────────────────────────────────────────────────╮
+│ ABC-12  Review  Add a stats endpoint for the dashboard                                           │
+│                          ╭ api !263 ──────────────────────────────────╮                          │
+│                          │ ⏎       open ABC-12                        │                          │
+│                          │ o       open ABC-12's link                 │                          │
+│                          │ y       copy ABC-12's link                 │                          │
+│                          │ r       refresh this page                  │                          │
+│                          │ ON GITLAB                                  │                          │
+│                          │ u       rebase onto main…                  │                          │
+│                          │ m       merge · needs 1 approval           │                          │
+│                          │ a       approve !263…                      │                          │
+│                          │ PAGE                                       │                          │
+│                          │ ]       next tab: Overview                 │                          │
+│                          │ [       previous tab: Commits              │                          │
+│                          │ WITH AN AGENT                              │                          │
+│                          │ A       ask an agent about it…             │                          │
+│                          │ i       review it locally…                 │                          │
+│                          │ esc     back to the middle pane            │                          │
+│                          │ ctrl-r  kept comments…                     │                          │
+│                          │ TRACKER                                    │                          │
+│                          │ s       start work on ABC-12…              │                          │
+│                          │         open ABC-12 in the tracker         │                          │
+│                          │ HISTORY                                    │                          │
+│                          │ H       recent activity (last 24 hours)    │                          │
+│                          │         all activity history               │                          │
+│                          │         history for selected item          │                          │
+│                          ╰────────────────────────────────────────────╯                          │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   j/k move   ⏎ choose   esc close              4 open · 1 to review · 1 ready  gitlab

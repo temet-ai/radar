@@ -1,0 +1,44 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "text(&host, 160, 40)"
+---
+ radar    Jira   History   Settings (,)                                                                                       not synced yet · every 2m  ✎ edit
+ Jira › acme › ABC › ABC-12
+ Add a stats endpoint for the dashboard                                                                                             ◐ In Progress · Story · you
+ parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
+ [Overview]  Comments · 3  Links · 4  Code · 1
+╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────╮
+│ DESCRIPTION                                                                                                          ││ status        ◐ In Progress          │
+│ Why                                                                                                                  ││ type          Story                  │
+│                                                                                                                      ││ priority      Medium                 │
+│ The dashboard needs a count of requests per day.                                                                     ││ assignee      you                    │
+│                                                                                                                      ││ reporter      Bob Example            │
+│   GET /stats?days=7                                                                                                  ││ sprint        Sprint 41              │
+│                                                                ╭ move ABC-12 to… ───────────╮                        ││ parent        ABC-1 Dashboard for th │
+│ ACCEPTANCE CRITERIA                                            │ NOW ◐ IN PROGRESS          │                        ││ children      1 (Links tab)          │
+│ • GET /stats answers within 200 ms                             │ USUAL NEXT                 │                        ││ labels        #backend               │
+│ • counts are per day                                           │ 1  ◐ In Review             │                        ││ components    —                      │
+│                                                                │ 2  ◐ In Test               │                        ││ fix versions  —                      │
+│                                                                │ 3  ◐ Blocked               │                        ││ created       2w ago                 │
+│                                                                │ ○ TO DO · 1                │                        ││ updated       1h ago                 │
+│                                                                │ 4  ○ Backlog               │                        ││                                      │
+│                                                                │ ◐ IN PROGRESS · 2          │                        ││                                      │
+│                                                                │ 5  ◐ Ready for release     │                        ││                                      │
+│                                                                │ 6  ◐ Waiting for design    │                        ││                                      │
+│                                                                │ ● DONE · 2                 │                        ││                                      │
+│                                                                │ 7  ● Done                  │                        ││                                      │
+│                                                                │ 8  ● Won't do              │                        ││                                      │
+│                                                                ╰────────────────────────────╯                        ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯
+ JIRA   asking Jira where ABC-12 can go…                                                                                              6 tickets · 4 doing  jira

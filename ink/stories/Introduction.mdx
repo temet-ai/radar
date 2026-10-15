@@ -1,0 +1,72 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# radar's components in Storybook
+
+This Storybook is the source of truth for the docs of radar's UI components. Each story mounts the **real Ink
+component** from `ink/src`, renders it with Ink itself (its reconciler, Yoga layout and radar's own Output,
+`app/fast-output.ts`) into a fixed grid of terminal cells, and puts **Ratatui's picture of the same view data**
+beside it. Ratatui is the reference renderer: any difference between the two is a defect.
+
+## What a story shows
+
+- **Ink**, left: the component drawn from recorded view data (`ink/test/fixtures`, written by
+  `tests/view_fixtures.rs`), in the pane, page or chrome row it sits in on radar's screen.
+- **Ratatui (reference)**, right: the styled cells `tests/ratatui_cells.rs` wrote to `ink/test/cells` for the same
+  surface, cropped to the component's pane; or Ratatui's screen as text (`tests/snapshots/mix__*.snap`, the
+  `ink/test/fixtures/diff/*.txt` files) where no styled cells exist. Where neither exists the story says so and
+  names the Rust test that would record it.
+- The toolbar's **Tier** switch draws Ink in the look the real host sends at truecolour, 256 colours, 16 colours and
+  mono (`stories/looks/*.json`, captured from `radar` by `node .storybook/capture-looks.mjs`). The **Icons** switch
+  picks the pack; the references are drawn with icons off, so compare with icons off.
+
+Each docs page says what the element is, when to use it, its states and its rules (from `docs/components.md`
+section 1). The [Rules](?path=/docs/rules--docs) page lists those rules and every theme slot.
+
+## The agreed design
+
+The **Design** section holds the design canvas (`stories/design/boards`, saved from the canvas on 13 October 2026),
+drawn by the boards' own markup and grid builders: Foundations, Components, Data, Surfaces, Motion, Screen, and
+Research as text. Every proposal there is labelled **"Target · not built yet · issue #N"**; beside it sits today's
+real Ink component from recorded view data. The shipped motion effects run on Ink's own engine
+(`src/motion/engine.ts`) over the Rust motion fixtures, beside Ratatui's cells at the start, middle and end; the
+`speed` control runs them in real time or four times slower. Regenerate the Research page with
+`node .storybook/research-mdx.mjs` after the board changes.
+
+## Run it
+
+```bash
+cd ink
+npm run storybook          # dev server on http://localhost:6016 (6006 is often another project's Storybook)
+npm run build-storybook    # static build in ink/storybook-static
+npm run manifest           # build, then copy the component manifest to docs/storybook/components.json
+npm run typecheck-stories  # tsc over src, stories and .storybook
+npm run check-static       # after a build: serves storybook-static, checks one story renders cells (headless Chrome)
+```
+
+Stories live in `ink/stories/<group>/<Component>.stories.tsx`; the helpers that draw Ink into cells and load the
+Ratatui references are in `ink/stories/support`. The Node modules Ink imports are shimmed in `.storybook/shims`.
+
+## For agents: the MCP server and the manifest
+
+Storybook's MCP server (`@storybook/addon-mcp`) answers at **`http://localhost:6016/mcp`** while
+`npm run storybook` runs. It lists the components, their props (react-docgen-typescript), the docs and the stories.
+
+- **Claude Code:** the repository's `.mcp.json` names it as the `storybook` server (HTTP).
+- **Codex:** add it to `~/.codex/config.toml`:
+
+  ```toml
+  [mcp_servers.storybook]
+  url = "http://localhost:6016/mcp"
+  ```
+
+- **Without a running Storybook:** read `docs/storybook/components.json`, the same component manifest, committed.
+  `test/storybook/manifest.test.ts` fails when a story file is added or removed without `npm run manifest`.
+
+## Adding a component
+
+1. Find the view data in `ink/test/fixtures` (or ask the Rust side to record it; never hand-write view data).
+2. Write `ink/stories/<group>/<Component>.stories.tsx` with `component:` the real Ink component, a JSDoc on the meta
+   (what, when, states, rules) and on each story, and a reference from `ink/test/cells` when one exists.
+3. Run `npm run manifest` and commit `docs/storybook/components.json` with the story.

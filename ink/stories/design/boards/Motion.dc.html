@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:900px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.h3{font-family:"GGMono",monospace;font-weight:700;font-size:17px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;height:22.645px}
+.r>span{display:inline-block;height:22.645px;vertical-align:top}
+.p{color:#f8f8f2}.s{color:#e9d5ff}.m{color:#6272a4}.e{color:#fff;font-weight:700}.a{color:#e135ff}.am{color:#9580ff}.k{color:#80ffea}.t3{color:#ff6ac1}.ok{color:#50fa7b}.wn{color:#f1fa8c}.bd{color:#ff6363}.in{color:#82aaff}.n{color:#ffb86c}.bb{color:#0a0812}
+.Bs{background:#12101a}.Bo{background:#1a162a}.Bsel{background:#44475a}.Bh{background:#2a263e}.Ba{background:#e135ff}
+.b{font-weight:700}.i{font-style:italic}
+.ku{color:#80ffea;font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.demo{background:#0a0812;border-radius:6px;padding:12px 14px;min-height:140px;box-sizing:border-box;overflow:hidden}
+.spec{display:grid;grid-template-columns:90px minmax(0,1fr);row-gap:4px;font-family:"GGMono",monospace;font-size:12.5px;color:#b9aedb}
+.spec span:nth-child(odd){color:#8f86b3}
+.card{padding:22px;display:flex;flex-direction:column;gap:14px}
+
+/* real speed: a 2.5 s loop; slow: the same effects four times longer */
+@keyframes fade-rt{0%{opacity:0}8%{opacity:1}100%{opacity:1}}
+@keyframes fade-sl{0%{opacity:0}32%{opacity:1}100%{opacity:1}}
+@keyframes page-rt{0%{clip-path:inset(0 100% 0 0)}12%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@keyframes page-sl{0%{clip-path:inset(0 100% 0 0)}48%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@keyframes pop-rt{0%{clip-path:inset(0 0 100% 0)}7.2%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@keyframes pop-sl{0%{clip-path:inset(0 0 100% 0)}28.8%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@keyframes msg-rt{0%{clip-path:inset(0 100% 0 0);opacity:1}10%{clip-path:inset(0 0 0 0);opacity:1}62%{opacity:1}70%{opacity:0}100%{opacity:0;clip-path:inset(0 0 0 0)}}
+@keyframes msg-sl{0%{clip-path:inset(0 100% 0 0);opacity:1}40%{clip-path:inset(0 0 0 0);opacity:1}62%{opacity:1}94%{opacity:0}100%{opacity:0;clip-path:inset(0 0 0 0)}}
+@keyframes glow-rt{0%{background:#5b1f70}18%{background:#12101a}100%{background:#12101a}}
+@keyframes glow-sl{0%{background:#5b1f70}72%{background:#12101a}100%{background:#12101a}}
+@keyframes add-rt{0%{clip-path:inset(0 100% 0 0)}12.8%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@keyframes add-sl{0%{clip-path:inset(0 100% 0 0)}51.2%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@keyframes fold-rt{0%{clip-path:inset(0 0 100% 0)}6.4%{clip-path:inset(0 0 0 0)}60%{clip-path:inset(0 0 0 0)}66.4%{clip-path:inset(0 0 100% 0)}100%{clip-path:inset(0 0 100% 0)}}
+@keyframes fold-sl{0%{clip-path:inset(0 0 100% 0)}25.6%{clip-path:inset(0 0 0 0)}50%{clip-path:inset(0 0 0 0)}75.6%{clip-path:inset(0 0 100% 0)}100%{clip-path:inset(0 0 100% 0)}}
+@keyframes toast-rt{0%{transform:translateX(342px)}8.8%{transform:translateX(0)}70%{transform:translateX(0);opacity:1}78%{opacity:0}100%{opacity:0}}
+@keyframes toast-sl{0%{transform:translateX(342px)}35.2%{transform:translateX(0)}62%{transform:translateX(0);opacity:1}94%{opacity:0}100%{opacity:0}}
+@keyframes focA-rt{0%,49%{border-color:#e135ff}50%,100%{border-color:#9580ff}}
+@keyframes focB-rt{0%,49%{border-color:#9580ff}50%,100%{border-color:#80ffea}}
+@keyframes shim{0%{background-position:-160px 0}100%{background-position:420px 0}}
+.fx-fade-rt{animation:fade-rt 2.5s cubic-bezier(.5,1,.89,1) infinite}
+.fx-fade-sl{animation:fade-sl 2.5s cubic-bezier(.5,1,.89,1) infinite}
+.fx-page-rt{animation:page-rt 2.5s steps(40) infinite}
+.fx-page-sl{animation:page-sl 2.5s steps(40) infinite}
+.fx-pop-rt{animation:pop-rt 2.5s steps(6) infinite}
+.fx-pop-sl{animation:pop-sl 2.5s steps(6) infinite}
+.fx-msg-rt{animation:msg-rt 2.5s linear infinite}
+.fx-msg-sl{animation:msg-sl 2.5s linear infinite}
+.fx-glow-rt{animation:glow-rt 2.5s cubic-bezier(.61,1,.88,1) infinite}
+.fx-glow-sl{animation:glow-sl 2.5s cubic-bezier(.61,1,.88,1) infinite}
+.fx-add-rt{animation:add-rt 2.5s steps(38) infinite}
+.fx-add-sl{animation:add-sl 2.5s steps(38) infinite}
+.fx-fold-rt{animation:fold-rt 2.5s steps(3) infinite}
+.fx-fold-sl{animation:fold-sl 2.5s steps(3) infinite}
+.fx-toast-rt{animation:toast-rt 2.5s steps(19) infinite}
+.fx-toast-sl{animation:toast-sl 2.5s steps(19) infinite}
+.fx-shim{background:linear-gradient(90deg,rgba(149,128,255,0) 0,rgba(149,128,255,.24) 60px,rgba(149,128,255,0) 120px) no-repeat;background-size:120px 100%;animation:shim 1.4s linear infinite}
+/* focus lap: --c is the cell's place on the ramp, --u the quiet accent */
+@keyframes chase-rt{0%{color:#ff6363}1.5%{color:#ffb86c}3%{color:#f1fa8c}4.5%{color:#50fa7b}6%{color:#80ffea}7.5%{color:#82aaff}9%{color:#e135ff}11%,50%{color:var(--c)}52%,100%{color:var(--u)}}
+@keyframes chase-sl{0%{color:#ff6363}4%{color:#ffb86c}8%{color:#f1fa8c}12%{color:#50fa7b}16%{color:#80ffea}20%{color:#82aaff}24%{color:#e135ff}29%,50%{color:var(--c)}56%,100%{color:var(--u)}}
+/* assemble */
+@keyframes asm-fade-rt{0%{opacity:0}4%,90%{opacity:1}96%,100%{opacity:0}}
+@keyframes asm-fade-sl{0%{opacity:0}7%,90%{opacity:1}96%,100%{opacity:0}}
+@keyframes asm-clip-rt{0%{clip-path:inset(0 100% 0 0);opacity:1}4%,90%{clip-path:inset(0 0 0 0);opacity:1}96%,100%{clip-path:inset(0 0 0 0);opacity:0}}
+@keyframes asm-clip-sl{0%{clip-path:inset(0 100% 0 0);opacity:1}7%,90%{clip-path:inset(0 0 0 0);opacity:1}96%,100%{clip-path:inset(0 0 0 0);opacity:0}}
+@keyframes asm-val-rt{0%{opacity:0;background:#5b1f70}2%{opacity:1;background:#5b1f70}12%,90%{opacity:1;background:#12101a}96%,100%{opacity:0;background:#12101a}}
+@keyframes asm-val-sl{0%{opacity:0;background:#5b1f70}4%{opacity:1;background:#5b1f70}20%,90%{opacity:1;background:#12101a}96%,100%{opacity:0;background:#12101a}}
+/* notice */
+.notice{background:linear-gradient(#2b2440,#2b2440) no-repeat #1a162a;background-size:100% 100%}
+@keyframes notice-rt{0%{clip-path:inset(0 0 0 100%);background-size:100% 100%;opacity:1}2.4%{clip-path:inset(0 0 0 0);background-size:100% 100%}80%{background-size:0% 100%;clip-path:inset(0 0 0 0);transform:translateY(0)}82.4%{transform:translateY(22.645px);opacity:1}83%,100%{opacity:0;transform:translateY(22.645px)}}
+@keyframes notice-sl{0%{clip-path:inset(0 0 0 100%);background-size:100% 100%;opacity:1}9.6%{clip-path:inset(0 0 0 0);background-size:100% 100%}80%{background-size:0% 100%;clip-path:inset(0 0 0 0);transform:translateY(0)}89.6%{transform:translateY(22.645px);opacity:1}90%,100%{opacity:0;transform:translateY(22.645px)}}
+.fx-notice-rt{animation:notice-rt 5s steps(40) infinite}
+.fx-notice-sl{animation:notice-sl 5s steps(40) infinite}
+/* loading */
+@keyframes skel-rt{0%,58%{opacity:1}62%,96%{opacity:0}100%{opacity:1}}
+@keyframes row-rt{0%,60%{clip-path:inset(0 100% 0 0)}63.3%,96%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 100% 0 0)}}
+@keyframes row-sl{0%,60%{clip-path:inset(0 100% 0 0)}66.7%,96%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 100% 0 0)}}
+@keyframes wave{0%{color:#2f2a48}12%{color:#7a6cc4}30%,100%{color:#2f2a48}}
+.fx-skel-rt{animation:skel-rt 3s linear infinite}
+.fx-skel-sl{animation:skel-rt 6s linear infinite}
+.spin{display:inline-block;width:9px;overflow:hidden;vertical-align:top;height:22.645px}
+.spinI{display:inline-block;white-space:pre;animation:spin .6s steps(6) infinite}
+@keyframes spin{to{transform:translateX(-54px)}}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 24px">
+    <p class="eyebrow">07 · motion</p>
+    <h1 class="h1">Motion explains a change.</h1>
+    <p class="lede">Ink's motion engine ticks every 30 ms, and only while an effect runs. Each effect answers one question: where did this come from, what just changed, is anything happening. They run on whole cells, the way a terminal draws. Any key, click, wheel or paste cancels them at once, so motion never stands between you and the next key. The demos below loop; switch them between real speed and four times slower with the speed tweak.</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; align-items: center; gap: 16px"><h2 class="h2">Shipped effects</h2><span class="tag ship">shipped</span><p class="note">ink/src/motion · effects.ts</p></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between"><h3 class="h3">Screen</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">cue · screen</span></div>
+        <div class="demo term"><div class="{{fx.fade}}">
+          <div class="r"><span class="Bo a b"> radar </span><span class="Bsel e">  Repositories  </span><span class="Bo p">  Jira  Slack </span></div>
+          <div class="r"><span class="m">╭ </span><span class="e">Everything</span><span class="m"> ────────────────────╮</span></div>
+          <div class="r"><span class="m">│ </span><span class="e">team-a</span><span class="bd">  main red in 1</span><span class="m">          │</span></div>
+          <div class="r"><span class="m">│ </span><span class="p">├─ web   </span><span class="ok">&#xf49e; passed</span><span class="m">              │</span></div>
+        </div></div>
+        <div class="spec"><span>effect</span><span>fade from the base colour</span><span>length</span><span>200 ms · quad out</span><span>runs at</span><span>full, subtle</span></div>
+        <p class="note">Another part, settings, a show across parts. The new screen's text rises out of the canvas.</p>
+      </div>
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between"><h3 class="h3">Page</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">cue · page</span></div>
+        <div class="demo term"><div class="{{fx.page}}">
+          <div class="r"><span class="m">acme / api / </span><span class="e">!263</span></div>
+          <div class="r"><span class="e">ABC-12: Add a stats endpoint</span></div>
+          <div class="r"><span class="k">&#xf418; alice/ABC-12</span><span class="m"> → </span><span class="k">main</span></div>
+          <div class="r"><span class="wn b">&#xf441; needs 1 approval</span><span class="m"> · </span><span class="ok">&#xf49e; passed</span></div>
+        </div></div>
+        <div class="spec"><span>effect</span><span>sweep in, left to right</span><span>length</span><span>300 ms · quad out · 24-cell edge</span><span>runs at</span><span>full</span></div>
+        <p class="note">An item's page opens on the same screen. It reads in from the side you read from.</p>
+      </div>
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between"><h3 class="h3">Popup</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">cue · popup</span></div>
+        <div class="demo term"><div class="{{fx.pop}}" style="display: inline-block">
+          <div class="r Bo"><span class="k">┌ </span><span class="e">actions</span><span class="k"> ────────────┐</span></div>
+          <div class="r Bsel"><span class="k">│</span><span class="e"> </span><span class="ku">c</span><span class="e">heckout branch   </span><span class="k">│</span></div>
+          <div class="r Bo"><span class="k">│</span><span class="s"> </span><span class="ku">o</span><span class="s">pen in browser   </span><span class="k">│</span></div>
+          <div class="r Bo"><span class="k">│</span><span class="s"> </span><span class="ku">m</span><span class="s">erge             </span><span class="k">│</span></div>
+          <div class="r Bo"><span class="k">└────────────────────┘</span></div>
+        </div></div>
+        <div class="spec"><span>effect</span><span>sweep in, top to bottom</span><span>length</span><span>180 ms · quad out · 3-row edge</span><span>runs at</span><span>full, subtle</span></div>
+        <p class="note">A menu or confirm drops from where it was asked for.</p>
+      </div>
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between"><h3 class="h3">Message</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">cue · message, message gone</span></div>
+        <div class="demo term" style="display: flex; flex-direction: column; justify-content: flex-end">
+          <div class="r Bo"><span class="Ba bb b"> REPOSITORIES </span><span class="Bo"> </span><span class="{{fx.msg}}" style="display: inline-block"><span class="ok">&#xf49e; </span><span class="p">checked out </span><span class="k">alice/ABC-12</span></span></div>
+        </div>
+        <div class="spec"><span>in</span><span>sweep from the overlay · 250 ms</span><span>out</span><span>fade to the overlay · 200 ms · quad in</span><span>runs at</span><span>full</span></div>
+        <p class="note">The status line's message arrives from the left and fades when it is done.</p>
+      </div>
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between"><h3 class="h3">Changed row</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">cue · changed</span></div>
+        <div class="demo term" style="background: #12101a">
+          <div class="r"><span class="m">├─ </span><span class="a">&#xf407;</span><span class="p"> !187 change 187   </span><span class="ok">&#xf496; ready</span></div>
+          <div class="r {{fx.glow}}"><span class="m">├─ </span><span class="a">&#xf407;</span><span class="p"> !198 change 198   </span><span class="ok">&#xf49e; passed</span></div>
+          <div class="r"><span class="m">└─ </span><span class="a">&#xf407;</span><span class="p"> !201 docs pass    </span><span class="m">&#xf4dd; draft</span></div>
+        </div>
+        <div class="spec"><span>effect</span><span>ground pulses toward the accent</span><span>length</span><span>450 ms · sine out</span><span>runs at</span><span>full, subtle</span></div>
+        <p class="note">A sync changed this row. The only effect that marks data rather than a place.</p>
+      </div>
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between"><h3 class="h3">Added row &amp; loading</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">cue · added, loading</span></div>
+        <div class="demo term" style="background: #12101a">
+          <div class="r"><span class="m">├─ </span><span class="a">&#xf407;</span><span class="p"> !187 change 187   </span><span class="ok">&#xf496; ready</span></div>
+          <div class="r"><span class="{{fx.add}}" style="display: inline-block"><span class="m">└─ </span><span class="a">&#xf407;</span><span class="e"> !204 new stats UI  </span><span class="in">&#xf192; running</span></span></div>
+          <div class="r fx-shim"><span class="m">   loading threads…                 </span></div>
+        </div>
+        <div class="spec"><span>added</span><span>sweep in · 320 ms · from the panel</span><span>loading</span><span>shimmer · 1.4 s · linear, repeats</span><span>runs at</span><span>full (added glows at subtle)</span></div>
+        <p class="note">A new row arrives from the left; a panel still waiting shimmers until its rows come.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; align-items: center; gap: 16px"><h2 class="h2">Next effects</h2><span class="tag new">new in ink</span><p class="note">Same engine, same rules; each one for a change the screen does not explain today.</p></div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px">
+
+      <div class="panel card"><h3 class="h3">Fold</h3>
+        <div class="demo term" style="background: #12101a">
+          <div class="r Bh"><span class="s">&#xf42b; </span><span class="e">team-a</span><span class="bd">  main red in 1</span></div>
+          <div class="{{fx.fold}}">
+            <div class="r"><span class="m">  ├─ </span><span class="s">&#xf401; </span><span class="p">api   </span><span class="ok">&#xf49e; passed</span></div>
+            <div class="r"><span class="m">  ├─ </span><span class="s">&#xf401; </span><span class="p">web   </span><span class="bd">&#xf52f; failed</span></div>
+            <div class="r"><span class="m">  └─ </span><span class="s">&#xf401; </span><span class="p">docs  </span><span class="ok">&#xf49e; passed</span></div>
+          </div>
+        </div>
+        <div class="spec"><span>effect</span><span>children unroll row by row</span><span>length</span><span>160 ms open · 160 ms close</span><span>runs at</span><span>full</span></div>
+        <p class="note">One tree everywhere (05 · data), so one fold motion everywhere: the rows come out of their parent and go back into it.</p>
+      </div>
+
+      <div class="panel card"><h3 class="h3">Notice</h3>
+        <div class="demo term" style="background: #12101a; display: flex; flex-direction: column; justify-content: flex-end">
+          <div style="display: flex; justify-content: flex-end"><div class="r notice {{fx.notice}}"><span class="ok b"> &#xf49e; </span><span class="p">merged </span><span class="a b">!187</span><span class="p"> into </span><span class="k">main</span><span class="m">  ·  </span><span class="ku">u</span><span class="s">ndo </span></div></div>
+          <div class="r Bo"><span class="Ba bb b"> REPOSITORIES </span><span class="Bo s">  </span><span class="ku">b</span><span class="s">ulk   </span><span class="ku">q</span><span class="s">uit</span><span class="Bo">         </span><span class="n">4</span><span class="m"> open</span></div>
+        </div>
+        <div class="spec"><span>in</span><span>a row rises from the status line, its words read in from the right · 120 ms</span><span>life</span><span>its ground drains cell by cell: the time it has left</span><span>out</span><span>sinks back · 120 ms; esc or a key it names ends it</span></div>
+        <p class="note">For the quick, small news a write leaves behind: one line, right-aligned over the status line it belongs to, never a floating box. A second notice pushes the first up one row and dims it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; align-items: center; gap: 16px"><h2 class="h2">Moments</h2><span class="tag new">new in ink</span><p class="note">Bigger motion for the three moments that deserve it: a screen arriving, focus moving, rows loading.</p></div>
+
+    <div class="panel card">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="h3">Assemble · a screen builds from its parts</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">replaces the screen fade at full</span></div>
+      <div style="display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: start">
+        <div class="demo term" style="background: #0a0812; min-height: 0"><sc-for list="{{asm}}" as="row" hint-placeholder-count="12"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <div class="spec" style="grid-template-columns: 34px minmax(0,1fr)"><span>1</span><span>the top bar and status line appear: where you are</span><span>2</span><span>panel frames draw down the screen, left to right</span><span>3</span><span>rows read in, one after another, 25 ms apart</span><span>4</span><span>states land last, each with a brief glow</span><span>5</span><span>the detail pane fills from the top</span></div>
+          <div class="spec"><span>length</span><span>about 450 ms from key to finished screen</span><span>runs at</span><span>full; subtle keeps the fade</span></div>
+          <p class="note">The order is the layout's, so the eye follows the same path every time: frame, list, detail. Rows that are already cached arrive at once; a panel still waiting keeps its loading rows. Any key finishes the build instantly.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px">
+      <div class="panel card"><div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="h3">Focus · a rainbow lap</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">⇥ between panels</span></div>
+        <div class="demo term" style="min-height: 0"><sc-for list="{{foc}}" as="row" hint-placeholder-count="6"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+        <div class="spec"><span>effect</span><span>a band of the status colours runs once round the new panel, clockwise from its title, and leaves the glow ramp behind it</span><span>length</span><span>300 ms a lap · the old panel drains to the quiet accent</span><span>runs at</span><span>full; subtle swaps the ramp in one step</span></div>
+      </div>
+
+      <div class="panel card"><div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="h3">Loading · rows take shape</h3><span class="mono m" style="font-family: GGMono; font-size: 12px">replaces the shimmer</span></div>
+        <div class="demo term" style="background: #12101a; min-height: 0; padding: 0">
+          <div class="r" style="padding: 0 14px; background: #12101a"><span class="m">╭ </span><span class="e">Everything </span><span class="spin {{fx.skel}}"><span class="spinI in">⠷⠯⠟⠻⠽⠾</span></span><span class="m"> ─────────────────────────╮</span></div>
+          <div style="position: relative; padding: 0 14px">
+            <div class="{{fx.skel}}"><sc-for list="{{skel}}" as="row" hint-placeholder-count="5"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+            <div style="position: absolute; left: 14px; top: 0"><sc-for list="{{real}}" as="row" hint-placeholder-count="5"><div class="r" style="{{row.st}}"><sc-for list="{{row.spans}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+          </div>
+        </div>
+        <div class="spec"><span>rule</span><span>only when the pane has nothing yet: cached rows show at once, marked stale, with the spinner in the title</span><span>waiting</span><span>rows in the shape they will have: icon slot, name, state, age; a light wave runs down them</span><span>arrives</span><span>each row reads in over its outline, 40 ms apart</span><span>runs at</span><span>full; subtle shows the outlines still</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px">
+    <div class="panel card">
+      <h2 class="h2">Levels</h2>
+      <div class="term">
+        <div class="r"><span class="m">[theme] motion = </span><span class="k">"full" | "subtle" | "off"</span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="e">full    </span><span class="s">every effect on this sheet</span></div>
+        <div class="r"><span class="e">subtle  </span><span class="s">screen fade, popup, changed rows, notices, focus</span></div>
+        <div class="r"><span class="e">off     </span><span class="s">radar draws as it does without motion</span></div>
+      </div>
+    </div>
+    <div class="panel card">
+      <h2 class="h2">Rules</h2>
+      <div class="term">
+        <div class="r"><span class="k">&#xf49e;</span><span class="s"> any key, click, wheel or paste ends every effect</span></div>
+        <div class="r"><span class="k">&#xf49e;</span><span class="s"> pointer movement does not</span></div>
+        <div class="r"><span class="k">&#xf49e;</span><span class="s"> three slow frames in a row: motion off, and it says so</span></div>
+        <div class="r"><span class="k">&#xf49e;</span><span class="s"> off over SSH and on 16 colours or none</span></div>
+        <div class="r"><span class="k">&#xf49e;</span><span class="s"> the frame after an effect is the frame without it</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"speed":{"editor":"enum","options":["slow","real"],"default":"slow"},"$preview":{"width":1440,"height":2060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var sp = (this.props.speed ?? 'slow') === 'real' ? 'rt' : 'sl';
+    var fx = {};
+    ['fade', 'page', 'pop', 'msg', 'glow', 'add', 'fold', 'notice', 'skel'].forEach(function (n) { fx[n] = 'fx-' + n + '-' + sp; });
+    var k = sp === 'sl' ? 4 : 1;
+    var T = { base: '#0a0812', surf: '#12101a', ov: '#1a162a', hov: '#2a263e', sel: '#44475a', p: '#f8f8f2', s: '#e9d5ff', m: '#6272a4', e: '#ffffff', a: '#e135ff', am: '#9580ff', k: '#80ffea', t3: '#ff6ac1', ok: '#50fa7b', wn: '#f1fa8c', bd: '#ff6363', in: '#82aaff', n: '#ffb86c' };
+    function rgb(h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); }
+    function hex(c) { return '#' + c.map(function (v) { return ('0' + Math.round(v).toString(16)).slice(-2); }).join(''); }
+    function mix(a, b, t) { var x = rgb(a), y = rgb(b); return hex(x.map(function (v, i) { return v + (y[i] - v) * t; })); }
+    function ramp(t) { return t < 0.5 ? mix(T.a, T.t3, t / 0.5) : mix(T.t3, T.k, (t - 0.5) / 0.5); }
+    function grid(w, h, bg) { var g = []; for (var y = 0; y < h; y++) { var r = []; for (var x = 0; x < w; x++) r.push({ ch: ' ', st: 'color:' + T.p + ';background:' + bg, key: 'bg' + bg }); g.push(r); } return g; }
+    function put(g, y, x, text, st, key) { Array.from(text).forEach(function (ch, i) { var c = g[y] && g[y][x + i]; if (c) { c.ch = ch; c.st = st; c.key = key || st; } }); }
+    function runs(g) {
+      return g.map(function (row) {
+        var out = [], cur = null;
+        row.forEach(function (c) { if (cur && cur.key === c.key && c.key.indexOf('solo') < 0) cur.t += c.ch; else { cur = { t: c.ch, st: c.st, key: c.key }; out.push(cur); } });
+        return out;
+      });
+    }
+    function col(fg, bg, b) { return 'color:' + fg + ';background:' + bg + (b ? ';font-weight:700' : ''); }
+
+    // focus lap: two panels; each border cell is its own span
+    var C = 4;
+    var F = grid(48, 6, T.base);
+    function lapBox(x0, w, h, title, offset) {
+      var cells = [];
+      for (var x = 0; x < w; x++) cells.push([0, x0 + x]);
+      for (var y = 1; y < h - 1; y++) cells.push([y, x0 + w - 1]);
+      for (var x2 = w - 1; x2 >= 0; x2--) cells.push([h - 1, x0 + x2]);
+      for (var y2 = h - 2; y2 >= 1; y2--) cells.push([y2, x0]);
+      var N = cells.length, L = 0.3 * k;
+      cells.forEach(function (p, i) {
+        var y = p[0], x = p[1] - x0;
+        var ch = y === 0 ? (x === 0 ? '╭' : x === w - 1 ? '╮' : '─') : y === h - 1 ? (x === 0 ? '╰' : x === w - 1 ? '╯' : '─') : '│';
+        var settled = ramp(i / (N - 1)), quiet = '#5d528f';
+        var delay = (offset + i / N * L).toFixed(3);
+        put(F, y, p[1], ch, 'color:' + quiet + ';background:' + T.surf + ';--c:' + settled + ';--u:' + quiet + ';animation:chase-' + sp + ' ' + C + 's linear ' + delay + 's infinite backwards', 'solo' + y + '-' + p[1]);
+      });
+      for (var yy = 1; yy < h - 1; yy++) for (var xx = 1; xx < w - 1; xx++) put(F, yy, x0 + xx, ' ', col(T.p, T.surf), 'bgs');
+      put(F, 0, x0 + 2, ' ' + title + ' ', col(T.e, T.surf, true), 't' + x0);
+    }
+    lapBox(0, 18, 6, 'views', 0); lapBox(19, 29, 6, 'Everything', C / 2);
+    put(F, 1, 2, 'Everything', col(T.e, T.surf, true)); put(F, 2, 2, 'Needs action', col(T.p, T.surf)); put(F, 3, 2, 'Opened by me', col(T.p, T.surf));
+    put(F, 1, 21, 'team-a', col(T.e, T.surf, true)); put(F, 1, 28, 'main red in 1', col(T.bd, T.surf));
+    put(F, 2, 21, '├─ web', col(T.p, T.surf)); put(F, 2, 36, ' failed', col(T.bd, T.surf, true));
+    put(F, 3, 21, '└─ api', col(T.p, T.surf)); put(F, 3, 36, ' passed', col(T.ok, T.surf));
+
+    // assemble: a small screen whose parts arrive in layout order
+    var A = grid(56, 12, T.base);
+    var AC = sp === 'sl' ? 6 : 2.5;
+    function anim(kind, d) { return ';animation:asm-' + kind + '-' + sp + ' ' + AC + 's linear ' + (d * k / 1000).toFixed(3) + 's infinite backwards'; }
+    // chrome
+    for (var x = 0; x < 56; x++) { put(A, 0, x, ' ', col(T.p, T.ov) + anim('fade', 0), 'chrome0'); put(A, 11, x, ' ', col(T.p, T.ov) + anim('fade', 0), 'chrome11'); }
+    put(A, 0, 1, 'radar', col(T.a, T.ov, true) + anim('fade', 0), 'chrome0a'); put(A, 0, 5, '  Repositories  ', col(T.e, T.sel, true) + anim('fade', 0), 'chrome0b'); put(A, 0, 23, 'Jira   Slack   Branches', col(T.p, T.ov) + anim('fade', 0), 'chrome0c');
+    put(A, 11, 0, ' REPOSITORIES ', col(T.base, T.a, true) + anim('fade', 0), 'chrome11a'); put(A, 11, 16, 'bulk   quit', col(T.s, T.ov) + anim('fade', 0), 'chrome11b');
+    // frames, drawn row by row
+    function frame(x0, w, base, title, glow) {
+      for (var y = 1; y <= 10; y++) {
+        var d = base + (y - 1) * 8, st = anim('clip', d), key = 'f' + x0 + '-' + y;
+        for (var x = 0; x < w; x++) {
+          var ch = y === 1 ? (x === 0 ? '╭' : x === w - 1 ? '╮' : '─') : y === 10 ? (x === 0 ? '╰' : x === w - 1 ? '╯' : '─') : (x === 0 || x === w - 1 ? '│' : ' ');
+          var fg = glow ? ramp(x / (w - 1)) : T.am;
+          put(A, y, x0 + x, ch, 'color:' + fg + ';background:' + T.surf + st, key);
+        }
+        if (y === 1) put(A, 1, x0 + 2, ' ' + title + ' ', col(T.e, T.surf, true) + st, key);
+      }
+    }
+    frame(0, 13, 40, 'views', false); frame(13, 27, 70, 'Everything', true); frame(40, 16, 100, '!263', false);
+    // nav and list rows
+    [['Everything', T.e], ['Needs action', T.p], ['By me', T.p]].forEach(function (r, i) { put(A, 2 + i, 2, r[0], col(r[1], T.surf, i === 0) + anim('clip', 150 + i * 25), 'n' + i); });
+    var list = [['team-a', T.e, '', null], ['├─ api', T.p, ' passed', T.ok], ['│ └─ !263', T.p, ' review', T.wn], ['├─ web', T.p, ' failed', T.bd], ['└─ docs', T.p, ' passed', T.ok]];
+    list.forEach(function (r, i) {
+      put(A, 2 + i, 15, r[0], col(r[1], T.surf, i === 0) + anim('clip', 160 + i * 25), 'm' + i);
+      if (r[2]) put(A, 2 + i, 29, r[2], col(r[3], T.surf, true) + anim('val', 290 + i * 25), 'v' + i);
+    });
+    [['ABC-12', T.e], ['alice/ABC-12', T.k], ['', T.p], ['REVIEW', T.m], ['1 of 2', T.n]].forEach(function (r, i) { if (r[0]) put(A, 2 + i, 42, r[0], col(r[1], T.surf, i === 0 || i === 3) + anim('clip', 360 + i * 20), 'd' + i); });
+
+    // loading: outlines, then the real rows read in
+    var shapes = [[6, 0, 0], [12, 8, 2], [16, 10, 3], [11, 8, 2], [9, 8, 2]];
+    var skel = shapes.map(function (s, i) {
+      var spans = [];
+      var wave = 'color:#2f2a48;background:' + T.surf + ';animation:wave 1.4s linear ' + (i * 0.09).toFixed(2) + 's infinite';
+      function bar(n) { return Array(n + 1).join('━'); }
+      spans.push({ t: '  ', st: 'background:' + T.surf });
+      spans.push({ t: '●', st: wave });
+      spans.push({ t: ' ', st: 'background:' + T.surf });
+      spans.push({ t: bar(s[0]), st: wave });
+      var pad = 25 - s[0];
+      spans.push({ t: Array(pad + 1).join(' '), st: 'background:' + T.surf });
+      if (s[1]) { spans.push({ t: bar(s[1]), st: wave }); spans.push({ t: '  ', st: 'background:' + T.surf }); spans.push({ t: bar(s[2]), st: wave }); }
+      return spans;
+    });
+    var realRows = [
+      [['  ', T.m], [' ', T.s], ['team-a', T.e]],
+      [['  ', T.m], [' ', T.s], ['api', T.p], ['                      ', T.p], [' passed', T.ok], ['  ', T.p], ['4d', T.m]],
+      [['  ', T.m], [' ', T.a], ['!263 stats endpoint', T.p], ['      ', T.p], [' review', T.wn], ['  ', T.p], ['16m', T.m]],
+      [['  ', T.m], [' ', T.s], ['web', T.p], ['                      ', T.p], [' failed', T.bd], ['  ', T.p], ['4d', T.m]],
+      [['  ', T.m], [' ', T.s], ['docs', T.p], ['                     ', T.p], [' passed', T.ok], ['  ', T.p], ['4d', T.m]]
+    ];
+    var LC = sp === 'sl' ? 6 : 3;
+    var real = realRows.map(function (r, i) {
+      return { st: 'animation:row-' + sp + ' ' + LC + 's linear ' + (i * 0.04 * k).toFixed(2) + 's infinite backwards', spans: r.map(function (s) { return { t: s[0], st: 'color:' + s[1] + ';background:' + T.surf + (s[1] === T.e || s[1] === T.bd ? ';font-weight:700' : '') }; }) };
+    });
+    return { fx: fx, foc: runs(F), asm: runs(A), skel: skel, real: real };
+  }
+}
+</script>
+</body>
+</html>

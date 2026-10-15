@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: text(&buf)
+---
+ Gallery › Motion
+ The kit: every element on sample data                            colours: none
+ Meters  Rows & states  Entries & log  Markdown  Diff  [Motion]  Colours  Tones
+╭ items ───────────────────────────────────────────────────────────────────────╮
+│  New arrival 1                                                       shelved │
+│  Atlas of the north                                                  on loan │
+│  Birds of the coast                                                  shelved │
+│  Clocks and their makers                                             on loan │
+│  Dyes from plants                                                    shelved │
+│  Engines, a history  ╭ shelve it? ────────────────────╮              missing │
+│  Ferns of the valleys│ puts the book back on its shelf│              shelved │
+│  Glass and its uses  │                                │              on loan │
+╰──────────────────────│     ▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔│──────────────────────╯
+╭ motion ──────────────│      y shelve it    n leave it │──────────────────────╮
+│ level  full  everythi│     ▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁│ and loading          │
+│                      ╰────────────────────────────────╯                      │
+│  s  a screen switch: the body fades in  · subtle                             │
+│  m  a menu or confirm sweeps open (again: closes)  · subtle                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ waiting ─────────────────────────────────────────────────────────────────────╮
+│ loading…                                                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ copied 42 characters
+ [ ] tabs   s m g p n t l effects   f level   c colours   q quit

@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Entries & log
+ The kit: every element on sample data                            colours: none
+ Tree  Table  Card  Meters  Rows & states  [Entries & log]  Markdown  Diff  Mot
+╭ why the sort stopped ────────────────────────────────────────────────────────╮
+│ WHY IT STOPPED                                                               █
+│ ✗ label     2m 04s · ran out of labels                                       █
+│   │ no label left for box 17                                                 █
+│   │ the drawer holds 0 of 40                                                 █
+│ ✗ file      12s · timed out                                                  █
+│   │ shelf 4 did not answer                                                   ║
+│                                                                              ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ log · /label 19 of 19 ───────────────────────────────────────────────────────╮
+│ │ box 11: label printed                                                      ║
+│ │ box 12: label printed                                                      ║
+│ │ box 13: label printed                                                      ║
+│ │ box 14: label printed                                                      ║
+│ │ box 15: label printed                                                      ║
+│ │ box 16: label printed                                                      ║
+│ │ error: no label left for box 17                                            █
+│ │ the drawer holds 0 of 40 labels; the long line runs on and on so that it w █
+│ │ raps at the narrow width of the panel                                      █
+╰──────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

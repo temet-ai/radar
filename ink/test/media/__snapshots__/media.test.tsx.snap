@@ -1,0 +1,22 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`media surface > none: metadata, alt, source and open action; no escape sequence written 1`] = `
+"media · image/png · 20.0 KiB · sha256:ab12cd
+alt: Pipeline graph with one failed job
+source: https://gitlab.example/g/p/-/artifacts/7
+o open externally"
+`;
+
+exports[`media surface > sixel: metadata, alt, source and open action; no escape sequence written 1`] = `
+"media · image/png · 20.0 KiB · sha256:ab12cd
+alt: Pipeline graph with one failed job
+source: https://gitlab.example/g/p/-/artifacts/7
+o open externally"
+`;
+
+exports[`media surface > video: metadata and the external-player action, even under kitty 1`] = `
+"video · video/mp4 · 5.0 MiB · sha256:ab12cd
+alt: Pipeline graph with one failed job
+source: https://gitlab.example/g/p/-/artifacts/7
+o open in external player at 42s"
+`;

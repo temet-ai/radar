@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    ⎇ Branches   Repositories   ≣ History   ⚙ Settings (,)            ✎ edit
+╭ settings ────────────╮╭ checkouts ───────────────────────────────────────────╮
+│General               ││  + add a folder to look in   paste or type a folder  │
+│  ├─ ⊞ parts          ││ look down  4 folders                                 │
+│  ├─ ✎ mode           ││ terminal   found for you                             │
+│  ├─ ◑ colours        ││ last look  not yet                                   │
+│  └─ ☺ icons          ││                                                      │
+│Git                   ││                                                      │
+│  ├─ ⌂ checkouts      ││                                                      │
+│  ├─ ✎ editors        ││                                                      │
+│  ├─ ↗ links          ││                                                      │
+│  └─ ⎇ branches       │╰──────────────────────────────────────────────────────╯
+│Workspace             │╭ add a folder ────────────────────────────────────────╮
+│  └─ ⌂ workspaces     ││ Another folder to look for git checkouts in. radar      █
+│                      ││ matches each checkout to its repo by its origin      █
+│                      ││ remote.                                              █
+│                      ││                                                      █
+│                      ││ ACCEPTS                                              █
+│                      ││ a full path, or one starting with ~/ (pasted links   █
+│                      ││ to files work too)                                   █
+│                      ││                                                      ║
+│                      ││ NOW                                                  ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate

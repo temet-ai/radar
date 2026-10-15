@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: "to_text(&started(), 160, 40)"
+---
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ Groups not loaded     ││ Press r to load local work.                                                         ││ No source binding in this evidence page. Add │
+│ All items             ││                                                                                     ││ an exact source from its actions menu; no    │
+│                       ││                                                                                     ││ links are inferred.                          │
+│                       ││                                                                                     ││ Create a local task or select an existing    │
+│                       ││                                                                                     ││ item. No provider labels, relationships or   │
+│                       ││                                                                                     ││ goals are inferred.                          │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

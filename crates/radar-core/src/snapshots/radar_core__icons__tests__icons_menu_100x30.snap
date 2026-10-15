@@ -1,0 +1,34 @@
+---
+source: crates/radar-core/src/icons.rs
+expression: "crate::shell::to_text(&host, 100, 30)"
+---
+ radar     History    Settings (,)                                                          edit
+╭ settings ────────────╮╭ colours ─────────────────────────────────────────────────────────────────╮
+│General               ││ theme                                                                    │
+│  ├─  parts          ││   palette       silkcircuit-neon                                         │
+│  ├─  mode           ││   colours       match the terminal                                       │
+│  ├─  colours        ││   motion        subtle                                                   │
+│  └─  icons          ││   splash        auto                                                     │
+│                      ││   icons         nerd                                                     │
+╭ icons ───────────────────────────────────────────────────────────────────────────────────────────╮
+│  auto                                                                                            │
+│  by the terminal: off                                                                            │
+│  nerd                                                                                            │
+│  in use ·             Nerd Font symbols: needs a Nerd Font, or a terminal that brings  │
+│  its symbols                                                                                     │
+│  unicode                                                                                         │
+│  ▤ ⎇ ⇄ ✓ ✗ ✱ ▣ ☺ # ⚙   plain symbols every font has                                              │
+│  emoji                                                                                           │
+│  📦 🌿 🔀 ✅ ❌ 🐛 📗 👤 📢 🔧   colourful emoji, two cells wide                                 │
+│  off                                                                                             │
+│  no icons                                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+│                      ││   nerd                                                         █
+│                      ││   unicode   ▤ ⎇ ⇄ ✓ ✗ ✱ ▣ ☺ # ⚙                                          █
+│                      ││   emoji     📦 🌿 🔀 ✅ ❌ 🐛 📗 👤 📢 🔧                                █
+│                      ││   off                                                                    ║
+│                      ││                                                                          ║
+│                      ││ auto here: off. Nerd Font symbols where the terminal brings them         ║
+│                      ││ (Ghostty, kitty, WezTerm), else unicode; unicode over SSH.               ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
+ SETTINGS   j/k move   ⏎ choose   esc close

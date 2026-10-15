@@ -1,0 +1,44 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ All items             ││ Ship explicit work-item navigation                                             task ││ pull-request · acme/api/7                    ║
+│ release candidate     ││ pull-request · acme/api/7                                              pull-request ││ authored                                     █
+│                       ││ ticket · ABC-12                                                              ticket ││ Source owner unavailable here; c copies its  █
+│                       ││ checkout · /home/user/projects/api                                         checkout ││ exact locator.                               █
+│                       ││ workflow-run · acme/api/42/1                                           workflow-run ││ Local work saved.                            █
+│                       ││                                                                                     ││ Ship explicit work-item navigation           █
+│                       ││                                                                                     ││ Local groups: release candidate              █
+│                       ││                                                                                     ││ Selected pull-request: acme/api/7            █
+│                       ││                                                                                     ││ authored link · c copy locator · x actions   █
+│                       ││                                                                                     ││ Locator event in this page: source.selected  █
+│                       ││                                                                                     ││ · requested                                  █
+│                       ││                                                                                     ││ v history: original claims and outcomes ·    █
+│                       ││                                                                                     ││ completeness not guaranteed                  █
+│                       ││                                                                                     ││ Partial one-hop map: more relation evidence  █
+│                       ││                                                                                     ││ may exist. Inspect task evidence with v.     █
+│                       ││                                                                                     ││ Recording degraded: known history gaps.      █
+│                       ││                                                                                     ││ Titles and groups are authored locally.      █
+│                       ││                                                                                     ││ Relations do not imply identity, permission  █
+│                       ││                                                                                     ││ or completion.                               █
+│                       ││                                                                                     ││ Task item ID:                                █
+│                       ││                                                                                     ││ 10000000-0000-4000-8000-000000000001         █
+│                       ││                                                                                     ││ Source identity details                      █
+│                       ││                                                                                     ││ Provider: forge                              █
+│                       ││                                                                                     ││ Instance: https://forge.example/             █
+│                       ││                                                                                     ││ Source item:                                 █
+│                       ││                                                                                     ││ 10000000-0000-4000-8000-000000000006         █
+│                       ││                                                                                     ││ Action interval: 2 through open-ended        █
+│                       ││                                                                                     ││ ticket · ABC-12                              █
+│                       ││                                                                                     ││ authored                                     █
+│                       ││                                                                                     ││ checkout · /home/user/projects/api           █
+│                       ││                                                                                     ││─ shows ──────────────────────────────────────█
+│                       ││                                                                                     ││ Partial bounded evidence; inspect original   █
+│                       ││                                                                                     ││ history with v.                              █
+│                       ││                                                                                     ││ Recording degraded: known history gaps.      ║
+│                       ││                                                                                     ││ Observations only. Relations grant no        ║
+│ Groups · page 1       ││                                                                                     ││ identity, permission or completion.          ║
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

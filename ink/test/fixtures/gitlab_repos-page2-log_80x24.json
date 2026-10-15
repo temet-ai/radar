@@ -1,0 +1,265 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "job",
+      "id": "",
+      "label": "unit-test"
+    },
+    {
+      "id": "gitlab.page.open_link",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open the job in GitLab"
+    },
+    {
+      "id": "gitlab.page.open_pipeline",
+      "key": {
+        "key": {
+          "char": "p"
+        }
+      },
+      "label": "open its pipeline"
+    },
+    {
+      "id": "gitlab.page.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy its link"
+    },
+    {
+      "id": "gitlab.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "load its log again"
+    },
+    {
+      "id": "gitlab.job.copy_lines",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "copy its last lines"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "log"
+    },
+    {
+      "id": "gitlab.job.search_log",
+      "key": {
+        "key": {
+          "char": "/"
+        }
+      },
+      "label": "search the log…"
+    },
+    {
+      "id": "gitlab.job.load_earlier",
+      "key": {
+        "key": {
+          "char": "g"
+        }
+      },
+      "label": "go to the start, loading the part before"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "page"
+    },
+    {
+      "id": "gitlab.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to web"
+    },
+    {
+      "id": "gitlab.page.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Repositories"
+      },
+      {
+        "look": "tenant.green bold",
+        "text": "a"
+      },
+      {
+        "ink": "secondary",
+        "text": "web"
+      },
+      {
+        "ink": "emphasis",
+        "text": "unit-test"
+      }
+    ],
+    "details": [
+      {
+        "icon": "run_failed",
+        "icon_lead": true,
+        "ink": "bad",
+        "text": "✗ "
+      },
+      {
+        "look": "status.error bold",
+        "text": "failed"
+      },
+      {
+        "ink": "muted",
+        "text": " · stage "
+      },
+      {
+        "ink": "accent_secondary",
+        "text": "test"
+      },
+      {
+        "ink": "muted",
+        "text": " · 1m 14s"
+      },
+      {
+        "ink": "bad",
+        "text": " · it ran out of time"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "empty": "This job wrote nothing to its log.",
+          "lines": [
+            {
+              "row": 0,
+              "selected": false,
+              "text": [
+                {
+                  "text": " "
+                },
+                {
+                  "ink": "accent_muted"
+                },
+                {
+                  "ink": "primary",
+                  "text": "waiting for the stack to settle"
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "selected": false,
+              "text": [
+                {
+                  "text": " "
+                },
+                {
+                  "ink": "accent_muted"
+                },
+                {
+                  "ink": "primary",
+                  "text": "still waiting (19m)"
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "selected": false,
+              "text": [
+                {
+                  "text": " "
+                },
+                {
+                  "ink": "accent_muted"
+                },
+                {
+                  "ink": "primary",
+                  "text": "still waiting (20m)"
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "selected": true,
+              "text": [
+                {
+                  "text": " "
+                },
+                {
+                  "ink": "accent_muted"
+                },
+                {
+                  "ink": "bad",
+                  "strong": true,
+                  "text": "ERROR: Job failed: execution took longer than 20m0s seconds"
+                }
+              ]
+            }
+          ],
+          "node": "log",
+          "top": 0,
+          "total": 4
+        },
+        "notes": [
+          [
+            {
+              "ink": "muted",
+              "text": "⋯ 878 KB earlier in the log, loaded when you reach the top"
+            }
+          ]
+        ],
+        "pane": "middle",
+        "title": "log"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "icon": "log",
+        "label": "Log · last 153 B of 879 KB"
+      }
+    ],
+    "title": [
+      {
+        "icon": "job"
+      },
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "unit-test"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "repos",
+  "version": 1
+}

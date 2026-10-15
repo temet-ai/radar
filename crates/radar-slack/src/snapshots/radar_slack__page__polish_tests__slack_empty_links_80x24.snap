@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/page_polish_tests.rs
+expression: empty
+---
+ radar    Slack 4   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+ Slack › #team › Bob Builder: No links left.
+ No links left.                              Bob Builder · 19h ago · no replies
+ Thread  [Links]
+╭ what it links to ────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ No links in these messages. Your browser gets a breather.                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate               slack

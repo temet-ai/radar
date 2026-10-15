@@ -1,0 +1,44 @@
+---
+source: crates/radar-core/src/host.rs
+expression: text
+---
+ radar    A   History   Settings (,)                                                                                                                ◉ read only
+╭ settings ────────────╮╭ mode ──────────────────────────────────────────────────────────────────────────╮╭ the modes ─────────────────────────────────────────╮
+│General               ││ WHAT RADAR MAY CHANGE                                                          ││ ● read only                                        │
+│  ├─ parts            ││                                                                                ││     changes nothing anywhere: every write is shown │
+│  ├─ mode             ││ mode    read only                                                              ││ and asked, and none is sent                        │
+│  ├─ colours          ││         set by RADAR_MODE                                                      ││   write                                            │
+│  └─ icons            ││                                                                                ││     may add things: comments, replies, reactions,  │
+│a                     ││ WHEN IDLE                                                                      ││ review asks, new items                             │
+│  └─ a                ││                                                                                ││   edit                                             │
+│                      ││ pause if idle after 30 minutes                                                 ││     may also change what is there: approve,        │
+│                      ││                                                                                ││ resolve, move, assign, rebase, merge               │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ Local actions (check out, an editor, a terminal)   │
+│                      ││                                                                                ││ and settings work in every mode.                   │
+│                      ││                                                                                ││ RADAR_MODE sets it for one run: read-only, write   │
+│                      ││                                                                                ││ or edit.                                           │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ Now RADAR_MODE keeps radar read only for this run; │
+│                      ││                                                                                ││ the setting is kept for the next.                  │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

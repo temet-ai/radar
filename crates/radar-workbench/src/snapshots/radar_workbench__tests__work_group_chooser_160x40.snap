@@ -1,0 +1,44 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ All items             ││ Keep selected while browsing groups                                            task ││ No source binding in this evidence page. Add │
+│ Unassigned group 0    ││                                                                                     ││ an exact source from its actions menu; no    │
+│ Unassigned group 1    ││                                                                                     ││ links are inferred.                          │
+│ Unassigned group 2    ││                                                                                     ││ Local work saved.                            │
+│ Unassigned group 3    ││                                                                                     ││ Keep selected while browsing groups          │
+│ Unassigned group 4    ││                                                                                     ││ v history: original claims and outcomes ·    │
+│ Unassigned group 5    ││                                                                                     ││ completeness not guaranteed                  │
+│ Unassigned group 6    ││       ╭ Label Keep selected while browsing groups · groups page 1 ─────────────────────────────────╮oups are authored locally.      │
+│ Unassigned group 7    ││       │  Create a local group label…   name it yourself                                            │not imply identity, permission  │
+│ Unassigned group 8    ││       │  Unassigned group 0            50000000-0000-4000-8000-000000000000 · existing local group │.                               │
+│ Unassigned group 9    ││       │  Unassigned group 1            50000000-0000-4000-8000-000000000001 · existing local group │                                │
+│ Unassigned group 10   ││       │  Unassigned group 2            50000000-0000-4000-8000-000000000002 · existing local group │-4000-8000-000000000001         │
+│ Unassigned group 11   ││       │  Unassigned group 3            50000000-0000-4000-8000-000000000003 · existing local group │                                │
+│ Unassigned group 12   ││       │  Unassigned group 4            50000000-0000-4000-8000-000000000004 · existing local group │                                │
+│ Unassigned group 13   ││       │  Unassigned group 5            50000000-0000-4000-8000-000000000005 · existing local group │                                │
+│ Unassigned group 14   ││       │  Unassigned group 6            50000000-0000-4000-8000-000000000006 · existing local group │                                │
+│ Unassigned group 15   ││       │  Unassigned group 7            50000000-0000-4000-8000-000000000007 · existing local group │                                │
+│                       ││       │  Unassigned group 8            50000000-0000-4000-8000-000000000008 · existing local group │                                │
+│                       ││       │  Unassigned group 9            50000000-0000-4000-8000-000000000009 · existing local group │                                │
+│                       ││       │  Unassigned group 10           50000000-0000-4000-8000-00000000000a · existing local group │                                │
+│                       ││       │  Unassigned group 11           50000000-0000-4000-8000-00000000000b · existing local group │                                │
+│                       ││       │  Unassigned group 12           50000000-0000-4000-8000-00000000000c · existing local group │                                │
+│                       ││       │  Unassigned group 13           50000000-0000-4000-8000-00000000000d · existing local group │                                │
+│                       ││       │  Unassigned group 14           50000000-0000-4000-8000-00000000000e · existing local group │                                │
+│                       ││       │  Unassigned group 15           50000000-0000-4000-8000-00000000000f · existing local group │                                │
+│                       ││       │  More groups…                  next bounded catalog page                                   │                                │
+│                       ││       │ Exact local group identities, including unassigned groups. Equal names do not merge groups.│                                │
+│                       ││       ╰────────────────────────────────────────────────────────────────────────────────────────────╯                                │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   j/k move   ⏎ choose   esc close

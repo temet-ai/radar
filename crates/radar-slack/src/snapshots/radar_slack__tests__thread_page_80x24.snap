@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 3   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+ Slack › #team › Bob Builder: @review-squad :gitlab: m…
+ @review-squad :gitlab: mr Add a stats endpo…  Bob Builder · 2d ago · 2 replies
+ [Thread]  Links · 1
+╭ thread ──────────────────────────────────────────────────────────────────────╮
+│ ── Sun 4 Oct ──                                                              │
+│ 06:16  Bob Builder    @review-squad :gitlab: mr Add a stats endpoint for the │
+│                       dashboard  👀 1                                        │
+│ ── 2 replies ──                                                              │
+│ 06:46  Alice Example  looking 👀                                             │
+│ 07:16  Carol Coder    approved, nice one                                     │
+│ 1 to open: links, files and what it names, on the Links tab                  │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate               slack

@@ -1,0 +1,145 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "group",
+      "id": "",
+      "label": "b"
+    },
+    {
+      "id": "gitlab.page.open_link",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open the group in GitLab"
+    },
+    {
+      "id": "gitlab.page.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the group's link"
+    },
+    {
+      "id": "gitlab.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page and its tenancy"
+    },
+    {
+      "id": "gitlab.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the middle pane"
+    },
+    {
+      "id": "gitlab.page.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Repositories"
+      },
+      {
+        "look": "tenant.cyan bold",
+        "text": "b"
+      }
+    ],
+    "details": [
+      {
+        "ink": "muted",
+        "text": "0 repos · 0 merge requests"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "columns": [
+            {
+              "flex": true,
+              "heading": "repo",
+              "keep": 0,
+              "width": 10
+            },
+            {
+              "heading": "main",
+              "icon": "pipeline",
+              "keep": 0,
+              "width": 12
+            },
+            {
+              "heading": "mrs",
+              "icon": "change",
+              "keep": 0,
+              "width": 5
+            },
+            {
+              "heading": "last activity",
+              "icon": "updated",
+              "keep": 0,
+              "width": 14
+            }
+          ],
+          "node": "table",
+          "rows": [],
+          "selected": 0
+        },
+        "footer": [
+          {
+            "ink": "muted",
+            "text": "No repos hidden. Settings › tenancies hides the ones you never need."
+          }
+        ],
+        "pane": "middle",
+        "title": "repos"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "icon": "repo",
+        "label": "Repos · 0"
+      }
+    ],
+    "title": [
+      {
+        "icon": "group"
+      },
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "acme/team-b"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "repos",
+  "version": 1
+}

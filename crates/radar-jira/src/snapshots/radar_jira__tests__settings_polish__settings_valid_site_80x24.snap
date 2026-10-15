@@ -1,0 +1,28 @@
+---
+source: crates/radar-jira/src/settings_polish_tests.rs
+expression: shown
+---
+ radar    Jira   History   Settings (,)                                  ✎ edit
+╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+│General               ││  ? Found: a Jira site. Use it?                       █
+│  ├─ parts            ││  ? Found: a Jira site (JIRA_OTHER_URL, …). Use it?   █
+│  ├─ mode             ││  + add a site                                        █
+│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects             █
+│  └─ icons            ││    ├─ site            oftware/projects/GAM/boards/2  █
+│Jira                  ││    ├─ account         alice@example.com              ║
+│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
+│  ├─ projects         ││    ├─ signed in as    Alice Example                  ║
+│  ├─ views            ││    └─ check           not checked yet                ║
+│  └─ look             │╰──────────────────────────────────────────────────────╯
+│                      │╭ site ────────────────────────────────────────────────╮
+│                      ││ AS YOU TYPE                                          █
+│                      ││ ✓ the site gamma.atlassian.net                       █
+│                      ││                                                      █
+│                      ││ CHECKED                                              █
+│                      ││ not checked yet                                      █
+│                      ││                                                      ║
+│                      ││ NOW                                                  ║
+│                      ││ https://acme.atlassian.net                           ║
+│                      ││                                                      ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   ⏎ keep   esc cancel                                            jira

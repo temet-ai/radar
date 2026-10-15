@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: shown
+---
+ radar    Repositories 2   Jira   Slack   Branches   Work (I)   History   Settings (,)                                      ⠷ not synced yet · every 2m  ✎ edit
+ Jira › acme › ABC › ABC-12
+ Add a stats endpoint for the dashboard                                                                                               ◐ In Review · Story · you
+ Acme ABC · updated 1h ago
+ Overview  Comments  Links  [Code · 1]
+╭ code ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  api !263         review   pipeline passed    approvals 0 of 1       ABC-12: Add a stats endpoint for the dashboard                                          │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ JIRA   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                     3 tickets · 1 doing  gitlab jira

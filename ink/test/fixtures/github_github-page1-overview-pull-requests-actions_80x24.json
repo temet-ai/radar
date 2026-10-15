@@ -1,0 +1,244 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "acme/api"
+    },
+    {
+      "id": "github.page.follow_link",
+      "key": {
+        "key": "enter"
+      },
+      "label": "follow a link on this page…"
+    },
+    {
+      "id": "github.page.open_on_github",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open on GitHub"
+    },
+    {
+      "id": "github.page.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the link"
+    },
+    {
+      "id": "github.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page"
+    },
+    {
+      "id": "github.page.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab"
+    },
+    {
+      "id": "github.page.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab"
+    },
+    {
+      "id": "github.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the previous page"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "medium_from": 70,
+  "page": {
+    "crumbs": [
+      {
+        "ink": "muted",
+        "text": "GitHub"
+      },
+      {
+        "ink": "secondary",
+        "text": "acme/api"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "visibility  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "public"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "default branch  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "main"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "archived  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "no"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "section",
+              "blocks": [
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "text": "Latest observed Actions on main"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "text": "failure  Build and test · #88 attempt 2 · updated 2026-10-06T10:05:00Z"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "text": "Observed workflows only; this does not establish overall repository health."
+                    }
+                  ]
+                }
+              ],
+              "title": "ACTIONS"
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "section",
+              "blocks": [
+                {
+                  "block": "doc",
+                  "doc": [
+                    {
+                      "t": "para",
+                      "text": [
+                        {
+                          "text": "An example API service. Read the "
+                        },
+                        {
+                          "kind": {
+                            "link": {
+                              "url": "https://github.com/acme/api/blob/main/CONTRIBUTING.md"
+                            }
+                          },
+                          "text": "contribution guide"
+                        },
+                        {
+                          "text": "."
+                        }
+                      ]
+                    }
+                  ],
+                  "urls": false
+                }
+              ],
+              "title": "DESCRIPTION"
+            }
+          ],
+          "node": "rich"
+        },
+        "pane": "middle",
+        "title": "Overview"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "label": "Overview"
+      },
+      {
+        "label": "Pull requests"
+      },
+      {
+        "label": "Actions"
+      }
+    ],
+    "title": [
+      {
+        "ink": "emphasis",
+        "text": "acme/api"
+      }
+    ],
+    "under": [
+      {
+        "chip": true,
+        "icon": "local",
+        "ink": "muted",
+        "text": "local folder  "
+      },
+      {
+        "chip": true,
+        "ink": "muted",
+        "text": "no matching origin; link a folder or scan configured folders"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "github",
+  "version": 1
+}

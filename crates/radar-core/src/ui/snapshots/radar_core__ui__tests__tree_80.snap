@@ -1,0 +1,16 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "tree_text(80, 14, &[])"
+---
+ HELD BY everyone                       STATE     OWNER       SIZE    UPDATED
+▌ A north-wing
+▌ ├─ atlases                            1 item
+▌ │  └─ #104 sort the atlas box by deca open      alice       12      3d
+▌ ├─ maps
+▌ │  ├─ #187 label the map drawer       open      alice       12      3d
+▌ │  │  └─ #1 a loose map               open      alice       12      3d
+▌ │  └─ #198 count the postcards        open      alice       12      3d
+▌ └─ ledgers                            —
+▌ B south-wing
+▌ └─ globes
+▌    └─ #342 move the globes            open      alice       12      3d

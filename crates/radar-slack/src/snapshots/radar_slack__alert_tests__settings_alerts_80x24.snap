@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/alert_tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 5   History   Settings (,)                               ✎ edit
+╭ settings ────────────╮╭ alerts ──────────────────────────────────────────────╮
+│General               ││ + add a mapping                                      █
+│  ├─ parts            ││ keep resolved    24 hours                            █
+│  ├─ mode             ││ ▌ api-… → repo acme/team-a/api · service api         █
+│  ├─ colours          ││   ├─ name starts     api-                            █
+│  └─ icons            ││   ├─ carries label   —                               █
+│Slack                 ││   ├─ repo            acme/team-a/api                 █
+│  ├─ connection       ││   ├─ service         api                             █
+│  ├─ channels         ││   └─ environment     —                               █
+│  ├─ review           ││ no rule places  DiskFull                             ║
+│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ add a mapping ───────────────────────────────────────╮
+│                      ││ Say where a kind of alert belongs.                   │
+│                      ││                                                      │
+│                      ││ Type the start of its name; the repo it belongs to   │
+│                      ││ is asked next. The service, a label to match and an  │
+│                      ││ environment can be set under the rule. The first     │
+│                      ││ rule that matches an alert decides.                  │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate                               slack

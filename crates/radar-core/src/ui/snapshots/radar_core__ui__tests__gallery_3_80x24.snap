@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Meters
+ The kit: every element on sample data                            colours: none
+ Tree  Table  Card  [Meters]  Rows & states  Entries & log  Markdown  Diff  Mot
+╭ meters ──────────────────────────────────────────────────────────────────────╮
+│ STAGE BAR                                                                    │
+│ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ │
+│ ✓ fetch        ✓ sort          ✓ label        ● check         ◷ file         │
+│                                                                              │
+│ RATIOS                                                                       │
+│ approved  ━━━━━━━━━━━━━━━━━━━━━━━━━─────────────────────────                 │
+│ filed     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━──────────                 │
+│ failed    ━━━━━─────────────────────────────────────────────                 │
+│                                                                              │
+│ STATUS STRIP                                                                 │
+│ 4 open · 1 needs you · 1 ready                                               │
+│                                                                              │
+│ SPINNER                                                                      │
+│ ⠷ asking the server…                                                         │
+│                                                                              │
+│ SPARKLINE                                                                    │
+│      ▄▁    ▂█▄▁   ▁▂                                                         │
+│ ▄▅▅█▆███▆▆▅██████▆███▆▅█                                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

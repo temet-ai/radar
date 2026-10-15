@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack   History   Settings (,)                                                                                                                 ✎ edit
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in your environment ─────────────────────────╮
+│General               ││  ? Found: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?             ││ radar found a Slack user token in your             │
+│  ├─ parts            ││  workspace       — the check finds it                                          ││ environment. Do you want to use it?                │
+│  ├─ mode             ││  api             https://slack.com                                             ││                                                    │
+│  ├─ colours          ││  token           —                                                             ││ FOUND                                              │
+│  └─ icons            ││  signed in as    — the check finds it                                          ││ SLACK_APP_USER_OAUTH_TOKEN  the token (xoxp-…)     │
+│Slack                 ││  check           not checked yet                                               ││                                                    │
+│  ├─ connection       ││  refresh         every 2m                                                      ││ radar stores only the variables' names (env:NAME)  │
+│  ├─ channels         ││  read back       7 days                                                        ││ and reads their values each time it starts. It     │
+│  ├─ review           ││  permissions   ├─ public channels                                  not checked ││ never shows the values or saves them.              │
+│  ├─ alerts           ││                ├─ private channels                                 not checked ││                                                    │
+│  └─ look             ││                ├─ for you                                          not checked ││ IF YOU USE IT                                      │
+│                      ││                ├─ names                                            not checked ││ radar sets the token to                            │
+│                      ││                ├─ user groups                                      not checked ││ env:SLACK_APP_USER_OAUTH_TOKEN and checks it with  │
+│                      ││                ├─ asking and replying                              not checked ││ Slack.                                             │
+│                      ││                └─ reacting                                         not checked ││                                                    │
+│                      ││                                                                                ││ ⏎ uses it                                          │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

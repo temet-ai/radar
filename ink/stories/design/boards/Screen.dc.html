@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The screen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1600px;padding:64px 80px 72px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:40px;line-height:1.1;color:#fff;margin:0}
+.note{font-size:16px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty;max-width:1100px}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;height:22.645px}
+.r>span{display:inline-block;height:22.645px;vertical-align:top}
+.win{align-self:flex-start;border-radius:10px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6),0 0 0 1px #2a263e}
+@keyframes rowglow{0%{filter:brightness(1.45)}25%{filter:brightness(1.15)}60%,100%{filter:brightness(1)}}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <p class="eyebrow">08 · the screen</p>
+    <h1 class="h1">Repositories, drawn by Ink.</h1>
+    <p class="note">Every sheet at once, at 160 × 40 cells. Each pane title carries its jump number; the list keeps its cached rows while it syncs, with the spinner in its title. Part marks and names in the top bar with their keys underlined, no counts; the focused panel in the ramp; one tree where folded rows end in ⋯ n, and the five row states; square tinted chips; hints that read as words. The detail pane has one structure: a head on the heading shade, a column of facts with their labels aligned, then sections divided by named rules, each starting at the same indent, with ages pushed to the right edge.</p>
+  </div>
+  <div class="win term"><sc-for list="{{rows}}" as="row" hint-placeholder-count="40"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="8"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1280}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var T = { base: '#0a0812', surf: '#12101a', ov: '#1a162a', hov: '#2a263e', sel: '#44475a', p: '#f8f8f2', s: '#e9d5ff', m: '#6272a4', e: '#ffffff', a: '#e135ff', am: '#9580ff', k: '#80ffea', t3: '#ff6ac1', ok: '#50fa7b', wn: '#f1fa8c', bd: '#ff6363', in: '#82aaff', n: '#ffb86c', tok: '#233a37', twn: '#3c3a3a', tbd: '#3f2233', tin: '#2b2e4c', ta: '#3a1b4c', glow: '#3b1650' };
+    function rgb(h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); }
+    function hex(c) { return '#' + c.map(function (v) { return ('0' + Math.round(v).toString(16)).slice(-2); }).join(''); }
+    function mix(a, b, t) { var x = rgb(a), y = rgb(b); return hex(x.map(function (v, i) { return v + (y[i] - v) * t; })); }
+    function ramp(t) { return t < 0.5 ? mix(T.a, T.t3, t / 0.5) : mix(T.t3, T.k, (t - 0.5) / 0.5); }
+    var W = 160, H = 40, g = [];
+    for (var y = 0; y < H; y++) { var row = []; for (var x = 0; x < W; x++) row.push({ ch: ' ', fg: T.p, bg: T.base, b: false, i: false, u: false }); g.push(row); }
+    function put(y, x, text, fg, bg, b, i, u) {
+      var ch = Array.from(text);
+      for (var k = 0; k < ch.length; k++) { var c = g[y] && g[y][x + k]; if (!c) continue; c.ch = ch[k]; if (fg) c.fg = fg; if (bg) c.bg = bg; c.b = !!b; c.i = !!i; c.u = !!u; }
+      return x + ch.length;
+    }
+    function fill(y, x, w, h, bg) { for (var yy = y; yy < y + h; yy++) for (var xx = x; xx < x + w; xx++) if (g[yy] && g[yy][xx]) { g[yy][xx].bg = bg; } }
+    function key(y, x, word, at, bg, fg) { put(y, x, word, fg || T.s, bg); put(y, x + at, word.charAt(at), T.k, bg, true, false, true); return x + word.length; }
+    function box(y, x, w, h, col, title, glow) {
+      fill(y, x, w, h, T.surf);
+      for (var xx = 0; xx < w; xx++) {
+        var ct = glow ? ramp(xx / (w - 1)) : col, cb = glow ? ramp(1 - xx / (w - 1)) : col;
+        put(y, x + xx, xx === 0 ? '╭' : xx === w - 1 ? '╮' : '─', ct, T.surf);
+        put(y + h - 1, x + xx, xx === 0 ? '╰' : xx === w - 1 ? '╯' : '─', cb, T.surf);
+      }
+      for (var yy = 1; yy < h - 1; yy++) {
+        var t = yy / (h - 1);
+        put(y + yy, x, '│', glow ? ramp(t * 0.12) : col, T.surf);
+        put(y + yy, x + w - 1, '│', glow ? ramp(1 - t * 0.12) : col, T.surf);
+      }
+      put(y, x + 2, ' ' + title + ' ', T.e, T.surf, true);
+    }
+    var I = { gitlab: '', jira: String.fromCodePoint(0xf0303), slack: '', git: '', work: '', hist: '', set: '', group: '', repo: '', branch: '', change: '', pass: '', fail: '', ready: '', review: '', draft: '', you: '', bot: String.fromCodePoint(0xf06a9), team: '', open: '', closed: '', unread: '', thread: '', state: '', time: '', views: '' };
+
+    // top bar
+    fill(0, 0, W, 1, T.ov);
+    put(0, 1, 'g', T.a, T.ov, true); put(0, 2, 'g', T.t3, T.ov, true);
+    fill(0, 5, 18, 1, T.sel);
+    put(0, 7, I.gitlab, T.n, T.sel); key(0, 9, 'Repositories', 0, T.sel, T.e); g[0][9].b = true;
+    for (var c = 10; c < 21; c++) g[0][c].b = true;
+    put(0, 25, I.jira, T.in, T.ov); key(0, 27, 'Jira', 0, T.ov, T.p);
+    put(0, 34, I.slack, T.t3, T.ov); key(0, 36, 'Slack', 0, T.ov, T.p); put(0, 42, I.unread, T.wn, T.ov);
+    put(0, 46, I.git, T.n, T.ov); key(0, 48, 'Branches', 0, T.ov, T.p);
+    put(0, 59, I.work, T.s, T.ov); key(0, 61, 'Work', 0, T.ov, T.p);
+    put(0, 68, I.hist, T.s, T.ov); key(0, 70, 'History', 0, T.ov, T.p);
+    put(0, 80, I.set, T.s, T.ov); put(0, 82, 'Settings', T.p, T.ov);
+    put(0, 134, 'synced 40s ago · every 2m', T.m, T.ov);
+    // row 1: the showing tab's bar and the part's sources
+    for (var xb = 5; xb < 23; xb++) put(1, xb, '▔', ramp((xb - 5) / 17));
+    put(1, 27, 'GitLab', T.e, null, true); put(1, 37, 'GitHub', T.s); put(1, 47, 'Local workspaces', T.s);
+
+    // nav
+    box(2, 0, 26, 37, T.am, '1 views', false);
+    fill(3, 1, 24, 1, T.ov); put(3, 2, I.change, T.a, T.ov); put(3, 4, 'Everything', T.e, T.ov, true);
+    put(4, 2, I.review, T.wn); put(4, 4, 'Needs my action', T.p); put(4, 23, '2', T.n);
+    put(5, 2, I.you, T.a); put(5, 4, 'Opened by me', T.p);
+    put(6, 2, I.team, T.s); put(6, 4, 'Opened by teammates', T.p);
+    put(7, 2, I.bot, T.m); put(7, 4, 'Opened by bots', T.p);
+
+    // middle
+    var X0 = 26, MW = 87;
+    box(2, X0, MW, 37, null, '2 Everything', true);
+    put(2, X0 + 17, '⠷ syncing ', T.in, T.surf);
+    var NX = X0 + 3, SX = X0 + 49, AX = X0 + 69, FX = X0 + 75;
+    put(3, NX, 'OPENED BY', T.m, null, true); put(3, NX + 10, I.team + ' everyone · 4 repos', T.m);
+    put(3, SX, I.state + ' STATE', T.m, null, true); put(3, AX, I.time + ' AGE', T.m, null, true); put(3, FX, I.you + ' FOR YOU', T.m, null, true);
+    function tree(y, mark, text, fg, bold) { return put(y, NX, text, fg, null, bold); }
+    function headrow(y) { fill(y, X0 + 1, MW - 2, 1, T.hov); }
+    // team-b
+    headrow(5); tree(5, I.open, I.group + ' team-b', T.e, true);
+    tree(6, I.open, '└─ ', T.m); put(6, NX + 3, I.repo + ' worker', T.p); put(6, SX, '—', T.m);
+    tree(7, null, '   └─ ', T.m); put(7, NX + 6, I.change, T.a); put(7, NX + 8, '!342 change 342', T.p); put(7, NX + 27, I.you + ' you', T.a); put(7, SX, I.draft + ' draft', T.m); put(7, AX, '16m', T.m); put(7, FX, 'draft', T.m);
+    // team-a
+    headrow(8); tree(8, I.open, I.group + ' team-a', T.e, true); put(8, NX + 10, 'main red in 1', T.bd);
+    tree(9, I.open, '├─ ', T.m); put(9, NX + 3, I.repo + ' api', T.p); put(9, NX + 11, I.branch + ' alice/ABC-12', T.k); put(9, SX, I.pass + ' passed', T.ok); put(9, AX, '4d', T.m);
+    fill(10, X0 + 1, MW - 2, 1, T.sel);
+    put(10, NX, '│  └─ ', T.m, T.sel); put(10, NX + 6, I.change, T.a, T.sel); put(10, NX + 8, '!263 ABC-12: Add a stats endpoint', T.e, T.sel, true); put(10, SX, I.review + ' needs 1 approval', T.wn, T.sel, true); put(10, AX, '16m', T.s, T.sel); put(10, FX, ' review ', T.wn, T.twn, true);
+    tree(11, I.open, '├─ ', T.m); put(11, NX + 3, I.repo + ' web', T.p); put(11, NX + 11, I.branch + ' main', T.k); put(11, SX, I.fail + ' failed', T.bd, null, true); put(11, AX, '4d', T.m);
+    fill(12, X0 + 1, MW - 2, 1, T.hov);
+    put(12, NX, '│  ├─ ', T.m, T.hov); put(12, NX + 6, I.change, T.a, T.hov); put(12, NX + 8, '!187 change 187', T.p, T.hov); put(12, NX + 27, I.you + ' you', T.a, T.hov); put(12, SX, I.ready + ' ready to merge', T.ok, T.hov); put(12, AX, '16m', T.m, T.hov); put(12, FX, ' ready ', T.ok, T.tok, true);
+    fill(13, X0 + 1, MW - 2, 1, T.glow);
+    put(13, NX, '│  └─ ', T.m, T.glow); put(13, NX + 6, I.change, T.a, T.glow); put(13, NX + 8, '!198 change 198', T.p, T.glow); put(13, NX + 27, I.bot + ' group_1_bot', T.m, T.glow); put(13, SX, I.review + ' needs 1 approval', T.wn, T.glow); put(13, AX, 'now', T.s, T.glow); put(13, FX, 'bot', T.m, T.glow);
+    tree(14, I.closed, '└─ ', T.m); put(14, NX + 3, I.repo + ' docs', T.p); put(14, NX + 10, '⋯ 2', T.m); put(14, SX, I.pass + ' passed', T.ok); put(14, AX, '4d', T.m);
+    headrow(15); tree(15, I.closed, I.group + ' team-c', T.e, true); put(15, NX + 10, '⋯ 3', T.m);
+    // footer
+    put(35, X0 + 1, '─ shows ', T.m); for (var fx = X0 + 9; fx < X0 + MW - 1; fx++) put(35, fx, '─', T.hov);
+    put(36, NX - 1, 'every open merge request · listing every repo, also those without', T.m);
+
+    // detail
+    var DX = X0 + MW, DW = W - DX, IX = DX + 2;
+    box(2, DX, DW, 37, T.am, '3 merge request', false);
+    var RX = DX + DW - 3, VX = IX + 11;                 // right edge of the text, value column
+    function right(y, text, fg, bg) { put(y, RX - Array.from(text).length + 1, text, fg, bg); }
+    function rule(y, icon, title, extra) {             // a named rule: the one section divider
+      for (var x = DX + 1; x < DX + DW - 1; x++) put(y, x, '─', T.hov);
+      put(y, IX - 1, ' ' + icon + ' ', T.m); put(y, IX + 2, title, T.s, null, true);
+      if (extra) put(y, IX + 3 + title.length, ' ' + extra + ' ', T.m);
+    }
+    function fact(y, label, x) { put(y, IX, label, T.m); return x || VX; }
+    // head: on the heading shade, like a tree's group row
+    fill(3, DX + 1, DW - 2, 3, T.hov);
+    put(3, IX, 'acme / api / ', T.m, T.hov); put(3, IX + 13, '!263', T.s, T.hov, true);
+    put(4, IX, 'ABC-12: Add a stats endpoint', T.e, T.hov, true);
+    put(5, IX, I.branch + ' alice/ABC-12', T.k, T.hov); put(5, IX + 14, ' → ', T.m, T.hov); put(5, IX + 17, 'main', T.k, T.hov);
+    right(5, 'alice · 4d', T.m, T.hov);
+    // facts: one label column, one value column
+    fact(8, 'state'); put(8, VX, I.review + ' needs 1 approval', T.wn, null, true);
+    fact(9, 'pipeline'); put(9, VX, I.pass + ' passed', T.ok); put(9, VX + 8, ' in ', T.m); put(9, VX + 12, '6m 12s', T.n);
+    fact(10, 'approvals'); put(10, VX, '1', T.n); put(10, VX + 1, ' of ', T.m); put(10, VX + 5, '2', T.n);
+    put(10, VX + 8, '━━━━━━━━━━━━', T.ok); put(10, VX + 20, '━━━━━━━━━━━━', T.hov);
+    fact(11, 'reviewers'); put(11, VX, 'BB', T.in, T.tin, true); put(11, VX + 3, I.pass, T.ok); put(11, VX + 6, 'CC', T.t3, T.ta, true); put(11, VX + 9, I.review, T.wn);
+    fact(12, 'changes'); put(12, VX, '+128', T.ok); put(12, VX + 5, '−41', T.bd); put(12, VX + 8, ' · ', T.m); put(12, VX + 11, '3', T.n); put(12, VX + 12, ' commits', T.m);
+    // pipeline
+    rule(14, I.state, 'PIPELINE', '#4127');
+    var px = IX;
+    [['build', T.ok, I.pass], ['test', T.ok, I.pass], ['deploy', T.ok, I.pass], ['release', T.s, '']].forEach(function (s, i) {
+      if (i) { put(15, px, ' ─ ', T.m); px += 3; }
+      px = put(15, px, s[2] + ' ' + s[0], s[1]);
+    });
+    fact(16, 'runs');
+    var sp = '▃▄▃▆▂▃█▃▄▃▂▅▃▇▃▄▃▂▃▄▆▃▃▂';
+    Array.from(sp).forEach(function (ch, i) { put(16, VX + i, ch, (i === 6 || i === 13) ? T.bd : (i === sp.length - 1 ? T.k : T.in)); });
+    fact(17, 'median'); put(17, VX, '6m 12s', T.n); put(17, VX + 6, ' · ', T.m); put(17, VX + 9, '2', T.n); put(17, VX + 10, ' of 24 failed', T.m);
+    // description
+    rule(19, '', 'DESCRIPTION');
+    put(20, IX, 'Adds ', T.p); put(20, IX + 5, 'GET /stats', T.k); put(20, IX + 15, ' with counts per repo.', T.p);
+    put(21, IX, 'Cached for a minute; the key is the group,', T.p);
+    put(22, IX, 'so teams never see each other’s.', T.p);
+    // threads
+    rule(24, I.thread, 'THREADS', '2 open');
+    put(25, IX, 'BB', T.in, T.tin, true); put(25, IX + 3, 'bob', T.e, null, true); right(25, '2h', T.m);
+    put(26, IX + 3, 'could the key include the project?', T.s, null, false, true);
+    put(28, IX, 'CC', T.t3, T.ta, true); put(28, IX + 3, 'carol', T.e, null, true); right(28, '1h', T.m);
+    put(29, IX + 3, 'after the migration lands, yes', T.s, null, false, true);
+    // actions
+    for (var ax = DX + 1; ax < DX + DW - 1; ax++) put(36, ax, '─', T.hov);
+    key(37, IX, 'checkout', 0, T.surf); key(37, IX + 11, 'open', 0, T.surf); key(37, IX + 18, 'merge', 0, T.surf); key(37, IX + 26, 'comment', 1, T.surf);
+    put(37, RX - 5, '⏎', T.k, T.surf, true); put(37, RX - 3, 'page', T.s, T.surf);
+
+    // status line
+    fill(39, 0, W, 1, T.ov);
+    put(39, 0, ' REPOSITORIES ', T.base, T.a, true);
+    var sx = 16;
+    sx = put(39, sx, 'PgUp/PgDn', T.k, T.ov, true); sx = put(39, sx, ' scroll   ', T.s, T.ov);
+    sx = put(39, sx, '+ -', T.k, T.ov, true); sx = put(39, sx, ' fold   ', T.s, T.ov);
+    sx = key(39, sx, 'bulk', 0, T.ov); sx = put(39, sx, '   ', T.s, T.ov);
+    sx = put(39, sx, 'x', T.k, T.ov, true); sx = put(39, sx, ' actions   ', T.s, T.ov);
+    sx = key(39, sx, 'quit', 0, T.ov);
+    var rx = W - 31;
+    rx = put(39, rx, '4', T.n, T.ov); rx = put(39, rx, ' open · ', T.m, T.ov); rx = put(39, rx, '1', T.n, T.ov); rx = put(39, rx, ' to review · ', T.m, T.ov); rx = put(39, rx, '1', T.n, T.ov); put(39, rx, ' ready', T.m, T.ov);
+
+    var rows = g.map(function (row) {
+      var spans = [], cur = null;
+      row.forEach(function (c) {
+        var st = 'color:' + c.fg + ';background:' + c.bg + (c.b ? ';font-weight:700' : '') + (c.i ? ';font-style:italic' : '') + (c.u ? ';text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px' : '');
+        if (cur && cur.st === st) cur.t += c.ch; else { cur = { st: st, t: c.ch }; spans.push(cur); }
+      });
+      return spans;
+    });
+    return { rows: rows };
+  }
+}
+</script>
+</body>
+</html>

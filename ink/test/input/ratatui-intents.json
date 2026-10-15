@@ -1,0 +1,1650 @@
+{
+  "clicks": [
+    {
+      "context": false,
+      "id": "view:1",
+      "intent": {
+        "intent": "select",
+        "target": "view:1"
+      }
+    },
+    {
+      "context": true,
+      "id": "view:1",
+      "intent": {
+        "intent": "context",
+        "target": "view:1"
+      }
+    },
+    {
+      "context": false,
+      "id": "row:b",
+      "intent": {
+        "intent": "select",
+        "target": "row:b"
+      }
+    },
+    {
+      "context": true,
+      "id": "row:b",
+      "intent": {
+        "intent": "context",
+        "target": "row:b"
+      }
+    }
+  ],
+  "screens": [
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "row:b"
+          }
+        },
+        {
+          "chord": {
+            "key": "up"
+          },
+          "intent": {
+            "chord": {
+              "key": "up"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "j"
+            }
+          },
+          "intent": {
+            "intent": "select",
+            "target": "row:b"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "k"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "k"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "home"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "row:a"
+          }
+        },
+        {
+          "chord": {
+            "key": "end"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "row:c"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "g"
+            }
+          },
+          "intent": {
+            "intent": "select",
+            "target": "row:a"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "G"
+            }
+          },
+          "intent": {
+            "intent": "select",
+            "target": "row:c"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "intent": "activate",
+            "target": "row:a"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "tab"
+          },
+          "intent": {
+            "chord": {
+              "key": "tab"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "page_down"
+          },
+          "intent": {
+            "chord": {
+              "key": "page_down"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "ctrl": true,
+            "key": {
+              "char": "r"
+            }
+          },
+          "intent": {
+            "chord": {
+              "ctrl": true,
+              "key": {
+                "char": "r"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "list",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "node": "list",
+              "rows": [
+                {
+                  "heading": true,
+                  "target": "h",
+                  "text": [
+                    {
+                      "text": "group"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:a",
+                  "text": [
+                    {
+                      "text": "a"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:b",
+                  "text": [
+                    {
+                      "text": "b"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:c",
+                  "text": [
+                    {
+                      "text": "c"
+                    }
+                  ]
+                }
+              ],
+              "selected": 1
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "list",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "chord": {
+              "key": "down"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "up"
+          },
+          "intent": {
+            "chord": {
+              "key": "up"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "j"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "j"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "k"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "k"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "home"
+          },
+          "intent": {
+            "chord": {
+              "key": "home"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "end"
+          },
+          "intent": {
+            "chord": {
+              "key": "end"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "g"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "g"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "G"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "G"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "tab"
+          },
+          "intent": {
+            "chord": {
+              "key": "tab"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "page_down"
+          },
+          "intent": {
+            "chord": {
+              "key": "page_down"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "ctrl": true,
+            "key": {
+              "char": "r"
+            }
+          },
+          "intent": {
+            "chord": {
+              "ctrl": true,
+              "key": {
+                "char": "r"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "list-unselected",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "node": "list",
+              "rows": [
+                {
+                  "heading": true,
+                  "target": "h",
+                  "text": [
+                    {
+                      "text": "group"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:a",
+                  "text": [
+                    {
+                      "text": "a"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:b",
+                  "text": [
+                    {
+                      "text": "b"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:c",
+                  "text": [
+                    {
+                      "text": "c"
+                    }
+                  ]
+                }
+              ]
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "list",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "t:1"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "intent": "activate",
+            "target": "t:0"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "table",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "columns": [
+                {
+                  "heading": "name",
+                  "keep": 4,
+                  "width": 10
+                }
+              ],
+              "node": "table",
+              "rows": [
+                {
+                  "cells": [
+                    {
+                      "heading": "name",
+                      "text": [
+                        {
+                          "text": "one"
+                        }
+                      ]
+                    }
+                  ],
+                  "target": "t:0"
+                },
+                {
+                  "cells": [
+                    {
+                      "heading": "name",
+                      "text": [
+                        {
+                          "text": "two"
+                        }
+                      ]
+                    }
+                  ],
+                  "target": "t:1"
+                }
+              ],
+              "selected": 0
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "table",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "e:1"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "intent": "activate",
+            "target": "e:0"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "entries",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "empty": "nothing",
+              "node": "entries",
+              "rows": [
+                {
+                  "head": [
+                    {
+                      "text": "first"
+                    }
+                  ],
+                  "target": "e:0"
+                },
+                {
+                  "head": [
+                    {
+                      "text": "second"
+                    }
+                  ],
+                  "target": "e:1"
+                }
+              ],
+              "selected": 0
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "entries",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "g2\u001fc"
+          }
+        },
+        {
+          "chord": {
+            "key": "up"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "g1"
+          }
+        },
+        {
+          "chord": {
+            "key": "right"
+          },
+          "intent": {
+            "chord": {
+              "key": "right"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "+"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "+"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "="
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "="
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "-"
+            }
+          },
+          "intent": {
+            "intent": "fold",
+            "open": false,
+            "target": "g2"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": " "
+            }
+          },
+          "intent": {
+            "intent": "fold",
+            "open": false,
+            "target": "g2"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "intent": "activate",
+            "target": "g2"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "tree-on-group",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "columns": [],
+              "name_width": 0,
+              "node": "tree",
+              "open": [
+                [
+                  "g2"
+                ]
+              ],
+              "rows": [
+                {
+                  "children": [
+                    {
+                      "id": "a",
+                      "name": [
+                        {
+                          "text": "a"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "b",
+                      "name": [
+                        {
+                          "text": "b"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "g1",
+                  "name": [
+                    {
+                      "text": "closed"
+                    }
+                  ]
+                },
+                {
+                  "children": [
+                    {
+                      "id": "c",
+                      "name": [
+                        {
+                          "text": "c"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "d",
+                      "name": [
+                        {
+                          "text": "d"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "g2",
+                  "name": [
+                    {
+                      "text": "open"
+                    }
+                  ]
+                }
+              ],
+              "selected": [
+                "g2"
+              ]
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "tree",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "g2\u001fd"
+          }
+        },
+        {
+          "chord": {
+            "key": "up"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "g2"
+          }
+        },
+        {
+          "chord": {
+            "key": "right"
+          },
+          "intent": {
+            "chord": {
+              "key": "right"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "+"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "+"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "="
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "="
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "-"
+            }
+          },
+          "intent": {
+            "intent": "fold",
+            "open": false,
+            "target": "g2"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": " "
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": " "
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "intent": "activate",
+            "target": "g2\u001fc"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "tree-on-leaf",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "columns": [],
+              "name_width": 0,
+              "node": "tree",
+              "open": [
+                [
+                  "g2"
+                ]
+              ],
+              "rows": [
+                {
+                  "children": [
+                    {
+                      "id": "a",
+                      "name": [
+                        {
+                          "text": "a"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "b",
+                      "name": [
+                        {
+                          "text": "b"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "g1",
+                  "name": [
+                    {
+                      "text": "closed"
+                    }
+                  ]
+                },
+                {
+                  "children": [
+                    {
+                      "id": "c",
+                      "name": [
+                        {
+                          "text": "c"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "d",
+                      "name": [
+                        {
+                          "text": "d"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "g2",
+                  "name": [
+                    {
+                      "text": "open"
+                    }
+                  ]
+                }
+              ],
+              "selected": [
+                "g2",
+                "c"
+              ]
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "tree",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "chord": {
+              "key": "down"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "overlay",
+      "view": {
+        "overlay": {
+          "body": {
+            "capability": "editor",
+            "data": {
+              "caret": 2,
+              "line": "hi",
+              "lines": [],
+              "title": "reply"
+            },
+            "fallback": {
+              "lines": [
+                [
+                  {
+                    "ink": "primary",
+                    "text": "hi"
+                  }
+                ]
+              ],
+              "node": "document"
+            },
+            "node": "extension",
+            "version": 1
+          },
+          "pane": "middle",
+          "title": "reply"
+        },
+        "panes": [
+          {
+            "body": {
+              "node": "list",
+              "rows": [
+                {
+                  "heading": true,
+                  "target": "h",
+                  "text": [
+                    {
+                      "text": "group"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:a",
+                  "text": [
+                    {
+                      "text": "a"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:b",
+                  "text": [
+                    {
+                      "text": "b"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:c",
+                  "text": [
+                    {
+                      "text": "c"
+                    }
+                  ]
+                }
+              ],
+              "selected": 1
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "overlay",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "chord": {
+              "key": "down"
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "middle",
+      "name": "state",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "node": "state",
+              "state": "empty",
+              "text": "nothing yet"
+            },
+            "pane": "middle",
+            "title": "rows"
+          }
+        ],
+        "scope": "state",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "detail",
+      "name": "document-detail",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "node": "list",
+              "rows": [
+                {
+                  "heading": true,
+                  "target": "h",
+                  "text": [
+                    {
+                      "text": "group"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:a",
+                  "text": [
+                    {
+                      "text": "a"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:b",
+                  "text": [
+                    {
+                      "text": "b"
+                    }
+                  ]
+                },
+                {
+                  "target": "row:c",
+                  "text": [
+                    {
+                      "text": "c"
+                    }
+                  ]
+                }
+              ],
+              "selected": 1
+            },
+            "pane": "middle",
+            "title": "rows"
+          },
+          {
+            "body": {
+              "lines": [
+                [
+                  {
+                    "text": "x"
+                  }
+                ]
+              ],
+              "node": "document"
+            },
+            "pane": "detail",
+            "title": "about"
+          }
+        ],
+        "scope": "document",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "chord": {
+              "key": "down"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "j"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "j"
+              }
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "page_down"
+          },
+          "intent": {
+            "chord": {
+              "key": "page_down"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "focus": "nav",
+      "name": "field-on-another-pane",
+      "view": {
+        "panes": [
+          {
+            "body": {
+              "node": "list",
+              "rows": [
+                {
+                  "target": "view:0",
+                  "text": [
+                    {
+                      "text": "all"
+                    }
+                  ]
+                },
+                {
+                  "target": "view:1",
+                  "text": [
+                    {
+                      "text": "dirty"
+                    }
+                  ]
+                }
+              ],
+              "selected": 0
+            },
+            "pane": "nav",
+            "title": "views"
+          },
+          {
+            "body": {
+              "columns": [],
+              "name_width": 0,
+              "node": "tree",
+              "open": [
+                [
+                  "a"
+                ]
+              ],
+              "rows": [
+                {
+                  "children": [
+                    {
+                      "id": "b",
+                      "name": [
+                        {
+                          "text": "b"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "a",
+                  "name": [
+                    {
+                      "text": "a"
+                    }
+                  ]
+                }
+              ],
+              "selected": [
+                "a"
+              ]
+            },
+            "fields": [
+              {
+                "caret": 2,
+                "hint": [],
+                "mark": " / ",
+                "text": "ti"
+              }
+            ],
+            "pane": "middle",
+            "title": "all"
+          },
+          {
+            "body": {
+              "lines": [
+                [
+                  {
+                    "text": "x"
+                  }
+                ]
+              ],
+              "node": "document"
+            },
+            "pane": "detail",
+            "title": "a"
+          }
+        ],
+        "scope": "s",
+        "version": 1
+      }
+    }
+  ],
+  "sections": [
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "up"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "s:0"
+          }
+        },
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "s:1"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "name": "list-first",
+      "view": {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "target": "s:0",
+              "text": [
+                {
+                  "text": "first"
+                }
+              ]
+            },
+            {
+              "target": "s:1",
+              "text": [
+                {
+                  "text": "second"
+                }
+              ]
+            },
+            {
+              "target": "s:2",
+              "text": [
+                {
+                  "text": "third"
+                }
+              ]
+            }
+          ],
+          "selected": 0
+        },
+        "detail": [],
+        "detail_title": "",
+        "scope": "list",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "up"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "s:0"
+          }
+        },
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "s:2"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "name": "list",
+      "view": {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "target": "s:0",
+              "text": [
+                {
+                  "text": "first"
+                }
+              ]
+            },
+            {
+              "target": "s:1",
+              "text": [
+                {
+                  "text": "second"
+                }
+              ]
+            },
+            {
+              "target": "s:2",
+              "text": [
+                {
+                  "text": "third"
+                }
+              ]
+            }
+          ],
+          "selected": 1
+        },
+        "detail": [],
+        "detail_title": "",
+        "scope": "list",
+        "version": 1
+      }
+    },
+    {
+      "cases": [
+        {
+          "chord": {
+            "key": "down"
+          },
+          "intent": {
+            "intent": "select",
+            "target": "g2\u001fc"
+          }
+        },
+        {
+          "chord": {
+            "key": "enter"
+          },
+          "intent": {
+            "chord": {
+              "key": "enter"
+            },
+            "intent": "key"
+          }
+        },
+        {
+          "chord": {
+            "key": {
+              "char": "x"
+            }
+          },
+          "intent": {
+            "chord": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "intent": "key"
+          }
+        }
+      ],
+      "name": "tree",
+      "view": {
+        "body": {
+          "columns": [],
+          "name_width": 0,
+          "node": "tree",
+          "open": [
+            [
+              "g2"
+            ]
+          ],
+          "rows": [
+            {
+              "children": [
+                {
+                  "id": "a",
+                  "name": [
+                    {
+                      "text": "a"
+                    }
+                  ]
+                },
+                {
+                  "id": "b",
+                  "name": [
+                    {
+                      "text": "b"
+                    }
+                  ]
+                }
+              ],
+              "id": "g1",
+              "name": [
+                {
+                  "text": "closed"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "id": "c",
+                  "name": [
+                    {
+                      "text": "c"
+                    }
+                  ]
+                },
+                {
+                  "id": "d",
+                  "name": [
+                    {
+                      "text": "d"
+                    }
+                  ]
+                }
+              ],
+              "id": "g2",
+              "name": [
+                {
+                  "text": "open"
+                }
+              ]
+            }
+          ],
+          "selected": [
+            "g2"
+          ]
+        },
+        "detail": [],
+        "detail_title": "",
+        "scope": "tree",
+        "version": 1
+      }
+    }
+  ]
+}

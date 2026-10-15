@@ -1,0 +1,150 @@
+[workspace]
+members = ["crates/*"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0-alpha.5"
+edition = "2024"
+rust-version = "1.90"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+# Theme palettes; radar-core's design layer maps them onto its colour slots.
+opaline = "0.4.1"
+ratatui = { version = "0.30", features = ["unstable-rendered-line-info"] }
+anyhow = "1"
+clap = { version = "4", features = ["string"] }
+dirs = "6"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+toml = "0.9"
+toml_edit = "0.22"
+insta = "1"
+ratatui-textarea = "0.9"
+tui-tree-widget = "0.24"
+throbber-widgets-tui = "0.11"
+tui-popup = "0.7"
+tui-scrollview = "0.6"
+base64 = "0.22"
+# Markdown text (descriptions, comments) parsed for the kit's renderer.
+pulldown-cmark = { version = "0.13", default-features = false }
+unicode-width = "0.2"
+# `radar shot`'s PNGs: an SVG rendered by resvg (tiny-skia), with the system's fonts.
+resvg = { version = "0.47", default-features = false, features = ["text", "system-fonts", "memmap-fonts"] }
+# Code highlighted by language (the kit's highlight): pure-Rust regexes, the
+# bundled grammars, no themes (scopes map onto radar's slots).
+syntect = { version = "5", default-features = false, features = ["default-syntaxes", "parsing", "regex-fancy"] }
+# Word-level differences between a removed line and the line that replaced it.
+similar = "2"
+# Emoji short names (`:tada:`) to their glyphs, for rich text.
+emojis = "0.9"
+# Images drawn with the terminal's graphics protocol (kitty, sixel, iTerm2),
+# and the formats they arrive in.
+ratatui-image = { version = "11.1", default-features = false, features = ["crossterm"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+# Motion (radar_core::motion): effects over what was drawn. Built on ratatui-core
+# 0.1, the core of ratatui 0.30. Parts never depend on it.
+tachyonfx = { version = "0.25", default-features = false, features = ["std"] }
+radar-core = { path = "crates/radar-core" }
+radar-gitlab = { path = "crates/radar-gitlab" }
+radar-github = { path = "crates/radar-github" }
+radar-jira = { path = "crates/radar-jira" }
+radar-slack = { path = "crates/radar-slack" }
+radar-git = { path = "crates/radar-git" }
+radar-workspace = { path = "crates/radar-workspace" }
+radar-workbench = { path = "crates/radar-workbench" }
+radar-sessions = { path = "crates/radar-sessions" }
+radar-sessions-pty = { path = "crates/radar-sessions-pty" }
+radar-sessions-copilot = { path = "crates/radar-sessions-copilot" }
+radar-sessions-claude = { path = "crates/radar-sessions-claude" }
+radar-sessions-codex = { path = "crates/radar-sessions-codex" }
+
+# The binary: picks which plugins are compiled in, then hands over to radar-core.
+[package]
+name = "radar"
+description = "A terminal workspace built from parts: a clean interface, and each part brings one tool into it"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# One feature per part, all on by default. A part alone:
+# `cargo run --no-default-features --features gitlab`; no parts at all:
+# `--no-default-features`. Adding a part is a feature line here, an optional
+# dependency below and one `#[cfg]` registration in src/lib.rs. A feature that
+# is a part names its crate as `dep:radar-<name>` (scripts/check-mixes tells the
+# parts from the other features by that).
+#
+# `shots` is `radar shot`'s pictures: PNG output, and the parts' sample data
+# (their `demo` feature). Without it `radar shot` still writes SVGs, of screens
+# that have no data.
+[features]
+default = ["gitlab", "github", "jira", "slack", "git", "workspace", "workbench", "sessions", "sessions-pty", "sessions-copilot", "sessions-claude", "sessions-codex", "shots"]
+gitlab = ["dep:radar-gitlab"]
+github = ["dep:radar-github"]
+jira = ["dep:radar-jira"]
+slack = ["dep:radar-slack"]
+git = ["dep:radar-git"]
+workspace = ["dep:radar-workspace"]
+workbench = ["dep:radar-workbench"]
+sessions = ["dep:radar-sessions"]
+sessions-pty = ["sessions", "dep:radar-sessions-pty"]
+sessions-copilot = ["sessions", "dep:radar-sessions-copilot"]
+sessions-claude = ["sessions", "dep:radar-sessions-claude"]
+sessions-codex = ["sessions", "dep:radar-sessions-codex"]
+shots = ["png", "demo"]
+png = ["radar-core/png"]
+demo = ["radar-core/test-support", "radar-gitlab?/demo", "radar-github?/demo", "radar-jira?/demo", "radar-slack?/demo", "radar-git?/demo", "radar-workspace?/demo", "radar-workbench?/demo", "radar-sessions?/demo"]
+
+[dependencies]
+radar-core.workspace = true
+radar-gitlab = { workspace = true, optional = true }
+radar-github = { workspace = true, optional = true }
+radar-jira = { workspace = true, optional = true }
+radar-slack = { workspace = true, optional = true }
+radar-git = { workspace = true, optional = true }
+radar-workspace = { workspace = true, optional = true }
+radar-workbench = { workspace = true, optional = true }
+radar-sessions = { workspace = true, optional = true }
+radar-sessions-pty = { workspace = true, optional = true }
+radar-sessions-copilot = { workspace = true, optional = true }
+radar-sessions-claude = { workspace = true, optional = true }
+radar-sessions-codex = { workspace = true, optional = true }
+anyhow.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+radar-core = { workspace = true, features = ["test-support"] }
+radar-slack = { workspace = true, features = ["test-support"] }
+insta.workspace = true
+portable-pty = "0.9.0"
+serde_json.workspace = true
+
+# The test executable re-enters the actual CLI runner with ordinary argv.
+[[test]]
+name = "slack_cli_history"
+harness = false
+required-features = ["slack"]
+
+# The libraries are built optimised in dev and test builds too: tests draw
+# frames through ratatui, which unoptimised is ten times slower. radar's own
+# crates stay unoptimised, for debugging.
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
+
+# Line numbers only (panics and backtraces still name the line): full
+# debug info made each mix's test binary over 500 MB, and writing nine of
+# them made scripts/check-mixes --quick wait on the disk.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package.radar-core]
+opt-level = 1

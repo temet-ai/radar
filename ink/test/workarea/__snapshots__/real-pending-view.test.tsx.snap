@@ -1,0 +1,96 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`work area from the recorded real Work view with a pending question > 80x24: the question comes first, labelled, and nothing is hidden 1`] = `
+"╭ question (awaiting confirmation) ────────────────────────────────────────────╮
+│ ● waiting for you                                                            │
+│ Waiting for your confirmation: apply the prepared local change?              │
+│ Create task with local title: Ship the work area                             │
+│ The title is your authored label, not a provider title or identity.          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+│ ∅ No local work items on this page. Press n to create a task, or use Add to  │
+│ work item on a source's actions menu.                                        │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯"
+`;
+
+exports[`work area from the recorded real Work view with a pending question > 160x40: the question is drawn in its column beside the others 1`] = `
+"╭ question (awaiting confirmation) ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ● waiting for you                                                                                                                                            │
+│ Waiting for your confirmation: apply the prepared local change?                                                                                              │
+│ Create task with local title: Ship the work area                                                                                                             │
+│ The title is your authored label, not a provider title or identity.                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ No groups on page     ││ ∅ No local work items on this page. Press n to create a task, or use Add to work    ││ No source binding in this evidence page. Add │
+│ All items             ││ item on a source's actions menu.                                                    ││ an exact source from its actions menu; no    │
+│                       ││                                                                                     ││ links are inferred.                          │
+│                       ││                                                                                     ││ Create a local task or select an existing    │
+│                       ││                                                                                     ││ item. No provider labels, relationships or   │
+│                       ││                                                                                     ││ goals are inferred.                          │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+╭ map ─────────────────────────────────╮╭ tabs ────────────────────────────────────────────────────────────────────────╮╭ actions ─────────────────────────────╮
+│ 0 groups · 0 items on page 1         ││ ● linked sources                                                             ││ create a local task…                 │
+╰──────────────────────────────────────╯│ ○ evidence                                                                   ││ review retained change…              │
+╭ timeline ────────────────────────────╮│                                                                              ││ filter this item page…               │
+│ No evidence loaded.                  ││                                                                              ││ copy retained local batch for        │
+│                                      ││                                                                              ││ inspection                           │
+│                                      ││                                                                              ││                                      │
+│                                      ││                                                                              ││                                      │
+│                                      ││                                                                              ││                                      │
+│                                      ││                                                                              ││                                      │
+╰──────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯"
+`;
+
+exports[`work area from the recorded real Work view with a pending question > plain text: PENDING first with its status 1`] = `
+"[agent] question (PENDING, awaiting confirmation)
+  Waiting for your confirmation: apply the prepared local change?
+  Create task with local title: Ship the work area
+  The title is your authored label, not a provider title or identity.
+[other] local groups
+  No groups on page
+  ▎ All items
+  Groups · page 1
+[other] work items · page 1
+  empty: No local work items on this page. Press n to create a task, or use Add
+to work item on a source's actions menu.
+[other] linked sources and context
+  No source binding in this evidence page. Add an exact source from its actions
+menu; no links are inferred.
+  Create a local task or select an existing item. No provider labels,
+relationships or goals are inferred.
+[map] map
+  0 groups · 0 items on page 1
+[timeline] timeline
+  No evidence loaded.
+[tabs] tabs
+  ● linked sources
+  ○ evidence
+[rail] actions
+  [n] create a local task…
+  [r] review retained change…
+  [/] filter this item page…
+  [y] copy retained local batch for inspection"
+`;

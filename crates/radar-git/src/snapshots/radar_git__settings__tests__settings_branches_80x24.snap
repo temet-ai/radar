@@ -1,0 +1,28 @@
+---
+source: crates/radar-git/src/settings.rs
+expression: "shot(\"branches\", 80, 24)"
+---
+ radar    Branches   History   Settings (,)                              ✎ edit
+╭ settings ────────────╮╭ branches ────────────────────────────────────────────╮
+│General               ││  + add a convention for a repo                       │
+│  ├─ parts            ││ acme/team-b → {type}/{key}-{slug}       from develop │
+│  ├─ mode             ││ …ments-gateway → {type}/{key}-{slug}    from develop │
+│  ├─ colours          ││ me         alice                                     │
+│  └─ icons            ││ branch     {me}/{key}                   alice/ABC-12 │
+│Git                   ││ worktree   {clone}-{topic}         ~/code/api-ABC-12 │
+│  ├─ checkouts        ││ after      nothing                                   │
+│  ├─ editors          ││ types      story=feature                             │
+│  ├─ links            ││                                                      │
+│  └─ branches         │╰──────────────────────────────────────────────────────╯
+│                      │╭ me ──────────────────────────────────────────────────╮
+│                      ││ Your name in branch names: {me}.                     │
+│                      ││                                                      │
+│                      ││ ACCEPTS                                              │
+│                      ││ one word, letters digits - _ .                       │
+│                      ││                                                      │
+│                      ││ NOW                                                  │
+│                      ││ alice                                                │
+│                      ││                                                      │
+│                      ││ config: [git] me                                     │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

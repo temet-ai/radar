@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(80, 24, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Entries & log" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Tree  Table  Card  Meters  Rows & states…" fg:text.secondary | "[Entries & log]" fg:accent.primary/glow.purple bold | "  Markdown  Diff  Mot" fg:text.secondary
+03 "╭" fg:accent.muted bg:bg.surface | " why the sort stopped " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+04 "│" fg:accent.muted bg:bg.surface | " WHY IT STOPPED" fg:text.muted bg:bg.surface bold | _63 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+05 "│" fg:accent.muted bg:bg.surface | _1 fg:text.secondary bg:bg.selection | "✗ " fg:text.secondary bg:bg.selection bold | "label     2m 04s · ran out of labels    …" fg:text.secondary bg:bg.selection | "█" fg:accent.muted bg:bg.surface
+06 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "  │ " fg:accent.muted bg:bg.surface | "no label left for box 17" fg:text.secondary bg:bg.surface | _49 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+07 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "  │ " fg:accent.muted bg:bg.surface | "the drawer holds 0 of 40" fg:text.secondary bg:bg.surface | _49 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+08 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "✗ " fg:status.error/diff.removed bg:bg.surface bold | "file      " bg:bg.surface | "12s · timed out" fg:text.muted bg:bg.surface | _50 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+09 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "  │ " fg:accent.muted bg:bg.surface | "shelf 4 did not answer" fg:text.secondary bg:bg.surface | _51 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+10 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+11 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+12 "╭" fg:accent.primary/glow.purple bg:bg.surface | " log · /label 19 of 19 " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+13 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "box 11: " bg:bg.surface | "label" fg:bg.base bg:status.warning bold | " printed" bg:bg.surface | _54 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+14 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "box 12: " bg:bg.surface | "label" fg:bg.base bg:status.warning bold | " printed" bg:bg.surface | _54 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+15 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "box 13: " bg:bg.surface | "label" fg:bg.base bg:status.warning bold | " printed" bg:bg.surface | _54 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+16 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "box 14: " bg:bg.surface | "label" fg:bg.base bg:status.warning bold | " printed" bg:bg.surface | _54 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+17 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "box 15: " bg:bg.surface | "label" fg:bg.base bg:status.warning bold | " printed" bg:bg.surface | _54 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+18 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "box 16: " bg:bg.surface | "label" fg:bg.base bg:status.warning bold | " printed" bg:bg.surface | _54 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+19 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "error: no " fg:status.error/diff.removed bg:bg.surface bold | "label" fg:bg.base bg:status.warning bold | " left for box 17" fg:status.error/diff.removed bg:bg.surface bold | _44 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+20 "│" fg:accent.primary/glow.purple bg:bg.surface | " │ the drawer holds 0 of 40 labels; the …" fg:text.emphasis bg:bg.selection bold | "█" fg:accent.muted bg:bg.surface
+21 "│" fg:accent.primary/glow.purple bg:bg.surface | " │ raps at the narrow width of the panel…" fg:text.emphasis bg:bg.selection bold | "█" fg:accent.muted bg:bg.surface
+22 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+╭ feed ──────────────────╮╭ Discussions ───────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
+│ For you              4 ││ THE MOST ACTIVE FIRST                                          REPLIES  WHEN       ││ ── #team · today ──                          │
+│ Discussions            ││general                                                                             ││ ● 06:46  Bob Builder                         │
+│ ▌ #team          6 NEW ││  ├─ ● #team Bob B.  Lunch at 12:30? 🍕                                  30m        ││     Lunch at 12:30? 🍕                       │
+│ ▌ #svc           1 NEW ││  ├─ ● #svc Carol C.  The service is being upgraded at noon              5h         ││                                              │
+│                        ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipe 1        1d         ││                                              │
+│                        ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats endp 2        2d         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ threads in watched channels, grouped by linked work                                ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                   7 new · 4 for you  slack

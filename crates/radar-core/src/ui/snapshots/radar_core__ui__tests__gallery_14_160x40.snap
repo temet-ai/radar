@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1000
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Long text
+ The kit: every element on sample data                                                                                                            colours: none
+ Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  [Long text]  Icons
+╭ cut with … (fit) ────────────────────────────────────────────────────────────╮╭ wrapped behind a prefix ────────────────────────────────────────────────────╮
+│ 60 move the globes to the top shelf once the new brackets are …|             ││ │ The decades from 1900 to 1950 are done. The                               │█
+│ 40 move the globes to the top shelf once t…|                                 ││ │ rest wait for the new dividers, which come                                │█
+│ 24 move the globes to the …|                                                 ││ │ on Thursday. Two atlases have loose maps:                                 │█
+│ 12 move the gl…|                                                             ││ │ they are in the tray on the left until the                                │█
+│  4 mov…|                                                                     ││ │ binder has a look. Nothing here needs anyone                              │█
+│ 40 #104 sort the atlas box by decade  Alice                                  ││ │ else.                                                                     │█
+│ 20 #104 sort the atlas                                                       ││                                                                             │█
+│                                                                              ││                                                                             │█
+│                                                                              ││                                                                             │█
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯█
+╭ chips give way to the title ─────────────────────────────────────────────────╮╭ columns dropped as the room shrinks ────────────────────────────────────────╮█
+│ 60 #104 sort the atlas box by decade, then … needs you   ready               ││ 70 name · state · owner · size · updated                                    │█
+│ 40 #104 sort the atlas … needs you   ready                                   ││ 50 name · state · owner · updated                                           │█
+│ 28 #104 sort the atlas box by decade, then label every drawer                ││ 40 name · state · updated                                                   │█
+│ 20 #104 sort the atlas box by decade, then label every drawer                ││ 30 name · state                                                             │█
+│                                                                              ││ 20 name                                                                     │█
+│                                                                              ││                                                                             │█
+│                                                                              ││                                                                             │█
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯█
+╭ markdown in a narrow card (30 wide) ─────────────────────────────────────────╮╭ markdown in a wide card (60 wide) ──────────────────────────────────────────╮█
+│ A note with bold, a link,                                                    ││ A note with bold, a link, code, and a long unbroken run of                  │█
+│ code, and a long unbroken                                                    ││ words that has to wrap.                                                     │█
+│ run of words that has to                                                     ││                                                                             │█
+│ wrap.                                                                        ││ • one                                                                       │█
+│                                                                              ││ • two with a good deal more text than fits                                  │█
+│ • one                                                                        ││                                                                             │█
+│ • two with a good deal more                                                  ││ │ a quote that is long enough to wrap at thirty                             │║
+│   text than fits                                                             ││                                                                             │║
+│                                                                              ││   a code line that is longer than the card is wide                          │║
+│ │ a quote that is long                                                       ││                                                                             │║
+│ │ enough to wrap at thirty                                                   ││                                                                             │║
+│                                                                              ││                                                                             │║
+│   a code line that is longer                                                 ││                                                                             │║
+│    than the card is wide                                                     ││                                                                             │║
+│                                                                              ││                                                                             │
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

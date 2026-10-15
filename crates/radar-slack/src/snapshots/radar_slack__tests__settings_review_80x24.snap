@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 4   History   Settings (,)                               ✎ edit
+╭ settings ────────────╮╭ review ──────────────────────────────────────────────╮
+│General               ││ channel          team                                │
+│  ├─ parts            ││ user group       @review-squad                       │
+│  ├─ mode             ││ template         {group} :gitlab: {mrs}              │
+│  ├─ colours          ││ link text        mr                                  │
+│  └─ icons            ││ test channel     try                                 │
+│Slack                 ││ ask again        after 2 working days without a repl │
+│  ├─ connection       ││                                                      │
+│  ├─ channels         ││                                                      │
+│  ├─ review           ││                                                      │
+│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ channel ─────────────────────────────────────────────╮
+│                      ││ Where review asks go. The user group is mentioned    █
+│                      ││ only here.                                           █
+│                      ││                                                      █
+│                      ││ ACCEPTS                                              █
+│                      ││ a channel in the registry                            ║
+│                      ││                                                      ║
+│                      ││ NOW                                                  ║
+│                      ││ team                                                 ║
+│                      ││                                                      ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate            slack

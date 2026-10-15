@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 4   History   Settings (,)                               ✎ edit
+╭ settings ────────────╮╭ look ────────────────────────────────────────────────╮
+│General               ││ MESSAGES                                             █
+│  ├─ parts            ││   density                                    compact █
+│  ├─ mode             ││   author   who wrote a message        links and keys █
+│  ├─ colours          ││   you                                         accent █
+│  └─ icons            ││   pinged                              warning · bold ║
+│Slack                 ││   mention                               third accent ║
+│  ├─ connection       ││   link     a link                   info · underline ║
+│  ├─ channels         ││   emoji                                   muted text ║
+│  ├─ review           ││   code     code, inline or in a block    data string ║
+│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ density ─────────────────────────────────────────────╮
+│                      ││ How the messages of a thread, the detail pane and a  █
+│                      ││ direct message are laid out.                         █
+│                      ││                                                      █
+│                      ││ compact  in use                                      █
+│                      ││ One line a message: the time, the author in a        █
+│                      ││ column, then the text. The author is left blank for  ║
+│                      ││ the same person within five minutes. A thin line     ║
+│                      ││ marks a new day, and a thread's replies sit under    ║
+│                      ││ one divider. In a narrow panel the author and time   ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate            slack

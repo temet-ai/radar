@@ -1,0 +1,18 @@
+# gitleaks for radar (scripts/export-public runs it on the public tree): the default
+# rules, less the fakes the tests need and the call ids in recorded Copilot streams.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "fake tokens in tests and the user-guide sample config"
+regexes = [
+  '''glpat-abcdefghijklmnopqrst''',
+  '''glpat-guide-sample-not-a-r''',
+  '''xoxp-0123456789012345678901''',
+]
+
+[[allowlists]]
+description = "Copilot's per-call ids in recorded streams, not secrets"
+regexTarget = "line"
+regexes = ['''"apiCallId":"''']
+paths = ['''crates/radar-sessions-copilot/tests/fixtures/.*\.jsonl$''']

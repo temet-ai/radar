@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(80, 24, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Rows & states" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Tree  Table  Card  Meters  " fg:text.secondary | "[Rows & states]" fg:accent.primary/glow.purple bold | "  Entries & log  Markdown  Diff  Mot" fg:text.secondary
+03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " settings rows " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+04 "│" fg:accent.primary/glow.purple bg:bg.surface | "  ? Found in your environment: a shelf t…" fg:text.emphasis bg:bg.selection bold | "█" fg:accent.muted bg:bg.surface
+05 "│" fg:accent.primary/glow.purple bg:bg.surface | _2 bg:bg.surface | "server          " fg:text.muted bg:bg.surface | "https://shelves.example                 …" bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+06 "│" fg:accent.primary/glow.purple bg:bg.surface | _2 bg:bg.surface | "token           " fg:text.muted bg:bg.surface | "env:SHELF_TOKEN                         …" bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+07 "│" fg:accent.primary/glow.purple bg:bg.surface | "─ about ────────────────────────────────…" fg:text.muted bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+08 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "The selected row, in words: what it hold…" fg:text.secondary bg:bg.surface | _15 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+09 "│" fg:accent.primary/glow.purple bg:bg.surface | _78 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+10 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+11 "╭" fg:accent.muted bg:bg.surface | " server " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+12 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "Where the shelves are kept." bg:bg.surface | _50 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+13 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+14 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "CHECKED" fg:text.muted bg:bg.surface bold | _70 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+15 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "✓ signed in as alice" fg:status.success/diff.added bg:bg.surface | "  2m ago" fg:text.muted bg:bg.surface | _49 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+16 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+17 "╭" fg:accent.muted bg:bg.surface | " empty " fg:text.secondary bg:bg.surface | "───────────────────────────────╮╭" fg:accent.muted bg:bg.surface | " set up " fg:text.secondary bg:bg.surface | "──────────────────────────────╮" fg:accent.muted bg:bg.surface
+18 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "No shelves yet. Press , for" fg:text.muted bg:bg.surface | _10 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "Shelves is not set up yet." fg:text.emphasis bg:bg.surface bold | _11 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+19 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "settings, then add one under" fg:text.muted bg:bg.surface | _9 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _38 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "shelves." fg:text.muted bg:bg.surface | _29 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "It needs a server and a token." bg:bg.surface | _7 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+21 "│" fg:accent.muted bg:bg.surface | _38 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _38 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+22 "╰──────────────────────────────────────╯…" fg:accent.muted bg:bg.surface
+23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

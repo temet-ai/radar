@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ workspace ─────────────────────────────────────────╮
+│General               ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
+│  ├─ parts            ││  api             https://slack.com                                             ││ not checked yet                                    │
+│  ├─ mode             ││  token           xoxp…ests (typed in)                                          ││                                                    │
+│  ├─ colours          ││  signed in as    Alice Example  alice                                          ││ NOW                                                │
+│  └─ icons            ││  check           not checked yet                                               ││ Acme · https://acme.slack.com                      │
+│Slack                 ││  refresh         every 2m                                                      ││                                                    │
+│  ├─ connection       ││  read back       7 days                                                        ││ The Slack workspace the token is for: a user token │
+│  ├─ channels         ││  permissions   ├─ public channels                                            ✓ ││ belongs to one. The check finds it.                │
+│  ├─ review           ││                ├─ private channels                                           ✓ ││                                                    │
+│  ├─ alerts           ││                ├─ for you                                                    ✓ ││                                                    │
+│  └─ look             ││                ├─ names                                                      ✓ ││                                                    │
+│                      ││                ├─ user groups                                                ✓ ││                                                    │
+│                      ││                ├─ asking and replying                                        ✓ ││                                                    │
+│                      ││                └─ reacting        needs reactions:write                      ✗ ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                      slack

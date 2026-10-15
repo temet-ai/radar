@@ -1,0 +1,29 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 999
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Waiting
+ The kit: every element on sample data                            colours: none
+ Diff  Motion  Colours  Tones  Row states  Grid states  [Waiting]  Long text  I
+╭ loading, and what fetching says ────────────────────────────────────────────╮
+│ loading               loading…                                              │█
+│ busy                  ⠷ asking the server…                                  │█
+│ fetching, nothing yet loading…                                              │█
+│ fetching, has rows    (nothing)                                             │█
+│ fetching, error       ✗ could not load: the server did not answer           │█
+│ fetched               (nothing)                                             │█
+│ spinner frames        ⠷ ⠯ ⠟ ⠻ ⠽ ⠾                                           │█
+╰─────────────────────────────────────────────────────────────────────────────╯█
+╭ failed ─────────────────────────────────────────────────────────────────────╮█
+│ ✗ could not load: the server did not answer                                 │█
+│ ✗ could not load: 401: the token was refused, so nothing could be listed an │║
+│                                                                             │║
+│ ✗ the server said 401  2m ago                                               │║
+│ ✗ not a link or a path                                                      │║
+│                                                                             │║
+│                                                                             │║
+╰─────────────────────────────────────────────────────────────────────────────╯║
+╭ empty ──────────────────────────────────────────────────────────────────────╮║
+│ No shelves yet. Press , for settings, then add one under shelves.           │
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

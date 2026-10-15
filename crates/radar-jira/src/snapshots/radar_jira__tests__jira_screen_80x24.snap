@@ -1,0 +1,28 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "text(&hosted(), 80, 24)"
+---
+ radar    Jira   History   Settings (,)       not synced yet · every 2m  ✎ edit
+╭ My tickets ──────────────────────────────────────────────────────────────────╮
+│ ASSIGNED TO everyone                      TYPE      STATUS          UPDATED  │
+│▌ acme  acme.atlassian.net                                                    │
+│▌ ├─ ◐ In Progress                                                            │
+│▌ │  └─ ABC-1 Dashboard for the stats  you Epic      ◐ In Progress   2w       │
+│▌ │     ├─ ABC-12 Add a stats endpoint for Story     ◐ In Progress   1h       │
+│▌ │     └─ ABC-13 Count requests per route Sub-task  ◐ In Progress   1h       │
+│▌ ├─ ◐ In Review                                                              │
+│▌ │  └─ DEF-3 Rename the export job  you   Story     ◐ In Review     1h       │
+│▌ └─ ○ To Do                                                                  │
+│▌    └─ ABC-20 Stats page shows yesterday  Bug       ○ To Do         9w       │
+│▌ beta  beta.atlassian.net                                                    │
+│▌ └─ ○ To Do                                                                  │
+│▌    └─ XYZ-7 Move the nightly build  Alic Story     ○ To Do         1h       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ assigned to you · not done                                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ JIRA   b bulk   +/- expand/collapse   q quit   x menu                     jira

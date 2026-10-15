@@ -1,0 +1,440 @@
+{
+  "version": 1,
+  "scope": "main",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "nav",
+            "text": [
+              {
+                "text": "nav"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "pane": "middle",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "one",
+            "text": [
+              {
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "target": "two",
+            "text": [
+              {
+                "text": "two"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    }
+  ],
+  "dock": {
+    "visible": true,
+    "focused": true,
+    "tabs": [
+      {
+        "id": "s1",
+        "provider": "claude",
+        "icon": "bot",
+        "title": "review",
+        "state": "idle"
+      }
+    ],
+    "active": "s1",
+    "transcript": [
+      {
+        "item": "user",
+        "id": "u1",
+        "text": "review the branch"
+      },
+      {
+        "item": "assistant",
+        "id": "a1",
+        "text": "## Review\n\n**Verdict**: Request changes. The branch is behind `origin/main` by three commits.\n\n- **Findings**:\n  - The tool rows take *two lines* each; one is enough.\n  - Reads in a row should fold together.\n- **Fixed**: `lines` uses `String::from`.\n\n1. Rebase on `origin/main`.\n2. Run the checks again.\n\n> The host owns all state; Ink only draws it.\n\n```rust\nfn lines(text: &str) -> Vec<String> {\n    text.lines().map(String::from).collect() // one per line\n}\n```\n\n| Check | Result |\n|---|---|\n| typecheck | ok |\n| tests | 12 passed |\n\nSee [the plan](https://example.test/agent-dock) for the dock's rules.",
+        "saved": true,
+        "doc": [
+          {
+            "t": "heading",
+            "level": 2,
+            "text": [
+              {
+                "text": "Review"
+              }
+            ]
+          },
+          {
+            "t": "para",
+            "text": [
+              {
+                "text": "Verdict",
+                "marks": {
+                  "bold": true
+                }
+              },
+              {
+                "text": ": Request changes. The branch is behind "
+              },
+              {
+                "text": "origin/main",
+                "marks": {
+                  "code": true
+                }
+              },
+              {
+                "text": " by three commits."
+              }
+            ]
+          },
+          {
+            "t": "list",
+            "items": [
+              {
+                "marker": "bullet",
+                "blocks": [
+                  {
+                    "t": "para",
+                    "text": [
+                      {
+                        "text": "Findings",
+                        "marks": {
+                          "bold": true
+                        }
+                      },
+                      {
+                        "text": ":"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "list",
+                    "items": [
+                      {
+                        "marker": "bullet",
+                        "blocks": [
+                          {
+                            "t": "para",
+                            "text": [
+                              {
+                                "text": "The tool rows take "
+                              },
+                              {
+                                "text": "two lines",
+                                "marks": {
+                                  "italic": true
+                                }
+                              },
+                              {
+                                "text": " each; one is enough."
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "marker": "bullet",
+                        "blocks": [
+                          {
+                            "t": "para",
+                            "text": [
+                              {
+                                "text": "Reads in a row should fold together."
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "marker": "bullet",
+                "blocks": [
+                  {
+                    "t": "para",
+                    "text": [
+                      {
+                        "text": "Fixed",
+                        "marks": {
+                          "bold": true
+                        }
+                      },
+                      {
+                        "text": ": "
+                      },
+                      {
+                        "text": "lines",
+                        "marks": {
+                          "code": true
+                        }
+                      },
+                      {
+                        "text": " uses "
+                      },
+                      {
+                        "text": "String::from",
+                        "marks": {
+                          "code": true
+                        }
+                      },
+                      {
+                        "text": "."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "t": "list",
+            "items": [
+              {
+                "marker": {
+                  "number": 1
+                },
+                "blocks": [
+                  {
+                    "t": "para",
+                    "text": [
+                      {
+                        "text": "Rebase on "
+                      },
+                      {
+                        "text": "origin/main",
+                        "marks": {
+                          "code": true
+                        }
+                      },
+                      {
+                        "text": "."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "marker": {
+                  "number": 2
+                },
+                "blocks": [
+                  {
+                    "t": "para",
+                    "text": [
+                      {
+                        "text": "Run the checks again."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "t": "quote",
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "The host owns all state; Ink only draws it."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "t": "code",
+            "lang": "rust",
+            "text": "fn lines(text: &str) -> Vec<String> {\n    text.lines().map(String::from).collect() // one per line\n}\n"
+          },
+          {
+            "t": "table",
+            "aligns": [
+              "left",
+              "left"
+            ],
+            "head": [
+              [
+                {
+                  "text": "Check"
+                }
+              ],
+              [
+                {
+                  "text": "Result"
+                }
+              ]
+            ],
+            "rows": [
+              [
+                [
+                  {
+                    "text": "typecheck"
+                  }
+                ],
+                [
+                  {
+                    "text": "ok"
+                  }
+                ]
+              ],
+              [
+                [
+                  {
+                    "text": "tests"
+                  }
+                ],
+                [
+                  {
+                    "text": "12 passed"
+                  }
+                ]
+              ]
+            ]
+          },
+          {
+            "t": "para",
+            "text": [
+              {
+                "text": "See "
+              },
+              {
+                "text": "the plan",
+                "kind": {
+                  "link": {
+                    "url": "https://example.test/agent-dock"
+                  }
+                }
+              },
+              {
+                "text": " for the dock's rules."
+              }
+            ]
+          }
+        ],
+        "painted": [
+          [
+            [
+              {
+                "text": "fn",
+                "token": "keyword"
+              },
+              {
+                "text": " ",
+                "token": "plain"
+              },
+              {
+                "text": "lines",
+                "token": "function"
+              },
+              {
+                "text": "(text: ",
+                "token": "plain"
+              },
+              {
+                "text": "&str",
+                "token": "keyword"
+              },
+              {
+                "text": ") -> Vec<String> {",
+                "token": "plain"
+              }
+            ],
+            [
+              {
+                "text": "    text.",
+                "token": "plain"
+              },
+              {
+                "text": "lines",
+                "token": "function"
+              },
+              {
+                "text": "().",
+                "token": "plain"
+              },
+              {
+                "text": "map",
+                "token": "function"
+              },
+              {
+                "text": "(",
+                "token": "plain"
+              },
+              {
+                "text": "String",
+                "token": "type"
+              },
+              {
+                "text": "::from).",
+                "token": "plain"
+              },
+              {
+                "text": "collect",
+                "token": "function"
+              },
+              {
+                "text": "() ",
+                "token": "plain"
+              },
+              {
+                "text": "// one per line",
+                "token": "comment"
+              }
+            ],
+            [
+              {
+                "text": "}",
+                "token": "plain"
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "composer": {
+      "history": [
+        "what does the host own?"
+      ],
+      "commands": [
+        {
+          "name": "model",
+          "detail": "pick a model"
+        },
+        {
+          "name": "new",
+          "detail": "start a new session"
+        }
+      ],
+      "can_send": true,
+      "can_stop": false
+    },
+    "status": {
+      "provider": "copilot",
+      "model": "claude-sonnet-4.5",
+      "cwd": "~/projects/radar",
+      "branch": "main",
+      "usage": "12k tokens"
+    }
+  }
+}

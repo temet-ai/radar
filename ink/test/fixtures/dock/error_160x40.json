@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "scope": "main",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "nav",
+            "text": [
+              {
+                "text": "nav"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "pane": "middle",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "one",
+            "text": [
+              {
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "target": "two",
+            "text": [
+              {
+                "text": "two"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    }
+  ],
+  "dock": {
+    "visible": true,
+    "focused": true,
+    "tabs": [
+      {
+        "id": "s1",
+        "provider": "copilot",
+        "icon": "bot",
+        "title": "review dock",
+        "state": "error"
+      }
+    ],
+    "active": "s1",
+    "transcript": [
+      {
+        "item": "user",
+        "id": "u1",
+        "text": "go on"
+      },
+      {
+        "item": "error",
+        "id": "e1",
+        "text": "connection lost: the copilot process exited"
+      }
+    ],
+    "composer": {
+      "history": [
+        "what does the host own?"
+      ],
+      "commands": [
+        {
+          "name": "model",
+          "detail": "pick a model"
+        },
+        {
+          "name": "new",
+          "detail": "start a new session"
+        }
+      ],
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "connection lost"
+    },
+    "status": {
+      "provider": "copilot",
+      "model": "claude-sonnet-4.5",
+      "cwd": "~/projects/radar",
+      "branch": "main",
+      "usage": "12k tokens"
+    },
+    "activity": {
+      "doing": "failed",
+      "elapsed": 12
+    }
+  }
+}

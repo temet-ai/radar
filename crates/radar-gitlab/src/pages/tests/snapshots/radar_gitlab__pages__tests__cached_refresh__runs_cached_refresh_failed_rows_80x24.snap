@@ -1,0 +1,28 @@
+---
+source: crates/radar-gitlab/src/pages/tests/cached_refresh.rs
+expression: shown
+---
+ radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+ Repositories › a › api
+ acme/team-a/api                                a22afd6f Alice Example · 2h ago
+ Merge requests · 1  [Pipelines on main]
+╭ pipelines on main ───────────────────────────────────────────────────────────╮
+│ ✗ could not load: GitLab refresh unavailable                                 │
+│ STATUS     RUN    COMMIT                        BY              TOOK     AGE │
+│ ✗ failed   #1842  2c2ea8c3  feat: bulk import   push · Alice E. 12m 28s  2h  │
+│ ✓ passed   #1838  0110f094  chore: update depe… schedule · Bob… 1m 22s   3h  │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate       gitlab

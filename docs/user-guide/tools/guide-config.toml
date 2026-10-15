@@ -1,0 +1,83 @@
+# The config the user guide's screenshots run on (capture-all.sh). Every service is the
+# local stand-in fake-services.py, whose address replaces @FAKE@ when the capture starts.
+# The tokens are dummy words: the stand-in accepts anything.
+[gitlab]
+url = "@FAKE@"
+token = "glpat-guide-sample-not-a-real-token"
+base = "acme"
+
+[[gitlab.source]]
+group = "team-a"
+code = "a"
+color = "green"
+
+[jira]
+
+[[jira.site]]
+name = "acme"
+url = "@FAKE@"
+email = "alice@example.com"
+token = "jira-guide-sample-not-a-real-token"
+color = "blue"
+
+[[jira.site.project]]
+key = "ABC"
+
+[[jira.view]]
+name = "Our project"
+jql = "project = ABC ORDER BY updated DESC"
+
+[git]
+roots = ["~/code"]
+
+[sessions]
+provider = "fake"
+
+[[workspace.space]]
+dir = "~/code"
+name = "code"
+tickets = ["ABC"]
+repos = ""
+
+[github]
+token = "ghp_guide-sample-not-a-real-token"
+api = "@FAKE@"
+
+[[github.groups]]
+name = "Acme Labs"
+repositories = ["acme-labs/widgets", "acme-labs/toolkit"]
+
+[slack]
+token = "xoxp-0000000000-guide-sample-not-a-real-token"
+api = "@FAKE@"
+
+[slack.review]
+channel = "team"
+group = "S0REVIEW01"
+handle = "review-squad"
+test_channel = "try"
+
+[[slack.channel]]
+alias = "team"
+id = "C0000TEAM1"
+name = "acme-team"
+purpose = "where the team talks"
+kind = "team"
+color = "cyan"
+watched = true
+
+[[slack.channel]]
+alias = "svc"
+id = "C00000SVC1"
+name = "acme-svc"
+kind = "service"
+color = "orange"
+watched = true
+
+[[slack.channel]]
+alias = "try"
+id = "C00000TRY1"
+name = "acme-try"
+kind = "test"
+color = "green"
+watched = false

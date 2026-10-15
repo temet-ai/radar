@@ -1,0 +1,173 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "settings": {
+      "detail_title": "about",
+      "groups": [
+        {
+          "id": "general",
+          "name": "General",
+          "open": true,
+          "sections": [
+            {
+              "icon": "parts",
+              "id": "parts",
+              "name": "parts",
+              "target": "chrome:section:0"
+            },
+            {
+              "icon": "mode_edit",
+              "id": "mode",
+              "name": "mode",
+              "target": "chrome:section:1"
+            },
+            {
+              "icon": "colours",
+              "id": "colours",
+              "name": "colours",
+              "target": "chrome:section:2"
+            },
+            {
+              "icon": "icons",
+              "id": "icons",
+              "name": "icons",
+              "target": "chrome:section:3"
+            }
+          ],
+          "target": "chrome:group:general"
+        }
+      ],
+      "section_title": "parts",
+      "selected": "chrome:section:0"
+    },
+    "status": {
+      "hints": [
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:0:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:2:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:2:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:2:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:2:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "SETTINGS"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "active": true,
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ]
+    },
+    "version": 1,
+    "width": 160
+  },
+  "focus": "middle",
+  "height": 40,
+  "screen": null,
+  "section": {
+    "body": {
+      "node": "state",
+      "state": "empty",
+      "text": "No parts are compiled into this build of radar. Each part is a cargo feature: build radar with the ones you want (cargo build --features <part>)."
+    },
+    "detail": [
+      [
+        {
+          "icon": "empty",
+          "icon_lead": true
+        },
+        {
+          "ink": "muted",
+          "text": "A part is one ability of radar, usually one tool it works with, compiled in as a cargo feature. Parts never depend on each other: each works alone, and each one present adds to the others."
+        }
+      ]
+    ],
+    "detail_title": "about",
+    "scope": "parts",
+    "version": 1
+  },
+  "width": 160
+}

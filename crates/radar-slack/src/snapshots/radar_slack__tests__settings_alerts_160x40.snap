@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
+│General               ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
+│  ├─ parts            ││ keep resolved    24 hours                                                      ││                                                    │
+│  ├─ mode             ││                                                                                ││ Type the start of its name; the repo it belongs to │
+│  ├─ colours          ││                                                                                ││ is asked next. The service, a label to match and   │
+│  └─ icons            ││                                                                                ││ an environment can be set under the rule. The      │
+│Slack                 ││                                                                                ││ first rule that matches an alert decides.          │
+│  ├─ connection       ││                                                                                ││                                                    │
+│  ├─ channels         ││                                                                                ││                                                    │
+│  ├─ review           ││                                                                                ││                                                    │
+│  ├─ alerts           ││                                                                                ││                                                    │
+│  └─ look             ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                               slack

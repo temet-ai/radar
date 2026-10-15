@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# scripts/notices: writes THIRD-PARTY-NOTICES.md, the licences of everything a radar
+# release carries: the Rust crates of the default build (cargo-about, about.toml) and the
+# npm packages in the Ink renderer's bundle. The Claude Agent SDK is not in it: radar
+# fetches it on first use. `radar licenses` prints the file; release archives carry it.
+# Needs cargo-about (`cargo install cargo-about --locked --features cli`) and ink's
+# node_modules (`cd ink && npm ci`).
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+cd "$root"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+cargo about generate --locked about.hbs -o "$work/rust.md"
+
+# The same bundle as `npm run bundle`, with its list of inputs.
+(cd ink && node_modules/.bin/esbuild src/main.tsx --bundle \
+    --alias:react-devtools-core=./src/transport/devtools-stub.ts \
+    --alias:ink-output=./node_modules/ink/build/output.js \
+    --define:process.env.NODE_ENV=\"production\" --platform=node --format=esm --target=node22 \
+    --log-level=warning --outfile="$work/bundle.js" --metafile="$work/meta.json")
+node scripts/notices-npm.mjs "$work/meta.json" ink > "$work/npm.md"
+
+{
+    echo "# Third-party notices"
+    echo
+    echo "radar is MIT licensed (see LICENSE). A radar release also carries the software"
+    echo "below, each under its own licence, reproduced here. Anthropic's Claude Agent SDK is"
+    echo "not part of radar: radar downloads it from the npm registry the first time you start"
+    echo "a Claude session, and it is used under Anthropic's terms."
+    echo
+    cat "$work/rust.md"
+    cat "$work/npm.md"
+} | tr -d "\r" > THIRD-PARTY-NOTICES.md
+echo "THIRD-PARTY-NOTICES.md: $(grep -c '^### ' THIRD-PARTY-NOTICES.md) entries"

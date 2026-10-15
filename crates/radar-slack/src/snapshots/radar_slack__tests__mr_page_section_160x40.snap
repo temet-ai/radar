@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Code   Tickets   Slack 4   History   Settings (,)                                                                                              ✎ edit
+╭ code ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ merge request page api !263                                                                                                                                  │
+│ == Discussed in Slack                                                                                                                                        │
+│ review asked in #team 2d ago · 2 replies · :eyes: 1                                                                                                          │
+│   https://acme.slack.com/archives/C0000TEAM1/p1791094600234800                                                                                               │
+│ #team · Carol Coder · 1d ago · 1 reply                                                                                                                       │
+│   Anyone seen ABC-12 failing on main? pipeline and make check                                                                                                │
+│   https://acme.slack.com/archives/C0000TEAM1/p1791184000609000                                                                                               │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ CODE   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                                slack

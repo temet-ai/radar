@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: screen
+---
+ History · read only · UTC · snapshot not loaded
+ Scope: all recorded events
+ Recorded observations; coverage may be incomplete. Not task intent or
+permission.
+╭ events · page 1 · oldest-first ──────────────────────────────────────────────╮
+│ History could not be read. Press r to retry, or esc to close.                │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ j/k move · enter details · n/p pages · r refresh · x/? keys · esc close

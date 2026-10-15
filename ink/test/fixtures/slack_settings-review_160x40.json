@@ -1,0 +1,363 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "channel"
+    },
+    {
+      "id": "slack.review.pick",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "pick it…"
+    },
+    {
+      "id": "slack.review.clear",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "clear it"
+    },
+    {
+      "id": "slack.review.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "channel          "
+          },
+          {
+            "ink": "primary",
+            "text": "team"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "user group       "
+          },
+          {
+            "ink": "primary",
+            "text": "@review-squad"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "template         "
+          },
+          {
+            "ink": "primary",
+            "text": "{group} :gitlab: {mrs}"
+          }
+        ]
+      },
+      {
+        "target": "row:3",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "link text        "
+          },
+          {
+            "ink": "primary",
+            "text": "mr"
+          }
+        ]
+      },
+      {
+        "target": "row:4",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "test channel     "
+          },
+          {
+            "ink": "primary",
+            "text": "try"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "ask again        "
+          },
+          {
+            "ink": "primary",
+            "text": "after 2 working days without a reply"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "text": "Where review asks go. The user group is mentioned only here."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "a channel in the registry"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "text": "team"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [slack.review] channel"
+      }
+    ]
+  ],
+  "detail_blocks": [
+    {
+      "block": "line",
+      "text": [
+        {
+          "text": "Where review asks go. The user group is mentioned only here."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "ACCEPTS"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "secondary",
+          "text": "a channel in the registry"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "NOW"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "text": "team"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "WITH A SAMPLE MERGE REQUEST"
+        }
+      ]
+    },
+    {
+      "block": "doc",
+      "doc": [
+        {
+          "t": "para",
+          "text": [
+            {
+              "kind": {
+                "mention": {
+                  "me": true
+                }
+              },
+              "text": "@review-squad"
+            },
+            {
+              "text": " "
+            },
+            {
+              "kind": "emoji",
+              "text": ":gitlab:"
+            },
+            {
+              "text": " "
+            },
+            {
+              "kind": {
+                "link": {
+                  "url": "https://git.example/acme/team-a/api/-/merge_requests/263"
+                }
+              },
+              "text": "mr"
+            },
+            {
+              "text": " Add a stats endpoint for the dashboard"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "WITH TWO"
+        }
+      ]
+    },
+    {
+      "block": "doc",
+      "doc": [
+        {
+          "t": "para",
+          "text": [
+            {
+              "kind": {
+                "mention": {
+                  "me": true
+                }
+              },
+              "text": "@review-squad"
+            },
+            {
+              "text": " "
+            },
+            {
+              "kind": "emoji",
+              "text": ":gitlab:"
+            },
+            {
+              "kind": "break",
+              "text": ""
+            },
+            {
+              "text": "• "
+            },
+            {
+              "kind": {
+                "link": {
+                  "url": "https://git.example/acme/team-a/api/-/merge_requests/263"
+                }
+              },
+              "text": "api !263"
+            },
+            {
+              "text": " Add a stats endpoint for the dashboard"
+            },
+            {
+              "kind": "break",
+              "text": ""
+            },
+            {
+              "text": "• "
+            },
+            {
+              "kind": {
+                "link": {
+                  "url": "https://git.example/acme/team-a/web/-/merge_requests/12"
+                }
+              },
+              "text": "web !12"
+            },
+            {
+              "text": " Show the stats"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "config: [slack.review] channel"
+        }
+      ]
+    }
+  ],
+  "detail_title": "channel",
+  "scope": "review",
+  "version": 1
+}

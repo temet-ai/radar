@@ -1,0 +1,403 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "screen_keys": [
+      "I"
+    ],
+    "status": {
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:3:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:3:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:3:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:3:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "WORK"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "local annotations · observations only"
+      }
+    },
+    "version": 1,
+    "width": 160
+  },
+  "focus": "middle",
+  "height": 40,
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "id": "",
+        "label": "Local work"
+      },
+      {
+        "change": "add",
+        "id": "work.new",
+        "key": {
+          "key": {
+            "char": "n"
+          }
+        },
+        "label": "create a local task…"
+      },
+      {
+        "id": "work.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh local work"
+      },
+      {
+        "id": "work.filter",
+        "key": {
+          "key": {
+            "char": "/"
+          }
+        },
+        "label": "filter this item page…"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "target": "[\"group\",\"all\",null,0,0]",
+              "text": [
+                {
+                  "text": "All items"
+                }
+              ]
+            }
+          ],
+          "selected": 0
+        },
+        "footer": [
+          {
+            "ink": "muted",
+            "text": "Groups · page 1"
+          }
+        ],
+        "head": [
+          {
+            "ink": "muted",
+            "text": "Groups not loaded"
+          }
+        ],
+        "pane": "nav",
+        "title": "local groups",
+        "width": 25
+      },
+      {
+        "body": {
+          "node": "state",
+          "state": "empty",
+          "text": "Press r to load local work."
+        },
+        "pane": "middle",
+        "title": "work items · page 1"
+      },
+      {
+        "body": {
+          "lines": [
+            [
+              {
+                "ink": "muted",
+                "text": "No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred."
+              }
+            ],
+            [
+              {
+                "text": "Create a local task or select an existing item. No provider labels, relationships or goals are inferred."
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "notes_most": 5,
+        "pane": "detail",
+        "title": "linked sources and context"
+      },
+      {
+        "body": {
+          "capability": "work.map",
+          "data": {
+            "groups": [],
+            "items": [],
+            "omitted": 0,
+            "pending": false,
+            "target": "work-area:map"
+          },
+          "fallback": {
+            "lines": [
+              [
+                {
+                  "ink": "muted",
+                  "text": "0 groups · 0 items on page 1"
+                }
+              ]
+            ],
+            "node": "document"
+          },
+          "node": "extension",
+          "version": 1
+        },
+        "pane": "detail",
+        "title": "map"
+      },
+      {
+        "body": {
+          "capability": "work.timeline",
+          "data": {
+            "entries": [],
+            "omitted": 0,
+            "pending": false,
+            "target": "work-area:timeline"
+          },
+          "fallback": {
+            "lines": [
+              [
+                {
+                  "ink": "muted",
+                  "text": "No evidence loaded."
+                }
+              ]
+            ],
+            "node": "document"
+          },
+          "node": "extension",
+          "version": 1
+        },
+        "pane": "detail",
+        "title": "timeline"
+      },
+      {
+        "body": {
+          "capability": "work.tabs",
+          "data": {
+            "pending": false,
+            "tabs": [
+              {
+                "active": true,
+                "count": 0,
+                "id": "sources",
+                "label": "linked sources"
+              },
+              {
+                "active": false,
+                "id": "evidence",
+                "label": "evidence"
+              }
+            ],
+            "target": "work-area:tabs"
+          },
+          "fallback": {
+            "lines": [
+              [
+                {
+                  "text": "● linked sources"
+                }
+              ],
+              [
+                {
+                  "text": "○ evidence"
+                }
+              ]
+            ],
+            "node": "document"
+          },
+          "node": "extension",
+          "version": 1
+        },
+        "pane": "detail",
+        "title": "tabs"
+      },
+      {
+        "body": {
+          "capability": "work.rail",
+          "data": {
+            "actions": [
+              {
+                "id": "work.new",
+                "key": {
+                  "key": {
+                    "char": "n"
+                  }
+                },
+                "label": "create a local task…"
+              },
+              {
+                "id": "work.refresh",
+                "key": {
+                  "key": {
+                    "char": "r"
+                  }
+                },
+                "label": "refresh local work"
+              },
+              {
+                "id": "work.filter",
+                "key": {
+                  "key": {
+                    "char": "/"
+                  }
+                },
+                "label": "filter this item page…"
+              }
+            ],
+            "pending": false,
+            "target": "work-area:rail"
+          },
+          "fallback": {
+            "lines": [
+              [
+                {
+                  "text": "create a local task…"
+                }
+              ],
+              [
+                {
+                  "text": "refresh local work"
+                }
+              ],
+              [
+                {
+                  "text": "filter this item page…"
+                }
+              ]
+            ],
+            "node": "document"
+          },
+          "node": "extension",
+          "version": 1
+        },
+        "pane": "detail",
+        "title": "actions"
+      }
+    ],
+    "scope": "work",
+    "version": 1
+  },
+  "section": null,
+  "width": 160
+}

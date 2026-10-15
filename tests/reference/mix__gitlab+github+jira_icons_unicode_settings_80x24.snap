@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    ▤ Repositories   ◇ Jira   ≣ History   ⚙ Settings (,)              ✎ edit
+╭ settings ────────────╮╭ GitLab connection ───────────────────────────────────╮
+│General               ││  server          https://gitlab.com                  │
+│  ├─ ⊞ parts          ││  base group      —                                   │
+│  ├─ ✎ mode           ││  token           env:GITLAB_TOKEN                    │
+│  ├─ ◑ colours        ││  signed in as    —                                   │
+│  └─ ☺ icons          ││  check           not checked yet                     │
+│GitLab                ││  refresh         every 1m                            │
+│  ├─ ⇌ connection     ││  merged, closed  the last 14 days                    │
+│  ├─ ◆ tenancies      ││                                                      │
+│  ├─ ▽ views          ││                                                      │
+│  └─ ◑ look           │╰──────────────────────────────────────────────────────╯
+│GitHub                │╭ server ──────────────────────────────────────────────╮
+│  ├─ connection       ││ CHECKED                                              █
+│  └─ repositories     ││ not checked yet                                      █
+│Jira                  ││                                                      █
+│  ├─ ⇌ connection     ││ NOW                                                  █
+│  ├─ ▪ projects       ││ https://gitlab.com                                   █
+│  ├─ ▽ views          ││                                                      █
+│  └─ ◑ look           ││ The GitLab server radar talks to.                       █
+│                      ││                                                      ║
+│                      ││ ACCEPTS                                              ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn ↕ scroll   b ◫ bulk   x ≡ menu   ←→↑↓ navigate

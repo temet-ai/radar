@@ -1,0 +1,34 @@
+---
+source: tests/mix.rs
+expression: text
+---
+ radar    Repositories   Jira   Work (I)   History   Settings (,)                                                   ✎ edit
+╭ settings ────────────╮╭ parts ─────────────────────────────────────────────────╮╭ GitHub ────────────────────────────╮
+│General               ││ COMPILED INTO THIS RADAR                                  ││ ○ not set up: Create a GitHub      │
+│  ├─ parts            ││                                                        ││ group under repositories in        │
+│  ├─ mode             ││ ○ GitHub   not set up                                  ││ settings. Public repositories need │
+│  ├─ colours          ││ ○ Jira     not set up                                  ││ no token.                          │
+│  └─ icons            ││ ✓ Work     set up                                      ││                                    │
+│GitHub                ││                                                        ││ has     repositories, pull         │
+│  ├─ connection       ││                                                        ││ requests, workflow runs            │
+│  └─ repositories     ││                                                        ││ opens   repositories, pull         │
+│Jira                  ││                                                        ││ requests, workflow runs on their   │
+│  ├─ connection       ││                                                        ││ own pages                          │
+│  ├─ projects         ││                                                        ││                                    │
+│  ├─ views            ││                                                        ││ OTHER PARTS CAN ADD                │
+│  └─ look             ││                                                        ││ · actions on repositories          │
+│                      ││                                                        ││ · actions on pull requests         │
+│                      ││                                                        ││ · a line on the repository preview │
+│                      ││                                                        ││ and page, under its title          │
+│                      ││                                                        ││ · a line on the pull request       │
+│                      ││                                                        ││ preview and page, under its title  │
+│                      ││                                                        ││ · a section on the repository      │
+│                      ││                                                        ││ preview and overview               │
+│                      ││                                                        ││ · a section on the pull request    │
+│                      ││                                                        ││ preview and overview               │
+│                      ││                                                        ││                                    │
+│                      ││                                                        ││ GITHUB ADDS                        │
+│                      ││                                                        ││ nothing to the other parts in this │
+│                      ││                                                        ││ build                              │
+╰──────────────────────╯╰────────────────────────────────────────────────────────╯╰────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

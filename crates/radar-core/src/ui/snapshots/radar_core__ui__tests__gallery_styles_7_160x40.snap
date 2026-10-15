@@ -1,0 +1,44 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(160, 40, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Diff" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Tree  Table  Card  Meters  Rows & states…" fg:text.secondary | "[Diff]" fg:accent.primary/glow.purple bold | "  Motion  Colours  Tones  Row states  Gr…" fg:text.secondary
+03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " shelf/Shelves.java · 6 added, 2 removed…" fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+04 "│ " fg:accent.primary/glow.purple bg:bg.surface | "@@ -18,6 +18,12 @@ public class Shelves …" fg:status.info bg:bg.surface | _116 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+05 "│ " fg:accent.primary/glow.purple bg:bg.surface | "18 18 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | "@RestController" fg:glow.pink bg:bg.surface | _134 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+06 "│ " fg:accent.primary/glow.purple bg:bg.surface | "19 19 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | "public" fg:accent.primary/glow.purple bg:bg.surface bold | _1 bg:bg.surface | "class" fg:accent.primary/glow.purple bg:bg.surface bold | _1 bg:bg.surface | "Shelves" fg:accent.secondary/glow.cyan bg:bg.surface | " {" bg:bg.surface | _127 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+07 "│ " fg:accent.primary/glow.purple bg:bg.surface | "20    " fg:text.muted bg:bg.surface | "- " fg:status.error/diff.removed bg:#381d26 | _4 bg:#381d26 | "// TODO: the dashboard" fg:text.muted bg:#381d26 italic | _122 bg:#381d26 | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+08 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   20 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _4 bg:#1c352a | "private" fg:accent.primary/glow.purple bg:#1c352a bold | _1 bg:#1c352a | "final" fg:accent.primary/glow.purple bg:#1c352a bold | _1 bg:#1c352a | "Atlas" fg:accent.secondary/glow.cyan bg:#1c352a | " atlas;" bg:#1c352a | _118 bg:#1c352a | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+09 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   21 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _148 bg:#1c352a | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+10 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   22 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _4 bg:#1c352a | "@GetMapping(" fg:glow.pink bg:#1c352a | "\"/shelf/{id}\"" fg:accent.tertiary bg:#1c352a | ")" fg:glow.pink bg:#1c352a | _118 bg:#1c352a | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+11 "│▎" fg:accent.primary/glow.purple bg:bg.surface | "   23 +     public Shelf shelf(@PathVari…" fg:text.emphasis bg:bg.selection bold | "│" fg:accent.primary/glow.purple bg:bg.surface
+12 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "● open" fg:status.warning bg:bg.surface bold | " · bob · 2h ago" fg:text.muted bg:bg.surface | _128 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+13 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "The decades from 1900 to 1950 are done. …" bg:bg.surface | _3 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+14 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "tray on the left until the binder has a …" bg:bg.surface | _70 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+15 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   24 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _8 bg:#1c352a | "return" fg:accent.primary/glow.purple bg:#1c352a bold | " atlas." bg:#1c352a | "find(id)" fg:accent.secondary/glow.cyan bg:#1c352a | ";" bg:#1c352a | _118 bg:#1c352a | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+16 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   25 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | "    }" bg:#1c352a | _143 bg:#1c352a | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+17 "│ " fg:accent.primary/glow.purple bg:bg.surface | "21 26 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | _149 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+18 "│ " fg:accent.primary/glow.purple bg:bg.surface | "22 27 " fg:text.muted bg:bg.surface | "  }" bg:bg.surface | _148 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+19 "│ " fg:accent.primary/glow.purple bg:bg.surface | "        \\ No newline at end of file" fg:text.muted bg:bg.surface | _122 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+20 "│ " fg:accent.primary/glow.purple bg:bg.surface | "@@ -40,3 +46,3 @@" fg:status.info bg:bg.surface | _140 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+21 "│ " fg:accent.primary/glow.purple bg:bg.surface | "40 46 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | "void" fg:accent.primary/glow.purple bg:bg.surface bold | _1 bg:bg.surface | "sort()" fg:accent.secondary/glow.cyan bg:bg.surface | " {" bg:bg.surface | _136 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+22 "│ " fg:accent.primary/glow.purple bg:bg.surface | "41    " fg:text.muted bg:bg.surface | "- " fg:status.error/diff.removed bg:#381d26 | _4 bg:#381d26 | "by(decade)" fg:accent.secondary/glow.cyan bg:#381d26 | ";" bg:#381d26 | _133 bg:#381d26 | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+23 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   47 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _4 bg:#1c352a | "by(decade" fg:accent.secondary/glow.cyan bg:#1c352a | ", title" fg:accent.secondary/glow.cyan bg:#2c7243 bold | ")" fg:accent.secondary/glow.cyan bg:#1c352a | ";" bg:#1c352a | _126 bg:#1c352a | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+24 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+25 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+26 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+27 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+28 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+29 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+30 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+31 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+32 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+33 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+34 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+35 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+36 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+37 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+38 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+39 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

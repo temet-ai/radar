@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: shown
+---
+ radar    Repositories 2   Jira   Branches   History   Settings (,)                                                                       ⠷ not synced yet  ✎ edit
+  GitLab    Local workspaces
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                                                                     Alice Example · feature/abc-12-stats → main
+ checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
+ [Overview]  Changes · 1 file  Threads  Pipeline  Commits  Ticket
+╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ can it merge? ───────────────────╮
+│ loading…                                                                                                                 ││ ◷ needs 1 approval               │
+│                                                                                                                          ││ ✓ pipeline passed                │
+│ TICKET                                                                                                                   ││ ✓ no conflicts, up to date       │
+│ ABC-12 · ◐ In Review · Story                                                                                             ││ ◷ needs 1 approval (0 of 1)      │
+│ Add a stats endpoint for the dashboard                                                                                   ││ ✓ no open threads                │
+│ assigned to you                                                                                                          ││ ✓ not a draft                    │
+│ What ABC-12 is about.                                                                                                    ││                                  │
+│                                                                                                                          ││ for you: waiting for your review │
+│ LATEST ACTIVITY                                                                                                          ││                                  │
+│ No comments yet.                                                                                                         ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                         3 open · 2 to review

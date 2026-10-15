@@ -1,0 +1,44 @@
+---
+source: crates/radar-git/src/tests.rs
+expression: "radar_core::shell::to_text(&host, 160, 40)"
+---
+ radar    Branches   History   Settings (,)                                                                                                              ✎ edit
+╭ settings ────────────╮╭ checkouts ─────────────────────────────────────────────────────────────────────╮╭ add a folder ──────────────────────────────────────╮
+│General               ││  + add a folder to look in   paste or type a folder                            ││ Another folder to look for git checkouts in. radar │
+│  ├─ parts            ││ folder     /work                                                       1 found ││ matches each checkout to its repo by its origin    │
+│  ├─ mode             ││ look down  4 folders                                                           ││ remote.                                            │
+│  ├─ colours          ││ terminal   found for you                                                       ││                                                    │
+│  └─ icons            ││ last look  2m ago                                                      1 found ││ ACCEPTS                                            │
+│Git                   ││                                                                                ││ a full path, or one starting with ~/ (pasted links │
+│  ├─ checkouts        ││                                                                                ││ to files work too)                                 │
+│  ├─ editors          ││                                                                                ││                                                    │
+│  ├─ links            ││                                                                                ││ NOW                                                │
+│  └─ branches         ││                                                                                ││ 1 folder                                           │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ config: [git] roots                                │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate

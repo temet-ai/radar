@@ -1,0 +1,44 @@
+---
+source: crates/radar-jira/src/settings_polish_tests.rs
+expression: "text(&host, 160, 40)"
+---
+ radar    Jira   History   Settings (,)                                                                                                                  ✎ edit
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ site ──────────────────────────────────────────────╮
+│General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ CHECKED                                            │
+│  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ not checked yet                                    │
+│  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    │
+│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ NOW                                                │
+│  └─ icons            ││    ├─ site            https://acme.atlassian.net                               ││ https://acme.atlassian.net                         │
+│Jira                  ││    ├─ account         alice@example.com                                        ││                                                    │
+│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ The Jira Cloud site radar reads tickets from.      │
+│  ├─ projects         ││    ├─ signed in as    Alice Example                                            ││                                                    │
+│  ├─ views            ││    └─ check           not checked yet                                          ││ ACCEPTS                                            │
+│  └─ look             ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ https://acme.atlassian.net, any link on the site,  │
+│                      ││    ├─ site            https://beta.atlassian.net                               ││ or env:NAME                                        │
+│                      ││    ├─ account         alice@example.com                                        ││                                                    │
+│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ config: [[jira.site]] url                          │
+│                      ││    ├─ signed in as    —                                                        ││                                                    │
+│                      ││    └─ check           not checked yet                                          ││                                                    │
+│                      ││  refresh         every 2m                                                      ││                                                    │
+│                      ││  on start        ask first                                                     ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                       jira

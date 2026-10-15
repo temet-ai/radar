@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Research and readiness</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+.sheet{box-sizing:border-box;width:1600px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:1000px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.note{font-size:14.5px;line-height:1.55;color:#b9aedb;margin:0;text-wrap:pretty}
+.mono{font-family:"GGMono",monospace}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.v{font-family:"GGMono",monospace;font-size:11.5px;font-weight:700;letter-spacing:.08em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap;align-self:flex-start}
+.tbl{display:grid;grid-template-columns:250px 112px 240px 230px minmax(0,1fr);column-gap:22px}
+.tbl>div{padding:11px 0;border-bottom:1px solid #221e33;font-size:14px;line-height:1.5;color:#b9aedb;display:flex;flex-direction:column;gap:4px}
+.th{font-family:"GGMono",monospace;font-size:11.5px !important;letter-spacing:.12em;text-transform:uppercase;color:#8f86b3 !important}
+.name{font-family:"GGMono",monospace;color:#fff !important;font-weight:700;font-size:14px !important}
+.sub{font-family:"GGMono",monospace;font-size:12px;color:#8f86b3}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.card .t{font-family:"GGMono",monospace;font-weight:700;font-size:15px;color:#fff}
+a{color:#80ffea}a:hover{color:#bffff4}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <p class="eyebrow">09 · research &amp; readiness</p>
+    <h1 class="h1">What holds up, and what it takes.</h1>
+    <p class="lede">Checked on 13 October 2026, in four parts: radar's own renderer code (ink/src and crates/radar-core), the terminals' own docs and issue trackers, the Ink 8 ecosystem on npm, and how lazygit, k9s, Textual, Charm's tools, yazi and others solve the same problems. Every proposal on sheets 00–08 is listed with its verdict. Where a source could not be fetched it says so.</p>
+    <div style="display: flex; gap: 18px; flex-wrap: wrap; align-items: center">
+      <span class="v" style="background:#233a37;color:#50fa7b">ink only</span><span class="note">buildable in ink/ now from data the host already sends</span>
+      <span class="v" style="background:#2b2e4c;color:#82aaff">needs host</span><span class="note">a new field, node or cue in radar-core first</span>
+      <span class="v" style="background:#3f2233;color:#ff6363">blocked</span><span class="note">risky or not supported widely enough</span>
+      <span class="v" style="background:#2a263e;color:#e9d5ff">shipped</span><span class="note">already true</span>
+      <span class="v" style="background:#3c3a3a;color:#f1fa8c">port to ink</span><span class="note">works in Ratatui; Ink must catch up</span>
+    </div>
+    <p class="note">Every look change in Ink also needs the same change in the Ratatui renderer while it remains the reference, so the two stay alike.</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <h2 class="h2">Every proposal</h2>
+    <div class="tbl">
+      <div class="th">proposal</div><div class="th">verdict</div><div class="th">terminals</div><div class="th">library</div><div class="th">what it takes</div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="26">
+        <div><span class="name">{{r.name}}</span><span class="sub">{{r.sheet}}</span></div>
+        <div><span class="v" style="{{r.vst}}">{{r.verdict}}</span></div>
+        <div>{{r.term}}</div>
+        <div>{{r.lib}}</div>
+        <div>{{r.note}}</div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 18px">
+    <h2 class="h2">Decisions for you</h2>
+    <div class="cards">
+      <div class="panel card" style="border-color: #33396a"><span class="t">Decided · no chevrons</span><p class="note">Chevrons are banned for expand and collapse, as GUIDE 2.12 says. Folding shows as tree lines and a trailing ⋯ n, in every part. Breadcrumbs join with / instead of ›. Both are now applied on every sheet.</p></div>
+      <div class="panel card"><span class="t">The emoji pack</span><p class="note">Terminals, tmux and string-width libraries disagree about emoji width (VS16 and joined emoji worst), so an emoji in a fixed two-cell slot can still push a row out of line. Keep the emoji pack with a width measured from the terminal at start, or drop it?</p></div>
+      <div class="panel card"><span class="t">Sized text and letterforms</span><p class="note">kitty's sized text only draws in kitty, and Unicode maths letters fall back to other fonts. The guide now marks both as parked. Leave them parked, or keep sized text as a kitty-only extra behind a probe?</p></div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 18px">
+    <h2 class="h2">Libraries worth taking</h2>
+    <div class="cards">
+      <sc-for list="{{libs}}" as="l" hint-placeholder-count="9">
+        <div class="panel card"><div style="display: flex; justify-content: space-between; gap: 12px"><span class="t">{{l.name}}</span><span class="v" style="{{l.vst}}">{{l.verdict}}</span></div><span class="sub">{{l.meta}}</span><p class="note">{{l.note}}</p></div>
+      </sc-for>
+    </div>
+    <p class="note">Skip: ink-big-text and cfonts (GPL), ink-syntax-highlight (Ink 5 only), ink-markdown and cli-highlight (stale, raw ANSI), ink-text-input and ink-select-input (radar's host owns input state), fullscreen-ink (Ink 8 has alternateScreen), ink-picture and term-img (write images outside Ink's cells; borrow ink-picture's detection instead).</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 18px">
+    <h2 class="h2">How they integrate</h2>
+    <p class="note">Tried on 13 October 2026 in a scratch copy of radar's ink/ build (same esbuild flags, strict tsconfig). Nothing in the repo was changed. radar's bundle today is 1.23 MB; all four libraries add about 0.9 MB with elkjs left out.</p>
+    <div class="tbl" style="grid-template-columns: 200px 120px 210px 200px minmax(0,1fr)">
+      <div class="th">library</div><div class="th">tried</div><div class="th">lives in</div><div class="th">host sends</div><div class="th">what the trial showed</div>
+      <sc-for list="{{integ}}" as="r" hint-placeholder-count="5">
+        <div><span class="name">{{r.name}}</span><span class="sub">{{r.meta}}</span></div>
+        <div><span class="v" style="{{r.vst}}">{{r.verdict}}</span></div>
+        <div class="mono" style="font-size: 13px !important; color: #80ffea !important">{{r.file}}</div>
+        <div>{{r.host}}</div>
+        <div>{{r.note}}</div>
+      </sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start">
+      <div class="panel" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; background: #0a0812">
+        <span class="sub">dagre layout, drawn to cells by the trial's rasteriser · 86 × 11 cells · 27 ms</span>
+        <pre class="mono" style="margin: 0; font-size: 13px; line-height: 1.45; color: #e9d5ff">{{dagreOut}}</pre>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <span class="t mono" style="font-weight: 700; color: #fff">Parity</span>
+        <p class="note">The Rust renderer can't run these JavaScript libraries. Side by side it would show source text where Ink draws a graph, code colours or a diagram. Each needs a matching Rust drawing (syntect for code colours; a graph layout written or found in Rust, not yet researched), or an agreed Ink-only exception.</p>
+        <span class="t mono" style="font-weight: 700; color: #fff">Theme</span>
+        <p class="note">shiki takes a theme built from radar's slots. A small syntax.* slot set (keyword, string, number, comment, type, function) in the host's look would let users recolour code like everything else. On no colour, skip shiki and draw text.primary.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 18px">
+    <h2 class="h2">Order</h2>
+    <div class="cards">
+      <div class="panel card"><span class="t">1 · Cheap wins</span><p class="note">Scrim and shadow behind overlays, tinted chips, the gradient focus border and wordmark, fold unroll and the rainbow lap, the tab attention dot. Ink plus the matching Ratatui change. Ink 8's built-in scrolling and shared animation timer come along here.</p></div>
+      <div class="panel card"><span class="t">2 · Graph, palette, editor</span><p class="note">The pipeline graph (dagre, a new graph node from the host), the cross-part command palette (host target list, Ink draws the typed menu it already has), and the editor preview (host sends rendered markdown blocks; shiki colours the code).</p></div>
+      <div class="panel card"><span class="t">3 · Then</span><p class="note">Port Slack images to Ink, then avatars. Charts from host series data (ink-chart's LineGraph). Mermaid last, after the licence and parity calls. Notices with a lifetime and history, the assemble motion, the icon slot and underlined keys in hints as host changes allow.</p></div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 18px">
+    <h2 class="h2">Adopted from other terminal apps</h2>
+    <p class="note">All of these are now radar's rules. The sheets that show each one are named on its card.</p>
+    <div class="cards">
+      <sc-for list="{{prior}}" as="p" hint-placeholder-count="9">
+        <div class="panel card"><span class="t">{{p.t}}</span><span class="sub">{{p.src}}</span><p class="note">{{p.n}}</p></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="panel" style="padding: 22px 24px; display: flex; flex-direction: column; gap: 10px">
+    <span class="mono" style="font-weight: 700; color: #fff">Sources and limits</span>
+    <p class="note">radar code: ink/src/app/fast-output.ts, app/hover.ts, app/Panes.tsx, chrome/layout.ts, text/chips.ts, text/look.ts, nodes/tree.tsx, motion/*, media/*, protocol/generated/*, crates/radar-gitlab/src/goto.rs, docs/GUIDE.md. Terminals: sw.kovidgoyal.net/kitty (text-sizing-protocol, pointer-shapes, changelog), ghostty.org/docs/vt/reference and ghostty-org/ghostty#10333, wezterm.org/escape-sequences and custom_block_glyphs, wezterm issues #7814, #8092, #7924, #7558. Ink 8.0.0: build/write-synchronized.js. npm registry and downloads API for every library. Prior art: Textual (command palette, design, toast), lazygit Config.md, k9s skins, lipgloss, bubbles, harmonica, glamour, ratatui-image, yazi.</p>
+    <p class="note">Not verified: Ghostty's kitty-graphics placeholders and animation, octant drawing, mode 2027 per terminal, gh-dash, btop, Dagger and Claude Code details (from memory), and none of the libraries has been tried inside radar's esbuild bundle yet. beautiful-mermaid needs a spike before it is relied on.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":5740}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var V = {
+      ink: ['ink only', 'background:#233a37;color:#50fa7b'],
+      host: ['needs host', 'background:#2b2e4c;color:#82aaff'],
+      blocked: ['blocked', 'background:#3f2233;color:#ff6363'],
+      shipped: ['shipped', 'background:#2a263e;color:#e9d5ff'],
+      port: ['port to ink', 'background:#3c3a3a;color:#f1fa8c']
+    };
+    function R(name, sheet, v, term, lib, note) { return { name: name, sheet: sheet, verdict: V[v][0], vst: V[v][1], term: term, lib: lib, note: note }; }
+    var rows = [
+      R('Gradient focus border, wordmark', '00 · 01 · 06', 'ink', 'every truecolour terminal; 256/16 fall back to accent.primary', 'none (a small interpolation; ink-gradient writes raw ANSI)', 'glow.* slots exist. The frame paint (app/fast-output.ts restyle) needs the cell position and the focused pane’s rect; side borders are one borderColor today.'),
+      R('Gradient meters, ratio meters', '01 · 05', 'host', 'all', 'own code', 'Ink has only the stage meter (nodes/view.ts). A ratio or chart needs a new node with numbers.'),
+      R('Tinted chips', '01 · 04', 'ink', 'truecolour; flat overlay otherwise', 'none', 'Mix the tone 16% over bg.overlay in text/chips.ts; ui/chips.rs to match.'),
+      R('Scrim and shadow behind overlays', '06', 'ink', 'all; blend on truecolour, SGR dim on 256/16', 'none', 'Cheapest big win: a frame paint like hover’s, using the menu rect motion/attach.ts already computes. Only styles change, glyphs stay.'),
+      R('Command palette', '06', 'host', 'all', 'none', 'Ink already draws a typed menu with a list. The host needs a cross-part target list; GitLab’s goto.rs scoring is the start.'),
+      R('Notices (stacking, draining)', '06 · 07', 'host', 'all', 'none', 'Today a notice is one bare string. The snapshot needs a list with text, tone, icon and lifetime; Ink then draws and drains it on the 30 ms tick.'),
+      R('Assemble on screen switch', '07', 'host', 'all; motion is already off over SSH', 'Ink 8 useAnimation (one shared timer)', 'The engine can stagger per cell and row. It needs pane marks and new timings, and the Rust motion engine needs the same effect.'),
+      R('Rainbow lap on focus', '07', 'ink', 'truecolour', 'none', 'Ink sees focus change between snapshots; needs pane marks and a border-walk effect. Rust parity.'),
+      R('Loading outlines with a wave', '07', 'ink', 'all', 'none', 'Draw ━ outlines in the loading state; the existing added-row cue reads real rows in. Row count unknown: fixed count, or a host hint.'),
+      R('Fold unroll', '07', 'ink', 'all', 'none', 'The tree knows which rows appeared; emit row marks and a top-down sweep.'),
+      R('One tree, every part', '05', 'host', 'all', 'none', 'The tree component is shared, but Slack, GitHub and some Jira screens send lists, and keys live in each part’s screen.rs. See the fold-mark decision.'),
+      R('Fixed two-cell icon slot', '03', 'host', 'nerd and unicode safe; emoji width unreliable', 'none', 'Today the slot is 0, 2 or 3 cells by pack (text/look.ts iconWidth). Changing it changes Look and every column in both renderers.'),
+      R('Key underlined in its word', '04 · 08', 'host', 'all', 'none', 'Tabs do this already. Hints and buttons carry key and label separately; add mnemonic_at to Hint and Choice rather than guess.'),
+      R('Tabs without counts, attention dot', '04 · 08', 'ink', 'all', 'none', 'Derivable from the badge’s tone today; a BarTab.attention flag is cleaner.'),
+      R('Charts: bars, braille, heat, big digits', '02 · 05', 'host', 'braille and blocks are built in to kitty, Ghostty, WezTerm, foot', '@pppp606/ink-chart, or own braille canvas', 'The glyphs are trivial; the view types carry no series data yet.'),
+      R('Pipeline graph (DAG)', '05', 'host', 'all', '@dagrejs/dagre 3.1.1 for layout', 'The host sends jobs and needs; dagre lays them out; Ink rasterises boxes and lines to cells.'),
+      R('Mermaid diagrams', '05', 'host', 'all', 'beautiful-mermaid 1.1.3 (renderMermaidASCII)', 'Returns plain lines: easy to place. Spike first: diagram types, bundle size, and its elkjs dependency (EPL-2.0 or GPL).'),
+      R('Markdown editor with preview', '05', 'host', 'all', 'shiki 4.5 codeToTokens for code blocks', 'The editor today is one input line. The host must send rendered blocks (ui/markdown.rs makes them) on each edit.'),
+      R('Pictures: Slack images, avatars', '00 · 04', 'port', 'kitty, Ghostty; WezTerm partial (no placeholders); sixel in foot, WezTerm, Windows Terminal; tmux by passthrough', 'ratatui-image (Rust, shipped); borrow ink-picture’s detection for Ink', 'Slack images already draw in the Ratatui renderer (crates/radar-core/src/ui/image.rs: detect, fetch, cache, draw). Ink’s media/kitty.ts is not wired up: port the same flow, with image ids and delete on scroll, resize and screen change. Avatars follow.'),
+      R('Display face drawn as a picture', '02', 'blocked', 'as pictures', 'none', 'Waits on pictures; the host would also have to set the font into a PNG.'),
+      R('Undercurl, coloured underline', '02', 'blocked', 'kitty, Ghostty, WezTerm, iTerm2, foot, Windows Terminal', 'none', 'fast-output.ts and frame.ts misread SGR 58 today (its 2;r;g;b sets dim and stray colours). Fix the parser first; Ratatui has no curl.'),
+      R('Strikethrough', '02', 'shipped', 'all', 'none', 'Already drawn by both renderers.'),
+      R('Sized titles (kitty OSC 66)', '02', 'blocked', 'kitty 0.40+ only; Ghostty parses, does not draw (#10333); WezTerm no (#7814)', 'none', 'radar’s output drops OSC payloads and Ink measures one row per line. Parked.'),
+      R('Unicode letterforms', '02', 'blocked', 'font-dependent; fall back to other fonts', 'none', 'Width and baseline mismatches; screen readers spell them out. Decoration only.'),
+      R('Synchronised output', '07', 'shipped', 'kitty, Ghostty, WezTerm, iTerm2 3.5+, foot, Alacritty', 'Ink 8.0.0', 'Ink 8 wraps every frame in mode 2026 on a TTY: flicker-free motion for free.'),
+      R('Pointer shape over click targets', '00', 'shipped', 'kitty, Ghostty; not WezTerm (#8092 open)', 'none', 'Already sent where the terminal takes it.')
+    ];
+    var L = {
+      use: ['use', 'background:#233a37;color:#50fa7b'],
+      spike: ['spike first', 'background:#3c3a3a;color:#f1fa8c'],
+      borrow: ['borrow idea', 'background:#2a263e;color:#e9d5ff']
+    };
+    function B(name, v, meta, note) { return { name: name, verdict: L[v][0], vst: L[v][1], meta: meta, note: note }; }
+    var libs = [
+      B('Ink 8 built-ins', 'use', 'ink 8.0.0 · 2026-10-03 · already pinned', 'Box contentOffset scrolling, useAnimation with one shared timer, useWindowSize, alternateScreen, maxFps. Motion work should sit on useAnimation.'),
+      B('shiki', 'use', '4.5.0 · MIT · 25.7M/week', 'codeToTokens gives a colour per token: the right shape for per-cell styling of code in diffs, markdown and the editor. Bundle only the languages radar needs.'),
+      B('beautiful-mermaid', 'spike', '1.1.3 · MIT · 546k/week · tried', 'Flowcharts draw well as text; sequence and state diagrams have rough edges. Its elkjs dependency (EPL-2.0, 3.3 MB) is unused by the text path and can be stubbed out of the bundle.'),
+      B('@dagrejs/dagre', 'use', '3.1.1 · MIT · 5.4M/week', 'Node and edge layout for pipeline graphs and a commit graph; radar turns the coordinates into cells.'),
+      B('@pppp606/ink-chart', 'use', '0.2.8 · MIT · no dependencies · Ink 6+', 'Bar, stacked bar, line and sparkline components; small enough to read and adapt to slot colours.'),
+      B('figlet', 'use', '1.12.0 · MIT', 'Plain-text banners for a splash, if wanted; no ANSI, so it composes.'),
+      B('ink-picture', 'borrow', '2.1.0 · MIT', 'Its terminal detection and half-block fallback, folded into ink/src/media. Not the component: it writes outside Ink’s cells.'),
+      B('ink-scroll-view', 'borrow', '0.4.0 · Ink 7 peer', 'Its measuring and scroll-stability logic; Ink 8 now scrolls natively.'),
+      B('@inkjs/ui', 'borrow', '2.0.0 · last updated 2024', 'Its theme approach only; its inputs hold their own state, which radar’s host owns.')
+    ];
+    var prior = [
+      { t: 'Detail panes', src: 'gh-dash, k9s describe · sheet 08', n: 'A fixed skeleton: a head, a facts grid with dim labels padded to the longest, then sections. Empty fields are left out, not shown as “none”.' },
+      { t: 'Loading', src: 'yazi, Charm bubbles · sheets 06, 07', n: 'Cached rows show at once and are marked stale; the spinner goes in the pane title, not the content. Outline rows only when there is nothing yet. A pane that has data is never blanked.' },
+      { t: 'Notices', src: 'Textual notify · sheets 06, 07', n: 'Information stays about 5 s, errors about 10 s or until a key. Past notices are kept in a history behind one key.' },
+      { t: 'Command palette', src: 'Textual, Posting, fzf · sheet 06', n: 'An empty input shows a short discovery list, with the current item’s actions first. Matched letters lit, each command’s key on the right, a count like 3 of 128.' },
+      { t: 'Focus', src: 'lazygit · sheets 06, 08', n: 'Three signals together: border colour, bold title, and the selection dimmed in unfocused panes. A jump number before each pane title.' },
+      { t: 'Trees', src: 'lazygit, lipgloss · sheet 05', n: '= opens every node. Folded rows show how many they hide (⋯ n). Guide lines dim. No chevrons.' },
+      { t: 'Pipelines', src: 'glab ci view, Dagger · sheet 05', n: 'Stage columns with a glyph per job; on a narrow screen fall back to the stage list with only failed or running jobs open.' },
+      { t: 'Theme slots', src: 'Textual, k9s, lipgloss · sheet 01', n: 'A few base colours with derived shades and muted blends, slots named by role, and a 16-colour value for each: radar’s slots already work this way.' },
+      { t: 'What reads as noise', src: 'survey · all sheets', n: 'Gradients everywhere, several spinners at once, shimmer on static text, toasts over the work, colour as the only signal, joke animations on by default.' }
+    ];
+    var I = {
+      ok: ['works', 'background:#233a37;color:#50fa7b'],
+      cav: ['works, caveats', 'background:#3c3a3a;color:#f1fa8c']
+    };
+    function G(name, v, meta, file, host, note) { return { name: name, verdict: I[v][0], vst: I[v][1], meta: meta, file: file, host: host, note: note }; }
+    var integ = [
+      G('Ink 8 built-ins', 'ok', 'already pinned', 'app/, nodes/', 'nothing new', 'useAnimation, useWindowSize, Box overflow + contentOffsetY all present in 8.0.0; alternateScreen already used (app/render-options.ts). Scrolled children need flexShrink 0.'),
+      G('@dagrejs/dagre', 'ok', '3.1.1 · MIT · +71 KB', 'nodes/graph.tsx', 'a graph node: jobs with state, and needs', 'Lays out in cell units directly. A small rasteriser with a connection bitmask gives ├ ┤ ┬ ┴ ┼ joins cleanly. 35–50 ms warm. Edges that skip a stage draw crudely and need routing work.'),
+      G('shiki', 'ok', '4.5.0 · MIT · +614 KB', 'text/code.ts', 'code text and its language', 'JS regex engine, no WASM. Tokens arrive as content + colour + style bits, one array per line: the per-cell shape radar needs. First TypeScript highlight about 250 ms while the grammar compiles, then 2–60 ms. Bundle only the languages radar shows.'),
+      G('@pppp606/ink-chart', 'cav', '0.2.8 · MIT · +27 KB', 'nodes/chart.tsx', 'a chart node with series values', 'Runs on Ink 8 and React 19. LineGraph takes per-series hex colours. Its Sparkline writes raw ANSI and stretches its width: use only valuesToSymbols and colour the bars from slots.'),
+      G('beautiful-mermaid', 'cav', '1.1.3 · MIT · +198 KB (3.5 MB with elkjs)', 'nodes/diagram.tsx', 'the mermaid source', 'renderMermaidASCII with colour off returns plain lines in 4–40 ms. Flowcharts good; sequence notes and state [*] draw oddly; needs real newlines. Its 3.3 MB elkjs (EPL-2.0) is never used by the text path: alias it to a stub and nothing changes.')
+    ];
+    var dagreOut = [
+      '                    ┌─────┐',
+      '           ┌───────>│ e2e │──────┐',
+      '           │        └─────┘      │',
+      '           │                     │',
+      '┌───────┐  │    ┌─────────────┐  │    ┌─────────┐       ┌───────┐       ┌────────────┐',
+      '│ build │──┼───>│ integration │──┼───>│ staging │──────>│ smoke │──────>│ production │',
+      '└───────┘  │    └─────────────┘  │    └─────────┘       └───────┘       └────────────┘',
+      '           │                     │',
+      '           │       ┌──────┐      │',
+      '           └──────>│ unit │──────┘',
+      '                   └──────┘'
+    ].join('\n');
+    return { rows: rows, libs: libs, prior: prior, integ: integ, dagreOut: dagreOut };
+  }
+}
+</script>
+</body>
+</html>

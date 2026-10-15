@@ -1,0 +1,160 @@
+{
+  "chrome": {
+    "height": 24,
+    "keys_at": "body",
+    "screen_keys": [
+      "S"
+    ],
+    "status": {
+      "hints": [
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:0:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:2:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:2:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:2:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:2:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "SLACK"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "icon": "chat",
+          "label": "slack",
+          "mnemonic": "S",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ]
+    },
+    "version": 1,
+    "width": 80
+  },
+  "focus": "middle",
+  "height": 24,
+  "screen": {
+    "panes": [
+      {
+        "body": {
+          "lines": [
+            [
+              {
+                "icon": "settings",
+                "icon_lead": true
+              },
+              {
+                "ink": "emphasis",
+                "text": "Slack is not set up yet."
+              }
+            ],
+            [],
+            [
+              {
+                "ink": "primary",
+                "text": "Add your workspace token: a user token (xoxp-…), as env:NAME or typed in."
+              }
+            ],
+            [],
+            [
+              {
+                "ink": "secondary",
+                "text": "Press ⏎ to set it up in settings, under slack."
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "pane": "middle",
+        "title": "set up Slack"
+      }
+    ],
+    "scope": "feed",
+    "version": 1
+  },
+  "section": null,
+  "width": 80
+}

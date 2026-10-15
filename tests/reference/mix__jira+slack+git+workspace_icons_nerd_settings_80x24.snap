@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Jira   Slack   Branches   Repositories   History   Settings (,)    edit
+╭ settings ────────────╮╭ Jira connection ─────────────────────────────────────╮
+│General              █││  + add a site                                        │
+│  ├─  parts         █││  refresh         every 2m                            │
+│  ├─  mode          █││  on start        ask first                           │
+│  ├─  colours       █││                                                      │
+│  └─  icons         █││                                                      │
+│Jira                 █││                                                      │
+│  ├─  connection    █││                                                      │
+│  ├─  projects      █││                                                      │
+│  ├─  views         █││                                                      │
+│  └─  look          █│╰──────────────────────────────────────────────────────╯
+│Slack                █│╭ add a site ──────────────────────────────────────────╮
+│  ├─  connection    █││ Read tickets from another Jira Cloud site.           │
+│  ├─  channels      █││                                                      │
+│  ├─  review        █││ PASTE OR TYPE ANY OF                                 │
+│  ├─  alerts        █││   https://acme.atlassian.net                         │
+│  └─  look          █││   a link to any page on the site                     │
+│Git                  █││   env:NAME, to read it from the environment          │
+│  ├─  checkouts     █││                                                      │
+│  ├─  editors       ║││ Then its email and API token; radar offers to check     │
+│  ├─  links         ║││ them with Jira.                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q  quit   x  menu   ←→↑↓ navigate

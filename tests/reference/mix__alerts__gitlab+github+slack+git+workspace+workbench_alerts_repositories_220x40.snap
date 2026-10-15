@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: aged(&shown)
+---
+ radar    Repositories 1   Slack   Branches   Work (I)   History   Settings (,)                                                                                                                         not synced yet  ✎ edit
+  GitLab    GitHub    Local workspaces
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ team-a ──────────────────────────────────────────────────╮
+│ Everything             ││ OPENED BY everyone · 2 repos                                              STATE               APPROVALS  THREADS UPDATED FOR YOU   ││ a acme/team-a                                            │
+│ Needs my action      1 ││▌ A team-a                                                                                                                          ││                                                          │
+│ Opened by me           ││▌ ├─ api  firing · 1                                                       — no recent run                        —       1 MR      ││ repos       2 shown · 0 hidden                           │
+│ Opened by teammates    ││▌ │  └─ !263 Add a stats endpoint  Alice E.                                ◷ needs 1 approval  0 of 1     —       16m     review    ││ with MRs    1 repos, in this view                        │
+│ Opened by bots         ││▌ └─ web                                                                   — no recent run                        —       —         ││ open MRs    1                                            │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││                                                          │
+│                        ││ every open merge request · listing every repo, also those without                                                                  ││                                                          │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                                                                                      1 open · 1 to review

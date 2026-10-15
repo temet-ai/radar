@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+╭ feed ──────────────────╮╭ #team ─────────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
+│ For you              4 ││ 6 new                                                          REPLIES  WHEN       ││ ── #team · Sun 4 Oct ──                      │
+│ Discussions            ││▌ today                                                                             ││ ● 06:16  Bob Builder                         │
+│ ▌ #team          6 NEW ││▌ └─ ● Bob B.  Lunch at 12:30? 🍕                                        30m        ││     @review-squad :gitlab: mr Add a stats    │
+│ ▌ #svc           1 NEW ││▌ yesterday                                                                         ││ endpoint for the dashboard                   │
+│                        ││▌ └─ ● Carol C.  Anyone seen ABC-12 failing on main? pipeline a 1        1d         ││     👀 1                                     │
+│                        ││▌ Sun 4 Oct                                                                         ││ ● 06:46  Alice Example                       │
+│                        ││▌ └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endpoint f 2        2d         ││     looking 👀                               │
+│                        ││                                                                                    ││ ● 07:16  Carol Coder                         │
+│                        ││                                                                                    ││     approved, nice one                       │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ 2 replies · last 2d ago                      │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ LINKS ────────────────────────────────────── │
+│                        ││                                                                                    ││   mr                                         │
+│                        ││                                                                                    ││   https://git.example/acme/team-a/api/-/merg │
+│                        ││                                                                                    ││   e_requests/263                             │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+╭ ✎ reply in #team, in Bob Builder's thread ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ looking now, <@U00000BOB1>                                                                                                                                   │
+│ second line                                                                                                                                                  │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   ⏎ new line   ctrl-s review and send   esc stop   ctrl-r kept replies                                                          7 new · 4 for you  slack

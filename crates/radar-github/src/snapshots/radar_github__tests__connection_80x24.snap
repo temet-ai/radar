@@ -1,0 +1,28 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)                          ✎ edit
+╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+│General               ││  server          https://api.github.com              │
+│  ├─ parts            ││  token           configured token                    │
+│  ├─ mode             ││  check           GitHub connection                   │
+│  ├─ colours          ││  refresh         once on start, then on request      │
+│  └─ icons            ││                                                      │
+│GitHub                ││                                                      │
+│  ├─ connection       ││                                                      │
+│  └─ repositories     ││                                                      │
+│                      ││                                                      │
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ server ──────────────────────────────────────────────╮
+│                      ││ NOW                                                  █
+│                      ││ https://api.github.com                               █
+│                      ││                                                      █
+│                      ││ The GitHub API radar talks to: api.github.com for    █
+│                      ││ github.com, or your own GitHub Enterprise Server or  █
+│                      ││ a local server. The token is sent only to this       █
+│                      ││ address.                                             ║
+│                      ││                                                      ║
+│                      ││ ACCEPTS                                              ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate           github

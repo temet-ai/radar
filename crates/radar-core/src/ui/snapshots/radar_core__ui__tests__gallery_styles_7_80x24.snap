@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(80, 24, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Diff" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Card  Meters  Rows & states  Entries & l…" fg:text.secondary | "[Diff]" fg:accent.primary/glow.purple bold | "  Motion  Colours " fg:text.secondary
+03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " shelf/Shelves.java · 6 added, 2 removed…" fg:text.emphasis bg:bg.surface bold | "─────────────────────────────────────╮" fg:accent.primary/glow.purple bg:bg.surface
+04 "│ " fg:accent.primary/glow.purple bg:bg.surface | "@@ -18,6 +18,12 @@ public class Shelves …" fg:status.info bg:bg.surface | _36 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+05 "│ " fg:accent.primary/glow.purple bg:bg.surface | "18 18 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | "@RestController" fg:glow.pink bg:bg.surface | _54 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+06 "│ " fg:accent.primary/glow.purple bg:bg.surface | "19 19 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | "public" fg:accent.primary/glow.purple bg:bg.surface bold | _1 bg:bg.surface | "class" fg:accent.primary/glow.purple bg:bg.surface bold | _1 bg:bg.surface | "Shelves" fg:accent.secondary/glow.cyan bg:bg.surface | " {" bg:bg.surface | _47 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+07 "│ " fg:accent.primary/glow.purple bg:bg.surface | "20    " fg:text.muted bg:bg.surface | "- " fg:status.error/diff.removed bg:#381d26 | _4 bg:#381d26 | "// TODO: the dashboard" fg:text.muted bg:#381d26 italic | _42 bg:#381d26 | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+08 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   20 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _4 bg:#1c352a | "private" fg:accent.primary/glow.purple bg:#1c352a bold | _1 bg:#1c352a | "final" fg:accent.primary/glow.purple bg:#1c352a bold | _1 bg:#1c352a | "Atlas" fg:accent.secondary/glow.cyan bg:#1c352a | " atlas;" bg:#1c352a | _38 bg:#1c352a | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+09 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   21 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _68 bg:#1c352a | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+10 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   22 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _4 bg:#1c352a | "@GetMapping(" fg:glow.pink bg:#1c352a | "\"/shelf/{id}\"" fg:accent.tertiary bg:#1c352a | ")" fg:glow.pink bg:#1c352a | _38 bg:#1c352a | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+11 "│▎" fg:accent.primary/glow.purple bg:bg.surface | "   23 +     public Shelf shelf(@PathVari…" fg:text.emphasis bg:bg.selection bold | "█" fg:accent.muted bg:bg.surface
+12 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "● open" fg:status.warning bg:bg.surface bold | " · bob · 2h ago" fg:text.muted bg:bg.surface | _48 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+13 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "The decades from 1900 to 1950 are done. …" bg:bg.surface | _2 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+14 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "dividers, which come on Thursday. Two at…" bg:bg.surface | _5 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+15 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "they are in the tray on the left until t…" bg:bg.surface | _6 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+16 "│" fg:accent.primary/glow.purple bg:bg.surface | _9 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "Nothing here needs anyone else." bg:bg.surface | _36 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+17 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   24 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | _8 bg:#1c352a | "return" fg:accent.primary/glow.purple bg:#1c352a bold | " atlas." bg:#1c352a | "find(id)" fg:accent.secondary/glow.cyan bg:#1c352a | ";" bg:#1c352a | _38 bg:#1c352a | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+18 "│ " fg:accent.primary/glow.purple bg:bg.surface | "   25 " fg:text.muted bg:bg.surface | "+ " fg:status.success/diff.added bg:#1c352a | "    }" bg:#1c352a | _63 bg:#1c352a | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+19 "│ " fg:accent.primary/glow.purple bg:bg.surface | "21 26 " fg:text.muted bg:bg.surface | _2 bg:bg.surface | _69 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+20 "│ " fg:accent.primary/glow.purple bg:bg.surface | "22 27 " fg:text.muted bg:bg.surface | "  }" bg:bg.surface | _68 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+21 "│ " fg:accent.primary/glow.purple bg:bg.surface | "        \\ No newline at end of file" fg:text.muted bg:bg.surface | _42 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+22 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

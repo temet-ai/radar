@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/page_polish_tests.rs
+expression: wide
+---
+ radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+ Slack › #team › thread
+ thread
+ [Thread]  Links
+╭ thread ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✗ could not load: thread_not_found                                                                                                                           │
+│ This thread isn't loaded yet.                                                                                                                                │
+│ Press r to try again. Use , for connection settings or Esc to go back.                                                                                       │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│ Press r to try again. Use , for connection settings or Esc to go back.                                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                            7 new · 4 for you  slack

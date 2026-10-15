@@ -1,0 +1,68 @@
+/* The in-page terminal: a fixed cell grid in the Ghostty font (0xProto Nerd Font Mono on the maintainer's machines, the
+   JetBrains Mono Ghostty ships with otherwise). Each cell is exactly 1ch wide and one line high. */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
+
+:root {
+  --radar-font: "0xProto Nerd Font Mono", "JetBrainsMono Nerd Font Mono", "JetBrainsMono NF", "JetBrains Mono",
+    "Symbols Nerd Font Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+  --radar-font-size: 13px;
+  --radar-line: 1.25;
+}
+
+.radar-term {
+  font-family: var(--radar-font);
+  font-size: var(--radar-font-size);
+  line-height: var(--radar-line);
+  font-variant-ligatures: none;
+  white-space: pre;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.radar-row {
+  display: flex;
+  height: calc(var(--radar-font-size) * var(--radar-line));
+}
+
+.radar-cell {
+  display: inline-block;
+  flex: none;
+  overflow: visible;
+  text-align: left;
+}
+
+.radar-tall {
+  transform: scaleY(1.3);
+  transform-origin: 50% 55%;
+}
+
+.radar-compare {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  font-family: system-ui, sans-serif;
+}
+
+.radar-compare figure {
+  margin: 0;
+}
+
+.radar-compare figcaption {
+  font-size: 12px;
+  margin: 0 0 6px;
+  color: #555;
+}
+
+.radar-compare .radar-missing {
+  font-size: 12px;
+  max-width: 48ch;
+  padding: 8px 12px;
+  border: 1px dashed #999;
+  color: #444;
+}
+
+@media (prefers-color-scheme: dark) {
+  .radar-compare figcaption { color: #aaa; }
+  .radar-compare .radar-missing { color: #bbb; border-color: #666; }
+}

@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1000
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Entries & log
+ The kit: every element on sample data                                                                                                            colours: none
+ Tree  Table  Card  Meters  Rows & states  [Entries & log]  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons
+╭ why the sort stopped ────────────────────────────────────────────────╮╭ log · /label 19 of 19 ───────────────────────────────────────────────────────────────╮
+│ WHY IT STOPPED                                                       ││ Starting the sort                                                                    │
+│ ✗ label     2m 04s · ran out of labels                               ││ ─ Getting the boxes · 4s ⋯ 3 lines                                                   │
+│   │ no label left for box 17                                         ││ ┌ Sorting and labelling · 2m 04s                                                     │
+│   │ the drawer holds 0 of 40                                         ││ │ $ sort --by decade                                                                 │
+│ ✗ file      12s · timed out                                          ││ │ box 1: 12 atlases, 1900-1950                                                       │
+│   │ shelf 4 did not answer                                           ││ │ box 2: 9 atlases, 1950-1990                                                        │
+│                                                                      ││ │ warning: box 2 has a loose map                                                     │
+│ EVERY STEP                                                           ││ │ $ label --all                                                                      │
+│ ✓ fetch     1m 10s                                                   ││ │ box 1: label printed                                                               │
+│ ✓ sort      3m 02s                                                   ││ │ box 2: label printed                                                               │
+│                                                                      ││ │ box 3: label printed                                                               │
+│                                                                      ││ │ box 4: label printed                                                               │
+│                                                                      ││ │ box 5: label printed                                                               │
+│                                                                      ││ │ box 6: label printed                                                               │
+│                                                                      ││ │ box 7: label printed                                                               │
+│                                                                      ││ │ box 8: label printed                                                               │
+│                                                                      ││ │ box 9: label printed                                                               │
+│                                                                      ││ │ box 10: label printed                                                              │
+│                                                                      ││ │ box 11: label printed                                                              │
+│                                                                      ││ │ box 12: label printed                                                              │
+│                                                                      ││ │ box 13: label printed                                                              │
+│                                                                      ││ │ box 14: label printed                                                              │
+│                                                                      ││ │ box 15: label printed                                                              │
+│                                                                      ││ │ box 16: label printed                                                              │
+│                                                                      ││ │ error: no label left for box 17                                                    │
+│                                                                      ││ │ the drawer holds 0 of 40 labels; the long line runs on and on so that it wraps at  │
+│                                                                      ││ │ the narrow width of the panel                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+│                                                                      ││                                                                                      │
+╰──────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

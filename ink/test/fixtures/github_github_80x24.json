@@ -1,0 +1,392 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "acme/api #42"
+    },
+    {
+      "id": "github.browse.browse",
+      "label": "browse repositories and pull requests"
+    },
+    {
+      "id": "github.browse.open_page",
+      "key": {
+        "key": "enter"
+      },
+      "label": "open its page"
+    },
+    {
+      "id": "github.browse.open_on_github",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open on GitHub"
+    },
+    {
+      "id": "github.browse.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the link"
+    },
+    {
+      "id": "github.browse.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh configured repositories"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "medium_from": 70,
+  "panes": [
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "2 repos"
+              }
+            ],
+            "target": "view:0",
+            "text": [
+              {
+                "text": "Everything"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "2 repos"
+              }
+            ],
+            "target": "view:1",
+            "text": [
+              {
+                "icon": "group"
+              },
+              {
+                "ink": "primary",
+                "text": "acme"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "pane": "nav",
+      "title": "views",
+      "width": 26
+    },
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "heading": true,
+            "right": [
+              {
+                "ink": "muted",
+                "text": "2 repos"
+              }
+            ],
+            "target": "tree:0",
+            "text": [
+              {
+                "icon": "group"
+              },
+              {
+                "ink": "emphasis",
+                "text": "github.com/acme"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "2 PRs"
+              }
+            ],
+            "target": "tree:1",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "  "
+              },
+              {
+                "icon": "repo"
+              },
+              {
+                "ink": "primary",
+                "text": "acme/api"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "secondary",
+                "text": "open"
+              }
+            ],
+            "target": "tree:2",
+            "text": [
+              {
+                "text": "    #42  Keep background refreshes tied to their request"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "secondary",
+                "text": "draft"
+              }
+            ],
+            "target": "tree:3",
+            "text": [
+              {
+                "text": "    #43  Document the public endpoints"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "muted",
+                "text": "0 PRs"
+              }
+            ],
+            "target": "tree:4",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "  "
+              },
+              {
+                "icon": "repo"
+              },
+              {
+                "ink": "primary",
+                "text": "acme/docs"
+              }
+            ]
+          }
+        ],
+        "selected": 2
+      },
+      "pane": "middle",
+      "title": "repositories"
+    },
+    {
+      "body": {
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "chip": true,
+                "icon": "local",
+                "ink": "muted",
+                "text": "local folder  "
+              },
+              {
+                "chip": true,
+                "ink": "muted",
+                "text": "no matching origin; link a folder or scan configured folders"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "emphasis",
+                "text": "Keep background refreshes tied to their request"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": []
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "state  "
+              },
+              {
+                "ink": "primary",
+                "text": "open"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "author  "
+              },
+              {
+                "ink": "primary",
+                "text": "alice"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "from  "
+              },
+              {
+                "ink": "primary",
+                "text": "alice/api:refresh-ownership"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "into  "
+              },
+              {
+                "ink": "primary",
+                "text": "acme/api:main"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "head commit  "
+              },
+              {
+                "ink": "primary",
+                "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": []
+          },
+          {
+            "block": "section",
+            "blocks": [
+              {
+                "block": "doc",
+                "doc": [
+                  {
+                    "level": 2,
+                    "t": "heading",
+                    "text": [
+                      {
+                        "text": "What changed"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "para",
+                    "text": [
+                      {
+                        "text": "Responses stay with the repository and commit they were requested for."
+                      }
+                    ]
+                  },
+                  {
+                    "items": [
+                      {
+                        "blocks": [
+                          {
+                            "t": "para",
+                            "text": [
+                              {
+                                "text": "Keep the selected pull request stable"
+                              }
+                            ]
+                          }
+                        ],
+                        "marker": "bullet"
+                      },
+                      {
+                        "blocks": [
+                          {
+                            "t": "para",
+                            "text": [
+                              {
+                                "text": "Show unavailable checks honestly"
+                              }
+                            ]
+                          }
+                        ],
+                        "marker": "bullet"
+                      }
+                    ],
+                    "t": "list"
+                  },
+                  {
+                    "t": "para",
+                    "text": [
+                      {
+                        "text": "See the "
+                      },
+                      {
+                        "kind": {
+                          "link": {
+                            "url": "https://github.com/acme/api/issues/12"
+                          }
+                        },
+                        "text": "design notes"
+                      },
+                      {
+                        "text": "."
+                      }
+                    ]
+                  }
+                ],
+                "urls": false
+              }
+            ],
+            "title": "DESCRIPTION"
+          }
+        ],
+        "node": "rich"
+      },
+      "pane": "detail",
+      "title": "acme/api #42"
+    }
+  ],
+  "scope": "github",
+  "version": 1
+}

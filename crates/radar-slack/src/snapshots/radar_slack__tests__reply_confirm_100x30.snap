@@ -1,0 +1,34 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 100, 30)"
+---
+ radar    Slack 4   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
+╭ feed ────────────────╮╭ #team ───────────────────────────────────────────────────────────────────╮
+│ For you            4 ││ 6 new                                                REPLIES  WHEN       │
+│ Discussions          ││▌ today                                                                   │
+│ ▌ #team        6 NEW ││▌ └─ ● Bob B.  Lunch at 12:30? 🍕                              30m        │
+│ ▌ #svc         1 NEW ││▌ yesterday                                                               │
+│                      ││▌ └─ ● Carol C.  Anyone seen ABC-12 failing on main?  1        1d         │
+│                      ││▌ Sun 4 Oct                                                               │
+│                      ││▌ └─ ● Bob B.  @review-squad :gitlab: mr Add a stats  2        2d         │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││ ╭ post this in #team, in Bob Builder's thread? ╮                         │
+│                      ││ │ looking now, <@U00000BOB1>                   │                         │
+│                      ││ │ second line                                  │                         │
+│                      ││ │                                              │                         │
+│                      ││ │    ▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔│                         │
+│                      ││ │     y post it    e keep writing    n drop it │                         │
+│                      ││ │    ▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁│                         │
+│                      ││ ╰──────────────────────────────────────────────╯                         │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+╭ ✎ reply in #team, in Bob Builder's thread ───────────────────────────────────────────────────────╮
+│ looking now, <@U00000BOB1>                                                                       │
+│ second line                                                                                      │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   ←→ move   ⏎ choose   esc close                                    7 new · 4 for you  slack

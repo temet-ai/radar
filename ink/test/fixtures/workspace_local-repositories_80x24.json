@@ -1,0 +1,85 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "local repositories"
+    },
+    {
+      "id": "workspace.local_repositories.open",
+      "key": {
+        "key": "enter"
+      },
+      "label": "open the selected folder"
+    },
+    {
+      "id": "workspace.local_repositories.look_again",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "look for repositories again"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "panes": [
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "row:0",
+            "text": [
+              {
+                "ink": "emphasis",
+                "text": "acme"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "pane": "middle",
+      "title": "local repositories"
+    },
+    {
+      "body": {
+        "lines": [
+          [
+            {
+              "text": "/work/acme"
+            }
+          ],
+          [],
+          [
+            {
+              "ink": "muted",
+              "text": "Repositories are read from this workspace's clones folder."
+            }
+          ],
+          [
+            {
+              "ink": "muted",
+              "text": "Enter opens the workspace in your editor"
+            }
+          ]
+        ],
+        "node": "document"
+      },
+      "pane": "detail",
+      "title": "details"
+    }
+  ],
+  "scope": "local-repositories",
+  "version": 1
+}

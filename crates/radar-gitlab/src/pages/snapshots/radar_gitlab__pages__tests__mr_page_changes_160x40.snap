@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(changes_page(), 160, 40)"
+---
+ radar    Repositories 1   History   Settings (,)                                                                                        not synced yet  ✎ edit
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
+ Overview  [Changes · 5 files]  Threads · 1 open  Pipeline  Commits · 2
+╭ files · 2 of 5 seen ───────────────────────────╮╭ src/main/java/acme/stats/StatsController.java · new file ──────────────────────────────────────────────────╮
+│docs                                    +6 −1   ││▎@@ -0,0 +1,24 @@                                                                                           │
+│  └─ ✓ README.md                        +6 −1   ││    1 + package acme.stats;                                                                                 │
+│src                                     +93 −5  ││    2 +                                                                                                     │
+│  ├─ main/java/acme/stats               +60 −2  ││    3 + import java.time.LocalDate;                                                                         │
+│  │  ├─ ▎ StatsController.java ◆1       +42 −0  ││    4 + import java.util.UUID;                                                                              │
+│  │  └─ · StatsService.java             +18 −2  ││    5 +                                                                                                     │
+│  └─ test/java/acme/stats               +33 −3  ││    6 + @RestController                                                                                     │
+│     └─ · StatsControllerTest.java      +33 −3  ││    7 + @RequestMapping("/api/stats")                                                                       │
+│· build.gradle                          +3 −1   ││    8 + @RequiredArgsConstructor                                                                            │
+│                                                ││    9 + public class StatsControler {                                                                       │
+│                                                ││        ✓ resolved · 1 note · Bob E.: Typo in the name.                                                     │
+│                                                ││   10 +                                                                                                     │
+│                                                ││   11 +     private final StatsService statsService;                                                        │
+│                                                ││   12 +                                                                                                     │
+│                                                ││   13 +     @GetMapping("/user/{userId}")                                                                   │
+│                                                ││   14 +     public UserStats userStats(                                                                     │
+│                                                ││   15 +             @PathVariable UUID userId,                                                              │
+│                                                ││   16 +             @RequestParam LocalDate from,                                                           │
+│                                                ││   17 +             @RequestParam LocalDate to) {                                                           │
+│                                                ││   18 +         return statsService.forUser(userId, from, to);                                              │
+│                                                ││   19 +     }                                                                                               │
+│                                                ││   20 +                                                                                                     │
+│                                                ││   21 +     public Totals totals() { return statsService.totals(); }                                        │
+│                                                ││        ◆ open thread · 2 notes                                                                             │
+│                                                ││        │ Bob Example · 1h ago                                                                              │
+│                                                ││        │ Should this read from the cached view?                                                            │
+│                                                ││        │ ↳ Alice Example · 46m ago                                                                         │
+│                                                ││        │ Good shout, switching to the cached one.                                                          │
+│                                                ││   22 +                                                                                                     │
+│                                                ││   23 +     // more to come                                                                                 │
+│                                                ││   24 + }                                                                                                   │
+│                                                ││                                                                                                            │
+│                                                ││                                                                                                            │
+╰────────────────────────────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                       4 open · 1 to review · 1 ready  gitlab

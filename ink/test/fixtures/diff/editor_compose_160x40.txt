@@ -1,0 +1,40 @@
+ radar    Repositories 1   Jira   Slack 4   Branches   Work (I)   History   Settings (,)                                                 not synced yet  ✎ edit
+  GitLab    GitHub    Local workspaces
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
+ checkout  terminal  editor  /work/acme/api · java · on alice/ABC-12 · 1 more
+ Overview  Changes · 5 files  [Threads · 1 open]  Pipeline  Commits · 2  Tickets
+╭ threads ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  + comment on !263   a comment on the merge request, not on a line                                                                                           │
+│                                                                                                                                                              │
+│ ◆ open · StatsController.java:21                                                                                                                             │
+│ │ Bob Example · 1h ago                                                                                                                                       │
+│ │ Should this read from the cached view?                                                                                                                     │
+│ │ ↳ Alice Example · 46m ago                                                                                                                                  │
+│ │ Good shout, switching to the cached one.                                                                                                                   │
+│                                                                                                                                                              │
+│ ✓ resolved · StatsController.java:9                                                                                                                          │
+│ │ Bob Example · 2h ago                                                                                                                                       │
+│ │ Typo in the name.                                                                                                                                          │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╭ ✎ comment on !263 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ first line                                                                                                                                                   │
+│ second line                                                                                                                                                  │
+│ héllo 日本                                                                                                                                                   │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   ⏎ new line   ctrl-s review and send   esc stop   ctrl-r kept comments                  4 open · 1 to review · 1 ready  gitlab github jira slack

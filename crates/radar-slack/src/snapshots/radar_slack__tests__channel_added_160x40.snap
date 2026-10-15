@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ channels ──────────────────────────────────────────────────────────────────────╮╭ #acme-deploys ─────────────────────────────────────╮
+│General               ││ + add a channel   paste a link to it, or type #name                            ││ CHECKED                                            │
+│  ├─ parts            ││ ▌ #team   #acme-team · team · watched                                          ││ ✓ #acme-deploys · public · you are in it  0s ago   │
+│  ├─ mode             ││   ├─ alias           team                                                      ││                                                    │
+│  ├─ colours          ││   ├─ purpose         where the team talks                                      ││ #acme-deploys: the team talking: its threads are   │
+│  └─ icons            ││   ├─ kind            team                                                      ││ discussions.                                       │
+│Slack                 ││   ├─ colour          ██ cyan                                                   ││                                                    │
+│  ├─ connection       ││   └─ watched         yes                                                       ││ in Slack  #acme-deploys                            │
+│  ├─ channels         ││ ▌ #svc   #acme-svc · service · watched                                         ││ id        C00000NEW1                               │
+│  ├─ review           ││   ├─ alias           svc                                                       ││                                                    │
+│  ├─ alerts           ││   ├─ purpose         —                                                         ││ config: [[slack.channel]]                          │
+│  └─ look             ││   ├─ kind            service                                                   ││                                                    │
+│                      ││   ├─ colour          ██ orange                                                 ││                                                    │
+│                      ││   └─ watched         yes                                                       ││                                                    │
+│                      ││ ▌ #try   #acme-try · test · not watched                                        ││                                                    │
+│                      ││   ├─ alias           try                                                       ││                                                    │
+│                      ││   ├─ purpose         —                                                         ││                                                    │
+│                      ││   ├─ kind            test                                                      ││                                                    │
+│                      ││   ├─ colour          ██ green                                                  ││                                                    │
+│                      ││   └─ watched         no                                                        ││                                                    │
+│                      ││ ▌ #acme-deploys   team · watched                                             ✓ ││                                                    │
+│                      ││   ├─ alias           acme-deploys                                              ││                                                    │
+│                      ││   ├─ purpose         where deploys are announced                               ││                                                    │
+│                      ││   ├─ kind            team                                                      ││                                                    │
+│                      ││   ├─ colour          ██ blue                                                   ││                                                    │
+│                      ││   └─ watched         yes                                                       ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   added #acme-deploys                                                                                                                           slack

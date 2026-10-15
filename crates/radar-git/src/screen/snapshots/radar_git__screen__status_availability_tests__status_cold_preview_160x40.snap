@@ -1,0 +1,44 @@
+---
+source: crates/radar-git/src/screen/status_availability_tests.rs
+expression: preview
+---
+ radar    Branches   History   Settings (,)                                                                      read incomplete · no complete sync yet  ✎ edit
+╭ views ─────────────────╮╭ dirty ─────────────────────────────────────────────────────────────────────────────╮╭ api-hotfix ──────────────────────────────────╮
+│ all                    ││ CLONES · 1 clone, 1 worktree             AHEAD  BEHIND  DIRTY      STASH  UPDATED  ││ folder   /work/acme/api-hotfix               │
+│ dirty                  ││api  on main  ● in use                    —      —       clean      —      2961w    ││ clone    /work/acme/api                      │
+│ ahead of remote        ││  └─ api-hotfix  on hotfix                —      —       unknown    —      2961w    ││ on       hotfix                              │
+│ stashes                ││                                                                                    ││ changes  unavailable                         │
+│                        ││                                                                                    ││ Working tree status could not be read. Read  │
+│                        ││                                                                                    ││ the clones again before removing this        │
+│                        ││                                                                                    ││ worktree.                                    │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ ⏎ makes it the one radar acts on for this    │
+│                        ││                                                                                    ││ repo                                         │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ Some clone data could not be read.                                                 ││                                              │
+│                        ││ clones and worktrees with changes or unread status                                 ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ BRANCHES   r retry status   A ask an agent   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate

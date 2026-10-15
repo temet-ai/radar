@@ -1,0 +1,28 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "text(&host, 80, 24)"
+---
+ radar    Jira   History   Settings (,)       not synced yet · every 2m  ✎ edit
+ Jira › acme › ABC › ABC-12
+ Add a stats endpoint for the dashboard             ◐ In Progress · Story · you
+ parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
+ [Overview]  Comments · 3╭ move ABC-12 to… ───────────╮
+╭ overview ──────────────│ NOW ◐ IN PROGRESS          │────────────────────────╮
+│ status        ◐ In Prog│ USUAL NEXT                 │                        █
+│ type          Story    │ 1  ◐ In Review             │                        █
+│ priority      Medium   │ 2  ◐ In Test               │                        █
+│ assignee      you      │ 3  ◐ Blocked               │                        █
+│ reporter      Bob Examp│ ○ TO DO · 1                │                        █
+│ sprint        Sprint 41│ 4  ○ Backlog               │                        █
+│ parent        ABC-1 Das│ ◐ IN PROGRESS · 2          │                        █
+│ children      1 (Links │ 5  ◐ Ready for release     │                        █
+│ labels        #backend │ 6  ◐ Waiting for design    │                        █
+│ components    —        │ ● DONE · 2                 │                        █
+│ fix versions  —        │ 7  ● Done                  │                        █
+│ created       2w ago   │ 8  ● Won't do              │                        ║
+│ updated       1h ago   ╰────────────────────────────╯                        ║
+│                                                                              ║
+│ DESCRIPTION                                                                  ║
+│ Why                                                                          ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ JIRA   asking Jira where ABC-12 can go…              6 tickets · 4 doing  jira

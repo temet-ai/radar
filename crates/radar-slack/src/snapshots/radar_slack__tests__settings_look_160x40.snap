@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ density ───────────────────────────────────────────╮
+│General               ││ MESSAGES                                                                       ││ How the messages of a thread, the detail pane and  │
+│  ├─ parts            ││   density  how a thread's messages are laid out                        compact ││ a direct message are laid out.                     │
+│  ├─ mode             ││   author   who wrote a message                                  links and keys ││                                                    │
+│  ├─ colours          ││   you      the reader, in place of their own name                       accent ││ compact  in use                                    │
+│  └─ icons            ││   pinged   a mention of you or your groups                      warning · bold ││ One line a message: the time, the author in a      │
+│Slack                 ││   mention  a mention of someone else, a group or a channel        third accent ││ column, then the text. The author is left blank    │
+│  ├─ connection       ││   link     a link                                             info · underline ││ for the same person within five minutes. A thin    │
+│  ├─ channels         ││   emoji    a custom emoji, shown as its :name:                      muted text ││ line marks a new day, and a thread's replies sit   │
+│  ├─ review           ││   code     code, inline or in a block                              data string ││ under one divider. In a narrow panel the author    │
+│  ├─ alerts           ││   quote    a quoted line                               secondary text · italic ││ and time take a line and the text sits under it.   │
+│  └─ look             ││   new      what is new since you caught up                      success · bold ││                                                    │
+│                      ││   time     when                                                     muted text ││ cozy                                               │
+│                      ││   channel  a channel's name                                   main text · bold ││ The roomier layout: the author, place and date on  │
+│                      ││ MESSAGES TREE                                                                  ││ a line, the text under it, the reactions on a line │
+│                      ││   band     the shade behind every other thread                        overlays ││ of their own, a blank line between messages, and   │
+│                      ││   heading  the shade behind a day's or a group's heading              overlays ││ replies two cells in.                              │
+│                      ││   lines    the tree lines joining threads and replies               muted text ││                                                    │
+│                      ││ ALERTS                                                                         ││ config: [slack] density = "compact" or "cozy"      │
+│                      ││   firing   an alert that is firing                                error · bold ││                                                    │
+│                      ││   failed   a job that failed                                      error · bold ││                                                    │
+│                      ││   resolved an alert that resolved                                      success ││                                                    │
+│                      ││   priority an alert's priority                                         warning ││                                                    │
+│                      ││   unmapped an alert no rule places, and its group          muted text · italic ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                               slack

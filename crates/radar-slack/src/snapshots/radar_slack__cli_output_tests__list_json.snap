@@ -1,0 +1,18 @@
+---
+source: crates/radar-slack/src/cli_output_tests.rs
+expression: output
+---
+[
+  {
+    "author": {
+      "handle": "",
+      "name": "Build Bot"
+    },
+    "channel": "team",
+    "id": "1600099000.000100",
+    "replies": 2,
+    "text": "status green report",
+    "updated": "2020-09-14T15:56:40Z",
+    "url": "https://acme.slack.com/archives/C0000TEAM1/p1600099000000100"
+  }
+]

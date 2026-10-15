@@ -1,0 +1,754 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "review"
+    },
+    {
+      "id": "gitlab.look.colour",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "colour…"
+    },
+    {
+      "id": "gitlab.look.bold",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "bold"
+    },
+    {
+      "id": "gitlab.look.italic",
+      "key": {
+        "key": {
+          "char": "i"
+        }
+      },
+      "label": "italic"
+    },
+    {
+      "id": "gitlab.look.underline",
+      "key": {
+        "key": {
+          "char": "u"
+        }
+      },
+      "label": "underline"
+    },
+    {
+      "id": "gitlab.look.dim",
+      "key": {
+        "key": {
+          "char": "d"
+        }
+      },
+      "label": "dim"
+    },
+    {
+      "id": "gitlab.look.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "heading": true,
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "MERGE REQUEST STATES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a merge request open for your review"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "warning · bold"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.warning bold",
+            "text": "review   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "yours, and what is in its way is yours to do: a rebase, conflicts, a red pipeline, open threads"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "error · bold"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.error bold",
+            "text": "fix      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "yours, and ready to merge: nothing in its way"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "success · bold"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.success bold",
+            "text": "ready    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "yours, waiting on approvals or a running pipeline"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "info"
+          }
+        ],
+        "target": "row:4",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.info",
+            "text": "waiting  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "your draft"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:5",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "draft    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the reader, in place of their own name"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "accent"
+          }
+        ],
+        "target": "row:6",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.primary",
+            "text": "you      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a teammate's merge request, not asking you"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "secondary text"
+          }
+        ],
+        "target": "row:7",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.secondary",
+            "text": "team     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a merge request from a bot"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:8",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "bot      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a merge request that was merged"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "third accent"
+          }
+        ],
+        "target": "row:9",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.tertiary",
+            "text": "merged   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a merge request closed without merging"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text · italic"
+          }
+        ],
+        "target": "row:10",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted italic",
+            "text": "closed   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a merge request's labels"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "links and keys"
+          }
+        ],
+        "target": "row:11",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.secondary",
+            "text": "label    "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:12",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "PIPELINES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline that passed"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "success"
+          }
+        ],
+        "target": "row:13",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.success",
+            "text": "passed   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline that failed"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "error · bold"
+          }
+        ],
+        "target": "row:14",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.error bold",
+            "text": "failed   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline that is running"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "info"
+          }
+        ],
+        "target": "row:15",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.info",
+            "text": "running  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline waiting for a manual job"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "info"
+          }
+        ],
+        "target": "row:16",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.info",
+            "text": "manual   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline that has not started"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:17",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "pending  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline that was canceled"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:18",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "canceled "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a pipeline that was skipped"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:19",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "skipped  "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:20",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "TENANCIES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a tenancy's code; its colour is the tenancy's own"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "tenancy's own · bold"
+          }
+        ],
+        "target": "row:21",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "tenant.cyan bold",
+            "text": "code     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a repo shown in merge requests"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "success"
+          }
+        ],
+        "target": "row:22",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.success",
+            "text": "shown    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a repo you have hidden"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:23",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "hidden   "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:24",
+        "text": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "REPOSITORIES TREE"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the shade behind every other repo and its merge requests"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "overlays"
+          }
+        ],
+        "target": "row:25",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "bg.overlay",
+            "text": "band     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the shade behind a tenancy's heading"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "overlays"
+          }
+        ],
+        "target": "row:26",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "bg.overlay",
+            "text": "heading  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the tree lines joining repos and merge requests"
+          }
+        ],
+        "right": [
+          {
+            "ink": "secondary",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:27",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "lines    "
+          }
+        ]
+      }
+    ],
+    "selected": 1
+  },
+  "detail": [
+    [
+      {
+        "text": "How a merge request open for your review is drawn."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "  sample  "
+      },
+      {
+        "look": "status.warning bold",
+        "text": "review"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "colour    "
+      },
+      {
+        "look": "status.warning",
+        "text": "██ "
+      },
+      {
+        "ink": "primary",
+        "text": "warning"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "          the theme's warning colour, used for things that want you: review, unsaved"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "emphasis  "
+      },
+      {
+        "text": "bold"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "What each colour looks like is set in colours, under general."
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [gitlab.style] review"
+      }
+    ]
+  ],
+  "detail_title": "review",
+  "scope": "look",
+  "version": 1
+}

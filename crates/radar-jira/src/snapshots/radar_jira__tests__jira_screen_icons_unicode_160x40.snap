@@ -1,0 +1,44 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "text(&hosted_icons(\"unicode\"), 160, 40)"
+---
+ radar    ◇ Jira   ≣ History   ⚙ Settings (,)                                                                                 not synced yet · every 2m  ✎ edit
+╭ views ─────────────────╮╭ My tickets ────────────────────────────────────────────────────────────────────────╮╭ acme ────────────────────────────────────────╮
+│ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone                        TYPE      STATUS          ↺ UPDATED  ││ ▌ ⊕ acme  acme.atlassian.net                 │
+│ ⊟ This sprint          ││▌ ⊕ acme  acme.atlassian.net                                                        ││                                              │
+│ ◇ Recently updated     ││▌ ├─ ◐ In Progress                                                                  ││ signed in   Alice Example                    │
+│                        ││▌ │  └─ ✦ ABC-1 = Dashboard for the stats  ☻ y Epic      ◐ In Progress   2w         ││ watching    ABC, DEF                         │
+│                        ││▌ │     ├─ ▣ ABC-12 = Add a stats endpoint for Story     ◐ In Progress   1h         ││                                              │
+│                        ││▌ │     └─ ↳ ABC-13 = Count requests per route Sub-task  ◐ In Progress   1h         ││ IN THIS VIEW ─────────────────────────────── │
+│                        ││▌ ├─ ◐ In Review                                                                    ││   ◐ doing 4                                  │
+│                        ││▌ │  └─ ▣ DEF-3 = Rename the export job  ☻ you Story     ◐ In Review     1h         ││   ○ to do 1                                  │
+│                        ││▌ └─ ○ To Do                                                                        ││                                              │
+│                        ││▌    └─ ✱ ABC-20 = Stats page shows yesterday  Bug       ○ To Do         9w         ││                                              │
+│                        ││▌ ⊕ beta  beta.atlassian.net                                                        ││                                              │
+│                        ││▌ └─ ○ To Do                                                                        ││                                              │
+│                        ││▌    └─ ▣ XYZ-7 = Move the nightly build  ☺ Al Story     ○ To Do         1h         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ assigned to you · not done                                                         ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ JIRA   PgUp/PgDn ↕ scroll   b ◫ bulk   +/- ± expand/collapse   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                      6 tickets · 4 doing  ◆

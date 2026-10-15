@@ -1,0 +1,28 @@
+---
+source: crates/radar-git/src/settings.rs
+expression: "shot(\"links\", 80, 24)"
+---
+ radar    Branches   History   Settings (,)                              ✎ edit
+╭ settings ────────────╮╭ links ───────────────────────────────────────────────╮
+│General               ││  + link a repo to your clone                         │
+│  ├─ parts            ││ acme/team-a/api → /work/acme/api              ✓ main │
+│  ├─ mode             ││ acme/team-b/web → /radar/no/suc…    ✗ no such folder │
+│  ├─ colours          ││ …yments-gateway → /work/acme/pa…    ⚠ origin: acme/… │
+│  └─ icons            ││                                                      │
+│Git                   ││                                                      │
+│  ├─ checkouts        ││                                                      │
+│  ├─ editors          ││                                                      │
+│  ├─ links            ││                                                      │
+│  └─ branches         │╰──────────────────────────────────────────────────────╯
+│                      │╭ acme/team-b/web ─────────────────────────────────────╮
+│                      ││ CHECKED                                              █
+│                      ││ ⚠ no such folder                                     █
+│                      ││                                                      █
+│                      ││ acme/team-b/web is worked on in /radar/no/such/web.  █
+│                      ││                                                      █
+│                      ││ branch    {type}/{key}-{slug}                        █
+│                      ││ base      develop                                    ║
+│                      ││ worktrees 0 known                                    ║
+│                      ││                                                      ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

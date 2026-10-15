@@ -1,0 +1,88 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "link a repo to your clone"
+    },
+    {
+      "id": "git.links.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type the repo's path, then the folder"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "link a repo to your clone"
+          },
+          {
+            "ink": "muted",
+            "text": "   the repo's path, then the folder"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "Tie a repo to the clone you work in. A link wins over the clone radar finds by its origin, and the clone need not be under a folder radar looks in."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "a canonical HTTPS repository URL or legacy full path (acme/team-a/api), then the folder of your clone"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "0 links"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [[git.link]]"
+      }
+    ]
+  ],
+  "detail_title": "link to a local folder",
+  "scope": "links",
+  "version": 1
+}

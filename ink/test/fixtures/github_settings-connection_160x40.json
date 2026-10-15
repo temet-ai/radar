@@ -1,0 +1,151 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "server"
+    },
+    {
+      "id": "github.connection.edit",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "change it"
+    },
+    {
+      "id": "github.connection.activate_setting",
+      "key": {
+        "key": "enter"
+      },
+      "label": "change it"
+    },
+    {
+      "id": "github.connection.check",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "check GitHub connection"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "setting:0",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "server          "
+          },
+          {
+            "ink": "primary",
+            "text": "https://api.github.com"
+          }
+        ]
+      },
+      {
+        "target": "setting:1",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "token           "
+          },
+          {
+            "ink": "primary",
+            "text": "configured token"
+          }
+        ]
+      },
+      {
+        "target": "setting:2",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "check           "
+          },
+          {
+            "ink": "primary",
+            "text": "GitHub connection"
+          }
+        ]
+      },
+      {
+        "target": "setting:3",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "refresh         "
+          },
+          {
+            "ink": "primary",
+            "text": "once on start, then on request"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "https://api.github.com"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "primary",
+        "text": "The GitHub API radar talks to: api.github.com for github.com, or your own GitHub Enterprise Server or a local server. The token is sent only to this address."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "https://api.github.com · a GitHub Enterprise Server's https://HOST/api/v3 · http://127.0.0.1:PORT for a local server"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [github] api"
+      }
+    ]
+  ],
+  "detail_title": "server",
+  "scope": "connection",
+  "version": 1
+}

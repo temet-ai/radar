@@ -1,0 +1,219 @@
+{
+ "version": 1,
+ "width": 80,
+ "height": 24,
+ "top_bar": {
+  "brand": "radar",
+  "tabs": [
+   {
+    "label": "repositories",
+    "mnemonic": "R",
+    "icon": "repo",
+    "target": "chrome:tab:0"
+   },
+   {
+    "label": "jira",
+    "mnemonic": "J",
+    "icon": "issue",
+    "target": "chrome:tab:2"
+   },
+   {
+    "label": "slack",
+    "mnemonic": "S",
+    "icon": "chat",
+    "target": "chrome:tab:3"
+   },
+   {
+    "label": "branches",
+    "mnemonic": "B",
+    "icon": "branch",
+    "active": true,
+    "target": "chrome:tab:4"
+   },
+   {
+    "label": "work",
+    "mnemonic": "I",
+    "target": "chrome:tab:6"
+   },
+   {
+    "label": "history",
+    "mnemonic": "H",
+    "icon": "log",
+    "target": "chrome:history"
+   },
+   {
+    "label": "settings",
+    "mnemonic": ",",
+    "icon": "settings",
+    "target": "chrome:settings"
+   }
+  ],
+  "words": {
+   "text": "synced 7s ago · every 1m",
+   "ink": "muted"
+  },
+  "terminal": {
+   "text": "tmux → Ghostty",
+   "ink": "muted"
+  },
+  "mode": {
+   "text": " read only",
+   "ink": "info",
+   "strong": true,
+   "target": "chrome:mode"
+  }
+ },
+ "status": {
+  "scope": "BRANCHES",
+  "hints": [
+   {
+    "keys": "⏎",
+    "label": "use it",
+    "keys_of": [
+     {
+      "label": "⏎",
+      "chord": {
+       "key": "enter"
+      },
+      "target": "chrome:key:0:0"
+     }
+    ]
+   },
+   {
+    "keys": "PgUp/PgDn",
+    "label": "scroll",
+    "icon": "scroll",
+    "keys_of": [
+     {
+      "label": "PgUp",
+      "chord": {
+       "key": "page_up"
+      },
+      "target": "chrome:key:1:0"
+     },
+     {
+      "label": "PgDn",
+      "chord": {
+       "key": "page_down"
+      },
+      "target": "chrome:key:1:1"
+     }
+    ]
+   },
+   {
+    "keys": "b",
+    "label": "bulk",
+    "icon": "bulk",
+    "keys_of": [
+     {
+      "label": "b",
+      "chord": {
+       "key": {
+        "char": "b"
+       }
+      },
+      "target": "chrome:key:2:0"
+     }
+    ]
+   },
+   {
+    "keys": "+/-",
+    "label": "expand/collapse",
+    "icon": "fold",
+    "keys_of": [
+     {
+      "label": "+",
+      "chord": {
+       "key": {
+        "char": "+"
+       }
+      },
+      "target": "chrome:key:3:0"
+     },
+     {
+      "label": "-",
+      "chord": {
+       "key": {
+        "char": "-"
+       }
+      },
+      "target": "chrome:key:3:1"
+     }
+    ]
+   },
+   {
+    "keys": "q",
+    "label": "quit",
+    "icon": "quit",
+    "keys_of": [
+     {
+      "label": "q",
+      "chord": {
+       "key": {
+        "char": "q"
+       }
+      },
+      "target": "chrome:key:4:0"
+     }
+    ]
+   },
+   {
+    "keys": "x",
+    "label": "menu",
+    "icon": "menu",
+    "keys_of": [
+     {
+      "label": "x",
+      "chord": {
+       "key": {
+        "char": "x"
+       }
+      },
+      "target": "chrome:key:5:0"
+     }
+    ]
+   },
+   {
+    "keys": "←→↑↓",
+    "label": "navigate",
+    "keys_of": [
+     {
+      "label": "←",
+      "chord": {
+       "key": "left"
+      },
+      "target": "chrome:key:6:0"
+     },
+     {
+      "label": "→",
+      "chord": {
+       "key": "right"
+      },
+      "target": "chrome:key:6:1"
+     },
+     {
+      "label": "↑",
+      "chord": {
+       "key": "up"
+      },
+      "target": "chrome:key:6:2"
+     },
+     {
+      "label": "↓",
+      "chord": {
+       "key": "down"
+      },
+      "target": "chrome:key:6:3"
+     }
+    ]
+   }
+  ],
+  "least_needed": [
+   "navigate",
+   "scroll",
+   "quit",
+   "expand/collapse"
+  ]
+ },
+ "keys_at": "body"
+}

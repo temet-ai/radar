@@ -1,0 +1,28 @@
+---
+source: crates/radar-jira/src/page_cached_refresh_tests.rs
+expression: shown
+---
+ radar    Jira   History   Settings (,)       not synced yet · every 2m  ✎ edit
+ Jira › acme › ABC › ABC-12
+ Add a stats endpoint for the dashboard             ◐ In Progress · Story · you
+ parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
+ Overview  Comments · 3  [Links · 4]  Code · 1
+╭ links ───────────────────────────────────────────────────────────────────────╮
+│ ✗ could not load: Jira refresh unavailable                                   │
+│ RELATION        TICKET      STATUS            TITLE                          │
+│ parent          ABC-1       ◐ In Progress     Dashboard for the stats        │
+│ child           ABC-13      ◐ In Progress     Count requests per route       │
+│ blocks          ABC-15      ○ To Do           Ship the dashboard             │
+│ web link        web                           Design notes                   │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ JIRA   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                 jira

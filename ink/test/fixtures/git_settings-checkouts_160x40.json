@@ -1,0 +1,161 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "add a folder"
+    },
+    {
+      "id": "git.checkouts.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type or paste a folder to look in"
+    },
+    {
+      "id": "git.checkouts.look_now",
+      "key": {
+        "key": {
+          "char": "s"
+        }
+      },
+      "label": "look for checkouts now"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a folder to look in"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste or type a folder"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "3 found"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "folder     "
+          },
+          {
+            "ink": "primary",
+            "text": "/work"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "look down  "
+          },
+          {
+            "ink": "primary",
+            "text": "4 folders"
+          }
+        ]
+      },
+      {
+        "target": "row:3",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "terminal   "
+          },
+          {
+            "ink": "secondary",
+            "text": "found for you"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "good",
+            "text": "3 found"
+          }
+        ],
+        "target": "row:4",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "last look  "
+          },
+          {
+            "ink": "secondary",
+            "text": "2m ago"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "Another folder to look for git checkouts in. radar matches each checkout to its repo by its origin remote."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "a full path, or one starting with ~/ (pasted links to files work too)"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "1 folder"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [git] roots"
+      }
+    ]
+  ],
+  "detail_title": "add a folder",
+  "scope": "checkouts",
+  "version": 1
+}

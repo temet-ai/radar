@@ -1,0 +1,44 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: "text(&host, 160, 40)"
+---
+ radar    Jira   History   Settings (,)                                                                                       not synced yet · every 2m  ✎ edit
+ Jira › acme › ABC › ABC-12
+ Add a stats endpoint for the dashboard                                                                                             ◐ In Progress · Story · you
+ parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
+ [Overview]  Comments · 3  Links · 4  Code · 1
+╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────╮
+│ DESCRIPTION                                                                                                          ││ status        ◐ In Progress          │
+│ Why                                                                                                                  ││ type          Story                  │
+│                                                                                                                      ││ priority      Medium                 │
+│ The dashboard needs a count of requests per day.                                                                     ││ assignee      you                    │
+│                                                                                                                      ││ reporter      Bob Example            │
+│   GET /stats?days=7                                                                                                  ││ sprint        Sprint 41              │
+│                                                                                                                      ││ parent        ABC-1 Dashboard for th │
+│ ACCEPTANCE CRITERIA                                                                                                  ││ children      1 (Links tab)          │
+│ • GET /stats answers within 200 ms                                                                                   ││ labels        #backend               │
+│ • counts are per day                                    ╭ post this on ABC-12? ────────────────────╮                 ││ components    —                      │
+│                                                         │ Fixed in !263, see https://example.com/x │                 ││ fix versions  —                      │
+│                                                         │                                          │                 ││ created       2w ago                 │
+│                                                         │ • tests qx                               │                 ││ updated       1h ago                 │
+│                                                         │                                          │                 ││                                      │
+│                                                         │▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔│                 ││                                      │
+│                                                         │ y post it    e keep writing    n drop it │                 ││                                      │
+│                                                         │▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁│                 ││                                      │
+│                                                         ╰──────────────────────────────────────────╯                 ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+│                                                                                                                      ││                                      │
+╭ comment on ABC-12 ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Fixed in **!263**, see https://example.com/x                                                                                                                 │
+│                                                                                                                                                              │
+│ - tests qx                                                                                                                                                   │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ JIRA   ←→ move   ⏎ choose   esc close                                                                                                6 tickets · 4 doing  jira

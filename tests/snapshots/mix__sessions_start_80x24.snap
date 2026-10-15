@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&started(), 80, 24)"
+---
+ radar    History   Settings (,)                                         ✎ edit
+╭ settings ────────────╮╭ Tools and defaults ──────────────────────────────────╮
+│General               ││ COMMAND LINE TOOLS                                   █
+│  ├─ parts            ││                                                      █
+│  ├─ mode             ││ … Copilot       checking                             █
+│  ├─ colours          ││ … Codex         checking                             ║
+│  └─ icons            ││ … Claude Agent  checking                             ║
+│Agents                ││                                                      ║
+│  └─ Tools and defau  ││ NEW SESSIONS · FOR EVERY WORKSPACE                   ║
+│                      ││                                                      ║
+│                      ││ provider              Copilot                        ║
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ Copilot ─────────────────────────────────────────────╮
+│                      ││ … Reading the CLI's status…                          │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

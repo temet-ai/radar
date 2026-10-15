@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+╭ feed ──────────────────╮╭ #team ─────────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
+│ For you              4 ││ 6 new                                                          REPLIES  WHEN       ││ ── #team · Sun 4 Oct ──                      │
+│ Discussions            ││▌ today                                                                             ││ ● 06:16  Bob Builder                         │
+│ ▌ #team          6 NEW ││▌ └─ ● Bob B.  Lunch at 12:30? 🍕                                        30m        ││     @review-squad :gitlab: mr Add a stats    │
+│ ▌ #svc           1 NEW ││▌ yesterday                                                                         ││ endpoint for the dashboard                   │
+│                        ││▌ └─ ● Carol C.  Anyone seen ABC-12 failing on main? pipeline a 1        1d         ││     👀 1                                     │
+│                        ││▌ Sun 4 Oct                                                                         ││ ● 06:46  Alice Example                       │
+│                        ││▌ └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endpoint f 2        2d         ││     looking 👀                               │
+│                        ││▌    ├─ you  looking 👀                                                  2d         ││ ● 07:16  Carol Coder                         │
+│                        ││▌    └─ Carol C.  approved, nice one                                     2d         ││     approved, nice one                       │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ 2 replies · last 2d ago                      │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ LINKS ────────────────────────────────────── │
+│                        ││                                                                                    ││   mr                                         │
+│                        ││                                                                                    ││   https://git.example/acme/team-a/api/-/merg │
+│                        ││                                                                                    ││   e_requests/263                             │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ the last 7 days · where the team talks                                             ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                             7 new · 4 for you  slack

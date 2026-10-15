@@ -1,0 +1,29 @@
+---
+source: tests/mix.rs
+assertion_line: 96
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Work (I)   ≣ History   ⚙ Settings (,)                             ✎ edit
+╭ settings ────────────╮╭ parts ───────────────────────────────────────────────╮
+│General               ││ COMPILED INTO THIS RADAR                                │
+│  ├─ ⊞ parts          ││                                                      │
+│  ├─ ✎ mode           ││ ✓ Work   set up                                      │
+│  ├─ ◑ colours        ││                                                      │
+│  └─ ☺ icons          ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ Work ────────────────────────────────────────────────╮
+│                      ││ ✓ set up                                             │
+│                      ││                                                      │
+│                      ││ has     local work items                             │
+│                      ││ opens   local work items on their own pages          │
+│                      ││                                                      │
+│                      ││ WORK ADDS                                            │
+│                      ││ nothing to the other parts in this build             │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q ✕ quit   x ≡ menu   ←→↑↓ navigate

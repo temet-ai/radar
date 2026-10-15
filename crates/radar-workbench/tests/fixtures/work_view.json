@@ -1,0 +1,393 @@
+{
+  "version": 1,
+  "scope": "work",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "local groups",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "[\"group\",\"all\",{\"database_id\":\"cd9afb62-52f1-4bc9-969f-23ec55100795\",\"event_sequence\":25,\"map_sequence\":3,\"gap_sequence\":0},0,4]",
+            "text": [
+              {
+                "text": "All items"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "footer": [
+        {
+          "text": "Groups · page 1",
+          "ink": "muted"
+        }
+      ],
+      "width": 25,
+      "head": [
+        {
+          "text": "No groups on page",
+          "ink": "muted"
+        }
+      ]
+    },
+    {
+      "pane": "middle",
+      "title": "work items · page 1",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "[\"item\",\"6f3a8345-5a69-495f-854a-000000000001\",{\"database_id\":\"cd9afb62-52f1-4bc9-969f-23ec55100795\",\"event_sequence\":25,\"map_sequence\":3,\"gap_sequence\":0},0,null,\"\"]",
+            "text": [
+              {
+                "text": "Ship the work area"
+              }
+            ],
+            "right": [
+              {
+                "text": "task",
+                "ink": "muted"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "linked sources and context",
+      "body": {
+        "node": "document",
+        "lines": [
+          [
+            {
+              "text": "No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.",
+              "ink": "muted"
+            }
+          ],
+          [
+            {
+              "text": "Local work saved.",
+              "ink": "info"
+            }
+          ],
+          [
+            {
+              "text": "Ship the work area",
+              "ink": "emphasis",
+              "strong": true
+            }
+          ],
+          [
+            {
+              "text": "v history: original claims and outcomes · completeness not guaranteed",
+              "ink": "info"
+            }
+          ],
+          [
+            {
+              "text": "Titles and groups are authored locally. Relations do not imply identity, permission or completion.",
+              "ink": "muted"
+            }
+          ],
+          [
+            {
+              "text": "Task item ID: 6f3a8345-5a69-495f-854a-000000000001",
+              "ink": "muted"
+            }
+          ]
+        ]
+      },
+      "notes_most": 5
+    },
+    {
+      "pane": "detail",
+      "title": "map",
+      "body": {
+        "node": "extension",
+        "capability": "work.map",
+        "version": 1,
+        "data": {
+          "groups": [],
+          "items": [
+            {
+              "kind": "task",
+              "selected": true,
+              "target": "[\"item\",\"6f3a8345-5a69-495f-854a-000000000001\",{\"database_id\":\"cd9afb62-52f1-4bc9-969f-23ec55100795\",\"event_sequence\":25,\"map_sequence\":3,\"gap_sequence\":0},0,null,\"\"]",
+              "title": "Ship the work area"
+            }
+          ],
+          "omitted": 0,
+          "pending": false,
+          "target": "work-area:map"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "0 groups · 1 items on page 1",
+                "ink": "muted"
+              }
+            ],
+            [
+              {
+                "text": "Ship the work area · task",
+                "ink": "accent",
+                "strong": true
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "timeline",
+      "body": {
+        "node": "extension",
+        "capability": "work.timeline",
+        "version": 1,
+        "data": {
+          "entries": [
+            {
+              "label": "map · authored",
+              "sequence": 1
+            },
+            {
+              "label": "map · authored",
+              "sequence": 2
+            },
+            {
+              "label": "map · authored",
+              "sequence": 3
+            }
+          ],
+          "omitted": 0,
+          "pending": false,
+          "status": "complete",
+          "target": "work-area:timeline"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "#1 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#2 map · authored"
+              }
+            ],
+            [
+              {
+                "text": "#3 map · authored"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "tabs",
+      "body": {
+        "node": "extension",
+        "capability": "work.tabs",
+        "version": 1,
+        "data": {
+          "pending": false,
+          "tabs": [
+            {
+              "active": false,
+              "id": "item",
+              "label": "00000001"
+            },
+            {
+              "active": true,
+              "count": 0,
+              "id": "sources",
+              "label": "linked sources"
+            },
+            {
+              "active": false,
+              "id": "evidence",
+              "label": "evidence"
+            }
+          ],
+          "target": "work-area:tabs"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "○ 00000001"
+              }
+            ],
+            [
+              {
+                "text": "● linked sources"
+              }
+            ],
+            [
+              {
+                "text": "○ evidence"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "actions",
+      "body": {
+        "node": "extension",
+        "capability": "work.rail",
+        "version": 1,
+        "data": {
+          "actions": [
+            {
+              "id": "work.new",
+              "key": {
+                "key": {
+                  "char": "n"
+                }
+              },
+              "label": "create a local task…"
+            },
+            {
+              "id": "work.refresh",
+              "key": {
+                "key": {
+                  "char": "r"
+                }
+              },
+              "label": "refresh local work"
+            },
+            {
+              "id": "work.filter",
+              "key": {
+                "key": {
+                  "char": "/"
+                }
+              },
+              "label": "filter this item page…"
+            },
+            {
+              "id": "work.group",
+              "key": {
+                "key": {
+                  "char": "t"
+                }
+              },
+              "label": "apply local group label…"
+            },
+            {
+              "id": "work.evidence",
+              "key": {
+                "key": {
+                  "char": "v"
+                }
+              },
+              "label": "inspect bounded evidence…"
+            }
+          ],
+          "pending": false,
+          "target": "work-area:rail"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "create a local task…"
+              }
+            ],
+            [
+              {
+                "text": "refresh local work"
+              }
+            ],
+            [
+              {
+                "text": "filter this item page…"
+              }
+            ],
+            [
+              {
+                "text": "apply local group label…"
+              }
+            ],
+            [
+              {
+                "text": "inspect bounded evidence…"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "",
+      "label": "Ship the work area",
+      "heading": true
+    },
+    {
+      "id": "work.new",
+      "label": "create a local task…",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "change": "add"
+    },
+    {
+      "id": "work.refresh",
+      "label": "refresh local work",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      }
+    },
+    {
+      "id": "work.filter",
+      "label": "filter this item page…",
+      "key": {
+        "key": {
+          "char": "/"
+        }
+      }
+    },
+    {
+      "id": "work.group",
+      "label": "apply local group label…",
+      "key": {
+        "key": {
+          "char": "t"
+        }
+      },
+      "change": "add"
+    },
+    {
+      "id": "work.evidence",
+      "label": "inspect bounded evidence…",
+      "key": {
+        "key": {
+          "char": "v"
+        }
+      }
+    }
+  ]
+}

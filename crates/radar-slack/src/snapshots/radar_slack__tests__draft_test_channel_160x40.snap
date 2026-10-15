@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Code   Tickets   Slack 4   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
+ Slack › ask for review
+ Ask for review in #try                                                                                                                           posted as you
+ not the review channel: the user group is not mentioned here
+╭ as it will post in #try ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ :gitlab:                                                                                                                                                     █
+│ • api !263 Add a stats endpoint for the dashboard                                                                                                            █
+│ • api !270 Tidy the README                                                                                                                                   █
+│                                                                                                                                                              █
+│ THE TEXT SENT                                                                                                                                                █
+│ :gitlab:                                                                                                                                                     █
+│ • <https://git.example/acme/team-a/api/-/merge_requests/263|api !263> Add a stats endpoint for the dashboard                                                 ║
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ merge requests in it ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ api !263  Add a stats endpoint for the dashboard                                                                                                             │
+│ api !270  Tidy the README                                                                                                                                    │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                            7 new · 4 for you  slack

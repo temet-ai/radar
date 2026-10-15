@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(80, 24, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Markdown" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Table  Card  Meters  Rows & states  Entr…" fg:text.secondary | "[Markdown]" fg:accent.primary/glow.purple bold | "  Diff  Motion  C" fg:text.secondary
+03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " a note, written in markdown, and what o…" fg:text.emphasis bg:bg.surface bold | "─────────────────────╮" fg:accent.primary/glow.purple bg:bg.surface
+04 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "Sorting the atlas box                   …" fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+05 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "─────────────────────" fg:text.muted bg:bg.surface bold | _55 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+06 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _76 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+07 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "The box holds two decades of maps, " bg:bg.surface bold | "three" bg:bg.surface bold strike | " four shelves of " bg:bg.surface bold | "loose" bg:bg.surface bold italic | " sheets, and a" bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+08 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "catalogue" fg:accent.primary/glow.purple bg:bg.surface bold underline | " kept in " bg:bg.surface bold | "shelf-4" fg:accent.secondary/glow.cyan bg:bg.surface bold | ". See the " bg:bg.surface bold | "shelf plan" fg:text.muted bg:bg.surface bold | " for where they go." bg:bg.surface bold | _12 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+09 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _76 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+10 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "What was done                           …" fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+11 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _76 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+12 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "• " fg:text.secondary bg:bg.surface bold | "Sorted 1900 to 1950" bg:bg.surface bold | _55 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
+13 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _2 fg:text.emphasis bg:bg.surface bold | "◦ " fg:text.secondary bg:bg.surface bold | "labelled every drawer" bg:bg.surface bold | _51 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+14 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _2 fg:text.emphasis bg:bg.surface bold | "◦ " fg:text.secondary bg:bg.surface bold | "counted the postcards" bg:bg.surface bold | _51 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+15 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "☑ " fg:text.secondary bg:bg.surface bold | "Boxed the atlases" bg:bg.surface bold | _57 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+16 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "☐ " fg:text.secondary bg:bg.surface bold | "Filed the loose maps" bg:bg.surface bold | _54 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+17 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _76 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+18 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "1. " fg:text.secondary bg:bg.surface bold | "Dust the lid" bg:bg.surface bold | _61 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+19 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "2. " fg:text.secondary bg:bg.surface bold | "Open the box" bg:bg.surface bold | _61 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+20 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | _76 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+21 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface bold | "Keep the maps flat. The old ones tear." fg:text.secondary bg:bg.surface bold | _36 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "║" fg:bg.overlay bg:bg.surface
+22 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

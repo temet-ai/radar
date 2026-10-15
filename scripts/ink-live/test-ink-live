@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Tests for ink-live's input verbs: a fake tmux on PATH records what would be sent, so no radar and no tmux server run.
+#   scripts/ink-live/test-ink-live
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")" && pwd)
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+mkdir -p "$work/bin" "$work/tmp"
+cat > "$work/bin/tmux" <<'EOF'
+#!/usr/bin/env bash
+# Every call's arguments, one per line, then a blank line.
+printf '%s\n' "$@" >> "$FAKE_TMUX_LOG"
+printf '\n' >> "$FAKE_TMUX_LOG"
+EOF
+chmod +x "$work/bin/tmux"
+export FAKE_TMUX_LOG="$work/log" TMPDIR="$work/tmp" PATH="$work/bin:$PATH"
+# A run named t1 exists once its folder does (need_name); the folder is short enough to stay under TMPDIR.
+mkdir -p "$TMPDIR/radar-live/t1"
+
+fails=0
+check() {
+  local what=$1 want=$2 got=$3
+  if [ "$want" = "$got" ]; then echo "ok   $what"; else echo "FAIL $what"; printf '  want %q\n  got  %q\n' "$want" "$got"; fails=$((fails + 1)); fi
+}
+sent() { awk 'prev == "-l" { print } { prev = $0 }' "$FAKE_TMUX_LOG"; }
+esc=$'\e'
+
+: > "$FAKE_TMUX_LOG"
+"$here/ink-live" wheel t1 30 12 up 3
+check "wheel up 3 sends three button-64 presses at the cell" "${esc}[<64;30;12M${esc}[<64;30;12M${esc}[<64;30;12M" "$(sent)"
+
+: > "$FAKE_TMUX_LOG"
+"$here/ink-live" wheel t1 5 7
+check "wheel defaults to one notch down (button 65)" "${esc}[<65;5;7M" "$(sent)"
+
+: > "$FAKE_TMUX_LOG"
+if "$here/ink-live" wheel t1 5 7 sideways 2>/dev/null; then got=accepted; else got=refused; fi
+check "wheel refuses a direction other than up or down" refused "$got"
+
+if "$here/ink-live" wheel t1 5 7 up x 2>/dev/null; then got=accepted; else got=refused; fi
+check "wheel refuses a count that is not a number" refused "$got"
+
+if "$here/ink-live" wheel nosuch 5 7 2>/dev/null; then got=accepted; else got=refused; fi
+check "wheel refuses a run that was not started" refused "$got"
+
+: > "$FAKE_TMUX_LOG"
+"$here/ink-live" click t1 3 4
+check "click still sends a left press and release" "${esc}[<0;3;4M${esc}[<0;3;4m" "$(sent)"
+
+[ "$fails" -eq 0 ] && echo "all passed" || { echo "$fails failed"; exit 1; }

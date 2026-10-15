@@ -1,0 +1,1682 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`recorded view fixtures > _hand_work_list at 80x24 1`] = `
+"── Views ──
+ ▤ My work                                                                    4
+ To review                                                                    2
+── Items ──
+radar
+  └─ Fix the diff view                                                 open"
+`;
+
+exports[`recorded view fixtures > _hand_work_list at 160x40 1`] = `
+"── Views ──
+ ▤ My work                                                                                                                                                    4
+ To review                                                                                                                                                    2
+── Items ──
+radar
+  └─ Fix the diff view                                                                                                                     open    Ada"
+`;
+
+exports[`recorded view fixtures > git_branch-screen at 80x24 1`] = `
+"── views ──
+ ▽ all
+ ⚠ dirty                                                                      1
+ ◦ ahead of remote                                                            2
+ ▪ stashes                                                                    1
+── all ──
+ CLONES · 2 clones, 1 worktree        AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT
+▤ api  on ⎇ alice/ABC-12  ● in use    ↑2     —       ⚠ 3 change 1      3h
+  ├─ ▪ api-hotfix  on ⎇ alice/ABC-14  ↑1     ↓3      clean      —      1d
+  ├─ ⎇ main                           —      ↓4      —          —      2d
+  ├─ ⎇ alice/ABC-12  ● here           ↑2     —       ⚠ 3 change —      3h
+  ├─ ⎇ alice/ABC-14  ● in api-hotfix  ↑1     ↓3      clean      —      1d
+  ├─ ◈ alice/ABC-9  merged            —      —       —          —      6d
+  ├─ ⎇ alice/ABC-7                    —      gone    —          —      2w
+  └─ ⎇ spike                          —      —       —          —      9d
+▤ web  on ⎇ main                      —      —       clean      —      4d
+  └─ ⎇ main  ● here                   —      —       clean      —      4d
+── api ──
+ folder   /work/acme/api
+ origin   git@example.com:acme/team-a/api.git
+ repo     acme/team-a/api
+ on       alice/ABC-12
+ changes  ⚠ 3 changed
+ base     main
+ ▪ WORKTREES ──────────────────────────────────────────────────────────────────
+   ▪ /work/acme/api-hotfix  alice/ABC-14
+ ▪ STASHES ────────────────────────────────────────────────────────────────────
+   ▪ On alice/ABC-12: ABC-12-local-2026-10-05"
+`;
+
+exports[`recorded view fixtures > git_branch-screen at 160x40 1`] = `
+"── views ──
+ ▽ all
+ ⚠ dirty                                                                                                                                                      1
+ ◦ ahead of remote                                                                                                                                            2
+ ▪ stashes                                                                                                                                                    1
+── all ──
+ CLONES · 2 clones, 1 worktree                                                                   AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS TICKET               ↺ UPDAT
+▤ api  on ⎇ alice/ABC-12  ● in use                                                               ↑2     —       ⚠ 3 change 1                           3h
+  ├─ ▪ api-hotfix  on ⎇ alice/ABC-14                                                             ↑1     ↓3      clean      —                           1d
+  ├─ ⎇ main                                                                                      —      ↓4      —          —                           2d
+  ├─ ⎇ alice/ABC-12  ● here                                                                      ↑2     —       ⚠ 3 change —      ▣ ABC-12 · In Progre 3h
+  ├─ ⎇ alice/ABC-14  ● in api-hotfix                                                             ↑1     ↓3      clean      —      ABC-14               1d
+  ├─ ◈ alice/ABC-9  merged                                                                       —      —       —          —      ABC-9                6d
+  ├─ ⎇ alice/ABC-7                                                                               —      gone    —          —      ABC-7                2w
+  └─ ⎇ spike                                                                                     —      —       —          —                           9d
+▤ web  on ⎇ main                                                                                 —      —       clean      —                           4d
+  └─ ⎇ main  ● here                                                                              —      —       clean      —                           4d
+── api ──
+ folder   /work/acme/api
+ origin   git@example.com:acme/team-a/api.git
+ repo     acme/team-a/api
+ on       alice/ABC-12
+ changes  ⚠ 3 changed
+ base     main
+ ▪ WORKTREES ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   ▪ /work/acme/api-hotfix  alice/ABC-14
+ ▪ STASHES ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   ▪ On alice/ABC-12: ABC-12-local-2026-10-05"
+`;
+
+exports[`recorded view fixtures > git_settings-branches at 80x24 1`] = `
+"── settings ──
+  + add a convention for a repo   a repo path, a template, a base
+ me         not set
+ branch     {me}/{key}                                               you/ABC-12
+ worktree   {clone}-{topic}                                   ~/code/api-ABC-12
+ after      nothing
+ types      as the tracker names them
+── add a convention ──
+ A branch name template and base branch for the repos under a path. The longest
+ matching path wins; a link's own template wins over it.
+ ACCEPTS
+ a repo path or folder of repos, a template with {key}, and a base: acme/team-a
+ {type}/{key}-{slug} develop
+ NOW
+ 0 conventions
+ config: [[git.convention]]"
+`;
+
+exports[`recorded view fixtures > git_settings-branches at 160x40 1`] = `
+"── settings ──
+  + add a convention for a repo   a repo path, a template, a base
+ me         not set
+ branch     {me}/{key}                                                                                                                               you/ABC-12
+ worktree   {clone}-{topic}                                                                                                                   ~/code/api-ABC-12
+ after      nothing
+ types      as the tracker names them
+── add a convention ──
+ A branch name template and base branch for the repos under a path. The longest matching path wins; a link's own template wins over it.
+ ACCEPTS
+ a repo path or folder of repos, a template with {key}, and a base: acme/team-a {type}/{key}-{slug} develop
+ NOW
+ 0 conventions
+ config: [[git.convention]]"
+`;
+
+exports[`recorded view fixtures > git_settings-checkouts at 80x24 1`] = `
+"── settings ──
+  + add a folder to look in   paste or type a folder
+ folder     /work                                                       3 found
+ look down  4 folders
+ terminal   found for you
+ last look  2m ago                                                      3 found
+── add a folder ──
+ Another folder to look for git checkouts in. radar matches each checkout to
+ its repo by its origin remote.
+ ACCEPTS
+ a full path, or one starting with ~/ (pasted links to files work too)
+ NOW
+ 1 folder
+ config: [git] roots"
+`;
+
+exports[`recorded view fixtures > git_settings-checkouts at 160x40 1`] = `
+"── settings ──
+  + add a folder to look in   paste or type a folder
+ folder     /work                                                                                                                                       3 found
+ look down  4 folders
+ terminal   found for you
+ last look  2m ago                                                                                                                                      3 found
+── add a folder ──
+ Another folder to look for git checkouts in. radar matches each checkout to its repo by its origin remote.
+ ACCEPTS
+ a full path, or one starting with ~/ (pasted links to files work too)
+ NOW
+ 1 folder
+ config: [git] roots"
+`;
+
+exports[`recorded view fixtures > git_settings-editors at 80x24 1`] = `
+"── settings ──
+  + add a project type   a name, then its marker files
+ java      build.gradle build.gradle.kts pom.xml                           asks
+ python    pyproject.toml setup.py                                         asks
+ node      package.json                                                    asks
+ rust      Cargo.toml                                                      asks
+ go        go.mod                                                          asks
+── add a project type ──
+ Another kind of project, told apart by a file at the top of its checkout, with
+ the editor it opens in.
+ ACCEPTS
+ a name, then its marker files: elixir mix.exs · *.csproj matches by ending
+ NOW
+ 5 types
+ config: [[git.type]]"
+`;
+
+exports[`recorded view fixtures > git_settings-editors at 160x40 1`] = `
+"── settings ──
+  + add a project type   a name, then its marker files
+ java      build.gradle build.gradle.kts pom.xml                                                                                                           asks
+ python    pyproject.toml setup.py                                                                                                                         asks
+ node      package.json                                                                                                                                    asks
+ rust      Cargo.toml                                                                                                                                      asks
+ go        go.mod                                                                                                                                          asks
+── add a project type ──
+ Another kind of project, told apart by a file at the top of its checkout, with the editor it opens in.
+ ACCEPTS
+ a name, then its marker files: elixir mix.exs · *.csproj matches by ending
+ NOW
+ 5 types
+ config: [[git.type]]"
+`;
+
+exports[`recorded view fixtures > git_settings-links at 80x24 1`] = `
+"── settings ──
+  + link a repo to your clone   the repo's path, then the folder
+── link to a local folder ──
+ Tie a repo to the clone you work in. A link wins over the clone radar finds by
+ its origin, and the clone need not be under a folder radar looks in.
+ ACCEPTS
+ a canonical HTTPS repository URL or legacy full path (acme/team-a/api), then
+ the folder of your clone
+ NOW
+ 0 links
+ config: [[git.link]]"
+`;
+
+exports[`recorded view fixtures > git_settings-links at 160x40 1`] = `
+"── settings ──
+  + link a repo to your clone   the repo's path, then the folder
+── link to a local folder ──
+ Tie a repo to the clone you work in. A link wins over the clone radar finds by its origin, and the clone need not be under a folder radar looks in.
+ ACCEPTS
+ a canonical HTTPS repository URL or legacy full path (acme/team-a/api), then the folder of your clone
+ NOW
+ 0 links
+ config: [[git.link]]"
+`;
+
+exports[`recorded view fixtures > github_github at 80x24 1`] = `
+"── views ──
+ Everything                                                             2 repos
+ ◆ acme                                                                 2 repos
+── repositories ──
+ ◆ github.com/acme                                                      2 repos
+   ▤ acme/api                                                             2 PRs
+     #42  Keep background refreshes tied to their request                  open
+     #43  Document the public endpoints                                   draft
+   ▤ acme/docs                                                            0 PRs
+── acme/api #42 ──
+  ⌂ local folder    no matching origin; link a folder or scan configured
+ folders
+ Keep background refreshes tied to their request
+ state  open
+ author  alice
+ from  alice/api:refresh-ownership
+ into  acme/api:main
+ head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+ DESCRIPTION ──────────────────────────────────────────────────────────────────
+   What changed
+   Responses stay with the repository and commit they were requested for.
+   • Keep the selected pull request stable
+   • Show unavailable checks honestly
+   See the design notes."
+`;
+
+exports[`recorded view fixtures > github_github at 160x40 1`] = `
+"── views ──
+ Everything                                                                                                                                             2 repos
+ ◆ acme                                                                                                                                                 2 repos
+── repositories ──
+ ◆ github.com/acme                                                                                                                                      2 repos
+   ▤ acme/api                                                                                                                                             2 PRs
+     #42  Keep background refreshes tied to their request                                                                                                  open
+     #43  Document the public endpoints                                                                                                                   draft
+   ▤ acme/docs                                                                                                                                            0 PRs
+── acme/api #42 ──
+  ⌂ local folder    no matching origin; link a folder or scan configured folders
+ Keep background refreshes tied to their request
+ state  open
+ author  alice
+ from  alice/api:refresh-ownership
+ into  acme/api:main
+ head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+ DESCRIPTION ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   What changed
+   Responses stay with the repository and commit they were requested for.
+   • Keep the selected pull request stable
+   • Show unavailable checks honestly
+   See the design notes."
+`;
+
+exports[`recorded view fixtures > github_github-page1-overview-checks-actions at 80x24 1`] = `
+"── Overview ──
+ Pull request details have not been loaded."
+`;
+
+exports[`recorded view fixtures > github_github-page1-overview-checks-actions at 160x40 1`] = `
+"── Overview ──
+ Pull request details have not been loaded."
+`;
+
+exports[`recorded view fixtures > github_github-page1-overview-pull-requests-actions at 80x24 1`] = `
+"── Overview ──
+ visibility  public
+ default branch  main
+ archived  no
+ ACTIONS ──────────────────────────────────────────────────────────────────────
+   Latest observed Actions on main
+   failure  Build and test · #88 attempt 2 · updated 2026-10-06T10:05:00Z
+   Observed workflows only; this does not establish overall repository health.
+ DESCRIPTION ──────────────────────────────────────────────────────────────────
+   An example API service. Read the contribution guide."
+`;
+
+exports[`recorded view fixtures > github_github-page1-overview-pull-requests-actions at 160x40 1`] = `
+"── Overview ──
+ visibility  public
+ default branch  main
+ archived  no
+ ACTIONS ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Latest observed Actions on main
+   failure  Build and test · #88 attempt 2 · updated 2026-10-06T10:05:00Z
+   Observed workflows only; this does not establish overall repository health.
+ DESCRIPTION ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   An example API service. Read the contribution guide."
+`;
+
+exports[`recorded view fixtures > github_github-page2-overview-checks-actions at 80x24 1`] = `
+"── Overview ──
+ Pull request details have not been loaded."
+`;
+
+exports[`recorded view fixtures > github_github-page2-overview-checks-actions at 160x40 1`] = `
+"── Overview ──
+ Pull request details have not been loaded."
+`;
+
+exports[`recorded view fixtures > github_github-page2-overview-jobs at 80x24 1`] = `
+"── Overview ──
+ workflow  Build and test
+ result  failure
+ run  #88 · id 501 · attempt 2
+ latest observed attempt  2
+ event  push
+ branch  main
+ commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+ created  2026-10-06T10:00:00Z
+ updated  2026-10-06T10:05:00Z
+ Keep responses with their request"
+`;
+
+exports[`recorded view fixtures > github_github-page2-overview-jobs at 160x40 1`] = `
+"── Overview ──
+ workflow  Build and test
+ result  failure
+ run  #88 · id 501 · attempt 2
+ latest observed attempt  2
+ event  push
+ branch  main
+ commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+ created  2026-10-06T10:00:00Z
+ updated  2026-10-06T10:05:00Z
+ Keep responses with their request"
+`;
+
+exports[`recorded view fixtures > github_settings-connection at 80x24 1`] = `
+"── settings ──
+  server          https://api.github.com
+  token           configured token
+  check           GitHub connection
+  refresh         once on start, then on request
+── server ──
+ NOW
+ https://api.github.com
+ The GitHub API radar talks to: api.github.com for github.com, or your own
+ GitHub Enterprise Server or a local server. The token is sent only to this
+ address.
+ ACCEPTS
+ https://api.github.com · a GitHub Enterprise Server's https://HOST/api/v3 ·
+ http://127.0.0.1:PORT for a local server
+ config: [github] api"
+`;
+
+exports[`recorded view fixtures > github_settings-connection at 160x40 1`] = `
+"── settings ──
+  server          https://api.github.com
+  token           configured token
+  check           GitHub connection
+  refresh         once on start, then on request
+── server ──
+ NOW
+ https://api.github.com
+ The GitHub API radar talks to: api.github.com for github.com, or your own GitHub Enterprise Server or a local server. The token is sent only to this address.
+ ACCEPTS
+ https://api.github.com · a GitHub Enterprise Server's https://HOST/api/v3 · http://127.0.0.1:PORT for a local server
+ config: [github] api"
+`;
+
+exports[`recorded view fixtures > github_settings-repositories at 80x24 1`] = `
+"── settings ──
+ create a group or add a repository
+ ◆  github.com/acme
+   ├─ api
+   └─ docs
+── create a group or add a repository ──
+ Create groups and choose repositories. Press a to browse, e to edit, d to
+ remove, or m to move a repository."
+`;
+
+exports[`recorded view fixtures > github_settings-repositories at 160x40 1`] = `
+"── settings ──
+ create a group or add a repository
+ ◆  github.com/acme
+   ├─ api
+   └─ docs
+── create a group or add a repository ──
+ Create groups and choose repositories. Press a to browse, e to edit, d to remove, or m to move a repository."
+`;
+
+exports[`recorded view fixtures > gitlab_repos at 80x24 1`] = `
+"── views ──
+ ⇄ Everything
+ ◎ Needs my action                                                            2
+ ☻ Opened by me
+ ⚇ Opened by teammates
+ ◙ Opened by bots
+── Everything ──
+ OPENED BY ⚇ everyone · 4 repos           ⋮ STATE             ↺ UPDAT ☻ FOR YO
+▌ ◆ B team-b
+▌ └─ ▤ worker                                                 —       ⇄ 1 MR
+▌    └─ ◌ !342 change 342  ☻ you          ◌ draft             16m     draft
+▌ ◆ A team-a   main red in 1
+▌ ├─ ⌂ api  ⎇ alice/ABC-12                ✓ passed            4d      ⇄ 1 MR
+▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoi ◎ needs 1 approval  16m     review
+▌ ├─ ⌂ web  ⎇ main                        ✗ failed            4d      ⇄ 2 MRs
+▌ │  ├─ ⇄ !187 change 187  ☻ you          ✓ ready to merge    16m     ready
+▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_ ◎ needs 1 approval  16m     bot
+▌ └─ ▤ docs                               ✓ passed            4d      —
+── team-b ──
+ ◆ b acme/team-b
+ repos       1 shown · 0 hidden
+ with MRs    1 repos, in this view
+ open MRs    1"
+`;
+
+exports[`recorded view fixtures > gitlab_repos at 160x40 1`] = `
+"── views ──
+ ⇄ Everything
+ ◎ Needs my action                                                                                                                                            2
+ ☻ Opened by me
+ ⚇ Opened by teammates
+ ◙ Opened by bots
+── Everything ──
+ OPENED BY ⚇ everyone · 4 repos                                                ⋮ STATE             TICKET                  ✓ APPROVAL ❝ THREA ↺ UPDAT ☻ FOR YO
+▌ ◆ B team-b
+▌ └─ ▤ worker                                                                                                                                 —       ⇄ 1 MR
+▌    └─ ◌ !342 change 342  ☻ you                                               ◌ draft             ABC-342                 0 of 1     ❝ 1 ope 16m     draft
+▌ ◆ A team-a   main red in 1
+▌ ├─ ⌂ api  ⎇ alice/ABC-12                                                     ✓ passed                                                       4d      ⇄ 1 MR
+▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint for the dashboard  ☺ alice         ◎ needs 1 approval  ▣ ABC-12 · In Progress  0 of 1     ❝ 1 ope 16m     review
+▌ ├─ ⌂ web  ⎇ main                                                             ✗ failed                                                       4d      ⇄ 2 MRs
+▌ │  ├─ ⇄ !187 change 187  ☻ you                                               ✓ ready to merge    ABC-187                 ✓ 1 of 1   ❝ 1 ope 16m     ready
+▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc                                   ◎ needs 1 approval  ABC-198                 0 of 1     ❝ 1 ope 16m     bot
+▌ └─ ▤ docs                                                                    ✓ passed                                                       4d      —
+── team-b ──
+ ◆ b acme/team-b
+ repos       1 shown · 0 hidden
+ with MRs    1 repos, in this view
+ open MRs    1"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page1-merge-requests-pipelines-on-main at 80x24 1`] = `
+"── pipelines on main ──
+── why main is red ──
+ ✗ unit-test               test · 1m 14s · it ran out of time
+   │ no error recognised; its last lines:
+   │ waiting for the stack to settle
+   │ still waiting (19m)
+   │ still waiting (20m)"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page1-merge-requests-pipelines-on-main at 160x40 1`] = `
+"── pipelines on main ──
+── why main is red ──
+ ✗ unit-test               test · 1m 14s · it ran out of time
+   │ no error recognised; its last lines:
+   │ waiting for the stack to settle
+   │ still waiting (19m)
+   │ still waiting (20m)"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket at 80x24 1`] = `
+"── overview ──
+ loading…
+ TICKET
+ ABC-198 · not fetched yet: its page has it
+ ❝ LATEST ACTIVITY
+ │ ☺ Bob Example · 1h ago
+ │ Should this read from the cached view? The dashboard polls every 30s.
+── can it merge? ──
+ ◎ needs 1 approval
+ ✓ pipeline passed
+ ✓ no conflicts, up to date
+ ◎ needs 1 approval (0 of 1)
+ ❝ 1 open thread
+ ✓ not a draft
+ for you: opened by a bot"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket at 160x40 1`] = `
+"── overview ──
+ loading…
+ TICKET
+ ABC-198 · not fetched yet: its page has it
+ ❝ LATEST ACTIVITY
+ │ ☺ Bob Example · 1h ago
+ │ Should this read from the cached view? The dashboard polls every 30s.
+── can it merge? ──
+ ◎ needs 1 approval
+ ✓ pipeline passed
+ ✓ no conflicts, up to date
+ ◎ needs 1 approval (0 of 1)
+ ❝ 1 open thread
+ ✓ not a draft
+ for you: opened by a bot"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page1-repos at 80x24 1`] = `
+"── repos ──
+ ∅ Nothing here."
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page1-repos at 160x40 1`] = `
+"── repos ──
+ ∅ Nothing here."
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page2-log at 80x24 1`] = `
+"── log ──
+ waiting for the stack to settle
+ still waiting (19m)
+ still waiting (20m)
+ ERROR: Job failed: execution took longer than 20m0s seconds"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page2-log at 160x40 1`] = `
+"── log ──
+ waiting for the stack to settle
+ still waiting (19m)
+ still waiting (20m)
+ ERROR: Job failed: execution took longer than 20m0s seconds"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page2-merge-requests-pipelines-on-main at 80x24 1`] = `
+"── merge requests ──
+        ☻ FOR Y TITLE   ☺ AUTHOR    ⋮ STATE           TICKET            ↺ UPDAT
+ ⇄ !263 review          ☺ alice     ◎ needs 1 approva ▣ ABC-12 · In Pro 16m"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page2-merge-requests-pipelines-on-main at 160x40 1`] = `
+"── merge requests ──
+        ☻ FOR YO TITLE                                                                            ☺ AUTHOR    ⋮ STATE            TICKET                 ↺ UPDAT
+ ⇄ !263 review   ABC-12: Add a stats endpoint for the dashboard                                   ☺ alice     ◎ needs 1 approval ▣ ABC-12 · In Progres… 16m"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket at 80x24 1`] = `
+"── overview ──
+ loading…
+ TICKET
+ ABC-198 · not fetched yet: its page has it
+ ❝ LATEST ACTIVITY
+ │ ☺ Bob Example · 1h ago
+ │ Should this read from the cached view? The dashboard polls every 30s.
+── can it merge? ──
+ ◎ needs 1 approval
+ ✓ pipeline passed
+ ✓ no conflicts, up to date
+ ◎ needs 1 approval (0 of 1)
+ ❝ 1 open thread
+ ✓ not a draft
+ for you: opened by a bot"
+`;
+
+exports[`recorded view fixtures > gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket at 160x40 1`] = `
+"── overview ──
+ loading…
+ TICKET
+ ABC-198 · not fetched yet: its page has it
+ ❝ LATEST ACTIVITY
+ │ ☺ Bob Example · 1h ago
+ │ Should this read from the cached view? The dashboard polls every 30s.
+── can it merge? ──
+ ◎ needs 1 approval
+ ✓ pipeline passed
+ ✓ no conflicts, up to date
+ ◎ needs 1 approval (0 of 1)
+ ❝ 1 open thread
+ ✓ not a draft
+ for you: opened by a bot"
+`;
+
+exports[`recorded view fixtures > gitlab_settings-connection at 80x24 1`] = `
+"── settings ──
+  server          https://gitlab.com
+  base group      acme
+  token           env:GITLAB_TOKEN
+  signed in as    me
+  check           not checked yet
+  refresh         every 1m
+  merged, closed  the last 14 days
+── server ──
+ CHECKED
+ not checked yet
+ NOW
+ https://gitlab.com
+ The GitLab server radar talks to.
+ ACCEPTS
+ https://gitlab.com or your own server's address
+ config: [gitlab] url"
+`;
+
+exports[`recorded view fixtures > gitlab_settings-connection at 160x40 1`] = `
+"── settings ──
+  server          https://gitlab.com
+  base group      acme
+  token           env:GITLAB_TOKEN
+  signed in as    me
+  check           not checked yet
+  refresh         every 1m
+  merged, closed  the last 14 days
+── server ──
+ CHECKED
+ not checked yet
+ NOW
+ https://gitlab.com
+ The GitLab server radar talks to.
+ ACCEPTS
+ https://gitlab.com or your own server's address
+ config: [gitlab] url"
+`;
+
+exports[`recorded view fixtures > gitlab_settings-look at 80x24 1`] = `
+"── settings ──
+ MERGE REQUEST STATES
+    review   a merge request open for your review                warning · bold
+    fix                                                            error · bold
+    ready    yours, and ready to merge: nothing in its way       success · bold
+    waiting  yours, waiting on approvals or a running pipeline             info
+    draft    your draft                                              muted text
+    you      the reader, in place of their own name                      accent
+    team     a teammate's merge request, not asking you          secondary text
+    bot      a merge request from a bot                              muted text
+    merged   a merge request that was merged                       third accent
+    closed   a merge request closed without merging         muted text · italic
+    label    a merge request's labels                            links and keys
+ PIPELINES
+    passed   a pipeline that passed                                     success
+    failed   a pipeline that failed                                error · bold
+    running  a pipeline that is running                                    info
+    manual   a pipeline waiting for a manual job                           info
+    pending  a pipeline that has not started                         muted text
+    canceled a pipeline that was canceled                            muted text
+    skipped  a pipeline that was skipped                             muted text
+ TENANCIES
+    code                                                   tenancy's own · bold
+    shown    a repo shown in merge requests                             success
+    hidden   a repo you have hidden                                  muted text
+── review ──
+ How a merge request open for your review is drawn.
+   sample  review
+ colour    ██ warning
+           the theme's warning colour, used for things that want you: review,
+ unsaved
+ emphasis  bold
+ What each colour looks like is set in colours, under general.
+ config: [gitlab.style] review"
+`;
+
+exports[`recorded view fixtures > gitlab_settings-look at 160x40 1`] = `
+"── settings ──
+ MERGE REQUEST STATES
+    review   a merge request open for your review                                                                                                warning · bold
+    fix      yours, and what is in its way is yours to do: a rebase, conflicts, a red pipeline, open threads                                       error · bold
+    ready    yours, and ready to merge: nothing in its way                                                                                       success · bold
+    waiting  yours, waiting on approvals or a running pipeline                                                                                             info
+    draft    your draft                                                                                                                              muted text
+    you      the reader, in place of their own name                                                                                                      accent
+    team     a teammate's merge request, not asking you                                                                                          secondary text
+    bot      a merge request from a bot                                                                                                              muted text
+    merged   a merge request that was merged                                                                                                       third accent
+    closed   a merge request closed without merging                                                                                         muted text · italic
+    label    a merge request's labels                                                                                                            links and keys
+ PIPELINES
+    passed   a pipeline that passed                                                                                                                     success
+    failed   a pipeline that failed                                                                                                                error · bold
+    running  a pipeline that is running                                                                                                                    info
+    manual   a pipeline waiting for a manual job                                                                                                           info
+    pending  a pipeline that has not started                                                                                                         muted text
+    canceled a pipeline that was canceled                                                                                                            muted text
+    skipped  a pipeline that was skipped                                                                                                             muted text
+ TENANCIES
+    code     a tenancy's code; its colour is the tenancy's own                                                                             tenancy's own · bold
+    shown    a repo shown in merge requests                                                                                                             success
+    hidden   a repo you have hidden                                                                                                                  muted text
+ REPOSITORIES TREE
+    band     the shade behind every other repo and its merge requests                                                                                  overlays
+    heading  the shade behind a tenancy's heading                                                                                                      overlays
+    lines    the tree lines joining repos and merge requests                                                                                         muted text
+── review ──
+ How a merge request open for your review is drawn.
+   sample  review
+ colour    ██ warning
+           the theme's warning colour, used for things that want you: review, unsaved
+ emphasis  bold
+ What each colour looks like is set in colours, under general.
+ config: [gitlab.style] review"
+`;
+
+exports[`recorded view fixtures > gitlab_settings-tenancies at 80x24 1`] = `
+"── settings ──
+ + add a tenancy   paste a GitLab group or repo link, or its path
+▌ ● b    team-b   0 repos · 0 hidden
+▌ ● a    team-a   4 repos · 1 hidden
+▌ ├─ api                                                                shown
+▌ ├─ docs                                                               shown
+▌ ├─ tools/renovate                                                     hidden
+▌ └─ web                                                                shown
+── add a tenancy ──
+ Track another GitLab group (every repo in it), or one repo on its own.
+ PASTE OR TYPE ANY OF
+   https://gitlab.com/<base>/tenants/<group>/
+   /<part of base>/tenants/<group>/
+   tenants/<group>
+   a repo's link, or <group>/<repo>
+ Paths are taken under the base group acme.
+ radar offers to check it with GitLab once added; the check says whether it is
+ a group or a repo."
+`;
+
+exports[`recorded view fixtures > gitlab_settings-tenancies at 160x40 1`] = `
+"── settings ──
+ + add a tenancy   paste a GitLab group or repo link, or its path
+▌ ● b    team-b   0 repos · 0 hidden
+▌ ● a    team-a   4 repos · 1 hidden
+▌ ├─ api                                                                                                                                                shown
+▌ ├─ docs                                                                                                                                               shown
+▌ ├─ tools/renovate                                                                                                                                     hidden
+▌ └─ web                                                                                                                                                shown
+── add a tenancy ──
+ Track another GitLab group (every repo in it), or one repo on its own.
+ PASTE OR TYPE ANY OF
+   https://gitlab.com/<base>/tenants/<group>/
+   /<part of base>/tenants/<group>/
+   tenants/<group>
+   a repo's link, or <group>/<repo>
+ Paths are taken under the base group acme.
+ radar offers to check it with GitLab once added; the check says whether it is a group or a repo."
+`;
+
+exports[`recorded view fixtures > gitlab_settings-views at 80x24 1`] = `
+"── settings ──
+  + new view   starts from everything; add conditions after
+  Everything    everything                                                    4
+  Needs my action open for your review or needing a fix or ready to merge     2
+  Opened by me  opened by you                                                 2
+  Opened by teammates not opened by you, not from bots                        1
+  Opened by bots from bots                                                    1
+── new view ──
+ Make another view for the merge requests nav pane.
+ Give it a name; it starts by showing every open merge request. Then add
+ conditions to it: by state, who opened it, tenancy, repo, label, merged or
+ closed, or words."
+`;
+
+exports[`recorded view fixtures > gitlab_settings-views at 160x40 1`] = `
+"── settings ──
+  + new view   starts from everything; add conditions after
+  Everything    everything                                                                                                                                    4
+  Needs my action open for your review or needing a fix or ready to merge                                                                                     2
+  Opened by me  opened by you                                                                                                                                 2
+  Opened by teammates not opened by you, not from bots                                                                                                        1
+  Opened by bots from bots                                                                                                                                    1
+── new view ──
+ Make another view for the merge requests nav pane.
+ Give it a name; it starts by showing every open merge request. Then add conditions to it: by state, who opened it, tenancy, repo, label, merged or closed, or
+ words."
+`;
+
+exports[`recorded view fixtures > jira_settings-connection at 80x24 1`] = `
+"── settings ──
+  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?
+  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?
+  + add a site   paste its link, e.g. https://acme.atlassian.net
+ ▌ acme   acme.atlassian.net · 2 projects
+    ├─ site            https://acme.atlassian.net
+    ├─ account         alice@example.com
+    ├─ token           env:RADAR_JIRA_TEST_TOKEN
+    ├─ signed in as    Alice Example
+    └─ check           not checked yet
+ ▌ beta   beta.atlassian.net · 1 project
+    ├─ site            https://beta.atlassian.net
+    ├─ account         alice@example.com
+    ├─ token           env:RADAR_JIRA_TEST_TOKEN
+    ├─ signed in as    —
+    └─ check           not checked yet
+  refresh         every 2m
+  on start        ask first
+── found in /work/acme/.mcp.json ──
+ radar found a Jira site in /work/acme/.mcp.json. Do you want to use it?
+ FOUND
+ gamma.atlassian.net  the site's address, as written
+ JIRA_EMAIL           the account
+ radar stores only the variables' names (env:NAME) and reads their values each
+ time it starts. It never shows the values or saves them.
+ It is the file's "tools" entry. It also watches GAM (acceptance criteria in
+ customfield_10044). Its token is typed into the file: radar does not copy it,
+ and asks which variable holds it.
+ IF YOU USE IT
+ radar adds the site gamma and asks which variable holds its token.
+ ⏎ uses it"
+`;
+
+exports[`recorded view fixtures > jira_settings-connection at 160x40 1`] = `
+"── settings ──
+  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?
+  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, JIRA_OTHER_API_TOKEN). Use it?
+  + add a site   paste its link, e.g. https://acme.atlassian.net
+ ▌ acme   acme.atlassian.net · 2 projects
+    ├─ site            https://acme.atlassian.net
+    ├─ account         alice@example.com
+    ├─ token           env:RADAR_JIRA_TEST_TOKEN
+    ├─ signed in as    Alice Example
+    └─ check           not checked yet
+ ▌ beta   beta.atlassian.net · 1 project
+    ├─ site            https://beta.atlassian.net
+    ├─ account         alice@example.com
+    ├─ token           env:RADAR_JIRA_TEST_TOKEN
+    ├─ signed in as    —
+    └─ check           not checked yet
+  refresh         every 2m
+  on start        ask first
+── found in /work/acme/.mcp.json ──
+ radar found a Jira site in /work/acme/.mcp.json. Do you want to use it?
+ FOUND
+ gamma.atlassian.net  the site's address, as written
+ JIRA_EMAIL           the account
+ radar stores only the variables' names (env:NAME) and reads their values each time it starts. It never shows the values or saves them.
+ It is the file's "tools" entry. It also watches GAM (acceptance criteria in customfield_10044). Its token is typed into the file: radar does not copy it, and
+ asks which variable holds it.
+ IF YOU USE IT
+ radar adds the site gamma and asks which variable holds its token.
+ ⏎ uses it"
+`;
+
+exports[`recorded view fixtures > jira_settings-look at 80x24 1`] = `
+"── settings ──
+ STATUSES
+    to do    a ticket not started                                secondary text
+    doing    a ticket being worked on                               info · bold
+    done     a finished ticket                                          success
+ TYPES
+    bug      a bug                                                        error
+    story    a story                                                    success
+    task     a task                                              links and keys
+    epic     an epic                                        third accent · bold
+    subtask  a sub-task                                          secondary text
+    other    any other type                                      secondary text
+ AGES
+    fresh    changed in the last 2 days                               main text
+    aging    changed in the last 2 weeks                                warning
+    stale    not changed for 2 weeks or more                         muted text
+ TICKETS
+    key      a ticket's key                                      links and keys
+    label    a ticket's labels                                   links and keys
+    you      "you", the reader, in place of their own name               accent
+    failed   a site or project that could not be reached                  error
+    acme     a site's name; its colour is the site's own      site's own · bold
+ TICKETS TREE
+    band     the shade behind every other ticket and its children      overlays
+    heading  the shade behind a site's heading                         overlays
+── to do ──
+ How a ticket not started is drawn.
+   sample  to do
+ colour    ██ secondary text
+           the theme's secondary text colour, used for repo names and secondary
+ values
+ emphasis  none
+ What each colour looks like is set in colours, under general.
+ config: [jira.style] "to do""
+`;
+
+exports[`recorded view fixtures > jira_settings-look at 160x40 1`] = `
+"── settings ──
+ STATUSES
+    to do    a ticket not started                                                                                                                secondary text
+    doing    a ticket being worked on                                                                                                               info · bold
+    done     a finished ticket                                                                                                                          success
+ TYPES
+    bug      a bug                                                                                                                                        error
+    story    a story                                                                                                                                    success
+    task     a task                                                                                                                              links and keys
+    epic     an epic                                                                                                                        third accent · bold
+    subtask  a sub-task                                                                                                                          secondary text
+    other    any other type                                                                                                                      secondary text
+ AGES
+    fresh    changed in the last 2 days                                                                                                               main text
+    aging    changed in the last 2 weeks                                                                                                                warning
+    stale    not changed for 2 weeks or more                                                                                                         muted text
+ TICKETS
+    key      a ticket's key                                                                                                                      links and keys
+    label    a ticket's labels                                                                                                                   links and keys
+    you      "you", the reader, in place of their own name                                                                                               accent
+    failed   a site or project that could not be reached                                                                                                  error
+    acme     a site's name; its colour is the site's own                                                                                      site's own · bold
+ TICKETS TREE
+    band     the shade behind every other ticket and its children                                                                                      overlays
+    heading  the shade behind a site's heading                                                                                                         overlays
+    lines    the tree lines joining statuses and tickets                                                                                             muted text
+── to do ──
+ How a ticket not started is drawn.
+   sample  to do
+ colour    ██ secondary text
+           the theme's secondary text colour, used for repo names and secondary values
+ emphasis  none
+ What each colour looks like is set in colours, under general.
+ config: [jira.style] "to do""
+`;
+
+exports[`recorded view fixtures > jira_settings-projects at 80x24 1`] = `
+"── settings ──
+▌ ⊕ acme  acme.atlassian.net
+▌ ├─ + watch a project   its key, or a link to it or a ticket
+▌ ├─ colour          ██ blue
+▌ ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050
+▌ └─ ▪ DEF     Acme DEF   acceptance criteria: not set
+▌ ⊕ beta  beta.atlassian.net
+▌ ├─ + watch a project   its key, or a link to it or a ticket
+▌ ├─ colour          ██ green
+▌ └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set
+── watch a project ──
+ Watch another project on acme.
+ PASTE OR TYPE ANY OF
+   ABC
+   a ticket's key or link: ABC-12
+   a board or project link"
+`;
+
+exports[`recorded view fixtures > jira_settings-projects at 160x40 1`] = `
+"── settings ──
+▌ ⊕ acme  acme.atlassian.net
+▌ ├─ + watch a project   its key, or a link to it or a ticket
+▌ ├─ colour          ██ blue
+▌ ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050
+▌ └─ ▪ DEF     Acme DEF   acceptance criteria: not set
+▌ ⊕ beta  beta.atlassian.net
+▌ ├─ + watch a project   its key, or a link to it or a ticket
+▌ ├─ colour          ██ green
+▌ └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set
+── watch a project ──
+ Watch another project on acme.
+ PASTE OR TYPE ANY OF
+   ABC
+   a ticket's key or link: ABC-12
+   a board or project link"
+`;
+
+exports[`recorded view fixtures > jira_settings-views at 80x24 1`] = `
+"── settings ──
+  + new view   starts from your tickets; add conditions after
+  My tickets        assigned to you, not done
+  This sprint       in an open sprint, in your watched projects
+  Recently updated  in your watched projects, updated in the last 14 days
+── new view ──
+ Make another view for the Jira nav pane.
+ Give it a name; it starts with your open tickets. Then add conditions from its
+ menu: who it is assigned to, status, sprint, project, type, label, when it
+ changed, or words. JQL by hand is there too."
+`;
+
+exports[`recorded view fixtures > jira_settings-views at 160x40 1`] = `
+"── settings ──
+  + new view   starts from your tickets; add conditions after
+  My tickets        assigned to you, not done
+  This sprint       in an open sprint, in your watched projects
+  Recently updated  in your watched projects, updated in the last 14 days
+── new view ──
+ Make another view for the Jira nav pane.
+ Give it a name; it starts with your open tickets. Then add conditions from its menu: who it is assigned to, status, sprint, project, type, label, when it
+ changed, or words. JQL by hand is there too."
+`;
+
+exports[`recorded view fixtures > jira_tickets at 80x24 1`] = `
+"── views ──
+ ☻ My tickets
+ ⊟ This sprint
+ ◇ Recently updated
+── My tickets ──
+ ASSIGNED TO ⚇ everyone          TYPE      STATUS          CODE        ↺ UPDAT
+▌ ⊕ acme  acme.atlassian.net
+▌ ├─ ◐ In Progress
+▌ │  └─ ✦ ABC-1 = Dashboard for  Epic      ◐ In Progress               2w
+▌ │     ├─ ▣ ABC-12 = Add a stat Story     ◐ In Progress   !263 review 1h
+▌ │     └─ ↳ ABC-13 = Count requ Sub-task  ◐ In Progress               1h
+▌ ├─ ◐ In Review
+▌ │  └─ ▣ DEF-3 = Rename the exp Story     ◐ In Review                 1h
+▌ └─ ○ To Do
+▌    └─ ✱ ABC-20 = Stats page sh Bug       ○ To Do                     9w
+▌ ⊕ beta  beta.atlassian.net
+▌ └─ ○ To Do
+▌    └─ ▣ XYZ-7 = Move the night Story     ○ To Do                     1h
+── acme ──
+ ▌ ⊕ acme  acme.atlassian.net
+ signed in   Alice Example
+ watching    ABC, DEF
+ IN THIS VIEW ─────────────────────────────────────────────────────────────────
+   ◐ doing 4
+   ○ to do 1"
+`;
+
+exports[`recorded view fixtures > jira_tickets at 160x40 1`] = `
+"── views ──
+ ☻ My tickets
+ ⊟ This sprint
+ ◇ Recently updated
+── My tickets ──
+ ASSIGNED TO ⚇ everyone                                                                                          TYPE      STATUS          CODE        ↺ UPDAT
+▌ ⊕ acme  acme.atlassian.net
+▌ ├─ ◐ In Progress
+▌ │  └─ ✦ ABC-1 = Dashboard for the stats  ☻ you                                                                 Epic      ◐ In Progress               2w
+▌ │     ├─ ▣ ABC-12 = Add a stats endpoint for the dashboard  ☻ you  ❝ discussed · 1                             Story     ◐ In Progress   !263 review 1h
+▌ │     └─ ↳ ABC-13 = Count requests per route  ☺ Bob E.                                                         Sub-task  ◐ In Progress               1h
+▌ ├─ ◐ In Review
+▌ │  └─ ▣ DEF-3 = Rename the export job  ☻ you                                                                   Story     ◐ In Review                 1h
+▌ └─ ○ To Do
+▌    └─ ✱ ABC-20 = Stats page shows yesterday twice  unassigned                                                  Bug       ○ To Do                     9w
+▌ ⊕ beta  beta.atlassian.net
+▌ └─ ○ To Do
+▌    └─ ▣ XYZ-7 = Move the nightly build  ☺ Alice E.                                                             Story     ○ To Do                     1h
+── acme ──
+ ▌ ⊕ acme  acme.atlassian.net
+ signed in   Alice Example
+ watching    ABC, DEF
+ IN THIS VIEW ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   ◐ doing 4
+   ○ to do 1"
+`;
+
+exports[`recorded view fixtures > jira_tickets-page1-overview-comments-links at 80x24 1`] = `
+"── overview ──
+ loading…
+ status        ◐ In Progress
+ type          Epic
+ priority      = Medium
+ assignee      ☻ you
+ reporter      ☺ Bob Example
+ sprint        …
+ labels        —
+ components    —
+ fix versions  —
+ created       ▦ 2w ago
+ updated       ↺ 2w ago
+ DESCRIPTION
+ What ABC-1 is about.
+ ACCEPTANCE CRITERIA
+ none written"
+`;
+
+exports[`recorded view fixtures > jira_tickets-page1-overview-comments-links at 160x40 1`] = `
+"── overview ──
+ loading…
+ DESCRIPTION
+ What ABC-1 is about.
+ ACCEPTANCE CRITERIA
+ none written
+── details ──
+ status        ◐ In Progress
+ type          Epic
+ priority      = Medium
+ assignee      ☻ you
+ reporter      ☺ Bob Example
+ sprint        …
+ labels        —
+ components    —
+ fix versions  —
+ created       ▦ 2w ago
+ updated       ↺ 2w ago"
+`;
+
+exports[`recorded view fixtures > jira_tickets-page1-overview-comments-links-code-slack-notes at 80x24 1`] = `
+"── overview ──
+ loading…                                                                      █
+                                                                               █
+ status        ◐ In Progress                                                   █
+ type          Story                                                           █
+ priority      = Medium                                                        █
+ assignee      ☻ you                                                           █
+ reporter      ☺ Bob Example                                                   █
+ sprint        …                                                               █
+ parent        ABC-1 Dashboard for the stats                                   █
+ labels        ⌗ #backend                                                      █
+ components    —                                                               █
+ fix versions  —                                                               █
+ created       ▦ 2w ago                                                        █
+ updated       ↺ 1h ago                                                        █
+                                                                               █
+ DESCRIPTION                                                                   █
+ What ABC-12 is about.                                                         █
+                                                                               █
+ ACCEPTANCE CRITERIA                                                           █
+ • GET /stats answers within 200 ms                                            ║
+ • counts are per day                                                          ║
+                                                                               ║
+ MERGE REQUESTS                                                                ║
+ api !263 · review · pipeline passed · approvals 0 of 1                        ║"
+`;
+
+exports[`recorded view fixtures > jira_tickets-page1-overview-comments-links-code-slack-notes at 160x40 1`] = `
+"── overview ──
+ loading…
+ DESCRIPTION
+ What ABC-12 is about.
+ ACCEPTANCE CRITERIA
+ • GET /stats answers within 200 ms
+ • counts are per day
+ MERGE REQUESTS
+ api !263 · review · pipeline passed · approvals 0 of 1
+   ABC-12: Add a stats endpoint for the dashboard
+ NOTES
+ # ABC-12: Add stats
+ Ticket: a story. Planned from 2026-01-01.
+ ## What we know
+── details ──
+ status        ◐ In Progress
+ type          Story
+ priority      = Medium
+ assignee      ☻ you
+ reporter      ☺ Bob Example
+ sprint        …
+ parent        ABC-1 Dashboard for the stats
+ labels        ⌗ #backend
+ components    —
+ fix versions  —
+ created       ▦ 2w ago
+ updated       ↺ 1h ago"
+`;
+
+exports[`recorded view fixtures > sessions_settings-agents at 80x24 1`] = `
+"── settings ──
+ COMMAND LINE TOOLS
+ ◷ Copilot       checking
+ ◷ Codex         checking
+ ◷ Claude Code   checking
+ NEW SESSIONS · FOR EVERY WORKSPACE
+ provider              Copilot
+ model                 the provider's own
+ working folder        where radar was started
+ permitted folders     none
+ skill folders         none
+ CLI's own config      yes
+ always allow          none
+ always deny           none
+ local only            yes
+ reviewer commands     yes
+ RECIPES AND REVIEWS
+ recipes folder        ~/.config/radar/recipes
+ recipe ask            v2 · built-in
+ recipe review-mr      v2 · built-in
+── Copilot ──
+ ◷ Reading the CLI's status…"
+`;
+
+exports[`recorded view fixtures > sessions_settings-agents at 160x40 1`] = `
+"── settings ──
+ COMMAND LINE TOOLS
+ ◷ Copilot       checking
+ ◷ Codex         checking
+ ◷ Claude Code   checking
+ NEW SESSIONS · FOR EVERY WORKSPACE
+ provider              Copilot
+ model                 the provider's own
+ working folder        where radar was started
+ permitted folders     none
+ skill folders         none
+ CLI's own config      yes
+ always allow          none
+ always deny           none
+ local only            yes
+ reviewer commands     yes
+ RECIPES AND REVIEWS
+ recipes folder        ~/.config/radar/recipes
+ recipe ask            v2 · built-in
+ recipe review-mr      v2 · built-in
+ reviews folder        radar's state folder
+ WHILE YOU ARE AWAY
+ desktop notifications no
+── Copilot ──
+ ◷ Reading the CLI's status…"
+`;
+
+exports[`recorded view fixtures > slack_feed at 80x24 1`] = `
+"── feed ──
+ @ For you                                                                    4
+ ❝ Discussions
+ ▌ # #team                                                                6 NEW
+ ▌ # #svc                                                                 1 NEW
+── For you ──
+ last 7 days                                                ↩ REPLIE ◷ WHEN
+@ mentions you
+  └─ • #team Bob B.  @Alice Example could you take this one          1d
+@ direct messages
+  └─ • #D0000CAROL Carol C.  hi @Alice Example, quick quest          1h
+❝ threads you are in
+  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main?  ↩ 1      1d
+  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats  ↩ 2      2d
+── Bob Builder's message ──
+ ── #team · yesterday ──
+ ● 09:11  Bob Builder
+     @Alice Example could you take this one?"
+`;
+
+exports[`recorded view fixtures > slack_feed at 160x40 1`] = `
+"── feed ──
+ @ For you                                                                                                                                                    4
+ ❝ Discussions
+ ▌ # #team                                                                                                                                                6 NEW
+ ▌ # #svc                                                                                                                                                 1 NEW
+── For you ──
+ last 7 days                                                                                                                                ↩ REPLIE ◷ WHEN
+@ mentions you
+  └─ • #team Bob B.  @Alice Example could you take this one?                                                                                         1d
+@ direct messages
+  └─ • #D0000CAROL Carol C.  hi @Alice Example, quick question about the stats                                                                       1h
+❝ threads you are in
+  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯                                                        ↩ 1      1d
+  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard ⋯                                                     ↩ 2      2d
+── Bob Builder's message ──
+ ── #team · yesterday ──
+ ● 09:11  Bob Builder
+     @Alice Example could you take this one?"
+`;
+
+exports[`recorded view fixtures > slack_feed-page1-thread-links at 80x24 1`] = `
+"── thread ──
+ ── today ──
+ 04:16  Carol Coder  The service is being upgraded at noon"
+`;
+
+exports[`recorded view fixtures > slack_feed-page1-thread-links at 160x40 1`] = `
+"── thread ──
+ ── today ──
+ 04:16  Carol Coder  The service is being upgraded at noon"
+`;
+
+exports[`recorded view fixtures > slack_settings-alerts at 80x24 1`] = `
+"── settings ──
+ + add a mapping   the start of an alert's name, then where it belongs
+ keep resolved    24 hours
+── add a mapping ──
+ Say where a kind of alert belongs.
+ Type the start of its name; the repo it belongs to is asked next. The service,
+ a label to match and an environment can be set under the rule. The first rule
+ that matches an alert decides."
+`;
+
+exports[`recorded view fixtures > slack_settings-alerts at 160x40 1`] = `
+"── settings ──
+ + add a mapping   the start of an alert's name, then where it belongs
+ keep resolved    24 hours
+── add a mapping ──
+ Say where a kind of alert belongs.
+ Type the start of its name; the repo it belongs to is asked next. The service, a label to match and an environment can be set under the rule. The first rule
+ that matches an alert decides."
+`;
+
+exports[`recorded view fixtures > slack_settings-channels at 80x24 1`] = `
+"── settings ──
+ + add a channel   paste a link to it, or type #name
+ ▌ #team   #acme-team · team · watched
+   ├─ alias           team
+   ├─ purpose         where the team talks
+   ├─ kind            team
+   ├─ colour          ██ cyan
+   └─ watched         yes
+ ▌ #svc   #acme-svc · service · watched
+   ├─ alias           svc
+   ├─ purpose         —
+   ├─ kind            service
+   ├─ colour          ██ orange
+   └─ watched         yes
+ ▌ #try   #acme-try · test · not watched
+   ├─ alias           try
+   ├─ purpose         —
+   ├─ kind            test
+   ├─ colour          ██ green
+   └─ watched         no
+── add a channel ──
+ Read another channel.
+ PASTE OR TYPE ANY OF
+   a link to the channel or to a message in it
+   its id: C0123ABCD
+   #name
+ Slack is asked which channel it is; it is added as a team channel, watched,
+ called by its name in Slack. Change any of that below it."
+`;
+
+exports[`recorded view fixtures > slack_settings-channels at 160x40 1`] = `
+"── settings ──
+ + add a channel   paste a link to it, or type #name
+ ▌ #team   #acme-team · team · watched
+   ├─ alias           team
+   ├─ purpose         where the team talks
+   ├─ kind            team
+   ├─ colour          ██ cyan
+   └─ watched         yes
+ ▌ #svc   #acme-svc · service · watched
+   ├─ alias           svc
+   ├─ purpose         —
+   ├─ kind            service
+   ├─ colour          ██ orange
+   └─ watched         yes
+ ▌ #try   #acme-try · test · not watched
+   ├─ alias           try
+   ├─ purpose         —
+   ├─ kind            test
+   ├─ colour          ██ green
+   └─ watched         no
+── add a channel ──
+ Read another channel.
+ PASTE OR TYPE ANY OF
+   a link to the channel or to a message in it
+   its id: C0123ABCD
+   #name
+ Slack is asked which channel it is; it is added as a team channel, watched, called by its name in Slack. Change any of that below it."
+`;
+
+exports[`recorded view fixtures > slack_settings-connection at 80x24 1`] = `
+"── settings ──
+  workspace       Acme · https://acme.slack.com
+  api             https://slack.com
+  token           xoxp…ests (typed in)
+  signed in as    Alice Example  alice
+  check           not checked yet
+  refresh         every 2m
+  read back       7 days
+  permissions   ├─ public channels                                            ✓
+                ├─ private channels                                           ✓
+                ├─ for you                                                    ✓
+                ├─ names                                                      ✓
+                ├─ user groups                                                ✓
+                ├─ asking and replying                                        ✓
+                └─ reacting        needs reactions:write                      ✗
+── workspace ──
+ CHECKED
+ not checked yet
+ NOW
+ Acme · https://acme.slack.com
+ The Slack workspace the token is for: a user token belongs to one. The check
+ finds it."
+`;
+
+exports[`recorded view fixtures > slack_settings-connection at 160x40 1`] = `
+"── settings ──
+  workspace       Acme · https://acme.slack.com
+  api             https://slack.com
+  token           xoxp…ests (typed in)
+  signed in as    Alice Example  alice
+  check           not checked yet
+  refresh         every 2m
+  read back       7 days
+  permissions   ├─ public channels                                                                                                                            ✓
+                ├─ private channels                                                                                                                           ✓
+                ├─ for you                                                                                                                                    ✓
+                ├─ names                                                                                                                                      ✓
+                ├─ user groups                                                                                                                                ✓
+                ├─ asking and replying                                                                                                                        ✓
+                └─ reacting        needs reactions:write                                                                                                      ✗
+── workspace ──
+ CHECKED
+ not checked yet
+ NOW
+ Acme · https://acme.slack.com
+ The Slack workspace the token is for: a user token belongs to one. The check finds it."
+`;
+
+exports[`recorded view fixtures > slack_settings-look at 80x24 1`] = `
+"── settings ──
+ MESSAGES
+   density  how a thread's messages are laid out                        compact
+   author   who wrote a message                                  links and keys
+   you      the reader, in place of their own name                       accent
+   pinged   a mention of you or your groups                      warning · bold
+   mention  a mention of someone else, a group or a channel        third accent
+   link     a link                                             info · underline
+   emoji    a custom emoji, shown as its :name:                      muted text
+   code     code, inline or in a block                              data string
+   quote    a quoted line                               secondary text · italic
+   new      what is new since you caught up                      success · bold
+   time     when                                                     muted text
+   channel  a channel's name                                   main text · bold
+ MESSAGES TREE
+   band     the shade behind every other thread                        overlays
+   heading  the shade behind a day's or a group's heading              overlays
+   lines    the tree lines joining threads and replies               muted text
+ ALERTS
+   firing   an alert that is firing                                error · bold
+   failed   a job that failed                                      error · bold
+   resolved an alert that resolved                                      success
+   priority an alert's priority                                         warning
+   unmapped an alert no rule places, and its group          muted text · italic
+── density ──
+ How the messages of a thread, the detail pane and a direct message are laid
+ out.
+ compact  in use
+ One line a message: the time, the author in a column, then the text. The
+ author is left blank for the same person within five minutes. A thin line
+ marks a new day, and a thread's replies sit under one divider. In a narrow
+ panel the author and time take a line and the text sits under it.
+ cozy
+ The roomier layout: the author, place and date on a line, the text under it,
+ the reactions on a line of their own, a blank line between messages, and
+ replies two cells in.
+ config: [slack] density = "compact" or "cozy""
+`;
+
+exports[`recorded view fixtures > slack_settings-look at 160x40 1`] = `
+"── settings ──
+ MESSAGES
+   density  how a thread's messages are laid out                                                                                                        compact
+   author   who wrote a message                                                                                                                  links and keys
+   you      the reader, in place of their own name                                                                                                       accent
+   pinged   a mention of you or your groups                                                                                                      warning · bold
+   mention  a mention of someone else, a group or a channel                                                                                        third accent
+   link     a link                                                                                                                             info · underline
+   emoji    a custom emoji, shown as its :name:                                                                                                      muted text
+   code     code, inline or in a block                                                                                                              data string
+   quote    a quoted line                                                                                                               secondary text · italic
+   new      what is new since you caught up                                                                                                      success · bold
+   time     when                                                                                                                                     muted text
+   channel  a channel's name                                                                                                                   main text · bold
+ MESSAGES TREE
+   band     the shade behind every other thread                                                                                                        overlays
+   heading  the shade behind a day's or a group's heading                                                                                              overlays
+   lines    the tree lines joining threads and replies                                                                                               muted text
+ ALERTS
+   firing   an alert that is firing                                                                                                                error · bold
+   failed   a job that failed                                                                                                                      error · bold
+   resolved an alert that resolved                                                                                                                      success
+   priority an alert's priority                                                                                                                         warning
+   unmapped an alert no rule places, and its group                                                                                          muted text · italic
+── density ──
+ How the messages of a thread, the detail pane and a direct message are laid out.
+ compact  in use
+ One line a message: the time, the author in a column, then the text. The author is left blank for the same person within five minutes. A thin line marks a new
+ day, and a thread's replies sit under one divider. In a narrow panel the author and time take a line and the text sits under it.
+ cozy
+ The roomier layout: the author, place and date on a line, the text under it, the reactions on a line of their own, a blank line between messages, and replies
+ two cells in.
+ config: [slack] density = "compact" or "cozy""
+`;
+
+exports[`recorded view fixtures > slack_settings-review at 80x24 1`] = `
+"── settings ──
+ channel          team
+ user group       @review-squad
+ template         {group} :gitlab: {mrs}
+ link text        mr
+ test channel     try
+ ask again        after 2 working days without a reply
+── channel ──
+ Where review asks go. The user group is mentioned only here.
+ ACCEPTS
+ a channel in the registry
+ NOW
+ team
+ config: [slack.review] channel
+── detail ──
+ Where review asks go. The user group is mentioned only here.
+ ACCEPTS
+ a channel in the registry
+ NOW
+ team
+ WITH A SAMPLE MERGE REQUEST
+ @review-squad :gitlab: mr Add a stats endpoint for the dashboard
+ WITH TWO
+ @review-squad :gitlab:
+ • api !263 Add a stats endpoint for the dashboard
+ • web !12 Show the stats
+ config: [slack.review] channel"
+`;
+
+exports[`recorded view fixtures > slack_settings-review at 160x40 1`] = `
+"── settings ──
+ channel          team
+ user group       @review-squad
+ template         {group} :gitlab: {mrs}
+ link text        mr
+ test channel     try
+ ask again        after 2 working days without a reply
+── channel ──
+ Where review asks go. The user group is mentioned only here.
+ ACCEPTS
+ a channel in the registry
+ NOW
+ team
+ config: [slack.review] channel
+── detail ──
+ Where review asks go. The user group is mentioned only here.
+ ACCEPTS
+ a channel in the registry
+ NOW
+ team
+ WITH A SAMPLE MERGE REQUEST
+ @review-squad :gitlab: mr Add a stats endpoint for the dashboard
+ WITH TWO
+ @review-squad :gitlab:
+ • api !263 Add a stats endpoint for the dashboard
+ • web !12 Show the stats
+ config: [slack.review] channel"
+`;
+
+exports[`recorded view fixtures > workbench_work at 80x24 1`] = `
+"── local groups ──
+ All items
+ release candidate
+── work items · page 1 ──
+ Ship explicit work-item navigation                                        task
+ pull-request · acme/api/7                                         pull-request
+ ticket · ABC-12                                                         ticket
+ checkout · /home/user/projects/api                                    checkout
+ workflow-run · acme/api/42/1                                      workflow-run
+── linked sources and context ──
+ Exact sources · j/k select · x actions
+ pull-request · acme/api/7
+ authored
+ Local work saved.
+ Ship explicit work-item navigation
+ Local groups: release candidate
+ Selected pull-request: acme/api/7
+ authored link · c copy locator · x actions
+ Locator event in this page: source.selected · requested
+ v history: original claims and outcomes · completeness not guaranteed
+ Titles and groups are authored locally. Relations do not imply identity,
+ permission or completion.
+ Task item ID: 10000000-0000-4000-8000-000000000001
+ Source identity details
+ Provider: forge
+ Instance: https://forge.example/
+ Source item: 10000000-0000-4000-8000-000000000006
+ Action interval: 1 through open-ended
+ ticket · ABC-12
+ authored
+ checkout · /home/user/projects/api
+ authored
+ workflow-run · acme/api/42/1
+ authored
+── map ──
+shown simply: this needs work.map
+ 1 groups · 5 items on page 1
+ Ship explicit work-item navigation · task
+ pull-request · acme/api/7 · pull-request
+ ticket · ABC-12 · ticket
+ checkout · /home/user/projects/api · checkout
+ workflow-run · acme/api/42/1 · workflow-run
+── timeline ──
+shown simply: this needs work.timeline
+ #1 map · authored
+ #2 map · authored
+ #3 map · authored
+ #6 map · authored
+ #9 map · authored
+ #12 map · authored
+ #15 map · authored
+ #16 map · authored
+ #17 map · authored
+── tabs ──
+shown simply: this needs work.tabs
+ ○ 00000001
+ ● linked sources
+ ○ evidence
+── actions ──
+shown simply: this needs work.rail
+ create a local task…
+ refresh local work
+ filter this item page…
+ apply local group label…
+ inspect bounded evidence…"
+`;
+
+exports[`recorded view fixtures > workbench_work at 160x40 1`] = `
+"── local groups ──
+ All items
+ release candidate
+── work items · page 1 ──
+ Ship explicit work-item navigation                                                                                                                        task
+ pull-request · acme/api/7                                                                                                                         pull-request
+ ticket · ABC-12                                                                                                                                         ticket
+ checkout · /home/user/projects/api                                                                                                                    checkout
+ workflow-run · acme/api/42/1                                                                                                                      workflow-run
+── linked sources and context ──
+ Exact sources · j/k select · x actions
+ pull-request · acme/api/7
+ authored
+ Local work saved.
+ Ship explicit work-item navigation
+ Local groups: release candidate
+ Selected pull-request: acme/api/7
+ authored link · c copy locator · x actions
+ Locator event in this page: source.selected
+ · requested
+ v history: original claims and outcomes ·
+ completeness not guaranteed
+ Titles and groups are authored locally.
+ Relations do not imply identity, permission
+ or completion.
+ Task item ID:
+ 10000000-0000-4000-8000-000000000001
+ Source identity details
+ Provider: forge
+ Instance: https://forge.example/
+ Source item:
+ 10000000-0000-4000-8000-000000000006
+ Action interval: 1 through open-ended
+ ticket · ABC-12
+ authored
+ checkout · /home/user/projects/api
+ authored
+ workflow-run · acme/api/42/1
+ authored
+── map ──
+shown simply: this needs work.map
+ 1 groups · 5 items on page 1
+ Ship explicit work-item navigation · task
+ pull-request · acme/api/7 · pull-request
+ ticket · ABC-12 · ticket
+ checkout · /home/user/projects/api · checkout
+ workflow-run · acme/api/42/1 · workflow-run
+── timeline ──
+shown simply: this needs work.timeline
+ #1 map · authored
+ #2 map · authored
+ #3 map · authored
+ #6 map · authored
+ #9 map · authored
+ #12 map · authored
+ #15 map · authored
+ #16 map · authored
+ #17 map · authored
+── tabs ──
+shown simply: this needs work.tabs
+ ○ 00000001
+ ● linked sources
+ ○ evidence
+── actions ──
+shown simply: this needs work.rail
+ create a local task…
+ refresh local work
+ filter this item page…
+ apply local group label…
+ inspect bounded evidence…"
+`;
+
+exports[`recorded view fixtures > workspace_local-repositories at 80x24 1`] = `
+"── local repositories ──
+ acme
+── details ──
+ /work/acme
+ Repositories are read from this workspace's clones folder.
+ Enter opens the workspace in your editor"
+`;
+
+exports[`recorded view fixtures > workspace_local-repositories at 160x40 1`] = `
+"── local repositories ──
+ acme
+── details ──
+ /work/acme
+ Repositories are read from this workspace's clones folder.
+ Enter opens the workspace in your editor"
+`;
+
+exports[`recorded view fixtures > workspace_settings-workspaces at 80x24 1`] = `
+"── settings ──
+  ? Found in /work/other: a workspace with 3 clones. Use it?
+  + add a workspace   a folder of clones
+ acme        /work/acme                                               14 clones
+── found in /work/other ──
+ radar found a workspace at /work/other. Do you want to use it?
+ FOUND
+ folder    /work/other
+ clones    3 clones in it
+ A git repo whose folder holds other clones. Using it makes it a workspace: its
+ tickets' notes are read from it, and the editor and a terminal open at its
+ top.
+ config: [[workspace.space]]"
+`;
+
+exports[`recorded view fixtures > workspace_settings-workspaces at 160x40 1`] = `
+"── settings ──
+  ? Found in /work/other: a workspace with 3 clones. Use it?
+  + add a workspace   a folder of clones
+ acme        /work/acme                                                                                                                               14 clones
+── found in /work/other ──
+ radar found a workspace at /work/other. Do you want to use it?
+ FOUND
+ folder    /work/other
+ clones    3 clones in it
+ A git repo whose folder holds other clones. Using it makes it a workspace: its tickets' notes are read from it, and the editor and a terminal open at its top.
+ config: [[workspace.space]]"
+`;

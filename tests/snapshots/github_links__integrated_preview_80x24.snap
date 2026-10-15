@@ -1,0 +1,28 @@
+---
+source: tests/github_links.rs
+expression: text
+---
+ radar    R   J   S   B   History   Settings (,)         synced 25s ago  ✎ edit
+╭ views ───────────────╮╭ repositories ────────────────────────────────────────╮
+│ Everything   2 repos ││ github.com/acme                              2 repos │
+│ acme         2 repos ││   acme/api                                     2 PRs │
+│                      ││     #42  Keep background refreshes tied to thei open │
+│                      ││     #43  Document the public endpoints         draft │
+│                      ││   acme/docs                                    0 PRs │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu                  github jira slack

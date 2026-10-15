@@ -1,0 +1,18 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "foot_text(24, 14, \"every shelf you opened, newest first\")"
+---
+╭ views ───────────────╮
+│ Everything           │
+│ Mine                 │
+│ Waiting              │
+│                      │
+│                      │
+│                      │
+│                      │
+│                      │
+│─ shows ──────────────│
+│ every shelf you      │
+│ opened, newest first │
+│                      │
+╰──────────────────────╯

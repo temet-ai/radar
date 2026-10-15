@@ -1,0 +1,7 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+#team · 2 new in the last 7 days (no caught-up mark yet)
+  Tue 6 Oct 04:13 Carol Coder      morning
+  Tue 6 Oct 07:00 Bob Builder      @review-squad :gitlab: mr please  · 2 replies

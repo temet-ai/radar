@@ -1,0 +1,328 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "repo",
+      "id": "",
+      "label": "web"
+    },
+    {
+      "id": "gitlab.page.open",
+      "key": {
+        "key": "enter"
+      },
+      "label": "open unit-test's log"
+    },
+    {
+      "id": "gitlab.page.open_link",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open the repo in GitLab"
+    },
+    {
+      "id": "gitlab.page.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the repo's link"
+    },
+    {
+      "id": "gitlab.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page and its tenancy"
+    },
+    {
+      "id": "gitlab.page.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab: Merge requests"
+    },
+    {
+      "id": "gitlab.page.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab: Merge requests"
+    },
+    {
+      "id": "gitlab.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the middle pane"
+    },
+    {
+      "id": "gitlab.page.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Repositories"
+      },
+      {
+        "look": "tenant.green bold",
+        "text": "a"
+      },
+      {
+        "ink": "emphasis",
+        "text": "web"
+      }
+    ],
+    "details": [
+      {
+        "icon": "branch"
+      },
+      {
+        "ink": "accent_secondary",
+        "text": "main "
+      },
+      {
+        "icon": "run_failed",
+        "icon_lead": true,
+        "text": "✗ "
+      },
+      {
+        "look": "status.error bold",
+        "text": "failed"
+      },
+      {
+        "ink": "muted",
+        "text": " · active 4d ago"
+      }
+    ],
+    "layout": {
+      "axis": "vertical",
+      "kind": "split",
+      "parts": [
+        {
+          "layout": {
+            "index": 1,
+            "kind": "pane"
+          },
+          "size": {
+            "kind": "length",
+            "value": 7
+          }
+        },
+        {
+          "layout": {
+            "index": 0,
+            "kind": "pane"
+          },
+          "size": {
+            "kind": "fill",
+            "value": 1
+          }
+        }
+      ]
+    },
+    "panes": [
+      {
+        "body": {
+          "cut": true,
+          "lines": [],
+          "node": "document"
+        },
+        "head": [
+          {
+            "ink": "muted",
+            "text": "loading…"
+          }
+        ],
+        "pane": "middle",
+        "title": "pipelines on main"
+      },
+      {
+        "body": {
+          "empty": "loading…",
+          "node": "entries",
+          "rows": [
+            {
+              "body": [
+                [
+                  {
+                    "ink": "accent_muted",
+                    "text": "  │ "
+                  },
+                  {
+                    "ink": "muted",
+                    "text": "no error recognised; its last lines:"
+                  }
+                ],
+                [
+                  {
+                    "ink": "accent_muted",
+                    "text": "  │ "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "waiting for the stack to settle"
+                  }
+                ],
+                [
+                  {
+                    "ink": "accent_muted",
+                    "text": "  │ "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "still waiting (19m)"
+                  }
+                ],
+                [
+                  {
+                    "ink": "accent_muted",
+                    "text": "  │ "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "still waiting (20m)"
+                  }
+                ]
+              ],
+              "head": [
+                {
+                  "icon": "run_failed",
+                  "icon_lead": true,
+                  "ink": "bad",
+                  "text": "✗ "
+                },
+                {
+                  "ink": "primary",
+                  "strong": true,
+                  "text": "unit-test               "
+                },
+                {
+                  "ink": "accent_secondary",
+                  "text": "test"
+                },
+                {
+                  "ink": "muted",
+                  "text": " · 1m 14s"
+                },
+                {
+                  "ink": "bad",
+                  "text": " · it ran out of time"
+                }
+              ],
+              "target": "row:0"
+            }
+          ],
+          "selected": 0
+        },
+        "pane": "middle",
+        "title": "why main is red"
+      }
+    ],
+    "tab": 1,
+    "tabs": [
+      {
+        "icon": "change",
+        "label": "Merge requests · 2"
+      },
+      {
+        "icon": "pipeline",
+        "label": "Pipelines on main"
+      }
+    ],
+    "title": [
+      {
+        "icon": "repo"
+      },
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "acme/team-a/web"
+      }
+    ],
+    "under": [
+      {
+        "icon": "local"
+      },
+      {
+        "ink": "muted",
+        "text": "checkout  "
+      },
+      {
+        "icon": "terminal",
+        "target": "under:0"
+      },
+      {
+        "ink": "accent",
+        "target": "under:0",
+        "text": "terminal"
+      },
+      {
+        "ink": "muted",
+        "text": "  "
+      },
+      {
+        "icon": "editor",
+        "target": "under:1"
+      },
+      {
+        "ink": "accent",
+        "target": "under:1",
+        "text": "editor"
+      },
+      {
+        "ink": "muted",
+        "text": "  "
+      },
+      {
+        "text": "/work/acme/web"
+      },
+      {
+        "ink": "muted",
+        "text": " · node"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "icon": "branch"
+      },
+      {
+        "ink": "muted",
+        "text": "on main"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "repos",
+  "version": 1
+}

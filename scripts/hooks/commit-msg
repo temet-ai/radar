@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Refuses a commit message with a private word in it (see pre-commit for the list).
+set -euo pipefail
+
+list=${RADAR_PRIVATE_WORDS:-$HOME/.config/radar-dev/private-words.txt}
+if [ ! -s "$list" ]; then
+    echo "commit-msg: no private word list at $list" >&2
+    exit 1
+fi
+patterns=$(mktemp)
+trap 'rm -f "$patterns"' EXIT
+grep -v -E '^[[:space:]]*(#|$)' "$list" > "$patterns" || true
+if grep -v -E '^#' "$1" | grep -n -i -E -f "$patterns" >&2; then
+    echo "commit-msg: refused, the message has a private word in it (list: $list)" >&2
+    exit 1
+fi

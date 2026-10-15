@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Colours
+ The kit: every element on sample data                            colours: none
+ Rows & states  Entries & log  Markdown  Diff  Motion  [Colours]  Tones  Row st
+╭ slots ──────────────────────────────────────────────────────────────────────╮
+│ BACKGROUNDS                                                                 │█
+│ ██████ bg.base          #0a0812  the screen behind every panel              │█
+│ ██████ bg.surface       #12101a  inside each panel                          │█
+│ ██████ bg.overlay       #1a162a  menus, help, and the selected row of a pan │█
+│ ██████ bg.selection     #44475a  the selected row of the focused panel      │█
+│ ██████ bg.hover         #2a263e  what a click would act on, under the mouse │█
+│ TEXT                                                                        │█
+│ ██████ text.primary     #f8f8f2  body text everywhere                       │║
+│ ██████ text.secondary   #e9d5ff  repo names and secondary values            │║
+│ ██████ text.muted       #6272a4  labels, times, empty states                │║
+│ ██████ text.emphasis    #ffffff  titles and the selected row                │║
+│ ACCENTS                                                                     │║
+│ ██████ accent.primary   #e135ff  focused panel borders and shortcut letters │║
+│ ██████ accent.muted     #9580ff  borders of panels without focus            │║
+│ ██████ accent.secondary #80ffea  links, branches, keys in the help bar      │║
+│ ██████ accent.tertiary  #ff6ac1  spare accent for plugins                   │║
+│ STATUS                                                                      │║
+│ ██████ status.success   #50fa7b  things that are fine: passed, ready, shown │║
+│ ██████ status.warning   #f1fa8c  things that want you: review, unsaved      │
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

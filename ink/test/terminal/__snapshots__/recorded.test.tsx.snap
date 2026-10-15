@@ -1,0 +1,71 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`recorded less-80x24 > parses to a screen of the recorded size whose rows are all that wide 1`] = `
+"warn step 01  unused import in src/term.rs:11
+note step 02  漢字 wide characters and  true colour 
+err  step 03  nothing, this is a recording
+ok   step 04  built crate gg-sessions-pty in 4.12s
+warn step 05  unused import in src/term.rs:15
+note step 06  漢字 wide characters and  true colour 
+err  step 07  nothing, this is a recording
+ok   step 08  built crate gg-sessions-pty in 1.24s
+warn step 09  unused import in src/term.rs:19
+note step 10  漢字 wide characters and  true colour 
+err  step 11  nothing, this is a recording
+ok   step 12  built crate gg-sessions-pty in 5.36s
+warn step 13  unused import in src/term.rs:23
+note step 14  漢字 wide characters and  true colour 
+err  step 15  nothing, this is a recording
+ok   step 16  built crate gg-sessions-pty in 2.48s
+warn step 17  unused import in src/term.rs:27
+note step 18  漢字 wide characters and  true colour 
+err  step 19  nothing, this is a recording
+ok   step 20  built crate gg-sessions-pty in 6.60s
+warn step 21  unused import in src/term.rs:31
+note step 22  漢字 wide characters and  true colour 
+err  step 23  nothing, this is a recording
+sample.txt"
+`;
+
+exports[`recorded less-160x40 > parses to a screen of the recorded size whose rows are all that wide 1`] = `
+"warn step 01  unused import in src/term.rs:11
+note step 02  漢字 wide characters and  true colour 
+err  step 03  nothing, this is a recording
+ok   step 04  built crate gg-sessions-pty in 4.12s
+warn step 05  unused import in src/term.rs:15
+note step 06  漢字 wide characters and  true colour 
+err  step 07  nothing, this is a recording
+ok   step 08  built crate gg-sessions-pty in 1.24s
+warn step 09  unused import in src/term.rs:19
+note step 10  漢字 wide characters and  true colour 
+err  step 11  nothing, this is a recording
+ok   step 12  built crate gg-sessions-pty in 5.36s
+warn step 13  unused import in src/term.rs:23
+note step 14  漢字 wide characters and  true colour 
+err  step 15  nothing, this is a recording
+ok   step 16  built crate gg-sessions-pty in 2.48s
+warn step 17  unused import in src/term.rs:27
+note step 18  漢字 wide characters and  true colour 
+err  step 19  nothing, this is a recording
+ok   step 20  built crate gg-sessions-pty in 6.60s
+warn step 21  unused import in src/term.rs:31
+note step 22  漢字 wide characters and  true colour 
+err  step 23  nothing, this is a recording
+ok   step 24  built crate gg-sessions-pty in 3.72s
+warn step 25  unused import in src/term.rs:35
+note step 26  漢字 wide characters and  true colour 
+err  step 27  nothing, this is a recording
+ok   step 28  built crate gg-sessions-pty in 0.84s
+warn step 29  unused import in src/term.rs:39
+note step 30  漢字 wide characters and  true colour 
+err  step 31  nothing, this is a recording
+ok   step 32  built crate gg-sessions-pty in 4.96s
+warn step 33  unused import in src/term.rs:43
+note step 34  漢字 wide characters and  true colour 
+err  step 35  nothing, this is a recording
+ok   step 36  built crate gg-sessions-pty in 1.08s
+warn step 37  unused import in src/term.rs:47
+note step 38  漢字 wide characters and  true colour 
+err  step 39  nothing, this is a recording
+sample.txt"
+`;

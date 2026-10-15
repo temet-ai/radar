@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cells and type</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:72px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:860px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.h3{font-family:"GGMono",monospace;font-weight:700;font-size:17px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.mono{font-family:"GGMono",monospace}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.big{font-size:38.71px;line-height:60.39px}
+.r{white-space:pre;display:block;min-height:22.645px}
+.big .r{min-height:60.39px}
+.p{color:#f8f8f2}.s{color:#e9d5ff}.m{color:#6272a4}.e{color:#fff;font-weight:700}.a{color:#e135ff}.am{color:#9580ff}.k{color:#80ffea}.t3{color:#ff6ac1}.ok{color:#50fa7b}.wn{color:#f1fa8c}.bd{color:#ff6363}.in{color:#82aaff}.n{color:#ffb86c}.bb{color:#0a0812}
+.Bs{background:#12101a}.Bo{background:#1a162a}.Bsel{background:#44475a}.Bh{background:#2a263e}.Ba{background:#e135ff}
+.b{font-weight:700}.i{font-style:italic}.u{text-decoration:underline;text-underline-offset:3px}.uc{text-decoration:underline wavy #ff6363;text-underline-offset:4px}.st{text-decoration:line-through}.rev{background:#f8f8f2;color:#12101a}
+.grid24{background-image:linear-gradient(to right,rgba(149,128,255,.35) 1px,transparent 1px),linear-gradient(to bottom,rgba(149,128,255,.35) 1px,transparent 1px);background-size:24px 60.39px}
+.tbl{display:grid;grid-template-columns:200px 360px minmax(0,1fr);column-gap:28px;row-gap:0}
+.tbl>div{padding:12px 0;border-bottom:1px solid #221e33;display:flex;align-items:center}
+.tbl .term{white-space:pre}
+.wide{display:inline-block;width:48px;text-align:center}
+.pix{display:inline-block;width:9px;height:22.645px;vertical-align:top}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 24px">
+    <p class="eyebrow">02 · cells &amp; type</p>
+    <h1 class="h1">The terminal's face,<br>and others where they count.</h1>
+    <p class="lede">The terminal's own font is radar's working face: every row, every key, every number in a column. Hierarchy inside it comes from colour slots, weight, case, spacing and the attributes a terminal knows. Where a moment deserves more, a title, a splash, a screen with nothing on it, Ink can bring in other faces: bigger text through kitty's text sizing, a display face drawn as a picture, and Unicode's own letterforms.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 56px; align-items: start">
+    <div class="panel" style="padding: 32px; display: flex; flex-direction: column; gap: 18px; background: #0d0b16">
+      <div class="term big grid24" style="align-self: flex-start">
+        <div class="r"><span class="a">&#xf407;</span><span class="p"> !187 </span><span class="ok">&#xf49e;</span><span class="p"> </span><span class="wide">&#x1F44B;</span><span class="p"> ok</span></div>
+      </div>
+      <div class="mono" style="display: grid; grid-template-columns: 24px 24px 24px 24px 24px 24px 24px 24px 24px 48px 24px 24px 24px; font-size: 11px; color: #9580ff; text-align: center">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10·11</span><span>12</span><span>13</span><span>14</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 class="h2">The cell</h2>
+      <p class="note">One column by one row; every layout is counted in them. Letters, box drawing and nerd icons take one cell. Emoji take two, so the emoji pack is the only one that is two wide, and its rows are laid out for it.</p>
+      <p class="note">Ink measures each grapheme before it places it; a row that does not fit is cut with <span class="mono k">…</span>, never in the middle of an icon or a wide glyph.</p>
+      <div class="term" style="display: flex; flex-direction: column; gap: 2px; margin-top: 6px">
+        <div class="r"><span class="m">reference cell  </span><span class="s">9 × 22.6 px here (Ghostty, 0xProto)</span></div>
+        <div class="r"><span class="m">aspect          </span><span class="s">about 1 : 2.5</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; align-items: baseline; gap: 20px"><h2 class="h2">The hierarchy, as drawn</h2><p class="note">An item page: every voice radar has, on one screen.</p></div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: start">
+      <div class="panel" style="padding: 22px 24px; background: #12101a">
+        <div class="term">
+          <div class="r"><span class="m">acme / api / </span><span class="e">!263</span></div>
+          <div class="r"><span class="e">ABC-12: Add a stats endpoint</span><span>                     </span><span class="m">opened 4d ago by </span><span class="s">alice</span></div>
+          <div class="r"><span class="k">&#xf418; alice/ABC-12</span><span class="m"> → </span><span class="k">main</span><span class="m">  ·  </span><span class="n">3</span><span class="m"> commits  ·  </span><span class="ok">+128</span><span class="m"> </span><span class="bd">−41</span></div>
+          <div class="r"> </div>
+          <div class="r"><span class="s">Overview  </span><span class="a b">[Changes · 2]</span><span class="s">  Threads</span></div>
+          <div class="r"> </div>
+          <div class="r"><span class="m b">REVIEW</span></div>
+          <div class="r"><span class="m">approvals  </span><span class="n">1</span><span class="m"> of </span><span class="n">2</span><span class="m">  ·  </span><span class="wn b">&#xf441; needs 1 approval</span></div>
+          <div class="r"><span class="m">pipeline   </span><span class="ok">&#xf49e; passed</span><span class="m"> in </span><span class="n">6m 12s</span></div>
+          <div class="r"> </div>
+          <div class="r"><span class="m b">DESCRIPTION</span></div>
+          <div class="r"><span class="p">Adds </span><span class="k">GET /stats</span><span class="p"> with counts per repo. Cached for a minute;</span></div>
+          <div class="r"><span class="p">the cache key is the group, so teams never see each other's.</span></div>
+          <div class="r"><span class="am">│ </span><span class="s i">needs the migration in !259 first</span></div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0">
+        <div class="tbl" style="grid-template-columns: 150px minmax(0, 1fr); column-gap: 18px">
+          <div class="mono e" style="font-size: 13px">crumbs</div><div class="note" style="font-size: 14px">muted, joined by /, the last one bold emphasis</div>
+          <div class="mono e" style="font-size: 13px">title</div><div class="note" style="font-size: 14px">text.emphasis bold; details pushed to the right edge in muted</div>
+          <div class="mono e" style="font-size: 13px">under line</div><div class="note" style="font-size: 14px">facts that name things: branches in cyan, numbers in orange</div>
+          <div class="mono e" style="font-size: 13px">tabs</div><div class="note" style="font-size: 14px">showing tab in [brackets], bold accent; others secondary</div>
+          <div class="mono e" style="font-size: 13px">SECTION</div><div class="note" style="font-size: 14px">upper case, bold, muted: a label, never a sentence</div>
+          <div class="mono e" style="font-size: 13px">fact rows</div><div class="note" style="font-size: 14px">muted label in a column, value in its own slot</div>
+          <div class="mono e" style="font-size: 13px">body</div><div class="note" style="font-size: 14px">text.primary; code and paths in accent.secondary</div>
+          <div class="mono e" style="font-size: 13px">quote</div><div class="note" style="font-size: 14px">│ bar in accent.muted, words secondary italic</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; align-items: center; gap: 20px"><h2 class="h2">Other faces</h2><span class="tag new">new in ink</span><p class="note">Three ways to bring in another face, each for a specific place. Every one falls back to the terminal face, bold.</p></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="h3">Sized text</h3><span class="mono" style="font-size: 12px; color: #8f86b3">kitty OSC 66</span></div>
+        <div class="term" style="background: #0a0812; border-radius: 4px; padding: 10px 12px">
+          <div class="r"><span class="m">acme / api / </span><span class="e">!263</span></div>
+          <div style="font-family: GGMono, monospace; font-weight: 700; font-size: 29.03px; line-height: 45.29px; color: #fff; white-space: pre">Stats endpoint</div>
+          <div class="r"><span class="k">&#xf418; alice/ABC-12</span><span class="m"> → </span><span class="k">main</span></div>
+        </div>
+        <p class="note"><span class="e mono" style="font-size: 13px">Where:</span> an item page's title, a dashboard head. The terminal draws the same font at two cells per cell, so it stays on the grid: two rows tall, two columns a letter.</p>
+        <p class="note" style="font-size: 13.5px">Checked 2026-10-13: only kitty 0.40+ draws it. Ghostty parses it but does not draw it yet (issue #10333), and WezTerm does not (#7814). radar's output layer also drops the sequence today. Elsewhere the title is one bold row. Parked.</p>
+      </div>
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="h3">A display face</h3><span class="mono" style="font-size: 12px; color: #8f86b3">drawn as a picture</span></div>
+        <div style="background: #0a0812; border-radius: 4px; padding: 18px 16px; display: flex; flex-direction: column; gap: 6px; align-items: center">
+          <span style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 44px; line-height: 1; background: linear-gradient(90deg, #e135ff, #ff6ac1 55%, #80ffea); -webkit-background-clip: text; background-clip: text; color: transparent">Nothing needs you.</span>
+          <span class="term m">no reviews, no red pipelines</span>
+        </div>
+        <p class="note"><span class="e mono" style="font-size: 13px">Where:</span> the splash, an empty screen, a done-for-the-day moment. Ink sets the line in Instrument Serif italic, draws it to a PNG and places it as a kitty image a whole number of cells wide.</p>
+        <p class="note" style="font-size: 13.5px">No image support: the same words in bold, one row.</p>
+      </div>
+      <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="h3">Unicode letterforms</h3><span class="mono" style="font-size: 12px; color: #8f86b3">any terminal</span></div>
+        <div class="term" style="background: #0a0812; border-radius: 4px; padding: 10px 12px">
+          <div class="r"><span class="m">small caps  </span><span class="am">ʀᴇᴠɪᴇᴡ · ᴅᴇꜱᴄʀɪᴘᴛɪᴏɴ</span></div>
+          <div class="r"><span class="m">sans bold   </span><span class="e">𝗴𝗴 𝘄𝗼𝗿𝗸</span></div>
+          <div class="r"><span class="m">script      </span><span class="t3">𝓈𝒾𝑔𝓃𝑒𝒹 𝑜𝒻𝒻</span></div>
+        </div>
+        <p class="note"><span class="e mono" style="font-size: 13px">Where:</span> section labels in small caps, a brand line, a sign-off. They are characters, so they go everywhere text goes.</p>
+        <p class="note" style="font-size: 13.5px">Risky: most monospace and Nerd fonts lack the mathematical letters, so they fall back to another font at a different width, and screen readers spell them out. Small caps are safer but uneven. Decoration only, never content.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; align-items: baseline; gap: 20px"><h2 class="h2">Attributes</h2><p class="note">The terminal's whole type ramp. Each one has a job; none is decoration.</p></div>
+    <div class="tbl">
+      <div class="mono m" style="font-size: 12px; letter-spacing: .12em">ATTRIBUTE</div><div class="mono m" style="font-size: 12px; letter-spacing: .12em">AS DRAWN</div><div class="mono m" style="font-size: 12px; letter-spacing: .12em">ITS JOB</div>
+      <div class="mono e" style="gap: 10px">bold <span class="tag ship">shipped</span></div><div class="term"><span class="e">ABC-12: Add a stats endpoint</span></div><div class="note">Titles, keys in hints, warning and error words, the chosen row. On no colour it carries focus alone.</div>
+      <div class="mono e" style="gap: 10px">underline <span class="tag ship">shipped</span></div><div class="term"><span class="p"><span class="k u">R</span>epositories  </span><span class="k u">acme/api!263</span></div><div class="note">The mnemonic letter of a tab, and links (OSC 8). On 16 colours and below it also marks hover.</div>
+      <div class="mono e" style="gap: 10px">italic <span class="tag ship">shipped</span></div><div class="term"><span class="am">│ </span><span class="s i">needs the migration first</span></div><div class="note">Quoted words and someone else's voice: quotes, previews of a message, placeholders.</div>
+      <div class="mono e" style="gap: 10px">reverse <span class="tag ship">shipped</span></div><div class="term"><span class="Ba bb b"> Repositories </span><span class="p">  filter </span><span class="Bo e">ap</span><span class="rev">i</span></div><div class="note">The tab bar when it holds the keys, and the caret in a field.</div>
+      <div class="mono e" style="gap: 10px">undercurl <span class="tag new">new in ink</span></div><div class="term"><span class="p">teh </span><span class="uc p">migraton</span><span class="p"> lands first</span></div><div class="note">A word the composer cannot accept, or a field that will not save, curled in status.error. Kitty, Ghostty, WezTerm, iTerm2, foot draw it. First radar's output layer must learn the coloured-underline code, which it misreads today.</div>
+      <div class="mono e" style="gap: 10px">strike <span class="tag new">new in ink</span></div><div class="term"><span class="m">&#xf4dc; </span><span class="m st">!171 old stats prototype</span><span class="m">  closed</span></div><div class="note">Closed, won't do, a resolved thread that is still listed. Muted as well, so it never competes.</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start">
+    <div style="display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; align-items: center; gap: 14px"><h2 class="h2">Punctuation</h2><span class="tag ship">shipped</span></div>
+      <p class="note">A small fixed vocabulary of joiners and marks, so the same thing always looks the same.</p>
+      <div class="panel" style="padding: 18px 22px">
+        <div class="term">
+          <div class="r"><span class="e">" · "  </span><span class="m">joins facts      </span><span class="s">4 open</span><span class="m"> · </span><span class="s">1 to review</span></div>
+          <div class="r"><span class="e">" / "  </span><span class="m">a path of places </span><span class="m">acme / api / </span><span class="e">!263</span></div>
+          <div class="r"><span class="e">"…"    </span><span class="m">cut text         </span><span class="s">ABC-12: Add a stats endp…</span></div>
+          <div class="r"><span class="e">"—"    </span><span class="m">no value         </span><span class="m">pipeline  —</span></div>
+          <div class="r"><span class="e">"⋯ n"  </span><span class="m">folded           </span><span class="m">┌ </span><span class="s">build</span><span class="m"> · 4s ⋯ 212 lines</span></div>
+          <div class="r"><span class="e">"─x─"  </span><span class="m">a rule, named    </span><span class="m">─ shows ───────────</span></div>
+          <div class="r"><span class="e">"│ "   </span><span class="m">a quote          </span><span class="am">│ </span><span class="s i">could you take this?</span></div>
+          <div class="r"><span class="e">"▌ "   </span><span class="m">a callout        </span><span class="wn">▌ </span><span class="p">deploys are frozen</span></div>
+          <div class="r"><span class="e">"• ◦"  </span><span class="m">bullets          </span><span class="a">• </span><span class="p">first </span><span class="am">◦ </span><span class="p">nested</span></div>
+          <div class="r"><span class="e">"☐ ☑"  </span><span class="m">todos            </span><span class="m">☐ </span><span class="p">migrate </span><span class="ok">☑ </span><span class="p">review</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; align-items: center; gap: 14px"><h2 class="h2">Display type</h2><span class="tag new">new in ink</span></div>
+      <p class="note">For the one number a screen is about, draw it: a 3 × 5 digit in half blocks, three rows tall, in the slot that says what it counts. Only on a dashboard head or an empty screen; never inside a list.</p>
+      <div class="panel" style="padding: 26px 28px; display: flex; gap: 40px; align-items: flex-end">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; flex-direction: column"><sc-for list="{{big1}}" as="row" hint-placeholder-count="3"><div style="display: flex; height: 22.645px"><sc-for list="{{row}}" as="c" hint-placeholder-count="8"><span class="pix" style="{{c}}"></span></sc-for></div></sc-for></div>
+          <div class="term"><div class="r"><span class="wn">&#xf441; </span><span class="m">to review</span></div></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; flex-direction: column"><sc-for list="{{big2}}" as="row" hint-placeholder-count="3"><div style="display: flex; height: 22.645px"><sc-for list="{{row}}" as="c" hint-placeholder-count="8"><span class="pix" style="{{c}}"></span></sc-for></div></sc-for></div>
+          <div class="term"><div class="r"><span class="ok">&#xf49e; </span><span class="m">ready</span></div></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; flex-direction: column"><sc-for list="{{big3}}" as="row" hint-placeholder-count="3"><div style="display: flex; height: 22.645px"><sc-for list="{{row}}" as="c" hint-placeholder-count="8"><span class="pix" style="{{c}}"></span></sc-for></div></sc-for></div>
+          <div class="term"><div class="r"><span class="bd">&#xf52f; </span><span class="m">failing</span></div></div>
+        </div>
+      </div>
+      <p class="note">Below truecolour the digits keep their shape (half blocks are plain text); with no blocks at all they fall back to the number in bold.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var F = {
+      '0': ['###', '#.#', '#.#', '#.#', '###'], '1': ['.#.', '##.', '.#.', '.#.', '###'], '2': ['###', '..#', '###', '#..', '###'],
+      '3': ['###', '..#', '.##', '..#', '###'], '4': ['#.#', '#.#', '###', '..#', '..#'], '5': ['###', '#..', '###', '..#', '###'],
+      '6': ['###', '#..', '###', '#.#', '###'], '7': ['###', '..#', '.#.', '.#.', '.#.'], '8': ['###', '#.#', '###', '#.#', '###'], '9': ['###', '#.#', '###', '..#', '###']
+    };
+    function draw(num, col) {
+      var px = ['', '', '', '', '', ''];
+      String(num).split('').forEach(function (d, i) {
+        for (var y = 0; y < 5; y++) px[y] += (i ? '.' : '') + F[d][y];
+      });
+      px[5] = px[0].replace(/./g, '.');
+      var rows = [];
+      for (var r = 0; r < 6; r += 2) {
+        var row = [];
+        for (var x = 0; x < px[0].length; x++) {
+          var t = px[r][x] === '#' ? col : 'transparent', b = px[r + 1][x] === '#' ? col : 'transparent';
+          row.push('background:linear-gradient(' + t + ' 0 50%,' + b + ' 50% 100%)');
+        }
+        rows.push(row);
+      }
+      return rows;
+    }
+    return { big1: draw(12, '#f1fa8c'), big2: draw(4, '#50fa7b'), big3: draw(1, '#ff6363') };
+  }
+}
+</script>
+</body>
+</html>

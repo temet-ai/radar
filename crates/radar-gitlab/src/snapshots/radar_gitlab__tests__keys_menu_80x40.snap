@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/lib.rs
+expression: "radar_core::shell::to_text(&host, 80, 40)"
+---
+ radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
+│ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
+│ Needs my action    2 ││▌ B team-b                                            │
+│ Opened by me         ││▌ └─ worker                                           │
+│ Opened by teammates  ││▌    └─ !342 change 342  you     ⊘ draft              │
+│ Opened by bots       ││▌ A team-a   main red in 1                            │
+│                      ││▌ ├─ api                         ✓ passed             │
+│                      ││▌ │  └─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
+│                      ││▌ ├─ web                         ✗ failed             │
+│                      ││▌ │  ├─ !187 change 187  you     ✓ ready to merge     │
+│                      ││▌ │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
+│        ╭ team-b ────────────────────────────────────────────────────╮        │
+│        │ ⏎       open its page                                      │        │
+│        │ space   hide its repos                                     │        │
+│        │ o       open the group in GitLab                           │        │
+│        │ y       copy the group's link                              │        │
+│        │ /       filter the view by words                           │        │
+│        │ .       show only repos with merge requests in the view    │        │
+│        │ r       refresh now                                        │        │
+│        │ :       go to a tenancy, repo or merge request…            │        │
+│        │ a       show one author's merge requests…                  │        │
+│        │ ctrl-r  kept comments…                                     │        │
+│        │ -       collapse this group                                │        │
+│        │ HISTORY                                                    │        │
+│        │ H       recent activity (last 24 hours)                    │        │
+│        │         all activity history                               │        │
+│        ╰────────────────────────────────────────────────────────────╯        │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││─ shows ──────────────────────────────────────────────│
+│                      ││ every open merge request · listing every repo, also  │
+│                      ││ those without                                        │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ REPOSITORIES   j/k move   ⏎ choose   esc close                          gitlab

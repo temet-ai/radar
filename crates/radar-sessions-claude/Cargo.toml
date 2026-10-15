@@ -1,0 +1,19 @@
+[package]
+name = "radar-sessions-claude"
+description = "radar-sessions adapter: Claude Code through the Agent SDK, in a supervised Node sidecar (sidecars/claude-agent)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+radar-sessions.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+tokio = { workspace = true, features = ["process", "io-util", "sync", "time", "rt"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros", "rt"] }

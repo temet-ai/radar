@@ -1,0 +1,280 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "watch a project on acme"
+    },
+    {
+      "id": "jira.projects.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type its key or paste a link"
+    },
+    {
+      "id": "jira.projects.recent",
+      "key": {
+        "key": {
+          "char": "p"
+        }
+      },
+      "label": "pick from Jira…"
+    },
+    {
+      "id": "jira.projects.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "body": {
+    "columns": [
+      {
+        "heading": "check",
+        "keep": 0,
+        "width": 10
+      }
+    ],
+    "look": {
+      "band": "bg.overlay",
+      "band_level": 2,
+      "heading": "bg.overlay",
+      "lines": "text.muted"
+    },
+    "name_width": 68,
+    "node": "tree",
+    "open": [
+      [
+        "0"
+      ],
+      [
+        "1"
+      ]
+    ],
+    "rows": [
+      {
+        "children": [
+          {
+            "id": "add",
+            "name": [
+              {
+                "ink": "accent",
+                "strong": true,
+                "text": "+ "
+              },
+              {
+                "ink": "accent_secondary",
+                "strong": true,
+                "text": "watch a project"
+              },
+              {
+                "ink": "muted",
+                "text": "   its key, or a link to it or a ticket"
+              }
+            ]
+          },
+          {
+            "id": "colour",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "colour          "
+              },
+              {
+                "look": "jira.blue",
+                "text": "██ "
+              },
+              {
+                "ink": "primary",
+                "text": "blue"
+              }
+            ]
+          },
+          {
+            "detail": [
+              {
+                "ink": "muted",
+                "text": "   acceptance criteria: customfield_10050"
+              }
+            ],
+            "id": "ABC",
+            "name": [
+              {
+                "icon": "folder"
+              },
+              {
+                "look": "accent.secondary",
+                "text": "ABC     "
+              },
+              {
+                "ink": "secondary",
+                "text": "Acme ABC"
+              }
+            ]
+          },
+          {
+            "detail": [
+              {
+                "ink": "muted",
+                "text": "   acceptance criteria: not set"
+              }
+            ],
+            "id": "DEF",
+            "name": [
+              {
+                "icon": "folder"
+              },
+              {
+                "look": "accent.secondary",
+                "text": "DEF     "
+              },
+              {
+                "ink": "secondary",
+                "text": "Acme DEF"
+              }
+            ]
+          }
+        ],
+        "heading": true,
+        "id": "0",
+        "name": [
+          {
+            "icon": "site"
+          },
+          {
+            "look": "jira.blue bold",
+            "text": "acme"
+          },
+          {
+            "ink": "muted",
+            "text": "  acme.atlassian.net"
+          }
+        ],
+        "stripe": "jira.blue"
+      },
+      {
+        "children": [
+          {
+            "id": "add",
+            "name": [
+              {
+                "ink": "accent",
+                "strong": true,
+                "text": "+ "
+              },
+              {
+                "ink": "accent_secondary",
+                "strong": true,
+                "text": "watch a project"
+              },
+              {
+                "ink": "muted",
+                "text": "   its key, or a link to it or a ticket"
+              }
+            ]
+          },
+          {
+            "id": "colour",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "colour          "
+              },
+              {
+                "look": "jira.green",
+                "text": "██ "
+              },
+              {
+                "ink": "primary",
+                "text": "green"
+              }
+            ]
+          },
+          {
+            "detail": [
+              {
+                "ink": "muted",
+                "text": "   acceptance criteria: not set"
+              }
+            ],
+            "id": "XYZ",
+            "name": [
+              {
+                "icon": "folder"
+              },
+              {
+                "look": "accent.secondary",
+                "text": "XYZ     "
+              },
+              {
+                "ink": "secondary",
+                "text": "Acme XYZ"
+              }
+            ]
+          }
+        ],
+        "heading": true,
+        "id": "1",
+        "name": [
+          {
+            "icon": "site"
+          },
+          {
+            "look": "jira.green bold",
+            "text": "beta"
+          },
+          {
+            "ink": "muted",
+            "text": "  beta.atlassian.net"
+          }
+        ],
+        "stripe": "jira.green"
+      }
+    ],
+    "selected": [
+      "0",
+      "add"
+    ]
+  },
+  "detail": [
+    [
+      {
+        "text": "Watch another project on acme."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "PASTE OR TYPE ANY OF"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  ABC"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  a ticket's key or link: ABC-12"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  a board or project link"
+      }
+    ]
+  ],
+  "detail_title": "watch a project",
+  "scope": "projects",
+  "version": 1
+}

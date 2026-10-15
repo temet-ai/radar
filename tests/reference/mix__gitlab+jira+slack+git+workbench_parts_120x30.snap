@@ -1,0 +1,34 @@
+---
+source: tests/mix.rs
+expression: text
+---
+ radar    Repositories   Jira   Slack   Branches   Work (I)   History   Settings (,)                                ✎ edit
+╭ settings ────────────╮╭ parts ─────────────────────────────────────────────────╮╭ GitLab ────────────────────────────╮
+│General               ││ COMPILED INTO THIS RADAR                                  ││ ○ not set up: Add a tenancy: a     █
+│  ├─ parts            ││                                                        ││ GitLab group or repo whose merge   █
+│  ├─ mode             ││ ○ GitLab   not set up                                  ││ requests to follow.                █
+│  ├─ colours          ││ ○ Jira     not set up                                  ││                                    █
+│  └─ icons            ││ ○ Slack    not set up                                  ││ has     merge requests, repos,     █
+│GitLab                ││ ✓ Git      set up                                      ││ pipelines, jobs                    █
+│  ├─ connection       ││ ✓ Work     set up                                      ││ opens   merge requests, repos,     █
+│  ├─ tenancies        ││                                                        ││ jobs on their own pages            █
+│  ├─ views            ││                                                        ││                                    █
+│  └─ look             ││                                                        ││ OTHER PARTS CAN ADD                █
+│Jira                  ││                                                        ││ · chips on merge request rows      █
+│  ├─ connection       ││                                                        ││ · chips on repo rows and page      █
+│  ├─ projects         ││                                                        ││ · a column on merge request lists  █
+│  ├─ views            ││                                                        ││ · a column on the repositories     █
+│  └─ look             ││                                                        ││ tree                               █
+│Slack                 ││                                                        ││ · a section on the merge request   █
+│  ├─ connection       ││                                                        ││ page and preview                   █
+│  ├─ channels         ││                                                        ││ · a tab on the merge request page  █
+│  ├─ review           ││                                                        ││ · a tab on the repo page           █
+│  ├─ alerts           ││                                                        ││ · actions on merge requests        █
+│  └─ look             ││                                                        ││ · actions on repos                 ║
+│Git                   ││                                                        ││ · actions on the job page          ║
+│  ├─ checkouts        ││                                                        ││ · a line on the merge request      ║
+│  ├─ editors          ││                                                        ││ page, under its title              ║
+│  ├─ links            ││                                                        ││ · a line on the repo page, under   ║
+│  └─ branches         ││                                                        ││ its title                          ║
+╰──────────────────────╯╰────────────────────────────────────────────────────────╯╰────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

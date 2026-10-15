@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1000
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Waiting
+ The kit: every element on sample data                                                                                                            colours: none
+ Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  [Waiting]  Long text  Icons
+╭ loading, and what fetching says ─────────────────────────────────────────────╮╭ failed ─────────────────────────────────────────────────────────────────────╮
+│ loading               loading…                                               ││ ✗ could not load: the server did not answer                                 │
+│ busy                  ⠷ asking the server…                                   ││ ✗ could not load: 401: the token was refused, so nothing could be listed an │
+│ fetching, nothing yet loading…                                               ││                                                                             │
+│ fetching, has rows    (nothing)                                              ││ ✗ the server said 401  2m ago                                               │
+│ fetching, error       ✗ could not load: the server did not answer            ││ ✗ not a link or a path                                                      │
+│ fetched               (nothing)                                              ││                                                                             │
+│ spinner frames        ⠷ ⠯ ⠟ ⠻ ⠽ ⠾                                            ││                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
+╭ empty ───────────────────────────────────────────────────────────────────────╮╭ set up (a part that is not) ────────────────────────────────────────────────╮
+│ No shelves yet. Press , for settings, then add one under shelves.            ││ Shelves is not set up yet.                                                  │
+│                                                                              ││                                                                             │
+│                                                                              ││ It needs a server and a token.                                              │
+│                                                                              ││                                                                             │
+│                                                                              ││ Press ⏎ to set it up in settings.                                           │
+│                                                                              ││                                                                             │
+│                                                                              ││                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

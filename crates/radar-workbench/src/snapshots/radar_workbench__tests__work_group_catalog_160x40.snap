@@ -1,0 +1,44 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ All items             ││ Keep selected while browsing groups                                            task ││ No source binding in this evidence page. Add │
+│ Unassigned group 0    ││                                                                                     ││ an exact source from its actions menu; no    │
+│ Unassigned  ambiguous ││                                                                                     ││ links are inferred.                          │
+│ Unassigned group 2    ││                                                                                     ││ Local work saved.                            │
+│ Unassigned group 3    ││                                                                                     ││ Keep selected while browsing groups          │
+│ Unassigned group 4    ││                                                                                     ││ v history: original claims and outcomes ·    │
+│ Unassigned group 5    ││                                                                                     ││ completeness not guaranteed                  │
+│ Unassigned group 6    ││                                                                                     ││ Titles and groups are authored locally.      │
+│ Unassigned group 7    ││                                                                                     ││ Relations do not imply identity, permission  │
+│ Unassigned group 8    ││                                                                                     ││ or completion.                               │
+│ Unassigned group 9    ││                                                                                     ││ Task item ID:                                │
+│ Unassigned group 10   ││                                                                                     ││ 10000000-0000-4000-8000-000000000001         │
+│ Unassigned group 11   ││                                                                                     ││                                              │
+│ Unassigned group 12   ││                                                                                     ││                                              │
+│ Unassigned group 13   ││                                                                                     ││                                              │
+│ Unassigned group 14   ││                                                                                     ││                                              │
+│ Unassigned group 15   ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

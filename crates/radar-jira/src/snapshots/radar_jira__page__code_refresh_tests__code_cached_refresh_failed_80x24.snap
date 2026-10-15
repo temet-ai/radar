@@ -1,0 +1,28 @@
+---
+source: crates/radar-jira/src/page_code_refresh_tests.rs
+expression: shown
+---
+ radar    Jira   History   Settings (,)       not synced yet · every 2m  ✎ edit
+ Jira › acme › ABC › ABC-12
+ Add a stats endpoint for the dashboard             ◐ In Progress · Story · you
+ parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
+ Overview  Comments · 3  Links · 4  [Code · 1]
+╭ code ────────────────────────────────────────────────────────────────────────╮
+│ ✗ Jira page could not sync: Jira refresh unavailable                         │
+│  api !263         open     ABC-12: Add a stats endpoint for the dashboard    │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ JIRA   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                 jira

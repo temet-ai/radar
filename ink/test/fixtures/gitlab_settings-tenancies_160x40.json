@@ -1,0 +1,262 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "add a tenancy"
+    },
+    {
+      "id": "gitlab.tenancies.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type or paste the group's link or path"
+    },
+    {
+      "id": "gitlab.tenancies.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "body": {
+    "columns": [
+      {
+        "heading": "",
+        "keep": 0,
+        "width": 7
+      }
+    ],
+    "look": {
+      "band": "",
+      "band_level": 1,
+      "heading": "",
+      "lines": "text.muted"
+    },
+    "name_width": 151,
+    "node": "tree",
+    "open": [
+      [
+        "t0"
+      ],
+      [
+        "t1"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "add",
+        "name": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a tenancy"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste a GitLab group or repo link, or its path"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   0 repos · 0 hidden"
+          }
+        ],
+        "id": "t0",
+        "name": [
+          {
+            "look": "tenant.cyan bold",
+            "text": "● "
+          },
+          {
+            "look": "tenant.cyan bold",
+            "text": "b    "
+          },
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "team-b"
+          }
+        ],
+        "stripe": "tenant.cyan"
+      },
+      {
+        "children": [
+          {
+            "cells": [
+              {
+                "heading": "",
+                "text": [
+                  {
+                    "look": "status.success",
+                    "text": "shown"
+                  }
+                ]
+              }
+            ],
+            "id": "api",
+            "name": [
+              {
+                "ink": "primary",
+                "text": "api"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "",
+                "text": [
+                  {
+                    "look": "status.success",
+                    "text": "shown"
+                  }
+                ]
+              }
+            ],
+            "id": "docs",
+            "name": [
+              {
+                "ink": "primary",
+                "text": "docs"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "",
+                "text": [
+                  {
+                    "look": "text.muted",
+                    "text": "hidden"
+                  }
+                ]
+              }
+            ],
+            "id": "tools/renovate",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "tools/renovate"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "",
+                "text": [
+                  {
+                    "look": "status.success",
+                    "text": "shown"
+                  }
+                ]
+              }
+            ],
+            "id": "web",
+            "name": [
+              {
+                "ink": "primary",
+                "text": "web"
+              }
+            ]
+          }
+        ],
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   4 repos · 1 hidden"
+          }
+        ],
+        "id": "t1",
+        "name": [
+          {
+            "look": "tenant.green bold",
+            "text": "● "
+          },
+          {
+            "look": "tenant.green bold",
+            "text": "a    "
+          },
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "team-a"
+          }
+        ],
+        "stripe": "tenant.green"
+      }
+    ],
+    "selected": [
+      "add"
+    ]
+  },
+  "detail": [
+    [
+      {
+        "text": "Track another GitLab group (every repo in it), or one repo on its own."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "PASTE OR TYPE ANY OF"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  https://gitlab.com/<base>/tenants/<group>/"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  /<part of base>/tenants/<group>/"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  tenants/<group>"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  a repo's link, or <group>/<repo>"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "Paths are taken under the base group acme."
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "radar offers to check it with GitLab once added; the check says whether it is a group or a repo."
+      }
+    ]
+  ],
+  "detail_title": "add a tenancy",
+  "scope": "tenancies",
+  "version": 1
+}

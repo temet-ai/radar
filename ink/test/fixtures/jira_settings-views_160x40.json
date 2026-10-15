@@ -1,0 +1,107 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "new view"
+    },
+    {
+      "id": "jira.views.new",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type its name"
+    },
+    {
+      "id": "jira.views.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "new view"
+          },
+          {
+            "ink": "muted",
+            "text": "   starts from your tickets; add conditions after"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "strong": true,
+            "text": " My tickets        "
+          },
+          {
+            "ink": "muted",
+            "text": "assigned to you, not done"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "strong": true,
+            "text": " This sprint       "
+          },
+          {
+            "ink": "muted",
+            "text": "in an open sprint, in your watched projects"
+          }
+        ]
+      },
+      {
+        "target": "row:3",
+        "text": [
+          {
+            "strong": true,
+            "text": " Recently updated  "
+          },
+          {
+            "ink": "muted",
+            "text": "in your watched projects, updated in the last 14 days"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "text": "Make another view for the Jira nav pane."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "Give it a name; it starts with your open tickets. Then add conditions from its menu: who it is assigned to, status, sprint, project, type, label, when it changed, or words. JQL by hand is there too."
+      }
+    ]
+  ],
+  "detail_title": "new view",
+  "scope": "views",
+  "version": 1
+}

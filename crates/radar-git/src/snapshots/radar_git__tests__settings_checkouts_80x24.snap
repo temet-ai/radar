@@ -1,0 +1,28 @@
+---
+source: crates/radar-git/src/tests.rs
+expression: "radar_core::shell::to_text(&host, 80, 24)"
+---
+ radar    Branches   History   Settings (,)                              ✎ edit
+╭ settings ────────────╮╭ checkouts ───────────────────────────────────────────╮
+│General               ││  + add a folder to look in   paste or type a folder  │
+│  ├─ parts            ││ folder     /work                             1 found │
+│  ├─ mode             ││ look down  4 folders                                 │
+│  ├─ colours          ││ terminal   found for you                             │
+│  └─ icons            ││ last look  2m ago                            1 found │
+│Git                   ││                                                      │
+│  ├─ checkouts        ││                                                      │
+│  ├─ editors          ││                                                      │
+│  ├─ links            ││                                                      │
+│  └─ branches         │╰──────────────────────────────────────────────────────╯
+│                      │╭ add a folder ────────────────────────────────────────╮
+│                      ││ Another folder to look for git checkouts in. radar   █
+│                      ││ matches each checkout to its repo by its origin      █
+│                      ││ remote.                                              █
+│                      ││                                                      █
+│                      ││ ACCEPTS                                              █
+│                      ││ a full path, or one starting with ~/ (pasted links   █
+│                      ││ to files work too)                                   █
+│                      ││                                                      ║
+│                      ││ NOW                                                  ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate

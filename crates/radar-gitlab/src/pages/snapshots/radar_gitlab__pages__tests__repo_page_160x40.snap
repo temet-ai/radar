@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(p, 160, 40)"
+---
+ radar    Repositories 1   History   Settings (,)                                                                                      ⠷ not synced yet  ✎ edit
+ Repositories › a › web
+ acme/team-a/web                                                                                                                  main ✗ failed · active 4d ago
+ Merge requests · 2  [Pipelines on main]
+╭ why main is red ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✗ unit-test               test · 1m 14s · it ran out of time                                                                                                 │
+│   │ no error recognised; its last lines:                                                                                                                     │
+│   │ waiting for the stack to settle                                                                                                                          │
+│   │ still waiting (19m)                                                                                                                                      │
+│   │ still waiting (20m)                                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ pipelines on main ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ loading…                                                                                                                                                     │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                       4 open · 1 to review · 1 ready  gitlab

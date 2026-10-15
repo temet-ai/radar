@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: screen
+---
+ History · read only · UTC · snapshot through #100
+ Scope: all recorded events
+ Recorded observations; coverage may be incomplete. Not task intent or
+permission.
+ Known recording gaps affect this scope; missing actions cannot be identified.
+╭ events · page 1 · oldest-first · more pages ─────────────────────────────────╮
+│ OBSERVED UTC         ACTION                  SUBJECT              OUTCOME    │
+│ 2026-10-11 10:40:01  card.refresh            sample:card ABC-42   requested  │
+│ 2026-10-11 10:40:02  card.refresh            sample:card ABC-42   started    │
+│ 2026-10-11 10:40:03  card.refresh            sample:card ABC-42   succeeded  │
+│ 2026-10-11 10:40:04  card.details            sample:card ABC-42   requested  │
+│ 2026-10-11 10:40:05  card.details            sample:card ABC-42   started    │
+│ 2026-10-11 10:40:06  card.details            sample:card ABC-42   partial    │
+│ 2026-10-11 10:40:07  card.details            sample:card ABC-42   unknown    │
+│ 2026-10-11 10:40:08  card.details            sample:card ABC-42   failed     │
+│ 2026-10-11 10:40:09  card.details            sample:card ABC-42   blocked    │
+│ 2026-10-11 10:40:10  card.details            sample:card ABC-42   cancelled  │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ j/k move · enter details · n/p pages · r refresh · x/? keys · esc close

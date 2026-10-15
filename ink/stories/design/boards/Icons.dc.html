@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Icons</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:64px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:880px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.mono{font-family:"GGMono",monospace}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;min-height:22.645px}
+.m{color:#6272a4}.p{color:#f8f8f2}.s{color:#e9d5ff}.e{color:#fff;font-weight:700}.a{color:#e135ff}.k{color:#80ffea}.ok{color:#50fa7b}.wn{color:#f1fa8c}.bd{color:#ff6363}.in{color:#82aaff}.n{color:#ffb86c}
+.ic{display:flex;flex-direction:column;gap:8px;padding:14px 12px 12px;border:1px solid #221e33;border-radius:10px;background:#100e18}
+.glyph{font-family:"GGMono",monospace;font-size:44px;line-height:50px;display:flex;align-items:baseline;gap:14px;font-variant-emoji:text}
+.fb{font-size:22px;color:#b9aedb;font-variant-emoji:text}
+.w2{display:inline-block;width:18px;font-size:12px;text-align:left}
+.slot{display:inline-block;width:18px;overflow:hidden;vertical-align:top;font-variant-emoji:text}
+.slot.em{font-size:12px;font-variant-emoji:emoji}
+.lab{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8f86b3}
+.nm{font-family:"GGMono",monospace;font-size:13px;color:#fff}
+.cp{font-family:"GGMono",monospace;font-size:11.5px;color:#8f86b3}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 24px">
+    <p class="eyebrow">03 · icons</p>
+    <h1 class="h1">Icons wherever they<br>say something.</h1>
+    <p class="lede">An icon is a word you read before the word. radar names icons, never glyphs: a part asks for <span class="mono k">run_failed</span> and the pack decides how it looks. Packs swap whole (<span class="mono k">nerd</span>, <span class="mono k">unicode</span>, <span class="mono k">emoji</span>, <span class="mono k">off</span>, or your own), any single icon can be overridden in <span class="mono k">[icons]</span>, and each icon carries its default colour slot.</p>
+  </div>
+
+  <sc-for list="{{groups}}" as="g" hint-placeholder-count="6">
+    <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h2 class="h2">{{g.name}}</h2>
+        <p class="note">{{g.note}}</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{g.items}}" as="it" hint-placeholder-count="6">
+          <div class="ic">
+            <div class="glyph"><span style="{{it.col}}">{{it.g}}</span><span class="fb">{{it.u}}</span></div>
+            <span class="nm">{{it.name}}</span>
+            <span class="cp">{{it.cp}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+
+  <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; padding-top: 40px; border-top: 1px solid #2a263e">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h2 class="h2">Packs</h2>
+      <p class="note">The same row in each built-in pack. <span class="mono k">auto</span> picks nerd in Ghostty, kitty and WezTerm, unicode over SSH.</p>
+      <p class="note">Changing pack must never move the screen. Today emoji are two cells and off is none, so every column after an icon jumps.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 20px">
+    <div class="panel" style="padding: 18px 24px 20px; background: #0a0812; display: flex; flex-direction: column; gap: 10px">
+      <span class="lab">today · the icon's own width</span>
+      <div class="term">
+        <div class="r"><span class="m">nerd     </span><span class="a">&#xf407;</span><span class="p"> !187 change 187  </span><span class="a">&#xf007;</span><span class="a"> you  </span><span class="ok">&#xf49e; passed  </span><span class="wn">&#xf441; needs 1 approval  </span><span class="k">&#xf418; main</span></div>
+        <div class="r"><span class="m">unicode  </span><span class="a">⇄</span><span class="p"> !187 change 187  </span><span class="a">☻</span><span class="a"> you  </span><span class="ok">✓ passed  </span><span class="wn">◎ needs 1 approval  </span><span class="k">⎇ main</span></div>
+        <div class="r"><span class="m">emoji    </span><span class="w2">&#x1F500;</span><span class="p">!187 change 187 </span><span class="w2">&#x1F642;</span><span class="a">you  </span><span class="w2">&#x2705;</span><span class="ok">passed  </span><span class="w2">&#x1F440;</span><span class="wn">needs 1 approval </span><span class="w2">&#x1F33F;</span><span class="k">main</span></div>
+        <div class="r"><span class="m">off      </span><span class="p">!187 change 187  </span><span class="a">you  </span><span class="ok">passed  </span><span class="wn">needs 1 approval  </span><span class="k">main</span></div>
+      </div>
+    </div>
+    <div class="panel" style="padding: 18px 24px 20px; background: #0a0812; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between"><span class="lab">in ink · a fixed two-cell icon slot</span><span class="tag new">new in ink</span></div>
+      <div class="term" style="background-image: linear-gradient(to right, transparent 81px, rgba(128,255,234,.18) 81px, rgba(128,255,234,.18) 99px, transparent 99px, transparent 261px, rgba(128,255,234,.18) 261px, rgba(128,255,234,.18) 279px, transparent 279px, transparent 333px, rgba(128,255,234,.18) 333px, rgba(128,255,234,.18) 351px, transparent 351px, transparent 513px, rgba(128,255,234,.18) 513px, rgba(128,255,234,.18) 531px, transparent 531px)">
+        <div class="r"><span class="m">nerd     </span><span class="slot a">&#xf407;</span><span class="p">!187 change 187   </span><span class="slot a">&#xf007;</span><span class="a">you   </span><span class="slot wn">&#xf441;</span><span class="wn">needs 1 approval  </span><span class="slot k">&#xf418;</span><span class="k">main</span></div>
+        <div class="r"><span class="m">unicode  </span><span class="slot a">⇄</span><span class="p">!187 change 187   </span><span class="slot a">☻</span><span class="a">you   </span><span class="slot wn">◎</span><span class="wn">needs 1 approval  </span><span class="slot k">⎇</span><span class="k">main</span></div>
+        <div class="r"><span class="m">emoji    </span><span class="slot em">&#x1F500;</span><span class="p">!187 change 187   </span><span class="slot em">&#x1F642;</span><span class="a">you   </span><span class="slot em">&#x1F440;</span><span class="wn">needs 1 approval  </span><span class="slot em">&#x1F33F;</span><span class="k">main</span></div>
+        <div class="r"><span class="m">off      </span><span class="slot"> </span><span class="p">!187 change 187   </span><span class="slot"> </span><span class="a">you   </span><span class="slot"> </span><span class="wn">needs 1 approval  </span><span class="slot"> </span><span class="k">main</span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">Every icon gets the same two cells, whatever the pack: a one-cell glyph and its gap, an emoji filling both, or blank when icons are off. Columns are laid out from the slot, never from the glyph, so the screen you know stays put when you change pack. The shaded bands are the slots.</p>
+    </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span class="tag new" style="align-self: flex-start">new in ink</span>
+      <h2 class="h2">Part marks</h2>
+      <p class="note">Tabs carry whatever icon the part sends; today there is no agreed mark per service. These make each part recognisable in the tab bar and in a cross-part list.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; align-self: start">
+      <sc-for list="{{parts}}" as="it" hint-placeholder-count="6">
+        <div class="ic">
+          <div class="glyph"><span style="{{it.col}}">{{it.g}}</span><span class="fb">{{it.u}}</span></div>
+          <span class="nm">{{it.name}}</span>
+          <span class="cp">{{it.cp}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <div class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 8px"><span class="mono e" style="font-size: 15px">Several to a row</span><p class="note">Column heads, chips, people, states, tabs, menus and settings rows all take icons. A row can hold four if each one says a different thing.</p></div>
+    <div class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 8px"><span class="mono e" style="font-size: 15px">Colour comes with it</span><p class="note">An icon draws in its own slot, then the words follow in the tone's. A passed check is green before it is read.</p></div>
+    <div class="panel" style="padding: 22px; display: flex; flex-direction: column; gap: 8px"><span class="mono e" style="font-size: 15px">Never the only signal</span><p class="note">The off pack must still read. Every icon sits beside a word, a count or a column that says the same thing.</p></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3860}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var C = { ok: '#50fa7b', bd: '#ff6363', wn: '#f1fa8c', in: '#82aaff', m: '#6272a4', a: '#e135ff', k: '#80ffea', s: '#e9d5ff', t: '#ff6ac1', n: '#ffb86c', am: '#9580ff' };
+    function I(name, cp, u, c) { u = u + '︎';
+      return { name: name, g: String.fromCodePoint(parseInt(cp, 16)), u: u, cp: 'U+' + cp.toUpperCase() + ' · ' + u, col: 'color:' + C[c] }; }
+    var groups = [
+      { name: 'code', note: 'Repositories, merge requests and their review state.', items: [
+        I('group', 'f42b', '◆', 's'), I('repo', 'f401', '▤', 's'), I('branch', 'f418', '⎇', 'k'), I('commit', 'f417', '◦', 's'), I('change', 'f407', '⇄', 'a'), I('draft', 'f4dd', '◌', 'm'),
+        I('merged', 'f419', '◈', 'a'), I('closed', 'f4dc', '⊘', 'm'), I('approved', 'f496', '✓', 'ok'), I('needs_approval', 'f441', '◎', 'wn'), I('thread', 'f442', '❝', 's'), I('comment', 'f41f', '✎', 's'),
+        I('resolved', 'f42e', '✓', 'ok'), I('conflict', 'f421', '≠', 'bd'), I('rebase', 'f46a', '↻', 'in'), I('label', 'f412', '⌗', 't')
+      ] },
+      { name: 'runs', note: 'Pipelines and jobs. Every state has a shape as well as a colour.', items: [
+        I('pipeline', 'f52e', '⋮', 's'), I('run_passed', 'f49e', '✓', 'ok'), I('run_failed', 'f52f', '✗', 'bd'), I('run_running', 'f192', '●', 'in'), I('run_pending', 'f43a', '◷', 'm'), I('run_skipped', 'f4e7', '»', 'm'),
+        I('run_manual', 'f04b', '▷', 's'), I('run_canceled', 'f05e', '⊘', 'm'), I('job', 'f013', '▸', 's'), I('log', 'f4ed', '≣', 's')
+      ] },
+      { name: 'work', note: 'Jira issues, their kinds, priorities and progress.', items: [
+        I('issue', 'f41b', '◇', 's'), I('epic', 'f0e7', '✦', 'a'), I('story', 'f02e', '▣', 'ok'), I('task', 'f4a7', '☐', 'in'), I('bug', 'f46f', '✱', 'bd'), I('subtask', 'f4a0', '↳', 's'),
+        I('priority_highest', 'f102', '⇈', 'bd'), I('priority_high', 'f106', '↑', 'n'), I('priority_medium', 'f48b', '=', 'wn'), I('priority_low', 'f107', '↓', 'in'), I('todo', 'f4aa', '○', 'm'), I('in_progress', 'f042', '◐', 'in'),
+        I('done', 'f058', '●', 'ok'), I('site', 'f0ac', '⊕', 's'), I('board', 'f0ae', '⊟', 's')
+      ] },
+      { name: 'people', note: 'Who did it. You are always the accent.', items: [
+        I('person', 'f415', '☺', 's'), I('you', 'f007', '☻', 'a'), I('bot', 'f06a9', '◙', 'm'), I('team', 'f0c0', '⚇', 's')
+      ] },
+      { name: 'chat', note: 'Slack: where it was said, and whether it wants you.', items: [
+        I('chat', 'f086', '✉', 's'), I('channel', 'f292', '#', 's'), I('private_channel', 'f023', '⊡', 's'), I('direct', 'f0e0', '✉', 's'), I('reply', 'f112', '↩', 'k'), I('mention', 'f486', '@', 'a'),
+        I('reaction', 'f4a2', '♥', 't'), I('unread', 'f444', '•', 'a'), I('alert_firing', 'f490', '▲', 'bd'), I('alert_resolved', 'f478', '△', 'ok')
+      ] },
+      { name: 'app', note: 'radar itself: the places, the modes and the states of a panel.', items: [
+        I('settings', 'f423', '⚙', 's'), I('link', 'f44c', '↗', 'k'), I('search', 'f422', '⊙', 's'), I('time', 'f43a', '◷', 'm'), I('info', 'f449', 'ℹ', 'in'), I('warning', 'f421', '⚠', 'wn'),
+        I('error', 'f46e', '✗', 'bd'), I('empty', 'f48d', '∅', 'm'), I('menu', 'f0c9', '≡', 's'), I('connection', 'f1e6', '⇌', 's'), I('views', 'f0b0', '▽', 's'), I('local', 'f109', '⌂', 's'),
+        I('mode_read', 'f06e', '◉', 'k'), I('mode_write', 'f040', '✎', 'wn')
+      ] }
+    ];
+    var parts = [I('gitlab', 'f296', '◭', 'n'), I('github', 'f09b', '◎', 's'), I('jira', 'f0303', '◇', 'in'), I('slack', 'f198', '#', 't'), I('git', 'f1d3', '⎇', 'n'), I('workspace', 'f07c', '▭', 'k')];
+    return { groups: groups, parts: parts };
+  }
+}
+</script>
+</body>
+</html>

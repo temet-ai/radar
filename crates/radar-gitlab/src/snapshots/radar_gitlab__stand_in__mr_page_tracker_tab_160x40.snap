@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/stand_in.rs
+expression: text
+---
+ radar    Repositories 1   Tickets   History   Settings (,)                                                                            ⠷ not synced yet  ✎ edit
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
+ tracked as ABC-12
+ Overview  Changes · 1 file  Threads · 1 open  Pipeline  Commits  [Ticket]
+╭ ticket ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ABC-12  Review  Add a stats endpoint for the dashboard                                                                                                       │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                       4 open · 1 to review · 1 ready  gitlab

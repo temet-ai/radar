@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "scope": "main",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "nav",
+            "text": [
+              {
+                "text": "nav"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "pane": "middle",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "one",
+            "text": [
+              {
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "target": "two",
+            "text": [
+              {
+                "text": "two"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    }
+  ],
+  "dock": {
+    "visible": true,
+    "focused": true,
+    "tabs": [
+      {
+        "id": "s1",
+        "provider": "claude",
+        "icon": "bot",
+        "title": "review",
+        "state": "streaming",
+        "running": 14
+      }
+    ],
+    "active": "s1",
+    "transcript": [
+      {
+        "item": "user",
+        "id": "u1",
+        "text": "why does the build fail?"
+      },
+      {
+        "item": "reasoning",
+        "id": "r1",
+        "text": "The failing job is the Ink one.\nIts log ends in a snapshot diff, so the look changed and the snapshots did not follow",
+        "open": false
+      }
+    ],
+    "composer": {
+      "history": [
+        "what does the host own?"
+      ],
+      "commands": [
+        {
+          "name": "model",
+          "detail": "pick a model"
+        },
+        {
+          "name": "new",
+          "detail": "start a new session"
+        }
+      ],
+      "can_send": false,
+      "can_stop": true
+    },
+    "status": {
+      "provider": "copilot",
+      "model": "claude-sonnet-4.5",
+      "cwd": "~/projects/radar",
+      "branch": "main",
+      "usage": "12k tokens"
+    }
+  }
+}

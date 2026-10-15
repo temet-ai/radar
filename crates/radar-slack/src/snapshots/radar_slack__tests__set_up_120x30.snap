@@ -1,0 +1,34 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack   History   Settings (,)                                                                         ✎ edit
+╭ set up Slack ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Slack is not set up yet.                                                                                             │
+│                                                                                                                      │
+│ Add your workspace token: a user token (xoxp-…), as env:NAME or typed in. radar found SLACK_APP_USER_OAUTH_TOKEN     │
+│ holding a user token; workspace offers it.                                                                           │
+│                                                                                                                      │
+│ Press ⏎ to set it up in settings, under slack.                                                                       │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   q quit   x menu   ←→↑↓ navigate

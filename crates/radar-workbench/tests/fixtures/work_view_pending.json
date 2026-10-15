@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "scope": "work",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "local groups",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "[\"group\",\"all\",{\"database_id\":\"eca748d9-4bd4-47a0-b094-12cced150a62\",\"event_sequence\":5,\"map_sequence\":0,\"gap_sequence\":0},0,2]",
+            "text": [
+              {
+                "text": "All items"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "footer": [
+        {
+          "text": "Groups · page 1",
+          "ink": "muted"
+        }
+      ],
+      "width": 25,
+      "head": [
+        {
+          "text": "No groups on page",
+          "ink": "muted"
+        }
+      ]
+    },
+    {
+      "pane": "middle",
+      "title": "work items · page 1",
+      "body": {
+        "node": "state",
+        "state": "empty",
+        "text": "No local work items on this page. Press n to create a task, or use Add to work item on a source's actions menu."
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "linked sources and context",
+      "body": {
+        "node": "document",
+        "lines": [
+          [
+            {
+              "text": "No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.",
+              "ink": "muted"
+            }
+          ],
+          [
+            {
+              "text": "Create a local task or select an existing item. No provider labels, relationships or goals are inferred."
+            }
+          ]
+        ]
+      },
+      "notes_most": 5
+    },
+    {
+      "pane": "detail",
+      "title": "map",
+      "body": {
+        "node": "extension",
+        "capability": "work.map",
+        "version": 1,
+        "data": {
+          "groups": [],
+          "items": [],
+          "omitted": 0,
+          "pending": false,
+          "target": "work-area:map"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "0 groups · 0 items on page 1",
+                "ink": "muted"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "timeline",
+      "body": {
+        "node": "extension",
+        "capability": "work.timeline",
+        "version": 1,
+        "data": {
+          "entries": [],
+          "omitted": 0,
+          "pending": false,
+          "target": "work-area:timeline"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "No evidence loaded.",
+                "ink": "muted"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "tabs",
+      "body": {
+        "node": "extension",
+        "capability": "work.tabs",
+        "version": 1,
+        "data": {
+          "pending": false,
+          "tabs": [
+            {
+              "active": true,
+              "count": 0,
+              "id": "sources",
+              "label": "linked sources"
+            },
+            {
+              "active": false,
+              "id": "evidence",
+              "label": "evidence"
+            }
+          ],
+          "target": "work-area:tabs"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "● linked sources"
+              }
+            ],
+            [
+              {
+                "text": "○ evidence"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "question",
+      "body": {
+        "node": "extension",
+        "capability": "work.agent",
+        "version": 1,
+        "data": {
+          "pending": true,
+          "question": "Waiting for your confirmation: apply the prepared local change?",
+          "status": "awaiting confirmation",
+          "summary": [
+            "Create task with local title: Ship the work area",
+            "The title is your authored label, not a provider title or identity."
+          ],
+          "target": "work-area:agent"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "Waiting for your confirmation: apply the prepared local change?",
+                "ink": "warn"
+              }
+            ],
+            [
+              {
+                "text": "Create task with local title: Ship the work area"
+              }
+            ],
+            [
+              {
+                "text": "The title is your authored label, not a provider title or identity."
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "pane": "detail",
+      "title": "actions",
+      "body": {
+        "node": "extension",
+        "capability": "work.rail",
+        "version": 1,
+        "data": {
+          "actions": [
+            {
+              "id": "work.new",
+              "key": {
+                "key": {
+                  "char": "n"
+                }
+              },
+              "label": "create a local task…"
+            },
+            {
+              "id": "work.refresh",
+              "key": {
+                "key": {
+                  "char": "r"
+                }
+              },
+              "label": "review retained change…"
+            },
+            {
+              "id": "work.filter",
+              "key": {
+                "key": {
+                  "char": "/"
+                }
+              },
+              "label": "filter this item page…"
+            },
+            {
+              "id": "work.copy-retained",
+              "key": {
+                "key": {
+                  "char": "y"
+                }
+              },
+              "label": "copy retained local batch for inspection"
+            }
+          ],
+          "pending": false,
+          "target": "work-area:rail"
+        },
+        "fallback": {
+          "node": "document",
+          "lines": [
+            [
+              {
+                "text": "create a local task…"
+              }
+            ],
+            [
+              {
+                "text": "review retained change…"
+              }
+            ],
+            [
+              {
+                "text": "filter this item page…"
+              }
+            ],
+            [
+              {
+                "text": "copy retained local batch for inspection"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "",
+      "label": "Local work",
+      "heading": true
+    },
+    {
+      "id": "work.new",
+      "label": "create a local task…",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "change": "add"
+    },
+    {
+      "id": "work.refresh",
+      "label": "review retained change…",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      }
+    },
+    {
+      "id": "work.filter",
+      "label": "filter this item page…",
+      "key": {
+        "key": {
+          "char": "/"
+        }
+      }
+    },
+    {
+      "id": "work.copy-retained",
+      "label": "copy retained local batch for inspection",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      }
+    }
+  ]
+}

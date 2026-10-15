@@ -1,0 +1,540 @@
+use super::fixture::{self, ASK, PAGE, SYNC};
+use super::*;
+use crate::headless::Headless;
+use crate::host::Event;
+use crate::view::Intent;
+
+fn hello(protocol: u32) -> ToHost {
+    ToHost::Hello {
+        protocol,
+        view: crate::view::VERSION,
+        capabilities: Capabilities {
+            columns: 80,
+            rows: 24,
+            mouse: true,
+            true_colour: true,
+            image: ImageProtocol::None,
+            plain_text: false,
+        },
+    }
+}
+
+fn intent(seq: u64, intent: Intent) -> ToHost {
+    ToHost::Intent {
+        seq,
+        cursor: 0,
+        intent,
+    }
+}
+
+fn invoke(action: &str) -> Intent {
+    Intent::Invoke {
+        action: action.into(),
+    }
+}
+
+#[test]
+fn the_bridge_names_no_terminal_library() {
+    let source = include_str!("bridge.rs");
+    for word in ["ratatui::", "crossterm", "Buffer", "Rect", "KeyEvent"] {
+        let used = source
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("//"))
+            .any(|l| l.contains(word));
+        assert!(!used, "bridge.rs uses {word}");
+    }
+}
+
+/// C2(f): the same intents through Headless and through the bridge record
+/// the same actions with the same causal parents, and ask the same
+/// question.
+#[test]
+fn an_intent_through_the_bridge_records_what_headless_records() {
+    let mut headless = Headless::new(fixture::host(), 80, 24);
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.receive(hello(PROTOCOL));
+
+    headless.send(invoke(ASK));
+    bridge.receive(intent(1, invoke(ASK)));
+    let asked = bridge.host().menu_view().expect("the bridge's host asks");
+    assert_eq!(asked.title, "save it?");
+    assert_eq!(
+        headless.host().menu_view().map(|m| m.title),
+        Some(asked.title.clone()),
+        "the same question"
+    );
+    headless.send(invoke("yes"));
+    bridge.receive(intent(2, invoke("yes")));
+
+    let (a, b) = (fixture::shape(headless.records()), fixture::shape(bridge.records()));
+    assert!(a.iter().any(|l| l.contains(ASK)), "{a:#?}");
+    assert!(a.iter().any(|l| l.contains("probe.items.save")), "{a:#?}");
+    assert_eq!(a, b, "the same journal actions with the same causality");
+}
+
+#[test]
+fn a_renderer_of_another_protocol_is_refused_with_words_to_show() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.receive(hello(PROTOCOL + 1));
+    let out = bridge.outgoing();
+    let [ToRenderer::Refuse { wanted, got, message }] = out.as_slice() else {
+        panic!("{out:?}")
+    };
+    assert_eq!((*wanted, *got), (PROTOCOL, PROTOCOL + 1));
+    assert!(message.contains("RADAR_RENDERER=ratatui"), "{message}");
+    // Nothing it sends is acted on.
+    let fx = bridge.receive(intent(1, invoke(ASK)));
+    assert!(fx.effects.is_empty() && bridge.host().menu.is_none());
+}
+
+#[test]
+fn a_renderer_reading_another_view_version_is_refused() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    let ToHost::Hello { capabilities, .. } = hello(PROTOCOL) else {
+        panic!()
+    };
+    bridge.receive(ToHost::Hello {
+        protocol: PROTOCOL,
+        view: crate::view::VERSION + 1,
+        capabilities,
+    });
+    let out = bridge.outgoing();
+    let [ToRenderer::Refuse { message, .. }] = out.as_slice() else {
+        panic!("{out:?}")
+    };
+    assert!(message.contains("views of version"), "{message}");
+}
+
+#[test]
+fn a_notice_is_cut_to_its_bound() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.receive(hello(PROTOCOL));
+    let _ = bridge.outgoing();
+    bridge.update(Event::Notice("é".repeat(MAX_NOTICE + 10)));
+    let out = bridge.outgoing();
+    let text = out
+        .iter()
+        .find_map(|m| match m {
+            ToRenderer::Notice(n) => Some(n.text.clone()),
+            _ => None,
+        })
+        .expect("a notice");
+    assert_eq!(text.chars().count(), MAX_NOTICE);
+}
+
+fn snapshots(out: &[ToRenderer]) -> Vec<&Snapshot> {
+    out.iter()
+        .filter_map(|m| match m {
+            ToRenderer::Snapshot(s) => Some(&**s),
+            _ => None,
+        })
+        .collect()
+}
+
+/// C2(c): a renderer that acknowledges late is sent one snapshot at a
+/// time, the newest state when it catches up, and every question and
+/// notice as it happens.
+#[test]
+fn a_slow_renderer_sees_every_question_and_notice_while_snapshots_coalesce() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.receive(hello(PROTOCOL));
+    let first = bridge.outgoing();
+    assert!(matches!(first[0], ToRenderer::Welcome { .. }), "{first:?}");
+    let shown = snapshots(&first);
+    assert_eq!(shown.len(), 1);
+    let unacked = shown[0].cursor;
+
+    // Progress while the renderer is busy: no second snapshot.
+    let mut sent = Vec::new();
+    for n in 0..5 {
+        bridge.update(Event::Tick(n));
+        bridge.update(Event::Notice(format!("step {n}")));
+        sent.extend(bridge.outgoing());
+    }
+    bridge.receive(intent(1, invoke(ASK)));
+    sent.extend(bridge.outgoing());
+    assert!(snapshots(&sent).is_empty(), "coalesced while one is in flight");
+    let notices: Vec<_> = sent
+        .iter()
+        .filter_map(|m| match m {
+            ToRenderer::Notice(n) => Some(n.text.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(notices, ["step 0", "step 1", "step 2", "step 3", "step 4"]);
+    let questions: Vec<_> = sent
+        .iter()
+        .filter_map(|m| match m {
+            ToRenderer::Question(q) => Some(q),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(questions.len(), 1, "{sent:?}");
+    assert_eq!(questions[0].menu.title, "save it?");
+
+    // It catches up: one snapshot, the newest state, the question in it.
+    bridge.receive(ToHost::Ack { cursor: unacked });
+    let caught = bridge.outgoing();
+    let shown = snapshots(&caught);
+    assert_eq!(shown.len(), 1, "{caught:?}");
+    assert!(shown[0].cursor > questions[0].cursor);
+    assert_eq!(
+        shown[0].chrome.menu.as_ref().map(|m| m.title.as_str()),
+        Some("save it?")
+    );
+    // Nothing changed since: nothing more to send.
+    bridge.receive(ToHost::Ack {
+        cursor: shown[0].cursor,
+    });
+    assert!(bridge.outgoing().is_empty());
+}
+
+#[test]
+fn a_restarted_renderer_is_told_everything_again() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.receive(hello(PROTOCOL));
+    bridge.receive(intent(1, invoke(ASK)));
+    let _ = bridge.outgoing();
+    bridge.reconnect();
+    assert!(bridge.outgoing().is_empty(), "nothing before its hello");
+    bridge.receive(hello(PROTOCOL));
+    let again = bridge.outgoing();
+    assert!(again.iter().any(|m| matches!(m, ToRenderer::Question(_))), "{again:?}");
+    assert_eq!(snapshots(&again).len(), 1);
+}
+
+/// T8: the renderer has no highlighter, so a diff is sent painted the way
+/// Ratatui's `paint` feeds its highlighters.
+#[test]
+fn a_diff_is_painted_for_the_renderer() {
+    use crate::ui::diff::{DiffLine, Kind};
+    use crate::view::{Node, PaintRun};
+    let line = |kind, old, new, text: &str| DiffLine { kind, old, new, text: text.into() };
+    let mut node = Node::Diff {
+        lines: vec![
+            line(Kind::Hunk, None, None, "@@ -1,2 +1,2 @@"),
+            line(Kind::Context, Some(1), Some(1), "/* open"),
+            line(Kind::Removed, Some(2), None, "still open */ let x = 1;"),
+            line(Kind::Added, None, Some(2), "\tlet y = 2;"),
+        ],
+        under: vec![],
+        selected: 0,
+        top: 0,
+        split: false,
+        language: Some("rs".into()),
+        empty: String::new(),
+        painted: vec![],
+    };
+    node.paint_diffs();
+    let Node::Diff { painted, .. } = &node else { unreachable!() };
+    assert_eq!(painted.len(), 4);
+    assert!(painted[0].is_empty(), "a hunk heading has no runs");
+    let text = |l: &Vec<PaintRun>| l.iter().map(|r| r.text.as_str()).collect::<String>();
+    assert_eq!(text(&painted[2]), "still open */ let x = 1;");
+    assert_eq!(text(&painted[3]), "    let y = 2;", "tabs are four spaces, as Ratatui paints them");
+    // The context line opened a comment on both sides; the removed line
+    // closed it on the old side only, so the added line is still inside it.
+    assert_eq!(painted[2][0].token, "comment");
+    assert!(painted[2].iter().any(|r| r.token == "keyword" && r.text == "let"), "{:?}", painted[2]);
+    assert_eq!(painted[3], [PaintRun { text: "    let y = 2;".into(), token: "comment".into() }]);
+    // An unknown language sends nothing.
+    if let Node::Diff { language, .. } = &mut node {
+        *language = Some("no-such-language".into());
+    }
+    node.paint_diffs();
+    let Node::Diff { painted, .. } = &node else { unreachable!() };
+    assert!(painted.is_empty());
+}
+
+/// T6: a context menu the renderer's right-click opens is anchored where
+/// the pointer pressed, as the Ratatui runner anchors one.
+#[test]
+fn a_context_menu_opens_where_the_pointer_pressed() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.receive(hello(PROTOCOL));
+    let _ = bridge.outgoing();
+    let context = || Intent::Context { target: crate::view::Target::new("row") };
+    // Without a pointer, the menu has no anchor.
+    bridge.receive(intent(1, context()));
+    assert_eq!(bridge.host().menu.as_ref().map(|m| m.anchor), Some(None));
+    bridge.host_mut().menu = None;
+    // With one, it opens there; and the pointer is spent by that intent.
+    bridge.receive(ToHost::Pointer { column: 60, row: 5 });
+    bridge.receive(intent(2, context()));
+    assert_eq!(bridge.host().menu.as_ref().and_then(|m| m.anchor), Some((60, 5).into()));
+    assert_eq!(bridge.host().menu_view().and_then(|m| m.at), Some(crate::view::chrome::CellAt { column: 60, row: 5 }));
+    bridge.host_mut().menu = None;
+    bridge.receive(intent(3, context()));
+    assert_eq!(bridge.host().menu.as_ref().map(|m| m.anchor), Some(None));
+}
+
+/// T2: a part that is not set up shows the host's set-up page, as the
+/// Ratatui shell draws it, not the part's own screen.
+#[test]
+fn a_part_not_set_up_is_sent_as_its_set_up_page() {
+    let mut bridge = Bridge::new(fixture::unready_host(), 80, 24);
+    bridge.receive(hello(PROTOCOL));
+    let screen = bridge.snapshot_now(1).screen.expect("a screen");
+    assert_eq!(screen.panes.len(), 1);
+    assert_eq!(screen.panes[0].title, "set up probe");
+    let crate::view::Node::Document { lines, .. } = &screen.panes[0].body else { panic!("{:?}", screen.panes[0].body) };
+    let words: Vec<String> = lines.iter().map(|l| l.words()).collect();
+    assert_eq!(words[0], "probe is not set up yet.");
+    assert_eq!(words[2], "Add a tenancy.");
+    // Set up, the part's own screen shows.
+    let ready = Bridge::new(fixture::host(), 80, 24).snapshot_now(1).screen.unwrap();
+    assert_eq!(ready.panes[0].title, "items");
+}
+
+/// T20: views are built for the icon column the theme draws, as the Ratatui
+/// shell sets it before every view; under Ink no frame is drawn to set it.
+#[test]
+fn views_are_built_for_the_icon_column_of_the_theme() {
+    let mut host = fixture::host();
+    host.colours.cfg.icons = "nerd".into();
+    let want = crate::ui::icon::lead_width(&host.build_theme(crate::design::theme::Tier::TrueColor));
+    assert!(want > 0, "the nerd pack leads icons");
+    let mut bridge = Bridge::new(host, 80, 24);
+    bridge.receive(hello(PROTOCOL));
+    assert_eq!(bridge.host().frontend.lead(), 0);
+    let _ = bridge.snapshot_now(1);
+    assert_eq!(bridge.host().frontend.lead(), want);
+}
+
+fn motion_of(out: &[ToRenderer]) -> Vec<MotionView> {
+    snapshots(out).into_iter().map(|s| s.motion.clone()).collect()
+}
+
+/// A bridge whose motion is not held back (not over SSH, full colour).
+fn motion_bridge(level: &str) -> Bridge {
+    let mut host = fixture::host();
+    host.colours.cfg.motion = level.into();
+    let mut bridge = Bridge::new(host, 80, 24);
+    bridge.set_ssh(false);
+    bridge.receive(hello(PROTOCOL));
+    let first = bridge.outgoing();
+    settle(&mut bridge, &first);
+    bridge
+}
+
+fn settle(bridge: &mut Bridge, out: &[ToRenderer]) {
+    if let Some(s) = snapshots(out).last() {
+        bridge.receive(ToHost::Ack { cursor: s.cursor });
+    }
+}
+
+/// T28: a screen switch gives one switch cue with the body region.
+#[test]
+fn a_screen_switch_sends_one_screen_cue_for_the_body() {
+    let mut bridge = motion_bridge("subtle");
+    bridge.update(Event::Key(ratatui::crossterm::event::KeyEvent::new(
+        ratatui::crossterm::event::KeyCode::Char(crate::host::SETTINGS_KEY),
+        ratatui::crossterm::event::KeyModifiers::NONE,
+    )));
+    let out = bridge.outgoing();
+    let motion = motion_of(&out);
+    assert_eq!(motion.len(), 1, "{out:?}");
+    assert_eq!(motion[0].level, MotionLevel::Subtle);
+    assert_eq!(motion[0].cues, [MotionCue::Screen { region: MotionRegion::Body }]);
+    settle(&mut bridge, &out);
+    assert!(bridge.outgoing().is_empty(), "the cue is sent once");
+}
+
+/// T28: a sync that changed rows gives a Changed cue with their keys.
+#[test]
+fn a_sync_that_changes_rows_sends_a_changed_cue_with_their_keys() {
+    let mut bridge = motion_bridge("subtle");
+    bridge.send(invoke(SYNC));
+    let out = bridge.outgoing();
+    let motion = motion_of(&out);
+    assert_eq!(
+        motion[0].cues,
+        [MotionCue::Changed {
+            changed: vec!["probe:1".into(), "probe:2".into()],
+            added: vec!["probe:3".into()],
+        }]
+    );
+}
+
+/// T28: cues raised while a snapshot is in flight arrive in the next
+/// one, in order.
+#[test]
+fn cues_wait_for_the_snapshot_in_flight_and_arrive_in_order() {
+    let mut bridge = motion_bridge("full");
+    bridge.send(invoke(SYNC));
+    let first = bridge.outgoing();
+    assert!(matches!(motion_of(&first)[0].cues.as_slice(), [MotionCue::Changed { .. }]));
+    bridge.send(invoke(ASK));
+    assert!(snapshots(&bridge.outgoing()).is_empty(), "one in flight");
+    settle(&mut bridge, &first);
+    let next = bridge.outgoing();
+    assert_eq!(
+        motion_of(&next)[0].cues,
+        [MotionCue::Popup { region: MotionRegion::Popup }]
+    );
+}
+
+/// T28: motion off still sends the level, and no cues.
+#[test]
+fn motion_off_sends_the_level_and_no_cues() {
+    let mut bridge = motion_bridge("off");
+    bridge.update(Event::Key(ratatui::crossterm::event::KeyEvent::new(
+        ratatui::crossterm::event::KeyCode::Char(crate::host::SETTINGS_KEY),
+        ratatui::crossterm::event::KeyModifiers::NONE,
+    )));
+    let out = bridge.outgoing();
+    let motion = motion_of(&out);
+    assert_eq!(motion.len(), 1);
+    assert_eq!(motion[0].level, MotionLevel::Off);
+    assert!(motion[0].cues.is_empty());
+    assert_eq!(motion[0].held_back, None);
+}
+
+/// T28: over SSH the level is off and says why, as the Ratatui runner has it.
+#[test]
+fn over_ssh_motion_is_held_back_and_says_why() {
+    let mut host = fixture::host();
+    host.colours.cfg.motion = "full".into();
+    let mut bridge = Bridge::new(host, 80, 24);
+    bridge.set_ssh(true);
+    bridge.receive(hello(PROTOCOL));
+    let out = bridge.outgoing();
+    let m = &motion_of(&out)[0];
+    assert_eq!(m.level, MotionLevel::Off);
+    assert_eq!(m.held_back.as_deref(), Some("over SSH"));
+    assert_eq!(m.timings.screen, crate::motion::SCREEN_MS);
+}
+
+fn key(code: ratatui::crossterm::event::KeyCode) -> Event {
+    Event::Key(ratatui::crossterm::event::KeyEvent::new(
+        code,
+        ratatui::crossterm::event::KeyModifiers::NONE,
+    ))
+}
+
+/// T28: a menu appearing is one popup cue for the popup region; moving in
+/// it sends none.
+#[test]
+fn a_menu_sends_one_popup_cue_and_moving_in_it_none() {
+    use ratatui::crossterm::event::KeyCode;
+    let mut bridge = motion_bridge("subtle");
+    bridge.send(invoke(ASK));
+    let out = bridge.outgoing();
+    assert_eq!(
+        motion_of(&out)[0].cues,
+        [MotionCue::Popup { region: MotionRegion::Popup }]
+    );
+    settle(&mut bridge, &out);
+    bridge.update(key(KeyCode::Down));
+    let moved = bridge.outgoing();
+    assert!(motion_of(&moved).iter().all(|m| m.cues.is_empty()), "{moved:?}");
+}
+
+/// T28: a message appearing is a message cue, and leaving a message-gone
+/// cue, both for the message region, each once. Message cues run at full.
+#[test]
+fn a_message_comes_and_goes_as_two_cues_at_full() {
+    use ratatui::crossterm::event::KeyCode;
+    let mut bridge = motion_bridge("full");
+    bridge.update(Event::Notice("copied 12 characters".into()));
+    let out = bridge.outgoing();
+    assert_eq!(
+        motion_of(&out)[0].cues,
+        [MotionCue::Message { region: MotionRegion::Message }]
+    );
+    settle(&mut bridge, &out);
+    bridge.update(Event::Notice("copied 12 characters".into()));
+    assert!(snapshots(&bridge.outgoing()).is_empty(), "the same message again");
+    bridge.update(key(KeyCode::Char('a')));
+    let gone = bridge.outgoing();
+    assert_eq!(
+        motion_of(&gone)[0].cues,
+        [MotionCue::MessageGone { region: MotionRegion::Message }]
+    );
+}
+
+/// T28: at subtle a message shows no motion, as in the Ratatui engine.
+#[test]
+fn a_message_sends_no_cue_at_subtle() {
+    let mut bridge = motion_bridge("subtle");
+    bridge.update(Event::Notice("copied 12 characters".into()));
+    let out = bridge.outgoing();
+    assert!(motion_of(&out)[0].cues.is_empty());
+}
+
+/// T28: an item's page opening is one page cue for the body, at full only.
+#[test]
+fn a_page_opening_sends_one_page_cue_for_the_body_at_full() {
+    let mut bridge = motion_bridge("full");
+    bridge.send(invoke(PAGE));
+    let out = bridge.outgoing();
+    assert_eq!(
+        motion_of(&out)[0].cues,
+        [MotionCue::Page { region: MotionRegion::Body }]
+    );
+    let mut subtle = motion_bridge("subtle");
+    subtle.send(invoke(PAGE));
+    assert!(motion_of(&subtle.outgoing()).iter().all(|m| m.cues.is_empty()));
+}
+
+/// A bridge at a real start: the splash shows (`show_splash`), on a clock
+/// the test moves.
+fn splash_bridge(level: &str) -> Bridge {
+    let mut host = fixture::host();
+    host.colours.cfg.motion = level.into();
+    let mut bridge = Bridge::new(host, 80, 24);
+    bridge.set_ssh(false);
+    bridge.show_splash();
+    bridge.set_clock_ms(0);
+    bridge.receive(hello(PROTOCOL));
+    bridge
+}
+
+/// The splash is sent in the first snapshot, a new frame on each frame
+/// tick, and at the end of its hold it hands off: no splash and one screen
+/// cue, so Ink fades the first screen in as Ratatui does.
+#[test]
+fn the_splash_is_sent_frame_by_frame_then_hands_off_with_the_screen_cue() {
+    let mut bridge = splash_bridge("full");
+    let out = bridge.outgoing();
+    let first = snapshots(&out)[0].splash.clone().expect("the splash shows first");
+    assert_eq!((first.width, first.height, first.rows.len()), (80, 24, 24));
+    assert!(snapshots(&out)[0].screen.is_some(), "the screen under it is sent too: keys act on it");
+    assert_eq!(bridge.next_frame(), Some(crate::splash::FRAME));
+    settle(&mut bridge, &out);
+    bridge.set_clock_ms(200);
+    let mid = bridge.outgoing();
+    let later = snapshots(&mid)[0].splash.clone().expect("still showing");
+    assert_ne!(later, first, "the assemble moved on");
+    settle(&mut bridge, &mid);
+    bridge.set_clock_ms(crate::splash::HOLD_FULL_MS as u64);
+    let end = bridge.outgoing();
+    let snap = snapshots(&end)[0];
+    assert!(snap.splash.is_none(), "handed off");
+    assert_eq!(snap.motion.cues, [MotionCue::Screen { region: MotionRegion::Body }]);
+    assert_eq!(bridge.next_frame(), None, "no more frame ticks");
+}
+
+/// A key during the splash ends it at once and acts on the screen under
+/// it (here: settings open), with no hand-off fade of its own.
+#[test]
+fn a_key_during_the_splash_skips_it_and_acts() {
+    let mut bridge = splash_bridge("subtle");
+    let out = bridge.outgoing();
+    assert!(snapshots(&out)[0].splash.is_some());
+    settle(&mut bridge, &out);
+    bridge.receive(intent(1, Intent::Key { chord: crate::view::Chord::char(crate::host::SETTINGS_KEY) }));
+    let after = bridge.outgoing();
+    let snap = snapshots(&after)[0];
+    assert!(snap.splash.is_none(), "skipped");
+    assert!(snap.section.is_some(), "the key acted: settings show");
+}
+
+/// With motion off and the first screen ready at once, there is no splash.
+#[test]
+fn with_motion_off_there_is_no_splash_when_the_screen_is_ready() {
+    let mut bridge = splash_bridge("off");
+    let out = bridge.outgoing();
+    assert!(snapshots(&out)[0].splash.is_none());
+    assert_eq!(bridge.next_frame(), None);
+}

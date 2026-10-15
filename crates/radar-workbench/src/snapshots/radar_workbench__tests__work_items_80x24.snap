@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+│ Ship explicit work-item navigation                                      task │
+│ pull-request · acme/api/7                                       pull-request │
+│ ticket · ABC-12                                                       ticket │
+│ checkout · /home/user/projects/api                                  checkout │
+│ workflow-run · acme/api/42/1                                    workflow-run │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

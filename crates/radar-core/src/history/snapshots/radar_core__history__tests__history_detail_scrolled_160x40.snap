@@ -1,0 +1,44 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: screen
+---
+ History · read only · UTC · snapshot through #100
+ Scope: exact subject sample:card ABC-42 @ https://one.example.test/
+ Recorded observations; coverage may be incomplete. Not task intent or permission.
+ Known recording gaps affect this scope; missing actions cannot be identified.
+╭ events · page 1 · oldest-first · more pages ─────────────────────────────────────────────────╮╭ event detail ────────────────────────────────────────────────╮
+│ OBSERVED UTC         ACTION                  SUBJECT                              OUTCOME    ││ Mode         read only                                       ║
+│ 2026-10-11 10:40:01  card.refresh            sample:card ABC-42                   requested  ││ Count        3                                               ║
+│ 2026-10-11 10:40:02  card.refresh            sample:card ABC-42                   started    ││ Duration     250 ms                                          ║
+│ 2026-10-11 10:40:03  card.refresh            sample:card ABC-42                   succeeded  ││ Command      refresh.details                                 ║
+│ 2026-10-11 10:40:04  card.details            sample:card ABC-42                   requested  ││ Safe URL     https://one.example.test/cards/ABC-42           ║
+│ 2026-10-11 10:40:05  card.details            sample:card ABC-42                   started    ││ Redacted     unsafe details omitted                          ║
+│ 2026-10-11 10:40:06  card.details            sample:card ABC-42                   partial    ││ Truncated    some details omitted                            █
+│ 2026-10-11 10:40:07  card.details            sample:card ABC-42                   unknown    ││ Omitted      2 subjects                                      █
+│ 2026-10-11 10:40:08  card.details            sample:card ABC-42                   failed     ││                                                              █
+│ 2026-10-11 10:40:09  card.details            sample:card ABC-42                   blocked    ││ RECORDED SUBJECTS                                            █
+│ 2026-10-11 10:40:10  card.details            sample:card ABC-42                   cancelled  ││ primary: sample:card ABC-42 @ https://one.example.test/      █
+│                                                                                              ││ context: sample:card ABC-42 @ https://two.example.test/      █
+│                                                                                              ││                                                              █
+│                                                                                              ││ RECORDING SOURCE AND CAUSAL IDS                              █
+│                                                                                              ││ Source       part sample                                     █
+│                                                                                              ││ Session type TUI                                             █
+│                                                                                              ││ Build        0.1.0                                           █
+│                                                                                              ││ Action ID    10000000-0000-4000-8000-000000000002            █
+│                                                                                              ││ Parent ID    10000000-0000-4000-8000-000000000001            █
+│                                                                                              ││ Root ID      10000000-0000-4000-8000-000000000001            █
+│                                                                                              ││ Correlation  10000000-0000-4000-8000-000000000001            █
+│                                                                                              ││ Session ID   20000000-0000-4000-8000-000000000001            █
+│                                                                                              ││ Event ID     40000000-0000-4000-8000-000000000006            █
+│                                                                                              ││ Sequence     6                                               █
+│                                                                                              ││ Requested at sequence 4                                      █
+│                                                                                              ││                                                              █
+│                                                                                              ││ Parent and root IDs are explicit causal links. Shared        █
+│                                                                                              ││ subjects do not imply a shared task.                         █
+│                                                                                              ││                                                              █
+│                                                                                              ││ Scope: exact subject sample:card ABC-42 @                    █
+│                                                                                              ││ https://one.example.test/                                    █
+│                                                                                              ││ Snapshot through event sequence 100. Refresh starts a new    █
+│                                                                                              ││ snapshot.                                                    █
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────╯
+ j/k scroll · tab events · n/p pages · r refresh · x/? keys · esc close

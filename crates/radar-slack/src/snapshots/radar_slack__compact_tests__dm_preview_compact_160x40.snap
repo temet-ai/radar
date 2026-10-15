@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/compact_tests.rs
+expression: "to_text(&host, w, h)"
+---
+ radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Carol Coder's message ───────────────────────╮
+│ For you              4 ││ last 7 days                                                    REPLIES  WHEN       ││ ── #D0000CAROL · yesterday ──                █
+│ Discussions            ││mentions you                                                                        ││ ● 17:58  Carol Coder                         █
+│ ▌ #team          6 NEW ││  └─ ● #team Bob B.  @Alice Example could you take this one?             1d         ││     hi @Alice Example, quick question about  █
+│ ▌ #svc           1 NEW ││direct messages                                                                     ││ the stats                                    █
+│                        ││  └─ ● #D0000CAROL Carol C.  hi @Alice Example, quick question           45m        ││ ● 17:59  Carol Coder                         █
+│                        ││threads you are in                                                                  ││     the dashboard shows 0 for the weekly     █
+│                        ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipe 1        1d         ││ numbers                                      █
+│                        ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats endp 2        2d         ││ ● 18:10  Alice Example                       █
+│                        ││                                                                                    ││     on it, looking now 👀                    █
+│                        ││                                                                                    ││ ● 18:12  Alice Example                       █
+│                        ││                                                                                    ││     found it: the query groups by ISO week   █
+│                        ││                                                                                    ││ but the cache keys by calendar week, so they █
+│                        ││                                                                                    ││ disagree on the first of the year. I will    █
+│                        ││                                                                                    ││ fix the key and add a test that crosses a    █
+│                        ││                                                                                    ││ year boundary. Back in ten minutes           █
+│                        ││                                                                                    ││     👍 1                                     █
+│                        ││                                                                                    ││ ● 06:30  Carol Coder                         █
+│                        ││                                                                                    ││     thanks!! 🎉 the numbers are right again, █
+│                        ││                                                                                    ││ see the notes                                █
+│                        ││                                                                                    ││ notes.csv                                    █
+│                        ││                                                                                    ││ Weekly.png                                   █
+│                        ││                                                                                    ││ ● 06:31  Alice Example                       █
+│                        ││                                                                                    ││     great, Bob wrote the original            █
+│                        ││                                                                                    ││     │ Bob Builder: the weekly job is in the  █
+│                        ││                                                                                    ││     │ api, it keys the cache by calendar     █
+│                        ││                                                                                    ││     │ week for now and we should change that █
+│                        ││                                                                                    ││     │ soon                                   █
+│                        ││                                                                                    ││                                              █
+│                        ││                                                                                    ││ 5 replies · last 45m ago                     █
+│                        ││                                                                                    ││                                              █
+│                        ││                                                                                    ││ LINKS ────────────────────────────────────── ║
+│                        ││                                                                                    ││   file notes.csv                             ║
+│                        ││                                                                                    ││   https://acme.slack.com/files/U1/F2/notes.c ║
+│                        ││                                                                                    ││   sv                                         ║
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││   image Weekly.png                           ║
+│                        ││ mentions, messages and new replies in the last 7 days                              ││   https://acme.slack.com/files/U1/F3/weekly. ║
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                   7 new · 4 for you  slack

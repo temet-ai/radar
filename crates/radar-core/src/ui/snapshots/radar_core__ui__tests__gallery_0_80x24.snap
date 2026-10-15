@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Tree
+ The kit: every element on sample data                            colours: none
+ [Tree]  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Mot
+╭ shelves ─────────────────────────────────────────────────────────────────────╮
+│ HELD BY everyone                               STATE     LABEL     UPDATED   │
+│▌ A north-wing                                                                │
+│▌ ├─ atlases  in the east room                  1 item              4d        │
+│▌ │  └─ #104 sort the atlas box by decade  Alic ● sorting #maps     16m       │
+│▌ ├─ maps  in the east room                     2 items             4d        │
+│▌ │  ├─ #187 label the map drawer  you          ✓ filed   #maps     16m       │
+│▌ │  └─ #198 count the postcards  Bob           ✗ lost    #maps     16m       │
+│▌ └─ ledgers  in the east room                  —                   4d        │
+│▌ B south-wing                                                                │
+│▌ └─ globes  in the east room                   1 item              4d        │
+│▌    └─ #342 move the globes to the top shelf   ◷ waiting #maps     16m       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

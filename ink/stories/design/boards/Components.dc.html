@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Components</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:56px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:880px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.lab{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8f86b3}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;min-height:22.645px}
+.p{color:#f8f8f2}.s{color:#e9d5ff}.m{color:#6272a4}.e{color:#fff;font-weight:700}.a{color:#e135ff}.am{color:#9580ff}.k{color:#80ffea}.t3{color:#ff6ac1}.ok{color:#50fa7b}.wn{color:#f1fa8c}.bd{color:#ff6363}.in{color:#82aaff}.n{color:#ffb86c}.bb{color:#0a0812}
+.Bs{background:#12101a}.Bo{background:#1a162a}.Bsel{background:#44475a}.Bh{background:#2a263e}.Ba{background:#e135ff}
+.b{font-weight:700}.i{font-style:italic}.u{text-decoration:underline;text-decoration-color:#80ffea;text-decoration-thickness:2px;text-underline-offset:4px}
+.ku{color:#80ffea;font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.tok{background:#233a37}.twn{background:#3c3a3a}.tbd{background:#3f2233}.tin{background:#2b2e4c}.ta{background:#3a1b4c}
+.pair{display:grid;grid-template-columns:260px minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.box{padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.grad{background:linear-gradient(90deg,#e135ff,#ff6ac1 50%,#80ffea);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ava{display:inline-block;width:18px;height:22.645px;vertical-align:top}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 24px">
+    <p class="eyebrow">04 · components</p>
+    <h1 class="h1">The kit, today and next.</h1>
+    <p class="lede">Each part draws with the same small kit, so a chip in Slack is a chip in Jira. Every row on this sheet shows the component as radar draws it now, then the Ink version this guide proposes. Shapes stay square: a ground, a space each side, no round caps and no stripe down the left.</p>
+  </div>
+
+  <div class="pair">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Chips</h2><p class="note">A short state, a count or a label that sits in a row. Tone decides the colour; the icon comes first.</p></div>
+    <div class="panel box"><span class="lab">today</span>
+      <div class="term">
+        <div class="r"><span class="Bo ok"> &#xf49e; passed </span><span> </span><span class="Bo wn b"> &#xf441; needs review </span><span> </span><span class="Bo bd b"> &#xf52f; failed </span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="Bo in"> &#xf192; running </span><span> </span><span class="Bo a b"> &#xf419; merged </span><span> </span><span class="Bo m"> draft </span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">Tone text on the flat overlay, one space each side.</p>
+    </div>
+    <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+      <div class="term">
+        <div class="r"><span class="tok ok b"> &#xf49e; passed </span><span> </span><span class="twn wn b"> &#xf441; needs review </span><span> </span><span class="tbd bd b"> &#xf52f; failed </span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="tin in b"> &#xf192; running </span><span> </span><span class="ta a b"> &#xf419; merged </span><span> </span><span class="Bh m"> draft </span><span> </span><span class="ta n b"> 3 </span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">The same square shape; the ground is now the tone's tint (01 · colour), so the chip reads before its word does. A count is a chip too.</p>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Keys</h2><p class="note">A key is part of its word. The hint reads as the action, and the letter you press is underlined in it.</p></div>
+    <div class="panel box"><span class="lab">today</span>
+      <div class="term">
+        <div class="r"><span class="Ba bb b"> REPOSITORIES </span><span>  </span><span class="k b">b</span><span class="m"> bulk   </span><span class="k b">x</span><span class="m"> menu   </span><span class="k b">q</span><span class="m"> quit</span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="k">↑↓</span><span class="m"> move · </span><span class="k">⏎</span><span class="m"> open · </span><span class="k">esc</span><span class="m"> back</span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">Key, then word: the eye reads "b" and "bulk" as two things.</p>
+    </div>
+    <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+      <div class="term">
+        <div class="r"><span class="Ba bb b"> REPOSITORIES </span><span>  </span><span class="ku">b</span><span class="s">ulk   </span><span class="ku">e</span><span class="s">xpand   </span><span class="s">a</span><span class="ku">c</span><span class="s">tions   </span><span class="Bh"><span class="ku">q</span><span class="s">uit</span></span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="k b">↑↓</span><span class="s"> move   </span><span class="k b">⏎</span><span class="s"> open   </span><span class="k b">esc</span><span class="s"> back</span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">The word in secondary text with its key letter underlined in cyan. Name the action so its key is in it; keys with no letter (↑↓, ⏎, esc) stay a glyph before the word. The hint under the pointer takes the hover shade, as quit does here.</p>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Tabs</h2><p class="note">The top bar holds the parts; an item page holds its own tabs. Same rule as keys: the letter you press is underlined in the name.</p><p class="note">Today the counts beside names are uneven and say little: a 1 here, a 4 there, nothing on the rest.</p></div>
+    <div class="panel box" style="background: #12101a"><span class="lab">today</span>
+      <div class="term">
+        <div class="r Bo"><span class="a b"> radar </span><span class="Bsel"> <span class="in">&#xf401;</span> <span class="k u">R</span><span class="e">epositories</span> <span class="n">1</span> </span><span> <span class="m">&#xf41b;</span> <span class="k u">J</span><span class="p">ira</span>  <span class="t3">&#xf198;</span> <span class="k u">S</span><span class="p">lack</span> <span class="n">4</span> </span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="s">Overview  </span><span class="a b">[Changes · 2]</span><span class="s">  Threads</span></div>
+      </div>
+    </div>
+    <div class="panel box" style="background: #12101a"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+      <div class="term">
+        <div class="r Bo"><span class="grad b"> radar </span><span class="Bo"> </span><span class="Bsel">  <span class="n">&#xf296;</span> <span class="ku">R</span><span class="e">epositories</span>  </span><span>  <span class="in">&#xf0303;</span> <span class="ku">J</span><span class="p">ira</span>    <span class="t3">&#xf198;</span> <span class="ku">S</span><span class="p">lack</span> <span class="wn">&#xf444;</span>  </span></div>
+        <div class="r"><span>     </span><span class="grad">▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔</span></div>
+        <div class="r"><span class="ku">O</span><span class="s">verview    </span><span class="ku">C</span><span class="e">hanges</span><span class="s">    </span><span class="ku">T</span><span class="s">hreads </span><span class="wn">&#xf444;</span></div>
+        <div class="r"><span>            </span><span class="a">▔▔▔▔▔▔▔</span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">Names only, every tab the same shape: mark, name with its key underlined, two spaces each side. No counts; the screen itself shows how many. One yellow unread dot after a name when something there is waiting for you, on any tab, top bar or page. The showing tab sits on the selection shade with a one-eighth bar under it.</p>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Fields</h2><p class="note">Filter, go-to and the composer. A field always says what it acts on and how many match.</p></div>
+    <div class="panel box"><span class="lab">today</span>
+      <div class="term">
+        <div class="r"><span class="k b"> / </span><span class="Bo e">api      </span><span class="Bo" style="background:#f8f8f2"> </span><span class="Bo">                   </span></div>
+        <div class="r"><span class="m">   ⏎ keep · esc clear</span></div>
+      </div>
+    </div>
+    <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+      <div class="term">
+        <div class="r"><span class="am">┌───────────────────────────────────┐</span></div>
+        <div class="r"><span class="am">│</span><span class="k"> &#xf422; </span><span class="e">api</span><span style="background:#e135ff"> </span><span class="m i">  repo, branch or !iid   </span><span class="n b"> 3 </span><span class="am">│</span></div>
+        <div class="r"><span class="am">└───────────────────────────────────┘</span></div>
+        <div class="r"><span class="k b">⏎</span><span class="s"> keep   </span><span class="k b">esc</span><span class="s"> clear</span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">A box with an accent caret, an italic hint of what it matches, and the match count inside it.</p>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">People</h2><p class="note">Who opened it, who is waiting on whom. You are always the accent; bots stay muted.</p></div>
+    <div class="panel box"><span class="lab">today</span>
+      <div class="term">
+        <div class="r"><span class="a">&#xf007; you</span><span class="m">   </span><span class="s">&#xf415; alice</span><span class="m">   </span><span class="m">&#xf06a9; group_1_bot</span></div>
+      </div>
+    </div>
+    <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+      <div class="term">
+        <div class="r"><span class="ava" style="background: radial-gradient(circle at 50% 38%, #f2c6ff 0 22%, transparent 24%), radial-gradient(ellipse at 50% 100%, #c45bf0 0 45%, transparent 47%), #3a1b4c"></span><span class="a b"> you  </span><span class="ava" style="background: radial-gradient(circle at 50% 38%, #ffe0c2 0 22%, transparent 24%), radial-gradient(ellipse at 50% 100%, #50c0a8 0 45%, transparent 47%), #233a37"></span><span class="s"> alice  </span><span class="tin in b">BB</span><span class="s"> bob  </span><span class="m">&#xf06a9; group_1_bot</span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="m">reviewers  </span><span class="ava" style="background: radial-gradient(circle at 50% 38%, #ffe0c2 0 22%, transparent 24%), radial-gradient(ellipse at 50% 100%, #50c0a8 0 45%, transparent 47%), #233a37"></span><span class="ok">&#xf49e;</span><span> </span><span class="tin in b">BB</span><span class="wn">&#xf441;</span><span class="m">  1 of 2</span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">Avatars by kitty graphics, two cells wide and square (stand-ins drawn here). Without pictures: two initials on a tint picked by a hash of the name.</p>
+    </div>
+  </div>
+
+  <div class="pair">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Buttons</h2><p class="note">Only in a confirm or a form. One primary per box, and its key is underlined in its label.</p></div>
+    <div class="panel box"><span class="lab">today</span>
+      <div class="term">
+        <div class="r"><span class="p">Merge !187 into main?</span></div>
+        <div class="r"><span class="k b">y</span><span class="m"> merge · </span><span class="k b">n</span><span class="m"> cancel</span></div>
+      </div>
+    </div>
+    <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+      <div class="term">
+        <div class="r"><span class="p">Merge </span><span class="a">&#xf407; !187</span><span class="p"> into </span><span class="k">&#xf418; main</span><span class="p">?</span></div>
+        <div class="r"> </div>
+        <div class="r"><span class="Ba bb b"> <span style="text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px">M</span>erge </span><span>  </span><span class="Bh s"> <span class="ku">C</span>ancel </span><span>   </span><span class="tbd bd b"> <span style="text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px">D</span>elete branch </span></div>
+      </div>
+      <p class="note" style="font-size: 13.5px">Square: primary on the accent, secondary on the hover shade, destructive on the error tint. The underlined letter is the key.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1960}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

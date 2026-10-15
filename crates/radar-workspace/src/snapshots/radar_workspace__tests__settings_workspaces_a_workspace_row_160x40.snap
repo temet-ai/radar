@@ -1,0 +1,44 @@
+---
+source: crates/radar-workspace/src/tests.rs
+expression: "radar_core::shell::to_text(&host, 160, 40)"
+---
+ radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
+╭ settings ────────────╮╭ workspaces ────────────────────────────────────────────────────────────────────╮╭ acme ──────────────────────────────────────────────╮
+│General               ││  ? Found in /work/other: a workspace with 3 clones. Use it?                    ││ CHECKED                                            │
+│  ├─ parts            ││  + add a workspace   a folder of clones                                        ││ ✓ 14 clones found                                  │
+│  ├─ mode             ││ acme        /work/acme                                               14 clones ││ ✓ .okf.yaml read: knowledge in artifacts, docs     │
+│  ├─ colours          ││                                                                                ││ ✓ 3 notes for 1 ticket · 212 files read · 2m ago   │
+│  └─ icons            ││                                                                                ││                                                    │
+│Workspace             ││                                                                                ││ acme is a workspace: tickets of ABC are worked     │
+│  └─ workspaces       ││                                                                                ││ from /work/acme, and the editor and a terminal     │
+│                      ││                                                                                ││ open at its top.                                   │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ folder          /work/acme                         │
+│                      ││                                                                                ││ name            acme                               │
+│                      ││                                                                                ││ tickets         ABC                                │
+│                      ││                                                                                ││ clones in       repositories                       │
+│                      ││                                                                                ││ open at         top                                │
+│                      ││                                                                                ││ editor          asks                               │
+│                      ││                                                                                ││ after worktree  scripts/sync.sh                    │
+│                      ││                                                                                ││ notes           okf                                │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ config: [[workspace.space]] dir, name, tickets,    │
+│                      ││                                                                                ││ repos, open_at, editor, after_worktree, notes      │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate

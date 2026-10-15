@@ -1,0 +1,44 @@
+---
+source: crates/radar-github/src/actions_tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)                                                                                      ⠷ loading Actions…  ✎ edit
+ GitHub › acme/api
+ acme/api
+ Overview  Pull requests  [Actions]
+╭ Actions ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Loading workflow runs…                                                                                                                                       │
+│ Recent workflow runs · read-only · a run is not overall repository health.                                                                                   │
+│ Workflow runs are unavailable.                                                                                                                               │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                             github

@@ -1,0 +1,511 @@
+{
+  "version": 1,
+  "scope": "tickets",
+  "panes": [],
+  "actions": [
+    {
+      "id": "",
+      "label": "ABC-13",
+      "heading": true
+    },
+    {
+      "id": "jira.tickets.open_in_jira",
+      "label": "open it in Jira",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      }
+    },
+    {
+      "id": "jira.tickets.copy_link",
+      "label": "copy its link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      }
+    },
+    {
+      "id": "jira.tickets.copy_key",
+      "label": "copy ABC-13",
+      "key": {
+        "key": {
+          "char": "Y"
+        }
+      }
+    },
+    {
+      "id": "jira.tickets.refresh",
+      "label": "refresh this page",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      }
+    },
+    {
+      "id": "",
+      "label": "on Jira",
+      "heading": true
+    },
+    {
+      "id": "jira.tickets.move",
+      "label": "move ABC-13 to another status…",
+      "key": {
+        "key": {
+          "char": "t"
+        }
+      },
+      "change": "edit"
+    },
+    {
+      "id": "jira.tickets.comment",
+      "label": "comment on ABC-13…",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "change": "add"
+    },
+    {
+      "id": "jira.tickets.assign_me",
+      "label": "assign it to me…",
+      "key": {
+        "key": {
+          "char": "i"
+        }
+      },
+      "change": "edit"
+    },
+    {
+      "id": "jira.tickets.new_ticket",
+      "label": "new ticket in ABC…",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "change": "add"
+    },
+    {
+      "id": "",
+      "label": "page",
+      "heading": true
+    },
+    {
+      "id": "jira.tickets.next_tab",
+      "label": "next tab: Comments",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      }
+    },
+    {
+      "id": "jira.tickets.previous_tab",
+      "label": "previous tab: Links",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      }
+    },
+    {
+      "id": "agent.send",
+      "label": "ask an agent about it…",
+      "key": {
+        "key": {
+          "char": "A"
+        }
+      }
+    },
+    {
+      "id": "jira.tickets.back",
+      "label": "back to the middle pane",
+      "key": {
+        "key": "esc"
+      }
+    },
+    {
+      "id": "jira.tickets.kept_text",
+      "label": "kept Jira text…",
+      "key": {
+        "key": {
+          "char": "r"
+        },
+        "ctrl": true
+      }
+    }
+  ],
+  "page": {
+    "crumbs": [
+      {
+        "text": "Jira",
+        "ink": "secondary"
+      },
+      {
+        "text": "acme",
+        "look": "jira.blue bold"
+      },
+      {
+        "text": "ABC",
+        "ink": "secondary"
+      },
+      {
+        "text": "ABC-13",
+        "look": "accent.secondary"
+      }
+    ],
+    "title": [
+      {
+        "icon": "subtask"
+      },
+      {
+        "text": "Count requests per route",
+        "ink": "emphasis",
+        "strong": true
+      }
+    ],
+    "details": [
+      {
+        "text": "◐",
+        "icon": "in_progress",
+        "look": "status.info bold"
+      },
+      {
+        "text": " In Progress",
+        "look": "status.info bold"
+      },
+      {
+        "text": " · ",
+        "ink": "muted"
+      },
+      {
+        "text": "Sub-task",
+        "look": "text.secondary"
+      },
+      {
+        "text": " · ",
+        "ink": "muted"
+      },
+      {
+        "icon": "person"
+      },
+      {
+        "text": "Bob Example",
+        "ink": "secondary"
+      }
+    ],
+    "under": [
+      {
+        "text": "parent ",
+        "ink": "muted"
+      },
+      {
+        "text": "ABC-1",
+        "look": "accent.secondary"
+      },
+      {
+        "text": " Dashboard for the stats · ",
+        "ink": "secondary"
+      },
+      {
+        "text": "Acme ABC · ",
+        "ink": "secondary"
+      },
+      {
+        "icon": "updated"
+      },
+      {
+        "text": "updated 1h ago",
+        "ink": "muted"
+      }
+    ],
+    "tabs": [
+      {
+        "label": "Overview",
+        "icon": "info"
+      },
+      {
+        "label": "Comments",
+        "icon": "thread"
+      },
+      {
+        "label": "Links",
+        "icon": "link"
+      }
+    ],
+    "tab": 0,
+    "panes": [
+      {
+        "pane": "middle",
+        "title": "overview",
+        "body": {
+          "node": "rich",
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "status        ",
+                  "ink": "muted"
+                },
+                {
+                  "text": "◐",
+                  "icon": "in_progress",
+                  "look": "status.info bold"
+                },
+                {
+                  "text": " In Progress",
+                  "look": "status.info bold"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "type          ",
+                  "ink": "muted"
+                },
+                {
+                  "text": "Sub-task",
+                  "look": "text.secondary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "priority      ",
+                  "ink": "muted"
+                },
+                {
+                  "icon": "priority_medium"
+                },
+                {
+                  "text": "Medium",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "assignee      ",
+                  "ink": "muted"
+                },
+                {
+                  "icon": "person"
+                },
+                {
+                  "text": "Bob Example",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "reporter      ",
+                  "ink": "muted"
+                },
+                {
+                  "icon": "person"
+                },
+                {
+                  "text": "Bob Example",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "sprint        ",
+                  "ink": "muted"
+                },
+                {
+                  "icon": "calendar"
+                },
+                {
+                  "text": "Sprint 41",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "parent        ",
+                  "ink": "muted"
+                },
+                {
+                  "text": "ABC-1 ",
+                  "look": "accent.secondary"
+                },
+                {
+                  "text": "Dashboard for the stats",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "labels        ",
+                  "ink": "muted"
+                },
+                {
+                  "text": "—",
+                  "ink": "muted"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "components    ",
+                  "ink": "muted"
+                },
+                {
+                  "text": "—",
+                  "ink": "muted"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "fix versions  ",
+                  "ink": "muted"
+                },
+                {
+                  "text": "—",
+                  "ink": "muted"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "created       ",
+                  "ink": "muted"
+                },
+                {
+                  "icon": "calendar"
+                },
+                {
+                  "text": "2w ago",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "updated       ",
+                  "ink": "muted"
+                },
+                {
+                  "icon": "updated"
+                },
+                {
+                  "text": "1h ago",
+                  "ink": "primary"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "DESCRIPTION",
+                  "ink": "muted",
+                  "strong": true
+                }
+              ]
+            },
+            {
+              "block": "doc",
+              "doc": [
+                {
+                  "t": "para",
+                  "text": [
+                    {
+                      "text": "The count is wrong on the second row:"
+                    }
+                  ]
+                },
+                {
+                  "t": "media",
+                  "image": true,
+                  "name": "dashboard.png",
+                  "size": [
+                    640,
+                    480
+                  ]
+                },
+                {
+                  "t": "media",
+                  "image": true,
+                  "name": "stats design",
+                  "url": "https://example.com/design/stats.png",
+                  "src": "https://example.com/design/stats.png"
+                },
+                {
+                  "t": "media",
+                  "name": "requests.csv"
+                },
+                {
+                  "t": "media",
+                  "name": "trace.log"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "ACCEPTANCE CRITERIA",
+                  "ink": "muted",
+                  "strong": true
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "none written",
+                  "ink": "muted"
+                }
+              ]
+            }
+          ],
+          "pictures": "acme"
+        }
+      }
+    ]
+  }
+}

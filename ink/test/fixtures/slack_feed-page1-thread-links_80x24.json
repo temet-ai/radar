@@ -1,0 +1,233 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "thread",
+      "id": "",
+      "label": "Carol Coder's thread in #svc"
+    },
+    {
+      "id": "slack.page.open_in_slack",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open it in Slack"
+    },
+    {
+      "id": "slack.page.copy_thread_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy its link"
+    },
+    {
+      "id": "slack.page.mark_read",
+      "key": {
+        "key": {
+          "char": "m"
+        }
+      },
+      "label": "mark read up to its newest reply, in radar only"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "on Slack"
+    },
+    {
+      "change": "add",
+      "id": "slack.page.reply",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "reply in it…"
+    },
+    {
+      "change": "add",
+      "id": "slack.page.react",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "react to its first message…"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "page"
+    },
+    {
+      "id": "slack.page.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab: Links"
+    },
+    {
+      "id": "slack.page.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab: Links"
+    },
+    {
+      "heading": true,
+      "icon": "bot",
+      "id": "",
+      "label": "with an agent"
+    },
+    {
+      "id": "agent.send",
+      "key": {
+        "key": {
+          "char": "A"
+        }
+      },
+      "label": "ask an agent about it…"
+    },
+    {
+      "id": "slack.page.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    },
+    {
+      "id": "slack.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page"
+    },
+    {
+      "id": "slack.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to #svc"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Slack"
+      },
+      {
+        "look": "slack.orange",
+        "text": "#svc"
+      },
+      {
+        "ink": "secondary",
+        "text": "Carol Coder: The service is being upg…"
+      }
+    ],
+    "details": [
+      {
+        "icon": "person"
+      },
+      {
+        "ink": "emphasis",
+        "text": "Carol Coder"
+      },
+      {
+        "ink": "muted",
+        "text": " · 5h ago · "
+      },
+      {
+        "icon": "reply"
+      },
+      {
+        "ink": "secondary",
+        "text": "no replies"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "── today ──"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "accent"
+                },
+                {
+                  "ink": "muted",
+                  "text": "04:16"
+                },
+                {
+                  "ink": "emphasis",
+                  "text": "  Carol Coder  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "The service is being upgraded at noon"
+                }
+              ]
+            }
+          ],
+          "node": "rich",
+          "pictures": "slack"
+        },
+        "pane": "middle",
+        "title": "thread"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "icon": "thread",
+        "label": "Thread"
+      },
+      {
+        "icon": "link",
+        "label": "Links"
+      }
+    ],
+    "title": [
+      {
+        "ink": "emphasis",
+        "text": "The service is being upgraded at noon"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "feed",
+  "version": 1
+}

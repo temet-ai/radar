@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+│ No local work items on this page. Press n to create a task, or use Add to    │
+│ work item on a source's actions menu.                                        │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

@@ -1,0 +1,882 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "acme"
+    },
+    {
+      "id": "jira.tickets.open",
+      "key": {
+        "key": "enter"
+      },
+      "label": "hide its statuses"
+    },
+    {
+      "id": "jira.tickets.fold",
+      "key": {
+        "key": {
+          "char": " "
+        }
+      },
+      "label": "hide its statuses"
+    },
+    {
+      "id": "jira.tickets.open_in_jira",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open the site in Jira"
+    },
+    {
+      "id": "jira.tickets.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the site's link"
+    },
+    {
+      "id": "jira.tickets.filter",
+      "key": {
+        "key": {
+          "char": "/"
+        }
+      },
+      "label": "filter the view by words"
+    },
+    {
+      "id": "jira.tickets.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh now"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "on Jira"
+    },
+    {
+      "change": "add",
+      "id": "jira.tickets.new_ticket",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "label": "new ticket on acme…"
+    },
+    {
+      "id": "jira.tickets.goto",
+      "key": {
+        "key": {
+          "char": ":"
+        }
+      },
+      "label": "go to a ticket by its key or words…"
+    },
+    {
+      "id": "jira.tickets.assignee",
+      "key": {
+        "key": {
+          "char": "a"
+        }
+      },
+      "label": "show one assignee's tickets…"
+    },
+    {
+      "id": "jira.tickets.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "panes": [
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "view:0",
+            "text": [
+              {
+                "icon": "you"
+              },
+              {
+                "text": "My tickets"
+              }
+            ]
+          },
+          {
+            "target": "view:1",
+            "text": [
+              {
+                "icon": "board"
+              },
+              {
+                "text": "This sprint"
+              }
+            ]
+          },
+          {
+            "target": "view:2",
+            "text": [
+              {
+                "icon": "issue"
+              },
+              {
+                "text": "Recently updated"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "pane": "nav",
+      "title": "views",
+      "width": 26
+    },
+    {
+      "body": {
+        "columns": [
+          {
+            "heading": "type",
+            "keep": 1,
+            "width": 10
+          },
+          {
+            "heading": "status",
+            "keep": 3,
+            "width": 16
+          },
+          {
+            "heading": "updated",
+            "icon": "updated",
+            "keep": 2,
+            "width": 8
+          },
+          {
+            "extra": true,
+            "heading": "code",
+            "keep": 0,
+            "width": 12
+          }
+        ],
+        "header": [
+          {
+            "text": "ASSIGNED TO"
+          },
+          {
+            "text": " "
+          },
+          {
+            "icon": "team"
+          },
+          {
+            "ink": "secondary",
+            "text": "everyone"
+          }
+        ],
+        "header_target": "assignees",
+        "look": {
+          "band": "bg.overlay",
+          "band_level": 2,
+          "heading": "bg.overlay",
+          "lines": "text.muted"
+        },
+        "name_width": 28,
+        "node": "tree",
+        "open": [
+          [
+            "s:acme"
+          ],
+          [
+            "s:acme",
+            "g:acme:In Progress"
+          ],
+          [
+            "s:acme",
+            "g:acme:In Progress",
+            "t:acme:ABC-1"
+          ],
+          [
+            "s:acme",
+            "g:acme:In Review"
+          ],
+          [
+            "s:acme",
+            "g:acme:To Do"
+          ],
+          [
+            "s:beta"
+          ],
+          [
+            "s:beta",
+            "g:beta:To Do"
+          ]
+        ],
+        "rows": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "type",
+                        "text": [
+                          {
+                            "look": "accent.tertiary bold",
+                            "text": "Epic"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "status",
+                        "text": [
+                          {
+                            "icon": "in_progress",
+                            "look": "status.info bold",
+                            "text": "◐"
+                          },
+                          {
+                            "look": "status.info bold",
+                            "text": " In Progress"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "updated",
+                        "text": [
+                          {
+                            "look": "text.muted",
+                            "text": "2w"
+                          }
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "cells": [
+                          {
+                            "heading": "type",
+                            "text": [
+                              {
+                                "look": "status.success",
+                                "text": "Story"
+                              }
+                            ]
+                          },
+                          {
+                            "heading": "status",
+                            "text": [
+                              {
+                                "icon": "in_progress",
+                                "look": "status.info bold",
+                                "text": "◐"
+                              },
+                              {
+                                "look": "status.info bold",
+                                "text": " In Progress"
+                              }
+                            ]
+                          },
+                          {
+                            "heading": "updated",
+                            "text": [
+                              {
+                                "look": "text.primary",
+                                "text": "1h"
+                              }
+                            ]
+                          },
+                          {
+                            "heading": "code",
+                            "text": [
+                              {
+                                "ink": "secondary",
+                                "text": "!263 review"
+                              }
+                            ]
+                          }
+                        ],
+                        "chips": {
+                          "gives": 3,
+                          "text": [
+                            {
+                              "text": " "
+                            },
+                            {
+                              "chip": true,
+                              "icon": "thread",
+                              "ink": "muted",
+                              "link": "https://acme.slack.com/archives/C0000TEAM1/p1791184000609000",
+                              "text": "discussed · 1"
+                            }
+                          ]
+                        },
+                        "glow": "ticket:ABC-12",
+                        "id": "t:acme:ABC-12",
+                        "name": [
+                          {
+                            "icon": "story"
+                          },
+                          {
+                            "look": "accent.secondary",
+                            "text": "ABC-12 "
+                          },
+                          {
+                            "icon": "priority_medium"
+                          },
+                          {
+                            "ink": "primary",
+                            "text": "Add a stats endpoint for the dashboard"
+                          },
+                          {
+                            "ink": "muted",
+                            "text": "  "
+                          },
+                          {
+                            "icon": "you"
+                          },
+                          {
+                            "look": "accent.primary",
+                            "text": "you"
+                          }
+                        ]
+                      },
+                      {
+                        "cells": [
+                          {
+                            "heading": "type",
+                            "text": [
+                              {
+                                "look": "text.secondary",
+                                "text": "Sub-task"
+                              }
+                            ]
+                          },
+                          {
+                            "heading": "status",
+                            "text": [
+                              {
+                                "icon": "in_progress",
+                                "look": "status.info bold",
+                                "text": "◐"
+                              },
+                              {
+                                "look": "status.info bold",
+                                "text": " In Progress"
+                              }
+                            ]
+                          },
+                          {
+                            "heading": "updated",
+                            "text": [
+                              {
+                                "look": "text.primary",
+                                "text": "1h"
+                              }
+                            ]
+                          }
+                        ],
+                        "glow": "ticket:ABC-13",
+                        "id": "t:acme:ABC-13",
+                        "name": [
+                          {
+                            "icon": "subtask"
+                          },
+                          {
+                            "look": "accent.secondary",
+                            "text": "ABC-13 "
+                          },
+                          {
+                            "icon": "priority_medium"
+                          },
+                          {
+                            "ink": "primary",
+                            "text": "Count requests per route"
+                          },
+                          {
+                            "ink": "muted",
+                            "text": "  "
+                          },
+                          {
+                            "icon": "person"
+                          },
+                          {
+                            "ink": "muted",
+                            "text": "Bob E."
+                          }
+                        ]
+                      }
+                    ],
+                    "glow": "ticket:ABC-1",
+                    "id": "t:acme:ABC-1",
+                    "name": [
+                      {
+                        "icon": "epic"
+                      },
+                      {
+                        "look": "accent.secondary",
+                        "text": "ABC-1 "
+                      },
+                      {
+                        "icon": "priority_medium"
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "Dashboard for the stats"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": "  "
+                      },
+                      {
+                        "icon": "you"
+                      },
+                      {
+                        "look": "accent.primary",
+                        "text": "you"
+                      }
+                    ]
+                  }
+                ],
+                "id": "g:acme:In Progress",
+                "name": [
+                  {
+                    "icon": "in_progress",
+                    "look": "status.info bold",
+                    "text": "◐"
+                  },
+                  {
+                    "look": "status.info bold",
+                    "text": " In Progress"
+                  }
+                ]
+              },
+              {
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "type",
+                        "text": [
+                          {
+                            "look": "status.success",
+                            "text": "Story"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "status",
+                        "text": [
+                          {
+                            "icon": "in_progress",
+                            "look": "status.info bold",
+                            "text": "◐"
+                          },
+                          {
+                            "look": "status.info bold",
+                            "text": " In Review"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "updated",
+                        "text": [
+                          {
+                            "look": "text.primary",
+                            "text": "1h"
+                          }
+                        ]
+                      }
+                    ],
+                    "glow": "ticket:DEF-3",
+                    "id": "t:acme:DEF-3",
+                    "name": [
+                      {
+                        "icon": "story"
+                      },
+                      {
+                        "look": "accent.secondary",
+                        "text": "DEF-3 "
+                      },
+                      {
+                        "icon": "priority_medium"
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "Rename the export job"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": "  "
+                      },
+                      {
+                        "icon": "you"
+                      },
+                      {
+                        "look": "accent.primary",
+                        "text": "you"
+                      }
+                    ]
+                  }
+                ],
+                "id": "g:acme:In Review",
+                "name": [
+                  {
+                    "icon": "in_progress",
+                    "look": "status.info bold",
+                    "text": "◐"
+                  },
+                  {
+                    "look": "status.info bold",
+                    "text": " In Review"
+                  }
+                ]
+              },
+              {
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "type",
+                        "text": [
+                          {
+                            "look": "status.error",
+                            "text": "Bug"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "status",
+                        "text": [
+                          {
+                            "icon": "todo",
+                            "look": "text.secondary",
+                            "text": "○"
+                          },
+                          {
+                            "look": "text.secondary",
+                            "text": " To Do"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "updated",
+                        "text": [
+                          {
+                            "look": "text.muted",
+                            "text": "9w"
+                          }
+                        ]
+                      }
+                    ],
+                    "glow": "ticket:ABC-20",
+                    "id": "t:acme:ABC-20",
+                    "name": [
+                      {
+                        "icon": "bug"
+                      },
+                      {
+                        "look": "accent.secondary",
+                        "text": "ABC-20 "
+                      },
+                      {
+                        "icon": "priority_medium"
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "Stats page shows yesterday twice"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": "  "
+                      },
+                      {},
+                      {
+                        "ink": "muted",
+                        "text": "unassigned"
+                      }
+                    ]
+                  }
+                ],
+                "id": "g:acme:To Do",
+                "name": [
+                  {
+                    "icon": "todo",
+                    "look": "text.secondary",
+                    "text": "○"
+                  },
+                  {
+                    "look": "text.secondary",
+                    "text": " To Do"
+                  }
+                ]
+              }
+            ],
+            "id": "s:acme",
+            "name": [
+              {
+                "icon": "site"
+              },
+              {
+                "look": "jira.blue bold",
+                "text": "acme"
+              },
+              {
+                "ink": "secondary",
+                "text": "  acme.atlassian.net"
+              },
+              {}
+            ],
+            "stripe": "jira.blue"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "type",
+                        "text": [
+                          {
+                            "look": "status.success",
+                            "text": "Story"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "status",
+                        "text": [
+                          {
+                            "icon": "todo",
+                            "look": "text.secondary",
+                            "text": "○"
+                          },
+                          {
+                            "look": "text.secondary",
+                            "text": " To Do"
+                          }
+                        ]
+                      },
+                      {
+                        "heading": "updated",
+                        "text": [
+                          {
+                            "look": "text.primary",
+                            "text": "1h"
+                          }
+                        ]
+                      }
+                    ],
+                    "glow": "ticket:XYZ-7",
+                    "id": "t:beta:XYZ-7",
+                    "name": [
+                      {
+                        "icon": "story"
+                      },
+                      {
+                        "look": "accent.secondary",
+                        "text": "XYZ-7 "
+                      },
+                      {
+                        "icon": "priority_medium"
+                      },
+                      {
+                        "ink": "primary",
+                        "text": "Move the nightly build"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": "  "
+                      },
+                      {
+                        "icon": "person"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": "Alice E."
+                      }
+                    ]
+                  }
+                ],
+                "id": "g:beta:To Do",
+                "name": [
+                  {
+                    "icon": "todo",
+                    "look": "text.secondary",
+                    "text": "○"
+                  },
+                  {
+                    "look": "text.secondary",
+                    "text": " To Do"
+                  }
+                ]
+              }
+            ],
+            "id": "s:beta",
+            "name": [
+              {
+                "icon": "site"
+              },
+              {
+                "look": "jira.green bold",
+                "text": "beta"
+              },
+              {
+                "ink": "secondary",
+                "text": "  beta.atlassian.net"
+              },
+              {}
+            ],
+            "stripe": "jira.green"
+          }
+        ],
+        "selected": [
+          "s:acme"
+        ]
+      },
+      "notes": [
+        [
+          {
+            "ink": "secondary",
+            "text": "assigned to you · not done"
+          }
+        ]
+      ],
+      "notes_most": 3,
+      "pane": "middle",
+      "title": "My tickets"
+    },
+    {
+      "body": {
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "look": "jira.blue",
+                "text": "▌ "
+              },
+              {
+                "icon": "site"
+              },
+              {
+                "look": "jira.blue bold",
+                "text": "acme"
+              },
+              {
+                "ink": "secondary",
+                "text": "  acme.atlassian.net"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": []
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "signed in   "
+              },
+              {
+                "ink": "primary",
+                "text": "Alice Example"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "watching    "
+              },
+              {
+                "ink": "primary",
+                "text": "ABC, DEF"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": []
+          },
+          {
+            "block": "section",
+            "blocks": [
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "in_progress",
+                    "look": "status.info bold",
+                    "text": "◐"
+                  },
+                  {
+                    "look": "status.info bold",
+                    "text": " doing "
+                  },
+                  {
+                    "ink": "number",
+                    "text": "4"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "todo",
+                    "look": "text.secondary",
+                    "text": "○"
+                  },
+                  {
+                    "look": "text.secondary",
+                    "text": " to do "
+                  },
+                  {
+                    "ink": "number",
+                    "text": "1"
+                  }
+                ]
+              }
+            ],
+            "title": "IN THIS VIEW"
+          }
+        ],
+        "node": "rich"
+      },
+      "pane": "detail",
+      "title": "acme"
+    }
+  ],
+  "scope": "tickets",
+  "version": 1
+}

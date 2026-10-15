@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+│ Local activity storage is unavailable. Check state-directory access,         │
+│ restart, then refresh.                                                       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

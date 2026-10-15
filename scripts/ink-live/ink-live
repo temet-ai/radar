@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+# ink-live: the real radar binary in a private tmux server, drawn by Ink or Ratatui,
+# driven by keys and SGR mouse sequences, its screen read back as text or colour,
+# and the renderer that actually drew it proven from radar.log.
+#
+#   ink-live start NAME ink|ratatui [WxH]   start (default 160x40); fails if Ink fell back
+#   ink-live keys NAME KEY...               tmux key names (Down, Enter, Escape, x, BTab, ...)
+#   ink-live text NAME                      the screen as text
+#   ink-live colour NAME                    the screen with its SGR colours (capture-pane -e)
+#   ink-live click NAME X Y [left|right|double|hover]   1-based cells
+#   ink-live wheel NAME X Y [up|down] [N]   N wheel notches at a 1-based cell (default down, 1)
+#   ink-live modes NAME                     mouse and alternate-screen modes the program set
+#   ink-live resize NAME WxH
+#   ink-live log NAME                       radar.log and stderr tails
+#   ink-live stop NAME                      q, the modes left behind, then cleanup
+#
+# Data: the offline fixtures of tests/ink_pty.rs (assets/offline: GitLab acme/team-a
+# with !263 and !264, Jira ABC-12; tokens unset, so nothing reaches a service), or
+# RADAR_LIVE_CONFIG=<config.toml> for a read-only run on that config's real services
+# (with RADAR_LIVE_OFFLINE=1: that config over the offline data, e.g. the offline config plus
+# `[sessions] provider = "fake"` and RADAR_FAKE_AGENT=1 for the agent dock).
+# The run is sandboxed (RADAR_SANDBOX=1: no browser, clipboard, notification, editor or
+# terminal window, no real Copilot CLI); RADAR_SANDBOX= ink-live start ... for a run that may.
+# RADAR_BIN overrides the binary. Unset, the script uses the default-features release build in the
+# repo's own target/ (built here when older than HEAD); never target/fleet/debug/radar, which is
+# whatever feature mix the gate built last. The binary is copied first, so a rebuild by someone
+# else does not change it under the run; `start` refuses a binary missing a default part.
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")" && pwd)
+root=$(git rev-parse --show-toplevel)
+base="${TMPDIR:-/tmp}/radar-live"
+# Runs of the same NAME from two checkouts or two TMPDIRs (parallel seats) must not meet.
+key=$(printf '%s|%s' "$root" "${TMPDIR:-}" | cksum | cut -d ' ' -f 1)
+
+die() { echo "ink-live: $*" >&2; exit 1; }
+t() { local n=$1; shift; tmux -L "radar-live-$key-$n" "$@"; }
+# Ink's socket is <state>/radar/ink-<pid>.sock and must be under 100 bytes, else (and when
+# TMPDIR is long too) every start fails and radar falls back to Ratatui: keep the run short.
+dir_of() {
+  local d="$base/$1"
+  if [ ${#d} -gt 60 ]; then d="/tmp/radar-live-$(id -u)/$key-$1"; fi
+  echo "$d"
+}
+mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
+# The default build: release, default features, the repo's own target/ (as scripts/install).
+default_bin() {
+  local bin="$root/target/release/radar"
+  if [ ! -x "$bin" ] || [ "$(mtime "$bin")" -lt "$(git -C "$root" log -1 --format=%ct)" ]; then
+    echo "ink-live: building the default-features radar (cargo build --release --bin radar)" >&2
+    (cd "$root" && unset CARGO_TARGET_DIR && cargo build --release --bin radar >&2) || die "cargo build --release --bin radar failed"
+  fi
+  echo "$bin"
+}
+# The parts a default build has, asked of the binary: `radar shot --list` names a settings
+# place per part (settings.<part>.*), and has the demo data only with the shots feature.
+check_parts() {
+  local bin=$1 places missing="" p
+  places=$("$bin" shot --list 2>/dev/null) || die "$bin has no 'shot --list' (no shots feature?): not a default-features radar"
+  for p in gitlab github jira slack git workspace; do
+    printf '%s\n' "$places" | grep -q "^settings\.$p\." || missing="$missing $p"
+  done
+  # workbench has no settings place; its Work screen is the place named "work".
+  printf '%s\n' "$places" | grep -q "^work[[:space:]]" || missing="$missing workbench"
+  [ -z "$missing" ] || die "$bin lacks default parts:$missing. It is a partial feature mix (the gate's target/fleet/debug/radar is one). Unset RADAR_BIN to use the default build, or build: cargo build --release --bin radar"
+}
+need_name() { [ -n "${1:-}" ] || die "a NAME is needed"; [ -d "$(dir_of "$1")" ] || die "no run named $1 (start it first)"; }
+
+modes() {
+  t "$1" display -p -t radar 'alternate=#{alternate_on} mouse_1000=#{mouse_standard_flag} mouse_1002=#{mouse_button_flag} mouse_1003=#{mouse_any_flag} sgr_1006=#{mouse_sgr_flag} dead=#{pane_dead}'
+}
+
+start() {
+  local name=${1:-} renderer=${2:-} size=${3:-160x40}
+  [ -n "$name" ] || die "start NAME ink|ratatui [WxH]"
+  case "$renderer" in ink|ratatui) ;; *) die "renderer must be ink or ratatui" ;; esac
+  local w=${size%x*} h=${size#*x}
+  local d; d=$(dir_of "$name")
+  t "$name" kill-server 2>/dev/null || true
+  rm -rf "$d"
+  mkdir -p "$d/cfg/radar" "$d/state/radar" "$d/cache" "$d/data" "$d/home" "$d/bin"
+
+  local bin=${RADAR_BIN:-}
+  [ -n "$bin" ] || bin=$(default_bin)
+  [ -x "$bin" ] || die "no radar binary at $bin"
+  check_parts "$bin"
+  cp "$bin" "$d/bin/radar"
+
+  local bundle="$root/ink/dist/radar-ink.js"
+  if [ "$renderer" = ink ]; then
+    if [ ! -f "$bundle" ] || [ -n "$(find "$root/ink/src" -type f -newer "$bundle" | head -n 1)" ]; then
+      echo "ink-live: bundling ink/src (npm run bundle)"
+      (cd "$root/ink" && npm run bundle >"$d/bundle.out" 2>&1) || { cat "$d/bundle.out" >&2; die "npm run bundle failed"; }
+    fi
+  fi
+
+  local home="$d/home"
+  if [ -n "${RADAR_LIVE_CONFIG:-}" ] && [ "${RADAR_LIVE_OFFLINE:-}" = 1 ]; then
+    # A copy of the offline config with something added (a [sessions] provider): the same offline data and home.
+    cp "$RADAR_LIVE_CONFIG" "$d/cfg/radar/config.toml"
+    cp "$here/assets/offline/gitlab.json" "$here/assets/offline/jira.json" "$d/state/radar/"
+  elif [ -n "${RADAR_LIVE_CONFIG:-}" ]; then
+    cp "$RADAR_LIVE_CONFIG" "$d/cfg/radar/config.toml"
+    home=$HOME
+  else
+    cp "$here/assets/offline/config.toml" "$d/cfg/radar/config.toml"
+    cp "$here/assets/offline/gitlab.json" "$here/assets/offline/jira.json" "$d/state/radar/"
+  fi
+
+  t "$name" -f /dev/null new-session -d -s radar -x "$w" -y "$h" -c "$d/home" \
+    "env -u HERDR_ENV -u HERDR_PANE_ID -u HERDR_TAB_ID -u HERDR_WORKSPACE_ID -u HERDR_SOCKET_PATH HOME='$home' XDG_CONFIG_HOME='$d/cfg' XDG_STATE_HOME='$d/state' XDG_CACHE_HOME='$d/cache' XDG_DATA_HOME='$d/data' COLORTERM=truecolor LANG=C.UTF-8 RADAR_SANDBOX='${RADAR_SANDBOX-1}' RADAR_MODE=read-only RADAR_NO_WRITES=1 RADAR_RENDERER=$renderer RADAR_INK_BUNDLE='$bundle' '$d/bin/radar' 2>'$d/stderr'"
+  t "$name" set-option -t radar remain-on-exit on >/dev/null
+
+  local log="$d/state/radar/radar.log" i
+  # Drawn: five non-blank lines and not Ink's "waiting for the host" placeholder.
+  drawn() {
+    local s; s=$(t "$name" capture-pane -p -t radar)
+    case "$s" in *"waiting for the host"*) return 1 ;; esac
+    [ "$(printf '%s\n' "$s" | grep -c '[^ ]')" -ge 5 ]
+  }
+  for i in $(seq 1 60); do
+    if [ "$renderer" = ink ]; then
+      if grep -q "Ratatui runs" "$log" 2>/dev/null || grep -q "using the Ratatui renderer" "$d/stderr" 2>/dev/null; then
+        cat "$d/stderr" >&2; die "RADAR_RENDERER=ink fell back to Ratatui (see above); this screen would not be Ink's"
+      fi
+      if grep -q "Ink renderer started, pid" "$log" 2>/dev/null && drawn; then
+        echo "ink-live: $name drawn by Ink: $(grep -o 'Ink renderer started, pid [0-9]*' "$log" | tail -n 1), ${w}x${h}, files in $d"
+        return 0
+      fi
+    elif drawn; then
+      echo "ink-live: $name drawn by Ratatui, ${w}x${h}, files in $d"
+      return 0
+    fi
+    [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ] && { cat "$d/stderr" >&2; die "radar exited at start"; }
+    sleep 0.25
+  done
+  cat "$d/stderr" >&2; tail -n 20 "$log" >&2 2>/dev/null || true
+  die "nothing drawn after 15 s"
+}
+
+keys() {
+  local name=${1:-}; need_name "$name"; shift
+  local k
+  for k in "$@"; do
+    # tmux joins Escape and the next key into Alt-<key>: send it alone and let it land.
+    t "$name" send-keys -t radar "$k"
+    if [ "$k" = Escape ]; then sleep 0.15; fi
+  done
+  sleep 0.4
+}
+
+click() {
+  local name=${1:-} x=${2:-} y=${3:-} how=${4:-left}; need_name "$name"
+  [ -n "$x" ] && [ -n "$y" ] || die "click NAME X Y [left|right|double|hover]"
+  local esc=$'\e'
+  case "$how" in
+    left)   t "$name" send-keys -t radar -l "${esc}[<0;${x};${y}M${esc}[<0;${x};${y}m" ;;
+    right)  t "$name" send-keys -t radar -l "${esc}[<2;${x};${y}M${esc}[<2;${x};${y}m" ;;
+    double) t "$name" send-keys -t radar -l "${esc}[<0;${x};${y}M${esc}[<0;${x};${y}m${esc}[<0;${x};${y}M${esc}[<0;${x};${y}m" ;;
+    hover)  t "$name" send-keys -t radar -l "${esc}[<35;${x};${y}M" ;;
+    *) die "click: left, right, double or hover" ;;
+  esac
+  sleep 0.4
+}
+
+# The wheel at a cell: SGR button 64 (up) or 65 (down), a press with no release, N notches.
+wheel() {
+  local name=${1:-} x=${2:-} y=${3:-} dir=${4:-down} n=${5:-1}; need_name "$name"
+  [ -n "$x" ] && [ -n "$y" ] || die "wheel NAME X Y [up|down] [N]"
+  local esc=$'\e' b i seq=""
+  case "$dir" in
+    up) b=64 ;;
+    down) b=65 ;;
+    *) die "wheel: up or down" ;;
+  esac
+  case "$n" in ''|*[!0-9]*) die "wheel: N is a count of notches" ;; esac
+  for i in $(seq 1 "$n"); do seq="${seq}${esc}[<${b};${x};${y}M"; done
+  t "$name" send-keys -t radar -l "$seq"
+  sleep 0.4
+}
+
+stop() {
+  local name=${1:-}; need_name "$name"
+  local d i; d=$(dir_of "$name")
+  local try
+  # q quits from a screen; an open menu or dialog takes esc first.
+  for try in q Escape-q Escape-q; do
+    [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ] && break
+    if [ "$try" = Escape-q ]; then t "$name" send-keys -t radar Escape; sleep 0.3; fi
+    t "$name" send-keys -t radar q
+    for i in $(seq 1 20); do
+      [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ] && break
+      sleep 0.25
+    done
+  done
+  if [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ]; then
+    echo "ink-live: after exit: $(modes "$name")"
+  else
+    echo "ink-live: radar did not quit on q or esc q; killed. Modes while running: $(modes "$name")"
+  fi
+  t "$name" kill-server 2>/dev/null || true
+  rm -rf "$d"
+}
+
+cmd=${1:-}; shift || true
+case "$cmd" in
+  start) start "$@" ;;
+  keys) keys "$@" ;;
+  text) need_name "${1:-}"; t "$1" capture-pane -p -t radar ;;
+  colour|color) need_name "${1:-}"; t "$1" capture-pane -p -e -t radar ;;
+  click) click "$@" ;;
+  wheel) wheel "$@" ;;
+  modes) need_name "${1:-}"; modes "$1" ;;
+  resize) need_name "${1:-}"; t "$1" resize-window -t radar -x "${2%x*}" -y "${2#*x}"; sleep 0.5 ;;
+  log) need_name "${1:-}"; d=$(dir_of "$1"); tail -n 40 "$d/state/radar/radar.log" 2>/dev/null; echo "-- stderr"; cat "$d/stderr" ;;
+  stop) stop "$@" ;;
+  *) sed -n '2,20p' "$0"; exit 2 ;;
+esac

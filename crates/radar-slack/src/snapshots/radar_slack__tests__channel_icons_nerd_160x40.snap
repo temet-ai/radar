@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar     Slack 4    History    Settings (,)                                                                              synced 40s ago · every 2m   edit
+╭ feed ──────────────────╮╭ #svc ──────────────────────────────────────────────────────────────────────────────╮╭ Carol Coder's message ───────────────────────╮
+│  For you            4 ││ 1 new                                                           REPLIE  WHEN     ││ ── #svc · today ──                           │
+│  Discussions          ││▌ today                                                                             ││ ● 02:16  Carol Coder                         │
+│ ▌  #team        6 NEW ││▌ └─  Carol C.  The service is being upgraded at noon                   5h         ││     The service is being upgraded at noon    │
+│ ▌  #svc         1 NEW ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ the last 7 days ·                                                                  ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn  scroll   b  bulk   +/-  expand/collapse   q  quit   x  menu   ←→↑↓ navigate                                       7 new · 4 for you  

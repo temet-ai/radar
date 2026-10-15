@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Build radar from this checkout and install it as `radar` in ~/.local/bin, so the
+# command is always the build you just made. Prints the installed version.
+#
+#   scripts/install           build (release) and install
+#
+# Builds in the repo's own target/ whatever CARGO_TARGET_DIR says, so a
+# shell left pointing elsewhere cannot install an old binary.
+# Works with bash 3.2 (macOS) and GNU or BSD tools.
+
+set -e
+
+cd "$(dirname "$0")/.."
+unset CARGO_TARGET_DIR
+
+root="${RADAR_INSTALL_ROOT:-$HOME/.local}"
+bin="$root/bin/radar"
+
+# RADAR_BUILD_DIR builds somewhere else (scripts/deploy-mac uses a temporary
+# folder so the Mac's checkout keeps no target/).
+build="${RADAR_BUILD_DIR:-target}"
+
+# radar's runtime (the Ink renderer and the Claude Code sidecar as one Node
+# single executable, scripts/build-runtime) goes inside the binary, as in a
+# release: the installed radar needs no node and no files beside it.
+runtime=$(scripts/build-runtime "$build/runtime" | tail -n 1)
+RADAR_RUNTIME_EMBED="$runtime" CARGO_TARGET_DIR="$build" cargo build --release --locked
+mkdir -p "$root/bin"
+
+# A link left by another tool (giterdone's uv install) is replaced, not
+# followed: copying through it would overwrite that tool's own file.
+if [ -L "$bin" ]; then
+    echo "replacing the link $bin -> $(readlink "$bin")"
+    rm "$bin"
+fi
+tmp="$bin.new.$$"
+cp "$build/release/radar" "$tmp"
+chmod 755 "$tmp"
+mv "$tmp" "$bin"
+
+echo "installed $bin"
+
+# The bundle earlier installs put beside the binary; the runtime replaces it.
+if [ -e "$root/share/radar/ink/radar-ink.js" ]; then
+    rm -r "$root/share/radar/ink"
+    echo "removed the old $root/share/radar/ink"
+fi
+"$bin" --version

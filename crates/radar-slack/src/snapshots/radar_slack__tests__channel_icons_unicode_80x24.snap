@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 4   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+╭ #svc ────────────────────────────────────────────────────────────────────────╮
+│ 1 new                                                    ↩ REPLIE ◷ WHEN     │
+│▌ today                                                                       │
+│▌ └─ • Carol C.  The service is being upgraded at noon             5h         │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ the last 7 days ·                                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   b ◫ bulk   +/- ± expand/collapse   q ✕ quit   x ≡ menu               #

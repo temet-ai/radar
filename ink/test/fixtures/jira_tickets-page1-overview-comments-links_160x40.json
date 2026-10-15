@@ -1,0 +1,452 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "ABC-1"
+    },
+    {
+      "id": "jira.tickets.open_in_jira",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open it in Jira"
+    },
+    {
+      "id": "jira.tickets.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy its link"
+    },
+    {
+      "id": "jira.tickets.copy_key",
+      "key": {
+        "key": {
+          "char": "Y"
+        }
+      },
+      "label": "copy ABC-1"
+    },
+    {
+      "id": "jira.tickets.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "on Jira"
+    },
+    {
+      "change": "edit",
+      "id": "jira.tickets.move",
+      "key": {
+        "key": {
+          "char": "t"
+        }
+      },
+      "label": "move ABC-1 to another status…"
+    },
+    {
+      "change": "add",
+      "id": "jira.tickets.comment",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "comment on ABC-1…"
+    },
+    {
+      "change": "edit",
+      "id": "jira.tickets.assign_me",
+      "key": {
+        "key": {
+          "char": "i"
+        }
+      },
+      "label": "assign to me · ABC-1 is already yours"
+    },
+    {
+      "change": "add",
+      "id": "jira.tickets.new_ticket",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "label": "new ticket in ABC…"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "page"
+    },
+    {
+      "id": "jira.tickets.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab: Comments"
+    },
+    {
+      "id": "jira.tickets.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab: Links"
+    },
+    {
+      "id": "agent.send",
+      "key": {
+        "key": {
+          "char": "A"
+        }
+      },
+      "label": "ask an agent about it…"
+    },
+    {
+      "id": "jira.tickets.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the middle pane"
+    },
+    {
+      "id": "jira.tickets.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Jira"
+      },
+      {
+        "look": "jira.blue bold",
+        "text": "acme"
+      },
+      {
+        "ink": "secondary",
+        "text": "ABC"
+      },
+      {
+        "look": "accent.secondary",
+        "text": "ABC-1"
+      }
+    ],
+    "details": [
+      {
+        "icon": "in_progress",
+        "look": "status.info bold",
+        "text": "◐"
+      },
+      {
+        "look": "status.info bold",
+        "text": " In Progress"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "look": "accent.tertiary bold",
+        "text": "Epic"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "icon": "you"
+      },
+      {
+        "look": "accent.primary",
+        "text": "you"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "loading…"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "DESCRIPTION"
+                }
+              ]
+            },
+            {
+              "block": "doc",
+              "doc": [
+                {
+                  "t": "para",
+                  "text": [
+                    {
+                      "text": "What ABC-1 is about."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "ACCEPTANCE CRITERIA"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "none written"
+                }
+              ]
+            }
+          ],
+          "node": "rich",
+          "pictures": "acme"
+        },
+        "pane": "middle",
+        "title": "overview"
+      },
+      {
+        "body": {
+          "cut": true,
+          "lines": [
+            [
+              {
+                "ink": "muted",
+                "text": "status        "
+              },
+              {
+                "icon": "in_progress",
+                "look": "status.info bold",
+                "text": "◐"
+              },
+              {
+                "look": "status.info bold",
+                "text": " In Progress"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "type          "
+              },
+              {
+                "look": "accent.tertiary bold",
+                "text": "Epic"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "priority      "
+              },
+              {
+                "icon": "priority_medium"
+              },
+              {
+                "ink": "primary",
+                "text": "Medium"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "assignee      "
+              },
+              {
+                "icon": "you"
+              },
+              {
+                "look": "accent.primary",
+                "text": "you"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "reporter      "
+              },
+              {
+                "icon": "person"
+              },
+              {
+                "ink": "primary",
+                "text": "Bob Example"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "sprint        "
+              },
+              {
+                "ink": "muted",
+                "text": "…"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "labels        "
+              },
+              {
+                "ink": "muted",
+                "text": "—"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "components    "
+              },
+              {
+                "ink": "muted",
+                "text": "—"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "fix versions  "
+              },
+              {
+                "ink": "muted",
+                "text": "—"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "created       "
+              },
+              {
+                "icon": "calendar"
+              },
+              {
+                "ink": "primary",
+                "text": "2w ago"
+              }
+            ],
+            [
+              {
+                "ink": "muted",
+                "text": "updated       "
+              },
+              {
+                "icon": "updated"
+              },
+              {
+                "ink": "primary",
+                "text": "2w ago"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "pane": "detail",
+        "title": "details",
+        "width": 40
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "icon": "info",
+        "label": "Overview"
+      },
+      {
+        "icon": "thread",
+        "label": "Comments"
+      },
+      {
+        "icon": "link",
+        "label": "Links"
+      }
+    ],
+    "title": [
+      {
+        "icon": "epic"
+      },
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "Dashboard for the stats"
+      }
+    ],
+    "under": [
+      {
+        "ink": "secondary",
+        "text": "Acme ABC · "
+      },
+      {
+        "icon": "updated"
+      },
+      {
+        "ink": "muted",
+        "text": "updated 2w ago"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "tickets",
+  "version": 1
+}

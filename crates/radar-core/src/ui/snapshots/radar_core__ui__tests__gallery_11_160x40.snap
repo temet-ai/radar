@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1000
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Row states
+ The kit: every element on sample data                                                                                                            colours: none
+ Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  [Row states]  Grid states  Waiting  Long text  Icons
+╭ list, focused (cursor on the fourth row) ────────────────────────────────────╮╭ list, without focus ────────────────────────────────────────────────────────╮
+│ A HEADING: THE CURSOR SKIPS IT                                               ││ A HEADING: THE CURSOR SKIPS IT                                              │
+│  a plain row                                                                 ││  a plain row                                                                │
+│  a row with a word at the right                                       hidden ││  a row with a word at the right                                      hidden │
+│  the row the cursor is on                                                  ✓ ││  the row the cursor is on                                                 ✓ │
+│  a row whose text is far too long for the room its word leaves, so  checking ││  a row whose text is far too long for the room its word leaves, so checking │
+│  + add a shelf   paste a link to a shelf, or its path                        ││  + add a shelf   paste a link to a shelf, or its path                       │
+│  日本語の長い行 with wide characters in it, cut at the edge                  ││  日本語の長い行 with wide characters in it, cut at the edge                 │
+│                                                                              ││                                                                             │
+│                                                                              ││                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
+╭ row styles: the four a row can have ─────────────────────────────────────────╮╭ list, empty ────────────────────────────────────────────────────────────────╮
+│ selected, pane focused                                                  word ││ No shelves yet. Press , for settings, then add one under shelves.           │
+│ selected, pane without focus                                            word ││                                                                             │
+│ not selected, pane focused                                              word ││                                                                             │
+│ not selected, no focus                                                  word ││                                                                             │
+│                                                                              ││                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
+╭ entries, focused (cursor on the first) ──────────────────────────────────────╮╭ entries, without focus ─────────────────────────────────────────────────────╮
+│ WHY IT STOPPED                                                               ││ WHY IT STOPPED                                                              │
+│ ✗ label     2m 04s · ran out of labels                                       ││ ✗ label     2m 04s · ran out of labels                                      │
+│   │ no label left for box 17                                                 ││   │ no label left for box 17                                                │
+│   │ the drawer holds 0 of 40                                                 ││   │ the drawer holds 0 of 40                                                │
+│ ✗ file      12s · timed out                                                  ││ ✗ file      12s · timed out                                                 │
+│   │ shelf 4 did not answer                                                   ││   │ shelf 4 did not answer                                                  │
+│                                                                              ││                                                                             │
+│ EVERY STEP                                                                   ││ EVERY STEP                                                                  │
+│ ✓ fetch     1m 10s                                                           ││ ✓ fetch     1m 10s                                                          │
+│ ✓ sort      3m 02s                                                           ││ ✓ sort      3m 02s                                                          │
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
+╭ entries, empty ──────────────────────────────────────────────────────────────╮╭ log, empty ─────────────────────────────────────────────────────────────────╮
+│ Nothing failed.                                                              ││ Nothing written yet.                                                        │
+│                                                                              ││                                                                             │
+│                                                                              ││                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
+
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

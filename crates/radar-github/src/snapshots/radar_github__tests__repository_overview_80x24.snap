@@ -1,0 +1,28 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)          synced 25s ago  ✎ edit
+ GitHub › acme/api
+ acme/api
+ [Overview]  Pull requests  Actions
+╭ Overview ────────────────────────────────────────────────────────────────────╮
+│ visibility  public                                                           │
+│ default branch  main                                                         │
+│ archived  no                                                                 │
+│                                                                              │
+│ ACTIONS ──────────────────────────────────────────────────────────────────── │
+│   Latest observed Actions on main                                            │
+│   failure  Build and test · #88 attempt 2 · updated 2026-10-06T10:05:00Z     │
+│   Observed workflows only; this does not establish overall repository        │
+│   health.                                                                    │
+│                                                                              │
+│ DESCRIPTION ──────────────────────────────────────────────────────────────── │
+│   An example API service. Read the contribution guide.                       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             github

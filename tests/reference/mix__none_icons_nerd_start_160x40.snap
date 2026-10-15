@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar     History    Settings (,)                                                                                                                         edit
+╭ settings ────────────╮╭ parts ─────────────────────────────────────────────────────────────────────────╮╭ about ─────────────────────────────────────────────╮
+│General               ││  No parts are compiled into this build of radar. Each part is a cargo feature:   ││  A part is one ability of radar, usually one tool it │
+│  ├─  parts          ││ build radar with the ones you want (cargo build --features <part>).               ││ works with, compiled in as a cargo feature. Parts  │
+│  ├─  mode           ││                                                                                ││ never depend on each other: each works alone, and  │
+│  ├─  colours        ││                                                                                ││ each one present adds to the others.               │
+│  └─  icons          ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q  quit   x  menu   ←→↑↓ navigate

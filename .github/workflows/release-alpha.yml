@@ -1,0 +1,136 @@
+name: Release alpha
+
+on:
+  push:
+    tags:
+      - 'v*-alpha.*'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag and workspace version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          actual="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "radar") | .version')"
+          [[ "$actual" =~ ^[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]]
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$version" = "$actual"
+          fi
+      - name: Test workspace
+        run: cargo test --workspace --locked
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            os: unix
+          - runner: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+            os: unix
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+            os: unix
+          - runner: macos-15
+            target: aarch64-apple-darwin
+            os: unix
+          # No Windows build until the host's Unix sockets and PTY code have a
+          # Windows side (WSL2 meanwhile).
+    runs-on: ${{ matrix.runner }}
+    env:
+      CARGO_INCREMENTAL: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: matrix.os == 'unix'
+        with:
+          node-version: '26'
+      # The Ink renderer and the Claude Code sidecar as one Node single
+      # executable for this target, embedded in radar (build.rs): the archive's
+      # one file is all a user installs, with no node.
+      - name: Build the runtime
+        if: matrix.os == 'unix'
+        shell: bash
+        run: echo "RADAR_RUNTIME_EMBED=$(scripts/build-runtime target/runtime | tail -n 1)" >> "$GITHUB_ENV"
+      - name: Build
+        run: cargo build --release --locked
+      - name: Package Unix binary
+        if: matrix.os == 'unix'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "radar") | .version')"
+          target/release/radar --version | grep -F "$version"
+          target/release/radar config path >/dev/null
+          # The runtime came out of the binary and runs with no node on PATH.
+          runtime=$(find ~/.cache/radar/runtime ~/Library/Caches/radar/runtime -name radar-js -type f 2>/dev/null | head -n 1)
+          printf '{"id":1,"op":"hello"}\n' | env PATH=/usr/bin:/bin "$runtime" claude-agent | grep -F '"type":"ready"'
+          mkdir -p dist
+          # The binary, its licence and the notices of what it carries (scripts/notices).
+          tar -czf "dist/radar-v${version}-${{ matrix.target }}.tar.gz" -C target/release radar -C "$GITHUB_WORKSPACE" LICENSE THIRD-PARTY-NOTICES.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: radar-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [validate, build]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: radar-*
+          path: dist
+          merge-multiple: true
+      - name: Publish prerelease and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          test "$(find . -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 4
+          sha256sum ./*.tar.gz > checksums.txt
+          version="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" ./*.tar.gz checksums.txt \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease --title "radar $version" \
+            --notes "radar $version. Install: \`brew install temet-ai/radar/radar\`, or mise with \`github:temet-ai/radar\`. Each archive holds \`radar\`, LICENSE and THIRD-PARTY-NOTICES.md."
+      # The tap's formula, rendered from this release's checksums. Needs
+      # HOMEBREW_TAP_TOKEN, a token that can write to temet-ai/homebrew-radar;
+      # without it the step is skipped and docs/RELEASING.md's manual step applies.
+      - uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Update the Homebrew tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::HOMEBREW_TAP_TOKEN is not set: update temet-ai/homebrew-radar by hand (docs/RELEASING.md)"
+            exit 0
+          fi
+          version="${GITHUB_REF_NAME#v}"
+          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/temet-ai/homebrew-radar.git" tap
+          mkdir -p tap/Formula
+          python3 src/scripts/render-homebrew-formula "$version" "$GITHUB_REPOSITORY" dist/checksums.txt > tap/Formula/radar.rb
+          cd tap
+          git config user.name "radar release"
+          git config user.email "radar-release@users.noreply.github.com"
+          git add Formula/radar.rb
+          git commit -m "radar $version"
+          git push

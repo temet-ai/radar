@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    Repositories   Work (I)    History    Settings (,)                                                                                               edit
+╭ set up Workspace ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  Workspace is not set up yet.                                                                                                                               │
+│                                                                                                                                                              │
+│ no workspace yet: add one in settings, workspace › workspaces                                                                                                │
+│                                                                                                                                                              │
+│ Press ⏎ to set it up in settings, under workspace.                                                                                                           │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ LOCAL WORKSPACES   q  quit   x  menu   ←→↑↓ navigate

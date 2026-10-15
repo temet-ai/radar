@@ -1,0 +1,12 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: page_text(160)
+---
+ Shelves › a › maps › #187
+ Label the map drawer so the maps can be found again                                                                               Alice E. · shelf-4 → archive
+ kept at  /work/north/maps · on shelf-4
+ Overview  [Changes · 2]  Notes · 1 open  Steps
+╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ tabs at [0, 10, 25, 41]                                                                                                                                      │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

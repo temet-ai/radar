@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    ≣ History   ⚙ Settings (,)                                        ✎ edit
+╭ settings ────────────╮╭ parts ───────────────────────────────────────────────╮
+│General               ││ ∅ No parts are compiled into this build of radar. Each  │
+│  ├─ ⊞ parts          ││ part is a cargo feature: build radar with the ones you  │
+│  ├─ ✎ mode           ││ want (cargo build --features <part>).                │
+│  ├─ ◑ colours        ││                                                      │
+│  └─ ☺ icons          ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ about ───────────────────────────────────────────────╮
+│                      ││ ∅ A part is one ability of radar, usually one tool it   │
+│                      ││ works with, compiled in as a cargo feature. Parts    │
+│                      ││ never depend on each other: each works alone, and    │
+│                      ││ each one present adds to the others.                 │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q ✕ quit   x ≡ menu   ←→↑↓ navigate

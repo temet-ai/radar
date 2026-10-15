@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    R 2   J   S   B   I   History   Settings (,)                       not synced yet  ✎ edit
+  GitLab    GitHub    Local workspaces
+╭ views ───────────────╮╭ Everything ──────────────────────────────────────────────────────────────╮
+│ Everything           ││ OPENED BY everyone · 1 repo        STATE               UPDATED FOR YOU   │
+│ Needs my action    2 ││▌ A team-a                                                                │
+│ Opened by me     ╭ api !263 ──────────────────────────────────────────────────╮—       3 MRs     │
+│ Opened by teammat│ ⏎       open its page                                      │16m     review    │
+│ Opened by bots   │ o       open it in GitLab                                  │16m     review    │
+│                  │ y       copy its link                                      │16m     team      │
+│                  │ ON GITLAB                                                  │                  │
+│                  │ u       rebase · not behind main                           │                  │
+│                  │ m       merge · needs 1 approval                           │                  │
+│                  │ e       approve !263…                                      │                  │
+│                  │ /       filter the view by words                           │                  │
+│                  │ .       show only repos with merge requests in the view    │                  │
+│                  │ r       refresh now                                        │                  │
+│                  │ WITH AN AGENT                                              │                  │
+│                  │ A       ask an agent about it…                             │                  │
+│                  │ i       review it locally…                                 │                  │
+│                  │ :       go to a tenancy, repo or merge request…            │                  │
+│                  │ a       show one author's merge requests…                  │                  │
+│                  │ ctrl-r  kept comments…                                     │                  │
+│                  │ JIRA                                                       │                  │
+│                  │ v       open ABC-12                                        │                  │
+│                  │ >       move ABC-12 to …                                   │                  │
+│                  │ GIT                                                        │                  │
+│                  │ s       look for a checkout · no folders set yet           │                  │
+│                  │         link to a local folder…                            │                  │
+│                  │ WORK                                                       │                  │
+│                  │         add to work item…                                  │                  │
+│                  │ HISTORY                                                    │                  │
+│                  │ H       recent activity (last 24 hours)                    │                  │
+│                  │         all activity history                               │                  │
+│                  │         history for selected item                          │                  │
+│                  ╰────────────────────────────────────────────────────────────╯                  │
+│                      ││                                                                          │
+│                      ││─ shows ──────────────────────────────────────────────────────────────────│
+│                      ││ every open merge request · listing every repo, also those without        │
+╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   j/k move   ⏎ choose   esc close                   3 open · 2 to review  gitlab jira

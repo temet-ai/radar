@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:64px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:880px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.lab{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8f86b3}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.mono{font-family:"GGMono",monospace}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;min-height:22.645px}
+.r>span{display:inline-block;min-height:22.645px;vertical-align:top}
+.p{color:#f8f8f2}.s{color:#e9d5ff}.m{color:#6272a4}.e{color:#fff;font-weight:700}.a{color:#e135ff}.am{color:#9580ff}.k{color:#80ffea}.t3{color:#ff6ac1}.ok{color:#50fa7b}.wn{color:#f1fa8c}.bd{color:#ff6363}.in{color:#82aaff}.n{color:#ffb86c}.bb{color:#0a0812}.dk{color:#2a263e}
+.Bs{background:#12101a}.Bo{background:#1a162a}.Bsel{background:#44475a}.Bh{background:#2a263e}.Bg{background:#4a1a5e}
+.b{font-weight:700}.i{font-style:italic}
+.sec{display:grid;grid-template-columns:260px minmax(0,1fr);gap:40px;align-items:start}
+.box{padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.cell{display:inline-block;width:9px;height:22.645px;vertical-align:top}
+@keyframes rowglow{0%{background:#5b1f70}15%{background:#4a1a5e}70%{background:#12101a}100%{background:#12101a}}
+.glowrow{animation:rowglow 2.8s cubic-bezier(.39,.58,.57,1) infinite}
+@keyframes shim{0%{background-position:-120px 0}100%{background-position:260px 0}}
+.shim{background:linear-gradient(90deg,rgba(255,255,255,0) 0,rgba(255,255,255,.35) 30px,rgba(255,255,255,0) 60px) no-repeat;background-size:60px 100%;animation:shim 1.4s linear infinite}
+.addl{background:#14281d}.addw{background:#1f5233}.reml{background:#2c1420}.remw{background:#5a2232}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 24px">
+    <p class="eyebrow">05 · data</p>
+    <h1 class="h1">Rows, meters and<br>charts in cells.</h1>
+    <p class="lede">Most of radar is lists of things in states. A row has to say what it is, where it stands and whether it wants you in one line. Ink lets the numbers behind those rows draw as shapes: smooth meters, real charts, diffs that point at the word that changed.</p>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Trees &amp; row states</h2><p class="note">Connectors show depth. A row is in one of five states, shown by its ground alone, so its colours keep their meaning. A group is marked by the heading shade; the coloured stripe groups carry today down their left edge goes.</p></div>
+    <div class="panel" style="padding: 18px 0; background: #12101a; display: flex; gap: 28px">
+      <div class="term">
+        <div class="r Bh"><span> </span><span class="s"> &#xf42b; </span><span class="e">team-a</span><span class="bd">   main red in 1</span><span>                                                </span></div>
+        <div class="r"><span> </span><span class="m"> ├─ </span><span class="s">&#xf401; </span><span class="p">api   </span><span class="k">&#xf418; alice/ABC-12</span><span>                   </span><span class="ok">&#xf49e; passed</span><span>              </span><span class="m">4d    </span></div>
+        <div class="r Bsel"><span> </span><span class="m"> │  └─ </span><span class="a">&#xf407;</span><span class="e"> !263 ABC-12: Add a stats endpoint </span><span>  </span><span class="wn b">&#xf441; needs 1 approval</span><span>    </span><span class="s">16m   </span></div>
+        <div class="r"><span> </span><span class="m"> ├─ </span><span class="s">&#xf401; </span><span class="p">web   </span><span class="k">&#xf418; main</span><span>                           </span><span class="bd b">&#xf52f; failed</span><span>              </span><span class="m">4d    </span></div>
+        <div class="r Bh"><span> </span><span class="m"> │  ├─ </span><span class="a">&#xf407;</span><span class="p"> !187 change 187</span><span>                     </span><span class="ok">&#xf496; ready to merge</span><span>      </span><span class="m">16m   </span></div>
+        <div class="r glowrow"><span> </span><span class="m"> │  └─ </span><span class="a">&#xf407;</span><span class="p"> !198 change 198</span><span>                     </span><span class="ok">&#xf49e; passed</span><span>              </span><span class="m">now   </span></div>
+        <div class="r"><span> </span><span class="m"> └─ </span><span class="s">&#xf401; </span><span class="p">docs</span><span class="m"> ⋯</span><span>                                                             </span></div>
+      </div>
+      <div class="term">
+        <div class="r"><span class="m i">heading shade</span></div>
+        <div class="r"><span class="m i">normal</span></div>
+        <div class="r"><span class="m i">chosen, focused</span></div>
+        <div class="r"><span class="m i">normal</span></div>
+        <div class="r"><span class="m i">under the pointer</span></div>
+        <div class="r"><span class="m i">just changed (glow)</span></div>
+        <div class="r"><span class="m i">folded</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">every part</span><h2 class="h2">One tree, every part</h2><p class="note">Anything with children is this tree, in every part: GitLab's groups and repos, Jira's epics, Slack's threads, Git's worktrees. Same fold signal (tree lines, and ⋯ n on a folded row, as GUIDE 2.12 says; no chevrons), same keys, same five row states, same heading shade. A part gives the tree its rows; it never draws its own.</p></div>
+    <div style="display: flex; flex-direction: column; gap: 20px">
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+        <div class="panel box" style="background: #12101a"><div style="display: flex; justify-content: space-between"><span class="lab">GitLab · repositories</span><span class="mono" style="font-size: 12px; color: #ffb86c">&#xf296;</span></div>
+          <div class="term">
+            <div class="r Bh"><span> </span><span class="s">&#xf42b; </span><span class="e">team-a</span><span class="bd">  main red in 1</span></div>
+            <div class="r"><span> </span><span class="m">├─ </span><span class="s">&#xf401; </span><span class="p">web  </span><span class="k">&#xf418; main</span></div>
+            <div class="r Bsel"><span> </span><span class="m">│  └─ </span><span class="a">&#xf407;</span><span class="e"> !187 change 187  </span><span class="ok b">&#xf496; ready</span></div>
+            <div class="r"><span> </span><span class="m">└─ </span><span class="s">&#xf401; </span><span class="p">api</span><span class="m"> ⋯ 2</span></div>
+            <div class="r"><span> </span><span class="s">&#xf42b; </span><span class="e">team-b</span><span class="m"> ⋯ 4</span></div>
+          </div>
+        </div>
+        <div class="panel box" style="background: #12101a"><div style="display: flex; justify-content: space-between"><span class="lab">Jira · board</span><span class="mono" style="font-size: 12px; color: #82aaff">&#xf0303;</span></div>
+          <div class="term">
+            <div class="r Bh"><span> </span><span class="a">&#xf0e7; </span><span class="e">ABC-1 Stats for teams</span><span class="m">  3/5</span></div>
+            <div class="r"><span> </span><span class="m">├─ </span><span class="ok">&#xf02e; </span><span class="p">ABC-12 Stats endpoint  </span><span class="in">&#xf042; doing</span></div>
+            <div class="r Bsel"><span> </span><span class="m">│  └─ </span><span class="s">&#xf4a0;</span><span class="e"> ABC-14 Cache key  </span><span class="ok b">&#xf058; done</span></div>
+            <div class="r"><span> </span><span class="m">└─ </span><span class="bd">&#xf46f; </span><span class="p">ABC-19 Wrong totals</span><span class="m"> ⋯ 1</span></div>
+            <div class="r"><span> </span><span class="a">&#xf0e7; </span><span class="e">ABC-2 Mobile push</span><span class="m"> ⋯ 7</span></div>
+          </div>
+        </div>
+        <div class="panel box" style="background: #12101a"><div style="display: flex; justify-content: space-between"><span class="lab">Slack · for you</span><span class="mono" style="font-size: 12px; color: #ff6ac1">&#xf198;</span></div>
+          <div class="term">
+            <div class="r Bh"><span> </span><span class="a">&#xf486; </span><span class="e">mentions you</span><span class="n">  1</span></div>
+            <div class="r"><span> </span><span class="m">└─ </span><span class="s"># team  </span><span class="p">Bob B.  could you take…</span></div>
+            <div class="r Bsel"><span> </span><span class="m">     └─ </span><span class="k">&#xf112;</span><span class="e"> Carol C.  on it today</span></div>
+            <div class="r"><span> </span><span class="s">&#xf442; </span><span class="e">threads you are in</span><span class="m"> ⋯ 2</span></div>
+            <div class="r"><span> </span><span class="s">&#xf0e0; </span><span class="e">direct messages</span><span class="m"> ⋯ 1</span></div>
+          </div>
+        </div>
+        <div class="panel box" style="background: #12101a"><div style="display: flex; justify-content: space-between"><span class="lab">Git · branches</span><span class="mono" style="font-size: 12px; color: #ffb86c">&#xf1d3;</span></div>
+          <div class="term">
+            <div class="r Bh"><span> </span><span class="s">&#xf401; </span><span class="e">radar</span><span class="m">  ~/projects/radar</span></div>
+            <div class="r"><span> </span><span class="m">├─ </span><span class="k">&#xf418; main</span><span class="ok">  ✓ clean</span></div>
+            <div class="r Bsel"><span> </span><span class="m">│  └─ </span><span class="k">&#xf418;</span><span class="e"> ink-style  </span><span class="wn b">2 ahead</span></div>
+            <div class="r"><span> </span><span class="m">└─ </span><span class="s">&#xf413; </span><span class="p">worktrees</span><span class="m"> ⋯ 3</span></div>
+            <div class="r"><span> </span><span class="s">&#xf401; </span><span class="e">mike</span><span class="m"> ⋯ 5</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="padding: 18px 22px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; background: #0d0b16">
+        <div class="term"><div class="r"><span class="m">├─ └─ </span><span class="s">open: the lines show it</span></div><div class="r"><span class="m">⋯ n   </span><span class="s">folded, n hidden</span></div></div>
+        <div class="term"><div class="r"><span class="k b">space</span><span class="s"> toggle</span></div><div class="r"><span class="k b">+</span><span class="s"> open   </span><span class="k b">-</span><span class="s"> close</span></div></div>
+        <div class="term"><div class="r"><span class="k b">→</span><span class="s"> open or go in</span></div><div class="r"><span class="k b">←</span><span class="s"> close or go up</span></div></div>
+        <div class="term"><div class="r"><span class="k b">=</span><span class="s"> open every node</span></div><div class="r"><span class="s">click a row's ⋯ · </span><span class="m">kept per view</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Meters</h2><p class="note">A stage bar for a run's steps, a ratio for one number against another. Ink draws them to the eighth of a cell.</p></div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px">
+      <div class="panel box"><span class="lab">today</span>
+        <div class="term">
+          <div class="r"><span class="ok">▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀ </span><span class="in">▀▀▀▀▀▀▀▀ </span><span class="m">▀▀▀▀▀▀▀</span></div>
+          <div class="r"><span class="ok">✓ fetch  ✓ sort   ✓ label  </span><span class="in">● check  </span><span class="m">◷ file</span></div>
+          <div class="r"> </div>
+          <div class="r"><span class="m">approvals </span><span class="ok">━━━━━━━━━━━━━━━━</span><span class="m">────────────────</span><span class="n"> 1</span><span class="m">/</span><span class="n">2</span></div>
+        </div>
+      </div>
+      <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+        <div class="term">
+          <div class="r"><span style="background:#50fa7b">        </span><span> </span><span style="background:#50fa7b">        </span><span> </span><span style="background:#50fa7b">        </span><span> </span><span class="shim" style="background-color:#82aaff">     </span><span class="cell" style="background:linear-gradient(90deg,#82aaff 0 62%,#2a263e 62% 100%)"></span><span style="background:#2a263e">  </span><span> </span><span style="background:#2a263e">       </span></div>
+          <div class="r"><span class="ok">&#xf49e; fetch  &#xf49e; sort   &#xf49e; label  </span><span class="in b">&#xf192; check  </span><span class="m">&#xf43a; file</span></div>
+          <div class="r"> </div>
+          <div class="r"><span class="m">approvals </span><span style="background:#50fa7b">                </span><span style="background:#2a263e">                </span><span class="n"> 1</span><span class="m">/</span><span class="n">2</span></div>
+          <div class="r"><span class="m">coverage  </span><span style="background:linear-gradient(90deg,#e135ff,#ff6ac1 60%,#80ffea)">                     </span><span class="cell" style="background:linear-gradient(90deg,#80ffea 0 62%,#2a263e 62% 100%)"></span><span style="background:#2a263e">          </span><span class="n"> 68%</span></div>
+        </div>
+        <p class="note" style="font-size: 13.5px">Full blocks on a dim track, the running stage shimmering at its live edge, the last cell drawn in eighths. The ramp only for the one bar a screen is about.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">Charts</h2><p class="note">Three shapes cover what radar needs to show over time. Each keeps its numbers beside it in text, so the off pack and a screen reader lose nothing.</p></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+      <div class="panel box"><span class="lab">bars · two rows, 16 levels</span>
+        <div class="term">
+          <div class="r"><sc-for list="{{bars.top}}" as="c" hint-placeholder-count="24"><span style="{{c.st}}">{{c.ch}}</span></sc-for></div>
+          <div class="r"><sc-for list="{{bars.bot}}" as="c" hint-placeholder-count="24"><span style="{{c.st}}">{{c.ch}}</span></sc-for></div>
+          <div class="r"><span class="m">24 runs · </span><span class="bd">2 failed</span></div>
+          <div class="r"><span class="m">median </span><span class="n">6m 12s</span><span class="m"> · last </span><span class="n">5m 48s</span></div>
+        </div>
+        <p class="note" style="font-size: 13.5px">A bar per run, coloured by how it ended.</p>
+      </div>
+      <div class="panel box"><span class="lab">line · braille, 2 × 4 dots</span>
+        <div class="term">
+          <sc-for list="{{line}}" as="row" hint-placeholder-count="3"><div class="r"><span class="k">{{row}}</span></div></sc-for>
+          <div class="r"><span class="m">review wait · 14 days · now </span><span class="n">3h</span></div>
+        </div>
+        <p class="note" style="font-size: 13.5px">For a trend: four times the vertical detail of block bars.</p>
+      </div>
+      <div class="panel box"><span class="lab">heat · half blocks</span>
+        <div class="term">
+          <sc-for list="{{heat}}" as="row" hint-placeholder-count="4"><div class="r" style="display: flex"><sc-for list="{{row}}" as="c" hint-placeholder-count="26"><span class="cell" style="{{c}}"></span></sc-for></div></sc-for>
+          <div class="r"><span class="m">your MRs · 26 wk · </span><span class="n">143</span></div>
+        </div>
+        <p class="note" style="font-size: 13.5px">Two days a cell, top and bottom; tint by the accent at four steps.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">Pipelines as graphs</h2><p class="note">A GitLab pipeline is a graph of jobs, not a list. Stages are columns, jobs are boxes bordered in their state, needs are lines. The failed job is the one the eye lands on; the chosen job is the selection shade, and ⏎ opens its log.</p><p class="note">Narrow screens fall back to the stage list, with only failed or running jobs open.</p></div>
+    <div class="panel" style="padding: 20px 22px; background: #0a0812; display: flex; flex-direction: column; gap: 10px">
+      <div class="term"><sc-for list="{{dag}}" as="row" hint-placeholder-count="14"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">Diagrams</h2><p class="note">A mermaid block in a description, an MR or a Slack message is drawn, not shown as source. Boxes in accent.muted, decisions in warning, the end in success, edges muted with their labels in italic. Flowcharts first; sequence diagrams draw the same way with lifelines.</p><p class="note"><span class="mono k">s</span>ource flips back to the text.</p></div>
+    <div style="display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 20px">
+      <div class="panel" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 10px"><span class="lab">source</span>
+        <div class="term">
+          <div class="r"><span class="m">```</span><span class="am">mermaid</span></div>
+          <div class="r"><span class="a">graph</span><span class="p"> LR</span></div>
+          <div class="r"><span class="p">  A[request] </span><span class="m">--></span><span class="p"> B{cached?}</span></div>
+          <div class="r"><span class="p">  B </span><span class="m">-- </span><span class="s i">yes</span><span class="m"> --></span><span class="p"> C[answer]</span></div>
+          <div class="r"><span class="p">  B </span><span class="m">-- </span><span class="s i">no</span><span class="m"> --></span><span class="p"> D[query db]</span></div>
+          <div class="r"><span class="p">  D </span><span class="m">--></span><span class="p"> C</span></div>
+          <div class="r"><span class="m">```</span></div>
+        </div>
+      </div>
+      <div class="panel" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; background: #0a0812"><span class="lab">drawn</span>
+        <div class="term"><sc-for list="{{mer}}" as="row" hint-placeholder-count="10"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">The editor &amp; markdown</h2><p class="note">Writing a description, a comment or a reply opens the editor workspace: the source on the left with its syntax in the slots, the rendered page on the right, both scrolling together. The same markdown renderer draws every description and message in radar, so what you preview is what everyone sees.</p><p class="note">Narrow screens show one side; <span class="mono k">ctrl-p</span> flips.</p></div>
+    <div class="panel" style="padding: 20px 22px; background: #0a0812">
+      <div class="term"><sc-for list="{{ed}}" as="row" hint-placeholder-count="18"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><h2 class="h2">Diff</h2><p class="note">Today a diff is coloured text. Ink can lay a tint under the line and a brighter one under the words that changed.</p></div>
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px">
+      <div class="panel box"><span class="lab">today</span>
+        <div class="term">
+          <div class="r"><span class="in">@@ -41,4 +41,5 @@ fn stats</span></div>
+          <div class="r"><span class="m"> 41 │ </span><span class="p">    let key = group.id;</span></div>
+          <div class="r"><span class="m"> 42 │ </span><span class="bd">-   cache.get(key, 30)</span></div>
+          <div class="r"><span class="m"> 42 │ </span><span class="ok">+   cache.get(key, 60)</span></div>
+          <div class="r"><span class="m"> 43 │ </span><span class="ok">+       .or_refresh()</span></div>
+          <div class="r"><span class="a">▎</span><span class="m">44 │ </span><span class="p">}</span></div>
+        </div>
+      </div>
+      <div class="panel box"><div style="display: flex; justify-content: space-between"><span class="lab">in ink</span><span class="tag new">new</span></div>
+        <div class="term">
+          <div class="r"><span class="in">@@ -41,4 +41,5 @@ </span><span class="s">fn stats</span></div>
+          <div class="r"><span class="m"> 41 │ </span><span class="p">    let key = group.id;              </span></div>
+          <div class="r reml"><span class="bd"> 42 │ </span><span class="p">    cache.get(key, </span><span class="remw p b">30</span><span class="p">)               </span></div>
+          <div class="r addl"><span class="ok"> 42 │ </span><span class="p">    cache.get(key, </span><span class="addw p b">60</span><span class="p">)               </span></div>
+          <div class="r addl"><span class="ok"> 43 │ </span><span class="addw p">        .or_refresh()</span><span class="p">            </span></div>
+          <div class="r Bsel"><span> </span><span class="m">44 │ </span><span class="e">}</span><span>                                </span></div>
+        </div>
+        <p class="note" style="font-size: 13.5px">Line tints at about 12% of the diff slot, words at 30%; the text stays primary so it is readable. The cursor row is the selection shade alone, no edge mark.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3620}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var B = ' ▁▂▃▄▅▆▇█';
+    var runs = [6, 7, 6, 9, 5, 6, 14, 6, 7, 6, 5, 8, 6, 12, 6, 7, 6, 5, 6, 7, 11, 6, 6, 5];
+    var failed = { 6: 1, 13: 1 };
+    var top = [], bot = [];
+    runs.forEach(function (v, i) {
+      var lv = Math.round(v / 14 * 16);
+      var col = failed[i] ? '#ff6363' : (i === runs.length - 1 ? '#80ffea' : '#82aaff');
+      bot.push({ ch: B[Math.min(8, lv)], st: 'color:' + col });
+      top.push({ ch: lv > 8 ? B[lv - 8] : ' ', st: 'color:' + col });
+    });
+    // braille line: 28 columns x 3 rows => 56 x 12 dots
+    var W = 28, H = 12, pts = [];
+    for (var x = 0; x < W * 2; x++) {
+      var t = x / (W * 2 - 1);
+      var y = 6 + 4 * Math.sin(t * 7) * (1 - t * 0.6) - t * 3 + (x % 9 === 0 ? 1 : 0);
+      pts.push(Math.max(0, Math.min(H - 1, Math.round(H - 1 - y))));
+    }
+    var bits = [[0x01, 0x08], [0x02, 0x10], [0x04, 0x20], [0x40, 0x80]];
+    var line = [];
+    for (var r = 0; r < 3; r++) {
+      var s = '';
+      for (var c = 0; c < W; c++) {
+        var code = 0;
+        for (var dx = 0; dx < 2; dx++) {
+          var py = pts[c * 2 + dx];
+          var prev = pts[Math.max(0, c * 2 + dx - 1)];
+          var lo = Math.min(py, prev), hi = Math.max(py, prev);
+          for (var yy = lo; yy <= hi; yy++) {
+            if (yy >= r * 4 && yy < r * 4 + 4) code |= bits[yy - r * 4][dx];
+          }
+        }
+        s += String.fromCharCode(0x2800 + code);
+      }
+      line.push(s);
+    }
+    // heat: 26 weeks x 8 rows (7 days + pad) => 4 cell rows of half blocks
+    var shades = ['#1a162a', '#4a1f63', '#8a2bb0', '#c032e6', '#ff6ac1'];
+    var seed = 7;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var grid = [];
+    for (var d = 0; d < 8; d++) {
+      var row = [];
+      for (var wk = 0; wk < 26; wk++) {
+        var v = d === 7 ? -1 : (d >= 5 ? (rnd() < 0.8 ? 0 : 1) : Math.floor(rnd() * rnd() * 5 + (wk > 18 ? 1 : 0)));
+        row.push(v < 0 ? 'transparent' : shades[Math.min(4, v)]);
+      }
+      grid.push(row);
+    }
+    var heat = [];
+    for (var hr = 0; hr < 8; hr += 2) {
+      var cells = [];
+      for (var w2 = 0; w2 < 26; w2++) {
+        cells.push('margin-right:0;background:linear-gradient(' + grid[hr][w2] + ' 0 46%,transparent 46% 54%,' + grid[hr + 1][w2] + ' 54% 100%)');
+      }
+      heat.push(cells);
+    }
+    var T = { base: '#0a0812', surf: '#12101a', ov: '#1a162a', hov: '#2a263e', sel: '#44475a', code: '#1e1b2b', p: '#f8f8f2', s: '#e9d5ff', m: '#6272a4', e: '#ffffff', a: '#e135ff', am: '#9580ff', k: '#80ffea', t3: '#ff6ac1', ok: '#50fa7b', wn: '#f1fa8c', bd: '#ff6363', in: '#82aaff', n: '#ffb86c', tok: '#233a37', tbd: '#3f2233', tin: '#2b2e4c' };
+    function Screen(w, h, bg) {
+      var g = [];
+      for (var y = 0; y < h; y++) { var row = []; for (var x = 0; x < w; x++) row.push({ ch: ' ', fg: T.p, bg: bg, b: false, i: false, u: false }); g.push(row); }
+      return {
+        put: function (y, x, text, fg, bg2, b, i, u) {
+          var chars = Array.from(text);
+          for (var k = 0; k < chars.length; k++) { var c = g[y] && g[y][x + k]; if (!c) continue; c.ch = chars[k]; if (fg) c.fg = fg; if (bg2) c.bg = bg2; c.b = !!b; c.i = !!i; c.u = !!u; }
+        },
+        fill: function (y, x, w2, h2, bg2) { for (var yy = y; yy < y + h2; yy++) for (var xx = x; xx < x + w2; xx++) if (g[yy] && g[yy][xx]) { g[yy][xx].bg = bg2; g[yy][xx].ch = ' '; } },
+        box: function (y, x, w2, h2, col, bg2, round) {
+          this.fill(y, x, w2, h2, bg2);
+          var tl = round ? '╭' : '┌', tr = round ? '╮' : '┐', bl = round ? '╰' : '└', br = round ? '╯' : '┘';
+          for (var xx = 0; xx < w2; xx++) {
+            this.put(y, x + xx, xx === 0 ? tl : xx === w2 - 1 ? tr : '─', col, bg2);
+            this.put(y + h2 - 1, x + xx, xx === 0 ? bl : xx === w2 - 1 ? br : '─', col, bg2);
+          }
+          for (var yy = 1; yy < h2 - 1; yy++) { this.put(y + yy, x, '│', col, bg2); this.put(y + yy, x + w2 - 1, '│', col, bg2); }
+        },
+        hline: function (y, x0, x1, col) { for (var xx = x0; xx <= x1; xx++) this.put(y, xx, '─', col); },
+        vline: function (x, y0, y1, col) { for (var yy = y0; yy <= y1; yy++) this.put(yy, x, '│', col); },
+        rows: function () {
+          return g.map(function (row) {
+            var spans = [], cur = null;
+            row.forEach(function (c) {
+              var st = 'color:' + c.fg + ';background:' + c.bg + (c.b ? ';font-weight:700' : '') + (c.i ? ';font-style:italic' : '') + (c.u ? ';text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px' : '');
+              if (cur && cur.st === st) cur.t += c.ch; else { cur = { st: st, t: c.ch }; spans.push(cur); }
+            });
+            return spans;
+          });
+        }
+      };
+    }
+    // --- pipeline DAG ---
+    var D = Screen(98, 13, T.base);
+    var cols = [{ x: 0, name: 'build', n: '2 passed' }, { x: 26, name: 'test', n: '1 failed · 1 running' }, { x: 52, name: 'deploy', n: 'waiting' }, { x: 78, name: 'release', n: 'manual' }];
+    cols.forEach(function (c) { D.put(0, c.x, c.name.toUpperCase(), T.m, null, true); D.put(1, c.x, c.n, T.m); });
+    function job(col, row, icon, name, state, col2, chosen) {
+      var x = cols[col].x, y = 3 + row * 3;
+      D.box(y, x, 20, 3, col2, chosen ? T.sel : T.surf, false);
+      D.put(y + 1, x + 2, icon + ' ' + name, chosen ? T.e : T.p, chosen ? T.sel : T.surf, chosen);
+      D.put(y + 1, x + 2, icon, col2, chosen ? T.sel : T.surf);
+      D.put(y + 1, x + 17 - state.length + 1, state, T.m, chosen ? T.sel : T.surf);
+    }
+    var E = T.m;
+    // edges build -> test
+    D.hline(4, 20, 22, E); D.hline(7, 20, 22, E); D.vline(23, 4, 10, E); D.put(4, 23, '┬', E); D.put(7, 23, '┼', E); D.put(10, 23, '└', E);
+    D.hline(4, 24, 25, E); D.hline(7, 24, 25, E); D.hline(10, 24, 25, E);
+    // test -> deploy
+    D.hline(4, 46, 48, E); D.hline(7, 46, 48, E); D.hline(10, 46, 48, E); D.vline(49, 4, 10, E); D.put(4, 49, '┬', E); D.put(7, 49, '┤', E); D.put(10, 49, '┘', E); D.hline(4, 50, 51, E); D.put(7, 49, '┼', E); D.hline(7, 50, 51, E);
+    // deploy -> release
+    D.hline(4, 72, 77, E); D.hline(7, 72, 74, E); D.vline(75, 5, 7, E); D.put(4, 75, '┬', E); D.put(7, 75, '┘', E);
+    job(0, 0, '', 'compile', '1m', T.ok); job(0, 1, '', 'lint', '22s', T.ok);
+    job(1, 0, '', 'unit', '2m', T.ok); job(1, 1, '', 'integration', '4m', T.bd, true); job(1, 2, '', 'e2e', '3m', T.in);
+    job(2, 0, '', 'staging', '', T.m); job(2, 1, '', 'smoke', '', T.m);
+    job(3, 0, '', 'production', '', T.s);
+    D.put(12, 0, ' integration', T.bd, null, true); D.put(12, 14, 'failed after 4m 02s ·', T.m); D.put(12, 36, 'l', T.k, null, true, false, true); D.put(12, 37, 'og', T.s); D.put(12, 41, 'r', T.k, null, true, false, true); D.put(12, 42, 'etry', T.s);
+    // --- mermaid ---
+    var M = Screen(70, 10, T.base);
+    M.box(1, 0, 11, 3, T.am, T.base, false); M.put(2, 2, 'request', T.p);
+    M.hline(2, 11, 13, T.m); M.put(2, 14, '▶', T.m);
+    M.box(1, 15, 13, 3, T.wn, T.base, true); M.put(2, 17, '◇ cached?', T.wn);
+    M.hline(2, 28, 39, T.m); M.put(2, 31, ' yes ', T.s, null, false, true); M.put(2, 40, '▶', T.m);
+    M.box(1, 41, 10, 3, T.ok, T.base, false); M.put(2, 43, 'answer', T.ok, null, true);
+    M.vline(21, 4, 5, T.m); M.put(4, 21, '┬', T.wn); M.put(4, 21, '│', T.m); M.put(5, 23, 'no', T.s, null, false, true); M.put(6, 21, '▼', T.m);
+    M.box(7, 15, 12, 3, T.am, T.base, false); M.put(8, 17, 'query db', T.p);
+    M.hline(8, 27, 45, T.m); M.put(8, 46, '╯', T.m); M.vline(46, 5, 7, T.m); M.put(4, 46, '▲', T.m);
+    // --- editor ---
+    var W = Screen(100, 18, T.base);
+    W.box(0, 0, 50, 17, T.a, T.surf, true); W.put(0, 2, ' ABC-12 · description ', T.e, T.surf, true);
+    W.box(0, 51, 49, 17, T.am, T.surf, true); W.put(0, 53, ' preview ', T.e, T.surf, true);
+    var src = [
+      [['# ', T.a, 1], ['Stats endpoint', T.e, 1]],
+      [],
+      [['Adds ', T.p], ['**', T.m], ['GET /stats', T.e, 1], ['**', T.m], [' with counts per repo.', T.p]],
+      [['Cached for a minute; see ', T.p], ['[!259]', T.k], ['(…/259)', T.m], ['.', T.p]],
+      [],
+      [['## ', T.a, 1], ['Steps', T.e, 1]],
+      [['- ', T.a], ['[x]', T.ok], [' cache key per group', T.p]],
+      [['- ', T.a], ['[ ]', T.m], [' migration in ', T.p], ['!259', T.k]],
+      [],
+      [['```', T.m], ['rust', T.am]],
+      [['cache.get(key, ', T.k], ['60', T.n], [')', T.k]],
+      [['```', T.m]]
+    ];
+    src.forEach(function (segs, i) {
+      var y = 1 + i;
+      W.put(y, 2, ('  ' + (i + 1)).slice(-2), i === 7 ? T.s : T.m, i === 7 ? T.hov : T.surf);
+      if (i === 7) W.fill(y, 4, 45, 1, T.hov);
+      if (i === 10) W.fill(y, 5, 44, 1, T.code);
+      var x = 5;
+      segs.forEach(function (s) { W.put(y, x, s[0], s[1], i === 7 ? T.hov : (i === 10 ? T.code : null), !!s[2]); x += Array.from(s[0]).length; });
+      if (i === 7) W.put(y, x, ' ', T.base, T.a);
+    });
+    W.put(1, 53, 'Stats endpoint', T.e, null, true);
+    W.put(2, 53, '▔▔▔▔▔▔▔▔▔▔▔▔▔▔', T.a);
+    W.put(3, 53, 'Adds ', T.p); W.put(3, 58, 'GET /stats', T.e, null, true); W.put(3, 68, ' with counts per repo.', T.p);
+    W.put(4, 53, 'Cached for a minute; see ', T.p); W.put(4, 78, '!259', T.k, null, false, false, true); W.put(4, 82, '.', T.p);
+    W.put(6, 53, 'STEPS', T.m, null, true);
+    W.put(7, 53, '', T.ok); W.put(7, 55, 'cache key per group', T.m);
+    W.put(8, 53, '', T.m); W.put(8, 55, 'migration in ', T.p); W.put(8, 68, '!259', T.k, null, false, false, true);
+    W.fill(10, 53, 45, 3, T.code); W.put(10, 93, 'rust', T.m, T.code); W.put(11, 55, 'cache.get(key, ', T.k, T.code); W.put(11, 70, '60', T.n, T.code); W.put(11, 72, ')', T.k, T.code);
+    W.put(17, 0, ' EDITING ', T.base, T.wn, true); W.put(17, 10, 'markdown · ln 8, col 34 ·', T.m); W.put(17, 36, '2 unsaved', T.wn, null, true);
+    W.put(17, 60, 'ctrl-s', T.k, null, true); W.put(17, 67, 'save', T.s); W.put(17, 74, 'ctrl-p', T.k, null, true); W.put(17, 81, 'preview', T.s); W.put(17, 91, 'esc', T.k, null, true); W.put(17, 95, 'stop', T.s);
+    return { bars: { top: top, bot: bot }, line: line, heat: heat, dag: D.rows(), mer: M.rows(), ed: W.rows() };
+  }
+}
+</script>
+</body>
+</html>

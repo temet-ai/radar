@@ -1,0 +1,44 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: screen
+---
+ History · read only · UTC · snapshot through #100
+ Scope: recent activity · last 24 hours since 2026-10-10T11:40:00.000Z
+ Recorded observations; coverage may be incomplete. Not task intent or permission.
+╭ events · page 1 · oldest-first · last page ──────────────────────────────────────────────────╮╭ event detail ────────────────────────────────────────────────╮
+│ No recorded events in this 24-hour window. Coverage may be incomplete. Press a for all       ││ No recorded events in this 24-hour window. Coverage may be   │
+│ activity or r to refresh.                                                                    ││ incomplete. Press a for all activity or r to refresh.        │
+│                                                                                              ││                                                              │
+│                                                                                              ││ Scope: recent activity · last 24 hours since                 │
+│                                                                                              ││ 2026-10-10T11:40:00.000Z                                     │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────╯
+ j/k move · enter details · n/p pages · r refresh · x/? keys · esc close

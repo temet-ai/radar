@@ -1,0 +1,40 @@
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ No groups on page     ││ Ship the work area                                                             task ││ No source binding in this evidence page. Add │
+│ All items             ││                                                                                     ││ an exact source from its actions menu; no    │
+│                       ││                                                                                     ││ links are inferred.                          │
+│                       ││                                                                                     ││ Local work saved.                            │
+│                       ││                                                                                     ││ Ship the work area                           │
+│                       ││                                                                                     ││ v history: original claims and outcomes ·    │
+│                       ││                                                                                     ││ completeness not guaranteed                  │
+│                       ││                                                                                     ││ Titles and groups are authored locally.      │
+│                       ││                                                                                     ││ Relations do not imply identity, permission  │
+│                       ││                                                                                     ││ or completion.                               │
+│                       ││                                                                                     ││ Task item ID:                                │
+│                       ││                                                                                     ││ 00000000-0000-4000-8000-000000000000         │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

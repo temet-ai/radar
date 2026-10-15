@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Code   Tickets   Slack 4   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
+ Slack › ask for review
+ Ask for review in #team                                                                                                                          posted as you
+ mentions @review-squad · the review channel
+╭ as it will post in #team ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ @review-squad :gitlab:                                                                                                                                       █
+│ • api !263 Add a stats endpoint for the dashboard                                                                                                            █
+│ • api !270 Tidy the README                                                                                                                                   █
+│                                                                                                                                                              █
+│ THE TEXT SENT                                                                                                                                                █
+│ <!subteam^S0REVIEW01> :gitlab:                                                                                                                               █
+│ • <https://git.example/acme/team-a/api/-/merge_requests/263|api !263> Add a stats endpoint for the dashboard                                                 ║
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ merge requests in it ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ api !263  Add a stats endpoint for the dashboard                                                                                                             │
+│ api !270  Tidy the README                                                                                                                                    │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   api !270 added to the review ask                                                                                              7 new · 4 for you  slack

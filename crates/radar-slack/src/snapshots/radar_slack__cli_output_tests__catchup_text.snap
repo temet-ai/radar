@@ -1,0 +1,7 @@
+---
+source: crates/radar-slack/src/cli_output_tests.rs
+expression: output
+---
+#team · 2 new since you caught up (14 Sep 2020 10:23)
+  14 Sep 2020 13:10 Other Bot        morning
+  14 Sep 2020 15:56 Build Bot        status green report  · 2 replies

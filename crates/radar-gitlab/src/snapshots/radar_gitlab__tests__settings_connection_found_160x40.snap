@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/lib.rs
+expression: "radar_core::shell::to_text(&host, 160, 40)"
+---
+ radar    Repositories 1   History   Settings (,)                                                                                                        ✎ edit
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in your environment ─────────────────────────╮
+│General               ││  ? Found in your environment: a GitLab token (MY_GITLAB_TOKEN). Use it?        ││ radar found a GitLab token in your environment. Do │
+│  ├─ parts            ││  server          https://gitlab.com                                            ││ you want to use it?                                │
+│  ├─ mode             ││  base group      acme                                                          ││                                                    │
+│  ├─ colours          ││  token           env:GITLAB_TOKEN                                              ││ FOUND                                              │
+│  └─ icons            ││  signed in as    —                                                             ││ MY_GITLAB_TOKEN  the token                         │
+│GitLab                ││  check           not checked yet                                               ││                                                    │
+│  ├─ connection       ││  refresh         every 1m                                                      ││ radar stores only the variables' names (env:NAME)  │
+│  ├─ tenancies        ││  merged, closed  the last 14 days                                              ││ and reads their values each time it starts. It     │
+│  ├─ views            ││                                                                                ││ never shows the values or saves them.              │
+│  └─ look             ││                                                                                ││                                                    │
+│                      ││                                                                                ││ IF YOU USE IT                                      │
+│                      ││                                                                                ││ radar sets the token to env:MY_GITLAB_TOKEN and    │
+│                      ││                                                                                ││ checks it with GitLab.                             │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ ⏎ uses it                                          │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                     gitlab

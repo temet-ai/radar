@@ -1,0 +1,216 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "server"
+    },
+    {
+      "id": "gitlab.connection.edit",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "change it"
+    },
+    {
+      "id": "gitlab.connection.check",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "check the connection"
+    },
+    {
+      "id": "gitlab.connection.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "server          "
+          },
+          {
+            "ink": "primary",
+            "text": "https://gitlab.com"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "base group      "
+          },
+          {
+            "ink": "primary",
+            "text": "acme"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "token           "
+          },
+          {
+            "ink": "primary",
+            "text": "env:GITLAB_TOKEN"
+          }
+        ]
+      },
+      {
+        "target": "row:3",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "signed in as    "
+          },
+          {
+            "ink": "primary",
+            "text": "me"
+          }
+        ]
+      },
+      {
+        "target": "row:4",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "check           "
+          },
+          {
+            "ink": "muted",
+            "text": "not checked yet"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "refresh         "
+          },
+          {
+            "ink": "primary",
+            "text": "every 1m"
+          }
+        ]
+      },
+      {
+        "target": "row:6",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "text": "merged, closed  "
+          },
+          {
+            "ink": "primary",
+            "text": "the last 14 days"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "CHECKED"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "not checked yet"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "https://gitlab.com"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "primary",
+        "text": "The GitLab server radar talks to."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "https://gitlab.com or your own server's address"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [gitlab] url"
+      }
+    ]
+  ],
+  "detail_title": "server",
+  "scope": "connection",
+  "version": 1
+}

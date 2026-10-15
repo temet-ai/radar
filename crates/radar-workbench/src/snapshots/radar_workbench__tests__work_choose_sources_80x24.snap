@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+│ Press r to load local work.                                                  │
+│                                                                              │
+│                                                                              │
+╭ Choose sources to link ──────────────────────────────────────────────────────╮
+│  ✓ pull-request · Selected pull-request                                      │
+│  forge · https://forge.example/ · acme/api/7                                 │
+│  ○ ticket · Selected ticket                                                  │
+│  forge · https://forge.example/ · ABC-12                                     │
+│  ○ checkout · Selected checkout                                              │
+│  forge · https://forge.example/ · /home/user/projects/api                    │
+│  ○ workflow-run · Selected workflow-run                                      │
+│  forge · https://forge.example/ · acme/api/42/1                              │
+│ Choose up to four exact sources. Each keeps its own identity; this records an│
+│ authored relation.                                                           │
+│  Review local links…                                                         │
+│  nothing changes until you confirm                                           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   j/k move   ⏎ choose   esc close

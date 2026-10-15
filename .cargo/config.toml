@@ -1,0 +1,11 @@
+# Every cargo test (and `cargo run`) is sandboxed: radar starts no browser,
+# clipboard, notification, terminal, editor or provider sign-in
+# (radar_core::system::sandboxed). `RADAR_SANDBOX= cargo run` for a live one.
+[env]
+RADAR_SANDBOX = "1"
+
+# Link with mold on Linux: a debug test binary links in a few seconds
+# instead of ~15, and scripts/check-mixes links one per mix. Needs mold
+# installed (`pacman -S mold`, `apt install mold`). The Mac keeps its linker.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]

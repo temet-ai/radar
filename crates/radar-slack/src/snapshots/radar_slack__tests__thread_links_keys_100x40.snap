@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    Slack 3   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
+ Slack › #team › Bob Builder: @review-squad :gitlab: m…
+ @review-squad :gitlab: mr Add a stats endpoint for the dashboard  Bob Builder · 2d ago · 2 replies
+ Thread  [Links · 1]
+╭ what it links to ────────────────────────────────────────────────────────────────────────────────╮
+│ mr  https://git.example/acme/team-a/api/-/merge_requests/263                                link │
+│                                                                                                  │
+│                                                                                                  │
+│                  ╭ Bob Builder's thread in #team ─────────────────────────────╮                  │
+│                  │ A LINK                                                     │                  │
+│                  │ ⏎       open it in the browser                             │                  │
+│                  │ y       copy it                                            │                  │
+│                  │ THE THREAD                                                 │                  │
+│                  │ m       mark read up to its newest reply, in radar only    │                  │
+│                  │ ON SLACK                                                   │                  │
+│                  │ c       reply in it…                                       │                  │
+│                  │ e       react to its first message…                        │                  │
+│                  │ PAGE                                                       │                  │
+│                  │ ]       next tab: Thread                                   │                  │
+│                  │ [       previous tab: Thread                               │                  │
+│                  │ WITH AN AGENT                                              │                  │
+│                  │ A       ask an agent about it…                             │                  │
+│                  │ v       review its merge request locally…                  │                  │
+│                  │ ctrl-r  kept replies…                                      │                  │
+│                  │ r       refresh this page                                  │                  │
+│                  │ esc     back to #team                                      │                  │
+│                  │ HISTORY                                                    │                  │
+│                  │ H       recent activity (last 24 hours)                    │                  │
+│                  │         all activity history                               │                  │
+│                  │         history for selected item                          │                  │
+│                  ╰────────────────────────────────────────────────────────────╯                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   j/k move   ⏎ choose   esc close                                   4 new · 3 for you  slack

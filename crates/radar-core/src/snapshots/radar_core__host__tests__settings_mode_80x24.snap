@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/host.rs
+expression: "crate::shell::to_text(&host, 80, 24)"
+---
+ radar    A   History   Settings (,)                                ◉ read only
+╭ settings ────────────╮╭ mode ────────────────────────────────────────────────╮
+│General               ││ WHAT RADAR MAY CHANGE                                │
+│  ├─ parts            ││                                                      │
+│  ├─ mode             ││ mode    read only                                    │
+│  ├─ colours          ││         set by RADAR_MODE                            │
+│  └─ icons            ││                                                      │
+│a                     ││ WHEN IDLE                                            │
+│  └─ a                ││                                                      │
+│                      ││ pause if idle after 30 minutes                       │
+│                      ││                                                      │
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ the modes ───────────────────────────────────────────╮
+│                      ││ ● read only                                          █
+│                      ││     changes nothing anywhere: every write is shown   █
+│                      ││ and asked, and none is sent                          █
+│                      ││   write                                              █
+│                      ││     may add things: comments, replies, reactions,    █
+│                      ││ review asks, new items                               ║
+│                      ││   edit                                               ║
+│                      ││     may also change what is there: approve, resolve, ║
+│                      ││ move, assign, rebase, merge                          ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

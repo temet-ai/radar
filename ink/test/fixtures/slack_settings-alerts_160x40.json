@@ -1,0 +1,81 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "add a mapping"
+    },
+    {
+      "id": "slack.alerts.add_mapping",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type the start of an alert's name"
+    },
+    {
+      "id": "slack.alerts.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": "+ "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a mapping"
+          },
+          {
+            "ink": "muted",
+            "text": "   the start of an alert's name, then where it belongs"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "keep resolved    "
+          },
+          {
+            "ink": "primary",
+            "text": "24 hours"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "text": "Say where a kind of alert belongs."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "Type the start of its name; the repo it belongs to is asked next. The service, a label to match and an environment can be set under the rule. The first rule that matches an alert decides."
+      }
+    ]
+  ],
+  "detail_title": "add a mapping",
+  "scope": "alerts",
+  "version": 1
+}

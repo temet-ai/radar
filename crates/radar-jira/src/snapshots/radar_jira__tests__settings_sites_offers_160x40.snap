@@ -1,0 +1,44 @@
+---
+source: crates/radar-jira/src/tests.rs
+expression: shown
+---
+ radar    Jira   History   Settings (,)                                                                                                                  ✎ edit
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
+│General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ radar found a Jira site in /work/acme/.mcp.json.   │
+│  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ Do you want to use it?                             │
+│  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    │
+│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ FOUND                                              │
+│  └─ icons            ││    ├─ site            https://acme.atlassian.net                               ││ gamma.atlassian.net  the site's address, as        │
+│Jira                  ││    ├─ account         alice@example.com                                        ││ written                                            │
+│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ JIRA_EMAIL           the account                   │
+│  ├─ projects         ││    ├─ signed in as    Alice Example                                            ││                                                    │
+│  ├─ views            ││    └─ check           not checked yet                                          ││ radar stores only the variables' names (env:NAME)  │
+│  └─ look             ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ and reads their values each time it starts. It     │
+│                      ││    ├─ site            https://beta.atlassian.net                               ││ never shows the values or saves them.              │
+│                      ││    ├─ account         alice@example.com                                        ││                                                    │
+│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ It is the file's "tools" entry. It also watches    │
+│                      ││    ├─ signed in as    —                                                        ││ GAM (acceptance criteria in customfield_10044).    │
+│                      ││    └─ check           not checked yet                                          ││ Its token is typed into the file: radar does not   │
+│                      ││  refresh         every 2m                                                      ││ copy it, and asks which variable holds it.         │
+│                      ││  on start        ask first                                                     ││                                                    │
+│                      ││                                                                                ││ IF YOU USE IT                                      │
+│                      ││                                                                                ││ radar adds the site gamma and asks which variable  │
+│                      ││                                                                                ││ holds its token.                                   │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ ⏎ uses it                                          │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                       jira

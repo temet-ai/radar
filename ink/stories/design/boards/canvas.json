@@ -1,0 +1,108 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Colour.dc.html": {
+      "h": 3000,
+      "title": "01 · Colour",
+      "w": 1541,
+      "x": 1520,
+      "y": 0
+    },
+    "Components.dc.html": {
+      "h": 1960,
+      "title": "04 · Components",
+      "w": 1440,
+      "x": 6050,
+      "y": 3120
+    },
+    "Data.dc.html": {
+      "h": 3620,
+      "title": "05 · Data",
+      "w": 1440,
+      "x": 3040,
+      "y": 3120
+    },
+    "Icons.dc.html": {
+      "h": 3860,
+      "title": "03 · Icons",
+      "w": 1440,
+      "x": 0,
+      "y": 3120
+    },
+    "Main.dc.html": {
+      "h": 1680,
+      "title": "00 · radar in Ink",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Motion.dc.html": {
+      "h": 2060,
+      "title": "07 · Motion",
+      "w": 1440,
+      "x": 1520,
+      "y": 7100
+    },
+    "Research.dc.html": {
+      "h": 5740,
+      "title": "09 · Research & readiness",
+      "w": 1600,
+      "x": 4720,
+      "y": 7100
+    },
+    "Screen.dc.html": {
+      "h": 1280,
+      "title": "08 · The screen",
+      "w": 1600,
+      "x": 3040,
+      "y": 7100
+    },
+    "Surfaces.dc.html": {
+      "h": 1820,
+      "title": "06 · Surfaces & layers",
+      "w": 1440,
+      "x": 0,
+      "y": 7100
+    },
+    "Type.dc.html": {
+      "h": 2980,
+      "title": "02 · Cells & type",
+      "w": 1440,
+      "x": 3286,
+      "y": 21
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-13T09:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "title": {
+      "kind": "title1",
+      "maxW": 7490,
+      "text": "radar · the Ink style guide",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Colour.dc.html",
+    "Type.dc.html",
+    "Icons.dc.html",
+    "Components.dc.html",
+    "Data.dc.html",
+    "Surfaces.dc.html",
+    "Motion.dc.html",
+    "Screen.dc.html",
+    "Research.dc.html"
+  ],
+  "pages": [],
+  "title": "radar Ink Style Guide"
+}

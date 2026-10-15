@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Surfaces and layers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<style>
+body{margin:0;background:#0a0812}
+@font-face{font-family:"GGMono";src:url(/_blob/7b9cc1a6f424f87a0e09c941ca55b1d6) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/09ad7c156fee0af41c0b2ae0c4f80a7d) format("woff2");font-weight:700;font-style:normal}
+@font-face{font-family:"GGMono";src:url(/_blob/5799b7d04d59099d3e3249bdf37b7652) format("woff2");font-weight:400;font-style:italic}
+.sheet{box-sizing:border-box;width:1440px;padding:88px 96px 104px;background-color:#0a0812;background-image:radial-gradient(circle at 1px 1px,rgba(149,128,255,.13) 1px,transparent 1.5px);background-size:18px 45.29px;color:#e9d5ff;font-family:"IBM Plex Sans",system-ui,sans-serif;display:flex;flex-direction:column;gap:64px}
+.eyebrow{font-family:"GGMono",monospace;font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:#9580ff;margin:0}
+.h1{font-family:"GGMono",monospace;font-weight:700;font-size:52px;line-height:1.08;color:#fff;margin:0;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.6;color:#e9d5ff;margin:0;text-wrap:pretty;max-width:880px}
+.h2{font-family:"GGMono",monospace;font-weight:700;font-size:24px;color:#fff;margin:0}
+.note{font-size:15px;line-height:1.6;color:#b9aedb;margin:0;text-wrap:pretty}
+.lab{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8f86b3}
+.tag{font-family:"GGMono",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;padding:3px 8px;border-radius:2px;text-transform:uppercase;white-space:nowrap}
+.ship{color:#82aaff;border:1px solid #33396a}
+.new{color:#0a0812;background:linear-gradient(90deg,#e135ff,#ff6ac1 55%,#80ffea)}
+.panel{background:#12101a;border:1px solid #2a263e;border-radius:12px}
+.term{font-family:"GGMono",monospace;font-size:14.516px;line-height:22.645px;color:#f8f8f2;font-variant-ligatures:none}
+.r{white-space:pre;display:block;height:22.645px}
+.r>span{display:inline-block;height:22.645px;vertical-align:top}
+.scr{background:#0a0812;border-radius:8px;padding:12px;display:inline-block;box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 0 1px #221e33}
+.sec{display:grid;grid-template-columns:260px minmax(0,1fr);gap:40px;align-items:start}
+@keyframes shim{0%{background-position:-160px 0}100%{background-position:560px 0}}
+.shim{background:linear-gradient(90deg,rgba(149,128,255,0) 0,rgba(149,128,255,.22) 60px,rgba(149,128,255,0) 120px) no-repeat;background-size:120px 100%;animation:shim 1.4s linear infinite}
+</style>
+</helmet>
+<div class="sheet">
+  <div style="display: flex; flex-direction: column; gap: 24px">
+    <p class="eyebrow">06 · surfaces &amp; layers</p>
+    <h1 class="h1">Depth without pixels.</h1>
+    <p class="lede">A terminal has no shadows and no blur, but it has grounds. radar stacks five of them, darkest at the back, and Ink can now composite one layer over another: the screen behind a menu dims, the menu throws a one-cell shadow, and the thing that has your keys wears the ramp.</p>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">Focus</h2><p class="note">Panels are rounded boxes with the title in the top edge. The one with your keys runs the glow ramp around its edge; the rest keep the quiet accent. Below truecolour, focus is plain accent.primary, as today.</p></div>
+    <div class="scr term"><sc-for list="{{panels}}" as="row" hint-placeholder-count="9"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="4"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">Overlays</h2><p class="note">A command palette over the Repositories screen. Everything behind drops to a scrim (each cell's colour mixed 75% toward bg.base), the palette sits on bg.overlay with a one-cell shadow under its right and bottom edges, and the letters that matched are lit in the accent.</p>
+      <p class="note">With nothing typed, the palette shows a short discovery list: the chosen item's actions first, then the places you visit most. Each command's key sits on the right.</p>
+      <p class="note">Menus, confirms and help use the same layer. Each opens with the popup sweep (07 · motion) and esc always closes the top one.</p></div>
+    <div class="scr term"><sc-for list="{{palette}}" as="row" hint-placeholder-count="22"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="6"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag new" style="align-self: flex-start">new in ink</span><h2 class="h2">Notices</h2><p class="note">Quick, small news a write leaves behind. A notice is one row at the bottom-right of the panel above the status line, inside its border, not a floating box. Its tinted ground drains cell by cell as its time runs out; a newer notice stands below and the older one dims above it. It carries at most one key, underlined in its word, and esc clears them all.</p><p class="note">Information stays about 5 s; an error stays about 10 s or until a key. Every notice is kept in a message history, opened with one key from anywhere.</p></div>
+    <div class="scr term"><sc-for list="{{toast}}" as="row" hint-placeholder-count="9"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="4"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div>
+  </div>
+
+  <div class="sec">
+    <div style="display: flex; flex-direction: column; gap: 10px"><span class="tag ship" style="align-self: flex-start">shipped, redrawn</span><h2 class="h2">Panel states</h2><p class="note">Every panel can be loading, empty or broken, and says so in its own space. Loading shows the shape of what is coming and shimmers; empty says why and what to do; an error says what answered, never a parser's complaint.</p></div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 10px"><span class="lab">loading</span>
+        <div class="scr term" style="display: block"><sc-for list="{{loading}}" as="row" hint-placeholder-count="8"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="4"><span style="{{s.st}}" class="{{s.c}}">{{s.t}}</span></sc-for></div></sc-for></div></div>
+      <div style="display: flex; flex-direction: column; gap: 10px"><span class="lab">empty</span>
+        <div class="scr term" style="display: block"><sc-for list="{{empty}}" as="row" hint-placeholder-count="8"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="4"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div></div>
+      <div style="display: flex; flex-direction: column; gap: 10px"><span class="lab">error</span>
+        <div class="scr term" style="display: block"><sc-for list="{{error}}" as="row" hint-placeholder-count="8"><div class="r"><sc-for list="{{row}}" as="s" hint-placeholder-count="4"><span style="{{s.st}}">{{s.t}}</span></sc-for></div></sc-for></div></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var T = { base: '#0a0812', surf: '#12101a', ov: '#1a162a', hov: '#2a263e', sel: '#44475a', p: '#f8f8f2', s: '#e9d5ff', m: '#6272a4', e: '#ffffff', a: '#e135ff', am: '#9580ff', k: '#80ffea', t3: '#ff6ac1', ok: '#50fa7b', wn: '#f1fa8c', bd: '#ff6363', in: '#82aaff', n: '#ffb86c' };
+    function rgb(h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); }
+    function hex(c) { return '#' + c.map(function (v) { return ('0' + Math.round(v).toString(16)).slice(-2); }).join(''); }
+    function mix(a, b, t) { var x = rgb(a), y = rgb(b); return hex(x.map(function (v, i) { return v + (y[i] - v) * t; })); }
+    function ramp(t) { return t < 0.5 ? mix(T.a, T.t3, t / 0.5) : mix(T.t3, T.k, (t - 0.5) / 0.5); }
+    function Screen(w, h, bg) {
+      var g = [];
+      for (var y = 0; y < h; y++) { var row = []; for (var x = 0; x < w; x++) row.push({ ch: ' ', fg: T.p, bg: bg, b: false, i: false, u: false, c: '' }); g.push(row); }
+      return {
+        g: g, w: w, h: h,
+        put: function (y, x, text, fg, bg, b, i, u) {
+          var chars = Array.from(text);
+          for (var k = 0; k < chars.length; k++) { var c = g[y] && g[y][x + k]; if (!c) continue; c.ch = chars[k]; if (fg) c.fg = fg; if (bg) c.bg = bg; c.b = !!b; c.i = !!i; c.u = !!u; }
+        },
+        hint: function (y, x, word, at, bg) {
+          this.put(y, x, word, T.s, bg);
+          this.put(y, x + at, word.charAt(at), T.k, bg, true, false, true);
+          return x + word.length;
+        },
+        fill: function (y, x, w2, h2, bg) { for (var yy = y; yy < y + h2; yy++) for (var xx = x; xx < x + w2; xx++) if (g[yy] && g[yy][xx]) { g[yy][xx].bg = bg; g[yy][xx].ch = ' '; } },
+        box: function (y, x, w2, h2, col, bg, title, glow) {
+          this.fill(y, x, w2, h2, bg);
+          for (var xx = 0; xx < w2; xx++) {
+            var ct = glow ? ramp(xx / (w2 - 1)) : col;
+            var cb = glow ? ramp(1 - xx / (w2 - 1)) : col;
+            var top = xx === 0 ? '╭' : xx === w2 - 1 ? '╮' : '─', bot = xx === 0 ? '╰' : xx === w2 - 1 ? '╯' : '─';
+            this.put(y, x + xx, top, ct, bg); this.put(y + h2 - 1, x + xx, bot, cb, bg);
+          }
+          for (var yy = 1; yy < h2 - 1; yy++) {
+            var t = yy / (h2 - 1);
+            this.put(y + yy, x, '│', glow ? ramp(t * 0.15) : col, bg);
+            this.put(y + yy, x + w2 - 1, '│', glow ? ramp(1 - t * 0.15) : col, bg);
+          }
+          if (title) this.put(y, x + 2, ' ' + title + ' ', T.e, bg, true);
+        },
+        scrim: function (amt) { g.forEach(function (row) { row.forEach(function (c) { c.fg = mix(c.fg, T.base, amt); c.bg = mix(c.bg, T.base, amt * 0.6); c.b = false; }); }); },
+        shadow: function (y, x, w2, h2) {
+          function dim(c) { if (!c) return; c.bg = mix(c.bg, '#000000', 0.6); c.fg = mix(c.fg, T.base, 0.45); }
+          for (var yy = y + 1; yy <= y + h2; yy++) dim(g[yy] && g[yy][x + w2]);
+          for (var xx = x + 1; xx <= x + w2; xx++) dim(g[y + h2] && g[y + h2][xx]);
+        },
+        rows: function () {
+          return g.map(function (row) {
+            var spans = [], cur = null;
+            row.forEach(function (c) {
+              var st = 'color:' + c.fg + ';background:' + c.bg + (c.b ? ';font-weight:700' : '') + (c.i ? ';font-style:italic' : '') + (c.u ? ';text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px' : '');
+              var key = st + '|' + c.c;
+              if (cur && cur.key === key) cur.t += c.ch; else { cur = { key: key, st: st, t: c.ch, c: c.c }; spans.push(cur); }
+            });
+            return spans;
+          });
+        }
+      };
+    }
+    var I = { change: '', repo: '', branch: '', pass: '', fail: '', ready: '', review: '', search: '', settings: '', issue: '', you: '', group: '', empty: '', err: '', gitlab: '', jira: '\U000f0303', slack: '', link: '', merged: '' };
+    I.jira = String.fromCodePoint(0xf0303);
+
+    // --- focus panels ---
+    var P = Screen(96, 9, T.base);
+    P.box(0, 0, 30, 9, T.am, T.surf, 'views', false);
+    P.box(0, 31, 65, 9, T.a, T.surf, 'Everything', true);
+    P.put(1, 2, ' Everything        ', T.e, T.ov, true);
+    P.put(2, 2, ' Needs my action  ', T.p); P.put(2, 20, '2', T.n);
+    P.put(3, 2, ' Opened by me', T.p); P.put(4, 2, ' Opened by teammates', T.p);
+    P.put(1, 33, 'OPENED BY  ', T.m, null, true); P.put(1, 44, 'everyone · 4 repos', T.m);
+    P.put(2, 33, I.group + ' team-b', T.e, null, true);
+    P.put(3, 33, '└─ ', T.m); P.put(3, 36, I.change, T.a); P.put(3, 38, '!342 change 342', T.p); P.put(3, 55, 'draft', T.m);
+    P.fill(4, 32, 63, 1, T.sel);
+    P.put(4, 33, '   └─ ', T.m, T.sel); P.put(4, 39, I.change, T.a, T.sel); P.put(4, 41, '!263 ABC-12: Add a stats endpoint', T.e, T.sel, true); P.put(4, 76, I.review + ' needs 1 approval', T.wn, T.sel, true);
+    P.put(5, 33, I.group + ' team-a', T.e, null, true); P.put(5, 42, 'main red in 1', T.bd);
+    P.put(6, 33, '└─ ', T.m); P.put(6, 36, I.repo + ' web', T.p); P.put(6, 43, I.branch + ' main', T.k); P.put(6, 76, I.fail + ' failed', T.bd, null, true);
+    P.put(1, 4, '', T.e);
+
+    // --- palette over screen ---
+    var S = Screen(96, 22, T.base);
+    S.fill(0, 0, 96, 1, T.ov);
+    S.put(0, 0, ' radar ', T.a, T.ov, true);
+    S.put(0, 5, ' ' + I.gitlab + ' Repositories   ', T.e, T.sel, true);
+    S.put(0, 23, I.jira + ' Jira   ' + I.slack + ' Slack     Branches   Work   History', T.p, T.ov);
+    S.put(0, 78, 'synced 40s ago', T.m, T.ov);
+    S.box(1, 0, 22, 19, T.am, T.surf, 'views', false);
+    S.put(2, 2, 'Everything', T.e, null, true); S.put(3, 2, 'Needs my action  2', T.p); S.put(4, 2, 'Opened by me', T.p); S.put(5, 2, 'Opened by teammates', T.p);
+    S.box(1, 23, 73, 19, T.a, T.surf, 'Everything', false);
+    var lines = [['team-b', T.e], ['└─ worker', T.p], ['   └─ !342 change 342        you      draft', T.p], ['team-a   main red in 1', T.bd], ['├─ api   alice/ABC-12    passed         4d', T.p], ['│  └─ !263 ABC-12: Add a stats endpoint  needs 1 approval', T.wn], ['├─ web   main            failed         4d', T.bd], ['│  ├─ !187 change 187        ready to merge', T.ok], ['│  └─ !198 change 198        needs 1 approval', T.wn], ['└─ docs                  passed         4d', T.ok]];
+    lines.forEach(function (l, i) { S.put(2 + i, 25, l[0], l[1]); });
+    S.fill(20, 0, 96, 1, T.ov);
+    S.put(20, 0, ' REPOSITORIES ', T.base, T.a, true); S.put(20, 16, 'bulk   expand   quit', T.s, T.ov);
+    S.scrim(0.72);
+    var bx = 18, by = 3, bw = 60, bh = 14;
+    S.box(by, bx, bw, bh, null, T.ov, null, true);
+    S.put(by, bx + 2, ' ' + I.search + ' go to ', T.e, T.ov, true);
+    S.put(by + 1, bx + 2, I.search + ' ', T.k, T.ov); S.put(by + 1, bx + 4, 'merge', T.e, T.ov, true); S.put(by + 1, bx + 9, ' ', T.base, T.a);
+    S.put(by + 1, bx + 49, '3 of 128', T.m, T.ov);
+    for (var xx = 1; xx < bw - 1; xx++) S.put(by + 2, bx + xx, '─', T.hov, T.ov);
+    function item(y, icon, icol, text, hl, where, key, chosen) {
+      var bg = chosen ? T.sel : T.ov;
+      S.fill(y, bx + 1, bw - 2, 1, bg);
+      S.put(y, bx + 2, icon, icol, bg);
+      S.put(y, bx + 5, text, chosen ? T.e : T.p, bg, chosen);
+      hl.forEach(function (h) { S.put(y, bx + 5 + h[0], text.substr(h[0], h[1]), T.a, bg, true); });
+      S.put(y, bx + 38, where, T.m, bg);
+      if (key) { S.put(y, bx + bw - 4, key, T.k, bg, true); }
+    }
+    item(by + 3, I.change, T.a, 'merge !187 change 187', [[0, 5]], 'acme/web', 'm', true);
+    item(by + 4, I.change, T.a, 'merge !198 change 198', [[0, 5]], 'acme/web', null, false);
+    item(by + 5, I.merged, T.a, 'merged by me, this week', [[0, 5]], 'GitLab view', null, false);
+    item(by + 6, I.settings, T.s, 'merge rules: GitLab / look', [[0, 5]], 'settings', ',', false);
+    S.put(by + 8, bx + 2, 'RECENT', T.m, T.ov, true);
+    item(by + 9, I.jira, T.in, 'ABC-12 Add a stats endpoint', [], 'Jira · site', null, false);
+    item(by + 10, I.slack, T.t3, '#team  Bob Builder', [], 'Slack', null, false);
+    S.put(by + bh - 1, bx + 2, ' ↑↓ move · ⏎ open · esc close ', T.m, T.ov);
+    S.shadow(by, bx, bw, bh);
+
+    // --- toast ---
+    var Q = Screen(96, 9, T.base);
+    Q.box(0, 0, 96, 8, T.am, T.surf, 'Everything', false);
+    var tl = ['team-a   main red in 1', '├─ web   main', '│  ├─ !187 change 187', '│  └─ !198 change 198', '└─ docs'];
+    tl.forEach(function (l, i) { Q.put(1 + i, 2, l, i === 2 ? T.m : T.p); });
+    Q.put(3, 30, I.merged + ' merged', T.a, null, true);
+    // the status line, and two notices standing on it, newest lowest
+    Q.fill(8, 0, 96, 1, T.ov);
+    Q.put(8, 0, ' REPOSITORIES ', T.base, T.a, true); Q.hint(8, 16, 'bulk', 0, T.ov); Q.hint(8, 23, 'quit', 0, T.ov);
+    function notice(y, parts, left, dim) {
+      var w = parts.reduce(function (n, p) { return n + Array.from(p[0]).length; }, 0) + 2, x = 95 - w;
+      var cut = Math.round(w * left);
+      for (var i = 0; i < w; i++) Q.put(y, x + i, ' ', null, i < cut ? (dim ? '#221d33' : '#2b2440') : T.ov);
+      var cx = x + 1;
+      parts.forEach(function (p) {
+        Array.from(p[0]).forEach(function (ch) {
+          var bg = (cx - x) < cut ? (dim ? '#221d33' : '#2b2440') : T.ov;
+          Q.put(y, cx, ch, dim ? T.m : p[1], bg, !dim && !!p[2], false, !dim && !!p[3]);
+          cx++;
+        });
+      });
+    }
+    notice(5, [[I.pass + ' checked out ', T.ok], ['alice/ABC-12', T.k]], 0.15, true);
+    notice(6, [[I.pass + ' ', T.ok, true], ['merged ', T.p], ['!187', T.a, true], [' into ', T.p], ['main', T.k], ['  ·  ', T.m], ['u', T.k, true, true], ['ndo', T.s]], 0.62, false);
+
+    // --- states ---
+    function stateBox(title) { var X = Screen(33, 8, T.base); X.box(0, 0, 33, 8, T.am, T.surf, title, false); return X; }
+    var L = stateBox('Everything');
+    [[16, 6], [21, 4], [12, 8], [19, 4], [14, 6]].forEach(function (w, i) { L.put(1 + i, 2, Array(w[0] + 1).join(' '), null, T.hov); L.put(1 + i, 4 + w[0], Array(w[1] + 1).join(' '), null, T.ov); });
+    L.put(6, 2, '⠷ loading merge requests…', T.in);
+    var Lr = L.rows();
+    for (var li = 1; li <= 5; li++) Lr[li].forEach(function (s) { s.c = 'shim'; });
+    var E = stateBox('Needs my action');
+    E.put(2, 16, I.empty, T.m); E.put(3, 7, 'Nothing needs you.', T.e, null, true); E.put(4, 3, 'No reviews, no red pipelines', T.m);
+    E.hint(6, 9, 'change the view', 11, null);
+    var R = stateBox('Everything');
+    R.put(2, 2, I.err + ' could not load', T.bd, null, true); R.put(3, 4, 'GitLab answered 503', T.p); R.put(4, 4, 'Service Unavailable', T.p);
+    R.hint(6, 4, 'retry', 0, null); R.hint(6, 12, 'log', 0, null);
+    return { panels: P.rows(), palette: S.rows(), toast: Q.rows(), loading: Lr, empty: E.rows(), error: R.rows() };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ Label Keep selected while browsing groups · groups page 1 ───────────────────╮
+│  Create a local group label…                                                 █
+│  name it yourself                                                            █
+│  Unassigned group 0                                                          █
+│  50000000-0000-4000-8000-000000000000 · existing local group                 █
+│  Unassigned group 1                                                          █
+│  50000000-0000-4000-8000-000000000001 · existing local group                 █
+│  Unassigned group 2                                                          █
+│  50000000-0000-4000-8000-000000000002 · existing local group                 █
+│  Unassigned group 3                                                          █
+│  50000000-0000-4000-8000-000000000003 · existing local group                 █
+│  Unassigned group 4                                                          █
+│  50000000-0000-4000-8000-000000000004 · existing local group                 ║
+│  Unassigned group 5                                                          ║
+│  50000000-0000-4000-8000-000000000005 · existing local group                 ║
+│  Unassigned group 6                                                          ║
+│  50000000-0000-4000-8000-000000000006 · existing local group                 ║
+│  Unassigned group 7                                                          ║
+│  50000000-0000-4000-8000-000000000007 · existing local group                 ║
+│  Unassigned group 8                                                          ║
+│  50000000-0000-4000-8000-000000000008 · existing local group                 ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   j/k move   PgUp/PgDn scroll   ⏎ choose   esc close

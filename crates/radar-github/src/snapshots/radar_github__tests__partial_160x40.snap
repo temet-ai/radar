@@ -1,0 +1,44 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)                                                                          GitHub connection check failed  ✎ edit
+╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
+│ Everything     2 repos ││ github.com/acme                                                            2 repos ││ Keep background refreshes tied to their      │
+│ acme           2 repos ││   acme/api                                                                   2 PRs ││ request                                      │
+│                        ││     #42  Keep background refreshes tied to their request                      open ││                                              │
+│                        ││     #43  Document the public endpoints                                       draft ││ state  open                                  │
+│                        ││   acme/docs                                                                  0 PRs ││ author  alice                                │
+│                        ││                                                                                    ││ from  alice/api:refresh-ownership            │
+│                        ││                                                                                    ││ into  acme/api:main                          │
+│                        ││                                                                                    ││ head commit                                  │
+│                        ││                                                                                    ││ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa     │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ DESCRIPTION ──────────────────────────────── │
+│                        ││                                                                                    ││   What changed                               │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││   Responses stay with the repository and     │
+│                        ││                                                                                    ││   commit they were requested for.            │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││   • Keep the selected pull request stable    │
+│                        ││                                                                                    ││   • Show unavailable checks honestly         │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││   See the design notes.                      │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                             github

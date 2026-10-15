@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`chrome layout at 80 columns > status line hints, keys are targets, least needed give way first 1`] = `" BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                     "`;
+
+exports[`chrome layout at 80 columns > top bar fills exactly the width and underlines the mnemonic 1`] = `" radar    Books 3   Work   History   Settings             synced 12s  read-only "`;
+
+exports[`chrome layout at 160 columns > status line hints, keys are targets, least needed give way first 1`] = `" BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                11 open · 3 need you "`;
+
+exports[`chrome layout at 160 columns > top bar fills exactly the width and underlines the mnemonic 1`] = `" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only "`;

@@ -1,0 +1,463 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "add a channel"
+    },
+    {
+      "id": "slack.channels.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "paste a link to it, or type #name"
+    },
+    {
+      "id": "slack.channels.kept_replies",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept replies…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": "+ "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a channel"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste a link to it, or type #name"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   #acme-team · team · watched"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "look": "slack.cyan",
+            "text": "▌ "
+          },
+          {
+            "look": "text.primary bold",
+            "text": "#team"
+          }
+        ]
+      },
+      {
+        "target": "row:2",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "alias           "
+          },
+          {
+            "ink": "primary",
+            "text": "team"
+          }
+        ]
+      },
+      {
+        "target": "row:3",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "purpose         "
+          },
+          {
+            "ink": "primary",
+            "text": "where the team talks"
+          }
+        ]
+      },
+      {
+        "target": "row:4",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "kind            "
+          },
+          {
+            "ink": "primary",
+            "text": "team"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "colour          "
+          },
+          {
+            "look": "slack.cyan",
+            "text": "██ "
+          },
+          {
+            "ink": "primary",
+            "text": "cyan"
+          }
+        ]
+      },
+      {
+        "target": "row:6",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "└─ "
+          },
+          {
+            "ink": "muted",
+            "text": "watched         "
+          },
+          {
+            "ink": "primary",
+            "text": "yes"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   #acme-svc · service · watched"
+          }
+        ],
+        "target": "row:7",
+        "text": [
+          {
+            "look": "slack.orange",
+            "text": "▌ "
+          },
+          {
+            "look": "text.primary bold",
+            "text": "#svc"
+          }
+        ]
+      },
+      {
+        "target": "row:8",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "alias           "
+          },
+          {
+            "ink": "primary",
+            "text": "svc"
+          }
+        ]
+      },
+      {
+        "target": "row:9",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "purpose         "
+          },
+          {
+            "ink": "primary",
+            "text": "—"
+          }
+        ]
+      },
+      {
+        "target": "row:10",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "kind            "
+          },
+          {
+            "ink": "primary",
+            "text": "service"
+          }
+        ]
+      },
+      {
+        "target": "row:11",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "colour          "
+          },
+          {
+            "look": "slack.orange",
+            "text": "██ "
+          },
+          {
+            "ink": "primary",
+            "text": "orange"
+          }
+        ]
+      },
+      {
+        "target": "row:12",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "└─ "
+          },
+          {
+            "ink": "muted",
+            "text": "watched         "
+          },
+          {
+            "ink": "primary",
+            "text": "yes"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "   #acme-try · test · not watched"
+          }
+        ],
+        "target": "row:13",
+        "text": [
+          {
+            "look": "slack.green",
+            "text": "▌ "
+          },
+          {
+            "look": "text.primary bold",
+            "text": "#try"
+          }
+        ]
+      },
+      {
+        "target": "row:14",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "alias           "
+          },
+          {
+            "ink": "primary",
+            "text": "try"
+          }
+        ]
+      },
+      {
+        "target": "row:15",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "purpose         "
+          },
+          {
+            "ink": "primary",
+            "text": "—"
+          }
+        ]
+      },
+      {
+        "target": "row:16",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "kind            "
+          },
+          {
+            "ink": "primary",
+            "text": "test"
+          }
+        ]
+      },
+      {
+        "target": "row:17",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "colour          "
+          },
+          {
+            "look": "slack.green",
+            "text": "██ "
+          },
+          {
+            "ink": "primary",
+            "text": "green"
+          }
+        ]
+      },
+      {
+        "target": "row:18",
+        "text": [
+          {
+            "text": "  "
+          },
+          {
+            "look": "text.muted",
+            "text": "└─ "
+          },
+          {
+            "ink": "muted",
+            "text": "watched         "
+          },
+          {
+            "ink": "primary",
+            "text": "no"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "text": "Read another channel."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "PASTE OR TYPE ANY OF"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  a link to the channel or to a message in it"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  its id: C0123ABCD"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "  #name"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "Slack is asked which channel it is; it is added as a team channel, watched, called by its name in Slack. Change any of that below it."
+      }
+    ]
+  ],
+  "detail_title": "add a channel",
+  "scope": "channels",
+  "version": 1
+}

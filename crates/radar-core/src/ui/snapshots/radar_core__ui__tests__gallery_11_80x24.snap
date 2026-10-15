@@ -1,0 +1,29 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 999
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Row states
+ The kit: every element on sample data                            colours: none
+ Markdown  Diff  Motion  Colours  Tones  [Row states]  Grid states  Waiting  Lo
+╭ list, focused (cursor on the fourth row) ───────────────────────────────────╮
+│ A HEADING: THE CURSOR SKIPS IT                                              │█
+│  a plain row                                                                │█
+│  a row with a word at the right                                      hidden │█
+│  the row the cursor is on                                                 ✓ │█
+│  a row whose text is far too long for the room its word leaves, so checking │█
+│  + add a shelf   paste a link to a shelf, or its path                       │║
+│  日本語の長い行 with wide characters in it, cut at the edge                 │║
+│                                                                             │║
+│                                                                             │║
+╰─────────────────────────────────────────────────────────────────────────────╯║
+╭ list, without focus ────────────────────────────────────────────────────────╮║
+│ A HEADING: THE CURSOR SKIPS IT                                              │║
+│  a plain row                                                                │║
+│  a row with a word at the right                                      hidden │║
+│  the row the cursor is on                                                 ✓ │║
+│  a row whose text is far too long for the room its word leaves, so checking │║
+│  + add a shelf   paste a link to a shelf, or its path                       │║
+│  日本語の長い行 with wide characters in it, cut at the edge                 │║
+│                                                                             │
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

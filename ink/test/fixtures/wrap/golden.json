@@ -1,0 +1,299 @@
+[
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha",
+      "beta",
+      "gamma",
+      "delta",
+      "epsil",
+      "on",
+      "zeta"
+    ],
+    "room": 5,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha",
+      "beta",
+      "gamma",
+      "delta",
+      "epsilo",
+      "n zeta"
+    ],
+    "room": 6,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha",
+      "beta",
+      "gamma",
+      "delta",
+      "epsilon",
+      "zeta"
+    ],
+    "room": 7,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha",
+      "beta",
+      "gamma",
+      "delta",
+      "epsilon",
+      "zeta"
+    ],
+    "room": 8,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha",
+      "beta",
+      "gamma",
+      "delta",
+      "epsilon",
+      "zeta"
+    ],
+    "room": 9,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha beta",
+      "gamma",
+      "delta",
+      "epsilon",
+      "zeta"
+    ],
+    "room": 10,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha beta",
+      "gamma delta",
+      "epsilon zeta"
+    ],
+    "room": 12,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha beta",
+      "gamma delta",
+      "epsilon zeta"
+    ],
+    "room": 13,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "alpha beta gamma delta epsilon zeta"
+    ],
+    "room": 44,
+    "text": "alpha beta gamma delta epsilon zeta"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "Responses stay with the repository and",
+      "commit they were requested for."
+    ],
+    "room": 44,
+    "text": "Responses stay with the repository and commit they were requested for."
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "ab",
+      "abcde",
+      "fghij",
+      "kl cd"
+    ],
+    "room": 5,
+    "text": "ab abcdefghijkl cd"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "漢字漢",
+      "字 abc"
+    ],
+    "room": 6,
+    "text": "漢字漢字 abc"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "😀😀",
+      "hi"
+    ],
+    "room": 4,
+    "text": "😀😀 hi"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "a b c"
+    ],
+    "room": 80,
+    "text": "a  b   c"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "a b",
+      "c"
+    ],
+    "room": 3,
+    "text": "a  b   c"
+  },
+  {
+    "fn": "rich",
+    "lines": [
+      "hi"
+    ],
+    "room": 80,
+    "text": "   hi  "
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "one two",
+      "three",
+      "four"
+    ],
+    "prefix": 0,
+    "text": "one  two   three four",
+    "width": 9
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "aaaa",
+      "bbbb"
+    ],
+    "prefix": 0,
+    "text": "aaaa bbbb",
+    "width": 8
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "aaaa bbb"
+    ],
+    "prefix": 0,
+    "text": "aaaa bbb",
+    "width": 8
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "aaaa",
+      "bbbb",
+      "cccc"
+    ],
+    "prefix": 0,
+    "text": "aaaa bbbb cccc",
+    "width": 3
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "aaaa bbb",
+      "ccc"
+    ],
+    "prefix": 4,
+    "text": "aaaa bbb ccc",
+    "width": 12
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "abcdefghijkl",
+      "x"
+    ],
+    "prefix": 0,
+    "text": "abcdefghijkl x",
+    "width": 8
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "a",
+      "",
+      "b"
+    ],
+    "prefix": 0,
+    "text": "a\n\nb\n",
+    "width": 20
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "漢字漢 漢字漢"
+    ],
+    "prefix": 0,
+    "text": "漢字漢 漢字漢",
+    "width": 14
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "漢字漢字",
+      "漢字漢字"
+    ],
+    "prefix": 0,
+    "text": "漢字漢字 漢字漢字",
+    "width": 14
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "漢字漢 漢字漢"
+    ],
+    "prefix": 0,
+    "text": "漢字漢 漢字漢",
+    "width": 16
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "漢字漢字",
+      "漢字漢字"
+    ],
+    "prefix": 0,
+    "text": "漢字漢字 漢字漢字",
+    "width": 16
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "漢字漢 漢字漢"
+    ],
+    "prefix": 0,
+    "text": "漢字漢 漢字漢",
+    "width": 17
+  },
+  {
+    "fn": "words",
+    "lines": [
+      "漢字漢字 漢字漢字"
+    ],
+    "prefix": 0,
+    "text": "漢字漢字 漢字漢字",
+    "width": 17
+  }
+]

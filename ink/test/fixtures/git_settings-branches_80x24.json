@@ -1,0 +1,165 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "add a convention"
+    },
+    {
+      "id": "git.branches.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type a repo path, a template, a base"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a convention for a repo"
+          },
+          {
+            "ink": "muted",
+            "text": "   a repo path, a template, a base"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "me         "
+          },
+          {
+            "ink": "muted",
+            "text": "not set"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "you/ABC-12"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "branch     "
+          },
+          {
+            "ink": "primary",
+            "text": "{me}/{key}"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "muted",
+            "text": "~/code/api-ABC-12"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "worktree   "
+          },
+          {
+            "ink": "primary",
+            "text": "{clone}-{topic}"
+          }
+        ]
+      },
+      {
+        "target": "row:4",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "after      "
+          },
+          {
+            "ink": "muted",
+            "text": "nothing"
+          }
+        ]
+      },
+      {
+        "target": "row:5",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "types      "
+          },
+          {
+            "ink": "muted",
+            "text": "as the tracker names them"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "A branch name template and base branch for the repos under a path. The longest matching path wins; a link's own template wins over it."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "a repo path or folder of repos, a template with {key}, and a base: acme/team-a {type}/{key}-{slug} develop"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "0 conventions"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [[git.convention]]"
+      }
+    ]
+  ],
+  "detail_title": "add a convention",
+  "scope": "branches",
+  "version": 1
+}

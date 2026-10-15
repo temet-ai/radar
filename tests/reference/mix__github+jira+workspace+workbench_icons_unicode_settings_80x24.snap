@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Repositories   ◇ Jira   Work (I)   ≣ History   ⚙ Settings (,)     ✎ edit
+╭ settings ────────────╮╭ GitHub connection ───────────────────────────────────╮
+│General               ││ server  https://github.com (fixed)                   │
+│  ├─ ⊞ parts          ││ token  public access, no token                       │
+│  ├─ ✎ mode           ││ check  GitHub connection                             │
+│  ├─ ◑ colours        ││ refresh  once on start, then on request              │
+│  └─ ☺ icons          ││                                                      │
+│GitHub                ││                                                      │
+│  ├─ connection       ││                                                      │
+│  └─ repositories     ││                                                      │
+│Jira                  ││                                                      │
+│  ├─ ⇌ connection     │╰──────────────────────────────────────────────────────╯
+│  ├─ ▪ projects       │╭ server ──────────────────────────────────────────────╮
+│  ├─ ▽ views          ││ GitHub.com only. API requests use the official       │
+│  └─ ◑ look           ││ endpoint.                                            │
+│Workspace             ││                                                      │
+│  └─ ⌂ workspaces     ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   q ✕ quit   x ≡ menu   ←→↑↓ navigate

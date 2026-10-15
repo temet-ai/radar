@@ -1,0 +1,517 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "change",
+      "id": "",
+      "label": "web !198"
+    },
+    {
+      "id": "gitlab.page.open_link",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open it in GitLab"
+    },
+    {
+      "id": "gitlab.page.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy its link"
+    },
+    {
+      "id": "gitlab.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "on GitLab"
+    },
+    {
+      "change": "edit",
+      "id": "gitlab.mr.rebase",
+      "key": {
+        "key": {
+          "char": "u"
+        }
+      },
+      "label": "rebase onto main…"
+    },
+    {
+      "change": "edit",
+      "id": "gitlab.mr.merge",
+      "key": {
+        "key": {
+          "char": "m"
+        }
+      },
+      "label": "merge · needs 1 approval"
+    },
+    {
+      "change": "edit",
+      "id": "gitlab.mr.approve",
+      "key": {
+        "key": {
+          "char": "a"
+        }
+      },
+      "label": "approve !198…"
+    },
+    {
+      "heading": true,
+      "id": "",
+      "label": "page"
+    },
+    {
+      "id": "gitlab.page.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab: Changes"
+    },
+    {
+      "id": "gitlab.page.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab: Ticket"
+    },
+    {
+      "heading": true,
+      "icon": "bot",
+      "id": "",
+      "label": "with an agent"
+    },
+    {
+      "id": "agent.send",
+      "key": {
+        "key": {
+          "char": "A"
+        }
+      },
+      "label": "ask an agent about it…"
+    },
+    {
+      "id": "agent.review_locally",
+      "key": {
+        "key": {
+          "char": "i"
+        }
+      },
+      "label": "review it locally…"
+    },
+    {
+      "id": "gitlab.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to web"
+    },
+    {
+      "id": "gitlab.page.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "page": {
+    "crumbs": [
+      {
+        "ink": "secondary",
+        "text": "Repositories"
+      },
+      {
+        "look": "tenant.green bold",
+        "text": "a"
+      },
+      {
+        "ink": "secondary",
+        "text": "web"
+      },
+      {
+        "ink": "accent_secondary",
+        "text": "!198"
+      }
+    ],
+    "details": [
+      {
+        "icon": "bot"
+      },
+      {
+        "ink": "secondary",
+        "text": "group_1_bot_abc"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "icon": "branch"
+      },
+      {
+        "ink": "accent_secondary",
+        "text": "feature/ABC-198 → main"
+      }
+    ],
+    "layout": {
+      "kind": "responsive",
+      "min_width": 100,
+      "narrow": {
+        "axis": "vertical",
+        "kind": "split",
+        "parts": [
+          {
+            "layout": {
+              "index": 1,
+              "kind": "pane"
+            },
+            "size": {
+              "kind": "length",
+              "value": 8
+            }
+          },
+          {
+            "layout": {
+              "index": 0,
+              "kind": "pane"
+            },
+            "size": {
+              "kind": "fill",
+              "value": 1
+            }
+          }
+        ]
+      },
+      "wide": {
+        "axis": "horizontal",
+        "kind": "split",
+        "parts": [
+          {
+            "layout": {
+              "index": 0,
+              "kind": "pane"
+            },
+            "size": {
+              "kind": "fill",
+              "value": 1
+            }
+          },
+          {
+            "layout": {
+              "index": 1,
+              "kind": "pane"
+            },
+            "size": {
+              "kind": "length",
+              "value": 36
+            }
+          }
+        ]
+      }
+    },
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "loading…"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "TICKET"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "ABC-198 · not fetched yet: its page has it"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "icon": "thread"
+                },
+                {
+                  "ink": "muted",
+                  "strong": true,
+                  "text": "LATEST ACTIVITY"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "accent_muted",
+                  "text": "│ "
+                },
+                {
+                  "icon": "person"
+                },
+                {
+                  "ink": "secondary",
+                  "text": "Bob Example"
+                },
+                {
+                  "ink": "muted",
+                  "text": " · 1h ago"
+                }
+              ]
+            },
+            {
+              "block": "wrapped",
+              "ink": "primary",
+              "prefix": {
+                "ink": "accent_muted",
+                "text": "│ "
+              },
+              "text": "Should this read from the cached view? The dashboard polls every 30s."
+            }
+          ],
+          "node": "rich",
+          "pictures": "acme/team-a/web"
+        },
+        "pane": "middle",
+        "title": "overview"
+      },
+      {
+        "body": {
+          "cut": true,
+          "lines": [
+            [
+              {
+                "icon": "needs_approval",
+                "icon_lead": true,
+                "ink": "warn",
+                "text": "◷ "
+              },
+              {
+                "ink": "warn",
+                "strong": true,
+                "text": "needs 1 approval"
+              }
+            ],
+            [
+              {
+                "icon": "run_passed",
+                "icon_lead": true,
+                "ink": "good",
+                "text": "✓ "
+              },
+              {
+                "ink": "primary",
+                "text": "pipeline passed"
+              }
+            ],
+            [
+              {
+                "icon": "run_passed",
+                "icon_lead": true,
+                "ink": "good",
+                "text": "✓ "
+              },
+              {
+                "ink": "primary",
+                "text": "no conflicts, up to date"
+              }
+            ],
+            [
+              {
+                "icon": "needs_approval",
+                "icon_lead": true,
+                "ink": "warn",
+                "text": "◷ "
+              },
+              {
+                "ink": "primary",
+                "text": "needs 1 approval (0 of 1)"
+              }
+            ],
+            [
+              {
+                "icon": "thread",
+                "icon_lead": true,
+                "ink": "warn",
+                "text": "◆ "
+              },
+              {
+                "ink": "primary",
+                "text": "1 open thread"
+              }
+            ],
+            [
+              {
+                "icon": "run_passed",
+                "icon_lead": true,
+                "ink": "good",
+                "text": "✓ "
+              },
+              {
+                "ink": "primary",
+                "text": "not a draft"
+              }
+            ],
+            [],
+            [
+              {
+                "ink": "muted",
+                "text": "for you: "
+              },
+              {
+                "look": "text.muted",
+                "text": "opened by a bot"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "pane": "detail",
+        "title": "can it merge?"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "icon": "info",
+        "label": "Overview"
+      },
+      {
+        "icon": "file",
+        "label": "Changes · 1 file"
+      },
+      {
+        "icon": "thread",
+        "label": "Threads · 1 open"
+      },
+      {
+        "icon": "pipeline",
+        "label": "Pipeline"
+      },
+      {
+        "icon": "commit",
+        "label": "Commits"
+      },
+      {
+        "label": "Ticket"
+      }
+    ],
+    "title": [
+      {
+        "icon": "change"
+      },
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "change 198"
+      }
+    ],
+    "under": [
+      {
+        "icon": "local"
+      },
+      {
+        "ink": "muted",
+        "text": "checkout  "
+      },
+      {
+        "icon": "terminal",
+        "target": "under:0"
+      },
+      {
+        "ink": "accent",
+        "target": "under:0",
+        "text": "terminal"
+      },
+      {
+        "ink": "muted",
+        "text": "  "
+      },
+      {
+        "icon": "editor",
+        "target": "under:1"
+      },
+      {
+        "ink": "accent",
+        "target": "under:1",
+        "text": "editor"
+      },
+      {
+        "ink": "muted",
+        "text": "  "
+      },
+      {
+        "text": "/work/acme/web"
+      },
+      {
+        "ink": "muted",
+        "text": " · node"
+      },
+      {
+        "ink": "muted",
+        "text": " · "
+      },
+      {
+        "icon": "branch"
+      },
+      {
+        "ink": "muted",
+        "text": "on main"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "repos",
+  "version": 1
+}

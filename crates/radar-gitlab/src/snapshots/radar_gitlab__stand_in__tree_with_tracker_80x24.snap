@@ -1,0 +1,28 @@
+---
+source: crates/radar-gitlab/src/stand_in.rs
+expression: narrow
+---
+ radar    R 1   T   History   Settings (,)               not synced yet  ✎ edit
+╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
+│ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
+│ Needs my action    2 ││▌ B team-b                                            │
+│ Opened by me         ││▌ └─ worker                                           │
+│ Opened by teammates  ││▌    └─ !342 change 342  you     ⊘ draft              │
+│ Opened by bots       ││▌ A team-a   main red in 1                            │
+│                      ││▌ ├─ api                         ✓ passed             │
+│                      ││▌ │  └─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
+│                      ││▌ ├─ web                         ✗ failed             │
+│                      ││▌ │  ├─ !187 change 187  you     ✓ ready to merge     │
+│                      ││▌ │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
+│                      ││▌ └─ docs                        ✓ passed             │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││─ shows ──────────────────────────────────────────────│
+│                      ││ every open merge request · listing every repo, also  │
+│                      ││ those without                                        │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ REPOSITORIES   b bulk   +/- expand/collapse   q quit   x menu           gitlab

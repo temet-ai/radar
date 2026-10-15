@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    R   J   S   B   I   History   Settings (,)                        ✎ edit
+╭ settings ────────────╮╭ GitLab connection ───────────────────────────────────╮
+│General              █││  server          https://gitlab.com                  │
+│  ├─ ⊞ parts         █││  base group      —                                   │
+│  ├─ ✎ mode          █││  token           env:GITLAB_TOKEN                    │
+│  ├─ ◑ colours       █││  signed in as    —                                   │
+│  └─ ☺ icons         █││  check           not checked yet                     │
+│GitLab               █││  refresh         every 1m                            │
+│  ├─ ⇌ connection    █││  merged, closed  the last 14 days                    │
+│  ├─ ◆ tenancies     █││                                                      │
+│  ├─ ▽ views         █││                                                      │
+│  └─ ◑ look          █│╰──────────────────────────────────────────────────────╯
+│Jira                 █│╭ server ──────────────────────────────────────────────╮
+│  ├─ ⇌ connection    █││ CHECKED                                              █
+│  ├─ ▪ projects      █││ not checked yet                                      █
+│  ├─ ▽ views         █││                                                      █
+│  └─ ◑ look          █││ NOW                                                  █
+│Slack                ║││ https://gitlab.com                                   █
+│  ├─ ⇌ connection    ║││                                                      █
+│  ├─ # channels      ║││ The GitLab server radar talks to.                       █
+│  ├─ ◎ review        ║││                                                      ║
+│  ├─ ▲ alerts        ║││ ACCEPTS                                              ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn ↕ scroll   b ◫ bulk   x ≡ menu   ←→↑↓ navigate

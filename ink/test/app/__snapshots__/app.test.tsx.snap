@@ -1,0 +1,238 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`chrome at 80x24 > renders an actions menu over the body and settings navigation beside it 1`] = `
+" radar    Books 3   Work   History   Settings             synced 12s  read-only
+  GitLab    GitHub
+╭ settings ────────────╮╭ projects ────────────────────────────────────────────╮
+│GitLab                ││ acme/api                                             │
+│  ├─ connection       ││                                                      │
+│  └─ projects         ││                                                      │
+│Slack ⋯               ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││╭ !263 fix the thing ───────╮                         │
+│                      │││ !263                      │                         │
+│                      │╰│ o  open    in the browser │─────────────────────────╯
+│                      │╭│ m  merge   when green     │─────────────────────────╮
+│                      ││╰───────────────────────────╯                         │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate"
+`;
+
+exports[`chrome at 80x24 > renders the top bar, sources and status line from ChromeView 1`] = `
+" radar    Books 3   Work   History   Settings             synced 12s  read-only
+  GitLab    GitHub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate"
+`;
+
+exports[`chrome at 160x40 > renders an actions menu over the body and settings navigation beside it 1`] = `
+" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only
+  GitLab    GitHub
+╭ settings ────────────╮╭ projects ──────────────────────────────────────────────────────────────────────╮╭ detail ────────────────────────────────────────────╮
+│GitLab                ││ acme/api                                                                       ││ what this does                                     │
+│  ├─ connection       ││                                                                                ││                                                    │
+│  └─ projects         ││                                                                                ││                                                    │
+│Slack ⋯               ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                        ╭ !263 fix the thing ───────╮           ││                                                    │
+│                      ││                                        │ !263                      │           ││                                                    │
+│                      ││                                        │ o  open    in the browser │           ││                                                    │
+│                      ││                                        │ m  merge   when green     │           ││                                                    │
+│                      ││                                        ╰───────────────────────────╯           ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                11 open · 3 need you"
+`;
+
+exports[`chrome at 160x40 > renders the top bar, sources and status line from ChromeView 1`] = `
+" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only
+  GitLab    GitHub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                11 open · 3 need you"
+`;
+
+exports[`the history overlay > draws title, scope, selected row, detail and keys at 80x24 1`] = `
+" radar    Books 3   Work   History   Settings             synced 12s  read-only
+ History · read only · UTC · snapshot through #124
+ Scope: recent activity · last 24 hours since 2026-10-11T10:29:53.000Z
+ Recorded observations; coverage may be incomplete. Not task intent or
+permission.
+╭ events · page 1 · oldest-first · more pages ─────────────────────────────────╮
+│ OBSERVED UTC         ACTION                  SUBJECT              OUTCOME    ║
+│ 2026-10-12 10:29:21  session.tui             no subject recorded  requested  ║
+│ 2026-10-12 10:29:22  session.tui             no subject recorded  requested  ║
+│ 2026-10-12 10:29:23  session.tui             no subject recorded  requested  ║
+│ 2026-10-12 10:29:24  session.tui             no subject recorded  requested  ║
+│ 2026-10-12 10:29:25  session.tui             no subject recorded  requested  ║
+│ 2026-10-12 10:29:26  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:27  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:28  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:29  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:30  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:31  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:32  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:33  session.tui             no subject recorded  requested  █
+│ 2026-10-12 10:29:34  session.tui             no subject recorded  requested  ║
+│ 2026-10-12 10:29:35  gitlab.sync.full        no subject recorded  requested  ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ j/k move · esc close"
+`;
+
+exports[`the history overlay > draws title, scope, selected row, detail and keys at 160x40 1`] = `
+" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only
+ History · read only · UTC · snapshot through #124
+ Scope: recent activity · last 24 hours since 2026-10-11T10:29:53.000Z
+ Recorded observations; coverage may be incomplete. Not task intent or permission.
+╭ events · page 1 · oldest-first · more pages ─────────────────────────────────────────────────╮╭ event detail ────────────────────────────────────────────────╮
+│ OBSERVED UTC         ACTION                  SUBJECT                              OUTCOME    ││ gitlab.sync.full                                             │
+│ 2026-10-12 10:29:10  session.tui             no subject recorded                  requested  ││ Action ID    d99d4d46-c6ae-4f96-8252-2e09cde26c86            │
+│ 2026-10-12 10:29:11  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:12  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:13  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:14  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:15  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:16  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:17  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:18  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:19  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:20  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:21  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:22  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:23  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:24  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:25  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:26  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:27  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:28  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:29  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:30  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:31  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:32  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:33  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:34  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:35  gitlab.sync.full        no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:36  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:37  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:38  session.tui             no subject recorded                  requested  ││                                                              │
+│ 2026-10-12 10:29:39  session.tui             no subject recorded                  requested  ││                                                              │
+│                                                                                              ││                                                              │
+│                                                                                              ││                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────╯
+ j/k move · esc close"
+`;
+
+exports[`work area > draws the work area from the sections the view carries; at 80 columns a pending question comes first 1`] = `
+" radar    Books 3   Work   History   Settings             synced 12s  read-only
+  GitLab    GitHub
+╭ Agent ───────────────────────────────────────────────────────────────────────╮
+│ ● waiting for you                                                            │
+│ ∅ approve the merge?                                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ BOOKS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate"
+`;

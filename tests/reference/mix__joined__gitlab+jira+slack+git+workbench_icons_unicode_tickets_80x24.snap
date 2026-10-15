@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, w, h)"
+---
+ radar    R 2   J   S   B   I   History   Settings (,)  not synced yet · e… ✎ edit
+╭ Our project ─────────────────────────────────────────────────────────────────╮
+│ ASSIGNED TO ⚇ everyone      TYPE      STATUS          CODE        ↺ UPDATED  │
+│▌ ⊕ acme  acme.atlassian.net                                                  │
+│▌ ├─ ◐ In Review                                                              │
+│▌ │  └─ ▣ ABC-12 Add a stats Story     ◐ In Review     !263 review 1h         │
+│▌ └─ ○ To Do                                                                  │
+│▌    ├─ ▣ ABC-20 Stats page  Story     ○ To Do         !264 team   1h         │
+│▌    └─ ▣ ABC-21 Nothing wri Story     ○ To Do                     1h         │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ what its JQL asks for (settings, views)                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ JIRA   b ◫ bulk   +/- ± expand/collapse   q ✕ quit   x ≡ menu

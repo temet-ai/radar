@@ -1,0 +1,970 @@
+{
+  "chrome": {
+    "height": 24,
+    "keys_at": "body",
+    "screen_keys": [
+      "R",
+      "G",
+      "J",
+      "S",
+      "B",
+      "W",
+      "I",
+      "A"
+    ],
+    "sources": [
+      {
+        "active": true,
+        "label": "GitLab",
+        "target": "chrome:source:0"
+      },
+      {
+        "label": "GitHub",
+        "target": "chrome:source:1"
+      },
+      {
+        "label": "Local workspaces",
+        "target": "chrome:source:5"
+      }
+    ],
+    "status": {
+      "counts": [
+        {
+          "ink": "plain",
+          "text": "4 open"
+        },
+        {
+          "ink": "warn",
+          "text": "1 to review"
+        },
+        {
+          "ink": "good",
+          "text": "1 ready"
+        }
+      ],
+      "health": [
+        {
+          "ink": "muted",
+          "label": "gitlab",
+          "part": "gitlab",
+          "state": "stale",
+          "target": "chrome:health:gitlab"
+        },
+        {
+          "ink": "good",
+          "label": "github",
+          "part": "github",
+          "state": "ok",
+          "target": "chrome:health:github"
+        },
+        {
+          "ink": "muted",
+          "label": "jira",
+          "part": "jira",
+          "state": "stale",
+          "target": "chrome:health:jira"
+        },
+        {
+          "ink": "good",
+          "label": "slack",
+          "part": "slack",
+          "state": "ok",
+          "target": "chrome:health:slack"
+        }
+      ],
+      "hints": [
+        {
+          "keys": "⏎",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "enter"
+              },
+              "label": "⏎",
+              "target": "chrome:key:0:0"
+            }
+          ],
+          "label": "new line"
+        },
+        {
+          "keys": "ctrl-s",
+          "keys_of": [
+            {
+              "chord": {
+                "ctrl": true,
+                "key": {
+                  "char": "s"
+                }
+              },
+              "label": "ctrl-s",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "review and send"
+        },
+        {
+          "keys": "esc",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "esc"
+              },
+              "label": "esc",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "stop"
+        },
+        {
+          "keys": "ctrl-r",
+          "keys_of": [
+            {
+              "chord": {
+                "ctrl": true,
+                "key": {
+                  "char": "r"
+                }
+              },
+              "label": "ctrl-r",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "kept comments"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "REPOSITORIES"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "badge": {
+            "ink": "warn",
+            "text": "1"
+          },
+          "icon": "repo",
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "issue",
+          "label": "jira",
+          "mnemonic": "J",
+          "target": "chrome:tab:2"
+        },
+        {
+          "badge": {
+            "ink": "warn",
+            "text": "4"
+          },
+          "icon": "chat",
+          "label": "slack",
+          "mnemonic": "S",
+          "target": "chrome:tab:3"
+        },
+        {
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:4"
+        },
+        {
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:6"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "not synced yet"
+      }
+    },
+    "version": 1,
+    "width": 80
+  },
+  "focus": "middle",
+  "height": 24,
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "icon": "change",
+        "id": "",
+        "label": "api !263"
+      },
+      {
+        "id": "gitlab.page.open_link",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open it in GitLab"
+      },
+      {
+        "id": "gitlab.page.copy_link",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy its link"
+      },
+      {
+        "id": "gitlab.page.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh this page"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "on GitLab"
+      },
+      {
+        "change": "edit",
+        "id": "gitlab.mr.rebase",
+        "key": {
+          "key": {
+            "char": "u"
+          }
+        },
+        "label": "rebase onto main…"
+      },
+      {
+        "change": "edit",
+        "id": "gitlab.mr.merge",
+        "key": {
+          "key": {
+            "char": "m"
+          }
+        },
+        "label": "merge · needs 1 approval"
+      },
+      {
+        "change": "edit",
+        "id": "gitlab.mr.approve",
+        "key": {
+          "key": {
+            "char": "a"
+          }
+        },
+        "label": "approve !263…"
+      },
+      {
+        "change": "add",
+        "id": "gitlab.mr.comment",
+        "key": {
+          "key": {
+            "char": "c"
+          }
+        },
+        "label": "comment on README.md line 2…"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "diff"
+      },
+      {
+        "id": "gitlab.mr.toggle_files",
+        "key": {
+          "key": {
+            "char": "f"
+          }
+        },
+        "label": "collapse the files"
+      },
+      {
+        "id": "gitlab.mr.toggle_side_by_side",
+        "key": {
+          "key": {
+            "char": "v"
+          }
+        },
+        "label": "show the diff side by side"
+      },
+      {
+        "id": "gitlab.mr.next_file",
+        "key": {
+          "key": {
+            "char": "n"
+          }
+        },
+        "label": "next file: StatsController.java"
+      },
+      {
+        "id": "gitlab.mr.next_hunk",
+        "key": {
+          "key": {
+            "char": "}"
+          }
+        },
+        "label": "next hunk"
+      },
+      {
+        "id": "gitlab.mr.previous_hunk",
+        "key": {
+          "key": {
+            "char": "{"
+          }
+        },
+        "label": "previous hunk"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "page"
+      },
+      {
+        "id": "gitlab.page.next_tab",
+        "key": {
+          "key": {
+            "char": "]"
+          }
+        },
+        "label": "next tab: Threads"
+      },
+      {
+        "id": "gitlab.page.previous_tab",
+        "key": {
+          "key": {
+            "char": "["
+          }
+        },
+        "label": "previous tab: Overview"
+      },
+      {
+        "heading": true,
+        "icon": "bot",
+        "id": "",
+        "label": "with an agent"
+      },
+      {
+        "id": "agent.send",
+        "key": {
+          "key": {
+            "char": "A"
+          }
+        },
+        "label": "ask an agent about it…"
+      },
+      {
+        "id": "agent.review_locally",
+        "key": {
+          "key": {
+            "char": "i"
+          }
+        },
+        "label": "review it locally…"
+      },
+      {
+        "id": "gitlab.page.back",
+        "key": {
+          "key": "esc"
+        },
+        "label": "back to the middle pane"
+      },
+      {
+        "id": "gitlab.page.kept_comments",
+        "key": {
+          "ctrl": true,
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "kept comments…"
+      }
+    ],
+    "page": {
+      "crumbs": [
+        {
+          "ink": "secondary",
+          "text": "Repositories"
+        },
+        {
+          "look": "tenant.green bold",
+          "text": "a"
+        },
+        {
+          "ink": "secondary",
+          "text": "api"
+        },
+        {
+          "ink": "accent_secondary",
+          "text": "!263"
+        }
+      ],
+      "details": [
+        {
+          "icon": "person"
+        },
+        {
+          "ink": "secondary",
+          "text": "alice"
+        },
+        {
+          "ink": "muted",
+          "text": " · "
+        },
+        {
+          "icon": "branch"
+        },
+        {
+          "ink": "accent_secondary",
+          "text": "feature/ABC-263 → main"
+        }
+      ],
+      "layout": {
+        "index": 1,
+        "kind": "pane"
+      },
+      "panes": [
+        {
+          "body": {
+            "columns": [
+              {
+                "heading": "size",
+                "keep": 0,
+                "width": 7
+              }
+            ],
+            "look": {
+              "band": "bg.overlay",
+              "band_level": 1,
+              "heading": "bg.overlay",
+              "lines": "text.muted"
+            },
+            "name_width": 16,
+            "node": "tree",
+            "open": [
+              [
+                "d:docs"
+              ],
+              [
+                "d:src"
+              ],
+              [
+                "d:src",
+                "d:src/main/java/acme/stats"
+              ],
+              [
+                "d:src",
+                "d:src/test/java/acme/stats"
+              ]
+            ],
+            "ordered_columns": true,
+            "pointer_action": true,
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "heading": "size",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "+6 −1"
+                      }
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "size",
+                        "text": [
+                          {
+                            "ink": "muted",
+                            "text": "+6 −1"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "f:3",
+                    "name": [
+                      {
+                        "ink": "accent",
+                        "text": "▎ "
+                      },
+                      {
+                        "icon": "file_markdown"
+                      },
+                      {
+                        "ink": "accent",
+                        "strong": true,
+                        "text": "README.md"
+                      }
+                    ]
+                  }
+                ],
+                "id": "d:docs",
+                "name": [
+                  {
+                    "icon": "folder_open"
+                  },
+                  {
+                    "ink": "secondary",
+                    "strong": true,
+                    "text": "docs"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "size",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "+93 −5"
+                      }
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "size",
+                        "text": [
+                          {
+                            "ink": "muted",
+                            "text": "+60 −2"
+                          }
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "cells": [
+                          {
+                            "heading": "size",
+                            "text": [
+                              {
+                                "ink": "muted",
+                                "text": "+42 −0"
+                              }
+                            ]
+                          }
+                        ],
+                        "id": "f:0",
+                        "name": [
+                          {
+                            "ink": "muted",
+                            "text": "· "
+                          },
+                          {
+                            "icon": "file_java"
+                          },
+                          {
+                            "ink": "primary",
+                            "text": "St…"
+                          },
+                          {
+                            "ink": "warn",
+                            "text": " ◆1"
+                          }
+                        ]
+                      },
+                      {
+                        "cells": [
+                          {
+                            "heading": "size",
+                            "text": [
+                              {
+                                "ink": "muted",
+                                "text": "+18 −2"
+                              }
+                            ]
+                          }
+                        ],
+                        "id": "f:2",
+                        "name": [
+                          {
+                            "ink": "muted",
+                            "text": "· "
+                          },
+                          {
+                            "icon": "file_java"
+                          },
+                          {
+                            "ink": "primary",
+                            "text": "StatsSe…"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "d:src/main/java/acme/stats",
+                    "name": [
+                      {
+                        "icon": "folder_open"
+                      },
+                      {
+                        "ink": "secondary",
+                        "strong": true,
+                        "text": "…me/stats"
+                      }
+                    ]
+                  },
+                  {
+                    "cells": [
+                      {
+                        "heading": "size",
+                        "text": [
+                          {
+                            "ink": "muted",
+                            "text": "+33 −3"
+                          }
+                        ]
+                      }
+                    ],
+                    "children": [
+                      {
+                        "cells": [
+                          {
+                            "heading": "size",
+                            "text": [
+                              {
+                                "ink": "muted",
+                                "text": "+33 −3"
+                              }
+                            ]
+                          }
+                        ],
+                        "id": "f:1",
+                        "name": [
+                          {
+                            "ink": "muted",
+                            "text": "· "
+                          },
+                          {
+                            "icon": "file_java"
+                          },
+                          {
+                            "ink": "primary",
+                            "text": "StatsCo…"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "d:src/test/java/acme/stats",
+                    "name": [
+                      {
+                        "icon": "folder_open"
+                      },
+                      {
+                        "ink": "secondary",
+                        "strong": true,
+                        "text": "…me/stats"
+                      }
+                    ]
+                  }
+                ],
+                "id": "d:src",
+                "name": [
+                  {
+                    "icon": "folder_open"
+                  },
+                  {
+                    "ink": "secondary",
+                    "strong": true,
+                    "text": "src"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "size",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "+3 −1"
+                      }
+                    ]
+                  }
+                ],
+                "id": "f:4",
+                "name": [
+                  {
+                    "ink": "muted",
+                    "text": "· "
+                  },
+                  {
+                    "icon": "file_xml"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "build.gradle"
+                  }
+                ]
+              }
+            ],
+            "selected": [
+              "d:docs",
+              "f:3"
+            ]
+          },
+          "pane": "nav",
+          "title": "files · 1 of 5 seen"
+        },
+        {
+          "body": {
+            "empty": "No lines changed: a rename, a mode change or a binary file.",
+            "language": "md",
+            "lines": [
+              {
+                "kind": "Hunk",
+                "new": null,
+                "old": null,
+                "text": "@@ -1,3 +1,8 @@"
+              },
+              {
+                "kind": "Context",
+                "new": 1,
+                "old": 1,
+                "text": "# Stats"
+              },
+              {
+                "kind": "Removed",
+                "new": null,
+                "old": 2,
+                "text": "Numbers."
+              },
+              {
+                "kind": "Added",
+                "new": 2,
+                "old": null,
+                "text": "Numbers per user and per day."
+              },
+              {
+                "kind": "Added",
+                "new": 3,
+                "old": null,
+                "text": ""
+              },
+              {
+                "kind": "Added",
+                "new": 4,
+                "old": null,
+                "text": "## Endpoints"
+              },
+              {
+                "kind": "Added",
+                "new": 5,
+                "old": null,
+                "text": ""
+              },
+              {
+                "kind": "Added",
+                "new": 6,
+                "old": null,
+                "text": "- `GET /api/stats`"
+              },
+              {
+                "kind": "Added",
+                "new": 7,
+                "old": null,
+                "text": "- `GET /api/stats/totals`"
+              }
+            ],
+            "node": "diff",
+            "painted": [
+              [],
+              [
+                {
+                  "text": "# Stats",
+                  "token": "plain"
+                }
+              ],
+              [
+                {
+                  "text": "Numbers.",
+                  "token": "plain"
+                }
+              ],
+              [
+                {
+                  "text": "Numbers per user and per day.",
+                  "token": "plain"
+                }
+              ],
+              [],
+              [
+                {
+                  "text": "## Endpoints",
+                  "token": "plain"
+                }
+              ],
+              [],
+              [
+                {
+                  "text": "- `GET /api/stats`",
+                  "token": "plain"
+                }
+              ],
+              [
+                {
+                  "text": "- `GET /api/stats/totals`",
+                  "token": "plain"
+                }
+              ]
+            ],
+            "selected": 3,
+            "split": false,
+            "top": 0,
+            "under": [
+              {
+                "input": {
+                  "caret": 6,
+                  "text": "héllo 日本"
+                },
+                "line": 3,
+                "lines": [
+                  [
+                    {
+                      "ink": "accent",
+                      "strong": true,
+                      "text": "✎ comment on README.md line 2"
+                    }
+                  ],
+                  []
+                ]
+              }
+            ]
+          },
+          "pane": "middle",
+          "title": "4 of 5 · docs/README.md",
+          "title_icon": "file_markdown"
+        }
+      ],
+      "tab": 1,
+      "tabs": [
+        {
+          "icon": "info",
+          "label": "Overview"
+        },
+        {
+          "icon": "file",
+          "label": "Changes · 5 files"
+        },
+        {
+          "icon": "thread",
+          "label": "Threads · 1 open"
+        },
+        {
+          "icon": "pipeline",
+          "label": "Pipeline"
+        },
+        {
+          "icon": "commit",
+          "label": "Commits · 2"
+        },
+        {
+          "label": "Tickets"
+        }
+      ],
+      "title": [
+        {
+          "icon": "change"
+        },
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "ABC-12: Add a stats endpoint for the dashboard"
+        }
+      ],
+      "under": [
+        {
+          "icon": "local"
+        },
+        {
+          "ink": "muted",
+          "text": "checkout  "
+        },
+        {
+          "icon": "terminal",
+          "target": "under:0"
+        },
+        {
+          "ink": "accent",
+          "target": "under:0",
+          "text": "terminal"
+        },
+        {
+          "ink": "muted",
+          "text": "  "
+        },
+        {
+          "icon": "editor",
+          "target": "under:1"
+        },
+        {
+          "ink": "accent",
+          "target": "under:1",
+          "text": "editor"
+        },
+        {
+          "ink": "muted",
+          "text": "  "
+        },
+        {
+          "text": "/work/acme/api"
+        },
+        {
+          "ink": "muted",
+          "text": " · java"
+        },
+        {
+          "ink": "muted",
+          "text": " · "
+        },
+        {
+          "icon": "branch"
+        },
+        {
+          "ink": "muted",
+          "text": "on alice/ABC-12"
+        },
+        {
+          "ink": "muted",
+          "text": " · 1 more"
+        }
+      ]
+    },
+    "panes": [],
+    "scope": "repos",
+    "version": 1
+  },
+  "section": null,
+  "width": 80
+}

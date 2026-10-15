@@ -1,0 +1,154 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "acme/api #42"
+    },
+    {
+      "id": "github.page.follow_link",
+      "key": {
+        "key": "enter"
+      },
+      "label": "follow a link on this page…"
+    },
+    {
+      "id": "github.page.open_on_github",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open on GitHub"
+    },
+    {
+      "id": "github.page.copy_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the link"
+    },
+    {
+      "id": "github.page.refresh",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "refresh this page"
+    },
+    {
+      "id": "github.page.previous_tab",
+      "key": {
+        "key": {
+          "char": "["
+        }
+      },
+      "label": "previous tab"
+    },
+    {
+      "id": "github.page.next_tab",
+      "key": {
+        "key": {
+          "char": "]"
+        }
+      },
+      "label": "next tab"
+    },
+    {
+      "id": "github.page.back",
+      "key": {
+        "key": "esc"
+      },
+      "label": "back to the previous page"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "medium_from": 70,
+  "page": {
+    "crumbs": [
+      {
+        "ink": "muted",
+        "text": "GitHub"
+      },
+      {
+        "ink": "secondary",
+        "text": "acme/api"
+      },
+      {
+        "ink": "secondary",
+        "text": "#42"
+      }
+    ],
+    "panes": [
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "text": "Pull request details have not been loaded."
+                }
+              ]
+            }
+          ],
+          "node": "rich"
+        },
+        "head": [
+          {
+            "ink": "info",
+            "text": "loading pull request and checks…"
+          }
+        ],
+        "pane": "middle",
+        "title": "Overview"
+      }
+    ],
+    "tab": 0,
+    "tabs": [
+      {
+        "label": "Overview"
+      },
+      {
+        "label": "Checks"
+      },
+      {
+        "label": "Actions"
+      }
+    ],
+    "title": [
+      {
+        "ink": "emphasis",
+        "text": "acme/api"
+      }
+    ],
+    "under": [
+      {
+        "chip": true,
+        "icon": "local",
+        "ink": "muted",
+        "text": "local folder  "
+      },
+      {
+        "chip": true,
+        "ink": "muted",
+        "text": "source repository unavailable; no local folder can be matched"
+      }
+    ]
+  },
+  "panes": [],
+  "scope": "github",
+  "version": 1
+}

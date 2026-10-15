@@ -1,0 +1,28 @@
+---
+source: crates/radar-git/src/screen.rs
+expression: "radar_core::shell::to_text(&hosted(), 80, 24)"
+---
+ radar    Branches   History   Settings (,)   synced 20s ago · every 1m  ✎ edit
+╭ all ─────────────────────────────────────────────────────────────────────────╮
+│ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  DIRTY      STASH  UPDATED  │
+│api  on alice/ABC-12  ● in use      ↑2     —       3 changed  1      3h       │
+│  ├─ api-hotfix  on alice/ABC-14    ↑1     ↓3      clean      —      1d       │
+│  ├─ main                           —      ↓4      —          —      2d       │
+│  ├─ alice/ABC-12  ● here           ↑2     —       3 changed  —      3h       │
+│  ├─ alice/ABC-14  ● in api-hotfix  ↑1     ↓3      clean      —      1d       │
+│  ├─ alice/ABC-9  merged            —      —       —          —      6d       │
+│  ├─ alice/ABC-7                    —      gone    —          —      2w       │
+│  └─ spike                          —      —       —          —      9d       │
+│web  on main                        —      —       clean      —      4d       │
+│  └─ main  ● here                   —      —       clean      —      4d       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ every clone, its worktrees and its local branches                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ BRANCHES   ⏎ use it   b bulk   +/- expand/collapse   q quit   x menu

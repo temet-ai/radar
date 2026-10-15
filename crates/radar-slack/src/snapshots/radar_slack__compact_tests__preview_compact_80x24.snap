@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/compact_tests.rs
+expression: "to_text(&host, w, h)"
+---
+ radar    Slack 4   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+╭ Bob Builder's message ───────────────────────────────────────────────────────╮
+│ ── #team · Sun 4 Oct ──                                                      │
+│ ● 06:16  Bob Builder                                                         │
+│     @review-squad :gitlab: mr Add a stats endpoint for the dashboard         │
+│     👀 1                                                                     │
+│ ● 06:46  Alice Example                                                       │
+│     looking 👀                                                               │
+│ ● 07:16  Carol Coder                                                         │
+│     approved, nice one                                                       │
+│                                                                              │
+│ 2 replies · last 2d ago                                                      │
+│                                                                              │
+│ LINKS ────────────────────────────────────────────────────────────────────── │
+│   mr                                                                         │
+│   https://git.example/acme/team-a/api/-/merge_requests/263                   │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate      slack

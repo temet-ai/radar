@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Card
+ The kit: every element on sample data                            colours: none
+ Tree  Table  [Card]  Meters  Rows & states  Entries & log  Markdown  Diff  Mot
+╭ north-wing #104 ─────────────────────────────────────────────────────────────╮
+│ A north-wing  #104                                                           █
+│ Sort the atlas box by decade                                                 █
+│ Alice E. · shelf-4 · 16m ago                                                 █
+│                                                                              █
+│  needs you   ready to file                                                   █
+│                                                                              █
+│ owner  Alice Example                                                         █
+│ where  north-wing / shelf-4                                                  █
+│ size   42 kB                                                                 █
+│                                                                              █
+│ STEPS  4 of 5 done · 6m 12s                                                  █
+│ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ █
+│ ✓ fetch        ✓ sort          ✓ label        ● check         ◷ file         ║
+│                                                                              ║
+│ RECENT RUNS  ▂▂▂▄▃▆▄▄▃▃▂▅█▆▄▄▄▃▄▅▄▃▂▄                                        ║
+│                                                                              ║
+│ NOTES                                                                        ║
+│ │ bob · 2h ago                                                               ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

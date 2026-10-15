@@ -1,0 +1,693 @@
+{
+  "chrome": {
+    "height": 30,
+    "keys_at": "body",
+    "screen_keys": [
+      "R",
+      "G",
+      "J",
+      "S",
+      "B",
+      "W",
+      "I"
+    ],
+    "settings": {
+      "detail_title": "GitLab",
+      "groups": [
+        {
+          "id": "general",
+          "name": "General",
+          "open": true,
+          "sections": [
+            {
+              "icon": "parts",
+              "id": "parts",
+              "name": "parts",
+              "target": "chrome:section:0"
+            },
+            {
+              "icon": "mode_edit",
+              "id": "mode",
+              "name": "mode",
+              "target": "chrome:section:1"
+            },
+            {
+              "icon": "colours",
+              "id": "colours",
+              "name": "colours",
+              "target": "chrome:section:2"
+            },
+            {
+              "icon": "icons",
+              "id": "icons",
+              "name": "icons",
+              "target": "chrome:section:3"
+            }
+          ],
+          "target": "chrome:group:general"
+        },
+        {
+          "id": "gitlab",
+          "name": "GitLab",
+          "open": true,
+          "sections": [
+            {
+              "icon": "connection",
+              "id": "connection",
+              "name": "connection",
+              "target": "chrome:section:4"
+            },
+            {
+              "icon": "group",
+              "id": "tenancies",
+              "name": "tenancies",
+              "target": "chrome:section:5"
+            },
+            {
+              "icon": "views",
+              "id": "views",
+              "name": "views",
+              "target": "chrome:section:6"
+            },
+            {
+              "icon": "look",
+              "id": "look",
+              "name": "look",
+              "target": "chrome:section:7"
+            }
+          ],
+          "target": "chrome:group:gitlab"
+        },
+        {
+          "id": "github",
+          "name": "GitHub",
+          "open": true,
+          "sections": [
+            {
+              "id": "connection",
+              "name": "connection",
+              "target": "chrome:section:8"
+            },
+            {
+              "id": "repositories",
+              "name": "repositories",
+              "target": "chrome:section:9"
+            }
+          ],
+          "target": "chrome:group:github"
+        },
+        {
+          "id": "jira",
+          "name": "Jira",
+          "open": true,
+          "sections": [
+            {
+              "icon": "connection",
+              "id": "connection",
+              "name": "connection",
+              "target": "chrome:section:10"
+            },
+            {
+              "icon": "folder",
+              "id": "projects",
+              "name": "projects",
+              "target": "chrome:section:11"
+            },
+            {
+              "icon": "views",
+              "id": "views",
+              "name": "views",
+              "target": "chrome:section:12"
+            },
+            {
+              "icon": "look",
+              "id": "look",
+              "name": "look",
+              "target": "chrome:section:13"
+            }
+          ],
+          "target": "chrome:group:jira"
+        },
+        {
+          "id": "slack",
+          "name": "Slack",
+          "open": true,
+          "sections": [
+            {
+              "icon": "connection",
+              "id": "connection",
+              "name": "connection",
+              "target": "chrome:section:14"
+            },
+            {
+              "icon": "channel",
+              "id": "channels",
+              "name": "channels",
+              "target": "chrome:section:15"
+            },
+            {
+              "icon": "needs_approval",
+              "id": "review",
+              "name": "review",
+              "target": "chrome:section:16"
+            },
+            {
+              "icon": "alert",
+              "id": "alerts",
+              "name": "alerts",
+              "target": "chrome:section:17"
+            },
+            {
+              "icon": "look",
+              "id": "look",
+              "name": "look",
+              "target": "chrome:section:18"
+            }
+          ],
+          "target": "chrome:group:slack"
+        },
+        {
+          "id": "git",
+          "name": "Git",
+          "open": true,
+          "sections": [
+            {
+              "icon": "local",
+              "id": "checkouts",
+              "name": "checkouts",
+              "target": "chrome:section:19"
+            },
+            {
+              "icon": "editor",
+              "id": "editors",
+              "name": "editors",
+              "target": "chrome:section:20"
+            },
+            {
+              "icon": "link",
+              "id": "links",
+              "name": "links",
+              "target": "chrome:section:21"
+            },
+            {
+              "icon": "branch",
+              "id": "branches",
+              "name": "branches",
+              "target": "chrome:section:22"
+            }
+          ],
+          "target": "chrome:group:git"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace",
+          "open": true,
+          "sections": [
+            {
+              "icon": "local",
+              "id": "workspaces",
+              "name": "workspaces",
+              "target": "chrome:section:23"
+            }
+          ],
+          "target": "chrome:group:workspace"
+        },
+        {
+          "id": "sessions",
+          "name": "Agents",
+          "open": true,
+          "sections": [
+            {
+              "id": "agents",
+              "name": "Tools and defaults",
+              "target": "chrome:section:24"
+            }
+          ],
+          "target": "chrome:group:sessions"
+        }
+      ],
+      "section_title": "parts",
+      "selected": "chrome:section:0"
+    },
+    "status": {
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:3:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:3:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:3:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:3:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "quit",
+        "bulk",
+        "expand/collapse",
+        "navigate"
+      ],
+      "scope": "SETTINGS"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "icon": "repo",
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "issue",
+          "label": "jira",
+          "mnemonic": "J",
+          "target": "chrome:tab:2"
+        },
+        {
+          "icon": "chat",
+          "label": "slack",
+          "mnemonic": "S",
+          "target": "chrome:tab:3"
+        },
+        {
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:4"
+        },
+        {
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:6"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "active": true,
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ]
+    },
+    "version": 1,
+    "width": 120
+  },
+  "focus": "middle",
+  "height": 30,
+  "screen": null,
+  "section": {
+    "body": {
+      "node": "list",
+      "rows": [
+        {
+          "heading": true,
+          "target": "compiled",
+          "text": [
+            {
+              "ink": "muted",
+              "strong": true,
+              "text": "COMPILED INTO THIS RADAR"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "blank:1",
+          "text": []
+        },
+        {
+          "target": "part:0",
+          "text": [
+            {
+              "ink": "warn",
+              "text": "○ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "GitLab      "
+            },
+            {
+              "ink": "secondary",
+              "text": "not set up"
+            }
+          ]
+        },
+        {
+          "target": "part:1",
+          "text": [
+            {
+              "ink": "warn",
+              "text": "○ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "GitHub      "
+            },
+            {
+              "ink": "secondary",
+              "text": "not set up"
+            }
+          ]
+        },
+        {
+          "target": "part:2",
+          "text": [
+            {
+              "ink": "warn",
+              "text": "○ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Jira        "
+            },
+            {
+              "ink": "secondary",
+              "text": "not set up"
+            }
+          ]
+        },
+        {
+          "target": "part:3",
+          "text": [
+            {
+              "ink": "warn",
+              "text": "○ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Slack       "
+            },
+            {
+              "ink": "secondary",
+              "text": "not set up"
+            }
+          ]
+        },
+        {
+          "target": "part:4",
+          "text": [
+            {
+              "ink": "good",
+              "text": "✓ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Git         "
+            },
+            {
+              "ink": "secondary",
+              "text": "set up"
+            }
+          ]
+        },
+        {
+          "target": "part:5",
+          "text": [
+            {
+              "ink": "warn",
+              "text": "○ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Workspace   "
+            },
+            {
+              "ink": "secondary",
+              "text": "not set up"
+            }
+          ]
+        },
+        {
+          "target": "part:6",
+          "text": [
+            {
+              "ink": "good",
+              "text": "✓ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Work        "
+            },
+            {
+              "ink": "secondary",
+              "text": "set up"
+            }
+          ]
+        },
+        {
+          "target": "part:7",
+          "text": [
+            {
+              "ink": "good",
+              "text": "✓ "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Agents      "
+            },
+            {
+              "ink": "secondary",
+              "text": "set up"
+            }
+          ]
+        }
+      ],
+      "selected": 2
+    },
+    "detail": [
+      [
+        {
+          "ink": "warn",
+          "text": "○ not set up: "
+        },
+        {
+          "ink": "primary",
+          "text": "Add a tenancy: a GitLab group or repo whose merge requests to follow."
+        }
+      ],
+      [],
+      [
+        {
+          "ink": "muted",
+          "text": "has     "
+        },
+        {
+          "ink": "primary",
+          "text": "merge requests, repos, pipelines, jobs"
+        }
+      ],
+      [
+        {
+          "ink": "muted",
+          "text": "opens   "
+        },
+        {
+          "ink": "primary",
+          "text": "merge requests, repos, jobs on their own pages"
+        }
+      ],
+      [],
+      [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "OTHER PARTS CAN ADD"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· chips on merge request rows"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· chips on repo rows and page"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a column on merge request lists"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a column on the repositories middle pane"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a section on the merge request page and detail pane"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a tab on the merge request page"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a tab on the repo page"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· actions on merge requests"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· actions on repos"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· actions on the job page"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a line on the merge request page, under its title"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a line on the repo page, under its title"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a mark on repo rows: the icon and where it is"
+        }
+      ],
+      [],
+      [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "GITLAB ADDS"
+        }
+      ],
+      [
+        {
+          "ink": "primary",
+          "text": "· a Code tab, a code column and merge requests in the detail pane on tickets (once set up)"
+        }
+      ]
+    ],
+    "detail_title": "GitLab",
+    "scope": "parts",
+    "version": 1
+  },
+  "width": 120
+}

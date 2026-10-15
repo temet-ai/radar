@@ -1,0 +1,25 @@
+[gitlab]
+url = "https://gitlab.example"
+token = "env:RADAR_PTY_SURELY_UNSET"
+base = "acme"
+
+[[gitlab.source]]
+group = "team-a"
+code = "a"
+color = "green"
+
+[jira]
+
+[[jira.site]]
+name = "acme"
+url = "https://acme.atlassian.net"
+email = "alice@example.com"
+token = "env:RADAR_PTY_SURELY_UNSET"
+color = "blue"
+
+[[jira.site.project]]
+key = "ABC"
+
+[[jira.view]]
+name = "Our project"
+jql = "project = ABC ORDER BY updated DESC"

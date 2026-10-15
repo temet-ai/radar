@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    Code   Tickets   Slack 4   History   Settings (,)                                  ✎ edit
+╭ code ────────────────────────────────────────────────────────────────────────────────────────────╮
+│ api !263 Add a stats endpoint for the dashboard [asked 2d · 2 replies]                           │
+│ api !270 Tidy the README                                                                         │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                            ╭ api !263 ─────────────────────────────╮                             │
+│                            │ ⏎  open its page                      │                             │
+│                            │ SLACK                                 │                             │
+│                            │ a  ask for review in Slack…           │                             │
+│                            │ t  open its review ask's thread       │                             │
+│                            │ HISTORY                               │                             │
+│                            │ H  recent activity (last 24 hours)    │                             │
+│                            │    all activity history               │                             │
+│                            ╰───────────────────────────────────────╯                             │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+ CODE   j/k move   ⏎ choose   esc close                                                       slack

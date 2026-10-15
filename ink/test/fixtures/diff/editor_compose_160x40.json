@@ -1,0 +1,751 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "screen_keys": [
+      "R",
+      "G",
+      "J",
+      "S",
+      "B",
+      "W",
+      "I",
+      "A"
+    ],
+    "sources": [
+      {
+        "active": true,
+        "label": "GitLab",
+        "target": "chrome:source:0"
+      },
+      {
+        "label": "GitHub",
+        "target": "chrome:source:1"
+      },
+      {
+        "label": "Local workspaces",
+        "target": "chrome:source:5"
+      }
+    ],
+    "status": {
+      "counts": [
+        {
+          "ink": "plain",
+          "text": "4 open"
+        },
+        {
+          "ink": "warn",
+          "text": "1 to review"
+        },
+        {
+          "ink": "good",
+          "text": "1 ready"
+        }
+      ],
+      "health": [
+        {
+          "ink": "muted",
+          "label": "gitlab",
+          "part": "gitlab",
+          "state": "stale",
+          "target": "chrome:health:gitlab"
+        },
+        {
+          "ink": "good",
+          "label": "github",
+          "part": "github",
+          "state": "ok",
+          "target": "chrome:health:github"
+        },
+        {
+          "ink": "muted",
+          "label": "jira",
+          "part": "jira",
+          "state": "stale",
+          "target": "chrome:health:jira"
+        },
+        {
+          "ink": "good",
+          "label": "slack",
+          "part": "slack",
+          "state": "ok",
+          "target": "chrome:health:slack"
+        }
+      ],
+      "hints": [
+        {
+          "keys": "⏎",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "enter"
+              },
+              "label": "⏎",
+              "target": "chrome:key:0:0"
+            }
+          ],
+          "label": "new line"
+        },
+        {
+          "keys": "ctrl-s",
+          "keys_of": [
+            {
+              "chord": {
+                "ctrl": true,
+                "key": {
+                  "char": "s"
+                }
+              },
+              "label": "ctrl-s",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "review and send"
+        },
+        {
+          "keys": "esc",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "esc"
+              },
+              "label": "esc",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "stop"
+        },
+        {
+          "keys": "ctrl-r",
+          "keys_of": [
+            {
+              "chord": {
+                "ctrl": true,
+                "key": {
+                  "char": "r"
+                }
+              },
+              "label": "ctrl-r",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "kept comments"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "REPOSITORIES"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "badge": {
+            "ink": "warn",
+            "text": "1"
+          },
+          "icon": "repo",
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "issue",
+          "label": "jira",
+          "mnemonic": "J",
+          "target": "chrome:tab:2"
+        },
+        {
+          "badge": {
+            "ink": "warn",
+            "text": "4"
+          },
+          "icon": "chat",
+          "label": "slack",
+          "mnemonic": "S",
+          "target": "chrome:tab:3"
+        },
+        {
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:4"
+        },
+        {
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:6"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "not synced yet"
+      }
+    },
+    "version": 1,
+    "width": 160
+  },
+  "focus": "middle",
+  "height": 40,
+  "overlay": {
+    "body": {
+      "capability": "editor",
+      "data": {
+        "caret": 6,
+        "line": "héllo 日本",
+        "lines": [
+          "first line",
+          "second line"
+        ],
+        "title": "✎ comment on !263"
+      },
+      "fallback": {
+        "lines": [
+          [
+            {
+              "ink": "primary",
+              "text": "first line"
+            }
+          ],
+          [
+            {
+              "ink": "primary",
+              "text": "second line"
+            }
+          ],
+          [
+            {
+              "ink": "primary",
+              "text": "héllo 日本"
+            }
+          ]
+        ],
+        "node": "document"
+      },
+      "node": "extension",
+      "version": 1
+    },
+    "pane": "middle",
+    "title": "✎ comment on !263"
+  },
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "icon": "change",
+        "id": "",
+        "label": "api !263"
+      },
+      {
+        "id": "gitlab.page.open_link",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open it in GitLab"
+      },
+      {
+        "id": "gitlab.page.copy_link",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy its link"
+      },
+      {
+        "id": "gitlab.page.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh this page"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "on GitLab"
+      },
+      {
+        "change": "edit",
+        "id": "gitlab.mr.rebase",
+        "key": {
+          "key": {
+            "char": "u"
+          }
+        },
+        "label": "rebase onto main…"
+      },
+      {
+        "change": "edit",
+        "id": "gitlab.mr.merge",
+        "key": {
+          "key": {
+            "char": "m"
+          }
+        },
+        "label": "merge · needs 1 approval"
+      },
+      {
+        "change": "edit",
+        "id": "gitlab.mr.approve",
+        "key": {
+          "key": {
+            "char": "a"
+          }
+        },
+        "label": "approve !263…"
+      },
+      {
+        "change": "add",
+        "id": "gitlab.mr.comment",
+        "key": {
+          "key": {
+            "char": "c"
+          }
+        },
+        "label": "comment on !263…"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "page"
+      },
+      {
+        "id": "gitlab.page.next_tab",
+        "key": {
+          "key": {
+            "char": "]"
+          }
+        },
+        "label": "next tab: Pipeline"
+      },
+      {
+        "id": "gitlab.page.previous_tab",
+        "key": {
+          "key": {
+            "char": "["
+          }
+        },
+        "label": "previous tab: Changes"
+      },
+      {
+        "heading": true,
+        "icon": "bot",
+        "id": "",
+        "label": "with an agent"
+      },
+      {
+        "id": "agent.send",
+        "key": {
+          "key": {
+            "char": "A"
+          }
+        },
+        "label": "ask an agent about it…"
+      },
+      {
+        "id": "agent.review_locally",
+        "key": {
+          "key": {
+            "char": "i"
+          }
+        },
+        "label": "review it locally…"
+      },
+      {
+        "id": "gitlab.page.back",
+        "key": {
+          "key": "esc"
+        },
+        "label": "back to the middle pane"
+      },
+      {
+        "id": "gitlab.page.kept_comments",
+        "key": {
+          "ctrl": true,
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "kept comments…"
+      }
+    ],
+    "overlay": {
+      "body": {
+        "capability": "editor",
+        "data": {
+          "caret": 6,
+          "line": "héllo 日本",
+          "lines": [
+            "first line",
+            "second line"
+          ],
+          "title": "✎ comment on !263"
+        },
+        "fallback": {
+          "lines": [
+            [
+              {
+                "ink": "primary",
+                "text": "first line"
+              }
+            ],
+            [
+              {
+                "ink": "primary",
+                "text": "second line"
+              }
+            ],
+            [
+              {
+                "ink": "primary",
+                "text": "héllo 日本"
+              }
+            ]
+          ],
+          "node": "document"
+        },
+        "node": "extension",
+        "version": 1
+      },
+      "pane": "middle",
+      "title": "✎ comment on !263"
+    },
+    "page": {
+      "crumbs": [
+        {
+          "ink": "secondary",
+          "text": "Repositories"
+        },
+        {
+          "look": "tenant.green bold",
+          "text": "a"
+        },
+        {
+          "ink": "secondary",
+          "text": "api"
+        },
+        {
+          "ink": "accent_secondary",
+          "text": "!263"
+        }
+      ],
+      "details": [
+        {
+          "icon": "person"
+        },
+        {
+          "ink": "secondary",
+          "text": "alice"
+        },
+        {
+          "ink": "muted",
+          "text": " · "
+        },
+        {
+          "icon": "branch"
+        },
+        {
+          "ink": "accent_secondary",
+          "text": "feature/ABC-263 → main"
+        }
+      ],
+      "panes": [
+        {
+          "body": {
+            "empty": "",
+            "node": "entries",
+            "rows": [
+              {
+                "head": [
+                  {
+                    "ink": "accent",
+                    "strong": true,
+                    "text": " + "
+                  },
+                  {
+                    "icon": "comment"
+                  },
+                  {
+                    "ink": "accent_secondary",
+                    "strong": true,
+                    "text": "comment on !263"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": "   a comment on the merge request, not on a line"
+                  }
+                ],
+                "target": "row:0"
+              },
+              {
+                "before": [
+                  []
+                ],
+                "body": [
+                  [
+                    {
+                      "ink": "accent_muted",
+                      "text": "│ "
+                    },
+                    {
+                      "icon": "person"
+                    },
+                    {
+                      "ink": "secondary",
+                      "strong": true,
+                      "text": "Bob Example"
+                    },
+                    {
+                      "ink": "muted",
+                      "text": " · 1h ago"
+                    }
+                  ],
+                  [
+                    {
+                      "ink": "accent_muted",
+                      "text": "│ "
+                    },
+                    {
+                      "ink": "primary",
+                      "text": "Should this read from the cached view?"
+                    }
+                  ],
+                  [
+                    {
+                      "ink": "accent_muted",
+                      "text": "│ "
+                    },
+                    {
+                      "ink": "muted",
+                      "text": "↳ "
+                    },
+                    {
+                      "icon": "person"
+                    },
+                    {
+                      "ink": "secondary",
+                      "strong": true,
+                      "text": "Alice Example"
+                    },
+                    {
+                      "ink": "muted",
+                      "text": " · 46m ago"
+                    }
+                  ],
+                  [
+                    {
+                      "ink": "accent_muted",
+                      "text": "│ "
+                    },
+                    {
+                      "ink": "primary",
+                      "text": "Good shout, switching to the cached one."
+                    }
+                  ]
+                ],
+                "head": [
+                  {
+                    "icon": "thread",
+                    "icon_lead": true,
+                    "ink": "warn",
+                    "text": "◆ "
+                  },
+                  {
+                    "ink": "warn",
+                    "strong": true,
+                    "text": "open"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": " · StatsController.java:21"
+                  }
+                ],
+                "target": "row:1"
+              },
+              {
+                "before": [
+                  []
+                ],
+                "body": [
+                  [
+                    {
+                      "ink": "accent_muted",
+                      "text": "│ "
+                    },
+                    {
+                      "icon": "person"
+                    },
+                    {
+                      "ink": "secondary",
+                      "strong": true,
+                      "text": "Bob Example"
+                    },
+                    {
+                      "ink": "muted",
+                      "text": " · 2h ago"
+                    }
+                  ],
+                  [
+                    {
+                      "ink": "accent_muted",
+                      "text": "│ "
+                    },
+                    {
+                      "ink": "secondary",
+                      "text": "Typo in the name."
+                    }
+                  ]
+                ],
+                "head": [
+                  {
+                    "icon": "resolved",
+                    "icon_lead": true,
+                    "ink": "good",
+                    "text": "✓ "
+                  },
+                  {
+                    "ink": "good",
+                    "strong": true,
+                    "text": "resolved"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": " · StatsController.java:9"
+                  }
+                ],
+                "target": "row:2"
+              }
+            ],
+            "selected": 0
+          },
+          "pane": "middle",
+          "title": "threads"
+        }
+      ],
+      "tab": 2,
+      "tabs": [
+        {
+          "icon": "info",
+          "label": "Overview"
+        },
+        {
+          "icon": "file",
+          "label": "Changes · 5 files"
+        },
+        {
+          "icon": "thread",
+          "label": "Threads · 1 open"
+        },
+        {
+          "icon": "pipeline",
+          "label": "Pipeline"
+        },
+        {
+          "icon": "commit",
+          "label": "Commits · 2"
+        },
+        {
+          "label": "Tickets"
+        }
+      ],
+      "title": [
+        {
+          "icon": "change"
+        },
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "ABC-12: Add a stats endpoint for the dashboard"
+        }
+      ],
+      "under": [
+        {
+          "icon": "local"
+        },
+        {
+          "ink": "muted",
+          "text": "checkout  "
+        },
+        {
+          "icon": "terminal",
+          "target": "under:0"
+        },
+        {
+          "ink": "accent",
+          "target": "under:0",
+          "text": "terminal"
+        },
+        {
+          "ink": "muted",
+          "text": "  "
+        },
+        {
+          "icon": "editor",
+          "target": "under:1"
+        },
+        {
+          "ink": "accent",
+          "target": "under:1",
+          "text": "editor"
+        },
+        {
+          "ink": "muted",
+          "text": "  "
+        },
+        {
+          "text": "/work/acme/api"
+        },
+        {
+          "ink": "muted",
+          "text": " · java"
+        },
+        {
+          "ink": "muted",
+          "text": " · "
+        },
+        {
+          "icon": "branch"
+        },
+        {
+          "ink": "muted",
+          "text": "on alice/ABC-12"
+        },
+        {
+          "ink": "muted",
+          "text": " · 1 more"
+        }
+      ]
+    },
+    "panes": [],
+    "scope": "repos",
+    "version": 1
+  },
+  "section": null,
+  "width": 160
+}

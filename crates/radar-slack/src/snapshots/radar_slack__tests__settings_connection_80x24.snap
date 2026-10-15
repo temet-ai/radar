@@ -1,0 +1,28 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 80, 24)"
+---
+ radar    Slack 4   History   Settings (,)                               ✎ edit
+╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+│General               ││  workspace       Acme · https://acme.slack.com       █
+│  ├─ parts            ││  api             https://slack.com                   █
+│  ├─ mode             ││  token           xoxp…ests (typed in)                █
+│  ├─ colours          ││  signed in as    Alice Example  alice                █
+│  └─ icons            ││  check           not checked yet                     █
+│Slack                 ││  refresh         every 2m                            █
+│  ├─ connection       ││  read back       7 days                              ║
+│  ├─ channels         ││  permissions   ├─ public channels                  ✓ ║
+│  ├─ review           ││                ├─ private channels                 ✓ ║
+│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ workspace ───────────────────────────────────────────╮
+│                      ││ CHECKED                                              │
+│                      ││ not checked yet                                      │
+│                      ││                                                      │
+│                      ││ NOW                                                  │
+│                      ││ Acme · https://acme.slack.com                        │
+│                      ││                                                      │
+│                      ││ The Slack workspace the token is for: a user token   │
+│                      ││ belongs to one. The check finds it.                  │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                      slack

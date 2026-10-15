@@ -1,0 +1,13 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: meters_text(80)
+---
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+✓ fetch             ✗ sort               ● check             ◷ file
+
+approved  ━━━━━━━━━━━━━━━───────────────
+    ▆▂   ▄█
+▁▃▅▇███▅▃██▇
+runs ▁▄█▂▁
+4 open · 1 needs you
+⠷ asking the server…

@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: "to_text(&host, 160, 40)"
+---
+ radar    ◇ Jira   ✉ Slack   ⎇ Branches   Repositories   ≣ History   ⚙ Settings (,)                                                                         ✎ edit
+╭ set up Jira ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ⚙ Jira is not set up yet.                                                                                                                                    │
+│                                                                                                                                                              │
+│ Add a site: the Jira address, your email and an API token.                                                                                                   │
+│                                                                                                                                                              │
+│ Press ⏎ to set it up in settings, under jira.                                                                                                                │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ JIRA   q ✕ quit   x ≡ menu   ←→↑↓ navigate

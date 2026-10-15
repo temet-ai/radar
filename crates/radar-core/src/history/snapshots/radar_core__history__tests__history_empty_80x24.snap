@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: screen
+---
+ History · read only · UTC · snapshot through #100
+ Scope: all recorded events
+ Recorded observations; coverage may be incomplete. Not task intent or
+permission.
+╭ events · page 1 · oldest-first · last page ──────────────────────────────────╮
+│ No recorded events in this scope. Coverage may be incomplete. Press a for    │
+│ all events or r to refresh.                                                  │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ j/k move · enter details · n/p pages · r refresh · x/? keys · esc close

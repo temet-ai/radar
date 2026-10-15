@@ -1,0 +1,34 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack   History   Settings (,)                                              synced 40s ago · every 2m  ✎ edit
+╭ feed ──────────────────╮╭ For you ─────────────────────────────────────────────╮╭ detail ────────────────────────────╮
+│ For you                ││ No channels yet. Press , for settings, then add one  ││ Nothing selected.                  │
+│ Discussions            ││ under channels: paste a link to it or type its name. ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││                                                      ││                                    │
+│                        ││─ shows ──────────────────────────────────────────────││                                    │
+│                        ││ mentions, messages and new replies in the last 7     ││                                    │
+│                        ││ days                                                 ││                                    │
+╰────────────────────────╯╰──────────────────────────────────────────────────────╯╰────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                        slack

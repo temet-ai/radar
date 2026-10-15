@@ -1,0 +1,28 @@
+---
+source: crates/radar-git/src/screen/status_availability_tests.rs
+expression: preview
+---
+ radar    B   History   Settings (,)  read incomplete · last complete 1… ✎ edit
+╭ api-hotfix ──────────────────────────────────────────────────────────────────╮
+│ folder   /work/acme/api-hotfix                                               │
+│ clone    /work/acme/api                                                      │
+│ on       hotfix                                                              │
+│ changes  last known: 2 changed                                               │
+│ Working tree status could not be read. Read the clones again before removing │
+│ this worktree.                                                               │
+│                                                                              │
+│ ⏎ makes it the one radar acts on for this repo                               │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ BRANCHES   r retry status   A ask an agent   b bulk   q quit   x menu

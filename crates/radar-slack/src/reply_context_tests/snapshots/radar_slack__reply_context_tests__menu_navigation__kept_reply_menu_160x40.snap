@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/reply_context_tests/menu_navigation.rs
+expression: screen
+---
+ radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
+│ For you              4 ││ last 7 days                                                    REPLIES  WHEN       ││ ── #team · yesterday ──                      │
+│ Discussions            ││mentions you                                                                        ││ ● 07:11  Bob Builder                         │
+│ ▌ #team          6 NEW ││  └─ ● #team Bob B.  @Alice Example could you take this one?             1d         ││     @Alice Example could you take this one?  │
+│ ▌ #svc           1 NEW ││direct messages                                                                     ││                                              │
+│                        ││  └─ ● #D0000CAROL Carol C.  hi @Alice Example, quick question           1h         ││                                              │
+│                        ││threads you are in                                                                  ││                                              │
+│                        ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipe 1        1d         ││                                              │
+│                        ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats endp 2        2d         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││            ╭ kept replies · this session ──────────────────────────────────────────────────╮                                       │
+│                        ││            │    T000ACME1 · C0000TEAM1 / 1791200000.000100   not sent                      │                                       │
+│                        ││            │ y  copy current draft                           leave the composer unchanged  │                                       │
+│                        ││            │ s  keep current draft                           retain the open composer here │                                       │
+│                        ││            ╰───────────────────────────────────────────────────────────────────────────────╯                                       │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+╭ ✎ reply in #team, in the thread ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Active reply stays here.                                                                                                                                     │
+│ Including trailing spaces.                                                                                                                                   │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ SLACK   j/k move   ⏎ choose   esc close                                                                                               7 new · 4 for you  slack

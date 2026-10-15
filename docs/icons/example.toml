@@ -1,0 +1,43 @@
+# An example icon pack for radar.
+#
+# Copy it into radar's icons folder (`radar icons path` prints it; on Linux
+# ~/.config/radar/icons/) as <name>.toml, then pick it in Settings › General ›
+# colours, icons, or set it in config.toml:
+#
+#   [theme]
+#   icons = "calm"
+#
+# `radar icons list` shows every icon's name with its glyph in the pack in use;
+# `radar icons export nerd > calm.toml` writes a whole pack to start from.
+
+# The pack's name (the file's name when left out) and what it is.
+name = "calm"
+description = "Nerd Font symbols, with emoji for work items"
+
+# The pack whose glyphs this one takes for every name it leaves out. Names
+# no pack in the chain has come from `unicode`, so a partial pack always
+# works.
+extends = "nerd"
+
+# How many cells each glyph takes: 1, or 2 for emoji. Every icon of the pack
+# takes this many (a narrower glyph is padded), so columns stay aligned; a
+# glyph wider than this is refused and the extended pack's is used. When
+# left out, the extended pack's width.
+width = 2
+
+[icons]
+# A glyph alone takes the icon's own colour...
+bug = "🐛"
+story = "📗"
+epic = "⚡"
+task = "📘"
+
+# ...or say which colour too: a theme slot, then bold, italic, dim, ...
+run_failed = { glyph = "❌", style = "status.error bold" }
+
+# An empty glyph shows no icon for that name.
+# commit = ""
+
+# Not allowed: joined emoji (👩‍💻), skin tones (👍🏽), flags, and anything
+# wider than `width`; they draw at different widths in different terminals.
+# A name radar does not know is warned about in radar's log, and passed over.

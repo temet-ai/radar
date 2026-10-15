@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ linked sources and context ──────────────────────────────────────────────────╮
+│ pull-request · acme/api/7                                                    ║
+│ authored                                                                     █
+│ Source owner unavailable here; c copies its exact locator.                   █
+│ Local work saved.                                                            █
+│ Ship explicit work-item navigation                                           █
+│ Local groups: release candidate                                              █
+│ Selected pull-request: acme/api/7                                            █
+│ authored link · c copy locator · x actions                                   █
+│ Locator event in this page: source.selected · requested                      █
+│ v history: original claims and outcomes · completeness not guaranteed        █
+│ Titles and groups are authored locally. Relations do not imply identity,     █
+│ permission or completion.                                                    █
+│ Task item ID: 10000000-0000-4000-8000-000000000001                           █
+│ Source identity details                                                      █
+│ Provider: forge                                                              █
+│ Instance: https://forge.example/                                             █
+│ Source item: 10000000-0000-4000-8000-000000000006                            ║
+│ Action interval: 2 through open-ended                                        ║
+│─ shows ──────────────────────────────────────────────────────────────────────║
+│ Observations only. Relations grant no identity, permission or completion.    ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "rootDir": ".",
+    "types": ["node", "vite/client"]
+  },
+  "include": ["src", "stories", ".storybook/*.ts", ".storybook/*.tsx", ".storybook/shims"]
+}

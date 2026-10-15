@@ -1,0 +1,44 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ server ────────────────────────────────────────────╮
+│General               ││  server          https://api.github.com                                        ││ NOW                                                │
+│  ├─ parts            ││  token           configured token                                              ││ https://api.github.com                             │
+│  ├─ mode             ││  check           GitHub connection                                             ││                                                    │
+│  ├─ colours          ││  refresh         once on start, then on request                                ││ The GitHub API radar talks to: api.github.com for  │
+│  └─ icons            ││                                                                                ││ github.com, or your own GitHub Enterprise Server   │
+│GitHub                ││                                                                                ││ or a local server. The token is sent only to this  │
+│  ├─ connection       ││                                                                                ││ address.                                           │
+│  └─ repositories     ││                                                                                ││                                                    │
+│                      ││                                                                                ││ ACCEPTS                                            │
+│                      ││                                                                                ││ https://api.github.com · a GitHub Enterprise       │
+│                      ││                                                                                ││ Server's https://HOST/api/v3 ·                     │
+│                      ││                                                                                ││ http://127.0.0.1:PORT for a local server           │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ config: [github] api                               │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                              github

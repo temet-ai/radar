@@ -1,0 +1,28 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(mr_page(), 80, 24)"
+---
+ radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
+ [Overview]  Changes · 5 files  Threads · 1 open  Pipeline  Commits · 2
+╭ can it merge? ───────────────────────────────────────────────────────────────╮
+│ ◷ needs 1 approval                                                           │
+│ ✓ pipeline passed                                                            │
+│ ✓ no conflicts, up to date                                                   │
+│ ◷ needs 1 approval (0 of 1)                                                  │
+│ ◆ 1 open thread                                                              │
+│ ✓ not a draft                                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ overview ────────────────────────────────────────────────────────────────────╮
+│ LABELS  #backend                                                             █
+│                                                                              █
+│ Closes ABC-12                                                                █
+│                                                                              █
+│ What                                                                         █
+│                                                                              █
+│ • adds GET /stats                                                            ║
+│ ☑ tests                                                                      ║
+│                                                                              ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate       gitlab

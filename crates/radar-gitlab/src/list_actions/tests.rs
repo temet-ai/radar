@@ -1,0 +1,709 @@
+//! A merge request row's actions from the tree. Nothing here reaches GitLab:
+//! a question is answered with the menu's value, and the task a yes returns
+//! is dropped without being run.
+
+use std::cell::{Cell, RefCell};
+
+use radar_core::Plugin;
+use radar_core::host::{Event, MouseKind};
+use radar_core::plugin::{Effect, Menu, Outcome, Pane};
+use radar_core::view_tui::Cx;
+use radar_core::ratatui::buffer::Buffer;
+use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::ratatui::layout::{Position, Rect};
+use radar_core::{Host, Theme};
+
+use super::*;
+use crate::model::fixtures::mr;
+use crate::GroupData;
+use crate::model::Pipeline;
+use crate::tests::sample;
+
+const API: &str = "acme/team-a/api";
+const WEB: &str = "acme/team-a/web";
+
+/// The sample, with !410 behind its target (GitLab says it needs a rebase,
+/// the rest is in order) and !411 with a red pipeline.
+fn plugin() -> GitlabPlugin {
+    let mut p = sample();
+    let mut behind = mr(410, "me", API);
+    behind.title = "ABC-410: Page the stats".into();
+    behind.merge_status = "NEED_REBASE".into();
+    behind.rebase = true;
+    behind.approved = true;
+    behind.approvals_left = 0;
+    behind.updated_at = "2026-10-06T09:00:00Z".into();
+    let mut red = mr(411, "me", WEB);
+    red.title = "ABC-411: Retry the sync".into();
+    red.approved = true;
+    red.approvals_left = 0;
+    red.merge_status = "CI_MUST_PASS".into();
+    red.pipeline = Some(Pipeline::Failed);
+    red.pipeline_url = Some("https://gitlab.com/acme/team-a/web/-/pipelines/7001".into());
+    red.updated_at = "2026-10-06T08:00:00Z".into();
+    let data: &mut GroupData = p.data.get_mut("acme/team-a").unwrap();
+    data.mrs.push(behind);
+    data.mrs.push(red);
+    p
+}
+
+#[test]
+fn repo_rows_show_the_default_branch_pipeline_without_repeating_its_name() {
+    let p = plugin();
+    let (text, _) = draw(&p, 160, 40);
+    let row = |name: &str| {
+        text.lines()
+            .find(|line| line.contains(name))
+            .unwrap_or_else(|| panic!("missing {name} in\n{text}"))
+            .to_string()
+    };
+    assert!(row("├─ api").contains("✓ passed"), "{text}");
+    assert!(row("├─ web").contains("✗ failed"), "{text}");
+    assert!(!row("└─ worker").contains("pipeline"), "{text}");
+    assert!(!text.contains("main ✓ passed"), "{text}");
+
+    let mut p = plugin();
+    p.data
+        .get_mut("acme/team-a")
+        .unwrap()
+        .projects
+        .iter_mut()
+        .find(|project| project.name == "docs")
+        .unwrap()
+        .main_pipeline = None;
+    let (text, _) = draw(&p, 160, 40);
+    let docs = text.lines().find(|line| line.contains("└─ docs")).unwrap();
+    assert!(docs.contains("no recent run"), "{text}");
+}
+
+fn key_of(code: KeyCode) -> KeyEvent {
+    KeyEvent::new(code, KeyModifiers::NONE)
+}
+
+fn press_in(p: &mut GitlabPlugin, pane: Pane, code: KeyCode) -> Vec<Effect> {
+    match p.key("repos", pane, key_of(code)) {
+        Outcome::Handled(fx) => fx,
+        Outcome::Ignored => vec![],
+    }
+}
+
+fn press(p: &mut GitlabPlugin, c: char) -> Vec<Effect> {
+    press_in(p, Pane::Middle, KeyCode::Char(c))
+}
+
+/// The screen body, as text, and the areas it made clickable.
+fn draw(p: &GitlabPlugin, w: u16, h: u16) -> (String, Vec<(Rect, Pane, String)>) {
+    let theme = Theme::new(radar_core::design::theme::Tier::Mono);
+    let (cursor, hits) = (Cell::new(None), RefCell::new(vec![]));
+    let cx = Cx {
+        theme: &theme,
+        now: p.now,
+        focused: true,
+        focus: Pane::Middle,
+        cursor: &cursor,
+        hits: &hits,
+        parts: radar_core::Parts::none(),
+        bar: false,
+        tabs: false,
+    };
+    let area = Rect::new(0, 0, w, h);
+    let mut buf = Buffer::empty(area);
+    p.render("repos", area, &mut buf, &cx);
+    let text = (0..h)
+        .map(|y| (0..w).map(|x| buf[(x, y)].symbol().to_string()).collect::<String>().trim_end().to_string())
+        .collect::<Vec<_>>()
+        .join("\n");
+    (text, hits.into_inner())
+}
+
+/// The path of the tree row `id`, among `rows` and their children.
+fn path_to(rows: &[radar_core::view::TreeRow], id: &str) -> Option<Vec<String>> {
+    rows.iter().find_map(|row| {
+        if row.id == id {
+            return Some(vec![row.id.clone()]);
+        }
+        let mut path = path_to(&row.children, id)?;
+        path.insert(0, row.id.clone());
+        Some(path)
+    })
+}
+
+/// Select the merge request in the tree, as a click on its row does.
+fn select(p: &mut GitlabPlugin, iid: u64) {
+    p.view = 0;
+    let vcx = radar_core::view::ViewCx {
+        now: p.now,
+        focus: radar_core::view::PaneId::Middle,
+        width: 160,
+        height: 40,
+        parts: radar_core::Parts::none(),
+        icon_lead: 0,
+    };
+    let view = Plugin::view(p, "repos", &vcx).expect("the screen has a view");
+    let pane = view.pane(radar_core::view::PaneId::Middle).expect("the middle pane");
+    let radar_core::view::Node::Tree(tree) = &pane.body else { panic!("the tree") };
+    let id = format!("m:{}!{iid}", p.data.values().flat_map(|d| d.mrs.iter()).find(|m| m.iid == iid).unwrap().project_path);
+    let path = path_to(&tree.rows, &id).unwrap_or_else(|| panic!("never got to !{iid}"));
+    let target = radar_core::view::TreeRow::target_of(&path);
+    Plugin::intent(p, "repos", Pane::Middle, &radar_core::view::Intent::Select { target });
+    assert!(selected(p).is_some_and(|m| m.iid == iid), "never got to !{iid}");
+}
+
+fn menu_of(fx: &[Effect]) -> &Menu {
+    let mut visible = fx.iter().filter(|e| !matches!(e, Effect::Journal(_) | Effect::Report(_)));
+    match (visible.next(), visible.next()) {
+        (Some(Effect::Menu(m)), None) => m,
+        other => panic!("not one menu: {other:?}"),
+    }
+}
+
+fn notice(fx: &[Effect]) -> &str {
+    let mut visible = fx.iter().filter(|e| !matches!(e, Effect::Journal(_) | Effect::Report(_)));
+    match (visible.next(), visible.next()) {
+        (Some(Effect::Notify(m)), None) => m,
+        other => panic!("not one notice: {other:?}"),
+    }
+}
+
+fn sends(fx: &[Effect]) -> bool {
+    fx.iter().any(|e| matches!(e, Effect::Spawn(_)))
+}
+
+#[test]
+fn u_asks_to_rebase_a_merge_request_gitlab_says_is_behind_and_sends_it_once_on_a_yes() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let fx = press(&mut p, 'u');
+    let m = menu_of(&fx).clone();
+    assert_eq!(m.id, "act-rebase:acme/team-a/api!410");
+    assert_eq!(m.title, "rebase feature/ABC-410 onto main?");
+    assert!(!p.acting.contains_key("acme/team-a/api!410"), "nothing asked of GitLab yet");
+    // No: nothing happens.
+    assert!(matches!(&p.on_menu(&m.id, "no")[..], [Effect::Report(radar_core::journal::Outcome::Cancelled)]));
+    assert!(p.acting.is_empty());
+    // Yes: one task, "asked of GitLab…" under way, and a second ask refuses.
+    let fx = p.on_menu(&m.id, "yes");
+    assert!(matches!(&fx[..], [Effect::Report(_), Effect::Report(_), Effect::Spawn(_), Effect::Notify(m)] if m == "asking GitLab to rebase !410…"), "{fx:?}");
+    assert!(mr_actions::running(&p));
+    let again = p.on_menu(&m.id, "yes");
+    assert_eq!(notice(&again), "already asked GitLab for a rebase");
+    let row = rows(&p, &selected(&p).unwrap()).remove(0);
+    assert_eq!(row.words(), "rebase · asked, waiting for GitLab");
+    // The detail pane says it as the page does.
+    let (text, _) = draw(&p, 160, 40);
+    assert!(text.contains("rebase · asked, waiting for GitLab"), "{text}");
+    // GitLab answers: the answer is shown and the tree is refreshed.
+    let done = mr_actions::ActMsg { connection: p.connection_stamp(), key: "acme/team-a/api!410".into(), what: "rebase", result: Ok("rebase requested".into()), outcome: radar_core::journal::Outcome::Succeeded };
+    let fx = p.on_msg(Box::new(done));
+    assert!(fx.iter().any(|e| matches!(e, Effect::Notify(m) if m == "✓ rebase requested")), "{fx:?}");
+    assert!(
+        fx.iter().any(|e| matches!(e, Effect::SpawnAction { action, .. }
+            if action.kind.as_str().starts_with("gitlab.sync."))),
+        "the tree is fetched again: {fx:?}"
+    );
+    assert!(
+        fx.iter().any(|e| matches!(e, Effect::SpawnAction { action, .. }
+            if action.kind.as_str() == "gitlab.page.detail")),
+        "the detail is refreshed independently: {fx:?}"
+    );
+}
+
+#[test]
+fn read_only_or_write_mode_a_yes_sends_nothing_and_says_so() {
+    for mode in [radar_core::writes::Mode::ReadOnly, radar_core::writes::Mode::Write] {
+        radar_core::writes::set_mode(mode, None);
+        let why = match mode {
+            radar_core::writes::Mode::ReadOnly => "not sent: radar is read only",
+            _ => "not sent: radar is in write mode; this needs edit mode",
+        };
+        let mut p = plugin();
+        select(&mut p, 410);
+        let fx = press(&mut p, 'u');
+        // The kit's question, as on the page; it edits (the host adds the
+        // mode's note before y).
+        let m = menu_of(&fx).clone();
+        assert_eq!(m.change, Some(radar_core::writes::Change::Edit));
+        assert_eq!(
+            m.items.iter().map(|i| i.label.as_str()).collect::<Vec<_>>(),
+            ["GitLab rewrites the branch on top of main", "yes", "no"]
+        );
+        let fx = p.on_menu(&m.id, "yes");
+        assert_eq!(notice(&fx), format!("✗ GitLab did not rebase !410: {why}"));
+        // The merge.
+        select(&mut p, 187);
+        let fx = press(&mut p, 'm');
+        let m = menu_of(&fx).clone();
+        assert_eq!(m.change, Some(radar_core::writes::Change::Edit));
+        let fx = p.on_menu(&m.id, "yes:1:1");
+        assert!(!sends(&fx), "{fx:?}");
+        // And approving.
+        select(&mut p, 263);
+        let fx = press(&mut p, 'e');
+        let m = menu_of(&fx).clone();
+        assert_eq!(m.change, Some(radar_core::writes::Change::Edit));
+        let fx = p.on_menu(&m.id, "yes");
+        assert!(!sends(&fx), "{fx:?}");
+        assert_eq!(notice(&fx), format!("✗ GitLab did not approve !263: {why}"));
+        // The row menu lists them, marked as writes that edit.
+        let b = crate::bindings_of(bindings(&p, &crate::pages::find_mr(&p, "acme/team-a/api", 263).unwrap().clone()));
+        assert!(b.iter().filter(|r| r.keys == "e").all(|r| r.change == Some(radar_core::writes::Change::Edit)));
+        assert!(b.iter().filter(|r| r.keys == "c").all(|r| r.change.is_none()), "a checkout is this machine's");
+    }
+}
+
+#[test]
+fn u_says_why_when_gitlab_does_not_see_the_merge_request_behind() {
+    let mut p = plugin();
+    select(&mut p, 263);
+    assert_eq!(notice(&press(&mut p, 'u')), "cannot rebase !263: not behind main");
+    select(&mut p, 342);
+    assert_eq!(notice(&press(&mut p, 'u')), "cannot rebase !342: not behind main");
+    // A conflict is not for a rebase to fix.
+    let mut conflicted = mr(412, "me", API);
+    conflicted.merge_status = "CONFLICT".into();
+    conflicted.conflicts = true;
+    assert_eq!(
+        mr_actions::rebase_blocker(&conflicted).as_deref(),
+        Some("it has conflicts, which a rebase cannot fix")
+    );
+    // Nothing is asked of GitLab on any of these.
+    assert!(p.acting.is_empty());
+}
+
+#[test]
+fn m_asks_to_merge_only_what_gitlab_would_take_and_says_why_not_for_the_rest() {
+    let mut p = plugin();
+    select(&mut p, 187);
+    let fx = press(&mut p, 'm');
+    let m = menu_of(&fx).clone();
+    assert_eq!(m.id, "act-merge:acme/team-a/web!187");
+    assert_eq!(m.title, "merge !187 into main? It cannot be undone.");
+    assert!(m.items.iter().any(|i| i.label == "yes"));
+    assert!(matches!(&p.on_menu(&m.id, "no")[..], [Effect::Report(radar_core::journal::Outcome::Cancelled)]));
+    let fx = p.on_menu(&m.id, "yes");
+    assert!(matches!(&fx[..], [Effect::Report(_), Effect::Report(_), Effect::Spawn(_), Effect::Notify(m)] if m == "asking GitLab to merge !187…"), "{fx:?}");
+    for (iid, why) in [
+        (263, "needs 1 approval"),
+        (342, "draft"),
+        (410, "needs rebase"),
+        (411, "pipeline failed"),
+    ] {
+        select(&mut p, iid);
+        assert_eq!(notice(&press(&mut p, 'm')), format!("cannot merge !{iid} yet: {why}"));
+    }
+}
+
+#[test]
+fn e_approves_or_takes_the_approval_back_asking_first() {
+    let mut p = plugin();
+    select(&mut p, 263);
+    let fx = press(&mut p, 'e');
+    let m = menu_of(&fx).clone();
+    assert_eq!(m.id, "gl-write");
+    assert_eq!(m.title, "approve !263?");
+    assert!(!sends(&p.on_menu(&m.id, "no")));
+    assert!(p.acting.is_empty(), "nothing asked of GitLab");
+    let fx = press(&mut p, 'e');
+    let fx = p.on_menu(&menu_of(&fx).id.clone(), "yes");
+    assert!(matches!(&fx[..], [Effect::Report(_), Effect::Report(_), Effect::Notify(m), Effect::Spawn(_)] if m == "asking GitLab to approve !263…"), "{fx:?}");
+    // Yours already: the question takes it back.
+    let mut p = plugin();
+    p.data.get_mut("acme/team-a").unwrap().mrs.iter_mut().find(|m| m.iid == 263).unwrap().approved_by = vec!["me".into()];
+    select(&mut p, 263);
+    let fx = press(&mut p, 'e');
+    assert_eq!(menu_of(&fx).title, "take back your approval of !263?");
+    // One that ended cannot be approved.
+    let mut p = plugin();
+    p.view = 0;
+    p.filter = "state:merged".into();
+    select(&mut p, 150);
+    assert_eq!(notice(&press(&mut p, 'e')), "!150 is merged already");
+}
+
+
+#[test]
+fn the_keys_belong_to_a_merge_request_row_in_the_tree_or_its_preview_and_nowhere_else() {
+    let mut p = plugin();
+    // On a repo and on a tenancy: not theirs.
+    p.view = 0;
+    draw(&p, 160, 40);
+    for c in ['u', 'm', 'e', 'c'] {
+        assert!(press(&mut p, c).is_empty(), "{c} on a tenancy");
+    }
+    select(&mut p, 410);
+    // In the detail pane too, but not on the nav pane.
+    assert!(matches!(press_in(&mut p, Pane::Detail, KeyCode::Char('u'))[..], [Effect::Journal(_), Effect::Menu(_)]));
+    assert!(press_in(&mut p, Pane::Nav, KeyCode::Char('u')).is_empty());
+    // With a modifier it is not the key.
+    let ctrl = KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL);
+    assert!(matches!(p.key("repos", Pane::Middle, ctrl), Outcome::Ignored));
+    // `a` is still the authors.
+    assert!(matches!(press(&mut p, 'a')[..], [Effect::Menu(_)]));
+    assert_eq!(press(&mut p, 'a').len(), 1);
+}
+
+#[test]
+fn the_actions_menu_of_a_row_lists_them_with_why_for_the_ones_not_offered() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let b = p.keys("repos", Pane::Middle);
+    let what = |k: &str| b.iter().find(|b| b.keys == k).map(|b| b.what.clone());
+    assert_eq!(what("u").as_deref(), Some("rebase onto main…"));
+    assert_eq!(what("m").as_deref(), Some("merge · needs rebase"));
+    assert_eq!(what("e").as_deref(), Some("approve !410…"));
+    assert_eq!(
+        what("a").as_deref(),
+        Some("show one author's merge requests…"),
+        "`a` stays the tree's authors, not approve"
+    );
+    let heads: Vec<&str> = b.iter().filter(|b| b.is_heading()).map(|b| b.what.as_str()).collect();
+    assert_eq!(heads, ["api !410", "on GitLab", "with an agent"]);
+    // Pressing a row presses its key.
+    for r in &b {
+        if matches!(r.keys.as_str(), "u" | "m" | "e") {
+            assert!(radar_core::plugin::parse_key(&r.keys).is_some(), "{}", r.keys);
+        }
+    }
+    select(&mut p, 263);
+    let b = p.keys("repos", Pane::Middle);
+    let what = |k: &str| b.iter().find(|b| b.keys == k).map(|b| b.what.clone());
+    assert_eq!(what("u").as_deref(), Some("rebase · not behind main"));
+    assert_eq!(what("m").as_deref(), Some("merge · needs 1 approval"));
+    // The detail pane's menu has them too.
+    let b = p.keys("repos", Pane::Detail);
+    assert!(b.iter().any(|b| b.keys == "u"));
+    // A repo has none.
+    p.tree.borrow_mut().select(vec!["t:team-a".into()]);
+    assert!(!p.keys("repos", Pane::Middle).iter().any(|b| b.keys == "u"));
+}
+
+#[test]
+fn a_merge_request_that_ended_offers_none_of_the_writes_and_says_so() {
+    let mut p = plugin();
+    p.filter = "state:merged".into();
+    select(&mut p, 150);
+    let m = selected(&p).unwrap();
+    let rows = rows(&p, &m);
+    for r in &rows[..3] {
+        assert_eq!(r.why.as_deref(), Some("it is merged already"), "{r:?}");
+    }
+    assert_eq!(rows[3].why, None, "its branch can still be checked out");
+    assert!(hints(&p, Pane::Middle).is_empty());
+}
+
+#[test]
+fn the_status_line_names_only_the_main_actions_that_apply() {
+    let mut p = plugin();
+    let hint = |p: &mut GitlabPlugin, iid| {
+        select(p, iid);
+        hints(p, Pane::Middle).iter().map(|h| format!("{} {}", h.keys, h.action)).collect::<Vec<_>>()
+    };
+    assert_eq!(hint(&mut p, 410), ["u rebase"]);
+    assert_eq!(hint(&mut p, 187), ["m merge"]);
+    assert_eq!(hint(&mut p, 263), ["e approve"]);
+    assert!(hint(&mut p, 342).is_empty(), "a draft: nothing to offer");
+    assert!(hint(&mut p, 411).is_empty(), "red: nothing in the way for these keys");
+    // On the nav pane or a tenancy: none. Approved by you: not offered again.
+    assert!(hints(&p, Pane::Nav).is_empty());
+    p.tree.borrow_mut().select(vec!["t:team-a".into()]);
+    assert!(hints(&p, Pane::Middle).is_empty());
+    p.data.get_mut("acme/team-a").unwrap().mrs.iter_mut().find(|m| m.iid == 263).unwrap().approved_by = vec!["me".into()];
+    assert!(hint(&mut p, 263).is_empty());
+}
+
+fn host_of(p: GitlabPlugin, config: &str) -> Host {
+    let mut host = Host::new(vec![Box::new(sample())], p.now).unwrap();
+    host.load_config(Some(config)).unwrap();
+    host.plugins[0] = Box::new(p);
+    host
+}
+
+fn shown(p: GitlabPlugin, w: u16, h: u16) -> String {
+    radar_core::shell::to_text(&host_of(p, ""), w, h)
+}
+
+/// At 80 wide the detail pane is a screen of its own: tab to it.
+fn shown_preview(p: GitlabPlugin, w: u16, h: u16) -> String {
+    let mut host = host_of(p, "");
+    host.focus = Pane::Detail;
+    radar_core::shell::to_text(&host, w, h)
+}
+
+#[test]
+fn preview_actions_use_the_same_surface_as_the_other_details() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let mut host = host_of(p, "");
+    host.focus = Pane::Detail;
+    let styles = radar_core::shell::to_styles(&host, 160, 40);
+    let action = styles.lines().find(|line| line.contains("rebase onto main")).unwrap();
+    assert!(action.contains("bg:bg.surface") && !action.contains("bg:bg.selection"), "{action}");
+    let heading = styles.lines().find(|line| line.contains("ACTIONS")).unwrap();
+    assert!(heading.contains("bg:bg.surface"), "{heading}");
+    let context = styles.lines().find(|line| line.contains("needs rebase") && !line.contains("[m]")).unwrap();
+    assert!(context.contains("bg:bg.surface"), "{context}");
+}
+
+#[test]
+fn the_status_line_of_a_row_that_needs_a_rebase_shows_its_key_80x24() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let text = shown(p, 80, 24);
+    let bar = text.lines().last().unwrap();
+    assert!(bar.contains("u rebase"), "{bar}");
+    insta::assert_snapshot!(text);
+}
+
+#[test]
+fn the_preview_lists_a_merge_request_that_needs_a_rebase_80x24() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    insta::assert_snapshot!(shown_preview(p, 80, 24));
+}
+
+#[test]
+fn the_preview_lists_a_merge_request_that_needs_a_rebase_160x40() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    insta::assert_snapshot!(shown(p, 160, 40));
+}
+
+#[test]
+fn the_preview_lists_a_merge_request_ready_to_merge_160x40() {
+    let mut p = plugin();
+    select(&mut p, 187);
+    // A frame first, as the host has drawn before the picture is taken: the
+    // sync indicator then shows its spinner.
+    draw(&p, 160, 40);
+    insta::assert_snapshot!(shown(p, 160, 40));
+}
+
+#[test]
+fn the_preview_lists_a_merge_request_that_needs_approval_with_why_the_others_are_muted_80x24() {
+    let mut p = plugin();
+    select(&mut p, 263);
+    insta::assert_snapshot!(shown_preview(p, 80, 24));
+}
+
+#[test]
+fn the_preview_lists_a_merge_request_with_its_icons_160x40() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let host = host_of(p, "[theme]\nicons = \"unicode\"\n");
+    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+}
+
+#[test]
+fn the_actions_menu_of_a_row_160x40() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let mut host = host_of(p, "");
+    let _ = radar_core::shell::to_text(&host, 160, 40);
+    host.update(Event::Key(key_of(KeyCode::Char('x'))));
+    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+}
+
+fn click_at(host: &mut Host, at: Position) -> Vec<radar_core::host::HostEffect> {
+    let _ = radar_core::shell::to_text(host, 160, 40); // the frame the click lands on
+    host.update(Event::Mouse { kind: MouseKind::Press, column: at.x, row: at.y, at_ms: 10_000 })
+}
+
+#[test]
+fn a_click_on_a_line_of_the_previews_actions_does_what_its_key_does() {
+    // The detail pane is not the pane in focus, yet one click acts.
+    for (line, id) in [
+        ("rebase onto main", "act-rebase:acme/team-a/api!410"),
+        ("approve", "gl-write"),
+    ] {
+        let mut p = plugin();
+        select(&mut p, 410);
+        let mut host = host_of(p, "");
+        let text = radar_core::shell::to_text(&host, 160, 40);
+        // Past the tree's own columns: the detail pane is the last pane.
+        let at = text
+            .lines()
+            .enumerate()
+            .find_map(|(y, l)| l.rfind(line).map(|i| Position { x: l[..i].chars().count() as u16, y: y as u16 }))
+            .unwrap_or_else(|| panic!("no {line:?} in:\n{text}"));
+        click_at(&mut host, at);
+        let open = host.menu.as_ref().unwrap_or_else(|| panic!("{line}: no question\n{text}"));
+        assert_eq!(open.menu.id, id, "{line}");
+    }
+}
+
+#[test]
+fn a_click_on_a_muted_line_says_why_and_a_click_on_open_in_gitlab_opens_it() {
+    let mut p = plugin();
+    select(&mut p, 410);
+    let mut host = host_of(p, "");
+    let text = radar_core::shell::to_text(&host, 160, 40);
+    let at = text
+        .lines()
+        .enumerate()
+        .find_map(|(y, l)| l.rfind("merge · needs rebase").map(|i| Position { x: l[..i].chars().count() as u16, y: y as u16 }))
+        .unwrap_or_else(|| panic!("no muted merge line in:\n{text}"));
+    click_at(&mut host, at);
+    assert!(host.menu.is_none());
+    assert_eq!(host.message.as_deref(), Some("cannot merge !410 yet: needs rebase"));
+    let at = text
+        .lines()
+        .enumerate()
+        .find_map(|(y, l)| l.rfind("open in GitLab").map(|i| Position { x: l[..i].chars().count() as u16, y: y as u16 }))
+        .unwrap();
+    let fx = click_at(&mut host, at);
+    assert!(
+        fx.iter().any(|e| format!("{e:?}").contains("merge_requests/410")),
+        "opens its link: {fx:?}"
+    );
+}
+
+/// The target of the state cell of the merge request `iid`.
+fn state_target(p: &GitlabPlugin, iid: u64) -> String {
+    let m = p.data.values().flat_map(|d| d.mrs.iter()).find(|m| m.iid == iid).unwrap();
+    format!("state:m:{}!{}", m.project_path, m.iid)
+}
+
+#[test]
+fn a_click_on_needs_rebase_asks_to_rebase_ready_to_merge_asks_to_merge() {
+    let mut p = plugin();
+    // Another row is selected, then the click selects its row and asks.
+    select(&mut p, 187);
+    let target = state_target(&p, 410);
+    let out = p.click("repos", &target);
+    let Outcome::Handled(fx) = out else { panic!("ignored") };
+    let menu = fx.iter().find_map(|e| if let Effect::Menu(m) = e { Some(m) } else { None }).expect("a question");
+    assert_eq!(menu.id, "act-rebase:acme/team-a/api!410");
+    assert_eq!(selected(&p).unwrap().iid, 410, "the row clicked is selected");
+
+    select(&mut p, 263);
+    let target = state_target(&p, 187);
+    let Outcome::Handled(fx) = p.click("repos", &target) else { panic!("ignored") };
+    let menu = fx.iter().find_map(|e| if let Effect::Menu(m) = e { Some(m) } else { None }).expect("a question");
+    assert_eq!(menu.id, "act-merge:acme/team-a/web!187");
+    assert_eq!(selected(&p).unwrap().iid, 187);
+}
+
+#[test]
+fn state_context_selection_requires_an_actual_row_and_never_runs_its_action() {
+    use radar_core::view::{Intent, Target};
+    let mut p = plugin();
+    select(&mut p, 187);
+    let target = Target::new(state_target(&p, 410));
+    for _ in 0..2 {
+        let intent = Intent::Context { target: target.clone() };
+        let Outcome::Handled(fx) = Plugin::intent(&mut p, "repos", Pane::Middle, &intent) else {
+            panic!("real state row ignored")
+        };
+        assert!(
+            fx.iter()
+                .all(|effect| matches!(effect, Effect::Emit { .. })),
+            "selection only: {fx:?}"
+        );
+        assert_eq!(selected(&p).unwrap().iid, 410);
+    }
+    let missing = Intent::Context { target: Target::new("state:m:acme/team-a/api!99999") };
+    assert!(matches!(
+        Plugin::intent(&mut p, "repos", Pane::Middle, &missing),
+        Outcome::Ignored
+    ));
+    assert_eq!(selected(&p).unwrap().iid, 410);
+}
+
+#[test]
+fn a_click_on_the_state_of_a_red_pipeline_opens_why_it_is_red() {
+    let mut p = plugin();
+    select(&mut p, 187);
+    let target = state_target(&p, 411);
+    let Outcome::Handled(fx) = p.click("repos", &target) else { panic!("ignored") };
+    assert!(fx.iter().any(|e| matches!(e, Effect::Focus(Pane::Middle))), "{fx:?}");
+    let (text, _) = draw(&p, 160, 40);
+    assert!(text.contains("Repositories › a › web › !411"), "{text}");
+    assert!(text.contains("[Pipeline"), "on the page's Pipeline tab:\n{text}");
+}
+
+#[test]
+fn only_the_states_a_click_does_something_on_are_clickable() {
+    let mut p = plugin();
+    select(&mut p, 187);
+    let (_, hits) = draw(&p, 160, 40);
+    let rows = hits.iter().filter(|(_, _, id)| id.starts_with("state:")).count();
+    // !187 ready, !410 behind, !411 red; not !263 (an approval), !342 (a draft), !198.
+    assert_eq!(rows, 3, "{hits:?}");
+    for iid in [263, 342, 198] {
+        let m = p.data.values().flat_map(|d| d.mrs.iter()).find(|m| m.iid == iid).unwrap();
+        assert_eq!(state_click(m), None, "!{iid}");
+    }
+    let find = |iid| p.data.values().flat_map(|d| d.mrs.iter()).find(|m| m.iid == iid).unwrap();
+    assert_eq!(state_click(find(410)), Some(StateClick::Rebase));
+    assert_eq!(state_click(find(187)), Some(StateClick::Merge));
+    assert_eq!(state_click(find(411)), Some(StateClick::Why));
+    assert_eq!(state_click(find(150)), None, "a merged one");
+}
+
+/// Every `x` row of a tree row where a rebase, merge or approve is offered,
+/// and of its detail pane, is the part's to take and it takes it.
+#[test]
+fn every_row_is_taken_where_a_rebase_is_offered() {
+    use radar_core::check::{Check, Place};
+    let mut places = Vec::new();
+    for down in 0..8 {
+        places.push(Place::screen("repos", Pane::Middle).down(down));
+        places.push(Place::screen("repos", Pane::Middle).down(down).focus(Pane::Detail));
+    }
+    let make = || Box::new(plugin()) as Box<dyn Plugin>;
+    let mut check = Check::new(&make);
+    let gaps = check.places(&places);
+    assert!(gaps.is_empty(), "{} gaps:\n{}", gaps.len(), gaps.join("\n"));
+    assert!(check.checked > 50, "only {} checked", check.checked);
+}
+
+fn gitlab(host: &Host) -> &GitlabPlugin {
+    assert_eq!(host.plugins[0].id(), "gitlab");
+    // SAFETY: the host in these tests holds exactly this plugin type.
+    unsafe { &*(host.plugins[0].as_ref() as *const dyn Plugin as *const GitlabPlugin) }
+}
+
+#[test]
+fn an_action_is_invoked_by_its_stable_id_through_headless() {
+    use radar_core::view::{Intent, PaneId};
+    let mut headless = radar_core::headless::Headless::new(host_of(plugin(), ""), 160, 40);
+    headless.focus(PaneId::Middle);
+    let ids: Vec<String> = headless.screen().unwrap().actions.iter().map(|a| a.id.clone()).collect();
+    assert!(ids.contains(&"gitlab.repos.filter".to_string()), "{ids:?}");
+    assert!(ids.iter().all(|id| id.is_empty() || id.starts_with("gitlab.repos.")), "{ids:?}");
+    let named: Vec<&String> = ids.iter().filter(|id| !id.is_empty()).collect();
+    let unique: std::collections::BTreeSet<&&String> = named.iter().collect();
+    assert_eq!(named.len(), unique.len(), "one id per action: {ids:?}");
+    assert!(gitlab(headless.host()).filter_input.is_none());
+    headless.send(Intent::Invoke { action: "gitlab.repos.nothing".into() });
+    assert!(gitlab(headless.host()).filter_input.is_none(), "an id nobody lists does nothing");
+    headless.send(Intent::Invoke { action: "gitlab.repos.filter".into() });
+    assert!(gitlab(headless.host()).filter_input.is_some(), "the id ran the filter row");
+}
+
+#[test]
+fn i_on_an_open_merge_request_row_starts_its_review_and_a_merged_one_offers_none() {
+    use radar_core::agent_context::REVIEW_LOCALLY_ACTION;
+    let mut p = plugin();
+    select(&mut p, 263);
+    let ids = |p: &GitlabPlugin| p.rows(Pane::Middle).into_iter().map(|(id, _)| id).collect::<Vec<_>>();
+    assert!(ids(&p).contains(&REVIEW_LOCALLY_ACTION.to_string()), "{:?}", ids(&p));
+    let fx = press(&mut p, 'i');
+    let [Effect::StartReview(r)] = fx.as_slice() else { panic!("{fx:?}") };
+    assert_eq!(r.changes.len(), 1);
+    assert_eq!((r.changes[0].provider.as_str(), r.changes[0].id.as_str()), ("gitlab", "acme/team-a/api!263"));
+    // The id runs the same key; an id nobody lists runs nothing.
+    let invoke = |p: &GitlabPlugin, id: &str| {
+        p.resolve_action("repos", Pane::Middle, &radar_core::view::Intent::Invoke { action: id.into() })
+    };
+    assert!(invoke(&p, REVIEW_LOCALLY_ACTION).is_some());
+    assert!(invoke(&p, "agent.nothing").is_none());
+    // A merged one is not offered, and its id runs nothing.
+    for d in p.data.values_mut() {
+        for m in d.mrs.iter_mut().filter(|m| m.iid == 263) {
+            m.state = crate::model::MrState::Merged;
+        }
+    }
+    assert!(!ids(&p).contains(&REVIEW_LOCALLY_ACTION.to_string()));
+    assert!(invoke(&p, REVIEW_LOCALLY_ACTION).is_none());
+}

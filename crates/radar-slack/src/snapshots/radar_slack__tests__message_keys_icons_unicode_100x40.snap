@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    ✉ Slack 4   ≣ History   ⚙ Settings (,)                  synced 40s ago · every 2m  ✎ edit
+╭ feed ────────────────╮╭ #team ───────────────────────────────────────────────────────────────────╮
+│ @ For you          4 ││ 6 new                                                ↩ REPLIE ◷ WHEN     │
+│ ❝ Discussions        ││▌ today                                                                   │
+│ ▌ # #team      6 NEW ││▌ └─ • Bob B.  Lunch at 12:30? 🍕                              30m        │
+│ ▌ # #svc       1 NEW ││▌ yesterday                                                               │
+│                      ││▌ └─ • Carol C.  Anyone seen ABC-12 failing on main?  ↩ 1      1d         │
+│                      ││▌ Sun 4 Oct                                                               │
+│                   ╭ ≡ ✉ Bob Builder's message ───────────────────────────────╮ 2      2d         │
+│                   │ ⏎       open its thread                                  │                   │
+│                   │ space   show its replies                                 │                   │
+│                   │ o       open it in Slack                                 │                   │
+│                   │ y       copy its link                                    │                   │
+│                   │ m       mark read up to here, in radar only              │                   │
+│                   │ ON SLACK                                                 │                   │
+│                   │ c       reply in its thread…                             │                   │
+│                   │ e       react to it…                                     │                   │
+│                   │ ◙ WITH AN AGENT                                          │                   │
+│                   │ A       ask an agent about it…                           │                   │
+│                   │ v       review its merge request locally…                │                   │
+│                   │ LIST                                                     │                   │
+│                   │ ctrl-r  kept replies…                                    │                   │
+│                   │ r       refresh                                          │                   │
+│                   │ /       filter the list by words                         │                   │
+│                   │ +       expand the group                                 │                   │
+│                   │ -       collapse the group, or the one this row is in    │                   │
+│                   │ HISTORY                                                  │                   │
+│                   │ H       recent activity (last 24 hours)                  │                   │
+│                   │         all activity history                             │                   │
+│                   │         history for selected item                        │                   │
+│                   ╰──────────────────────────────────────────────────────────╯                   │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││─ shows ──────────────────────────────────────────────────────────────────│
+│                      ││ the last 7 days · where the team talks                                   │
+╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
+ SLACK   j/k move   ⏎ choose   esc close                                       7 new · 4 for you  #

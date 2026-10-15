@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: screen
+---
+ History · read only · UTC · snapshot through #100
+ Scope: exact subject sample:card ABC-42 @ https://one.example.test/
+ Recorded observations; coverage may be incomplete. Not task intent or
+permission.
+ Known recording gaps affect this scope; missing actions cannot be identified.
+╭ event detail ────────────────────────────────────────────────────────────────╮
+│ card.details                                                                 █
+│ partial                                                                      █
+│ Subject: sample:card ABC-42                                                  █
+│ c causal events · i action events · a all activity                           █
+│                                                                              █
+│ Observed UTC 2026-10-11T10:40:06.000Z                                        █
+│ Recorded UTC 2026-10-11T10:40:06.012Z                                        █
+│ Reason       transport                                                       ║
+│ Mode         read only                                                       ║
+│ Count        3                                                               ║
+│ Duration     250 ms                                                          ║
+│ Command      refresh.details                                                 ║
+│ Safe URL     https://one.example.test/cards/ABC-42                           ║
+│ Redacted     unsafe details omitted                                          ║
+│ Truncated    some details omitted                                            ║
+│ Omitted      2 subjects                                                      ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ j/k scroll · tab events · n/p pages · r refresh · x/? keys · esc close

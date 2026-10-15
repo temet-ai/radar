@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1000
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Diff
+ The kit: every element on sample data                                                                                                            colours: none
+ Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  [Diff]  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons
+╭ shelf/Shelves.java · 6 added, 2 removed ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ @@ -18,6 +18,12 @@ public class Shelves {                                                                                                                    │
+│ 18 18   @RestController                                                                                                                                      │
+│ 19 19   public class Shelves {                                                                                                                               │
+│ 20    -     // TODO: the dashboard                                                                                                                           │
+│    20 +     private final Atlas atlas;                                                                                                                       │
+│    21 +                                                                                                                                                      │
+│    22 +     @GetMapping("/shelf/{id}")                                                                                                                       │
+│▎   23 +     public Shelf shelf(@PathVariable UUID id) {                                                                                                      │
+│         ● open · bob · 2h ago                                                                                                                                │
+│         │ The decades from 1900 to 1950 are done. The rest wait for the new dividers, which come on Thursday. Two atlases have loose maps: they are in the   │
+│         │ tray on the left until the binder has a look. Nothing here needs anyone else.                                                                      │
+│    24 +         return atlas.find(id);                                                                                                                       │
+│    25 +     }                                                                                                                                                │
+│ 21 26                                                                                                                                                        │
+│ 22 27   }                                                                                                                                                    │
+│         \ No newline at end of file                                                                                                                          │
+│ @@ -40,3 +46,3 @@                                                                                                                                            │
+│ 40 46   void sort() {                                                                                                                                        │
+│ 41    -     by(decade);                                                                                                                                      │
+│    47 +     by(decade, title);                                                                                                                               │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Motion
+ The kit: every element on sample data                            colours: none
+ Meters  Rows & states  Entries & log  Markdown  Diff  [Motion]  Colours  Tones
+╭ items ───────────────────────────────────────────────────────────────────────╮
+│  Atlas of the north                                                  on loan │
+│  Birds of the coast                                                  shelved │
+│  Clocks and their makers                                             on loan │
+│  Dyes from plants                                                    shelved │
+│  Engines, a history                                                  missing │
+│  Ferns of the valleys                                                shelved │
+│  Glass and its uses                                                  on loan │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ motion ──────────────────────────────────────────────────────────────────────╮
+│ level  full  everything: also pages, new rows, messages and loading          │
+│                                                                              │
+│  s  a screen switch: the body fades in  · subtle                             │
+│  m  a menu or confirm sweeps open (again: closes)  · subtle                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ waiting ─────────────────────────────────────────────────────────────────────╮
+│ Nothing to wait for.                                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+ [ ] tabs   s m g p n t l effects   f level   c colours   q quit

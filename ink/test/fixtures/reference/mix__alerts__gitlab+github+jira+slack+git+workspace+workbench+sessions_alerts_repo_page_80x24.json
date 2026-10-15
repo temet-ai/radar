@@ -1,0 +1,409 @@
+{
+  "chrome": {
+    "height": 24,
+    "keys_at": "body",
+    "screen_keys": [
+      "R",
+      "G",
+      "J",
+      "S",
+      "B",
+      "W",
+      "I"
+    ],
+    "sources": [
+      {
+        "active": true,
+        "label": "GitLab",
+        "target": "chrome:source:0"
+      },
+      {
+        "label": "GitHub",
+        "target": "chrome:source:1"
+      },
+      {
+        "label": "Local workspaces",
+        "target": "chrome:source:5"
+      }
+    ],
+    "status": {
+      "counts": [
+        {
+          "ink": "plain",
+          "text": "1 open"
+        },
+        {
+          "ink": "warn",
+          "text": "1 to review"
+        }
+      ],
+      "health": [
+        {
+          "ink": "muted",
+          "label": "gitlab",
+          "part": "gitlab",
+          "state": "stale",
+          "target": "chrome:health:gitlab"
+        },
+        {
+          "ink": "muted",
+          "label": "slack",
+          "part": "slack",
+          "state": "stale",
+          "target": "chrome:health:slack"
+        }
+      ],
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:3:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:3:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:3:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:3:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "REPOSITORIES"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "busy": true,
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "badge": {
+            "ink": "warn",
+            "text": "1"
+          },
+          "icon": "repo",
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "issue",
+          "label": "jira",
+          "mnemonic": "J",
+          "target": "chrome:tab:2"
+        },
+        {
+          "icon": "chat",
+          "label": "slack",
+          "mnemonic": "S",
+          "target": "chrome:tab:3"
+        },
+        {
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:4"
+        },
+        {
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:6"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "not synced yet"
+      }
+    },
+    "version": 1,
+    "width": 80
+  },
+  "focus": "middle",
+  "height": 24,
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "icon": "repo",
+        "id": "",
+        "label": "api"
+      },
+      {
+        "id": "gitlab.page.open",
+        "key": {
+          "key": "enter"
+        },
+        "label": "open #team-alerts thread"
+      },
+      {
+        "id": "gitlab.page.open_link",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open #team-alerts thread's link"
+      },
+      {
+        "id": "gitlab.page.copy_link",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy #team-alerts thread's link"
+      },
+      {
+        "id": "gitlab.page.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh this page and its tenancy"
+      },
+      {
+        "id": "gitlab.page.next_tab",
+        "key": {
+          "key": {
+            "char": "]"
+          }
+        },
+        "label": "next tab: Merge requests"
+      },
+      {
+        "id": "gitlab.page.previous_tab",
+        "key": {
+          "key": {
+            "char": "["
+          }
+        },
+        "label": "previous tab: Pipelines on main"
+      },
+      {
+        "id": "gitlab.page.back",
+        "key": {
+          "key": "esc"
+        },
+        "label": "back to the middle pane"
+      },
+      {
+        "id": "gitlab.page.kept_comments",
+        "key": {
+          "ctrl": true,
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "kept comments…"
+      }
+    ],
+    "dock": {
+      "composer": {
+        "can_send": false,
+        "can_stop": false,
+        "disabled": "no session: start one with a new session"
+      },
+      "focused": false,
+      "status": {},
+      "visible": false
+    },
+    "page": {
+      "crumbs": [
+        {
+          "ink": "secondary",
+          "text": "Repositories"
+        },
+        {
+          "look": "tenant.green bold",
+          "text": "a"
+        },
+        {
+          "ink": "emphasis",
+          "text": "api"
+        }
+      ],
+      "details": [
+        {
+          "chip": true,
+          "icon": "alert_firing",
+          "ink": "bad",
+          "text": "firing · 1"
+        },
+        {
+          "text": "  "
+        },
+        {
+          "icon": "branch"
+        },
+        {
+          "ink": "accent_secondary",
+          "text": "main "
+        },
+        {
+          "ink": "muted",
+          "text": "— none"
+        }
+      ],
+      "panes": [
+        {
+          "body": {
+            "node": "list",
+            "rows": [
+              {
+                "link": "https://acme.slack.com/archives/C0000ALRT1/p1791259750000100",
+                "target": "row:0",
+                "text": [
+                  {
+                    "text": "▲ api-HighErrorRate · prod · P1 · firing 3h 07m · #team-alerts"
+                  }
+                ]
+              }
+            ],
+            "selected": 0
+          },
+          "pane": "middle",
+          "title": "alerts"
+        }
+      ],
+      "tab": 2,
+      "tabs": [
+        {
+          "icon": "change",
+          "label": "Merge requests · 1"
+        },
+        {
+          "icon": "pipeline",
+          "label": "Pipelines on main"
+        },
+        {
+          "label": "Alerts"
+        }
+      ],
+      "title": [
+        {
+          "icon": "repo"
+        },
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "acme/team-a/api"
+        }
+      ],
+      "under": [
+        {
+          "icon": "local"
+        },
+        {
+          "ink": "muted",
+          "text": "checkout  "
+        },
+        {
+          "ink": "muted",
+          "text": "no local checkout known: add the folders you keep code in, in settings, git › checkouts"
+        }
+      ]
+    },
+    "panes": [],
+    "scope": "repos",
+    "version": 1
+  },
+  "section": null,
+  "width": 80
+}

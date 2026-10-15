@@ -1,0 +1,212 @@
+{
+ "version": 1,
+ "width": 80,
+ "height": 24,
+ "top_bar": {
+  "brand": "radar",
+  "tabs": [
+   {
+    "label": "repositories",
+    "mnemonic": "R",
+    "icon": "repo",
+    "target": "chrome:tab:0"
+   },
+   {
+    "label": "jira",
+    "mnemonic": "J",
+    "icon": "issue",
+    "target": "chrome:tab:2"
+   },
+   {
+    "label": "slack",
+    "mnemonic": "S",
+    "icon": "chat",
+    "target": "chrome:tab:3"
+   },
+   {
+    "label": "branches",
+    "mnemonic": "B",
+    "icon": "branch",
+    "active": true,
+    "target": "chrome:tab:4"
+   },
+   {
+    "label": "work",
+    "mnemonic": "I",
+    "target": "chrome:tab:6"
+   },
+   {
+    "label": "history",
+    "mnemonic": "H",
+    "icon": "log",
+    "target": "chrome:history"
+   },
+   {
+    "label": "settings",
+    "mnemonic": ",",
+    "icon": "settings",
+    "target": "chrome:settings"
+   }
+  ],
+  "words": {
+   "text": "synced 31s ago · every 1m",
+   "ink": "muted"
+  },
+  "terminal": {
+   "text": "tmux → Ghostty",
+   "ink": "muted"
+  },
+  "mode": {
+   "text": " read only",
+   "ink": "info",
+   "strong": true,
+   "target": "chrome:mode"
+  }
+ },
+ "status": {
+  "scope": "BRANCHES",
+  "hints": [
+   {
+    "keys": "j/k",
+    "label": "move",
+    "keys_of": [
+     {
+      "label": "j",
+      "chord": {
+       "key": {
+        "char": "j"
+       }
+      },
+      "target": "chrome:key:0:0"
+     },
+     {
+      "label": "k",
+      "chord": {
+       "key": {
+        "char": "k"
+       }
+      },
+      "target": "chrome:key:0:1"
+     }
+    ]
+   },
+   {
+    "keys": "⏎",
+    "label": "choose",
+    "keys_of": [
+     {
+      "label": "⏎",
+      "chord": {
+       "key": "enter"
+      },
+      "target": "chrome:key:1:0"
+     }
+    ]
+   },
+   {
+    "keys": "esc",
+    "label": "close",
+    "keys_of": [
+     {
+      "label": "esc",
+      "chord": {
+       "key": "esc"
+      },
+      "target": "chrome:key:2:0"
+     }
+    ]
+   }
+  ],
+  "least_needed": [
+   "navigate",
+   "scroll",
+   "quit",
+   "expand/collapse"
+  ]
+ },
+ "menu": {
+  "id": "keys",
+  "title": "main",
+  "icon": "branch",
+  "question": false,
+  "items": [
+   {
+    "value": "0",
+    "label": "delete the branch…",
+    "hint": "",
+    "key": "d",
+    "keys": "d",
+    "target": "chrome:menu:0"
+   },
+   {
+    "value": "1",
+    "label": "read the clones again",
+    "hint": "",
+    "key": "r",
+    "keys": "r",
+    "target": "chrome:menu:1"
+   },
+   {
+    "value": "2",
+    "label": "expand the group",
+    "hint": "",
+    "key": "+",
+    "keys": "+",
+    "target": "chrome:menu:2"
+   },
+   {
+    "value": "3",
+    "label": "collapse the group, or the one this row is in",
+    "hint": "",
+    "key": "-",
+    "keys": "-",
+    "target": "chrome:menu:3"
+   },
+   {
+    "value": "",
+    "label": "Work",
+    "hint": "",
+    "heading": true,
+    "shown_only": true
+   },
+   {
+    "value": "5",
+    "label": "add to work item… · radar is read only",
+    "hint": "",
+    "muted": true,
+    "target": "chrome:menu:5"
+   },
+   {
+    "value": "",
+    "label": "History",
+    "hint": "",
+    "heading": true,
+    "shown_only": true
+   },
+   {
+    "value": "7",
+    "label": "recent activity (last 24 hours)",
+    "hint": "",
+    "key": "H",
+    "keys": "H",
+    "target": "chrome:menu:7"
+   },
+   {
+    "value": "8",
+    "label": "all activity history",
+    "hint": "",
+    "target": "chrome:menu:8"
+   },
+   {
+    "value": "9",
+    "label": "history for selected item",
+    "hint": "",
+    "target": "chrome:menu:9"
+   }
+  ],
+  "selected": 0,
+  "lines": 10,
+  "shown": 10
+ },
+ "keys_at": "body"
+}

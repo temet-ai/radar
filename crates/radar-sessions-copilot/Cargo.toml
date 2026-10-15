@@ -1,0 +1,23 @@
+[package]
+name = "radar-sessions-copilot"
+description = "radar-sessions adapter for GitHub Copilot CLI, through the official Rust SDK"
+version.workspace = true
+edition.workspace = true
+# The Copilot SDK needs 1.94; the rest of the workspace stays on 1.90.
+rust-version = "1.94"
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+radar-sessions.workspace = true
+# Drives the user's installed `copilot` (CliProgram::Path); no build-time download.
+github-copilot-sdk = { version = "=1.0.20", default-features = false, features = ["runtime"] }
+anyhow.workspace = true
+async-trait = "0.1"
+serde.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = ["process", "io-util", "sync", "time"] }
+uuid.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros", "test-util", "time"] }

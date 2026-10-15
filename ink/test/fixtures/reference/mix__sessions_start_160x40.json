@@ -1,0 +1,558 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "settings": {
+      "detail_title": "Copilot",
+      "groups": [
+        {
+          "id": "general",
+          "name": "General",
+          "open": true,
+          "sections": [
+            {
+              "icon": "parts",
+              "id": "parts",
+              "name": "parts",
+              "target": "chrome:section:0"
+            },
+            {
+              "icon": "mode_edit",
+              "id": "mode",
+              "name": "mode",
+              "target": "chrome:section:1"
+            },
+            {
+              "icon": "colours",
+              "id": "colours",
+              "name": "colours",
+              "target": "chrome:section:2"
+            },
+            {
+              "icon": "icons",
+              "id": "icons",
+              "name": "icons",
+              "target": "chrome:section:3"
+            }
+          ],
+          "target": "chrome:group:general"
+        },
+        {
+          "id": "sessions",
+          "name": "Agents",
+          "open": true,
+          "sections": [
+            {
+              "id": "agents",
+              "name": "Tools and defaults",
+              "target": "chrome:section:4"
+            }
+          ],
+          "target": "chrome:group:sessions"
+        }
+      ],
+      "section_title": "Tools and defaults",
+      "selected": "chrome:section:4"
+    },
+    "status": {
+      "hints": [
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:0:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:2:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:2:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:2:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:2:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "SETTINGS"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "active": true,
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ]
+    },
+    "version": 1,
+    "width": 160
+  },
+  "focus": "middle",
+  "height": 40,
+  "screen": null,
+  "section": {
+    "actions": [
+      {
+        "heading": true,
+        "id": "",
+        "label": "this tool"
+      },
+      {
+        "id": "sessions.agents.sign_in",
+        "key": {
+          "key": {
+            "char": "i"
+          }
+        },
+        "label": "sign in"
+      },
+      {
+        "id": "sessions.agents.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "read its status again"
+      },
+      {
+        "id": "sessions.agents.paths",
+        "key": {
+          "key": {
+            "char": "p"
+          }
+        },
+        "label": "paths, agent and folders"
+      }
+    ],
+    "body": {
+      "node": "list",
+      "rows": [
+        {
+          "heading": true,
+          "target": "h:clis",
+          "text": [
+            {
+              "ink": "muted",
+              "strong": true,
+              "text": "COMMAND LINE TOOLS"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:0",
+          "text": []
+        },
+        {
+          "target": "cli:copilot",
+          "text": [
+            {
+              "icon": "time",
+              "icon_lead": true,
+              "ink": "muted",
+              "text": "… "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Copilot       "
+            },
+            {
+              "ink": "secondary",
+              "text": "checking"
+            }
+          ]
+        },
+        {
+          "target": "cli:codex",
+          "text": [
+            {
+              "icon": "time",
+              "icon_lead": true,
+              "ink": "muted",
+              "text": "… "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Codex         "
+            },
+            {
+              "ink": "secondary",
+              "text": "checking"
+            }
+          ]
+        },
+        {
+          "target": "cli:claude",
+          "text": [
+            {
+              "icon": "time",
+              "icon_lead": true,
+              "ink": "muted",
+              "text": "… "
+            },
+            {
+              "ink": "primary",
+              "strong": true,
+              "text": "Claude Agent  "
+            },
+            {
+              "ink": "secondary",
+              "text": "checking"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:1",
+          "text": []
+        },
+        {
+          "heading": true,
+          "target": "h:defaults",
+          "text": [
+            {
+              "ink": "muted",
+              "strong": true,
+              "text": "NEW SESSIONS · FOR EVERY WORKSPACE"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:2",
+          "text": []
+        },
+        {
+          "target": "def:provider",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "provider              "
+            },
+            {
+              "ink": "primary",
+              "text": "Copilot"
+            }
+          ]
+        },
+        {
+          "target": "def:model",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "model                 "
+            },
+            {
+              "ink": "primary",
+              "text": "the provider's own"
+            }
+          ]
+        },
+        {
+          "target": "def:work_dir",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "working folder        "
+            },
+            {
+              "ink": "primary",
+              "text": "where radar was started"
+            }
+          ]
+        },
+        {
+          "target": "def:roots",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "permitted folders     "
+            },
+            {
+              "ink": "primary",
+              "text": "none"
+            }
+          ]
+        },
+        {
+          "target": "def:skills",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "skill folders         "
+            },
+            {
+              "ink": "primary",
+              "text": "none"
+            }
+          ]
+        },
+        {
+          "target": "def:project_config",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "CLI's own config      "
+            },
+            {
+              "ink": "primary",
+              "text": "yes"
+            }
+          ]
+        },
+        {
+          "target": "def:allow",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "always allow          "
+            },
+            {
+              "ink": "primary",
+              "text": "none"
+            }
+          ]
+        },
+        {
+          "target": "def:deny",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "always deny           "
+            },
+            {
+              "ink": "primary",
+              "text": "none"
+            }
+          ]
+        },
+        {
+          "target": "def:local_only",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "local only            "
+            },
+            {
+              "ink": "primary",
+              "text": "yes"
+            }
+          ]
+        },
+        {
+          "target": "def:reviewer_commands",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "reviewer commands     "
+            },
+            {
+              "ink": "primary",
+              "text": "yes"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:3",
+          "text": []
+        },
+        {
+          "heading": true,
+          "target": "h:recipes",
+          "text": [
+            {
+              "ink": "muted",
+              "strong": true,
+              "text": "RECIPES AND REVIEWS"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:4",
+          "text": []
+        },
+        {
+          "target": "rec:folder",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "recipes folder        "
+            },
+            {
+              "ink": "primary",
+              "text": "~/.config/radar/recipes"
+            }
+          ]
+        },
+        {
+          "target": "rec:ask",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "recipe ask            "
+            },
+            {
+              "ink": "primary",
+              "text": "v2 · built-in"
+            }
+          ]
+        },
+        {
+          "target": "rec:review-mr",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "recipe review-mr      "
+            },
+            {
+              "ink": "primary",
+              "text": "v2 · built-in"
+            }
+          ]
+        },
+        {
+          "target": "rec:reviews",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "reviews folder        "
+            },
+            {
+              "ink": "primary",
+              "text": "radar's state folder"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:5",
+          "text": []
+        },
+        {
+          "heading": true,
+          "target": "h:away",
+          "text": [
+            {
+              "ink": "muted",
+              "strong": true,
+              "text": "WHILE YOU ARE AWAY"
+            }
+          ]
+        },
+        {
+          "heading": true,
+          "target": "b:6",
+          "text": []
+        },
+        {
+          "target": "dock:notify",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "desktop notifications "
+            },
+            {
+              "ink": "primary",
+              "text": "no"
+            }
+          ]
+        }
+      ],
+      "selected": 2
+    },
+    "detail": [
+      [
+        {
+          "icon": "time",
+          "icon_lead": true,
+          "ink": "muted",
+          "text": "… "
+        },
+        {
+          "ink": "secondary",
+          "text": "Reading the CLI's status…"
+        }
+      ],
+      []
+    ],
+    "detail_title": "Copilot",
+    "scope": "agents",
+    "version": 1
+  },
+  "width": 160
+}

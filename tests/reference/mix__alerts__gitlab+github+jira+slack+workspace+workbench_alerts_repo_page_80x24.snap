@@ -1,0 +1,28 @@
+---
+source: tests/mix.rs
+expression: "aged(&to_text(&host, 80, 24))"
+---
+ radar    R 1   J   S   I   History   Settings (,)        ⠷ not synced yet  ✎ edit
+  GitLab    GitHub    Local workspaces
+ Repositories › a › api
+ acme/team-a/api                                       firing · 1   main — none
+ Merge requests · 1  Pipelines on main  [Alerts]
+╭ alerts ──────────────────────────────────────────────────────────────────────╮
+│ ▲ api-HighErrorRate · prod · P1 · firing #h ##m · #team-alerts               │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

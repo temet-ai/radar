@@ -1,0 +1,43 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { Swatches } from "./support/Swatches";
+
+<Meta title="Rules" />
+
+# Rules every element follows
+
+From `docs/components.md` section 1 (GUIDE.md and the operator's design decisions, October 2026). GUIDE.md owns the
+rules; where this page and GUIDE disagree, GUIDE wins.
+
+| Rule | Detail |
+|---|---|
+| Parts draw with the kit | No hand-rolled element the kit has. A missing element or variant goes into the kit first. |
+| Nothing visual is hard-coded | Colours come from theme slots and look words. Tones go through `widgets::tone`. Ink draws only with the look the host sends. |
+| Glyphs come from the icon pack | A part never writes a glyph literal; it names an `Icon`. Marks such as ✓ and ✗ also come from the kit. |
+| Widths are display cells | No `chars().count()`, no `{:<N}` padding. |
+| Both renderers, same picture | While Ratatui is the reference, every look change lands in both renderers. A difference is a defect. |
+| **No chevrons for folding** | No ▸ ▾ › ⌄, nerd chevrons, `[+]` or `[-]` as fold marks. The tree lines show open; a folded row ends in `⋯ n`. |
+| **No pill shapes** | Chips, counts, keys, buttons and tags are square: a ground and one space each side. No round caps. |
+| **No left-edge stripes** | No coloured bar down the left of rows or cards. Groups are marked by the heading shade (the tree's group stripe `▌` is on the way out, #45). |
+| **Keys live inside their word** | Hint, button and tab keys are the word's letter, underlined (b̲ulk, q̲uit). A key with no letter (↑↓ ⏎ esc) is a glyph before the word. No "b bulk" (#44). |
+| **Breadcrumbs join with /** | `acme / api / !263`, not `›` (#46). |
+| **Tabs show names, not counts** | One attention dot when something there waits for you (#33). |
+| **Icons where they mean something** | Several icons to a row is fine when each says something. |
+| **Icons take a fixed slot** | Two cells whatever the pack, so changing pack never moves a column (#43). |
+| **A shadow dims, never erases** | Anything under a layer's shadow keeps its glyphs and lines (#29). |
+| Same key, same action, same kind of place | Keys are context-dependent across kinds of place, but consistent within one kind of place in every part. |
+| Mouse and keys both work | Every click target is padded and lit by the hover shade. |
+| Don't show the same thing twice | |
+| Lists, panels and pages look alike | List footers are titled "shows". Sections use `card::section`. |
+| Motion explains a change | Motion never delays a key. Any key cancels it. It is off over SSH and on slow terminals. |
+
+Several stories show where today's data still breaks a rule (breadcrumbs ` › `, counts in tabs, the group stripe,
+`[u]` keys in the detail pane's actions); each names the issue that fixes it.
+
+## Theme slots
+
+radar's theme is SilkCircuit Neon. Every slot below, as the real host resolves it at each colour tier (captured by
+`.storybook/capture-looks.mjs`; truecolour equals `src/text/generated/pack.ts`). At 16 colours and 256 colours the
+swatch is xterm's default palette; a real terminal paints them from its own. At mono every slot is the terminal's
+own colour, and the selection, focus and hover carry a modifier instead.
+
+<Swatches />

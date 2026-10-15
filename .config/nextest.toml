@@ -1,0 +1,19 @@
+# cargo nextest run: the testing pyramid's budgets (GUIDE 3). A test over
+# 2s is flagged SLOW; a unit or integration test should take milliseconds,
+# a mix's smoke well under a second. Over 20s it is killed.
+# A run reports every failure, not the first: fix them together, run once more.
+[profile.default]
+slow-timeout = { period = "2s", terminate-after = 10 }
+fail-fast = false
+
+# tests/key_intent_parity.rs walks every key and every action on every surface
+# (about 35 surfaces, a host pair each), on up to 8 threads. Measured at
+# 914f5f9d under load average 40 to 58 on 16 cores: every_key 15.6 s to over
+# 20 s, every_action 19.4 s to over 20 s (88 s and 29 s before the lanes). The
+# 20 s kill fell inside that spread. These two only get a longer kill; the
+# cases are all kept. tests/ratatui_cells.rs the_cells_match_the_files_or_are_written
+# renders every screen, section and page at two sizes: 15.8 s at load 25, which
+# a loaded gate pushes past 20 s. No other test's budget changes.
+[[profile.default.overrides]]
+filter = 'binary(key_intent_parity) | binary(ratatui_cells)'
+slow-timeout = { period = "10s", terminate-after = 6 }

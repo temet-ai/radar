@@ -1,0 +1,28 @@
+---
+source: crates/radar-gitlab/src/list_actions/tests.rs
+expression: "shown_preview(p, 80, 24)"
+---
+ radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+╭ views ───────────────╮╭ api !263 ────────────────────────────────────────────╮
+│ Everything           ││ a api  !263                                          █
+│ Needs my action    4 ││ ABC-12: Add a stats endpoint for the dashboard       █
+│ Opened by me         ││ alice · feature/ABC-263 → main · 16m ago             █
+│ Opened by teammates  ││                                                      █
+│ Opened by bots       ││  waiting for your review                             █
+│                      ││                                                      █
+│                      ││ STATE ────────────────────────────────────────────── █
+│                      ││   ◷ needs 1 approval                                 █
+│                      ││ #backend                                             █
+│                      ││                                                      █
+│                      ││ ACTIONS ──────────────────────────────────────────── █
+│                      ││   rebase · not behind main                       [u] █
+│                      ││   merge · needs 1 approval                       [m] █
+│                      ││   approve                                        [e] █
+│                      ││   open in GitLab                                 [o] ║
+│                      ││   copy link                                      [y] ║
+│                      ││                                                      ║
+│                      ││ PIPELINE  passed · 6m 12s ────────────────────────── ║
+│                      ││   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ║
+│                      ││   ✓ build          ✓ test           ▷ deploy         ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ REPOSITORIES   e approve   b bulk   q quit   x menu                     gitlab

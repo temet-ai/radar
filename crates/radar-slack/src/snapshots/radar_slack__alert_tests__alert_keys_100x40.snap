@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/alert_tests.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    Slack 5   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
+╭ feed ────────────────╮╭ Alerts ──────────────────────────────────────────────────────────────────╮
+│ For you            5 ││ firing first, then what resolved              PRIORITY NOTIFIED FOR      │
+│ Discussions          ││firing                                                                    │
+│ Alerts             2 ││  ├─ api  prod                                                            │
+│ ▌ #team        6 NEW ││  │  └─ ▲ api-HighErrorRate ×2                 P1       1h       3h 07m   │
+│ ▌ #svc         1 NEW ││  └─ unmapped  prod                                                       │
+│ ▌ #team-alert 10 NEW ││     └─ ▲ DiskFull                             P2       1h       1h 01m   │
+│ ▌ #jobs        1 NEW ││failed jobs                                                               │
+│                      ││  └─ unmapped  prod                                                       │
+│                      ││     └─ ✗ Nightly export                                2h       —        │
+│                      ││recently resolved                                                         │
+│                   ╭ api-HighErrorRate ───────────────────────────────────────╮                   │
+│                   │ ⏎       open its thread                                  │ 5h       40m 00s  │
+│                   │ o       open its console link                            │                   │
+│                   │ y       copy its console link                            │                   │
+│                   │ LIST                                                     │                   │
+│                   │ ctrl-r  kept replies…                                    │                   │
+│                   │ r       refresh                                          │                   │
+│                   │ /       filter the list by words                         │                   │
+│                   │ +       expand the group                                 │                   │
+│                   │ -       collapse the group, or the one this row is in    │                   │
+│                   │ HISTORY                                                  │                   │
+│                   │ H       recent activity (last 24 hours)                  │                   │
+│                   │         all activity history                             │                   │
+│                   │         history for selected item                        │                   │
+│                   ╰──────────────────────────────────────────────────────────╯                   │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││─ shows ──────────────────────────────────────────────────────────────────│
+│                      ││ 1 bot message not read as alerts: the log says why.                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
+ SLACK   j/k move   ⏎ choose   esc close                        7 new · 5 for you · 2 firing  slack

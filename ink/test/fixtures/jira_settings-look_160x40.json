@@ -1,0 +1,663 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "to do"
+    },
+    {
+      "id": "jira.look.colour",
+      "key": {
+        "key": {
+          "char": "c"
+        }
+      },
+      "label": "colour…"
+    },
+    {
+      "id": "jira.look.bold",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "bold"
+    },
+    {
+      "id": "jira.look.italic",
+      "key": {
+        "key": {
+          "char": "i"
+        }
+      },
+      "label": "italic"
+    },
+    {
+      "id": "jira.look.underline",
+      "key": {
+        "key": {
+          "char": "u"
+        }
+      },
+      "label": "underline"
+    },
+    {
+      "id": "jira.look.dim",
+      "key": {
+        "key": {
+          "char": "d"
+        }
+      },
+      "label": "dim"
+    },
+    {
+      "id": "jira.look.kept_text",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept Jira text…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "heading": true,
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "STATUSES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a ticket not started"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "secondary text"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.secondary",
+            "text": "to do    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a ticket being worked on"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "info · bold"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.info bold",
+            "text": "doing    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a finished ticket"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "success"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.success",
+            "text": "done     "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:4",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "TYPES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a bug"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "error"
+          }
+        ],
+        "target": "row:5",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.error",
+            "text": "bug      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a story"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "success"
+          }
+        ],
+        "target": "row:6",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.success",
+            "text": "story    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a task"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "links and keys"
+          }
+        ],
+        "target": "row:7",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.secondary",
+            "text": "task     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "an epic"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "third accent · bold"
+          }
+        ],
+        "target": "row:8",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.tertiary bold",
+            "text": "epic     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a sub-task"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "secondary text"
+          }
+        ],
+        "target": "row:9",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.secondary",
+            "text": "subtask  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "any other type"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "secondary text"
+          }
+        ],
+        "target": "row:10",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.secondary",
+            "text": "other    "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:11",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "AGES"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "changed in the last 2 days"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "main text"
+          }
+        ],
+        "target": "row:12",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.primary",
+            "text": "fresh    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "changed in the last 2 weeks"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "warning"
+          }
+        ],
+        "target": "row:13",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.warning",
+            "text": "aging    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "not changed for 2 weeks or more"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:14",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "stale    "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:15",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "TICKETS"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a ticket's key"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "links and keys"
+          }
+        ],
+        "target": "row:16",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.secondary",
+            "text": "key      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a ticket's labels"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "links and keys"
+          }
+        ],
+        "target": "row:17",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.secondary",
+            "text": "label    "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "\"you\", the reader, in place of their own name"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "accent"
+          }
+        ],
+        "target": "row:18",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "accent.primary",
+            "text": "you      "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a site or project that could not be reached"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "error"
+          }
+        ],
+        "target": "row:19",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "status.error",
+            "text": "failed   "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "a site's name; its colour is the site's own"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "site's own · bold"
+          }
+        ],
+        "target": "row:20",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "jira.blue bold",
+            "text": "acme     "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:21",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "TICKETS TREE"
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the shade behind every other ticket and its children"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "overlays"
+          }
+        ],
+        "target": "row:22",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "bg.overlay",
+            "text": "band     "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the shade behind a site's heading"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "overlays"
+          }
+        ],
+        "target": "row:23",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "bg.overlay",
+            "text": "heading  "
+          }
+        ]
+      },
+      {
+        "detail": [
+          {
+            "ink": "muted",
+            "text": "the tree lines joining statuses and tickets"
+          }
+        ],
+        "right": [
+          {
+            "ink": "muted",
+            "text": "muted text"
+          }
+        ],
+        "target": "row:24",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "look": "text.muted",
+            "text": "lines    "
+          }
+        ]
+      }
+    ],
+    "selected": 1
+  },
+  "detail": [
+    [
+      {
+        "text": "How a ticket not started is drawn."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "  sample  "
+      },
+      {
+        "look": "text.secondary",
+        "text": "to do"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "colour    "
+      },
+      {
+        "look": "text.secondary",
+        "text": "██ "
+      },
+      {
+        "text": "secondary text"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "          the theme's secondary text colour, used for repo names and secondary values"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "emphasis  "
+      },
+      {
+        "text": "none"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "What each colour looks like is set in colours, under general."
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [jira.style] \"to do\""
+      }
+    ]
+  ],
+  "detail_title": "to do",
+  "scope": "look",
+  "version": 1
+}

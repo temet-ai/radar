@@ -1,0 +1,5 @@
+---
+source: crates/radar-slack/src/cli_output_tests.rs
+expression: output
+---
+#team 16m    Build Bot        status green report  · 2 replies

@@ -1,0 +1,44 @@
+---
+source: crates/radar-gitlab/src/stand_in.rs
+expression: text
+---
+ radar    Repositories 1   Tickets   History   Settings (,)                                                                            ⠷ not synced yet  ✎ edit
+ Repositories › a › api › !263
+ ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
+ tracked as ABC-12
+ [Overview]  Changes · 1 file  Threads · 1 open  Pipeline  Commits  Ticket
+╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ can it merge? ───────────────────╮
+│ loading…                                                                                                                 ││ ◷ needs 1 approval               │
+│                                                                                                                          ││ ✓ pipeline passed                │
+│ LABELS  #backend                                                                                                         ││ ✓ no conflicts, up to date       │
+│                                                                                                                          ││ ◷ needs 1 approval (0 of 1)      │
+│ TICKET ABC-12                                                                                                            ││ ◆ 1 open thread                  │
+│ Review · Add a stats endpoint for the dashboard                                                                          ││ ✓ not a draft                    │
+│                                                                                                                          ││                                  │
+│ LATEST ACTIVITY                                                                                                          ││ for you: waiting for your review │
+│ │ Bob Example · 1h ago                                                                                                   ││                                  │
+│ │ Should this read from the cached view? The dashboard polls every 30s.                                                  ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+│                                                                                                                          ││                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                       4 open · 1 to review · 1 ready  gitlab

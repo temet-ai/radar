@@ -1,0 +1,237 @@
+//! Modifier bindings must remain discoverable without borrowing a plain key.
+
+use super::*;
+use crate::plugin::{Outcome, parse_key};
+use std::sync::{Arc, Mutex};
+
+#[derive(Default)]
+struct State {
+    keys: Vec<KeyEvent>,
+    typing: bool,
+}
+
+struct Recovery(Arc<Mutex<State>>);
+
+impl Plugin for Recovery {
+    fn id(&self) -> &'static str {
+        "recovery"
+    }
+    fn configure(&mut self, _: Option<&toml::Value>) -> Result<()> {
+        Ok(())
+    }
+    fn config(&self) -> Option<toml::Value> {
+        None
+    }
+    fn screens(&self) -> Vec<ScreenSpec> {
+        vec![ScreenSpec {
+            id: "items",
+            name: "items",
+            key: 'I',
+        }]
+    }
+    fn keys(&self, _: &str, _: Pane) -> Vec<Binding> {
+        vec![
+            Binding::heading("selected item"),
+            Binding::new("ctrl-r", "kept text…"),
+            Binding::new("r", "refresh now"),
+            Binding::new("e", "edit text…"),
+            Binding::new("Y", "copy item key"),
+        ]
+    }
+    fn capturing(&self) -> bool {
+        self.0.lock().unwrap().typing
+    }
+    fn view(&self, scope: &str, _: &crate::view::ViewCx<'_>) -> Option<crate::view::ScreenView> {
+        use crate::view as v;
+        let mut view = v::ScreenView::new(scope, vec![v::PaneView::new(
+            v::PaneId::Middle, "items", v::Node::Document { lines: vec![], cut: false },
+        )]);
+        view.actions = self.keys(scope, Pane::Middle).iter()
+            .map(|b| v::ActionSpec::named(format!("items.{scope}.{}", b.keys), b)).collect();
+        Some(view)
+    }
+    fn intent(&mut self, _: &str, _: Pane, intent: &crate::view::Intent) -> Outcome {
+        let crate::view::Intent::Key { chord } = intent else { return Outcome::Ignored };
+        let key = crate::view_tui::key_of(*chord);
+        let mut state = self.0.lock().unwrap();
+        state.keys.push(key);
+        if key.code == KeyCode::Esc {
+            state.typing = false;
+        }
+        if key.code == KeyCode::Char('e') {
+            state.typing = true;
+        }
+        Outcome::done()
+    }
+}
+
+fn fixture() -> (Host, Arc<Mutex<State>>) {
+    let state = Arc::new(Mutex::new(State::default()));
+    let mut host = Host::new(vec![Box::new(Recovery(state.clone()))], 0).unwrap();
+    host.load_config(Some("")).unwrap();
+    (host, state)
+}
+
+fn press(host: &mut Host, keys: &str) {
+    host.update(Event::Key(parse_key(keys).unwrap()));
+}
+
+#[test]
+fn control_bindings_parse_as_one_complete_key() {
+    assert_eq!(
+        parse_key("ctrl-r"),
+        Some(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL))
+    );
+    assert_eq!(
+        parse_key("r"),
+        Some(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE))
+    );
+    for invalid in ["ctrl-", "ctrl-rr", "ctrl-ctrl-r", "is:review"] {
+        assert_eq!(parse_key(invalid), None, "{invalid}");
+    }
+}
+
+#[test]
+fn recovery_menu_row_is_visible_and_enter_keeps_its_modifier() {
+    let (mut host, state) = fixture();
+    press(&mut host, "x");
+    for (w, h) in [(80, 24), (160, 40)] {
+        let screen = crate::shell::to_text(&host, w, h);
+        assert!(
+            screen.contains("ctrl-r") && screen.contains("kept text"),
+            "{screen}"
+        );
+    }
+    assert_eq!(host.menu.as_ref().unwrap().menu.items[0].key, None);
+    press(&mut host, "enter");
+    assert!(host.menu.is_none());
+    assert_eq!(
+        state.lock().unwrap().keys,
+        vec![parse_key("ctrl-r").unwrap()]
+    );
+}
+
+#[test]
+fn menu_accelerators_distinguish_control_from_plain_refresh() {
+    let (mut host, state) = fixture();
+    for action in ["r", "ctrl-r", "r"] {
+        press(&mut host, "x");
+        press(&mut host, action);
+        assert!(host.menu.is_none());
+    }
+    assert_eq!(
+        state.lock().unwrap().keys,
+        ["r", "ctrl-r", "r"].map(|key| parse_key(key).unwrap())
+    );
+}
+
+#[test]
+fn combined_modifiers_do_not_borrow_bindings_and_shifted_letters_still_work() {
+    let (mut host, state) = fixture();
+    press(&mut host, "x");
+    host.update(Event::Key(KeyEvent::new(
+        KeyCode::Char('r'),
+        KeyModifiers::CONTROL | KeyModifiers::ALT,
+    )));
+    assert!(host.menu.is_some());
+    assert!(state.lock().unwrap().keys.is_empty());
+    host.update(Event::Key(KeyEvent::new(
+        KeyCode::Char('Y'),
+        KeyModifiers::SHIFT,
+    )));
+    assert!(host.menu.is_none());
+    assert_eq!(state.lock().unwrap().keys, vec![parse_key("Y").unwrap()]);
+}
+
+#[test]
+fn dismissing_reopening_and_clicking_recovery_dispatches_only_once() {
+    let (mut host, state) = fixture();
+    press(&mut host, "x");
+    press(&mut host, "esc");
+    assert!(state.lock().unwrap().keys.is_empty());
+    press(&mut host, "x");
+    let _ = crate::shell::to_text(&host, 80, 24);
+    let at = host
+        .hits
+        .borrow()
+        .iter()
+        .find(|(_, hit)| matches!(hit, Hit::MenuItem(0)))
+        .map(|(rect, _)| (rect.x, rect.y))
+        .unwrap();
+    host.update(Event::Mouse {
+        kind: MouseKind::Press,
+        column: at.0,
+        row: at.1,
+        at_ms: 100,
+    });
+    assert!(host.menu.is_none());
+    // The stale popup's rectangle is not a second activation after redraw.
+    let _ = crate::shell::to_text(&host, 80, 24);
+    host.update(Event::Mouse {
+        kind: MouseKind::Press,
+        column: at.0,
+        row: at.1,
+        at_ms: 150,
+    });
+    assert_eq!(
+        state.lock().unwrap().keys,
+        vec![parse_key("ctrl-r").unwrap()]
+    );
+}
+
+#[test]
+fn control_shortcuts_do_not_alias_confirmation_choices_or_escape_the_editor() {
+    let (mut host, state) = fixture();
+    host.menu = Some(OpenMenu::open(
+        Owner::Plugin(0),
+        Menu::confirm("ask", "change it?", "change it", "leave it"),
+    ));
+    press(&mut host, "ctrl-y");
+    assert!(host.menu.is_some(), "Ctrl-Y is not confirmation by Y");
+    for modifier in [
+        KeyModifiers::ALT,
+        KeyModifiers::SUPER,
+        KeyModifiers::HYPER,
+        KeyModifiers::META,
+    ] {
+        host.update(Event::Key(KeyEvent::new(KeyCode::Char('y'), modifier)));
+        assert!(
+            host.menu.is_some(),
+            "{modifier:?}-Y is not plain Y confirmation"
+        );
+    }
+    press(&mut host, "ctrl-q");
+    assert!(host.menu.is_some(), "Ctrl-Q is not plain Q dismissal");
+    press(&mut host, "esc");
+    press(&mut host, "e");
+    press(&mut host, "x");
+    press(&mut host, "ctrl-r");
+    assert!(host.menu.is_none(), "editor keeps its shortcuts");
+    assert!(state.lock().unwrap().typing);
+    press(&mut host, "esc");
+    press(&mut host, "x");
+    assert!(host.menu.is_some(), "menu works again after editing ends");
+}
+
+#[test]
+fn repeated_page_tab_clicks_never_synthesize_enter() {
+    let (mut host, state) = fixture();
+    host.hits.borrow_mut().push((
+        ratatui::layout::Rect::new(3, 3, 10, 1),
+        Hit::Plugin {
+            plugin: 0,
+            scope: "items",
+            pane: Pane::Middle,
+            id: "tab:1".into(),
+        },
+    ));
+    for at_ms in [100, 150, 200] {
+        host.update(Event::Mouse {
+            kind: MouseKind::Press,
+            column: 4,
+            row: 3,
+            at_ms,
+        });
+    }
+    assert!(state.lock().unwrap().keys.is_empty());
+}

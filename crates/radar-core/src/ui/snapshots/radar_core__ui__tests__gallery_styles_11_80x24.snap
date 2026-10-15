@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(80, 24, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Row states" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Markdown  Diff  Motion  Colours  Tones  " fg:text.secondary | "[Row states]" fg:accent.primary/glow.purple bold | "  Grid states  Waiting  Lo" fg:text.secondary
+03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " list, focused (cursor on the fourth row…" fg:text.emphasis bg:bg.surface bold | "───────────────────────────────────╮" fg:accent.primary/glow.purple bg:bg.surface
+04 "│" fg:accent.primary/glow.purple bg:bg.surface | " A HEADING: THE CURSOR SKIPS IT         …" fg:text.muted bg:bg.surface bold | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
+05 "│" fg:accent.primary/glow.purple bg:bg.surface | "  a plain row                           …" bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
+06 "│" fg:accent.primary/glow.purple bg:bg.surface | "  a row with a word at the right        …" bg:bg.surface | "hidden" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
+07 "│" fg:accent.primary/glow.purple bg:bg.surface | "  the row the cursor is on              …" fg:text.emphasis bg:bg.selection bold | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
+08 "│" fg:accent.primary/glow.purple bg:bg.surface | "  a row whose text is far too long for t…" bg:bg.surface | "checking" fg:status.info bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
+09 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | " + " fg:accent.primary/glow.purple bg:bg.surface bold | "add a shelf" fg:accent.secondary/glow.cyan bg:bg.surface bold | "   paste a link to a shelf, or its path" fg:text.muted bg:bg.surface | _23 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "║" fg:bg.overlay
+10 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | " 日本語の長い行 with wide characters in it, cut…" fg:text.secondary bg:bg.surface | _17 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "║" fg:bg.overlay
+11 "│" fg:accent.primary/glow.purple bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "║" fg:bg.overlay
+12 "│" fg:accent.primary/glow.purple bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "║" fg:bg.overlay
+13 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface | "║" fg:bg.overlay
+14 "╭" fg:accent.muted bg:bg.surface | " list, without focus " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+15 "│" fg:accent.muted bg:bg.surface | " A HEADING: THE CURSOR SKIPS IT         …" fg:text.muted bg:bg.surface bold | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+16 "│" fg:accent.muted bg:bg.surface | "  a plain row                           …" bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+17 "│" fg:accent.muted bg:bg.surface | "  a row with a word at the right        …" bg:bg.surface | "hidden" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+18 "│" fg:accent.muted bg:bg.surface | "  the row the cursor is on              …" fg:text.secondary bg:bg.selection | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+19 "│" fg:accent.muted bg:bg.surface | "  a row whose text is far too long for t…" bg:bg.surface | "checking" fg:status.info bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | " + " fg:accent.primary/glow.purple bg:bg.surface bold | "add a shelf" fg:accent.secondary/glow.cyan bg:bg.surface bold | "   paste a link to a shelf, or its path" fg:text.muted bg:bg.surface | _23 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+21 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | " 日本語の長い行 with wide characters in it, cut…" fg:text.secondary bg:bg.surface | _17 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+22 "│" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

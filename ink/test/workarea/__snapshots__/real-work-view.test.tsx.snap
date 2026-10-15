@@ -1,0 +1,100 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`work area from the recorded real Work view > 80x24: one column in reading order, nothing dropped 1`] = `
+"╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+│ Ship the work area                                                      task │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯"
+`;
+
+exports[`work area from the recorded real Work view > 160x40: columns side by side 1`] = `
+"╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ No groups on page     ││ Ship the work area                                                             task ││ No source binding in this evidence page. Add │
+│ All items             ││                                                                                     ││ an exact source from its actions menu; no    │
+│                       ││                                                                                     ││ links are inferred.                          │
+│                       ││                                                                                     ││ Local work saved.                            │
+│                       ││                                                                                     ││ Ship the work area                           │
+│                       ││                                                                                     ││ v history: original claims and outcomes ·    │
+│                       ││                                                                                     ││ completeness not guaranteed                  │
+│                       ││                                                                                     ││ Titles and groups are authored locally.      │
+│                       ││                                                                                     ││ Relations do not imply identity, permission  │
+│                       ││                                                                                     ││ or completion.                               │
+│                       ││                                                                                     ││ Task item ID:                                │
+│                       ││                                                                                     ││ <uuid>         │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+╭ map ─────────────────────────────────╮╭ tabs ────────────────────────────────────────────────────────────────────────╮╭ actions ─────────────────────────────╮
+│ 0 groups · 1 items on page 1         ││ ○ 00000001                                                                   ││ create a local task…                 │
+│ Ship the work area · task            ││ ● linked sources                                                             ││ refresh local work                   │
+╰──────────────────────────────────────╯│ ○ evidence                                                                   ││ filter this item page…               │
+╭ timeline (complete) ─────────────────╮│                                                                              ││ apply local group label…             │
+│ #1 map · authored                    ││                                                                              ││ inspect bounded evidence…            │
+│ #2 map · authored                    ││                                                                              ││                                      │
+│ #3 map · authored                    ││                                                                              ││                                      │
+│                                      ││                                                                              ││                                      │
+│                                      ││                                                                              ││                                      │
+│                                      ││                                                                              ││                                      │
+╰──────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯"
+`;
+
+exports[`work area from the recorded real Work view > plain-text mode keeps labels, order and status 1`] = `
+"[other] local groups
+  No groups on page
+  ▎ All items
+  Groups · page 1
+[other] work items · page 1
+  ▎ Ship the work area
+[other] linked sources and context
+  No source binding in this evidence page. Add an exact source from its actions
+menu; no links are inferred.
+  Local work saved.
+  Ship the work area
+  v history: original claims and outcomes · completeness not guaranteed
+  Titles and groups are authored locally. Relations do not imply identity,
+permission or completion.
+  Task item ID: <uuid>
+[map] map
+  0 groups · 1 items on page 1
+▎ Ship the work area · task
+[timeline] timeline (complete)
+  #1 map · authored
+  #2 map · authored
+  #3 map · authored
+[tabs] tabs
+  ○ 00000001
+  ● linked sources
+  ○ evidence
+[rail] actions (focused)
+  [n] create a local task…
+  [r] refresh local work
+  [/] filter this item page…
+  [t] apply local group label…
+  [v] inspect bounded evidence…"
+`;

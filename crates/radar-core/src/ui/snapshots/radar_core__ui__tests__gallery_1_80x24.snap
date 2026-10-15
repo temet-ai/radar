@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Table
+ The kit: every element on sample data                            colours: none
+ Tree  [Table]  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Mot
+╭ items ───────────────────────────────────────────────────────────────────────╮
+│ NAME                                  STATE     OWNER       SIZE    UPDATED  █
+│ #100 sort the atlas box by decade     ✓ filed   Alice E.    3 kB    1h       █
+│ #101 label the map drawer             ● sorting Bob         10 kB   2h       █
+│ #102 mend the spine of the old ledger ✗ lost    Carol D.    17 kB   3h       █
+│ #103 count the postcards              ◷ waiting Alice E.    24 kB   4h       █
+│ #104 move the globes to the top shelf ✓ filed   Bob         31 kB   5h       █
+│ #105 sort the atlas box by decade     ● sorting Carol D.    38 kB   6h       █
+│ #106 label the map drawer             ✗ lost    Alice E.    5 kB    7h       █
+│ #107 mend the spine of the old ledger ◷ waiting Bob         12 kB   8h       █
+│ #108 count the postcards              ✓ filed   Carol D.    19 kB   9h       █
+│ #109 move the globes to the top shelf ● sorting Alice E.    26 kB   1h       ║
+│ #110 sort the atlas box by decade     ✗ lost    Bob         33 kB   2h       ║
+│ #111 label the map drawer             ◷ waiting Carol D.    40 kB   3h       ║
+│ #112 mend the spine of the old ledger ✓ filed   Alice E.    7 kB    4h       ║
+│ #113 count the postcards              ● sorting Bob         14 kB   5h       ║
+│ #114 move the globes to the top shelf ✗ lost    Carol D.    21 kB   6h       ║
+│ #115 sort the atlas box by decade     ◷ waiting Alice E.    28 kB   7h       ║
+│ #116 label the map drawer             ✓ filed   Bob         35 kB   8h       ║
+╰──────────────────────────────────────────────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

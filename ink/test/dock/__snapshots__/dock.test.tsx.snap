@@ -1,0 +1,1261 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the dock, every state, both sizes > answered at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││✗ shell denied  rm -rf build                          │
+│ ◙ Opened by bots     ││✗ run rm -rf build denied                             │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > answered at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││✗ shell denied  rm -rf build                                                        ││                                              │
+│                        ││✗ run rm -rf build denied                                                           ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > approval at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ⚠ ×]                                         │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││⚠ allow shell?                                        │
+│ ◙ Opened by bots     ││   cargo test -p radar-core --no-fail-fast            │
+│                      ││   approve once  approve for session  deny  view diff │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5… esc stop · alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > approval at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ⚠ ×]                                                                       ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││⚠ allow shell?                                                                      ││                                              │
+│                        ││   cargo test -p radar-core --no-fail-fast                                          ││                                              │
+│                        ││   approve once  approve for session  deny  view diff                               ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens esc stop · alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > approval-write at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ⚠ ×]                                         │
+│ ◎ Needs my action  2 ││⚠ allow write?                                        │
+│ ☻ Opened by me       ││   crates/radar-core/src/dock.rs                      │
+│ ⚇ Opened by teammate ││   approve once  deny  view diff                      │
+│ ◙ Opened by bots     ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > approval-write at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ⚠ ×]                                                                       ││                                              │
+│                        ││⚠ allow write?                                                                      ││                                              │
+│                        ││   crates/radar-core/src/dock.rs                                                    ││                                              │
+│                        ││   approve once  deny  view diff                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > empty at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││ no messages yet · type below                         │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││                                                      │
+│ ◙ Opened by bots     ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > empty at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││ no messages yet · type below                                                       ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > error at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ✗ ×]                                         │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││✗ connection to copilot lost; the session can be      │
+│ ◙ Opened by bots     ││  resumed                                             │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > error at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ✗ ×]                                                                       ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││✗ connection to copilot lost; the session can be resumed                            ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > no-sessions at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents ──────────────────────────────────────────────╮
+│ ⇄ Everything         ││                                                      │
+│ ◎ Needs my action  2 ││ no sessions · ctrl-t starts one                      │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││                                                      │
+│ ◙ Opened by bots     ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││ no session · ctrl-t starts one                       │
+│                      ││                                           alt-f full │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > no-sessions at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents ────────────────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││ no sessions · ctrl-t starts one                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││ no session · ctrl-t starts one                                                     ││                                              │
+│                        ││                                                                         alt-f full ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > picker-model at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││ model · ⏎ choose · esc close                         │
+│ ☻ Opened by me       ││ • gpt-5                                              │
+│ ⚇ Opened by teammate ││   claude-sonnet-4.5  premium                         │
+│ ◙ Opened by bots     ││   gemini-3                                           │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > picker-model at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││ model · ⏎ choose · esc close                                                       ││                                              │
+│                        ││ • gpt-5                                                                            ││                                              │
+│                        ││   claude-sonnet-4.5  premium                                                       ││                                              │
+│                        ││   gemini-3                                                                         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > pty at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · codex login ────────────────────────────────╮
+│ ⇄ Everything         ││ [$ codex login ×]                                    │
+│ ◎ Needs my action  2 ││                                                      │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││                                                      │
+│ ◙ Opened by bots     ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││connection lost (connect ENOENT /tmp/x.sock)  ctrl-] …│
+│                      ││ copilot · gpt-5 · ~/radar · main · 1.2… ctrl-] leave │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > pty at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · codex login ──────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [$ codex login ×]                                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││connection lost (connect ENOENT /tmp/x.sock)  ctrl-] leave                          ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens                        ctrl-] leave ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > question at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ⚠ ×]                                         │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││@ Fix: Which fix do you want?                         │
+│ ◙ Opened by bots     ││   1 revert  undo the last commit                     │
+│                      ││   2 patch                                            │
+│                      ││   1-2 choose  ⏎ or type your own answer  esc decline │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gp… esc decline · alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > question at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ⚠ ×]                                                                       ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││@ Fix: Which fix do you want?                                                       ││                                              │
+│                        ││   1 revert  undo the last commit                                                   ││                                              │
+│                        ││   2 patch                                                                          ││                                              │
+│                        ││   1-2 choose  ⏎ or type your own answer  esc decline                               ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k to… esc decline · alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > question-answered at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││@ Which fix do you want? → patch                      │
+│ ◙ Opened by bots     ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > question-answered at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││@ Which fix do you want? → patch                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > question-several at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ⚠ ×]                                         │
+│ ◎ Needs my action  2 ││@ Crate: Which crate? → radar-core                    │
+│ ☻ Opened by me       ││  Checks: Which checks?                               │
+│ ⚇ Opened by teammate ││   1   tests                                          │
+│ ◙ Opened by bots     ││   2   clippy                                         │
+│                      ││   3   fmt                                            │
+│                      ││   1-3 pick  ⏎ submit  ⏎ or type your own answer      │
+│                      ││   esc decline                                        │
+│                      ││  then: Commit?                                       │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gp… esc decline · alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > question-several at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ⚠ ×]                                                                       ││                                              │
+│                        ││@ Crate: Which crate? → radar-core                                                  ││                                              │
+│                        ││  Checks: Which checks?                                                             ││                                              │
+│                        ││   1   tests                                                                        ││                                              │
+│                        ││   2   clippy                                                                       ││                                              │
+│                        ││   3   fmt                                                                          ││                                              │
+│                        ││   1-3 pick  ⏎ submit  ⏎ or type your own answer  esc decline                       ││                                              │
+│                        ││  then: Commit?                                                                     ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k to… esc decline · alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > slash-commands at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││ no messages yet · type below                         │
+│ ☻ Opened by me       ││ /compact  [instructions]  Free up context by summaris│
+│ ⚇ Opened by teammate ││ /context  Show context usage                         │
+│ ◙ Opened by bots     ││ /config   key=value  Change a setting                │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││> /co                                                 │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > slash-commands at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││ no messages yet · type below                                                       ││                                              │
+│                        ││ /compact  [instructions]  Free up context by summarising the conversation          ││                                              │
+│                        ││ /context  Show context usage                                                       ││                                              │
+│                        ││ /config   key=value  Change a setting                                              ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││> /co                                                                               ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > stopped at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ⊘ ×]                                         │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││  Let me look at the failing job and the last commit  │
+│ ◙ Opened by bots     ││  before saying anything.                             │
+│                      ││                                                      │
+│                      ││ℹ stopped by you                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > stopped at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ⊘ ×]                                                                       ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││  Let me look at the failing job and the last commit before saying anything.        ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││ℹ stopped by you                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > streaming at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ⠷ ×]                                         │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││  Let me look at the failing job and the last commit  │
+│ ◙ Opened by bots     ││  before saying anything.                             │
+│                      ││                                                      │
+│                      ││● run cargo check -p radar-core                       │
+│                      ││                                                      │
+│                      ││● The check is running; so far it reports             │
+│                      ││                                                      │
+│                      ││☻ and the clippy run?                                 │
+│                      ││  queued: sent when this turn ends                    │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5… esc stop · alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > streaming at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ⠷ ×]                                                                       ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││  Let me look at the failing job and the last commit before saying anything.        ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││● run cargo check -p radar-core                                                     ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││● The check is running; so far it reports                                           ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││☻ and the clippy run?                                                               ││                                              │
+│                        ││  queued: sent when this turn ends                                                  ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens esc stop · alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > tool-folded at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││  Let me look at the failing job and the last commit  │
+│ ◙ Opened by bots     ││  before saying anything.                             │
+│                      ││                                                      │
+│                      ││$ run git log -3 --oneline ⋯ 3                        │
+│                      ││  reasoning ⋯ 3                                       │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > tool-folded at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││  Let me look at the failing job and the last commit before saying anything.        ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││$ run git log -3 --oneline ⋯ 3                                                      ││                                              │
+│                        ││  reasoning ⋯ 3                                                                     ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > tool-open at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││  Let me look at the failing job and the last commit  │
+│ ◙ Opened by bots     ││  before saying anything.                             │
+│                      ││                                                      │
+│                      ││$ run git log -3 --oneline                            │
+│                      ││├ f506806c Agent dock plan                            │
+│                      ││├ 7e5c0800 Merge #30                                  │
+│                      ││└ 0bd7a64a Tint chip grounds                          │
+│                      ││  The last commit only touched docs.                  │
+│                      ││  So the failure is older.                            │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > tool-open at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││  Let me look at the failing job and the last commit before saying anything.        ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││$ run git log -3 --oneline                                                          ││                                              │
+│                        ││├ f506806c Agent dock plan                                                          ││                                              │
+│                        ││├ 7e5c0800 Merge #30                                                                ││                                              │
+│                        ││└ 0bd7a64a Tint chip grounds                                                        ││                                              │
+│                        ││  The last commit only touched docs.                                                ││                                              │
+│                        ││  So the failure is older.                                                          ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > two-tabs at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]  mr-1234 ⠷ ×                              │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││  Let me look at the failing job and the last commit  │
+│ ◙ Opened by bots     ││  before saying anything.                             │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > two-tabs at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]  mr-1234 ⠷ ×                                                            ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││  Let me look at the failing job and the last commit before saying anything.        ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > unfocused at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ views ───────────────╮╭ agents · review ─────────────────────────────────────╮
+│ ⇄ Everything         ││ [review ×]                                           │
+│ ◎ Needs my action  2 ││☻ Why does the build fail on main?                    │
+│ ☻ Opened by me       ││                                                      │
+│ ⚇ Opened by teammate ││  Let me look at the failing job and the last commit  │
+│ ◙ Opened by bots     ││  before saying anything.                             │
+│                      ││                                                      │
+│                      ││$ run git log -3 --oneline ⋯ 3                        │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││>                                                     │
+│                      ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens       │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`the dock, every state, both sizes > unfocused at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
+│ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
+│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
+│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
+│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────╯│                                              │
+│                        │╭ agents · review ───────────────────────────────────────────────────────────────────╮│                                              │
+│                        ││ [review ×]                                                                         ││                                              │
+│                        ││☻ Why does the build fail on main?                                                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││  Let me look at the failing job and the last commit before saying anything.        ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││$ run git log -3 --oneline ⋯ 3                                                      ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││>                                                                                   ││                                              │
+│                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens                                     ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;

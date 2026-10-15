@@ -1,0 +1,149 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "/work/other"
+    },
+    {
+      "id": "workspace.workspaces.use",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "use it"
+    },
+    {
+      "id": "workspace.workspaces.pass",
+      "key": {
+        "key": {
+          "char": "n"
+        }
+      },
+      "label": "not now"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " ? "
+          },
+          {
+            "ink": "secondary",
+            "text": "Found in /work/other: "
+          },
+          {
+            "ink": "primary",
+            "strong": true,
+            "text": "a workspace with 3 clones"
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": ". Use it?"
+          }
+        ]
+      },
+      {
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a workspace"
+          },
+          {
+            "ink": "muted",
+            "text": "   a folder of clones"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "14 clones"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "acme        "
+          },
+          {
+            "ink": "secondary",
+            "text": "/work/acme"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "radar found a workspace at /work/other. Do you want to use it?"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "FOUND"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "folder    "
+      },
+      {
+        "ink": "primary",
+        "text": "/work/other"
+      }
+    ],
+    [
+      {
+        "ink": "muted",
+        "text": "clones    "
+      },
+      {
+        "ink": "number",
+        "text": "3 clones in it"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "primary",
+        "text": "A git repo whose folder holds other clones. Using it makes it a workspace: its tickets' notes are read from it, and the editor and a terminal open at its top."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [[workspace.space]]"
+      }
+    ]
+  ],
+  "detail_title": "found in /work/other",
+  "scope": "workspaces",
+  "version": 1
+}

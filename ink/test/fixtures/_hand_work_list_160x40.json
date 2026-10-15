@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "scope": "work",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "Views",
+      "body": {
+        "node": "list",
+        "selected": 1,
+        "rows": [
+          { "target": "v:mine", "text": [{ "icon": "repo" }, { "text": "My work", "strong": true }], "right": [{ "text": "4", "ink": "number" }] },
+          { "target": "v:review", "text": [{ "text": "To review" }], "right": [{ "text": "2", "ink": "number" }] }
+        ]
+      }
+    },
+    {
+      "pane": "middle",
+      "title": "Items",
+      "body": {
+        "node": "tree",
+        "columns": [{ "heading": "State", "width": 8, "keep": 5 }, { "heading": "Owner", "width": 12, "keep": 6 }],
+        "name_width": 40,
+        "open": [["g"]],
+        "selected": ["g", "a"],
+        "rows": [
+          { "id": "g", "name": [{ "text": "radar", "strong": true }], "children": [
+            { "id": "a", "name": [{ "text": "Fix the diff view" }], "cells": [{ "heading": "State", "text": [{ "text": "open", "ink": "good" }] }, { "heading": "Owner", "text": [{ "text": "Ada" }] }] }
+          ] }
+        ]
+      }
+    }
+  ],
+  "actions": []
+}

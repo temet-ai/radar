@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/icons.rs
+expression: "crate::shell::to_text(&host, 80, 24)"
+---
+ radar    ≣ History   ⚙ Settings (,)                                     ✎ edit
+╭ settings ────────────╮╭ icons ───────────────────────────────────────────────╮
+│General               ││ code                                                 █
+│  ├─ ⊞ parts          ││   ◆  group                                           ║
+│  ├─ ✎ mode           ││   R  repo              a repository            yours ║
+│  ├─ ◑ colours        ││   ⎇  branch            a branch                      ║
+│  └─ ☺ icons          ││   ◦  commit            a commit                      ║
+│                      ││   ⇄  change                                          ║
+│                      ││   ◌  draft             a change still in draft       ║
+│                      ││   ◈  merged            a change merged               ║
+│                      ││   ⊘  closed                                          ║
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ group ───────────────────────────────────────────────╮
+│                      ││ Shows a group of repositories, a tenancy.            █
+│                      ││                                                      █
+│                      ││ now       ◆                                          █
+│                      ││ from      unicode                                    █
+│                      ││ colour    accent.primary                             █
+│                      ││ pack      unicode                                    █
+│                      ││                                                      █
+│                      ││ The pack's. ⏎ types your own.                        ║
+│                      ││ A glyph takes at most 1 cell in this pack; joined    ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate

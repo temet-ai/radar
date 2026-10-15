@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ local groups ────────────────────────────────────────────────────────────────╮
+│ All items                                                                    │
+│ Unassigned group 0                                                           │
+│ Unassigned group 1                                                 ambiguous │
+│ Unassigned group 2                                                           │
+│ Unassigned group 3                                                           │
+│ Unassigned group 4                                                           │
+│ Unassigned group 5                                                           │
+│ Unassigned group 6                                                           │
+│ Unassigned group 7                                                           │
+│ Unassigned group 8                                                           │
+│ Unassigned group 9                                                           │
+│ Unassigned group 10                                                          │
+│ Unassigned group 11                                                          │
+│ Unassigned group 12                                                          │
+│ Unassigned group 13                                                          │
+│ Unassigned group 14                                                          │
+│ Unassigned group 15                                                          │
+│                                                                              │
+│                                                                              │
+│ Groups · page 1                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

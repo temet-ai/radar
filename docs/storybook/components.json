@@ -1,0 +1,2907 @@
+{
+  "v": 0,
+  "components": {
+    "nodes-documentnode": {
+      "id": "nodes-documentnode",
+      "name": "NodeView",
+      "path": "./stories/nodes/DocumentNode.stories.tsx",
+      "jsDocTags": {},
+      "description": "A document (`Node::Document`, Ratatui `widgets::paragraph`; Ink nodes/index.tsx DocumentNode, reached through\nNodeView as the shell reaches it): lines of styled text, wrapped between words to the pane, or cut at the edge when\n`cut` is set (Ratatui ignores `cut` today; Ink honours it). In a settings detail it scrolls in its pane\n(`scrolls`), with the scrollbar on the frame's border.\n\n**Use it** for prose and facts with no rows to choose: a settings field's explanation, \"can it merge?\", a set-up\npage.\n\n**States:** wrapped, cut, scrolling (settings detail), empty.\n\n**Rules:** section headings inside it are muted bold capitals (`widgets::heading`); label/value facts align at the\nlongest label plus two.\n\nThe story's `node` is the document the host sent; width and height in `ctx` come from the pane.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/index.tsx",
+        "description": "",
+        "displayName": "NodeView",
+        "methods": [],
+        "props": {
+          "node": {
+            "defaultValue": null,
+            "description": "",
+            "name": "node",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/index.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Node"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/index.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "NodeView"
+      },
+      "stories": [
+        {
+          "id": "nodes-documentnode--page-pane",
+          "name": "Page Pane",
+          "snippet": "const PagePane = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={merge}\n      focused={args.ctx.focused}\n      reference={fromScene(overview160Cells as RatatuiScene, { pane: \"can it merge?\" })}\n      body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}\n    />\n  );\n};",
+          "description": "\"Can it merge?\" beside a merge request's overview at 160x40.",
+          "warning": "Incomplete snippet: `merge` could not be resolved statically."
+        },
+        {
+          "id": "nodes-documentnode--settings-detail",
+          "name": "Settings Detail",
+          "snippet": "const SettingsDetail = function Render(args, { globals }) {\n  const ref = fromScene(connection80Cells as RatatuiScene, { pane: connection80.detail_title });\n  const { w, h } = sizeOf(ref, { w: 56, h: 11 });\n  return (\n    <Compare\n      globals={globals}\n      cols={w}\n      rows={h}\n      reference={ref}\n      ink={\n        <InPanel title={connection80.detail_title} width={w} height={h} focused={args.ctx.focused}>\n          <NodeView node={args.node} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused, scrolls: true }} />\n        </InPanel>\n      }\n    />\n  );\n};",
+          "description": "A settings section's detail (GitLab connection, the server field): it scrolls in its panel."
+        }
+      ],
+      "import": "import { Compare, InPanel, NodeView, PaneFigure } from 'radar-ink';\nimport connection80 from '../../test/fixtures/gitlab_settings-connection_80x24.json';"
+    },
+    "nodes-entriesnode": {
+      "id": "nodes-entriesnode",
+      "name": "EntriesNode",
+      "path": "./stories/nodes/EntriesNode.stories.tsx",
+      "jsDocTags": {},
+      "description": "Entries (`Node::Entries`, Ratatui `ui::entries::Entries`): selectable rows with lines under them (a failure and the\nlines that say why) and lines before them that are never chosen (a heading). The selected entry's lines are kept in\nview.\n\n**Use it** where each item needs a few lines of its own: failed jobs and their log lines, threads and their\ncomments.\n\n**States:** an entry selected with its lines, the others plain, empty (the `empty` words).\n\n**Rules:** the selection is the background across the entry's row; marks (✓ ✗ ●) come from the host's `Mark` and\nthe icon pack, never typed in by a part.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/lists.tsx",
+        "description": "ui::entries: lines before a row (never chosen), the head behind one cell of air, the body under it; the cursor's\nhead is highlighted. A pane shorter than the lines shows them from the scroll's first line (HitRegion keeps it).",
+        "displayName": "EntriesNode",
+        "methods": [],
+        "props": {
+          "rows": {
+            "defaultValue": null,
+            "description": "",
+            "name": "rows",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "EntryView[]"
+            }
+          },
+          "selected": {
+            "defaultValue": null,
+            "description": "",
+            "name": "selected",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number | null"
+            }
+          },
+          "empty": {
+            "defaultValue": null,
+            "description": "",
+            "name": "empty",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "string"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "EntriesNode"
+      },
+      "stories": [
+        {
+          "id": "nodes-entriesnode--failed-jobs",
+          "name": "Failed Jobs",
+          "snippet": "const FailedJobs = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={red80Cells as RatatuiScene} />;",
+          "description": "\"Why main is red\" on a repository's Pipelines on main tab at 80x24: the failed jobs with their lines.",
+          "warning": "Incomplete snippet: `args: argsOf(pane80)` could not be resolved statically."
+        },
+        {
+          "id": "nodes-entriesnode--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={red160Cells as RatatuiScene} />;",
+          "description": "The same at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(pane80)`, `args: argsOf(pane160)` could not be resolved statically."
+        }
+      ],
+      "import": "import { EntriesNode, PaneFigure } from 'radar-ink';"
+    },
+    "nodes-listnode": {
+      "id": "nodes-listnode",
+      "name": "ListNode",
+      "path": "./stories/nodes/ListNode.stories.tsx",
+      "jsDocTags": {},
+      "description": "A row list (`Node::List`, Ratatui `ui::rows::RowList`): selectable rows, each with words at the left, an optional\nword at the right (`right`) and a `detail` dropped whole when it does not fit. A heading row (`ListRow.heading`)\nis never selected; the cursor steps over it.\n\n**Use it** for a nav pane's views, a settings section's rows and any flat choice of places. Use a table for items\nwith columns, a tree for nested items.\n\n**States:** selected with the keys (bold emphasis on the selection background across the row), selected without\nthe keys (the quieter selection), plain rows, a heading, a row being edited in place (`editing`).\n\n**Rules:** the selection is the background across the whole row, never a marker glyph (no `›`, `▶`). Counts at\nthe right are `data.number`, plain words. Keys `↓ ↑ Home End PgDn PgUp` move over headings.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/lists.tsx",
+        "description": "ui::rows::list: one cell of air, the left part cut to leave room for the word at the right edge, that word one cell\nfrom the edge; the detail only when it fits whole.",
+        "displayName": "ListNode",
+        "methods": [],
+        "props": {
+          "rows": {
+            "defaultValue": null,
+            "description": "",
+            "name": "rows",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "ListRow[]"
+            }
+          },
+          "selected": {
+            "defaultValue": null,
+            "description": "",
+            "name": "selected",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number | null"
+            }
+          },
+          "editing": {
+            "defaultValue": null,
+            "description": "",
+            "name": "editing",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "{ row: number; at: number; text: string; caret: number; } | null"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "ListNode"
+      },
+      "stories": [
+        {
+          "id": "nodes-listnode--unfocused",
+          "name": "Unfocused",
+          "snippet": "const Unfocused = (args, { globals }) => <InPane args={args} globals={globals} pane={views} scene={repos80Cells as RatatuiScene} />;",
+          "description": "GitLab's views in the nav while the middle pane has the keys: the selected row on the quieter selection.",
+          "warning": "Incomplete snippet: `views` could not be resolved statically."
+        },
+        {
+          "id": "nodes-listnode--focused",
+          "name": "Focused",
+          "snippet": "const Focused = (args, { globals }) => <InPane args={args} globals={globals} pane={navFocused} scene={navFocusCells as RatatuiScene} />;",
+          "description": "The nav pane has the keys (`highlight_focused-pane-nav`): the selected row bold on the selection background.",
+          "warning": "Incomplete snippet: `navFocused` could not be resolved statically."
+        },
+        {
+          "id": "nodes-listnode--settings-rows",
+          "name": "Settings Rows",
+          "snippet": "const SettingsRows = function Render(args, { globals }) {\n  const ref = fromScene(connection80Cells as RatatuiScene, { pane: \"GitLab connection\" });\n  const { w, h } = sizeOf(ref, { w: 56, h: 10 });\n  return (\n    <Compare\n      globals={globals}\n      cols={w}\n      rows={h}\n      reference={ref}\n      ink={\n        <InPanel title=\"GitLab connection\" width={w} height={h} focused={args.ctx.focused}>\n          <ListNode {...args} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused }} />\n        </InPanel>\n      }\n    />\n  );\n};",
+          "description": "A settings section's rows (GitLab connection): label and value rows in a plain panel, as App's SectionBody\ndraws a section."
+        }
+      ],
+      "import": "import { Compare, InPanel, ListNode, PaneFigure } from 'radar-ink';\nimport connection80 from '../../test/fixtures/gitlab_settings-connection_80x24.json';"
+    },
+    "nodes-lognode": {
+      "id": "nodes-lognode",
+      "name": "LogNode",
+      "path": "./stories/nodes/LogNode.stories.tsx",
+      "jsDocTags": {},
+      "description": "A log (`Node::Log`, Ratatui inline loop plus `ui::scroll::scrollbar`): long output such as a job's trace, with a\nterminal's colours mapped to theme slots (`LogPaintLine` runs), sections that fold under their titles, `/` matches\nstanding out, and a scrollbar on the frame's right border when it scrolls.\n\n**Use it** for any long machine output. Use entries when each item needs only a few lines.\n\n**States:** the tail shown (the host sends the last lines it holds), scrolled (`top`), empty.\n\n**Rules:** colours come from the slots the host mapped the ANSI colours to, never the raw ANSI; folded sections\nread `─ … ⋯ n lines`, no chevrons. Keys: `/` search, `n`/`N` between matches, `+`/`-` fold.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/lists.tsx",
+        "description": "ui::log in the pane: each line at the left edge, the selected one highlighted across the row.",
+        "displayName": "LogNode",
+        "methods": [],
+        "props": {
+          "lines": {
+            "defaultValue": null,
+            "description": "",
+            "name": "lines",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "LogPaintLine[]"
+            }
+          },
+          "top": {
+            "defaultValue": null,
+            "description": "",
+            "name": "top",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "total": {
+            "defaultValue": null,
+            "description": "",
+            "name": "total",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "empty": {
+            "defaultValue": null,
+            "description": "",
+            "name": "empty",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "string"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "LogNode"
+      },
+      "stories": [
+        {
+          "id": "nodes-lognode--tail",
+          "name": "Tail",
+          "snippet": "const Tail = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={log80Cells as RatatuiScene} />;",
+          "description": "A failed job's log tail on its page at 80x24.",
+          "warning": "Incomplete snippet: `args: argsOf(pane80)` could not be resolved statically."
+        },
+        {
+          "id": "nodes-lognode--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={log160Cells as RatatuiScene} />;",
+          "description": "The same at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(pane80)`, `args: argsOf(pane160)` could not be resolved statically."
+        }
+      ],
+      "import": "import { LogNode, PaneFigure } from 'radar-ink';"
+    },
+    "nodes-meterlines": {
+      "id": "nodes-meterlines",
+      "name": "NodeView",
+      "path": "./stories/nodes/MeterLines.stories.tsx",
+      "jsDocTags": {},
+      "description": "The stage bar (`Block::Meter` in a `Node::Rich`, Ratatui `ui::meter::stages`; Ink nodes/index.tsx MeterLines,\nreached through NodeView): the steps of a run across the width, a bar of `▀` over each stage's mark and name, each\nin the stage's look (its run state's tone). It sits under a PIPELINE section (`Block::Section`).\n\n**Use it** under a PIPELINE heading in a detail pane or an item page, for a pipeline's or a workflow's stages.\n\n**States:** each stage by its `Mark` (done ✓, failed ✗, running ●, waiting ◷, manual ▷, stopped ⊘, skipped »);\nnames cut to the stage's share of the width; no stages draws nothing.\n\n**Rules:** the marks read without colour; the colour is the stage's look, a theme slot. No pill or round caps on\nthe bars.\n\n**Data gap:** every recorded view (ink/test/fixtures) carries `\"stages\": []`, so this story shows the real detail\npane where the meter sits, with an empty bar. A surface with stages (a merge request page's Pipeline tab) recorded by\ntests/view_fixtures.rs and tests/ratatui_cells.rs would give both renderers' pictures of a filled bar.\n\nThe story's `node` is the whole rich node of the pane, as the host sent it.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/index.tsx",
+        "description": "",
+        "displayName": "NodeView",
+        "methods": [],
+        "props": {
+          "node": {
+            "defaultValue": null,
+            "description": "",
+            "name": "node",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/index.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Node"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/index.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "NodeView"
+      },
+      "stories": [
+        {
+          "id": "nodes-meterlines--recorded-detail",
+          "name": "Recorded Detail",
+          "snippet": "const RecordedDetail = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={pane}\n      focused={args.ctx.focused}\n      reference={fromText(actions160Snap, \"tests/snapshots/mix__gitlab+github+jira+slack+git+workspace+workbench_row_actions_160x40.snap\", { snap: true, pane: \"api !263\" })}\n      body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}\n    />\n  );\n};",
+          "description": "A merge request's detail pane at 160x40: the PIPELINE section, passed, and the meter the host sent (no stages\nrecorded).",
+          "warning": "Incomplete snippet: `pane` could not be resolved statically."
+        }
+      ],
+      "import": "import { NodeView, PaneFigure } from 'radar-ink';"
+    },
+    "nodes-tablenode": {
+      "id": "nodes-tablenode",
+      "name": "TableNode",
+      "path": "./stories/nodes/TableNode.stories.tsx",
+      "jsDocTags": {},
+      "description": "A table (`Node::Table`, Ratatui `ui::table::Table`): a flat list of one kind of row with column headings and a\ncursor. Columns come from `ColumnSpec` (the same `Columns` a tree uses, so a column means the same in both), are\ndropped by `keep` rank as the width shrinks, and values that do not fit are cut with `…`.\n\n**Use it** for a page's list of items or a history of runs, where every row is the same kind. Use a tree when rows\ngroup under others.\n\n**States:** rows with the cursor row selected, empty (the `empty` words in place of rows), columns dropped when\nnarrow.\n\n**Rules:** headings are muted bold capitals; the selection is the background across the row; no counts in tab\nlabels above it (the tab says \"Merge requests\", not \"Merge requests · 1\", #33).",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/lists.tsx",
+        "description": "ui::table: padded by a cell each side; one bold muted heading row in capitals; the cursor row highlighted across the\nwhole width. A cell too long for its column ends in `…`.",
+        "displayName": "TableNode",
+        "methods": [],
+        "props": {
+          "columns": {
+            "defaultValue": null,
+            "description": "",
+            "name": "columns",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "ColumnSpec[]"
+            }
+          },
+          "rows": {
+            "defaultValue": null,
+            "description": "",
+            "name": "rows",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "TableRow[]"
+            }
+          },
+          "selected": {
+            "defaultValue": null,
+            "description": "",
+            "name": "selected",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number | null"
+            }
+          },
+          "empty": {
+            "defaultValue": null,
+            "description": "",
+            "name": "empty",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string | null"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/lists.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "TableNode"
+      },
+      "stories": [
+        {
+          "id": "nodes-tablenode--rows",
+          "name": "Rows",
+          "snippet": "const Rows = (args, { globals }) => <InPane args={args} globals={globals} pane={mrs80Pane} scene={mrs80Cells as RatatuiScene} />;",
+          "description": "A repository's merge requests on its page at 80x24, the first row selected.",
+          "warning": "Incomplete snippet: `args: argsOf(mrs80Pane)` could not be resolved statically."
+        },
+        {
+          "id": "nodes-tablenode--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={mrs160Pane} scene={mrs160Cells as RatatuiScene} />;",
+          "description": "The same table at 160x40: the columns dropped at 80 come back.",
+          "warning": "Incomplete snippet: `args: argsOf(mrs80Pane)`, `args: argsOf(mrs160Pane)` could not be resolved statically."
+        },
+        {
+          "id": "nodes-tablenode--empty",
+          "name": "Empty",
+          "snippet": "const Empty = (args, { globals }) => <InPane args={args} globals={globals} pane={reposPane} scene={repos80Cells as RatatuiScene} />;",
+          "description": "A table with no rows: the host's `empty` words where the rows go.",
+          "warning": "Incomplete snippet: `args: argsOf(mrs80Pane)`, `args: argsOf(reposPane)` could not be resolved statically."
+        }
+      ],
+      "import": "import { PaneFigure, TableNode } from 'radar-ink';"
+    },
+    "nodes-treenode": {
+      "id": "nodes-treenode",
+      "name": "TreeNode",
+      "path": "./stories/nodes/TreeNode.stories.tsx",
+      "jsDocTags": {},
+      "description": "The banded tree (`Node::Tree`, Ratatui `ui::tree::BandedTree`): the one tree every part uses for nested data\n(groups, then sources, then items). Each row has a name, cells in the tree's columns (aligned at every depth and\ndropped by `keep` rank as the width shrinks), optional chips after the name, and a `detail` shown whole or not at\nall.\n\n**Use it** when rows group under others and folding helps (a tenancy, its repositories, their merge requests). Use\na table when the rows are one kind.\n\n**States:** open (tree lines `├─ └─ │` show what is open), folded (the row ends in `⋯ n`, the count of rows it\nholds), selected (the selection background across the whole row, bold emphasis text), selected without focus (a\nquieter background when another pane has the keys), group rows on the heading band.\n\n**Rules:** no chevrons (▸ ▾ › ⌄) and no `[+]`/`[-]` for folding: the tree lines and `⋯ n` say it. No left-edge\nstripes for new work (the group stripe `▌` is on its way out, #45). Selection is the background across the row,\nnever a marker glyph. Keys: `space` toggles a fold, `+`/`=` open, `-` closes or goes to the parent.\n\nWidth and height in `ctx` come from the pane the story draws it in.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/nodes/tree.tsx",
+        "description": "",
+        "displayName": "TreeNode",
+        "methods": [],
+        "props": {
+          "tree": {
+            "defaultValue": null,
+            "description": "",
+            "name": "tree",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/tree.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Tree"
+            }
+          },
+          "ctx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "ctx",
+            "declarations": [
+              {
+                "fileName": "ink/src/nodes/tree.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeContext"
+            }
+          }
+        },
+        "exportName": "TreeNode"
+      },
+      "stories": [
+        {
+          "id": "nodes-treenode--open",
+          "name": "Open",
+          "snippet": "const Open = (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={repos80Cells as RatatuiScene} />;",
+          "description": "Every group open, the first group row selected with the keys in this pane (GitLab Repositories at 80x24).",
+          "warning": "Incomplete snippet: `pane80` could not be resolved statically."
+        },
+        {
+          "id": "nodes-treenode--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Figure args={args} globals={globals} pane={pane160} scene={repos160Cells as RatatuiScene} />;",
+          "description": "The same tree at 160x40: the columns the 80-cell pane dropped come back, aligned at every depth.",
+          "warning": "Incomplete snippet: `pane160` could not be resolved statically."
+        },
+        {
+          "id": "nodes-treenode--folded",
+          "name": "Folded",
+          "snippet": "const Folded = (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={undefined} missing={\"tests/ratatui_cells.rs records no folded tree. A `highlight_folded-row` scene there would give one.\"} />;",
+          "description": "team-a folded: its row keeps its cells and ends in `⋯ n`; no chevron, no `[+]`.",
+          "warning": "Incomplete snippet: `...tree80`, `tree80` could not be resolved statically."
+        },
+        {
+          "id": "nodes-treenode--unfocused",
+          "name": "Unfocused",
+          "snippet": "const Unfocused = (args, { globals }) => <Figure args={args} globals={globals} pane={paneOf((navFocusCells as RatatuiScene).view!.screen, \"Everything\")} scene={navFocusCells as RatatuiScene} />;",
+          "description": "The nav pane has the keys: the tree's selected row keeps a quieter selection background, the frame is muted.",
+          "warning": "Incomplete snippet: `pane80` could not be resolved statically."
+        }
+      ],
+      "import": "import { PaneFigure, TreeNode } from 'radar-ink';"
+    },
+    "text-chips": {
+      "id": "text-chips",
+      "name": "TextLine",
+      "path": "./stories/text/Chips.stories.tsx",
+      "jsDocTags": {},
+      "description": "A chip (`Seg.chip`, Ratatui `widgets::chip` and `ui::chips::chip_spans`): a short label after a row's name, on the\noverlay shade, one space each side: ` ` + the icon and its gap in the icon's own colour + `words ` in the tone's\ncolour. A row's `Chips.gives` names the run of the name that gives way to them while it keeps a dozen cells.\n\n**Use it** for a state or a fact worth seeing in the list (discussed in Slack, a local folder, needs you).\n\n**States:** each tone (plain, muted, accent, info, good, warn, bad; accent, warn and bad are bold), with or without\nan icon, given way (not drawn) when the name needs the room.\n\n**Rules:** square, never a pill: a ground and one space each side, no round caps (powerline half circles). No left stripe. The\ntone is a theme slot through `widgets::tone`; a part never picks the colour.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/text/TextLine.tsx",
+        "description": "One line of rich text, as one Ink <Text> of plain characters with style runs (no node per segment). Wraps nothing: the\ncaller gives it a Box of the width it may use.",
+        "displayName": "TextLine",
+        "methods": [],
+        "props": {
+          "text": {
+            "defaultValue": null,
+            "description": "",
+            "name": "text",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/TextLine.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Text"
+            }
+          },
+          "plain": {
+            "defaultValue": null,
+            "description": "",
+            "name": "plain",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/TextLine.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
+          }
+        },
+        "exportName": "TextLine"
+      },
+      "stories": [
+        {
+          "id": "text-chips--recorded",
+          "name": "Recorded",
+          "snippet": "const Recorded = function Render(args: Args, { globals }: { globals: Globals }) {\n  const ref = discussedRef();\n  return (\n    <Compare\n      globals={globals}\n      cols={ref.cells[0]!.length}\n      rows={1}\n      reference={ref}\n      ink={\n        <Box width={ref.cells[0]!.length}>\n          <TextLine text={args.text.filter((s) => s.chip)} />\n        </Box>\n      }\n    />\n  );\n};",
+          "description": "The chip on Jira ABC-12 (`discussed · 1`, muted, the thread icon), beside Ratatui's cells for the same chip. Turn\nthe icons on in the toolbar to see the icon slot.",
+          "warning": "Incomplete snippet: `recordedChips` could not be resolved statically."
+        },
+        {
+          "id": "text-chips--every-tone",
+          "name": "Every Tone",
+          "snippet": "const EveryTone = function Render(args, { globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={110}\n      rows={1}\n      missing=\"the recorded views carry only the muted chip; a row with a chip in every tone recorded by tests/ratatui_cells.rs would give one.\"\n      ink={\n        <Box width={110}>\n          <TextLine text={args.text} />\n        </Box>\n      }\n    />\n  );\n};",
+          "description": "The recorded chip in each of the seven tones, with its words replaced by the tone's name. No recorded reference\nhas more than the muted chip.",
+          "warning": "Incomplete snippet: `TONES`, `chip` could not be resolved statically."
+        }
+      ],
+      "import": "import { Box } from 'ink';\nimport { Compare, TextLine } from 'radar-ink';"
+    },
+    "text-diffview": {
+      "id": "text-diffview",
+      "name": "DiffView",
+      "path": "./stories/text/DiffView.stories.tsx",
+      "jsDocTags": {},
+      "description": "One file's changes (`Node::Diff`, Ratatui `ui::diff::DiffView`): hunks with both sides' line numbers, added and\nremoved lines on a tint, the cursor row marked `▎`, code coloured by the host (`painted` runs; Ratatui highlights\nitself with syntect), and blocks under a line (`under`: a thread, a comment being written).\n\n**Use it** for a merge request's Changes tab, one file at a time; the files are a tree in the nav pane.\n\n**States:** unified, split (two sides, 160 wide), cursor moved, a comment being written under a line.\n\n**Rules:** the cursor mark `▎` is in the gutter cell, not a stripe down the rows; tints and token colours are theme\nslots (`diff.added`, `diff.removed`). Ink draws only rows in view.\n\nThe references are Ratatui's screens as text (tests/view_fixtures.rs writes the `.txt` beside each fixture), so they\nshow no colours.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/text/DiffView.tsx",
+        "description": "",
+        "displayName": "DiffView",
+        "methods": [],
+        "props": {
+          "lines": {
+            "defaultValue": null,
+            "description": "",
+            "name": "lines",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "DiffLine[]"
+            }
+          },
+          "under": {
+            "defaultValue": null,
+            "description": "",
+            "name": "under",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "DiffUnder[]"
+            }
+          },
+          "selected": {
+            "defaultValue": null,
+            "description": "",
+            "name": "selected",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "top": {
+            "defaultValue": null,
+            "description": "",
+            "name": "top",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "split": {
+            "defaultValue": null,
+            "description": "",
+            "name": "split",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "empty": {
+            "defaultValue": null,
+            "description": "",
+            "name": "empty",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "string"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "height": {
+            "defaultValue": null,
+            "description": "",
+            "name": "height",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "focused": {
+            "defaultValue": null,
+            "description": "",
+            "name": "focused",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "plain": {
+            "defaultValue": null,
+            "description": "",
+            "name": "plain",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "painted": {
+            "defaultValue": null,
+            "description": "The host's highlighting of each line (Node::Diff.painted), empty when the language is unknown.",
+            "name": "painted",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "PaintRun[][]"
+            }
+          }
+        },
+        "exportName": "DiffView"
+      },
+      "stories": [
+        {
+          "id": "text-diffview--unified",
+          "name": "Unified",
+          "snippet": "const Unified = (args, { globals }) => <InPane args={args} globals={globals} view={unified80} text={unified80Text} file={\"diff_unified_80x24.txt\"} />;",
+          "description": "docs/README.md in unified form, the cursor on the first hunk.",
+          "warning": "Incomplete snippet: `args: argsOf(unified80)` could not be resolved statically."
+        },
+        {
+          "id": "text-diffview--cursor-moved",
+          "name": "Cursor Moved",
+          "snippet": "const CursorMoved = (args, { globals }) => <InPane args={args} globals={globals} view={cursor80} text={cursor80Text} file={\"diff_cursor_down_80x24.txt\"} />;",
+          "description": "The cursor moved down: the `▎` mark follows it.",
+          "warning": "Incomplete snippet: `args: argsOf(unified80)`, `args: argsOf(cursor80)` could not be resolved statically."
+        },
+        {
+          "id": "text-diffview--inline-comment",
+          "name": "Inline Comment",
+          "snippet": "const InlineComment = (args, { globals }) => <InPane args={args} globals={globals} view={comment80} text={comment80Text} file={\"diff_inline_comment_80x24.txt\"} />;",
+          "description": "A comment being written under line 2 (`under` with an input).",
+          "warning": "Incomplete snippet: `args: argsOf(unified80)`, `args: argsOf(comment80)` could not be resolved statically."
+        },
+        {
+          "id": "text-diffview--split",
+          "name": "Split",
+          "snippet": "const Split = (args, { globals }) => <InPane args={args} globals={globals} view={split160} text={split160Text} file={\"diff_split_160x40.txt\"} />;",
+          "description": "Split form at 160x40: old on the left, new on the right.",
+          "warning": "Incomplete snippet: `args: argsOf(unified80)`, `args: argsOf(split160)` could not be resolved statically."
+        }
+      ],
+      "import": "import { DiffView, PaneFigure } from 'radar-ink';"
+    },
+    "text-richdoc": {
+      "id": "text-richdoc",
+      "name": "RichBlocks",
+      "path": "./stories/text/RichDoc.stories.tsx",
+      "jsDocTags": {},
+      "description": "Rich text (`Block::Doc` in a `Node::Rich`, Ratatui `ui::rich`): any service's formatted text (markdown, Jira's\nADF, Slack's mrkdwn) as one document laid out to the width: paragraphs, headings, lists that hang, quotes,\ncall-outs, code, tables as columns, rules, media; runs with marks, links, mentions and emoji.\n\n**Use it** for a ticket's description, a merge request's description, a comment, a Slack message. Plain facts go\nin line blocks around it.\n\n**States:** laid out at the pane's width (wrapped between words), scrolled when taller than the pane.\n\n**Rules:** a blank row between blocks; links are words (OSC 8 where the terminal can), not raw URLs; list markers\ncome from the document, never chevrons. The story's `blocks` are the ticket's description; the lines around it are\nthe rest of the same recorded pane.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/text/RichDoc.tsx",
+        "description": "ui::rich::Layout::sep: a blank row before every block but the first (a list item's first block has none), so\nblocks that follow each other are a row apart.",
+        "displayName": "RichBlocks",
+        "methods": [],
+        "props": {
+          "blocks": {
+            "defaultValue": null,
+            "description": "",
+            "name": "blocks",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/RichDoc.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "RichBlock[]"
+            }
+          },
+          "plain": {
+            "defaultValue": null,
+            "description": "",
+            "name": "plain",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/RichDoc.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "depth": {
+            "defaultValue": {
+              "value": "0"
+            },
+            "description": "",
+            "name": "depth",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/RichDoc.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "The cells the blocks have; with it paragraphs break as ui::rich does, without it Ink's wrap does.",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/RichDoc.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          }
+        },
+        "exportName": "RichBlocks"
+      },
+      "stories": [
+        {
+          "id": "text-richdoc--ticket-description",
+          "name": "Ticket Description",
+          "snippet": "const TicketDescription = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={ticket80Cells as RatatuiScene} />;",
+          "description": "A Jira ticket's overview at 80x24: facts, then the description.",
+          "warning": "Incomplete snippet: `args: argsOf(pane80)` could not be resolved statically."
+        },
+        {
+          "id": "text-richdoc--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={ticket160Cells as RatatuiScene} />;",
+          "description": "The same at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(pane80)`, `args: argsOf(pane160)` could not be resolved statically."
+        }
+      ],
+      "import": "import { NodeView, PaneFigure, RichBlocks } from 'radar-ink';"
+    },
+    "text-stateview": {
+      "id": "text-stateview",
+      "name": "StateView",
+      "path": "./stories/text/StateView.stories.tsx",
+      "jsDocTags": {},
+      "description": "A pane's state (`Node::State`, Ratatui `ui::states::empty`): what a pane shows in place of rows when there is\nnothing yet, a fetch is running, or it failed. The text says what happened and what to do.\n\n**Use it** when a whole pane has nothing to show. When the rows must stay selectable (a group with nothing under\nit), use a tree `Note` instead.\n\n**States:** `empty`, `loading`, `failed`. Today the three look alike on both renderers (docs/components.md\nsection 2), so the words carry the state.\n\n**Rules:** say what to do next in words (\"Press , for settings\"); no spinner glyph typed in by a part (the host's\nspinner is the kit's); paths in the text join with `/` (the recorded text still says `git › checkouts`, #46).",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/text/StateView.tsx",
+        "description": "Nothing to show, and why: widgets::empty — the empty icon (when the pack has one) then the words, muted, wrapped\nbetween words inside the pane's one-cell padding, for every state (view_tui draws all three the same way). Plain-text\nmode names the state.",
+        "displayName": "StateView",
+        "methods": [],
+        "props": {
+          "state": {
+            "defaultValue": null,
+            "description": "",
+            "name": "state",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/StateView.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "enum",
+              "raw": "State",
+              "value": [
+                {
+                  "value": "\"empty\""
+                },
+                {
+                  "value": "\"loading\""
+                },
+                {
+                  "value": "\"failed\""
+                }
+              ]
+            }
+          },
+          "text": {
+            "defaultValue": null,
+            "description": "",
+            "name": "text",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/StateView.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "string"
+            }
+          },
+          "plain": {
+            "defaultValue": null,
+            "description": "",
+            "name": "plain",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/StateView.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "width": {
+            "defaultValue": {
+              "value": "80"
+            },
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/text/StateView.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          }
+        },
+        "exportName": "StateView"
+      },
+      "stories": [
+        {
+          "id": "text-stateview--empty",
+          "name": "Empty",
+          "snippet": "const Empty = (args, { globals }) => <InPane args={args} globals={globals} withReference={true} />;",
+          "description": "Git with no clones known: the recorded empty state.",
+          "warning": "Incomplete snippet: `pane` could not be resolved statically."
+        },
+        {
+          "id": "text-stateview--loading",
+          "name": "Loading",
+          "snippet": "const Loading = (args, { globals }) => <InPane args={args} globals={globals} withReference={false} />;",
+          "description": "The same node with `state: \"loading\"` (the recorded words kept). No recorded reference.",
+          "warning": "Incomplete snippet: `pane` could not be resolved statically."
+        },
+        {
+          "id": "text-stateview--failed",
+          "name": "Failed",
+          "snippet": "const Failed = (args, { globals }) => <InPane args={args} globals={globals} withReference={false} />;",
+          "description": "The same node with `state: \"failed\"` (the recorded words kept). No recorded reference.",
+          "warning": "Incomplete snippet: `pane` could not be resolved statically."
+        }
+      ],
+      "import": "import { PaneFigure, StateView } from 'radar-ink';"
+    },
+    "chrome-fieldbar": {
+      "id": "chrome-fieldbar",
+      "name": "PaneFrame",
+      "path": "./stories/chrome/FieldBar.stories.tsx",
+      "jsDocTags": {},
+      "description": "The field bar (`PaneView.fields` and `bottom_field`, a `FieldBar`; Ratatui `view_tui::draw_field_bar` with\n`input::TextInput`; Ink chrome/filter.tsx, drawn by PaneFrame): the `/` filter and the `:` go-to at the top of a\npane. Three rows: the mark ` / `, the typed text on the overlay shade with the caret cell reversed, a hint row and a\nblank row; the rows under it narrow as you type.\n\n**Use it** through the host: `/` filters any screen, `:` goes to an item by its id. Parts never draw their own\nfilter box.\n\n**States:** typing (caret at the end or inside), empty, a hint, the bottom field under the body.\n\n**Rules:** the caret is a reversed cell, never a typed `|` or `_`; the field's ground is `bg.overlay`; the hint uses\nglyph keys before the word (`⏎ keep`, `esc clear`).",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/app/Panes.tsx",
+        "description": "",
+        "displayName": "PaneFrame",
+        "methods": [],
+        "props": {
+          "pane": {
+            "defaultValue": null,
+            "description": "",
+            "name": "pane",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Pane"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "height": {
+            "defaultValue": null,
+            "description": "",
+            "name": "height",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "focused": {
+            "defaultValue": null,
+            "description": "",
+            "name": "focused",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "cx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "cx",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeCx"
+            }
+          },
+          "renderNode": {
+            "defaultValue": null,
+            "description": "",
+            "name": "renderNode",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "RenderNode"
+            }
+          }
+        },
+        "exportName": "PaneFrame"
+      },
+      "stories": [
+        {
+          "id": "chrome-fieldbar--typing",
+          "name": "Typing",
+          "snippet": "const Typing = (args, { globals }) => <Draw args={args} globals={globals} scene={typing80Cells as RatatuiScene} />;",
+          "description": "`/` then `g` `g` on the Repositories screen at 80x24 (`highlight_typing-filter`): the tree narrows to matches.",
+          "warning": "Incomplete snippet: `args: argsOf(typing80Cells as RatatuiScene)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-fieldbar--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} scene={typing160Cells as RatatuiScene} />;",
+          "description": "The same at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(typing80Cells as RatatuiScene)`, `args: argsOf(typing160Cells as RatatuiScene)` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, PaneFrame } from 'radar-ink';"
+    },
+    "chrome-menubox": {
+      "id": "chrome-menubox",
+      "name": "MenuBox",
+      "path": "./stories/chrome/MenuBox.stories.tsx",
+      "jsDocTags": {},
+      "description": "A menu or a question (`MenuView`, Ratatui `shell/menu.rs`), over the body: a framed box with a title, then each\nchoice with its key, label and line; headings (HISTORY) are never chosen; a question (`question: true`) is a\ndialog whose choices are buttons. It sits where a context click opened it (`at`) or centred.\n\n**Use it** through the host: `x` opens the place's actions menu, a write asks a question before it is sent. A part\ncontributes choices; it never draws a menu.\n\n**States:** a choice highlighted (the selection background across the row), a heading, a choice with no key, a\nquestion with buttons, a typed field, scrolled (`PgUp/PgDn`), too small to use.\n\n**Rules:** the box clears what is under it (no list showing through); keys stand before the label in their own\ncolumn (`⏎`, `/`, `ctrl-r`); a shadow may dim what is under it but never erase it (#29). No chevrons at the\nchoices, no pill buttons.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/chrome/Chrome.tsx",
+        "description": "",
+        "displayName": "MenuBox",
+        "methods": [],
+        "props": {
+          "menu": {
+            "defaultValue": null,
+            "description": "",
+            "name": "menu",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "MenuView"
+            }
+          },
+          "frame": {
+            "defaultValue": null,
+            "description": "",
+            "name": "frame",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "ChromeFrame"
+            }
+          }
+        },
+        "exportName": "MenuBox"
+      },
+      "stories": [
+        {
+          "id": "chrome-menubox--menu",
+          "name": "Menu",
+          "snippet": "const Menu = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} reference={true} />;",
+          "description": "The Repositories screen's actions menu (`x`) at 80x24 (`highlight_menu`).\n\n**Reference gap:** the scene's recorded `view.menu` is not the whole MenuView Ratatui drew: it has no `selected`\n(Ratatui highlights `/ filter`, Ink the first row) and no keys for \"go to its repositories\" (`⏎`) and \"kept\ncomments\" (`ctrl-r`), and the focused pane is not recorded. tests/ratatui_cells.rs would need to write the full\nMenuView and the focus for the two pictures to be comparable cell for cell.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={true} />;",
+          "description": "The same menu at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, scene160.view!.menu)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-menubox--question",
+          "name": "Question",
+          "snippet": "const Question = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} reference={false} missing={\"no recorded view holds a question. A `highlight_question` scene in tests/ratatui_cells.rs (a write's confirm open over a screen, with its view) would give the data and the reference.\"} />;",
+          "description": "A question before a write: a note, then two buttons. The data is Ink's hand-made test sample\n(ink/test/chrome/fixture.ts `confirm`): no recorded view holds a question.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome80, confirm)` could not be resolved statically."
+        }
+      ],
+      "import": "import { BodyWithMenu, Compare, MenuBox } from 'radar-ink';"
+    },
+    "chrome-statusline": {
+      "id": "chrome-statusline",
+      "name": "StatusRow",
+      "path": "./stories/chrome/StatusLine.stories.tsx",
+      "jsDocTags": {},
+      "description": "The status line (`ChromeView.status`, Ratatui `shell::status_line` and `key_hits`): the mode chip with the scope\n(the place the keys act on), then the key hints for that place or a message, and counts at the right. Hints that do\nnot fit are dropped, the `least_needed` first.\n\n**Use it** as is: the host builds the hints from the focused place's bindings; a part names keys, never draws them.\n\n**States:** hints, a message in place of the hints (info, warn, bad), counts at the right, a hint pressed by the\npointer.\n\n**Rules:** a hint's key sits inside its word, underlined (b̲ulk, q̲uit), not \"b bulk\" (#44); glyph keys (↑↓ ⏎ esc)\ngo before the word. Same key, same action, in the same kind of place across parts. No pill around the scope.\n\nThe story's `frame` is `frameOf(chrome)` (chrome/Chrome.tsx), from the recorded host chrome.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/chrome/Chrome.tsx",
+        "description": "",
+        "displayName": "StatusRow",
+        "methods": [],
+        "props": {
+          "frame": {
+            "defaultValue": null,
+            "description": "",
+            "name": "frame",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "ChromeFrame"
+            }
+          }
+        },
+        "exportName": "StatusRow"
+      },
+      "stories": [
+        {
+          "id": "chrome-statusline--hints",
+          "name": "Hints",
+          "snippet": "const Hints = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} scene={chrome80Cells as RatatuiScene} />;",
+          "description": "The host's status line at 80 wide: the scope and the hints that fit.",
+          "warning": "Incomplete snippet: `frame` could not be resolved statically."
+        },
+        {
+          "id": "chrome-statusline--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} scene={chrome160Cells as RatatuiScene} />;",
+          "description": "At 160 wide more hints fit.",
+          "warning": "Incomplete snippet: `frame` could not be resolved statically."
+        },
+        {
+          "id": "chrome-statusline--attention",
+          "name": "Attention",
+          "snippet": "const Attention = (_args, { globals }) => <DrawAttention globals={globals} c={attention80} />;",
+          "description": "An agent session wants you and its tab is out of sight (the dock hidden, or another tab showing): after the scope,\nthe dock key, then a square chip on its state's ground (warning for needs you, error for failed, success for done),\nthe session's name and what it wants, `+n` for the others. It never gives way to the keys. The key or a click opens\nthe dock on that tab (host `StatusLine.attention`, recorded at 80x24: status/attention_80x24).",
+          "warning": "Incomplete snippet: `frame` could not be resolved statically."
+        },
+        {
+          "id": "chrome-statusline--attention-wide",
+          "name": "Attention Wide",
+          "snippet": "const AttentionWide = (_args, { globals }) => <DrawAttention globals={globals} c={attention160} />;",
+          "description": "The same at 160 wide (status/attention_160x40).",
+          "warning": "Incomplete snippet: `frame` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, StatusLine, StatusRow } from 'radar-ink';\nimport chrome80 from '../../test/fixtures/host_chrome_80x24.json';\nimport chrome160 from '../../test/fixtures/host_chrome_160x40.json';\nimport attention80 from '../../test/fixtures/dock/status/attention_80x24.json';\nimport attention160 from '../../test/fixtures/dock/status/attention_160x40.json';"
+    },
+    "chrome-topbar": {
+      "id": "chrome-topbar",
+      "name": "TopBarRow",
+      "path": "./stories/chrome/TopBar.stories.tsx",
+      "jsDocTags": {},
+      "description": "The top bar (`ChromeView.top_bar`, Ratatui `shell::top_bar` and `tabs`) and, under it, the sources row\n(`ChromeView.sources`, `shell::source_tabs`). The bar holds the brand, a tab per part with its key underlined\ninside the word and an attention badge, History and Settings, the sync words and the mode.\n\n**Use it** as is: the host fills it; parts add a tab through the plugin contract, never draw their own.\n\n**States:** the active tab on the selection shade, a tab with a badge (a waiting count today, one attention dot\nplanned, #33), the bar focused (`keys_at: bar`), a source tab active.\n\n**Rules:** keys live inside their word, underlined (R̲epositories, S̲ettings); a key with no letter goes before\nthe word. Tabs show names, not counts (#33). No pill shapes on tabs or badges.\n\nThe story's `frame` is `frameOf(chrome)` (chrome/Chrome.tsx), from the recorded host chrome.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/chrome/Chrome.tsx",
+        "description": "",
+        "displayName": "TopBarRow",
+        "methods": [],
+        "props": {
+          "frame": {
+            "defaultValue": null,
+            "description": "",
+            "name": "frame",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "ChromeFrame"
+            }
+          }
+        },
+        "exportName": "TopBarRow"
+      },
+      "stories": [
+        {
+          "id": "chrome-topbar--narrow",
+          "name": "Narrow",
+          "snippet": "const Narrow = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} scene={chrome80Cells as RatatuiScene} />;",
+          "description": "The host's chrome at 80 wide: the tabs narrow to their keys and badges.",
+          "warning": "Incomplete snippet: `frame` could not be resolved statically."
+        },
+        {
+          "id": "chrome-topbar--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} scene={chrome160Cells as RatatuiScene} />;",
+          "description": "At 160 wide every tab shows its name.",
+          "warning": "Incomplete snippet: `frame` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, TopBarRow, TopRows } from 'radar-ink';\nimport chrome80 from '../../test/fixtures/host_chrome_80x24.json';\nimport chrome160 from '../../test/fixtures/host_chrome_160x40.json';"
+    },
+    "page-pagebody": {
+      "id": "page-pagebody",
+      "name": "PageBody",
+      "path": "./stories/page/PageBody.stories.tsx",
+      "jsDocTags": {},
+      "description": "An item's page (`PageView`, Ratatui `ui::page::PageFrame` via `render_page`; Ink app/Panes.tsx `PageBody`,\nnodes/pagetitle.tsx, app/TabRow.tsx): the breadcrumbs, the title with its details at the right, the line under it,\nthe tab row, then the tab's panes in the page's layout (`PageLayout`: a pane, a split, or responsive by width).\n\n**Use it** for any one item (a merge request, a ticket, a job): the host builds it from the part's `PageView`.\n\n**States:** a tab chosen, the tab row focused (`keys_at: page_tabs`), the tab window when the tabs do not fit, a\nnotice under the tabs, responsive panes (side by side when wide, stacked when narrow).\n\n**Rules:** breadcrumbs join with a muted ` / ` and the last is bold (both renderers still draw ` › `, #46). Tabs\nshow names, not counts (`Changes · 1 file` and `Threads · 1 open` are still sent, #33). The first crumb is the part\nname. Keys: `[` `]` or `← →` between tabs, `esc` back.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/app/Panes.tsx",
+        "description": "An item page: crumbs, title + details, the line under, the tab row, then the panes in the page's layout.",
+        "displayName": "PageBody",
+        "methods": [],
+        "props": {
+          "page": {
+            "defaultValue": null,
+            "description": "",
+            "name": "page",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "any"
+            }
+          },
+          "focus": {
+            "defaultValue": null,
+            "description": "",
+            "name": "focus",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "height": {
+            "defaultValue": null,
+            "description": "",
+            "name": "height",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "cx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "cx",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeCx"
+            }
+          },
+          "renderNode": {
+            "defaultValue": null,
+            "description": "",
+            "name": "renderNode",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "RenderNode"
+            }
+          }
+        },
+        "exportName": "PageBody"
+      },
+      "stories": [
+        {
+          "id": "page-pagebody--overview",
+          "name": "Overview",
+          "snippet": "const Overview = (args, { globals }) => <Draw args={args} globals={globals} scene={s80} reference={true} />;",
+          "description": "A merge request's Overview tab at 80x24: \"can it merge?\" stacked above the overview (responsive layout).",
+          "warning": "Incomplete snippet: `args: argsOf(page80, s80)` could not be resolved statically."
+        },
+        {
+          "id": "page-pagebody--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} scene={s160} reference={true} />;",
+          "description": "The same page at 160x40: \"can it merge?\" beside the overview.",
+          "warning": "Incomplete snippet: `args: argsOf(page80, s80)`, `args: argsOf(page160, s160)` could not be resolved statically."
+        },
+        {
+          "id": "page-pagebody--tabs-focused",
+          "name": "Tabs Focused",
+          "snippet": "const TabsFocused = (args, { globals }) => <Draw args={args} globals={globals} scene={s80} reference={false} missing={\"tests/ratatui_cells.rs records no page with its tab row focused.\"} />;",
+          "description": "The tab row has the keys (`keys_at: page_tabs`): the chosen tab on the focused shade.",
+          "warning": "Incomplete snippet: `args: argsOf(page80, s80)`, `args: argsOf(page80, s80, true)` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, PageBody } from 'radar-ink';"
+    },
+    "page-tabrow": {
+      "id": "page-tabrow",
+      "name": "TabRow",
+      "path": "./stories/page/TabRow.stories.tsx",
+      "jsDocTags": {},
+      "description": "A page's tab row (`PageView.tabs`, Ratatui `ui::page::tab_row`; Ink app/TabRow.tsx): the tabs' names, the chosen\none on the selection shade, a window of tabs with the chosen one in view when they do not all fit.\n\n**Use it** inside a page (PageBody draws it); the top bar's part tabs are the TopBar.\n\n**States:** a tab chosen, the row focused (the chosen tab on the focused shade), windowed when narrow.\n\n**Rules:** tabs show names, not counts: `Changes · 1 file`, `Threads · 1 open` are counts the host still sends\n(#33). One attention dot when something there waits for you. No pill tabs; square shades only.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/app/TabRow.tsx",
+        "description": "",
+        "displayName": "TabRow",
+        "methods": [],
+        "props": {
+          "labels": {
+            "defaultValue": null,
+            "description": "",
+            "name": "labels",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/TabRow.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "string[]"
+            }
+          },
+          "on": {
+            "defaultValue": null,
+            "description": "",
+            "name": "on",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/TabRow.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "focused": {
+            "defaultValue": null,
+            "description": "",
+            "name": "focused",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/TabRow.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/TabRow.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "registry": {
+            "defaultValue": null,
+            "description": "",
+            "name": "registry",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/TabRow.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "{ add(hit: { x: number; y: number; w: number; h: number; target: string; }): void; addPane?(area: { x: number; y: number; w: number; h: number; pane: string; }): void; }"
+            }
+          },
+          "base": {
+            "defaultValue": null,
+            "description": "",
+            "name": "base",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/TabRow.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string"
+            }
+          }
+        },
+        "exportName": "TabRow"
+      },
+      "stories": [
+        {
+          "id": "page-tabrow--tabs",
+          "name": "Tabs",
+          "snippet": "const Tabs = (args, { globals }) => <Draw args={args} globals={globals} view={page80} c={chrome80} scene={page80Cells as RatatuiScene} />;",
+          "description": "A merge request's tabs at 80 wide, Overview chosen.",
+          "warning": "Incomplete snippet: `args: argsOf(page80, chrome80)` could not be resolved statically."
+        },
+        {
+          "id": "page-tabrow--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} view={page160} c={chrome160} scene={page160Cells as RatatuiScene} />;",
+          "description": "At 160 wide.",
+          "warning": "Incomplete snippet: `args: argsOf(page80, chrome80)`, `args: argsOf(page160, chrome160)` could not be resolved statically."
+        },
+        {
+          "id": "page-tabrow--focused",
+          "name": "Focused",
+          "snippet": "const Focused = (args, { globals }) => <Draw args={args} globals={globals} view={page80} c={chrome80} scene={undefined} missing={\"tests/ratatui_cells.rs records no page with its tab row focused.\"} />;",
+          "description": "The tab row has the keys.",
+          "warning": "Incomplete snippet: `args: argsOf(page80, chrome80)`, `args: argsOf(page80, chrome80, true)` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, TabRow } from 'radar-ink';"
+    },
+    "editor-editoroverlay": {
+      "id": "editor-editoroverlay",
+      "name": "EditorOverlay",
+      "path": "./stories/editor/EditorOverlay.stories.tsx",
+      "jsDocTags": {},
+      "description": "The editor overlay (`Node::Extension` with the `editor` capability in `ScreenView.overlay`; Ratatui\n`view_tui::draw_overlay` and `field`; Ink editor/EditorOverlay.tsx): writing a comment or a description. A focused\npanel over the foot of the body, titled with what is written, the last lines that fit, then the line being typed\nas a field with the caret.\n\n**Use it** through the host's Composer: `⏎` a new line, `ctrl-s` review and send, `esc` stop (asking first when\nthere is text).\n\n**States:** one line, several lines (the panel grows up to two thirds of the body), a selection (Ink draws it;\nRatatui ignores `selection`), wide characters in the line.\n\n**Rules:** the caret is a reversed cell; the title's icon comes from the pack (`Icon::Comment`), not a typed `✎`\n(the recorded title still carries one, docs/components.md section 4). The host owns the text; the overlay only draws\nit.\n\nThe references are Ratatui's screens as text (no colours).",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/editor/EditorOverlay.tsx",
+        "description": "The capturing editor over the foot of the body: a focused panel titled with `title`, the last lines that fit in\ntext.primary, then the line being typed as a field with the caret. The host owns the text; this only draws it.",
+        "displayName": "EditorOverlay",
+        "methods": [],
+        "props": {
+          "data": {
+            "defaultValue": null,
+            "description": "",
+            "name": "data",
+            "declarations": [
+              {
+                "fileName": "ink/src/editor/EditorOverlay.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "EditorData"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/editor/EditorOverlay.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "areaHeight": {
+            "defaultValue": null,
+            "description": "",
+            "name": "areaHeight",
+            "declarations": [
+              {
+                "fileName": "ink/src/editor/EditorOverlay.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          }
+        },
+        "exportName": "EditorOverlay"
+      },
+      "stories": [
+        {
+          "id": "editor-editoroverlay--compose",
+          "name": "Compose",
+          "snippet": "const Compose = (args, { globals }) => <Draw args={args} globals={globals} text={compose80Text} file={\"editor_compose_80x24.txt\"} />;",
+          "description": "A comment on !263 being written at 80x24: two lines kept, the third being typed with wide characters.",
+          "warning": "Incomplete snippet: `args: argsOf(compose80)` could not be resolved statically."
+        },
+        {
+          "id": "editor-editoroverlay--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} text={compose160Text} file={\"editor_compose_160x40.txt\"} />;",
+          "description": "The same at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(compose80)`, `args: argsOf(compose160)` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, EditorOverlay } from 'radar-ink';"
+    },
+    "media-mediablock": {
+      "id": "media-mediablock",
+      "name": "MediaBlock",
+      "path": "./stories/media/MediaBlock.stories.tsx",
+      "jsDocTags": {},
+      "description": "A picture or a file in a document (`RichBlock` `t: \"media\"`, a `Media`; Ratatui `ui::rich::media` and `ui::image`;\nInk media/MediaBlock.tsx). Where no picture is placed it is one fallback line: an icon, the name, the size in pixels\nwhen known. Pictures in the terminal (kitty, sixel) are #38; the Ink kitty drawer is not wired yet.\n\n**Use it** inside rich text; parts send media blocks in a document, never draw them.\n\n**States:** an image with a size, an image with an address, a file; with icons on or off.\n\n**Rules:** the fallback says what it is in words, so it reads without colour or pictures; the icon comes from the\npack. The story's `media` replaces the first media block of the recorded ticket description.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/media/MediaBlock.tsx",
+        "description": "",
+        "displayName": "MediaBlock",
+        "methods": [],
+        "props": {
+          "media": {
+            "defaultValue": null,
+            "description": "",
+            "name": "media",
+            "declarations": [
+              {
+                "fileName": "ink/src/media/MediaBlock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Media"
+            }
+          },
+          "plain": {
+            "defaultValue": null,
+            "description": "",
+            "name": "plain",
+            "declarations": [
+              {
+                "fileName": "ink/src/media/MediaBlock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
+          }
+        },
+        "exportName": "MediaBlock"
+      },
+      "stories": [
+        {
+          "id": "media-mediablock--in-description",
+          "name": "In Description",
+          "snippet": "const InDescription = function Render(args: Args, { globals }: { globals: Globals }) {\n  const blocks = pane.body.blocks.map((b: any, j: number) => (j === docAt ? { ...b, doc: doc.map((d, k) => (k === firstMedia ? { t: \"media\", ...args.media } : d)) } : b));\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={pane}\n      focused\n      size={{ w: 80, h: 22 }}\n      missing={MISSING}\n      body={(ctx) => <NodeView node={{ ...pane.body, blocks }} ctx={ctx} />}\n    />\n  );\n};",
+          "description": "The fallback lines in a Jira ticket's description (dashboard.png at 640x480, a design image, two files).",
+          "warning": "Incomplete snippet: `allMedia` could not be resolved statically."
+        },
+        {
+          "id": "media-mediablock--each-kind",
+          "name": "Each Kind",
+          "snippet": "const EachKind = function Render(_args, { globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={60}\n      rows={allMedia.length}\n      missing={MISSING}\n      ink={\n        <Box flexDirection=\"column\" width={60}>\n          {allMedia.map((m, i) => (\n            <MediaBlock key={i} media={m} />\n          ))}\n        </Box>\n      }\n    />\n  );\n};",
+          "description": "Each media block of that description on its own line, as MediaBlock draws it.",
+          "warning": "Incomplete snippet: `allMedia` could not be resolved statically."
+        }
+      ],
+      "import": "import { Box } from 'ink';\nimport { Compare, MediaBlock, NodeView, PaneFigure } from 'radar-ink';"
+    },
+    "design-canvas": {
+      "id": "design-canvas",
+      "name": "Board",
+      "path": "./stories/design/Canvas.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/Board.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-canvas--main",
+          "name": "Main",
+          "snippet": "const Main = () => <Board name=\"Main\" />;",
+          "description": "00 · radar in Ink: what Ink opens up, and the five rules. Pick another board with the `name` control."
+        }
+      ],
+      "import": "import { Board } from 'radar-ink';"
+    },
+    "design-components": {
+      "id": "design-components",
+      "name": "Board",
+      "path": "./stories/design/Components.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/Board.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-components--chips",
+          "name": "Chips",
+          "snippet": "const Chips = (_args, { globals }) => (\n  <Row>\n    <div style={{ display: \"flex\", flexDirection: \"column\", gap: 16 }}>\n      <Today globals={globals} cols={40} rows={1} caption=\"TextLine, the chip on Jira ABC-12 (jira_tickets_160x40)\">\n        <Box width={40}>\n          <TextLine text={recordedChips()} />\n        </Box>\n      </Today>\n      <Today globals={globals} cols={64} rows={1} caption=\"TextLine, one chip per tone (the board's states)\">\n        <Box width={64}>\n          <TextLine text={stateChips} />\n        </Box>\n      </Today>\n    </div>\n    <Shipped board=\"Components\" picks={targetOf(\"Chips\")} what=\"the canvas's tinted chips (#30)\" width={760} />\n  </Row>\n);",
+          "description": "Chips: a tone's text on its tone's tint, 16% over the overlay shade (#30; Jira's recorded chip), as the target\ndraws them."
+        },
+        {
+          "id": "design-components--keys",
+          "name": "Keys",
+          "snippet": "const Keys = (_args, { globals }) => (\n  <Row>\n    <Today globals={globals} cols={80} rows={1} caption=\"The status line (host_chrome_80x24)\">\n      <StatusLine chrome={chrome80 as ChromeView} width={80} height={24} />\n    </Today>\n    <Target board=\"Components\" picks={targetOf(\"Keys\")} issues={[44]} width={760} />\n  </Row>\n);",
+          "description": "Keys: today the status line writes the key, then the word; the target underlines the key inside its word."
+        },
+        {
+          "id": "design-components--tabs",
+          "name": "Tabs",
+          "snippet": "const Tabs = (_args, { globals }) => (\n  <Row>\n    <div style={{ display: \"flex\", flexDirection: \"column\", gap: 16 }}>\n      <Today globals={globals} cols={160} rows={1} caption=\"The top bar (host_chrome_160x40)\">\n        <TopRows chrome={chrome160 as ChromeView} width={160} height={40} />\n      </Today>\n      <Today globals={globals} cols={80} rows={1} caption=\"A merge request page's tab row (gitlab_repos-page1-overview…_80x24)\">\n        <PageTabs />\n      </Today>\n    </div>\n    <Target board=\"Components\" picks={targetOf(\"Tabs\")} issues={[33]} width={760} />\n  </Row>\n);",
+          "description": "Tabs: today the top bar's part tabs carry counts, and page tabs too; the target drops counts for one attention dot."
+        },
+        {
+          "id": "design-components--fields",
+          "name": "Fields",
+          "snippet": "const Fields = (_args, { globals }) => {\n  const pane = paneOf((typing80Cells as RatatuiScene).view!.screen, \"Everything\");\n  return (\n    <Row>\n      <Today globals={globals} cols={56} rows={8} caption=\"The field bar in its pane (highlight_typing-filter-80x24)\">\n        <InPane pane={pane} width={56} height={8} focused body={(ctx) => <TreeNode tree={pane.body as Tree} ctx={ctx} />} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"Fields\")} issues={[47]} note=\"no issue of its own yet\" width={760} />\n    </Row>\n  );\n};",
+          "description": "Fields: today the `/` filter at the top of a pane (highlight_typing-filter); the target says what it acts on and\nhow many match."
+        },
+        {
+          "id": "design-components--people",
+          "name": "People",
+          "snippet": "const People = (_args, { globals }) => {\n  const pane = paneOf(repos80, \"Everything\");\n  return (\n    <Row>\n      <Today globals={globals} cols={56} rows={14} caption=\"Tree rows with their people (gitlab_repos_80x24)\">\n        <InPane pane={pane} width={56} height={14} focused body={(ctx) => <TreeNode tree={pane.body as Tree} ctx={ctx} />} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"People\")} issues={[38]} note=\"avatars come with pictures\" width={760} />\n    </Row>\n  );\n};",
+          "description": "People: today a person is a word (`you`, `group_1_bot`); the target adds the person mark and avatars."
+        },
+        {
+          "id": "design-components--buttons",
+          "name": "Buttons",
+          "snippet": "const Buttons = (_args, { globals }) => {\n  const scene = menu80Cells as RatatuiScene;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={21} caption=\"MenuBox with a question (ink/test/chrome/fixture.ts confirm)\">\n        <BodyWithMenu chrome={chrome80 as ChromeView} screen={scene.view!.screen} menu={confirm as unknown as MenuView} width={80} bodyHeight={21} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"Buttons\")} issues={[44]} width={760} />\n    </Row>\n  );\n};",
+          "description": "Buttons: today a question's buttons (Ink's hand-made confirm sample over the Repositories screen; no recorded\nquestion exists); the target underlines each button's key in its label, one primary per box."
+        }
+      ],
+      "import": "import {\n  Board,\n  BodyWithMenu,\n  InPane,\n  Row,\n  Shipped,\n  StatusLine,\n  TabRow,\n  Target,\n  TextLine,\n  Today,\n  TopRows,\n  TreeNode,\n} from 'radar-ink';\nimport { Box } from 'ink';"
+    },
+    "design-data": {
+      "id": "design-data",
+      "name": "Board",
+      "path": "./stories/design/Data.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/Board.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-data--row-states",
+          "name": "Row States",
+          "snippet": "const RowStates = (_args, { globals }) => (\n  <Row>\n    {treePane(repos80, \"Everything\", globals, \"TreeNode, GitLab Repositories (gitlab_repos_80x24)\")}\n    <Shipped board=\"Data\" picks={[section(\"Trees & row states\")]} what=\"the canvas's drawing of the tree and its row states\" />\n  </Row>\n);",
+          "description": "Trees and the five row states, each shown by its ground alone, beside today's tree."
+        },
+        {
+          "id": "design-data--one-tree-every-part",
+          "name": "One Tree Every Part",
+          "snippet": "const OneTreeEveryPart = (_args, { globals }) => (\n  <Row>\n    <div style={{ display: \"flex\", flexDirection: \"column\", gap: 16 }}>\n      {treePane(repos80, \"Everything\", globals, \"TreeNode in GitLab (gitlab_repos_80x24)\", 14)}\n      {treePane(tickets80, \"My tickets\", globals, \"TreeNode in Jira (jira_tickets_80x24)\", 14)}\n    </div>\n    <Target board=\"Data\" picks={[section(\"One tree, every part\")]} issues={[45]} />\n  </Row>\n);",
+          "description": "One tree in every part: GitLab, Jira, Slack, Git all nest with the same tree, the same keys and the same marks."
+        },
+        {
+          "id": "design-data--meters",
+          "name": "Meters",
+          "snippet": "const Meters = () => <Target board=\"Data\" picks={[section(\"Meters\")]} issues={[31]} note=\"the panel marked new; the stage bar itself is shipped\" />;",
+          "description": "Meters: the stage bar and a ratio, drawn to the eighth of a cell (the panel marked new). Today's stage bar is\nNodes/MeterLines (no recorded stages yet)."
+        },
+        {
+          "id": "design-data--charts",
+          "name": "Charts",
+          "snippet": "const Charts = () => <Target board=\"Data\" picks={[section(\"Charts\")]} issues={[39]} />;",
+          "description": "Charts: bars, braille lines and heat for what changes over time, numbers kept beside them in text."
+        },
+        {
+          "id": "design-data--pipeline-graph",
+          "name": "Pipeline Graph",
+          "snippet": "const PipelineGraph = () => <Target board=\"Data\" picks={[section(\"Pipelines as graphs\")]} issues={[34]} />;",
+          "description": "A GitLab pipeline as a graph of jobs: stages are columns, jobs are boxes bordered in their state, needs are lines\n(laid out with dagre, drawn in cells)."
+        },
+        {
+          "id": "design-data--mermaid",
+          "name": "Mermaid",
+          "snippet": "const Mermaid = () => <Target board=\"Data\" picks={[section(\"Diagrams\")]} issues={[40]} />;",
+          "description": "A mermaid block drawn as a diagram in cells, not shown as source."
+        },
+        {
+          "id": "design-data--editor-and-markdown",
+          "name": "Editor And Markdown",
+          "snippet": "const EditorAndMarkdown = (_args, { globals }) => {\n  const data = (compose80 as any).screen.overlay.body.data as EditorData;\n  const h = editorOverlayHeight(data.lines.length, 21);\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={h} caption=\"EditorOverlay (diff/editor_compose_80x24)\">\n        <EditorOverlay data={data} width={80} areaHeight={21} />\n      </Today>\n      <Target board=\"Data\" picks={[section(\"The editor & markdown\")]} issues={[37]} />\n    </Row>\n  );\n};",
+          "description": "The editor workspace: the markdown source on the left, the live preview on the right. Today: the overlay."
+        },
+        {
+          "id": "design-data--diff-tints",
+          "name": "Diff Tints",
+          "snippet": "const DiffTints = (_args, { globals }) => {\n  const pane = ((unified80 as any).screen.page.panes as any[]).find((p) => p.body?.node === \"diff\");\n  const b = pane.body;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={14} caption=\"DiffView (diff/diff_unified_80x24)\">\n        <InPane\n          pane={pane}\n          width={80}\n          height={14}\n          focused\n          body={(ctx) => <DiffView lines={b.lines} under={b.under} selected={b.selected} top={b.top} split={b.split} painted={b.painted} empty={b.empty} width={ctx.width} height={ctx.height} focused />}\n        />\n      </Today>\n      <Target board=\"Data\" picks={[section(\"Diff\")]} issues={[47]} note=\"the panel marked new; no issue of its own yet\" />\n    </Row>\n  );\n};",
+          "description": "Diff: today coloured text on a tint; the target adds a brighter tint under the words that changed."
+        }
+      ],
+      "import": "import { Board, DiffView, EditorOverlay, InPane, Row, Shipped, Target, Today, TreeNode } from 'radar-ink';"
+    },
+    "design-foundations": {
+      "id": "design-foundations",
+      "name": "Board",
+      "path": "./stories/design/Foundations.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/Board.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-foundations--colour-slots",
+          "name": "Colour Slots",
+          "snippet": "const ColourSlots = () => (\n  <Shipped\n    board=\"Colour\"\n    what=\"the theme's slots (SilkCircuit Neon)\"\n    picks={[intro, sectionsBut([\"Ramps & tints\", \"One row, four tiers\"])]}\n  />\n);",
+          "description": "Colour slots with swatches, their 256 and 16 stand-ins and contrast on a panel (board 01). The slots are shipped;\nthe host sends them as the Look (see the Rules page for every slot at every tier as the host resolves it)."
+        },
+        {
+          "id": "design-foundations--glow-ramp-and-tints",
+          "name": "Glow Ramp And Tints",
+          "snippet": "const GlowRampAndTints = () => <Target board=\"Colour\" picks={[section(\"Ramps & tints\")]} issues={[31, 30]} note=\"#31 the ramp, #30 the tints\" />;",
+          "description": "The glow ramp (one step per cell, for the focused border and the wordmark) and tone tints (a chip's ground in its\ntone)."
+        },
+        {
+          "id": "design-foundations--four-tiers",
+          "name": "Four Tiers",
+          "snippet": "const FourTiers = () => <Shipped board=\"Colour\" what=\"every slot has a 256 and a 16 stand-in\" picks={[section(\"One row, four tiers\")]} />;",
+          "description": "One row at the four colour tiers: the meaning survives every step down; at none, weight and underline carry it."
+        },
+        {
+          "id": "design-foundations--cell-and-hierarchy",
+          "name": "Cell And Hierarchy",
+          "snippet": "const CellAndHierarchy = () => <Shipped board=\"Type\" what=\"the cell grid and the type hierarchy\" picks={[intro, section(\"The cell\"), section(\"The hierarchy, as drawn\")]} />;",
+          "description": "The cell, and the hierarchy as drawn on an item page: every voice radar has, on one screen (board 02)."
+        },
+        {
+          "id": "design-foundations--attributes-and-punctuation",
+          "name": "Attributes And Punctuation",
+          "snippet": "const AttributesAndPunctuation = () => (\n  <div>\n    <TargetLabel issues={[47]} note=\"undercurl and strike (the rows marked new in ink below) have no issue of their own yet; the style guide, #47, orders them\" />\n    <Shipped board=\"Type\" what=\"bold, underline, italic, reverse; punctuation\" picks={[section(\"Attributes\"), section(\"Punctuation\")]} />\n  </div>\n);",
+          "description": "The attributes (bold, underline, italic, reverse shipped; undercurl and strike proposed) and punctuation."
+        },
+        {
+          "id": "design-foundations--display-type",
+          "name": "Display Type",
+          "snippet": "const DisplayType = () => <Target board=\"Type\" picks={[section(\"Display type\")]} issues={[39]} note=\"big digits come with the charts\" />;",
+          "description": "Display type: big digits and a display face for the numbers that are the point of a screen."
+        },
+        {
+          "id": "design-foundations--other-faces",
+          "name": "Other Faces",
+          "snippet": "const OtherFaces = () => <Target board=\"Type\" picks={[section(\"Other faces\")]} issues={[38]} note=\"a face drawn as a picture rides on the pictures work\" />;",
+          "description": "Other faces: three ways to bring in another face, each for one place, each falling back to the terminal face."
+        },
+        {
+          "id": "design-foundations--icons",
+          "name": "Icons",
+          "snippet": "const Icons = () => <Shipped board=\"Icons\" what=\"the icon pack and its fallbacks\" picks={[intro, sectionsBut([\"Part marks\"])]} />;",
+          "description": "Every icon with its fallback, by group, and the packs (board 03)."
+        },
+        {
+          "id": "design-foundations--fixed-icon-slot",
+          "name": "Fixed Icon Slot",
+          "snippet": "const FixedIconSlot = () => <Target board=\"Icons\" picks={[card(\"in ink · a fixed two-cell icon slot\")]} issues={[43]} />;",
+          "description": "The fixed two-cell icon slot: changing pack never moves a column."
+        },
+        {
+          "id": "design-foundations--part-marks",
+          "name": "Part Marks",
+          "snippet": "const PartMarks = () => <Target board=\"Icons\" picks={[section(\"Part marks\")]} issues={[43]} note=\"drawn in the two-cell slot\" />;",
+          "description": "Part marks: each part's own mark in the top bar and on its rows."
+        }
+      ],
+      "import": "import { Board, Shipped, Target, TargetLabel } from 'radar-ink';"
+    },
+    "design-motion": {
+      "id": "design-motion",
+      "name": "MotionReplay",
+      "path": "./stories/design/Motion.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/MotionReplay.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-motion--screen-fade",
+          "name": "Screen Fade",
+          "snippet": "const ScreenFade = (args) => <Shipped args={args} base=\"screen-full\" what=\"screen fade, Ink's Engine\" />;",
+          "description": "Screen fade: a new screen fades in from its text colour over 200 ms."
+        },
+        {
+          "id": "design-motion--page-sweep",
+          "name": "Page Sweep",
+          "snippet": "const PageSweep = (args) => <Shipped args={args} base=\"page-full\" what=\"page sweep, Ink's Engine\" />;",
+          "description": "Page sweep: an item page sweeps in from the left over 300 ms."
+        },
+        {
+          "id": "design-motion--popup-sweep",
+          "name": "Popup Sweep",
+          "snippet": "const PopupSweep = (args) => <Shipped args={args} base=\"popup-full\" what=\"popup sweep, Ink's Engine\" />;",
+          "description": "Popup sweep: a menu sweeps down over 180 ms."
+        },
+        {
+          "id": "design-motion--message",
+          "name": "Message",
+          "snippet": "const Message = (args) => <Shipped args={args} base=\"message-full\" what=\"message in, Ink's Engine\" />;",
+          "description": "Message: a status message sweeps in over 250 ms."
+        },
+        {
+          "id": "design-motion--message-gone",
+          "name": "Message Gone",
+          "snippet": "const MessageGone = (args) => <Shipped args={args} base=\"message_gone-full\" what=\"message out, Ink's Engine\" />;",
+          "description": "Message gone: the message fades out over 200 ms."
+        },
+        {
+          "id": "design-motion--changed-row-glow",
+          "name": "Changed Row Glow",
+          "snippet": "const ChangedRowGlow = (args) => <Shipped args={args} base=\"changed-full\" cue={GLOW_ONLY} what=\"changed-row glow, Ink's Engine (the recorded cue's changed row)\" />;",
+          "description": "Changed row glow: a row whose data changed glows in the accent and settles over 450 ms."
+        },
+        {
+          "id": "design-motion--added-row",
+          "name": "Added Row",
+          "snippet": "const AddedRow = (args) => <Shipped args={args} base=\"changed-full\" cue={ADDED_ONLY} what=\"added row, Ink's Engine (the recorded cue's added row)\" />;",
+          "description": "Added row: a new row sweeps in from the left over 320 ms."
+        },
+        {
+          "id": "design-motion--shimmer",
+          "name": "Shimmer",
+          "snippet": "const Shimmer = (args) => <Shipped args={args} base=\"loading-full\" what=\"loading shimmer, Ink's Engine\" />;",
+          "description": "Shimmer: a panel waiting on its data shimmers (1.4 s a pass) until the rows come."
+        },
+        {
+          "id": "design-motion--fold-unroll",
+          "name": "Fold Unroll",
+          "snippet": "const FoldUnroll = (args) => <Target board=\"Motion\" picks={[card(\"Fold\")]} issues={[32]} props={boardSpeed(args)} width={720} />;",
+          "description": "Fold unroll: a folded group's rows unroll from its line."
+        },
+        {
+          "id": "design-motion--rainbow-focus-lap",
+          "name": "Rainbow Focus Lap",
+          "snippet": "const RainbowFocusLap = (args) => <Target board=\"Motion\" picks={[card(\"Focus · a rainbow lap\")]} issues={[32]} props={boardSpeed(args)} width={900} />;",
+          "description": "A rainbow lap: the ramp runs once around the panel that takes the keys."
+        },
+        {
+          "id": "design-motion--assemble",
+          "name": "Assemble",
+          "snippet": "const Assemble = (args) => <Target board=\"Motion\" picks={[card(\"Assemble\")]} issues={[42]} props={boardSpeed(args)} width={900} />;",
+          "description": "Assemble: a screen builds from its parts in layout order (replaces the screen fade at full)."
+        },
+        {
+          "id": "design-motion--loading-outlines",
+          "name": "Loading Outlines",
+          "snippet": "const LoadingOutlines = (args) => <Target board=\"Motion\" picks={[card(\"Loading · rows take shape\")]} issues={[42]} props={boardSpeed(args)} width={900} />;",
+          "description": "Loading outlines: rows take shape as outlines with a wave, then the real rows read in (replaces the shimmer)."
+        },
+        {
+          "id": "design-motion--notice-drain",
+          "name": "Notice Drain",
+          "snippet": "const NoticeDrain = (args) => <Target board=\"Motion\" picks={[card(\"Notice\")]} issues={[41]} props={boardSpeed(args)} width={720} />;",
+          "description": "Notice drain: a notice's tinted ground drains as its time runs out."
+        }
+      ],
+      "import": "import { MotionReference, MotionReplay, Row, ShippedLabel, Target } from 'radar-ink';"
+    },
+    "design-screen": {
+      "id": "design-screen",
+      "name": "Board",
+      "path": "./stories/design/Screen.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/Board.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-screen--target",
+          "name": "Target",
+          "snippet": "const Target = () => (\n  <div>\n    <TargetLabel issues={[46, 31, 33, 44, 30, 45]} note=\"#46 the detail pane, jump numbers and / breadcrumbs; the rest as listed above\" />\n    <Board name=\"Screen\" />\n  </div>\n);",
+          "description": "The target screen, drawn by the canvas's own grid builder."
+        },
+        {
+          "id": "design-screen--today",
+          "name": "Today",
+          "snippet": "const Today = (_args, { globals }) => (\n  <Compare globals={globals} cols={160} rows={40} reference={fromScene(repos160Cells as RatatuiScene)} ink={<TodayScreen />} />\n);",
+          "description": "Today: Ink's Repositories screen at 160x40 from gitlab_repos_160x40 under the recorded host chrome, beside\nRatatui's cells for the same surface (the chrome rows differ: the host_chrome fixture has no sources row)."
+        }
+      ],
+      "import": "import { Board, Compare, ScreenPanes, StatusLine, TargetLabel, TopRows } from 'radar-ink';\nimport { Box } from 'ink';"
+    },
+    "design-surfaces": {
+      "id": "design-surfaces",
+      "name": "Board",
+      "path": "./stories/design/Surfaces.stories.tsx",
+      "jsDocTags": {},
+      "error": {
+        "name": "react-docgen-typescript found no component docs",
+        "message": "File: ink/stories/design/Board.tsx\nreact-docgen-typescript did not return any component docs for this file."
+      },
+      "stories": [
+        {
+          "id": "design-surfaces--focus",
+          "name": "Focus",
+          "snippet": "const Focus = (_args, { globals }) => {\n  const pane = paneOf(repos80, \"Everything\");\n  return (\n    <Row>\n      <Today globals={globals} cols={56} rows={14} caption=\"A focused pane (gitlab_repos_80x24)\">\n        <InPane pane={pane} width={56} height={14} focused body={(ctx) => <TreeNode tree={pane.body as Tree} ctx={ctx} />} />\n      </Today>\n      <Target board=\"Surfaces\" picks={[section(\"Focus\")]} issues={[31]} />\n    </Row>\n  );\n};",
+          "description": "Focus: today the focused panel has the accent border, the others the quiet one; the target runs the glow ramp\naround the focused edge."
+        },
+        {
+          "id": "design-surfaces--palette-over-scrim",
+          "name": "Palette Over Scrim",
+          "snippet": "const PaletteOverScrim = (_args, { globals }) => {\n  const scene = menu80Cells as RatatuiScene;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={21} caption=\"MenuBox over the Repositories screen (highlight_menu-80x24)\">\n        <BodyWithMenu chrome={chrome80 as ChromeView} screen={scene.view!.screen} menu={scene.view!.menu as any} width={80} bodyHeight={21} />\n      </Today>\n      <Target board=\"Surfaces\" picks={[section(\"Overlays\")]} issues={[29, 35]} note=\"#29 the scrim and shadow (shipped), #35 the palette\" />\n    </Row>\n  );\n};",
+          "description": "Overlays: today a menu over the body (highlight_menu), the body dimmed behind it and a one-cell shadow under its\nright and bottom edges (#29); the target is a command palette over that scrim."
+        },
+        {
+          "id": "design-surfaces--notices",
+          "name": "Notices",
+          "snippet": "const Notices = (_args, { globals }) => (\n  <Row>\n    <Today globals={globals} cols={80} rows={1} caption=\"The status line (host_chrome_80x24; no recorded notice)\">\n      <StatusLine chrome={chrome80 as ChromeView} width={80} height={24} />\n    </Today>\n    <Target board=\"Surfaces\" picks={[section(\"Notices\")]} issues={[41]} />\n  </Row>\n);",
+          "description": "Notices: today a write's news is the status line's message; the target is a row at the bottom right of the panel\nwhose tinted ground drains."
+        },
+        {
+          "id": "design-surfaces--panel-states",
+          "name": "Panel States",
+          "snippet": "const PanelStates = (_args, { globals }) => {\n  const empty = paneOf((start80 as any).screen, \"all\");\n  const table = paneOf(reposPage80, \"repos\");\n  return (\n    <Row>\n      <div style={{ display: \"flex\", flexDirection: \"column\", gap: 16 }}>\n        <Today globals={globals} cols={80} rows={6} caption=\"StateView, empty (mix__git_start_80x24)\">\n          <InPane pane={empty} width={80} height={6} focused body={(ctx) => <StateView state={empty.body.state} text={empty.body.text} width={ctx.width} />} />\n        </Today>\n        <Today globals={globals} cols={80} rows={6} caption=\"TableNode, empty (gitlab_repos-page1-repos_80x24)\">\n          <InPane pane={table} width={80} height={6} focused body={(ctx) => <TableNode columns={table.body.columns} rows={table.body.rows} selected={table.body.selected} empty={table.body.empty} ctx={ctx} />} />\n        </Today>\n      </div>\n      <Target board=\"Surfaces\" picks={[section(\"Panel states\")]} issues={[42]} note=\"shipped states, redrawn with loading outlines\" />\n    </Row>\n  );\n};",
+          "description": "Panel states: loading, empty and broken, each said in the panel's own space. Today: the recorded empty state and an\nempty table."
+        }
+      ],
+      "import": "import {\n  Board,\n  BodyWithMenu,\n  InPane,\n  Row,\n  StateView,\n  StatusLine,\n  TableNode,\n  Target,\n  Today,\n  TreeNode,\n} from 'radar-ink';"
+    },
+    "dock-dock": {
+      "id": "dock-dock",
+      "name": "Dock",
+      "path": "./stories/dock/Dock.stories.tsx",
+      "jsDocTags": {},
+      "description": "The agent dock under the middle pane (host `DockView`, crates/radar-core/src/dock.rs; Ink only, `src/dock/Dock.tsx`;\nRatatui draws the one-line notice in its place). A frame holding the tab row (one tab per session: pack icon, name,\nstate; the one showing in brackets and bold accent, as the page tab row's), the transcript, the composer and the\nstatus line. Every story draws a state the host recorded (ink/test/fixtures/dock, written by radar-core).\n\n**Use it** through the host: a part supplies the dock's content, the host adds shown/focused/height and sends it on\nevery screen (backtick shows and focuses it, again hides it). Ink keeps no state of record; every key, click and\ndrag is an `Intent::Dock`.\n\n**States:** empty, streaming (text marked by the running icon until saved), an answer in markdown (laid out as\nui::rich lays out a description, src/text/richRows.ts) and the same half received, tool calls one row each (kind\nicon, verb, target relative to the session's folder, `+n −m` for an edit) folded to `⋯ n` and open with tree lines,\nreads in a row folded into one row, an edit's diff opened, reasoning with its latest line while the session works,\nan approval waiting, a question waiting, an error, stopped, a terminal tab (T7's surface); the activity line above\nthe composer (thinking, writing, running a command, waiting for your approval or answer, with the turn's time and\ntokens; done, stopped or failed after it); each tab's state mark (spinner, needs you, failed, unread); full height\n(`alt-f`).\n\n**Rules:** no chevrons or `[+]`/`[-]` for folding; every mark is a pack icon; keys sit inside their word, underlined\n(`a̲pprove once`, `d̲eny`, `v̲iew diff`), and a click on the word does what the key does; nothing is approved or\nanswered but by the user, and an approval shows the exact command, path or URL. A question's choices are numbered\n(the number is the key, before the word), the composer's words answer one that takes them, esc declines.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/dock/Dock.tsx",
+        "description": "The agent dock: a frame holding the tab row, the transcript, the composer and the status line. It draws the\nhost's `DockView` and holds nothing: keys and mouse become dock intents elsewhere (src/dock/keys.ts). A tab with\na terminal draws T7's surface through `terminal` instead of transcript and composer.",
+        "displayName": "Dock",
+        "methods": [],
+        "props": {
+          "data": {
+            "defaultValue": null,
+            "description": "",
+            "name": "data",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "DockView"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "height": {
+            "defaultValue": null,
+            "description": "",
+            "name": "height",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "plain": {
+            "defaultValue": null,
+            "description": "",
+            "name": "plain",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "draft": {
+            "defaultValue": null,
+            "description": "The text being written (Ink's editor state until sent); the host's kept draft when absent.",
+            "name": "draft",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string"
+            }
+          },
+          "caret": {
+            "defaultValue": null,
+            "description": "The open picker's selected choice, and the items whose diff is open (Ink-side, DockLocal).",
+            "name": "caret",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "registry": {
+            "defaultValue": null,
+            "description": "Where the pointer targets are registered: the top edge (drag to resize), each tab, the body (focus).",
+            "name": "registry",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "HitRegistry"
+            }
+          },
+          "scroll": {
+            "defaultValue": {
+              "value": "0"
+            },
+            "description": "Rows scrolled up from the foot when the transcript had `anchor` rows (DockLocal); `metrics` is told how far the\ntranscript can scroll and how many rows it has.",
+            "name": "scroll",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "anchor": {
+            "defaultValue": null,
+            "description": "",
+            "name": "anchor",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "metrics": {
+            "defaultValue": null,
+            "description": "",
+            "name": "metrics",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "{ current: { max: number; total?: number; }; }"
+            }
+          },
+          "pick": {
+            "defaultValue": {
+              "value": "0"
+            },
+            "description": "",
+            "name": "pick",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "cmd": {
+            "defaultValue": {
+              "value": "0"
+            },
+            "description": "The slash menu's selected row (Ink-side, DockLocal).",
+            "name": "cmd",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          },
+          "diffs": {
+            "defaultValue": null,
+            "description": "",
+            "name": "diffs",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string[]"
+            }
+          },
+          "picks": {
+            "defaultValue": null,
+            "description": "A question's choices picked so far (Ink-side, DockLocal.picks).",
+            "name": "picks",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "Record<string, string[]>"
+            }
+          },
+          "refused": {
+            "defaultValue": null,
+            "description": "Why the last ⏎ sent nothing (Ink-side, DockLocal.refused): the status line says it.",
+            "name": "refused",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string"
+            }
+          },
+          "groups": {
+            "defaultValue": null,
+            "description": "The groups of calls shown open (Ink-side, DockLocal.groups).",
+            "name": "groups",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "string[]"
+            }
+          },
+          "terminal": {
+            "defaultValue": null,
+            "description": "Draws the active tab's terminal in `columns` x `rows` cells.",
+            "name": "terminal",
+            "declarations": [
+              {
+                "fileName": "ink/src/dock/Dock.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "((columns: number, rows: number, origin: { row: number; col: number; }) => ReactNode)"
+            }
+          }
+        },
+        "exportName": "Dock"
+      },
+      "stories": [
+        {
+          "id": "dock-dock--empty",
+          "name": "Empty",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  79 |\n  80 | /** A session with nothing sent (empty_160x40). */\n> 81 | export const Empty = at(empty160);\n     |                      ^^^^^^^^^^^^\n  82 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n  83 | export const Streaming = at(streaming160);\n  84 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */"
+          }
+        },
+        {
+          "id": "dock-dock--streaming",
+          "name": "Streaming",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  81 | export const Empty = at(empty160);\n  82 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n> 83 | export const Streaming = at(streaming160);\n     |                          ^^^^^^^^^^^^^^^^\n  84 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n  85 | export const ToolFolded = at(toolFolded160);\n  86 | /** The same open: tree lines for the result (tool-open_160x40). */"
+          }
+        },
+        {
+          "id": "dock-dock--tool-folded",
+          "name": "Tool Folded",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  83 | export const Streaming = at(streaming160);\n  84 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n> 85 | export const ToolFolded = at(toolFolded160);\n     |                           ^^^^^^^^^^^^^^^^^\n  86 | /** The same open: tree lines for the result (tool-open_160x40). */\n  87 | export const ToolOpen = at(toolOpen160);\n  88 | /** A write request waits: the exact path and its keys (approval_160x40). */"
+          }
+        },
+        {
+          "id": "dock-dock--tool-open",
+          "name": "Tool Open",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  85 | export const ToolFolded = at(toolFolded160);\n  86 | /** The same open: tree lines for the result (tool-open_160x40). */\n> 87 | export const ToolOpen = at(toolOpen160);\n     |                         ^^^^^^^^^^^^^^^\n  88 | /** A write request waits: the exact path and its keys (approval_160x40). */\n  89 | export const Approval = at(approval160);\n  90 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the"
+          }
+        },
+        {
+          "id": "dock-dock--approval",
+          "name": "Approval",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  87 | export const ToolOpen = at(toolOpen160);\n  88 | /** A write request waits: the exact path and its keys (approval_160x40). */\n> 89 | export const Approval = at(approval160);\n     |                         ^^^^^^^^^^^^^^^\n  90 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  91 |  * composer's words answer it too, esc declines (question_160x40). */\n  92 | export const Question = at(question160);"
+          }
+        },
+        {
+          "id": "dock-dock--question",
+          "name": "Question",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  90 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  91 |  * composer's words answer it too, esc declines (question_160x40). */\n> 92 | export const Question = at(question160);\n     |                         ^^^^^^^^^^^^^^^\n  93 | /** The connection was lost (error_160x40). */\n  94 | export const Failed = at(error160);\n  95 | /** The user stopped the turn (stopped_160x40). */"
+          }
+        },
+        {
+          "id": "dock-dock--failed",
+          "name": "Failed",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  92 | export const Question = at(question160);\n  93 | /** The connection was lost (error_160x40). */\n> 94 | export const Failed = at(error160);\n     |                       ^^^^^^^^^^^^\n  95 | /** The user stopped the turn (stopped_160x40). */\n  96 | export const Stopped = at(stopped160);\n  97 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */"
+          }
+        },
+        {
+          "id": "dock-dock--stopped",
+          "name": "Stopped",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  94 | export const Failed = at(error160);\n  95 | /** The user stopped the turn (stopped_160x40). */\n> 96 | export const Stopped = at(stopped160);\n     |                        ^^^^^^^^^^^^^^\n  97 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n  98 | export const Pty = at(pty160);\n  99 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A"
+          }
+        },
+        {
+          "id": "dock-dock--pty",
+          "name": "Pty",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n   96 | export const Stopped = at(stopped160);\n   97 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n>  98 | export const Pty = at(pty160);\n      |                    ^^^^^^^^^^\n   99 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A\n  100 |  * click on a mark or a middle click on a tab closes it, `alt-w` closes the showing one (the status line says so); a\n  101 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the"
+          }
+        },
+        {
+          "id": "dock-dock--tabs",
+          "name": "Tabs",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  101 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the\n  102 |  * neighbour shows (tabs_160x40). */\n> 103 | export const Tabs = at(tabs160);\n      |                     ^^^^^^^^^^^\n  104 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  105 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n  106 | export const Activity = at(toolFolded160);"
+          }
+        },
+        {
+          "id": "dock-dock--activity",
+          "name": "Activity",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  104 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  105 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n> 106 | export const Activity = at(toolFolded160);\n      |                         ^^^^^^^^^^^^^^^^^\n  107 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  108 |  * jump when the next turn starts (tool-open_160x40). */\n  109 | export const ActivityDone = at(toolOpen160);"
+          }
+        },
+        {
+          "id": "dock-dock--activity-done",
+          "name": "Activity Done",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  107 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  108 |  * jump when the next turn starts (tool-open_160x40). */\n> 109 | export const ActivityDone = at(toolOpen160);\n      |                             ^^^^^^^^^^^^^^^\n  110 | /** Every tab state at once: the one showing thinks (the spinner), the others need you (the attention mark), failed,\n  111 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  112 |  * goes to the one that wants you most (attention_160x40). */"
+          }
+        },
+        {
+          "id": "dock-dock--tab-states",
+          "name": "Tab States",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  111 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  112 |  * goes to the one that wants you most (attention_160x40). */\n> 113 | export const TabStates = at(attention160);\n      |                          ^^^^^^^^^^^^^^^^\n  114 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  115 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n  116 | export const FullHeight = at(full160, 132, 37);"
+          }
+        },
+        {
+          "id": "dock-dock--full-height",
+          "name": "Full Height",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  114 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  115 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n> 116 | export const FullHeight = at(full160, 132, 37);\n      |                           ^^^^^^^^^^^^^^^^^^^^\n  117 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n  118 | export const Narrow = at(empty80, 56, 20);\n  119 | /** An approval at 80x24 (approval_80x24). */"
+          }
+        },
+        {
+          "id": "dock-dock--narrow",
+          "name": "Narrow",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  116 | export const FullHeight = at(full160, 132, 37);\n  117 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n> 118 | export const Narrow = at(empty80, 56, 20);\n      |                       ^^^^^^^^^^^^^^^^^^^\n  119 | /** An approval at 80x24 (approval_80x24). */\n  120 | export const NarrowApproval = at(approval80, 56, 20);\n  121 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code"
+          }
+        },
+        {
+          "id": "dock-dock--narrow-approval",
+          "name": "Narrow Approval",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  118 | export const Narrow = at(empty80, 56, 20);\n  119 | /** An approval at 80x24 (approval_80x24). */\n> 120 | export const NarrowApproval = at(approval80, 56, 20);\n      |                               ^^^^^^^^^^^^^^^^^^^^^^\n  121 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code\n  122 |  * in accent.secondary, nested lists with hanging indents, a quote behind its bar, fenced code coloured by the host's\n  123 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart"
+          }
+        },
+        {
+          "id": "dock-dock--markdown",
+          "name": "Markdown",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  123 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart\n  124 |  * (markdown_160x40). */\n> 125 | export const Markdown = at(markdown160, 100, 34);\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  126 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  127 |  * (markdown-streaming_160x40). */\n  128 | export const MarkdownStreaming = at(markdownStreaming160);"
+          }
+        },
+        {
+          "id": "dock-dock--markdown-streaming",
+          "name": "Markdown Streaming",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  126 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  127 |  * (markdown-streaming_160x40). */\n> 128 | export const MarkdownStreaming = at(markdownStreaming160);\n      |                                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  129 | /** A run of tool calls, one row each: the kind's pack icon, what it does, the target relative to the session's folder\n  130 |  * (cut in the middle by cells), `+n −m` for an edit, `failed` in the error slot, a running call's mark; five reads fold\n  131 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full"
+          }
+        },
+        {
+          "id": "dock-dock--tool-calls",
+          "name": "Tool Calls",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  131 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full\n  132 |  * (tools_160x40). */\n> 133 | export const ToolCalls = at(tools160, 100, 18);\n      |                          ^^^^^^^^^^^^^^^^^^^^^\n  134 | /** The reads opened (a click on the row, or alt-o): each on a tree line, each opening on its own (tools_160x40,\n  135 |  * DockLocal.groups). */\n  136 | export const ToolCallsOpen = { args: { recorded: tools160 as unknown as Recorded, cols: 100, rows: 22, groups: [\"group:t0\"] } } satisfies Story;"
+          }
+        },
+        {
+          "id": "dock-dock--tool-calls-open",
+          "name": "Tool Calls Open",
+          "snippet": "const ToolCallsOpen = (args, { globals }) => <Draw args={args} globals={globals} />;",
+          "description": "The reads opened (a click on the row, or alt-o): each on a tree line, each opening on its own (tools_160x40,\nDockLocal.groups)."
+        },
+        {
+          "id": "dock-dock--edit-open",
+          "name": "Edit Open",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  137 | /** An edit opened: its diff under the row in the diff view's look, the changed words on the stronger tint\n  138 |  * (edit-open_160x40). */\n> 139 | export const EditOpen = at(editOpen160);\n      |                         ^^^^^^^^^^^^^^^\n  140 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n  141 | export const ReasoningLive = at(reasoningLive160);\n  142 | /** The tool calls at 80x24 (tools_80x24). */"
+          }
+        },
+        {
+          "id": "dock-dock--reasoning-live",
+          "name": "Reasoning Live",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  139 | export const EditOpen = at(editOpen160);\n  140 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n> 141 | export const ReasoningLive = at(reasoningLive160);\n      |                              ^^^^^^^^^^^^^^^^^^^^\n  142 | /** The tool calls at 80x24 (tools_80x24). */\n  143 | export const NarrowToolCalls = at(tools80, 56, 20);\n  144 |"
+          }
+        },
+        {
+          "id": "dock-dock--narrow-tool-calls",
+          "name": "Narrow Tool Calls",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  141 | export const ReasoningLive = at(reasoningLive160);\n  142 | /** The tool calls at 80x24 (tools_80x24). */\n> 143 | export const NarrowToolCalls = at(tools80, 56, 20);\n      |                                ^^^^^^^^^^^^^^^^^^^\n  144 |"
+          }
+        }
+      ],
+      "import": "import { Compare, Dock } from 'radar-ink';\nimport tools160 from '../../test/fixtures/dock/tools_160x40.json';"
+    },
+    "dock-terminalview": {
+      "id": "dock-terminalview",
+      "name": "TerminalView",
+      "path": "./stories/terminal/TerminalView.stories.tsx",
+      "jsDocTags": {},
+      "description": "A program's own screen in a dock tab (`ink/src/terminal`, host side `crates/radar-sessions-pty`). The host runs the\nprogram in a PTY and keeps its output; Ink parses the bytes (xterm's engine) and draws the cells. The pictures are\nrecordings of `less -R` made by the host's PTY, replayed as the host replays them to a renderer that attaches.\n\n**Use it** in a dock tab whose `terminal` is set; the dock gives it the tab's content area and the keys while focused.\n\n**States:** following a running program; the program ended (how it ended, `r̲estart`); at 80x24 and 160x40.\n\n**Rules:** the program's colours are its own; the surface adds nothing but the ended row, whose key sits inside its\nword. Ctrl+] gives the keys back. Ink only: Ratatui has no terminal tab.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/terminal/TerminalView.tsx",
+        "description": "A program's own screen inside a dock tab. The host runs the program and keeps its output; this attaches to it, parses the bytes (xterm's engine) and draws the cells. Keys and mouse go back untouched but for\nthe translations in `input.ts`. A program that ended shows its last screen, how it ended and `r̲estart`.",
+        "displayName": "TerminalView",
+        "methods": [],
+        "props": {
+          "open": {
+            "defaultValue": null,
+            "description": "Opens the connection to the program's terminal (the socket's `connectSocket`, or a recording's). Called once per\n`openKey`; the link is closed when the view goes or the key changes.",
+            "name": "open",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "() => TerminalLink"
+            }
+          },
+          "openKey": {
+            "defaultValue": null,
+            "description": "Names which terminal `open` opens: a different key is a different terminal.",
+            "name": "openKey",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "string"
+            }
+          },
+          "columns": {
+            "defaultValue": null,
+            "description": "The cells the surface fills; the program's terminal is resized to them.",
+            "name": "columns",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "rows": {
+            "defaultValue": null,
+            "description": "",
+            "name": "rows",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "focused": {
+            "defaultValue": null,
+            "description": "The dock has the keys and this tab is showing: every key and mouse report goes to the program.",
+            "name": "focused",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "bus": {
+            "defaultValue": null,
+            "description": "radar's input tap: while focused the surface takes reads whole (`MouseBus.claimRaw`).",
+            "name": "bus",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "MouseBus"
+            }
+          },
+          "origin": {
+            "defaultValue": null,
+            "description": "Where the surface's top-left cell is on the terminal, 1-based, so mouse reports can be moved into it.",
+            "name": "origin",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "{ row: number; col: number; }"
+            }
+          },
+          "onLeave": {
+            "defaultValue": null,
+            "description": "Ctrl+] (`chord`) or a click outside the surface (`click`): the dock takes the keys back.",
+            "name": "onLeave",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "((why: \"chord\" | \"click\") => void)"
+            }
+          },
+          "onExit": {
+            "defaultValue": null,
+            "description": "The program ended (or could not start).",
+            "name": "onExit",
+            "parent": {
+              "fileName": "ink/src/terminal/TerminalView.tsx",
+              "name": "TerminalViewProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/terminal/TerminalView.tsx",
+                "name": "TerminalViewProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "((state: TerminalState) => void)"
+            }
+          }
+        },
+        "exportName": "TerminalView"
+      },
+      "stories": [
+        {
+          "id": "dock-terminalview--running",
+          "name": "Running",
+          "snippet": "const Running = (_args, { globals }) => <Draw rec={less80 as unknown as Recording} focused={true} globals={globals} />;",
+          "description": "`less -R` at 80x24, following the program.",
+          "warning": "Incomplete snippet: `replay` could not be resolved statically."
+        },
+        {
+          "id": "dock-terminalview--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (_args, { globals }) => <Draw rec={less160 as unknown as Recording} focused={true} globals={globals} />;",
+          "description": "The same program at 160x40, recorded at that size.",
+          "warning": "Incomplete snippet: `replay` could not be resolved statically."
+        },
+        {
+          "id": "dock-terminalview--exited",
+          "name": "Exited",
+          "snippet": "const Exited = (_args, { globals }) => <Draw rec={less80 as unknown as Recording} end={{ state: \"exited\", code: 2 }} focused={true} globals={globals} />;",
+          "description": "The program ended: its last lines stay, the row below says how and offers r̲estart.",
+          "warning": "Incomplete snippet: `replay` could not be resolved statically."
+        },
+        {
+          "id": "dock-terminalview--failed",
+          "name": "Failed",
+          "snippet": "const Failed = (_args, { globals }) => (\n  <Draw rec={{ ...(less80 as unknown as Recording), base64: \"\" }} end={{ state: \"failed\", message: \"could not start nope: No such file or directory\" }} focused={true} globals={globals} />\n);",
+          "description": "The program could not start: nothing to show but why.",
+          "warning": "Incomplete snippet: `replay` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, TerminalView } from 'radar-ink';\nimport less80 from '../../test/terminal/recorded/less-80x24.json';"
+    }
+  },
+  "meta": {
+    "docgen": "react-docgen-typescript",
+    "durationMs": 1082
+  }
+}

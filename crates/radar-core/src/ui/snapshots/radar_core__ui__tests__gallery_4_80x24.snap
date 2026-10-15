@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Rows & states
+ The kit: every element on sample data                            colours: none
+ Tree  Table  Card  Meters  [Rows & states]  Entries & log  Markdown  Diff  Mot
+╭ settings rows ───────────────────────────────────────────────────────────────╮
+│  ? Found in your environment: a shelf token (SHELF_TOKEN). Use it?           █
+│  server          https://shelves.example                                     ║
+│  token           env:SHELF_TOKEN                                             ║
+│─ about ──────────────────────────────────────────────────────────────────────│
+│ The selected row, in words: what it holds and what it accepts.               │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ server ──────────────────────────────────────────────────────────────────────╮
+│ Where the shelves are kept.                                                  │
+│                                                                              │
+│ CHECKED                                                                      │
+│ ✓ signed in as alice  2m ago                                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭ empty ───────────────────────────────╮╭ set up ──────────────────────────────╮
+│ No shelves yet. Press , for          ││ Shelves is not set up yet.           │
+│ settings, then add one under         ││                                      │
+│ shelves.                             ││ It needs a server and a token.       │
+│                                      ││                                      │
+╰──────────────────────────────────────╯╰──────────────────────────────────────╯
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

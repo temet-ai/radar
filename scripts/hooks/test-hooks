@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Tests for pre-commit and commit-msg, in a throwaway repository with a
+# throwaway word list. Run on Linux and on the Mac.
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")" && pwd)
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+export RADAR_PRIVATE_WORDS="$work/words.txt"
+printf '# a comment\n\nsecret-client\n\\bzzq-[0-9]+\n' > "$RADAR_PRIVATE_WORDS"
+
+git init -q "$work/repo"
+cd "$work/repo"
+git config user.name t
+git config user.email t@example.invalid
+git config core.hooksPath "$here"
+
+fails=0
+expect() { # WANT DESCRIPTION COMMAND...
+    local want=$1 what=$2
+    shift 2
+    if "$@" >/dev/null 2>&1; then got=pass; else got=refused; fi
+    if [ "$got" = "$want" ]; then
+        echo "ok   $what"
+    else
+        echo "FAIL $what: wanted $want, got $got"
+        fails=$((fails + 1))
+    fi
+}
+
+echo "plain text" > a.txt && git add a.txt
+expect pass "a clean change commits" git commit -q -m "a clean message"
+
+echo "talks about Secret-Client here" >> a.txt && git add a.txt
+expect refused "an added line with a word, any case" git commit -q -m "change"
+git reset -q --hard
+
+echo "x" > zzq-12.txt && git add zzq-12.txt
+expect refused "a file path with a word (regex)" git commit -q -m "change"
+git reset -q --hard
+rm -f zzq-12.txt
+
+echo "fine" >> a.txt && git add a.txt
+expect refused "a message with a word" git commit -q -m "fix for ZZQ-42"
+expect pass "the same change with a clean message" git commit -q -m "fix"
+
+mv "$RADAR_PRIVATE_WORDS" "$work/gone.txt"
+echo "more" >> a.txt && git add a.txt
+expect refused "no word list refuses" git commit -q -m "change"
+
+[ "$fails" -eq 0 ] && echo "all hook tests pass" || { echo "$fails failed"; exit 1; }

@@ -1,0 +1,28 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(p, 80, 24)"
+---
+ radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+ Repositories › a
+ acme/team-a                                         3 repos · 3 merge requests
+ [Repos · 3]
+╭ repos ───────────────────────────────────────────────────────────────────────╮
+│ REPO                                          MAIN        MRS  LAST ACTIVITY │
+│ api                                           ✓ passed    1    16m ago       │
+│ web                                           ✗ failed    2    16m ago       │
+│ docs                                          ✓ passed    —    4d ago        │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│ 1 repo hidden: tools/renovate. Settings › tenancies shows them again.        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate       gitlab

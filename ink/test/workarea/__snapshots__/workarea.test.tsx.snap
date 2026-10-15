@@ -1,0 +1,49 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`work area layout > 90 columns: one column, pending question first, nothing hidden 1`] = `
+"╭ Agent (running) ───────────────────────────────────────────────────────────────────────╮
+│ ● waiting for you                                                                      │
+│Approve push to origin?                                                                 │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭ Next ──────────────────────────────────────────────────────────────────────────────────╮
+│Review changes (reads)                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭ Overview ──────────────────────────────────────────────────────────────────────────────╮
+│Item GG-12: Ink work area                                                               │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭ Timeline (recording) ──────────────────────────────────────────────────────────────────╮
+│10:02 plan agreed                                                                       │
+│10:20 agent turn                                                                        │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭ Map ───────────────────────────────────────────────────────────────────────────────────╮
+│ GG-12 ← MR !34                                                                         │
+│ GG-12 → branch ink-ui                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────╯"
+`;
+
+exports[`work area layout > plain-text mode: labelled lines in reading order, pending first, status kept 1`] = `
+"[agent] Agent (PENDING, running)
+  Approve push to origin?
+[map] Map
+  GG-12 ← MR !34
+  GG-12 → branch ink-ui
+[timeline] Timeline (recording)
+  10:02 plan agreed
+  10:20 agent turn
+[tabs] Overview
+  Item GG-12: Ink work area
+[rail] Next (focused)
+  Review changes (reads)"
+`;
+
+exports[`work area layout > wide: map and timeline, tabs, agent and rail side by side (160x40) 1`] = `
+"╭ Map ─────────────────────────╮╭ Overview ────────────────────────────────────────────────────╮╭ Agent (running) ─────────────╮╭ Next ────────────────────────╮
+│ GG-12 ← MR !34               ││Item GG-12: Ink work area                                     ││editing ink/src               ││Review changes (reads)        │
+│ GG-12 → branch ink-ui        ││                                                              ││                              ││                              │
+╰──────────────────────────────╯│                                                              ││                              ││                              │
+╭ Timeline (recording) ────────╮│                                                              ││                              ││                              │
+│10:02 plan agreed             ││                                                              ││                              ││                              │
+│10:20 agent turn              ││                                                              ││                              ││                              │
+│                              ││                                                              ││                              ││                              │
+╰──────────────────────────────╯╰──────────────────────────────────────────────────────────────╯╰──────────────────────────────╯╰──────────────────────────────╯"
+`;

@@ -1,0 +1,4 @@
+node_modules
+dist
+# build-storybook output (npm run build-storybook); the manifest agents read is copied to docs/storybook/components.json
+storybook-static/

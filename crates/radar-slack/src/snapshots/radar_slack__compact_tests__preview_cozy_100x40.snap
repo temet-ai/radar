@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/compact_tests.rs
+expression: "to_text(&host, 100, 40)"
+---
+ radar    Slack 4   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
+╭ feed ────────────────╮╭ Bob Builder's message ───────────────────────────────────────────────────╮
+│ For you            4 ││ Bob Builder  #team  2d ago                                               │
+│ Discussions          ││ @review-squad :gitlab: mr Add a stats endpoint for the dashboard         │
+│ ▌ #team        6 NEW ││ @review-squad :gitlab: mr                                                │
+│ ▌ #svc         1 NEW ││ (https://git.example/acme/team-a/api/-/merge_requests/263) Add a stats   │
+│                      ││ endpoint for the dashboard                                               │
+│                      ││ 👀 1                                                                     │
+│                      ││ REPLIES  2 replies · last 2d ago ─────────────────────────────────────── │
+│                      ││   you: looking 👀                                                        │
+│                      ││   Carol C.: approved, nice one                                           │
+│                      ││                                                                          │
+│                      ││ LINKS ────────────────────────────────────────────────────────────────── │
+│                      ││   mr                                                                     │
+│                      ││   https://git.example/acme/team-a/api/-/merge_requests/263               │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+│                      ││                                                                          │
+╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
+ SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate       7 new · 4 for you  slack

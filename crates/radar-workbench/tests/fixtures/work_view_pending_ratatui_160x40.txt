@@ -1,0 +1,40 @@
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ No groups on page     ││ No local work items on this page. Press n to create a task, or use Add to work item ││ No source binding in this evidence page. Add │
+│ All items             ││ on a source's actions menu.                                                         ││ an exact source from its actions menu; no    │
+│                       ││                                                                                     ││ links are inferred.                          │
+│                       ││                                                                                     ││ Create a local task or select an existing    │
+│                       ││                                                                                     ││ item. No provider labels, relationships or   │
+│                       ││                                                                                     ││ goals are inferred.                          │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││             ╭ Save these local work annotations? ────────────────────────────────────────────╮                                      │
+│                       ││             │ Create task with local title: Ship the work area                               │                                      │
+│                       ││             │ The title is your authored label, not a provider title or identity.            │                                      │
+│                       ││             │ This records your assertion, not observed proof, permission or task completion.│                                      │
+│                       ││             │                                                                                │                                      │
+│                       ││             │                                                    ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔│                                      │
+│                       ││             │                                                     y save locally    n cancel │                                      │
+│                       ││             │                                                    ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁│                                      │
+│                       ││             ╰────────────────────────────────────────────────────────────────────────────────╯                                      │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   ←→ move   ⏎ choose   esc close

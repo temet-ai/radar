@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_styles(80, 24, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Motion" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Meters  Rows & states  Entries & log  Ma…" fg:text.secondary | "[Motion]" fg:accent.primary/glow.purple bold | "  Colours  Tones" fg:text.secondary
+03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " items " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+04 "│" fg:accent.primary/glow.purple bg:bg.surface | "  Atlas of the north                    …" bg:bg.surface | "on loan" fg:status.warning bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+05 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 fg:text.emphasis bg:bg.selection bold | " Birds of the coast" bg:bg.selection bold | _50 fg:text.emphasis bg:bg.selection bold | "shelved" fg:text.muted bg:bg.selection bold | _1 fg:text.emphasis bg:bg.selection bold | "│" fg:accent.primary/glow.purple bg:bg.surface
+06 "│" fg:accent.primary/glow.purple bg:bg.surface | "  Clocks and their makers               …" bg:bg.surface | "on loan" fg:status.warning bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+07 "│" fg:accent.primary/glow.purple bg:bg.surface | "  Dyes from plants                      …" bg:bg.surface | "shelved" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+08 "│" fg:accent.primary/glow.purple bg:bg.surface | "  Engines, a history                    …" bg:bg.surface | "missing" fg:status.error/diff.removed bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+09 "│" fg:accent.primary/glow.purple bg:bg.surface | "  Ferns of the valleys                  …" bg:bg.surface | "shelved" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+10 "│" fg:accent.primary/glow.purple bg:bg.surface | "  Glass and its uses                    …" bg:bg.surface | "on loan" fg:status.warning bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+11 "│" fg:accent.primary/glow.purple bg:bg.surface | _78 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
+12 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
+13 "╭" fg:accent.muted bg:bg.surface | " motion " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+14 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "level  " fg:text.muted bg:bg.surface | "full" fg:text.emphasis bg:bg.surface bold | "  everything: also pages, new rows, mess…" fg:text.muted bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+15 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+16 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | " s  " fg:accent.secondary/glow.cyan bg:bg.surface bold | "a screen switch: the body fades in" bg:bg.surface | "  · subtle" fg:text.muted bg:bg.surface | _29 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+17 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | " m  " fg:accent.secondary/glow.cyan bg:bg.surface bold | "a menu or confirm sweeps open (again: cl…" bg:bg.surface | "  · subtle" fg:text.muted bg:bg.surface | _18 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+18 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+19 "╭" fg:accent.muted bg:bg.surface | " waiting " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "Nothing to wait for." fg:text.muted bg:bg.surface | _57 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+21 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+22 _80 bg:bg.overlay
+23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "s m g p n t l" fg:accent.secondary/glow.cyan bold | " effects" fg:text.muted | _3 | "f" fg:accent.secondary/glow.cyan bold | " level" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted

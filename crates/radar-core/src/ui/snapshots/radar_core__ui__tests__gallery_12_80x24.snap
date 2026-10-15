@@ -1,0 +1,29 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 999
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery › Grid states
+ The kit: every element on sample data                            colours: none
+ Diff  Motion  Colours  Tones  Row states  [Grid states]  Waiting  Long text  I
+╭ table, focused (cursor on row 3) ───────────────────────────────────────────╮
+│ NAME                                          STATE     OWNER       SIZE    │█
+│ sort the atlas box                            ● sorting Alice E.    42 kB   │█
+│ label the map drawer                          ✓ filed   you         3 kB    │█
+│ mend the spine of the old ledger that has be… ✗ lost    Bob         17 kB   │█
+│ count the postcards                           ◷ waiting Carol D.    9 kB    │█
+│                                                                             │║
+╰─────────────────────────────────────────────────────────────────────────────╯║
+╭ table, without focus ───────────────────────────────────────────────────────╮║
+│ NAME                                          STATE     OWNER       SIZE    │║
+│ sort the atlas box                            ● sorting Alice E.    42 kB   │║
+│ label the map drawer                          ✓ filed   you         3 kB    │║
+│ mend the spine of the old ledger that has be… ✗ lost    Bob         17 kB   │║
+│ count the postcards                           ◷ waiting Carol D.    9 kB    │║
+│                                                                             │║
+╰─────────────────────────────────────────────────────────────────────────────╯║
+╭ table, empty ───────────────────────────────────────────────────────────────╮║
+│ No items match this view.                                                   │║
+│                                                                             │║
+│                                                                             │
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

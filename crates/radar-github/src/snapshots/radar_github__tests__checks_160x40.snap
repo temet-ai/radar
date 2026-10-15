@@ -1,0 +1,44 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: text
+---
+ radar    Repositories   History   Settings (,)                                                                                          synced 25s ago  ✎ edit
+ GitHub › acme/api › #42
+ Keep background refreshes tied to their request
+ Overview  [Checks]  Actions
+╭ Checks ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Checks in the base and available source repositories at the exact head commit. Merge-ref workflows may differ. No mergeability or required-check coverage is │
+│ established.                                                                                                                                                 │
+│ head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa                                                                                                        │
+│ source repository  alice/api                                                                                                                                 │
+│                                                                                                                                                              │
+│ CHECK RUNS ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── │
+│   success  unit tests  (acme/api)                                                                                                                            │
+│   in progress  platform checks  (alice/api)                                                                                                                  │
+│                                                                                                                                                              │
+│ COMMIT STATUSES ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── │
+│   success  preview deployment  (acme/api)                                                                                                                    │
+│   Preview is available.                                                                                                                                      │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                             github

@@ -1,0 +1,188 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "add a project type"
+    },
+    {
+      "id": "git.editors.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type its name, then its marker files"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a project type"
+          },
+          {
+            "ink": "muted",
+            "text": "   a name, then its marker files"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "muted",
+            "text": "asks"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "java      "
+          },
+          {
+            "ink": "secondary",
+            "text": "build.gradle build.gradle.kts pom.xml"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "muted",
+            "text": "asks"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "python    "
+          },
+          {
+            "ink": "secondary",
+            "text": "pyproject.toml setup.py"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "muted",
+            "text": "asks"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "node      "
+          },
+          {
+            "ink": "secondary",
+            "text": "package.json"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "muted",
+            "text": "asks"
+          }
+        ],
+        "target": "row:4",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "rust      "
+          },
+          {
+            "ink": "secondary",
+            "text": "Cargo.toml"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "muted",
+            "text": "asks"
+          }
+        ],
+        "target": "row:5",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "go        "
+          },
+          {
+            "ink": "secondary",
+            "text": "go.mod"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "Another kind of project, told apart by a file at the top of its checkout, with the editor it opens in."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "a name, then its marker files: elixir mix.exs · *.csproj matches by ending"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "5 types"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [[git.type]]"
+      }
+    ]
+  ],
+  "detail_title": "add a project type",
+  "scope": "editors",
+  "version": 1
+}

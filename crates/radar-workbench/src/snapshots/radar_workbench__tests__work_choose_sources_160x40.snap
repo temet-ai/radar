@@ -1,0 +1,44 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
+╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+│ Groups not loaded     ││ Press r to load local work.                                                         ││ No source binding in this evidence page. Add │
+│ All items             ││                                                                                     ││ an exact source from its actions menu; no    │
+│                       ││                                                                                     ││ links are inferred.                          │
+│                       ││                                                                                     ││ Create a local task or select an existing    │
+│                       ││                                                                                     ││ item. No provider labels, relationships or   │
+│                       ││                                                                                     ││ goals are inferred.                          │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││   ╭ Choose sources to link ────────────────────────────────────────────────────────────────────────────╮                            │
+│                       ││   │  ✓ pull-request · Selected pull-request   forge · https://forge.example/ · acme/api/7              │                            │
+│                       ││   │  ○ ticket · Selected ticket               forge · https://forge.example/ · ABC-12                  │                            │
+│                       ││   │  ○ checkout · Selected checkout           forge · https://forge.example/ · /home/user/projects/api │                            │
+│                       ││   │  ○ workflow-run · Selected workflow-run   forge · https://forge.example/ · acme/api/42/1           │                            │
+│                       ││   │ Choose up to four exact sources. Each keeps its own identity; this records an authored relation.   │                            │
+│                       ││   │  Review local links…                      nothing changes until you confirm                        │                            │
+│                       ││   ╰────────────────────────────────────────────────────────────────────────────────────────────────────╯                            │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│                       ││                                                                                     ││                                              │
+│ Groups · page 1       ││                                                                                     ││                                              │
+╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ WORK   j/k move   ⏎ choose   esc close

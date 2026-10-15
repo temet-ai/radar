@@ -1,0 +1,977 @@
+[
+  {
+    "doc": [
+      {
+        "level": 2,
+        "t": "heading",
+        "text": [
+          {
+            "text": "Review"
+          }
+        ]
+      },
+      {
+        "t": "para",
+        "text": [
+          {
+            "marks": {
+              "bold": true
+            },
+            "text": "Verdict"
+          },
+          {
+            "text": ": Request changes. The branch is behind "
+          },
+          {
+            "marks": {
+              "code": true
+            },
+            "text": "origin/main"
+          },
+          {
+            "text": " by three commits."
+          }
+        ]
+      },
+      {
+        "items": [
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "marks": {
+                      "bold": true
+                    },
+                    "text": "Findings"
+                  },
+                  {
+                    "text": ":"
+                  }
+                ]
+              },
+              {
+                "items": [
+                  {
+                    "blocks": [
+                      {
+                        "t": "para",
+                        "text": [
+                          {
+                            "text": "The tool rows take "
+                          },
+                          {
+                            "marks": {
+                              "italic": true
+                            },
+                            "text": "two lines"
+                          },
+                          {
+                            "text": " each; one is enough."
+                          }
+                        ]
+                      }
+                    ],
+                    "marker": "bullet"
+                  },
+                  {
+                    "blocks": [
+                      {
+                        "t": "para",
+                        "text": [
+                          {
+                            "text": "Reads in a row should fold together."
+                          }
+                        ]
+                      }
+                    ],
+                    "marker": "bullet"
+                  }
+                ],
+                "t": "list"
+              }
+            ],
+            "marker": "bullet"
+          },
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "marks": {
+                      "bold": true
+                    },
+                    "text": "Fixed"
+                  },
+                  {
+                    "text": ": "
+                  },
+                  {
+                    "marks": {
+                      "code": true
+                    },
+                    "text": "lines"
+                  },
+                  {
+                    "text": " uses "
+                  },
+                  {
+                    "marks": {
+                      "code": true
+                    },
+                    "text": "String::from"
+                  },
+                  {
+                    "text": "."
+                  }
+                ]
+              }
+            ],
+            "marker": "bullet"
+          }
+        ],
+        "t": "list"
+      },
+      {
+        "items": [
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "Rebase on "
+                  },
+                  {
+                    "marks": {
+                      "code": true
+                    },
+                    "text": "origin/main"
+                  },
+                  {
+                    "text": "."
+                  }
+                ]
+              }
+            ],
+            "marker": {
+              "number": 1
+            }
+          },
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "Run the checks again."
+                  }
+                ]
+              }
+            ],
+            "marker": {
+              "number": 2
+            }
+          }
+        ],
+        "t": "list"
+      },
+      {
+        "blocks": [
+          {
+            "t": "para",
+            "text": [
+              {
+                "text": "The host owns all state; Ink only draws it."
+              }
+            ]
+          }
+        ],
+        "t": "quote"
+      },
+      {
+        "lang": "rust",
+        "t": "code",
+        "text": "fn lines(text: &str) -> Vec<String> {\n    text.lines().map(String::from).collect() // one per line\n}\n"
+      },
+      {
+        "aligns": [
+          "left",
+          "left"
+        ],
+        "head": [
+          [
+            {
+              "text": "Check"
+            }
+          ],
+          [
+            {
+              "text": "Result"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "text": "typecheck"
+              }
+            ],
+            [
+              {
+                "text": "ok"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "text": "tests"
+              }
+            ],
+            [
+              {
+                "text": "12 passed"
+              }
+            ]
+          ]
+        ],
+        "t": "table"
+      },
+      {
+        "t": "para",
+        "text": [
+          {
+            "text": "See "
+          },
+          {
+            "kind": {
+              "link": {
+                "url": "https://example.test/agent-dock"
+              }
+            },
+            "text": "the plan"
+          },
+          {
+            "text": " for the dock's rules."
+          }
+        ]
+      }
+    ],
+    "name": "review",
+    "widths": {
+      "12": [
+        "Review",
+        "",
+        "Verdict:",
+        "Request",
+        "changes. The",
+        "branch is",
+        "behind",
+        "origin/main",
+        "by three",
+        "commits.",
+        "",
+        "• Findings:",
+        "  ◦ The tool",
+        "    rows",
+        "    take two",
+        "    lines",
+        "    each;",
+        "    one is",
+        "    enough.",
+        "  ◦ Reads in",
+        "    a row",
+        "    should",
+        "    fold",
+        "    together",
+        "    .",
+        "• Fixed:",
+        "  lines uses",
+        "  String::fr",
+        "  om.",
+        "",
+        "1. Rebase on",
+        "   origin/ma",
+        "   in.",
+        "2. Run the",
+        "   checks",
+        "   again.",
+        "",
+        "│ The host",
+        "│ owns all",
+        "│ state; Ink",
+        "│ only draws",
+        "│ it.",
+        "",
+        "  fn lines(t",
+        "  ext: &str)",
+        "   -> Vec<St",
+        "  ring> {",
+        "      text.l",
+        "  ines().map",
+        "  (String::f",
+        "  rom).colle",
+        "  ct() // on",
+        "  e per line",
+        "  }",
+        "",
+        "Check:",
+        "typecheck",
+        "Result: ok",
+        "",
+        "Check: tests",
+        "Result: 12",
+        "passed",
+        "",
+        "See the plan",
+        "(https://exa",
+        "mple.test/ag",
+        "ent-dock)",
+        "for the",
+        "dock's",
+        "rules."
+      ],
+      "156": [
+        "Review",
+        "",
+        "Verdict: Request changes. The branch is behind origin/main by three commits.",
+        "",
+        "• Findings:",
+        "  ◦ The tool rows take two lines each; one is enough.",
+        "  ◦ Reads in a row should fold together.",
+        "• Fixed: lines uses String::from.",
+        "",
+        "1. Rebase on origin/main.",
+        "2. Run the checks again.",
+        "",
+        "│ The host owns all state; Ink only draws it.",
+        "",
+        "  fn lines(text: &str) -> Vec<String> {",
+        "      text.lines().map(String::from).collect() // one per line",
+        "  }",
+        "",
+        "Check      Result",
+        "─────────  ─────────",
+        "typecheck  ok",
+        "tests      12 passed",
+        "",
+        "See the plan (https://example.test/agent-dock) for the dock's rules."
+      ],
+      "24": [
+        "Review",
+        "",
+        "Verdict: Request",
+        "changes. The branch is",
+        "behind origin/main by",
+        "three commits.",
+        "",
+        "• Findings:",
+        "  ◦ The tool rows take",
+        "    two lines each; one",
+        "    is enough.",
+        "  ◦ Reads in a row",
+        "    should fold",
+        "    together.",
+        "• Fixed: lines uses",
+        "  String::from.",
+        "",
+        "1. Rebase on",
+        "   origin/main.",
+        "2. Run the checks again.",
+        "",
+        "│ The host owns all",
+        "│ state; Ink only draws",
+        "│ it.",
+        "",
+        "  fn lines(text: &str) -",
+        "  > Vec<String> {",
+        "      text.lines().map(S",
+        "  tring::from).collect()",
+        "   // one per line",
+        "  }",
+        "",
+        "Check      Result",
+        "─────────  ─────────",
+        "typecheck  ok",
+        "tests      12 passed",
+        "",
+        "See the plan",
+        "(https://example.test/ag",
+        "ent-dock) for the dock's",
+        "rules."
+      ],
+      "38": [
+        "Review",
+        "",
+        "Verdict: Request changes. The branch",
+        "is behind origin/main by three",
+        "commits.",
+        "",
+        "• Findings:",
+        "  ◦ The tool rows take two lines each;",
+        "    one is enough.",
+        "  ◦ Reads in a row should fold",
+        "    together.",
+        "• Fixed: lines uses String::from.",
+        "",
+        "1. Rebase on origin/main.",
+        "2. Run the checks again.",
+        "",
+        "│ The host owns all state; Ink only",
+        "│ draws it.",
+        "",
+        "  fn lines(text: &str) -> Vec<String>",
+        "  {",
+        "      text.lines().map(String::from).c",
+        "  ollect() // one per line",
+        "  }",
+        "",
+        "Check      Result",
+        "─────────  ─────────",
+        "typecheck  ok",
+        "tests      12 passed",
+        "",
+        "See the plan",
+        "(https://example.test/agent-dock) for",
+        "the dock's rules."
+      ],
+      "76": [
+        "Review",
+        "",
+        "Verdict: Request changes. The branch is behind origin/main by three commits.",
+        "",
+        "• Findings:",
+        "  ◦ The tool rows take two lines each; one is enough.",
+        "  ◦ Reads in a row should fold together.",
+        "• Fixed: lines uses String::from.",
+        "",
+        "1. Rebase on origin/main.",
+        "2. Run the checks again.",
+        "",
+        "│ The host owns all state; Ink only draws it.",
+        "",
+        "  fn lines(text: &str) -> Vec<String> {",
+        "      text.lines().map(String::from).collect() // one per line",
+        "  }",
+        "",
+        "Check      Result",
+        "─────────  ─────────",
+        "typecheck  ok",
+        "tests      12 passed",
+        "",
+        "See the plan (https://example.test/agent-dock) for the dock's rules."
+      ]
+    }
+  },
+  {
+    "doc": [
+      {
+        "level": 1,
+        "t": "heading",
+        "text": [
+          {
+            "text": "Title one"
+          }
+        ]
+      },
+      {
+        "t": "para",
+        "text": [
+          {
+            "text": "A paragraph with a verylongwordthatmustbreakacrossthelineedgeforsure and "
+          },
+          {
+            "marks": {
+              "bold": true
+            },
+            "text": "bold, then"
+          },
+          {
+            "text": " "
+          },
+          {
+            "marks": {
+              "italic": true
+            },
+            "text": "italic"
+          },
+          {
+            "text": " "
+          },
+          {
+            "marks": {
+              "strike": true
+            },
+            "text": "gone"
+          },
+          {
+            "text": "."
+          }
+        ]
+      },
+      {
+        "items": [
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "first"
+                  }
+                ]
+              },
+              {
+                "items": [
+                  {
+                    "blocks": [
+                      {
+                        "t": "para",
+                        "text": [
+                          {
+                            "text": "nested "
+                          },
+                          {
+                            "marks": {
+                              "italic": true
+                            },
+                            "text": "one"
+                          }
+                        ]
+                      }
+                    ],
+                    "marker": "bullet"
+                  },
+                  {
+                    "blocks": [
+                      {
+                        "t": "para",
+                        "text": [
+                          {
+                            "text": "nested two"
+                          }
+                        ]
+                      }
+                    ],
+                    "marker": "bullet"
+                  }
+                ],
+                "t": "list"
+              }
+            ],
+            "marker": {
+              "number": 1
+            }
+          },
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "second with "
+                  },
+                  {
+                    "marks": {
+                      "code": true
+                    },
+                    "text": "code span"
+                  },
+                  {
+                    "text": " here"
+                  }
+                ]
+              }
+            ],
+            "marker": {
+              "number": 2
+            }
+          }
+        ],
+        "t": "list"
+      },
+      {
+        "items": [
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "todo"
+                  }
+                ]
+              }
+            ],
+            "marker": "todo"
+          },
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "done"
+                  }
+                ]
+              }
+            ],
+            "marker": "done"
+          }
+        ],
+        "t": "list"
+      },
+      {
+        "blocks": [
+          {
+            "t": "para",
+            "text": [
+              {
+                "text": "quoted "
+              },
+              {
+                "marks": {
+                  "bold": true
+                },
+                "text": "text"
+              },
+              {
+                "text": " that goes on long enough to wrap at narrow widths"
+              }
+            ]
+          },
+          {
+            "blocks": [
+              {
+                "t": "para",
+                "text": [
+                  {
+                    "text": "nested quote"
+                  }
+                ]
+              }
+            ],
+            "t": "quote"
+          }
+        ],
+        "t": "quote"
+      },
+      {
+        "t": "rule"
+      },
+      {
+        "aligns": [
+          "left",
+          "right",
+          "center"
+        ],
+        "head": [
+          [
+            {
+              "text": "Name"
+            }
+          ],
+          [
+            {
+              "text": "Value"
+            }
+          ],
+          [
+            {
+              "text": "Notes"
+            }
+          ]
+        ],
+        "rows": [
+          [
+            [
+              {
+                "text": "a"
+              }
+            ],
+            [
+              {
+                "text": "1"
+              }
+            ],
+            [
+              {
+                "text": "short"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "text": "longer name here"
+              }
+            ],
+            [
+              {
+                "text": "12345"
+              }
+            ],
+            [
+              {
+                "text": "a note that wraps"
+              }
+            ]
+          ]
+        ],
+        "t": "table"
+      },
+      {
+        "t": "code",
+        "text": "plain\tcode with tab\n\n\n"
+      },
+      {
+        "t": "para",
+        "text": [
+          {
+            "text": "Link "
+          },
+          {
+            "kind": {
+              "link": {
+                "url": "https://example.test/x"
+              }
+            },
+            "text": "https://example.test/x"
+          },
+          {
+            "text": " and "
+          },
+          {
+            "kind": {
+              "link": {
+                "url": "https://example.test/y"
+              }
+            },
+            "text": "words"
+          },
+          {
+            "text": "."
+          },
+          {
+            "kind": "break",
+            "text": ""
+          },
+          {
+            "text": "hard break"
+          }
+        ]
+      }
+    ],
+    "name": "edges",
+    "widths": {
+      "12": [
+        "Title one",
+        "─────────",
+        "",
+        "A paragraph",
+        "with a",
+        "verylongword",
+        "thatmustbrea",
+        "kacrosstheli",
+        "needgeforsur",
+        "e and bold,",
+        "then italic",
+        "gone.",
+        "",
+        "1. first",
+        "   ◦ nested",
+        "     one",
+        "   ◦ nested",
+        "     two",
+        "2. second",
+        "   with code",
+        "   span here",
+        "",
+        "☐ todo",
+        "☑ done",
+        "",
+        "│ quoted",
+        "│ text that",
+        "│ goes on",
+        "│ long",
+        "│ enough to",
+        "│ wrap at",
+        "│ narrow",
+        "│ widths",
+        "│",
+        "│ │ nested",
+        "│ │ quote",
+        "",
+        "────────────",
+        "",
+        "Name: a",
+        "Value: 1",
+        "Notes: short",
+        "",
+        "Name: longer",
+        "name here",
+        "Value: 12345",
+        "Notes: a",
+        "note that",
+        "wraps",
+        "",
+        "  plain    c",
+        "  ode with t",
+        "  ab",
+        "",
+        "Link",
+        "https://exam",
+        "ple.test/x",
+        "and words",
+        "(https://exa",
+        "mple.test/y)",
+        ".",
+        "hard break"
+      ],
+      "156": [
+        "Title one",
+        "─────────",
+        "",
+        "A paragraph with a verylongwordthatmustbreakacrossthelineedgeforsure and bold, then italic gone.",
+        "",
+        "1. first",
+        "   ◦ nested one",
+        "   ◦ nested two",
+        "2. second with code span here",
+        "",
+        "☐ todo",
+        "☑ done",
+        "",
+        "│ quoted text that goes on long enough to wrap at narrow widths",
+        "│",
+        "│ │ nested quote",
+        "",
+        "────────────────────────",
+        "",
+        "Name              Value        Notes",
+        "────────────────  ─────  ─────────────────",
+        "a                     1        short",
+        "longer name here  12345  a note that wraps",
+        "",
+        "  plain    code with tab",
+        "",
+        "Link https://example.test/x and words (https://example.test/y).",
+        "hard break"
+      ],
+      "24": [
+        "Title one",
+        "─────────",
+        "",
+        "A paragraph with a",
+        "verylongwordthatmustbrea",
+        "kacrossthelineedgeforsur",
+        "e and bold, then italic",
+        "gone.",
+        "",
+        "1. first",
+        "   ◦ nested one",
+        "   ◦ nested two",
+        "2. second with code span",
+        "   here",
+        "",
+        "☐ todo",
+        "☑ done",
+        "",
+        "│ quoted text that goes",
+        "│ on long enough to wrap",
+        "│ at narrow widths",
+        "│",
+        "│ │ nested quote",
+        "",
+        "────────────────────────",
+        "",
+        "Name      Value   Notes",
+        "────────  ─────  ───────",
+        "a             1   short",
+        "longer    12345  a note",
+        "name              that",
+        "here              wraps",
+        "",
+        "  plain    code with tab",
+        "",
+        "Link",
+        "https://example.test/x",
+        "and words",
+        "(https://example.test/y)",
+        ".",
+        "hard break"
+      ],
+      "38": [
+        "Title one",
+        "─────────",
+        "",
+        "A paragraph with a",
+        "verylongwordthatmustbreakacrosstheline",
+        "edgeforsure and bold, then italic",
+        "gone.",
+        "",
+        "1. first",
+        "   ◦ nested one",
+        "   ◦ nested two",
+        "2. second with code span here",
+        "",
+        "☐ todo",
+        "☑ done",
+        "",
+        "│ quoted text that goes on long enough",
+        "│ to wrap at narrow widths",
+        "│",
+        "│ │ nested quote",
+        "",
+        "────────────────────────",
+        "",
+        "Name             Value      Notes",
+        "───────────────  ─────  ──────────────",
+        "a                    1      short",
+        "longer name      12345   a note that",
+        "here                        wraps",
+        "",
+        "  plain    code with tab",
+        "",
+        "Link https://example.test/x and words",
+        "(https://example.test/y).",
+        "hard break"
+      ],
+      "76": [
+        "Title one",
+        "─────────",
+        "",
+        "A paragraph with a verylongwordthatmustbreakacrossthelineedgeforsure and",
+        "bold, then italic gone.",
+        "",
+        "1. first",
+        "   ◦ nested one",
+        "   ◦ nested two",
+        "2. second with code span here",
+        "",
+        "☐ todo",
+        "☑ done",
+        "",
+        "│ quoted text that goes on long enough to wrap at narrow widths",
+        "│",
+        "│ │ nested quote",
+        "",
+        "────────────────────────",
+        "",
+        "Name              Value        Notes",
+        "────────────────  ─────  ─────────────────",
+        "a                     1        short",
+        "longer name here  12345  a note that wraps",
+        "",
+        "  plain    code with tab",
+        "",
+        "Link https://example.test/x and words (https://example.test/y).",
+        "hard break"
+      ]
+    }
+  }
+]

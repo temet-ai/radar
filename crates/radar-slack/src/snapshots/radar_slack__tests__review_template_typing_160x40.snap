@@ -1,0 +1,44 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+ radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ template ──────────────────────────────────────────╮
+│General               ││ channel          team                                                          ││ AS YOU TYPE                                        │
+│  ├─ parts            ││ user group       @review-squad                                                 ││ ✓ mentions the group picked under user group (in   │
+│  ├─ mode             ││ template         Review please {group}: {mrs}                                  ││ the review channel); posts: Review please          │
+│  ├─ colours          ││ link text        mr                                                            ││ <!subteam^S0REVIEW01>:                             │
+│  └─ icons            ││ test channel     try                                                           ││ <https://git.example/acme/team-a/api/-/merge_reque │
+│Slack                 ││ ask again        after 2 working days without a reply                          ││ sts/263|mr> Add a stats endpoint for the dashboard │
+│  ├─ connection       ││                                                                                ││                                                    │
+│  ├─ channels         ││                                                                                ││ The message: {mrs} is the merge request linked     │
+│  ├─ review           ││                                                                                ││ with its words, or one bullet each for several;    │
+│  ├─ alerts           ││                                                                                ││ {group} mentions the user group picked above, and  │
+│  └─ look             ││                                                                                ││ {@handle} any of Slack's user groups by its        │
+│                      ││                                                                                ││ handle. Both are sent as Slack's mention of the    │
+│                      ││                                                                                ││ group's id, so it pings, and only in the review    │
+│                      ││                                                                                ││ channel. :name: is an emoji.                       │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ ACCEPTS                                            │
+│                      ││                                                                                ││ text with {mrs}; {group} and {@handle} optional    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ NOW                                                │
+│                      ││                                                                                ││ {group} :gitlab: {mrs}                             │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
+│                      ││                                                                                ││ Review please @review-squad: mr Add a stats        │
+│                      ││                                                                                ││ endpoint for the dashboard                         │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ WITH TWO                                           │
+│                      ││                                                                                ││ Review please @review-squad:                       │
+│                      ││                                                                                ││ • api !263 Add a stats endpoint for the dashboard  │
+│                      ││                                                                                ││ • web !12 Show the stats                           │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ config: [slack.review] template                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   ⏎ keep   esc cancel                                                                                                                           slack

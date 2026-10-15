@@ -1,0 +1,28 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+ radar    I   History   Settings (,)  local annotations · observations … ✎ edit
+╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+╭ Save these local work annotations? ──────────────────────────────────────────╮
+│ Task: A deliberately named task with an explicit local title                 │
+│ (10000000-0000-4000-8000-000000000001)                                       │
+│ Local user-authored annotations only. Provider data is unchanged.            │
+│ New pull-request identity bound from action sequence 1 onward (no end).      │
+│ References forge · https://forge.example/ · pull-request · acme/api/7        │
+│ New ticket identity bound from action sequence 1 onward (no end).            │
+│ References forge · https://forge.example/ · ticket · ABC-12                  │
+│ New checkout identity bound from action sequence 1 onward (no end).          │
+│ References forge · https://forge.example/ · checkout ·                       │
+│ /home/user/projects/api                                                      │
+│ New workflow-run identity bound from action sequence 1 onward (no end).      │
+│ References forge · https://forge.example/ · workflow-run · acme/api/42/1     │
+│ This records your assertion, not observed proof, permission or task          │
+│ completion.                                                                  │
+│                                                                              │
+│                                                  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔│
+│                                                   y save locally    n cancel │
+│                                                  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁│
+╰──────────────────────────────────────────────────────────────────────────────╯
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   ←→ move   ⏎ choose   esc close

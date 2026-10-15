@@ -1,0 +1,44 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+expression: "gallery_text(160, 40, tab)"
+---
+ Gallery › Icons
+ The kit: every element on sample data                                                                                                            colours: none
+ Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  [Icons]
+╭ nerd: Nerd Font symbols: needs a Nerd Font, or a terminal that brings its symbols ──────────────────────────────────────────────────────────────────────────╮
+│  group                repo                 branch               commit               change               draft                merged                │█
+│  closed               approved             needs_approval       thread               comment              resolved             conflict              │█
+│  rebase               label                pipeline             run_passed           run_failed           run_running          run_pending           │█
+│  run_skipped          run_manual           run_canceled         job                  log                  issue                epic                  │█
+│  story                task                 bug                  subtask              priority_highest     priority_high        priority_medium       │█
+│  priority_low         priority_lowest      todo                 in_progress          done                 site                 board                 │█
+│  person               you                 󰚩 bot                  team                 chat                 channel              private_channel       │█
+│  direct               reply                mention              reaction             unread               alert                alert_firing          │█
+│  alert_resolved       settings             action               copy                 link                 search               time                  │█
+│  updated              calendar             info                 warning              error                empty                menu                  │█
+│  keys                 quit                 close                navigate             scroll               bulk                 fold                  │█
+│  colours              icons                parts                connection           views                look                 local                 │█
+│  editor               terminal             mode_read            mode_write           mode_edit            file                 folder                │█
+│  folder_open          file_rust            file_java            file_kotlin          file_typescript      file_javascript      file_python           │█
+│  file_go              file_markdown        file_json            file_yaml            file_toml            file_docker          file_sql              │█
+│  file_html            file_css             file_shell           file_c               file_cpp             file_ruby            file_php              │█
+│  file_swift           file_image           file_git             file_lock            file_xml             file_text                                   │█
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯█
+╭ unicode: plain symbols every font has ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮█
+│ ◆ group               ▤ repo                ⎇ branch              ◦ commit              ⇄ change              ◌ draft               ◈ merged                │║
+│ ⊘ closed              ✓ approved            ◎ needs_approval      ❝ thread              ✎ comment             ✓ resolved            ≠ conflict              │║
+│ ↻ rebase              ⌗ label               ⋮ pipeline            ✓ run_passed          ✗ run_failed          ● run_running         ◷ run_pending           │║
+│ » run_skipped         ▷ run_manual          ⊘ run_canceled        ▸ job                 ≣ log                 ◇ issue               ✦ epic                  │║
+│ ▣ story               ☐ task                ✱ bug                 ↳ subtask             ⇈ priority_highest    ↑ priority_high       = priority_medium       │║
+│ ↓ priority_low        ⇊ priority_lowest     ○ todo                ◐ in_progress         ● done                ⊕ site                ⊟ board                 │║
+│ ☺ person              ☻ you                 ◙ bot                 ⚇ team                ✉ chat                # channel             ⊡ private_channel       │║
+│ ✉ direct              ↩ reply               @ mention             ♥ reaction            • unread              ▲ alert               ▲ alert_firing          │║
+│ △ alert_resolved      ⚙ settings            ▷ action              ⧉ copy                ↗ link                ⊙ search              ◷ time                  │║
+│ ↺ updated             ▦ calendar            ℹ info                ⚠ warning             ✗ error               ∅ empty               ≡ menu                  │║
+│ ⌘ keys                ✕ quit                × close               ↔ navigate            ↕ scroll              ◫ bulk                ± fold                  │║
+│ ◑ colours             ☺ icons               ⊞ parts               ⇌ connection          ▽ views               ◑ look                ⌂ local                 │║
+│ ✎ editor              $ terminal            ◉ mode_read           ✎ mode_write          ✎ mode_edit           ▫ file                ▪ folder                │║
+│ ▭ folder_open         ▫ file_rust           ▫ file_java           ▫ file_kotlin         ▫ file_typescript     ▫ file_javascript     ▫ file_python           │║
+│ ▫ file_go             ▫ file_markdown       ▫ file_json           ▫ file_yaml           ▫ file_toml           ▫ file_docker         ▫ file_sql              │║
+│ ▫ file_html           ▫ file_css            ▫ file_shell          ▫ file_c              ▫ file_cpp            ▫ file_ruby           ▫ file_php              │
+ [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit

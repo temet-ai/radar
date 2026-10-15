@@ -1,0 +1,44 @@
+---
+source: tests/mix.rs
+expression: "to_text(&started(), 160, 40)"
+---
+ radar    History   Settings (,)                                                                                                                         ✎ edit
+╭ settings ────────────╮╭ Tools and defaults ────────────────────────────────────────────────────────────╮╭ Copilot ───────────────────────────────────────────╮
+│General               ││ COMMAND LINE TOOLS                                                             ││ … Reading the CLI's status…                        │
+│  ├─ parts            ││                                                                                ││                                                    │
+│  ├─ mode             ││ … Copilot       checking                                                       ││                                                    │
+│  ├─ colours          ││ … Codex         checking                                                       ││                                                    │
+│  └─ icons            ││ … Claude Agent  checking                                                       ││                                                    │
+│Agents                ││                                                                                ││                                                    │
+│  └─ Tools and defau  ││ NEW SESSIONS · FOR EVERY WORKSPACE                                             ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││ provider              Copilot                                                  ││                                                    │
+│                      ││ model                 the provider's own                                       ││                                                    │
+│                      ││ working folder        where radar was started                                  ││                                                    │
+│                      ││ permitted folders     none                                                     ││                                                    │
+│                      ││ skill folders         none                                                     ││                                                    │
+│                      ││ CLI's own config      yes                                                      ││                                                    │
+│                      ││ always allow          none                                                     ││                                                    │
+│                      ││ always deny           none                                                     ││                                                    │
+│                      ││ local only            yes                                                      ││                                                    │
+│                      ││ reviewer commands     yes                                                      ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││ RECIPES AND REVIEWS                                                            ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││ recipes folder        ~/.config/radar/recipes                                  ││                                                    │
+│                      ││ recipe ask            v2 · built-in                                            ││                                                    │
+│                      ││ recipe review-mr      v2 · built-in                                            ││                                                    │
+│                      ││ reviews folder        radar's state folder                                     ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││ WHILE YOU ARE AWAY                                                             ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││ desktop notifications no                                                       ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   q quit   x menu   ←→↑↓ navigate

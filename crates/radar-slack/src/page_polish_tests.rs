@@ -1,0 +1,472 @@
+//! Page-state and keyboard regressions; every service result is injected.
+
+use super::*;
+use crate::Via;
+use crate::client::Recorded;
+use crate::demo::{self, BOB, NOW, TEAM};
+use radar_core::host::{Event, HostEffect};
+use radar_core::ratatui::crossterm::event::KeyModifiers;
+use radar_core::shell::to_text;
+use radar_core::{Host, Plugin};
+
+const A: &str = "1791200000.000100";
+const B: &str = "1791200001.000100";
+const URL: &str = "https://example.com/first";
+
+fn sample() -> SlackPlugin {
+    let mut p = demo::sample();
+    p.via = Via(Some(Recorded::new(vec![])));
+    p
+}
+
+/// A pointer press on a target of the page view.
+fn click(p: &mut SlackPlugin, target: &str) {
+    p.intent(
+        crate::SCREEN.id,
+        Pane::Middle,
+        &radar_core::view::Intent::Select {
+            target: radar_core::view::Target::new(target),
+        },
+    );
+}
+
+#[test]
+fn actions_are_invoked_by_their_stable_ids_through_headless() {
+    use radar_core::headless::Headless;
+    use radar_core::view::{Intent, PaneId};
+    let mut headless = Headless::new(host(sample()), 160, 40);
+    headless.focus(PaneId::Middle);
+    let ids: Vec<String> = headless.screen().unwrap().actions.iter().map(|a| a.id.clone()).collect();
+    let runnable: Vec<&str> = ids.iter().map(String::as_str).filter(|id| !id.is_empty()).collect();
+    assert!(runnable.contains(&"slack.feed.filter"), "{ids:?}");
+    // The agent actions carry the host's shared ids (`agent.send`), the same on every part.
+    assert!(runnable.iter().all(|id| id.starts_with("slack.feed.") || id.starts_with("agent.")), "{ids:?}");
+    let mut sorted = runnable.clone();
+    sorted.sort();
+    sorted.dedup();
+    assert_eq!(sorted.len(), runnable.len(), "no id repeats: {ids:?}");
+    assert!(slack(headless.host()).filter_input.is_none());
+    headless.send(Intent::Invoke { action: "slack.feed.filter".into() });
+    assert!(slack(headless.host()).filter_input.is_some(), "the id ran the filter row");
+    // An id nobody listed does nothing.
+    headless.send(Intent::Invoke { action: "slack.feed.nothing".into() });
+}
+
+fn host(p: SlackPlugin) -> Host {
+    let mut host = Host::new(vec![Box::new(SlackPlugin::new())], NOW).unwrap();
+    host.load_config(Some("")).unwrap();
+    host.plugins[0] = Box::new(p);
+    host
+}
+
+fn slack(host: &Host) -> &SlackPlugin {
+    assert_eq!(host.plugins[0].id(), "slack");
+    // SAFETY: this fixture installs exactly one SlackPlugin.
+    unsafe { &*(host.plugins[0].as_ref() as *const dyn Plugin as *const SlackPlugin) }
+}
+
+fn slack_mut(host: &mut Host) -> &mut SlackPlugin {
+    assert_eq!(host.plugins[0].id(), "slack");
+    // SAFETY: this fixture installs exactly one SlackPlugin, exclusively borrowed.
+    unsafe { &mut *(host.plugins[0].as_mut() as *mut dyn Plugin as *mut SlackPlugin) }
+}
+
+/// Deliberately does not draw before the event: pending redraws are part of the test.
+fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
+    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+}
+
+/// Opt-in visual review output, kept outside the repository by the caller.
+fn export(host: &Host, name: &str) {
+    let Some(dir) = std::env::var_os("RADAR_SLACK_POLISH_SHOTS") else {
+        return;
+    };
+    let dir = std::path::Path::new(&dir);
+    std::fs::create_dir_all(dir).unwrap();
+    for (width, height) in [(80, 24), (160, 40)] {
+        // Prime the rendered tab/row metadata, as `radar shot` does.
+        radar_core::shell::to_svg(host, width, height);
+        let svg = radar_core::shell::to_svg(host, width, height);
+        std::fs::write(dir.join(format!("{name}-{width}x{height}.svg")), &svg).unwrap();
+        let png = radar_core::shot::to_png(&svg).expect("visual export needs --features radar-core/png");
+        std::fs::write(dir.join(format!("{name}-{width}x{height}.png")), png).unwrap();
+    }
+}
+
+fn page(p: &mut SlackPlugin, ts: &str, words: Option<&str>) {
+    if let Some(words) = words {
+        on_thread(p, TEAM, ts, Ok(vec![demo::msg(ts, BOB, words)]));
+    }
+    p.pages.push(Page::Thread {
+        channel: TEAM.into(),
+        ts: ts.into(),
+        tab: 0,
+        row: 0,
+    });
+}
+
+fn no_links(p: &mut SlackPlugin) {
+    assert!(page_links(p).is_empty());
+    assert!(
+        !keys(p)
+            .iter()
+            .any(|b| matches!(b.keys.as_str(), "⏎" | "o" | "y"))
+    );
+    for code in [KeyCode::Enter, KeyCode::Char('o'), KeyCode::Char('y')] {
+        let out = key(p, KeyEvent::new(code, KeyModifiers::NONE));
+        if let Outcome::Handled(effects) = out {
+            assert!(
+                !effects
+                    .iter()
+                    .any(|e| matches!(e, Effect::Show(_) | Effect::Open(_) | Effect::Copy(_)))
+            );
+        }
+    }
+}
+
+#[test]
+fn cold_failure_empty_and_retry_have_truthful_states() {
+    let mut p = sample();
+    page(&mut p, A, None);
+    p.threads.insert(
+        thread_key(TEAM, A),
+        Fetched {
+            loading: true,
+            ..Default::default()
+        },
+    );
+    let mut h = host(p);
+    assert!(to_text(&h, 80, 24).contains("loading…"));
+    on_thread(slack_mut(&mut h), TEAM, A, Err("thread_not_found".into()));
+    let wide = to_text(&h, 160, 40);
+    assert!(
+        wide.contains("could not load: thread_not_found") && wide.contains("Press r to try again")
+    );
+    assert!(!wide.contains("loading…"));
+    export(&h, "cold-error");
+    insta::assert_snapshot!("slack_thread_failed_160x40", wide);
+    insta::assert_snapshot!("slack_thread_failed_80x24", to_text(&h, 80, 24));
+    let retry = press(&mut h, KeyCode::Char('r'));
+    assert_eq!(
+        retry
+            .iter()
+            .filter(|e| matches!(e, HostEffect::Spawn { .. }))
+            .count(),
+        1
+    );
+    let repeat = press(&mut h, KeyCode::Char('r'));
+    assert!(!repeat.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
+    assert!(to_text(&h, 80, 24).contains("loading…"));
+    assert!(!to_text(&h, 80, 24).contains("thread_not_found"));
+    drop(retry); // No task is run, even against the empty recording.
+    on_thread(slack_mut(&mut h), TEAM, A, Ok(vec![]));
+    // The empty-state snapshot is independent of the duplicate-key notice.
+    h.message = None;
+    let empty = to_text(&h, 80, 24);
+    assert!(empty.contains("Slack returned no messages") && !empty.contains("loading…"));
+    export(&h, "empty-thread");
+    insta::assert_snapshot!("slack_thread_empty_80x24", empty);
+    on_thread(
+        slack_mut(&mut h),
+        TEAM,
+        A,
+        Ok(vec![demo::msg(A, BOB, "The retry worked.")]),
+    );
+    assert!(to_text(&h, 80, 24).contains("The retry worked."));
+    assert!(!slack(&h).busy(crate::SCREEN.id));
+}
+
+#[test]
+fn cached_reply_failure_never_claims_it_is_still_reading() {
+    let mut p = sample();
+    let ts = demo::ago(2 * 86_400 + 3600);
+    p.data.channels.get_mut(TEAM).unwrap().replies.remove(&ts);
+    p.pages.push(Page::Thread {
+        channel: TEAM.into(),
+        ts: ts.clone(),
+        tab: 0,
+        row: 0,
+    });
+    on_thread(&mut p, TEAM, &ts, Err("missing_scope".into()));
+    let mut h = host(p);
+    let text = to_text(&h, 160, 40);
+    assert!(text.contains("missing_scope") && text.contains("2 replies aren't loaded"));
+    assert!(!text.contains("are being read"));
+    export(&h, "cached-failure");
+    press(&mut h, KeyCode::Char(']'));
+    let text = to_text(&h, 160, 40);
+    assert!(text.contains("missing_scope") && text.contains("Press r to try again"));
+    assert!(
+        text.contains(demo::MR_263),
+        "cached links remain visible: {text}"
+    );
+    export(&h, "cached-links-failure");
+}
+
+#[test]
+fn links_cannot_cross_threads_even_before_a_redraw_or_after_back_and_reentry() {
+    let mut p = sample();
+    page(&mut p, A, Some(&format!("<{URL}|first>")));
+    let mut h = host(p);
+    to_text(&h, 160, 40);
+    assert_eq!(page_links(slack(&h)).len(), 1);
+    for _ in 0..2 {
+        // Simulate a page push without clearing the derived cache: identity alone
+        // must still refuse A's links before the next frame.
+        page(slack_mut(&mut h), B, None);
+        show_tab(slack_mut(&mut h), 1);
+        no_links(slack_mut(&mut h));
+        let text = to_text(&h, 80, 24);
+        assert!(!text.contains(URL));
+        no_links(slack_mut(&mut h));
+        press(&mut h, KeyCode::Char('x'));
+        assert!(
+            !h.menu
+                .as_ref()
+                .unwrap()
+                .menu
+                .items
+                .iter()
+                .any(|i| i.label.contains("copy it"))
+        );
+        press(&mut h, KeyCode::Esc);
+        assert_eq!(slack(&h).pages.len(), 2, "dismiss only the menu");
+        press(&mut h, KeyCode::Esc);
+        assert_eq!(slack(&h).pages.len(), 1);
+        assert!(
+            page_links(slack(&h)).is_empty(),
+            "back waits for A's redraw"
+        );
+        to_text(&h, 160, 40);
+        assert_eq!(page_links(slack(&h)).len(), 1);
+    }
+}
+
+#[test]
+fn refreshed_links_are_invalid_until_rendered_then_cursor_and_actions_agree() {
+    let mut p = sample();
+    page(
+        &mut p,
+        A,
+        Some(
+            "<https://example.com/one|one> <https://example.com/two|two> <https://example.com/three|three>",
+        ),
+    );
+    show_tab(&mut p, 1);
+    let mut h = host(p);
+    to_text(&h, 160, 40);
+    click(slack_mut(&mut h), "link:2");
+    on_thread(
+        slack_mut(&mut h),
+        TEAM,
+        A,
+        Ok(vec![demo::msg(
+            A,
+            BOB,
+            "<https://example.com/remaining|remaining>",
+        )]),
+    );
+    assert!(
+        page_links(slack(&h)).is_empty(),
+        "old rows are unavailable before redraw"
+    );
+    assert!(!keys(slack(&h)).iter().any(|b| b.keys == "y"));
+    let text = to_text(&h, 80, 24);
+    assert!(text.contains("remaining"));
+    let copied = key(
+        slack_mut(&mut h),
+        KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE),
+    );
+    assert!(
+        matches!(copied, Outcome::Handled(fx) if fx.iter().any(|e| matches!(e, Effect::Copy(s) if s == "https://example.com/remaining")))
+    );
+    assert!(matches!(
+        slack(&h).pages.last(),
+        Some(Page::Thread { row: 0, .. })
+    ));
+    for _ in 0..2 {
+        click(slack_mut(&mut h), "link:99");
+        assert!(matches!(
+            slack(&h).pages.last(),
+            Some(Page::Thread { row: 0, .. })
+        ));
+        click(slack_mut(&mut h), "tab:0");
+        click(slack_mut(&mut h), "tab:1");
+    }
+    on_thread(
+        slack_mut(&mut h),
+        TEAM,
+        A,
+        Ok(vec![demo::msg(A, BOB, "No links left.")]),
+    );
+    no_links(slack_mut(&mut h));
+    let empty = to_text(&h, 80, 24);
+    assert!(empty.contains("No links in these messages. Your browser gets a breather."));
+    export(&h, "empty-links");
+    insta::assert_snapshot!("slack_empty_links_80x24", empty);
+    no_links(slack_mut(&mut h));
+    assert_eq!(page_tabs(slack(&h)).unwrap().names[1], "Links");
+    slack_mut(&mut h)
+        .threads
+        .get_mut(&thread_key(TEAM, A))
+        .unwrap()
+        .loading = true;
+    assert!(
+        !to_text(&h, 80, 24).contains("breather"),
+        "no joke during a read"
+    );
+    on_thread(slack_mut(&mut h), TEAM, A, Err("missing_scope".into()));
+    assert!(
+        !to_text(&h, 80, 24).contains("breather"),
+        "no joke on an error"
+    );
+}
+
+#[test]
+fn rendered_links_do_not_survive_a_connection_revision() {
+    let mut p = sample();
+    page(&mut p, A, Some(&format!("<{URL}|first>")));
+    show_tab(&mut p, 1);
+    let mut h = host(p);
+    to_text(&h, 160, 40);
+    slack_mut(&mut h).replace_token("env:RADAR_POLISH_UNSET_TOKEN".into());
+    no_links(slack_mut(&mut h));
+}
+
+#[test]
+fn back_words_name_the_actual_list_or_previous_page() {
+    for (nav, expected) in [(0, "For you"), (1, "Discussions"), (2, "#team")] {
+        let mut p = sample();
+        p.nav_at = nav;
+        page(&mut p, A, Some("Parent thread"));
+        assert_eq!(back_to(&p), expected);
+        page(&mut p, B, Some("Child thread"));
+        assert_eq!(back_to(&p), "Bob Builder's thread in #team");
+        key(&mut p, KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+        assert_eq!(back_to(&p), expected);
+    }
+    let mut p = sample();
+    p.pages.push(Page::Draft);
+    page(&mut p, A, None);
+    assert_eq!(back_to(&p), "the review ask");
+}
+
+#[test]
+fn committed_filter_escape_clears_before_leaving_the_list() {
+    let mut h = host(sample());
+    press(&mut h, KeyCode::Char('/'));
+    for c in "lunch".chars() {
+        press(&mut h, KeyCode::Char(c));
+    }
+    press(&mut h, KeyCode::Enter);
+    assert_eq!(slack(&h).filter, "lunch");
+    assert_eq!(h.focus, Pane::Middle);
+    press(&mut h, KeyCode::Char('x'));
+    press(&mut h, KeyCode::Esc);
+    assert_eq!(slack(&h).filter, "lunch", "first Escape only dismisses x");
+    press(&mut h, KeyCode::Esc);
+    assert!(slack(&h).filter.is_empty());
+    assert_eq!(h.focus, Pane::Middle);
+    press(&mut h, KeyCode::Esc);
+    assert_eq!(h.focus, Pane::Nav);
+}
+
+#[test]
+fn reply_capture_and_reentry_do_not_leak_page_or_write_shortcuts() {
+    let mut p = sample();
+    page(&mut p, A, Some("Reply here"));
+    let mut h = host(p);
+    to_text(&h, 160, 40);
+    let tab = h
+        .hits
+        .borrow()
+        .iter()
+        .find_map(|(area, hit)| {
+            matches!(hit, radar_core::host::Hit::Plugin { id, .. } if id == "tab:1").then_some(*area)
+        })
+        .expect("Links tab is clickable");
+    for attempt in 0..2 {
+        press(&mut h, KeyCode::Char('c'));
+        assert!(slack(&h).replying.is_some());
+        for c in "oxyernd".chars() {
+            let fx = press(&mut h, KeyCode::Char(c));
+            assert!(!fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
+        }
+        assert!(h.menu.is_none());
+        assert_eq!(slack(&h).pages.len(), 1);
+        for at_ms in [1000, 1100] {
+            let fx = h.update(Event::Mouse {
+                kind: radar_core::host::MouseKind::Press,
+                column: tab.x,
+                row: tab.y,
+                at_ms,
+            });
+            assert!(fx.is_empty(), "clicks do not escape the composer");
+        }
+        assert!(matches!(
+            slack(&h).pages.last(),
+            Some(Page::Thread { tab: 0, .. })
+        ));
+        assert!(
+            slack(&h)
+                .replying
+                .as_ref()
+                .unwrap()
+                .composer
+                .text()
+                .contains("oxyernd")
+        );
+        press(&mut h, KeyCode::Esc);
+        assert!(h.menu.is_some(), "nonempty text asks before dropping");
+        press(&mut h, KeyCode::Esc);
+        assert!(slack(&h).replying.is_some(), "dismissal keeps the composer");
+        press(&mut h, KeyCode::Esc);
+        let fx = press(&mut h, KeyCode::Char('y'));
+        assert!(!fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
+        assert_eq!(
+            slack(&h).pages.len(),
+            1,
+            "drop text, not the page, attempt {attempt}"
+        );
+        assert!(slack(&h).replying.is_none());
+    }
+}
+
+#[test]
+fn rapid_repeat_tab_clicks_do_not_open_a_link_before_redraw() {
+    let mut p = sample();
+    page(&mut p, A, Some(&format!("<{URL}|first>")));
+    let mut h = host(p);
+    to_text(&h, 160, 40);
+    let tab = h
+        .hits
+        .borrow()
+        .iter()
+        .find_map(|(area, hit)| {
+            matches!(hit, radar_core::host::Hit::Plugin { id, .. } if id == "tab:1").then_some(*area)
+        })
+        .expect("Links tab is clickable");
+    fn opens(effect: &HostEffect) -> bool {
+        match effect {
+            HostEffect::Open(_) | HostEffect::OpenApp { .. } => true,
+            HostEffect::Tracked { effect, .. } => opens(effect),
+            _ => false,
+        }
+    }
+    for at_ms in [1000, 1100] {
+        let effects = h.update(Event::Mouse {
+            kind: radar_core::host::MouseKind::Press,
+            column: tab.x,
+            row: tab.y,
+            at_ms,
+        });
+        assert!(
+            !effects.iter().any(opens),
+            "a repeated tab click must not become Enter: {effects:?}"
+        );
+        assert!(matches!(
+            slack(&h).pages.last(),
+            Some(Page::Thread { tab: 1, .. })
+        ));
+    }
+}

@@ -1,0 +1,168 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "new view"
+    },
+    {
+      "id": "gitlab.views.add",
+      "key": {
+        "key": "enter"
+      },
+      "label": "type its name"
+    },
+    {
+      "id": "gitlab.views.kept_comments",
+      "key": {
+        "ctrl": true,
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "kept comments…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "new view"
+          },
+          {
+            "ink": "muted",
+            "text": "   starts from everything; add conditions after"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "4"
+          }
+        ],
+        "target": "row:1",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": " Everything    "
+          },
+          {
+            "ink": "secondary",
+            "text": "everything"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "2"
+          }
+        ],
+        "target": "row:2",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": " Needs my action "
+          },
+          {
+            "ink": "secondary",
+            "text": "open for your review or needing a fix or ready to merge"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "2"
+          }
+        ],
+        "target": "row:3",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": " Opened by me  "
+          },
+          {
+            "ink": "secondary",
+            "text": "opened by you"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "1"
+          }
+        ],
+        "target": "row:4",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": " Opened by teammates "
+          },
+          {
+            "ink": "secondary",
+            "text": "not opened by you, not from bots"
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "ink": "number",
+            "text": "1"
+          }
+        ],
+        "target": "row:5",
+        "text": [
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": " Opened by bots "
+          },
+          {
+            "ink": "secondary",
+            "text": "from bots"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "text": "Make another view for the merge requests nav pane."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "secondary",
+        "text": "Give it a name; it starts by showing every open merge request. Then add conditions to it: by state, who opened it, tenancy, repo, label, merged or closed, or words."
+      }
+    ]
+  ],
+  "detail_title": "new view",
+  "scope": "views",
+  "version": 1
+}

@@ -1,0 +1,1068 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "icon": "repo",
+      "id": "",
+      "label": "api"
+    },
+    {
+      "id": "git.branch.use",
+      "key": {
+        "key": "enter"
+      },
+      "label": "use the clone itself for its repo"
+    },
+    {
+      "id": "git.branch.read_again",
+      "key": {
+        "key": {
+          "char": "r"
+        }
+      },
+      "label": "read the clones again"
+    }
+  ],
+  "dock": {
+    "composer": {
+      "can_send": false,
+      "can_stop": false,
+      "disabled": "no session: start one with a new session"
+    },
+    "focused": false,
+    "status": {},
+    "visible": false
+  },
+  "panes": [
+    {
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "view:0",
+            "text": [
+              {
+                "icon": "views"
+              },
+              {
+                "text": "all"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "number",
+                "text": "1"
+              }
+            ],
+            "target": "view:1",
+            "text": [
+              {
+                "icon": "warning"
+              },
+              {
+                "text": "dirty"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "number",
+                "text": "2"
+              }
+            ],
+            "target": "view:2",
+            "text": [
+              {
+                "icon": "commit"
+              },
+              {
+                "text": "ahead of remote"
+              }
+            ]
+          },
+          {
+            "right": [
+              {
+                "ink": "number",
+                "text": "1"
+              }
+            ],
+            "target": "view:3",
+            "text": [
+              {
+                "icon": "folder"
+              },
+              {
+                "text": "stashes"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      },
+      "pane": "nav",
+      "title": "views",
+      "width": 26
+    },
+    {
+      "body": {
+        "columns": [
+          {
+            "heading": "ahead",
+            "keep": 5,
+            "width": 7
+          },
+          {
+            "heading": "behind",
+            "keep": 4,
+            "width": 8
+          },
+          {
+            "heading": "dirty",
+            "icon": "warning",
+            "keep": 6,
+            "width": 11
+          },
+          {
+            "heading": "stash",
+            "icon": "folder",
+            "keep": 2,
+            "width": 7
+          },
+          {
+            "heading": "ticket",
+            "keep": 1,
+            "width": 21
+          },
+          {
+            "heading": "updated",
+            "icon": "updated",
+            "keep": 3,
+            "width": 8
+          }
+        ],
+        "cut_names": true,
+        "header": [
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "CLONES"
+          },
+          {
+            "ink": "muted",
+            "text": " · 2 clones, 1 worktree"
+          }
+        ],
+        "name_width": 30,
+        "node": "tree",
+        "open": [
+          [
+            "c:/work/acme/api"
+          ],
+          [
+            "c:/work/acme/web"
+          ]
+        ],
+        "rows": [
+          {
+            "cells": [
+              {
+                "heading": "ahead",
+                "text": [
+                  {
+                    "ink": "number",
+                    "text": "↑2"
+                  }
+                ]
+              },
+              {
+                "heading": "behind",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "—"
+                  }
+                ]
+              },
+              {
+                "heading": "dirty",
+                "text": [
+                  {
+                    "icon": "warning"
+                  },
+                  {
+                    "ink": "warn",
+                    "text": "3 changed"
+                  }
+                ]
+              },
+              {
+                "heading": "stash",
+                "text": [
+                  {
+                    "ink": "number",
+                    "text": "1"
+                  }
+                ]
+              },
+              {
+                "heading": "updated",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "3h"
+                  }
+                ]
+              }
+            ],
+            "children": [
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "number",
+                        "text": "↑1"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "warn",
+                        "text": "↓3"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "clean"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "1d"
+                      }
+                    ]
+                  }
+                ],
+                "id": "w:/work/acme/api-hotfix",
+                "name": [
+                  {
+                    "icon": "folder"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "api-hotfix"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": "  on "
+                  },
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": "alice/ABC-14"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "warn",
+                        "text": "↓4"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "2d"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:main",
+                "name": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "main"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "number",
+                        "text": "↑2"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "icon": "warning"
+                      },
+                      {
+                        "ink": "warn",
+                        "text": "3 changed"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "3h"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "ticket",
+                    "show": {
+                      "fields": {
+                        "assignee": "Alice Example",
+                        "parent": "ABC-1",
+                        "project": "ABC",
+                        "site": "acme",
+                        "status": "In Progress",
+                        "title": "Add a stats endpoint for the dashboard",
+                        "type": "Story"
+                      },
+                      "id": "ABC-12",
+                      "kind": "ticket",
+                      "label": "ABC-12",
+                      "url": "https://acme.atlassian.net/browse/ABC-12"
+                    },
+                    "text": [
+                      {
+                        "icon": "story"
+                      },
+                      {
+                        "ink": "info",
+                        "text": "ABC-12 · In Progress"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:alice/ABC-12",
+                "name": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "alice/ABC-12"
+                  },
+                  {
+                    "ink": "good",
+                    "text": "  ● here"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "number",
+                        "text": "↑1"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "warn",
+                        "text": "↓3"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "clean"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "1d"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "ticket",
+                    "show": {
+                      "fields": {
+                        "project": "ABC",
+                        "site": "acme"
+                      },
+                      "id": "ABC-14",
+                      "kind": "ticket",
+                      "label": "ABC-14",
+                      "url": "https://acme.atlassian.net/browse/ABC-14"
+                    },
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "ABC-14"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:alice/ABC-14",
+                "name": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "alice/ABC-14"
+                  },
+                  {
+                    "ink": "good",
+                    "text": "  ● in api-hotfix"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "6d"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "ticket",
+                    "show": {
+                      "fields": {
+                        "project": "ABC",
+                        "site": "acme"
+                      },
+                      "id": "ABC-9",
+                      "kind": "ticket",
+                      "label": "ABC-9",
+                      "url": "https://acme.atlassian.net/browse/ABC-9"
+                    },
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "ABC-9"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:alice/ABC-9",
+                "name": [
+                  {
+                    "icon": "merged"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "alice/ABC-9"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": "  merged"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "warn",
+                        "text": "gone"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "2w"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "ticket",
+                    "show": {
+                      "fields": {
+                        "project": "ABC",
+                        "site": "acme"
+                      },
+                      "id": "ABC-7",
+                      "kind": "ticket",
+                      "label": "ABC-7",
+                      "url": "https://acme.atlassian.net/browse/ABC-7"
+                    },
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "ABC-7"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:alice/ABC-7",
+                "name": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "alice/ABC-7"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "9d"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:spike",
+                "name": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "spike"
+                  }
+                ]
+              }
+            ],
+            "id": "c:/work/acme/api",
+            "name": [
+              {
+                "icon": "repo"
+              },
+              {
+                "ink": "primary",
+                "strong": true,
+                "text": "api"
+              },
+              {
+                "ink": "muted",
+                "text": "  on "
+              },
+              {
+                "icon": "branch"
+              },
+              {
+                "ink": "muted",
+                "text": "alice/ABC-12"
+              },
+              {
+                "ink": "good",
+                "text": "  ● in use"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "ahead",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "—"
+                  }
+                ]
+              },
+              {
+                "heading": "behind",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "—"
+                  }
+                ]
+              },
+              {
+                "heading": "dirty",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "clean"
+                  }
+                ]
+              },
+              {
+                "heading": "stash",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "—"
+                  }
+                ]
+              },
+              {
+                "heading": "updated",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "4d"
+                  }
+                ]
+              }
+            ],
+            "children": [
+              {
+                "cells": [
+                  {
+                    "heading": "ahead",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "behind",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "dirty",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "clean"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "stash",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "—"
+                      }
+                    ]
+                  },
+                  {
+                    "heading": "updated",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "4d"
+                      }
+                    ]
+                  }
+                ],
+                "id": "b:main",
+                "name": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "main"
+                  },
+                  {
+                    "ink": "good",
+                    "text": "  ● here"
+                  }
+                ]
+              }
+            ],
+            "id": "c:/work/acme/web",
+            "name": [
+              {
+                "icon": "repo"
+              },
+              {
+                "ink": "primary",
+                "strong": true,
+                "text": "web"
+              },
+              {
+                "ink": "muted",
+                "text": "  on "
+              },
+              {
+                "icon": "branch"
+              },
+              {
+                "ink": "muted",
+                "text": "main"
+              }
+            ]
+          }
+        ],
+        "selected": [
+          "c:/work/acme/api"
+        ]
+      },
+      "notes": [
+        [
+          {
+            "ink": "secondary",
+            "text": "every clone, its worktrees and its local branches"
+          }
+        ]
+      ],
+      "pane": "middle",
+      "title": "all"
+    },
+    {
+      "body": {
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "folder   "
+              },
+              {
+                "ink": "primary",
+                "text": "/work/acme/api"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "origin   "
+              },
+              {
+                "ink": "primary",
+                "text": "git@example.com:acme/team-a/api.git"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "repo     "
+              },
+              {
+                "ink": "primary",
+                "text": "acme/team-a/api"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "on       "
+              },
+              {
+                "ink": "primary",
+                "text": "alice/ABC-12"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "changes  "
+              },
+              {
+                "icon": "warning"
+              },
+              {
+                "ink": "warn",
+                "text": "3 changed"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "base     "
+              },
+              {
+                "ink": "primary",
+                "text": "main"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": []
+          },
+          {
+            "block": "section",
+            "blocks": [
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "folder"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "/work/acme/api-hotfix"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": "  alice/ABC-14"
+                  }
+                ]
+              }
+            ],
+            "mark": "folder",
+            "title": "WORKTREES"
+          },
+          {
+            "block": "line",
+            "text": []
+          },
+          {
+            "block": "section",
+            "blocks": [
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "folder"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "On alice/ABC-12: ABC-12-local-2026-10-05"
+                  }
+                ]
+              }
+            ],
+            "mark": "folder",
+            "title": "STASHES"
+          }
+        ],
+        "node": "rich"
+      },
+      "pane": "detail",
+      "title": "api"
+    }
+  ],
+  "scope": "branch-screen",
+  "version": 1
+}

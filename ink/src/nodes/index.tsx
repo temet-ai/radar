@@ -721,6 +721,7 @@ export function NodeView({
           top={node.top}
           split={node.split}
           painted={node.painted}
+          words={node.words}
           empty={node.empty}
           width={ctx.width}
           height={ctx.height}

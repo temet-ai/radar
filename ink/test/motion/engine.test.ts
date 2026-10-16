@@ -110,7 +110,7 @@ describe("motion engine", () => {
       ).toBe(true);
       expect(e.running(), `${cue.kind} is over at ${ms} ms`).toBe(false);
       expect(e.nextFrame()).toBeUndefined();
-      expect(ms).toBeGreaterThanOrEqual(150);
+      expect(ms).toBeGreaterThanOrEqual(100);
       expect(ms).toBeLessThanOrEqual(450);
     }
   });

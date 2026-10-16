@@ -80,6 +80,15 @@ impl EventFilter {
                 values.push(value.into());
             }
         }
+        // No event before the first one observed since `since_ms` can match:
+        // start there (events_time holds it) instead of at the journal's
+        // first event. Observed times need not follow sequence, so the bound
+        // is the least sequence among them, not the sequence at that time.
+        if let Some(since) = self.since_ms {
+            sql.push_str(" AND e.sequence>=(SELECT COALESCE(min(x.sequence),?+1) FROM action_events x WHERE x.occurred_at_ms>=?)");
+            values.push(highwater.into());
+            values.push(since.into());
+        }
         if let Some(subject) = &self.subject {
             sql.push_str(" AND EXISTS (SELECT 1 FROM action_subjects ax JOIN subjects s ON s.id=ax.subject_id WHERE ax.action_id=a.id AND s.provider=? AND s.instance=? AND s.kind=? AND s.external_id=?)");
             for value in [
@@ -164,10 +173,11 @@ impl Journal {
             "event cursor exceeds its snapshot"
         );
         let (matching, values) = filter.matching_sql(cut.event_sequence);
-        let mut gap_values = values.clone();
-        gap_values.push(cut.gap_sequence.into());
+        // The sessions with a matching event are found once, not once per gap.
+        let mut gap_values = vec![Value::from(cut.gap_sequence)];
+        gap_values.extend(values.iter().cloned());
         let known_recording_gaps: bool = tx.query_row(
-            &format!("WITH matching_events AS NOT MATERIALIZED (SELECT a.session_id {matching}) SELECT EXISTS(SELECT 1 FROM recording_gaps g WHERE g.sequence<=? AND EXISTS(SELECT 1 FROM matching_events m WHERE m.session_id=g.session_id))"),
+            &format!("SELECT EXISTS(SELECT 1 FROM recording_gaps g WHERE g.sequence<=? AND g.session_id IN (SELECT a.session_id {matching}))"),
             rusqlite::params_from_iter(gap_values),
             |row| row.get(0),
         )?;

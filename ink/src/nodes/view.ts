@@ -211,6 +211,8 @@ export type Node =
       empty: string;
       /** The host's syntax runs per line (Node::Diff.painted); absent when the language is unknown. */
       painted?: { text: string; token: string }[][];
+      /** The words that changed in each line, in characters (Node::Diff.words); absent when none did. */
+      words?: [number, number][][];
     }
   | { node: "state"; state: State; text: string }
   | { node: "extension"; capability: string; version: number; data: unknown; fallback: Node };

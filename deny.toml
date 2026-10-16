@@ -34,6 +34,11 @@ ignore = [
     { id = "RUSTSEC-2025-0141", reason = "bincode, through syntect's bundled syntax sets" },
     { id = "RUSTSEC-2026-0206", reason = "rustybuzz, through resvg (radar shot's PNG text)" },
     { id = "RUSTSEC-2026-0192", reason = "ttf-parser, through resvg's font database" },
+    # Yanked, not vulnerable: zip yanked every release before 9.0.3 (2026-10-13), and
+    # github-copilot-sdk (1.0.20 here, 1.0.22 the newest checked 2026-10-16) still asks for
+    # zip 7, in its build script (and at run time on Windows). Drop this when the SDK moves
+    # to zip 9.
+    { crate = "zip@7.2.0", reason = "yanked; needed by github-copilot-sdk, which has no release on zip 9" },
 ]
 
 [bans]

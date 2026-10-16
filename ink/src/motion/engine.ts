@@ -8,9 +8,11 @@ import {
   FadeOut,
   Glow,
   SweepIn,
+  WHITE,
   type Effect,
   type Reads,
 } from "./effects.js";
+import { lerp } from "./color.js";
 import {
   intersection,
   isEmpty,
@@ -49,7 +51,9 @@ export type InkColours = {
   text: number;
 };
 
-export const SCREEN_MS = 200;
+export const SCREEN_MS = 100;
+/** How far from the background toward the text a screen switch's words start (motion::SCREEN_FROM): dimmed. */
+export const SCREEN_FROM = 0.5;
 export const PAGE_MS = 300;
 export const POPUP_MS = 180;
 export const MESSAGE_MS = 250;
@@ -156,7 +160,8 @@ export class Engine {
       case "screen":
         this.replace(
           { t: "body" },
-          new FadeFromFg(ink.base, SCREEN_MS, "quadOut", reads),
+          // The terminal's own text colour is read as tachyonfx reads a Reset foreground, as the fade does per cell.
+          new FadeFromFg(lerp(ink.base, ink.text < 0 ? WHITE : ink.text, SCREEN_FROM), SCREEN_MS, "quadOut", reads),
         );
         break;
       case "page":

@@ -189,46 +189,41 @@ export function tokenStyle(token: string): Style {
   }
 }
 
-/** The text of each line as cells in the kind's slot (or, where the host sent `painted` runs, in the code's token
- * slots), with the words that changed in a removed/added pair emphasised. */
-function paint(lines: DiffLine[], look: Look, painted?: PaintRun[][]): Cell[][] {
-  const out: Cell[][] = lines.map((l, i) => {
-    const runs = painted?.[i];
-    if (runs && runs.length > 0 && l.kind !== "Hunk" && l.kind !== "Note")
-      return runs.flatMap((r) => cellsOf(r.text, tokenStyle(r.token)));
-    const style =
-      l.kind === "Added"
-        ? slotStyle("diff.added")
-        : l.kind === "Removed"
-          ? slotStyle("diff.removed")
-          : slotStyle("text.primary");
-    return l.kind === "Hunk" || l.kind === "Note"
-      ? []
-      : cellsOf(text(l), style);
-  });
-  let i = 0;
-  while (i < lines.length) {
-    if (lines[i]!.kind !== "Removed") {
-      i++;
-      continue;
-    }
-    const r0 = i;
-    while (i < lines.length && lines[i]!.kind === "Removed") i++;
-    const a0 = i;
-    while (i < lines.length && lines[i]!.kind === "Added") i++;
-    for (let k = 0; k < Math.min(a0 - r0, i - a0); k++) {
-      const { o, n } = changedWords(text(lines[r0 + k]!), text(lines[a0 + k]!));
-      const mark = (cells: Cell[], ranges: [number, number][], s: Style) =>
-        cells.map((c, idx) =>
-          ranges.some(([f, t]) => idx >= f && idx < t)
-            ? { ...c, s: patch(c.s, s) }
-            : c,
+/** Line `i`'s text as cells in the kind's slot (or, where the host sent `painted` runs, in the code's token slots),
+ * with the words that changed in a removed/added pair emphasised: the host compares them (`words`, ui::diff's
+ * changed_lines, in characters) so both renderers mark the same words and Ink compares nothing. Only the lines on
+ * screen are painted. */
+function paintLine(
+  lines: DiffLine[],
+  i: number,
+  look: Look,
+  painted?: PaintRun[][],
+  words?: [number, number][][],
+): Cell[] {
+  const l = lines[i]!;
+  if (l.kind === "Hunk" || l.kind === "Note") return [];
+  const runs = painted?.[i];
+  const cells =
+    runs && runs.length > 0
+      ? runs.flatMap((r) => cellsOf(r.text, tokenStyle(r.token)))
+      : cellsOf(
+          text(l),
+          slotStyle(
+            l.kind === "Added"
+              ? "diff.added"
+              : l.kind === "Removed"
+                ? "diff.removed"
+                : "text.primary",
+          ),
         );
-      out[r0 + k] = mark(out[r0 + k]!, o, look.removedWord);
-      out[a0 + k] = mark(out[a0 + k]!, n, look.addedWord);
-    }
-  }
-  return out;
+  const ranges = words?.[i];
+  if (!ranges || ranges.length === 0) return cells;
+  const s = l.kind === "Removed" ? look.removedWord : look.addedWord;
+  return cells.map((c, idx) =>
+    ranges.some(([f, t]) => idx >= f && idx < t)
+      ? { ...c, s: patch(c.s, s) }
+      : c,
+  );
 }
 
 /** ui::diff::split_rows: a removed run faces the added run after it, pair by pair. */
@@ -271,6 +266,8 @@ export interface DiffProps {
   plain?: boolean;
   /** The host's highlighting of each line (Node::Diff.painted), empty when the language is unknown. */
   painted?: PaintRun[][];
+  /** The words that changed in each line (Node::Diff.words), in characters; empty when none did. */
+  words?: [number, number][][];
 }
 
 export function DiffView(p: DiffProps) {
@@ -286,7 +283,15 @@ export function DiffView(p: DiffProps) {
 function DiffBody(p: DiffProps) {
   const sink = useContext(ScrollSink);
   const look = lookOf();
-  const painted = paint(p.lines, look, p.painted);
+  const kept = new Map<number, Cell[]>();
+  const paintedOf = (i: number): Cell[] => {
+    let cells = kept.get(i);
+    if (!cells) {
+      cells = paintLine(p.lines, i, look, p.painted, p.words);
+      kept.set(i, cells);
+    }
+    return cells;
+  };
   const [ow, nw] = widthsOf(p.lines);
   const pairs = p.split ? splitRows(p.lines) : [];
   const underOf = (i: number) => p.under.filter((u) => u.line === i);
@@ -388,7 +393,8 @@ function DiffBody(p: DiffProps) {
         ...cellsOf(numStr(l.new, nw), muted),
         ...cellsOf(sign, s),
       );
-      cells.push(...(painted[i]!.length ? painted[i]! : cellsOf(text(l), s)));
+      const own = paintedOf(i);
+      cells.push(...(own.length ? own : cellsOf(text(l), s)));
     }
     cells = padCells(clipCells(cells, Math.max(0, width - 1)), width);
     const tint = tintOf(l.kind);
@@ -424,7 +430,8 @@ function DiffBody(p: DiffProps) {
       ...cellsOf(numStr(old ? l.old : l.new, numw), muted),
       ...cellsOf(sign, s),
     ];
-    cells.push(...(painted[i]!.length ? painted[i]! : cellsOf(text(l), s)));
+    const own = paintedOf(i);
+    cells.push(...(own.length ? own : cellsOf(text(l), s)));
     cells = padCells(clipCells(cells, w), w);
     const tint = tintOf(l.kind);
     const numbers = 1 + numw + 1;

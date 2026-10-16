@@ -860,7 +860,23 @@
             "selected": 0,
             "split": false,
             "top": 0,
-            "under": []
+            "under": [],
+            "words": [
+              [],
+              [],
+              [],
+              [
+                [
+                  7,
+                  28
+                ]
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ]
           },
           "pane": "middle",
           "title": "4 of 5 · docs/README.md",

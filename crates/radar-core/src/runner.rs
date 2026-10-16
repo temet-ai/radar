@@ -622,8 +622,10 @@ async fn run_plugin_cli_recorded(
     result
 }
 
+/// The screen's recording: the journal opens on its writer's thread, so the
+/// first frame does not wait for its checks.
 fn start_recording(origin: SessionOrigin) -> Option<Recording> {
-    match Recording::open(origin) {
+    match Recording::open_in_background(origin) {
         Ok(recording) => Some(recording),
         Err(_) => {
             let warning = "action recording unavailable: could not open private journal storage";
@@ -710,6 +712,12 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     let clip = journal.clone();
     // The clipboard: the renderer owns the terminal, so it writes OSC 52.
     let mut filter = |event: Event, bridge: &mut crate::ipc::Bridge| -> Option<Event> {
+        // As the Ratatui runner does: a recording that failed (a journal that
+        // could not be opened, a write that failed) says so in the status line.
+        if let Some(warning) = clip.as_ref().and_then(Sink::take_warning) {
+            log::warn(warning);
+            bridge.host_mut().message = Some(warning.into());
+        }
         let (plain, action, semantic) = match event {
             Event::Tracked { action, semantic, event } => (*event, Some(action), semantic),
             event => (event, None, None),

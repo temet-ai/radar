@@ -153,6 +153,33 @@ fn events_match_exact_scopes_and_all_predicates_without_inferred_state() {
 }
 
 #[test]
+fn since_finds_every_event_observed_since_whatever_order_they_were_recorded_in() {
+    let mut fixture = Fixture::new();
+    let key = key();
+    // Recorded in the order 50, 300, 100, 200: observed times do not follow sequence.
+    let early = fixture.observe(&key, "card.inspect", 50);
+    let late = fixture.observe(&key, "card.inspect", 300);
+    let middle = fixture.observe(&key, "card.inspect", 100);
+    let after = fixture.observe(&key, "card.inspect", 200);
+    let ids = |since| -> Vec<ActionId> {
+        fixture
+            .page(&EventFilter {
+                since_ms: Some(since),
+                ..EventFilter::default()
+            })
+            .events
+            .into_iter()
+            .map(|e| e.event.action_id)
+            .collect()
+    };
+    assert_eq!(ids(100), vec![late.clone(), middle.clone(), after.clone()]);
+    assert_eq!(ids(250), vec![late]);
+    assert_eq!(ids(301), Vec::<ActionId>::new());
+    assert_eq!(ids(0).len(), 4);
+    assert!(!ids(0).is_empty() && ids(0)[0] == early);
+}
+
+#[test]
 fn event_outcomes_remain_distinct_and_original_event_fields_survive() {
     let mut fixture = Fixture::new();
     for outcome in [

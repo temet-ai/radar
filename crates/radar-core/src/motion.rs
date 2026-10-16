@@ -14,7 +14,7 @@
 //! - marks a panel that waits for its first data, with [`loading`].
 //!
 //! What the engine keeps to:
-//! - Every effect is short (150 to 450 ms) and time-based; the clock is
+//! - Every effect is short (100 to 450 ms) and time-based; the clock is
 //!   injectable ([`Clock`], [`ManualClock`]) so tests are exact.
 //! - Input wins: a key, click or paste drops what is running
 //!   ([`Engine::input`]), and the key acts at once.
@@ -272,8 +272,12 @@ impl Clock for ManualClock {
     }
 }
 
-/// How long each effect runs, in ms.
-pub const SCREEN_MS: u32 = 200;
+/// How long each effect runs, in ms. A screen switch is the shortest: it
+/// happens most, and the new screen's words read from its first frame.
+pub const SCREEN_MS: u32 = 100;
+/// How far from the background toward the text a screen switch's words
+/// start: dimmed, never invisible.
+pub const SCREEN_FROM: f32 = 0.5;
 pub const PAGE_MS: u32 = 300;
 pub const POPUP_MS: u32 = 180;
 pub const MESSAGE_MS: u32 = 250;
@@ -419,7 +423,14 @@ impl Engine {
         let ease = Interpolation::QuadOut;
         match cue {
             Cue::Screen => {
-                self.replace(Target::Body, fx::fade_from_fg(ink.base, (SCREEN_MS, ease)));
+                // The terminal's own text colour is read as tachyonfx reads a
+                // Reset foreground, as the fade does for each cell.
+                let text = match ink.text {
+                    Color::Reset => Color::Rgb(192, 192, 192),
+                    c => c,
+                };
+                let from = ink.base.lerp(&text, SCREEN_FROM);
+                self.replace(Target::Body, fx::fade_from_fg(from, (SCREEN_MS, ease)));
             }
             Cue::Page => self.replace(
                 Target::Body,

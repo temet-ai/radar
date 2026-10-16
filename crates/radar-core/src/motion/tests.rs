@@ -143,7 +143,7 @@ fn each_effect_runs_for_its_time_and_no_longer() {
         let _ = draw(&mut e, &t, marks);
         let _ = draw(&mut e, &t, marks);
         assert!(!e.running(), "{cue:?} is over at {ms} ms");
-        assert!((150..=450).contains(&ms), "{cue:?} is short");
+        assert!((100..=450).contains(&ms), "{cue:?} is short");
     }
 }
 
@@ -321,4 +321,106 @@ fn motion_is_held_back_over_ssh_and_below_full_colour() {
     for l in Level::ALL {
         assert_eq!(Level::parse(l.word()), l);
     }
+}
+
+/// Ink's motion engine is checked against this engine cell for cell
+/// (`ink/test/motion/parity.test.ts`), from the frames written here: each
+/// cue over [`plain`] on a [`ManualClock`], at fixed times. The committed
+/// file must be what this engine draws; `RADAR_MOTION_REF=1` rewrites it.
+#[test]
+fn the_ink_motion_reference_is_what_this_engine_draws() {
+    use serde_json::{Value, json};
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ink/test/motion/fixtures/ratatui-motion.json");
+    let t = theme();
+    let message = Rect {
+        x: 0,
+        y: 7,
+        width: 14,
+        height: 1,
+    };
+    let hex = |c: Color| match c {
+        Color::Rgb(r, g, b) => format!("#{r:02x}{g:02x}{b:02x}"),
+        Color::Reset => "reset".into(),
+        other => format!("{other:?}"),
+    };
+    let ink = Ink::of(&t);
+    let muted = t.s(Slot::TextMuted).fg.unwrap_or(Color::Reset);
+    let marks = |shimmer: bool| {
+        move || {
+            popup_marks();
+            region(Region::Message, message);
+            if shimmer {
+                loading(AREA);
+            }
+        }
+    };
+    let after_message = || {
+        let mut b = Buffer::empty(AREA);
+        b.set_style(AREA, t.bg(Slot::BgSurface));
+        b.set_string(0, 7, "keys keys keys", t.s(Slot::TextMuted));
+        b
+    };
+    let mut changes = Changes::default();
+    changes.changed.insert("row:3".into());
+    changes.added.insert("row:5".into());
+    let effect_times: Vec<u64> = vec![0, 30, 60, 100, 140, 180, 200, 230, 260, 300, 340, 400, 450, 500];
+    let scenarios: Vec<(&str, Level, Option<Cue>, Vec<u64>)> = vec![
+        ("plain", Level::Full, None, vec![0]),
+        ("screen", Level::Subtle, Some(Cue::Screen), effect_times.clone()),
+        ("page", Level::Full, Some(Cue::Page), effect_times.clone()),
+        ("popup", Level::Subtle, Some(Cue::Popup), effect_times.clone()),
+        ("message", Level::Full, Some(Cue::Message), effect_times.clone()),
+        ("message_gone", Level::Full, Some(Cue::MessageGone), effect_times.clone()),
+        ("changed_subtle", Level::Subtle, Some(Cue::Changed(changes.clone())), effect_times.clone()),
+        ("changed_full", Level::Full, Some(Cue::Changed(changes)), effect_times),
+        ("shimmer", Level::Full, None, (0..16).map(|i| i * 100).collect()),
+    ];
+    let mut out = Vec::new();
+    for (name, level, cue, times) in scenarios {
+        let (mut e, clock) = engine(level);
+        let gone = name == "message_gone";
+        let mk = marks(name == "shimmer");
+        if gone {
+            let _ = draw(&mut e, &t, mk);
+        }
+        if let Some(cue) = cue {
+            e.cue(cue, &t);
+        }
+        let mut now = 0;
+        let mut frames = Vec::new();
+        for at in times {
+            clock.advance(at - now);
+            now = at;
+            begin();
+            mk();
+            let mut b = if gone { after_message() } else { plain(&t) };
+            e.draw(&mut b, &t);
+            let cells: Vec<Value> = b
+                .content
+                .iter()
+                .map(|c| json!([c.symbol(), hex(c.fg), hex(c.bg), format!("{:?}", c.modifier)]))
+                .collect();
+            frames.push(json!({ "t": at, "running": e.running(), "cells": cells }));
+        }
+        out.push(json!({ "name": name, "level": level.word(), "frames": frames }));
+    }
+    let written = json!({
+        "colours": {
+            "base": hex(ink.base), "surface": hex(ink.surface), "overlay": hex(ink.overlay),
+            "glow": hex(ink.glow), "text": hex(ink.text), "muted": hex(muted),
+        },
+        "width": AREA.width, "height": AREA.height,
+        "popup": [POPUP.x, POPUP.y, POPUP.width, POPUP.height],
+        "message": [message.x, message.y, message.width, message.height],
+        "scenarios": out,
+    });
+    if std::env::var_os("RADAR_MOTION_REF").is_some() {
+        std::fs::write(&path, serde_json::to_string(&written).unwrap()).unwrap();
+        return;
+    }
+    let committed: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    for (a, b) in written["scenarios"].as_array().unwrap().iter().zip(committed["scenarios"].as_array().unwrap()) {
+        assert_eq!(a, b, "{}: run with RADAR_MOTION_REF=1", a["name"]);
+    }
+    assert_eq!(written, committed, "run with RADAR_MOTION_REF=1");
 }

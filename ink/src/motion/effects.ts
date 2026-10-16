@@ -15,7 +15,7 @@ export type Reads = { fg: number; bg: number };
 
 const f = Math.fround;
 /** tachyonfx's cache reads a Reset foreground as Color::White (192,192,192), which the fade blends from. */
-const WHITE = 0xc0c0c0;
+export const WHITE = 0xc0c0c0;
 
 /** `fx::fade_from_fg(to, (ms, ease))`: the text starts as `to` and comes to its own colour. */
 export class FadeFromFg implements Effect {

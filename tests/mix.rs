@@ -676,7 +676,12 @@ jql = "project = ABC ORDER BY updated DESC"
             .into_iter()
             .skip_while(|&i| !host.screens[i].1.name.eq_ignore_ascii_case("jira"))
             .nth(1);
-        let want = after.map(|i| host.screens[i].1.name.to_lowercase()).expect("a tab after Jira");
+        // In a mix where Jira is the last screen's tab (no Slack set up, no
+        // git or work), → stays on the bar and the walk ends here.
+        let Some(want) = after.map(|i| host.screens[i].1.name.to_lowercase()) else {
+            assert!(host.bar, "→ past the last tab stays on the bar");
+            return;
+        };
         assert_eq!((screen(&host).to_lowercase(), host.bar), (want, true));
         key(&mut host, KeyCode::Down);
         assert!(!host.bar);

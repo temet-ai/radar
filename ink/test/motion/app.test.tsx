@@ -111,7 +111,7 @@ function open(level: string) {
 }
 
 describe("motion through the app", () => {
-  it("a screen cue fades the body over ~200 ms, then draws exactly as without motion", async () => {
+  it("a screen cue fades the body over ~100 ms, then draws exactly as without motion", async () => {
     const m = open("subtle");
     await tick(60);
     const plain = m.frame();

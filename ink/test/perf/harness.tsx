@@ -85,6 +85,9 @@ export function mount(columns: number, rows: number, throttled: boolean) {
     debug: !throttled,
     exitOnCtrlC: false,
     patchConsole: false,
+    // Ink writes no frame until it unmounts when it thinks it runs in CI (is-in-ci: CI=true on the runners); the
+    // renderer is interactive, so it is measured as one.
+    interactive: true,
     },
   );
   conn.receive({ type: "welcome", protocol: 1, view: 1, cursor: 0 });

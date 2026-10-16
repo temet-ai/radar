@@ -626,18 +626,21 @@ fn selection_cte(selection: &Selection, cut: &Snapshot) -> (String, Vec<Value>) 
         &mut values,
         selection.actions.iter().map(|id| id.as_str().to_owned()),
     );
-    // Large history sets remain correlated predicates. No DISTINCT or UNION
-    // materialization is needed before the ordered LIMIT produces a page.
+    // The selected and source actions are built once from the selection's
+    // side (its bindings, its changes) and kept: tested per row of `actions`
+    // instead, every page and every recording gap scanned the whole journal
+    // (9 s for one item on a journal of 300,000 events). What they hold is
+    // bounded by the history bound to the selection, not by the journal.
     let sql = format!("WITH chosen_items(id) AS ({items}), chosen_actions(id) AS ({actions}),
-    selected_actions(id) AS NOT MATERIALIZED (
-      SELECT a.id FROM actions a WHERE a.id IN (SELECT id FROM chosen_actions) OR EXISTS(
-        SELECT 1 FROM action_subjects ax JOIN work_item_bindings b ON b.subject_id=ax.subject_id
-        JOIN work_changes bc ON bc.id=b.change_id
+    selected_actions(id) AS MATERIALIZED (
+      SELECT a.id FROM actions a WHERE a.id IN (SELECT id FROM chosen_actions)
+      UNION
+      SELECT ax.action_id FROM work_item_bindings b JOIN work_changes bc ON bc.id=b.change_id
+        JOIN action_subjects ax ON ax.subject_id=b.subject_id
         JOIN action_events start ON start.action_id=ax.action_id AND start.outcome='requested'
-        WHERE ax.action_id=a.id AND b.item_id IN (SELECT id FROM chosen_items) AND bc.sequence<=?2 AND bc.basis<>'inferred'
+        WHERE b.item_id IN (SELECT id FROM chosen_items) AND bc.sequence<=?2 AND bc.basis<>'inferred'
         AND start.sequence<=?1 AND start.sequence>=b.from_sequence AND (b.through_sequence IS NULL OR start.sequence<=b.through_sequence)
         AND NOT EXISTS(SELECT 1 FROM work_changes r WHERE r.retracts_id=bc.id AND r.sequence<=?2)
-      )
     ), selected_tags(id) AS NOT MATERIALIZED (
       SELECT t.id FROM work_tags t WHERE EXISTS(
         SELECT 1 FROM work_tag_assignments a JOIN work_changes c ON c.id=a.change_id
@@ -654,10 +657,10 @@ fn selection_cte(selection: &Selection, cut: &Snapshot) -> (String, Vec<Value>) 
       )
     ), selected_changes(id) AS NOT MATERIALIZED (
       SELECT c.id FROM work_changes c WHERE c.sequence<=?2 AND (EXISTS(SELECT 1 FROM base_changes b WHERE b.id=c.id) OR EXISTS(SELECT 1 FROM base_changes b WHERE b.id=c.retracts_id))
-    ), source_actions(id) AS NOT MATERIALIZED (
-      SELECT a.id FROM actions a WHERE EXISTS(SELECT 1 FROM selected_actions sa WHERE sa.id=a.id) OR
-      EXISTS(SELECT 1 FROM work_changes c JOIN selected_changes sc ON sc.id=c.id WHERE c.recording_action_id=a.id) OR
-      EXISTS(SELECT 1 FROM action_events e JOIN work_changes c ON c.evidence_event_id=e.id JOIN selected_changes sc ON sc.id=c.id WHERE e.action_id=a.id)
+    ), source_actions(id) AS MATERIALIZED (
+      SELECT id FROM selected_actions
+      UNION SELECT c.recording_action_id FROM work_changes c JOIN selected_changes sc ON sc.id=c.id
+      UNION SELECT e.action_id FROM work_changes c JOIN selected_changes sc ON sc.id=c.id JOIN action_events e ON e.id=c.evidence_event_id
     )");
     (sql, values)
 }

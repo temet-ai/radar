@@ -1,4 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+// In colour, as a terminal draws it: without colour the selected row looks like any other, a moved selection changes
+// nothing on screen, Ink writes nothing, and the bound below would hold of a frame never written.
+vi.hoisted(() => {
+  process.env.FORCE_COLOR = "3";
+});
 import { mount, tick, until } from "./harness.js";
 import { RENDER_OPTIONS } from "../../src/app/render-options.js";
 
@@ -19,8 +24,9 @@ const screenAt = (selected: number) => ({
   actions: [],
 });
 
-/** How the renderer is run (app/run.tsx): throttled, writing only what changed. */
-const RUN_OPTIONS = { ...RENDER_OPTIONS, alternateScreen: false, debug: false };
+/** How the renderer is run (app/run.tsx): throttled, writing only what changed; interactive, as a terminal is, also where
+ * Ink would take CI=true to mean it is not (is-in-ci: then it writes no frame until it unmounts). */
+const RUN_OPTIONS = { ...RENDER_OPTIONS, alternateScreen: false, debug: false, interactive: true };
 
 describe("what one key writes to the terminal", () => {
   for (const [cols, height] of [[160, 40], [80, 24]] as const) {
@@ -39,11 +45,14 @@ describe("what one key writes to the terminal", () => {
       // The host's answer: the selection moved.
       m.snapshot({ screen: screenAt(1) }, 2);
       await until(() => m.out.frames.length > n);
+      expect(m.out.frames.length, "the moved selection was written").toBeGreaterThan(n);
       // Then room for a second write that should not come: a slow machine only makes it later, never a false failure.
       await tick(200);
       const written = m.out.frames.join("").length - base;
       expect(written, `${written} bytes in ${m.out.frames.length - n} writes`).toBeLessThan(3000);
-      expect(m.out.frames.length - n).toBeLessThanOrEqual(2);
+      // Frames, not the synchronized-output marks Ink writes on their own around each (?2026h, ?2026l).
+      const frames = m.out.frames.slice(n).filter((f) => !/^\x1b\[\?2026[hl]$/.test(f));
+      expect(frames.length).toBeLessThanOrEqual(2);
     });
   }
 });

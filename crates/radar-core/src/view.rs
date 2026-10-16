@@ -1014,6 +1014,12 @@ pub enum Node {
         /// when `language` is unknown, and for hunk and note lines.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         painted: Vec<Vec<PaintRun>>,
+        /// The words that changed within each line of a replaced pair, as
+        /// `[from, to)` in characters of the line's text (tabs as four
+        /// spaces), as Ratatui emphasises them; empty when no line has any.
+        /// The bridge fills it with `painted`.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        words: Vec<Vec<(u32, u32)>>,
     },
     /// Nothing to show, and why: in words, with what kind of nothing.
     State {
@@ -1063,52 +1069,17 @@ impl Node {
         )
     }
 
-    /// Fill a [`Node::Diff`]'s `painted` as the Ratatui renderer feeds its
-    /// highlighters: context lines to both the old and the new side,
-    /// added lines to the new, removed lines to the old.
+    /// Fill a [`Node::Diff`]'s `painted` and `words`. A diff is painted once
+    /// and kept while it shows: the host builds a snapshot for every change,
+    /// and highlighting and comparing the words of a long diff each time
+    /// cost more than the rest of the snapshot.
     pub fn paint_diff(&mut self) {
-        use crate::ui::diff::Kind;
-        use crate::ui::highlight::Highlighter;
-        let Node::Diff { lines, language, painted, .. } = self else {
+        let Node::Diff { lines, language, painted, words, .. } = self else {
             return;
         };
-        painted.clear();
-        let Some(language) = language.as_deref() else {
-            return;
-        };
-        let (Some(mut new_hl), Some(mut old_hl)) = (Highlighter::new(language), Highlighter::new(language)) else {
-            return;
-        };
-        let runs = |hl: &mut Highlighter, text: &str| -> Vec<PaintRun> {
-            match hl.runs(text) {
-                Some(runs) => {
-                    let mut out: Vec<PaintRun> = Vec::new();
-                    for (piece, token) in runs {
-                        match out.last_mut() {
-                            Some(last) if last.token == token.name() => last.text.push_str(piece),
-                            _ => out.push(PaintRun { text: piece.to_string(), token: token.name().into() }),
-                        }
-                    }
-                    out
-                }
-                None => vec![PaintRun { text: text.into(), token: "plain".into() }],
-            }
-        };
-        *painted = lines
-            .iter()
-            .map(|l| {
-                let text = l.text.replace('\t', "    ");
-                match l.kind {
-                    Kind::Hunk | Kind::Note => vec![],
-                    Kind::Context => {
-                        runs(&mut old_hl, &text);
-                        runs(&mut new_hl, &text)
-                    }
-                    Kind::Added => runs(&mut new_hl, &text),
-                    Kind::Removed => runs(&mut old_hl, &text),
-                }
-            })
-            .collect();
+        let done = paint_cached(lines, language.as_deref());
+        painted.clone_from(&done.0);
+        words.clone_from(&done.1);
     }
 
     /// [`Node::paint_diff`] on this node and the nodes inside it.
@@ -1119,6 +1090,101 @@ impl Node {
             _ => {}
         }
     }
+}
+
+/// A diff's `painted` and `words`, as [`Node::paint_diff`] sends them.
+type PaintedDiff = std::rc::Rc<(Vec<Vec<PaintRun>>, Vec<Vec<(u32, u32)>>)>;
+
+/// The diffs painted lately, by their lines and language: a screen shows
+/// a few diffs at most (a page, its overlay), and each is painted once.
+const PAINTED_KEPT: usize = 4;
+
+thread_local! {
+    static PAINTED: std::cell::RefCell<Vec<(u64, PaintedDiff)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+fn paint_cached(lines: &[crate::ui::diff::DiffLine], language: Option<&str>) -> PaintedDiff {
+    use std::hash::{Hash, Hasher};
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    (lines, language).hash(&mut h);
+    let key = h.finish();
+    if let Some(done) = PAINTED.with_borrow(|kept| kept.iter().find(|(k, _)| *k == key).map(|(_, d)| d.clone())) {
+        return done;
+    }
+    let done: PaintedDiff = std::rc::Rc::new((paint_runs(lines, language), changed_chars(lines)));
+    PAINTED.with_borrow_mut(|kept| {
+        if kept.len() == PAINTED_KEPT {
+            kept.remove(0);
+        }
+        kept.push((key, done.clone()));
+    });
+    done
+}
+
+/// Each line cut into runs by what the code is, as the Ratatui renderer
+/// feeds its highlighters: context lines to both the old and the new side,
+/// added lines to the new, removed lines to the old. Nothing when the
+/// language is unknown.
+fn paint_runs(lines: &[crate::ui::diff::DiffLine], language: Option<&str>) -> Vec<Vec<PaintRun>> {
+    use crate::ui::diff::Kind;
+    use crate::ui::highlight::Highlighter;
+    let Some(language) = language else {
+        return Vec::new();
+    };
+    let (Some(mut new_hl), Some(mut old_hl)) = (Highlighter::new(language), Highlighter::new(language)) else {
+        return Vec::new();
+    };
+    let runs = |hl: &mut Highlighter, text: &str| -> Vec<PaintRun> {
+        match hl.runs(text) {
+            Some(runs) => {
+                let mut out: Vec<PaintRun> = Vec::new();
+                for (piece, token) in runs {
+                    match out.last_mut() {
+                        Some(last) if last.token == token.name() => last.text.push_str(piece),
+                        _ => out.push(PaintRun { text: piece.to_string(), token: token.name().into() }),
+                    }
+                }
+                out
+            }
+            None => vec![PaintRun { text: text.into(), token: "plain".into() }],
+        }
+    };
+    lines
+        .iter()
+        .map(|l| {
+            let text = l.text.replace('\t', "    ");
+            match l.kind {
+                Kind::Hunk | Kind::Note => vec![],
+                Kind::Context => {
+                    runs(&mut old_hl, &text);
+                    runs(&mut new_hl, &text)
+                }
+                Kind::Added => runs(&mut new_hl, &text),
+                Kind::Removed => runs(&mut old_hl, &text),
+            }
+        })
+        .collect()
+}
+
+/// [`crate::ui::diff::changed_lines`] in characters instead of bytes, and
+/// nothing at all when no line has a changed word.
+fn changed_chars(lines: &[crate::ui::diff::DiffLine]) -> Vec<Vec<(u32, u32)>> {
+    let ranges = crate::ui::diff::changed_lines(lines);
+    if ranges.iter().all(Vec::is_empty) {
+        return Vec::new();
+    }
+    ranges
+        .iter()
+        .zip(lines)
+        .map(|(ranges, l)| {
+            if ranges.is_empty() {
+                return Vec::new();
+            }
+            let text = l.text.replace('\t', "    ");
+            let chars = |byte: usize| text[..byte].chars().count() as u32;
+            ranges.iter().map(|&(f, t)| (chars(f), chars(t))).collect()
+        })
+        .collect()
 }
 
 impl PaneView {

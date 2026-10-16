@@ -224,6 +224,7 @@ fn a_diff_is_painted_for_the_renderer() {
         language: Some("rs".into()),
         empty: String::new(),
         painted: vec![],
+        words: vec![],
     };
     node.paint_diffs();
     let Node::Diff { painted, .. } = &node else { unreachable!() };
@@ -244,6 +245,40 @@ fn a_diff_is_painted_for_the_renderer() {
     node.paint_diffs();
     let Node::Diff { painted, .. } = &node else { unreachable!() };
     assert!(painted.is_empty());
+}
+
+/// The words that changed in a replaced pair are sent with the diff, in
+/// characters, as Ratatui emphasises them; the renderer compares nothing.
+#[test]
+fn a_diff_is_sent_with_the_words_that_changed() {
+    use crate::ui::diff::{DiffLine, Kind};
+    use crate::view::Node;
+    let line = |kind, old, new, text: &str| DiffLine { kind, old, new, text: text.into() };
+    let diff = |lines| Node::Diff {
+        lines,
+        under: vec![],
+        selected: 0,
+        top: 0,
+        split: false,
+        language: None,
+        empty: String::new(),
+        painted: vec![],
+        words: vec![],
+    };
+    let mut node = diff(vec![
+        line(Kind::Context, Some(1), Some(1), "fn main() {"),
+        line(Kind::Removed, Some(2), None, "\tlet café = old_value;"),
+        line(Kind::Added, None, Some(2), "\tlet café = new_value;"),
+    ]);
+    node.paint_diffs();
+    let Node::Diff { words, .. } = &node else { unreachable!() };
+    // "    let café = " is 15 characters (17 bytes); the changed word follows it.
+    assert_eq!(words, &vec![vec![], vec![(15, 24)], vec![(15, 24)]]);
+    // No pair, no words.
+    let mut node = diff(vec![line(Kind::Added, None, Some(1), "new")]);
+    node.paint_diffs();
+    let Node::Diff { words, .. } = &node else { unreachable!() };
+    assert!(words.is_empty());
 }
 
 /// T6: a context menu the renderer's right-click opens is anchored where

@@ -66,20 +66,23 @@ describe("the diff's look", () => {
     expect(row[0]).toMatchObject({ ch: "▎", fg: "#e135ff" });
     expect(row.slice(1).every((c) => c.bg === "#44475a")).toBe(true);
   });
-  it("emphasises the words that changed in a replaced pair on the stronger tint, bold", () => {
+  it("emphasises the words the host says changed in a replaced pair on the stronger tint, bold", () => {
     const { o, n } = changedWords(
       "let total = old_value + 1;",
       "let total = new_value + 1;",
     );
     expect(o).toEqual([[12, 21]]);
     expect(n).toEqual([[12, 21]]);
-    const rows = draw();
+    const rows = draw({ words: [[], [], o, n] });
     const col = rows[2]!.map((c) => c.ch).join("").indexOf("old_value");
     expect(rows[2]![col]).toMatchObject({
       bg: blendHex("#ff6363", "#12101a", 0.42),
       bold: true,
     });
     expect(rows[2]![5]!.bold).toBeUndefined();
+    // Without the host's ranges nothing is compared here, so nothing is marked.
+    const plain = draw();
+    expect(plain[2]![col]!.bold).toBeUndefined();
   });
   it("shares too little: no word marks", () => {
     expect(changedWords("abc def", "xyz uvw")).toEqual({ o: [], n: [] });

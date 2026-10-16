@@ -396,6 +396,7 @@ fn diff_pane(
         language: radar_core::ui::highlight::language_of(&stat.path),
         empty: "No lines changed: a rename, a mode change or a binary file.".into(),
         painted: Vec::new(),
+        words: Vec::new(),
     };
     pane
 }

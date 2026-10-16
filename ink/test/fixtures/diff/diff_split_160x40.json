@@ -883,7 +883,23 @@
             "selected": 0,
             "split": true,
             "top": 0,
-            "under": []
+            "under": [],
+            "words": [
+              [],
+              [],
+              [],
+              [
+                [
+                  7,
+                  28
+                ]
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ]
           },
           "pane": "middle",
           "title": "docs/README.md",

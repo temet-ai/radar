@@ -468,8 +468,21 @@ fn paint(theme: &Theme, look: &Look, lines: &[DiffLine], language: Option<&str>)
             }
         })
         .collect();
-    // Removed lines followed by added ones: pair them up in order and
-    // emphasise the words that changed.
+    for (i, ranges) in changed_lines(lines).into_iter().enumerate() {
+        if !ranges.is_empty() {
+            let style = if lines[i].kind == Kind::Removed { look.removed_word } else { look.added_word };
+            out[i] = emphasise(std::mem::take(&mut out[i]), &ranges, style);
+        }
+    }
+    out
+}
+
+/// The words that changed in each line, as byte ranges of its text (tabs
+/// as four spaces): removed lines followed by added ones are paired up in
+/// order and compared word by word; every other line has none.
+pub fn changed_lines(lines: &[DiffLine]) -> Vec<Ranges> {
+    let text_of = |l: &DiffLine| l.text.replace('\t', "    ");
+    let mut out = vec![Ranges::new(); lines.len()];
     let mut i = 0;
     while i < lines.len() {
         if lines[i].kind != Kind::Removed {
@@ -486,16 +499,14 @@ fn paint(theme: &Theme, look: &Look, lines: &[DiffLine], language: Option<&str>)
         }
         for k in 0..(a0 - r0).min(i - a0) {
             let (r, a) = (r0 + k, a0 + k);
-            let (o, n) = changed_words(&text_of(&lines[r]), &text_of(&lines[a]));
-            out[r] = emphasise(std::mem::take(&mut out[r]), &o, look.removed_word);
-            out[a] = emphasise(std::mem::take(&mut out[a]), &n, look.added_word);
+            (out[r], out[a]) = changed_words(&text_of(&lines[r]), &text_of(&lines[a]));
         }
     }
     out
 }
 
 /// Byte ranges of a line.
-type Ranges = Vec<(usize, usize)>;
+pub type Ranges = Vec<(usize, usize)>;
 
 /// Side by side, where blocks under a line start: they span both sides.
 const SPLIT_INDENT: usize = 2;

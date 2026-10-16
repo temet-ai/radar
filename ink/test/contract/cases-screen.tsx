@@ -347,6 +347,7 @@ export const SCREEN_CASES: Record<string, Case> = {
   "Node.diff.split": diff((n, on) => (n.split = on)),
   "Node.diff.language": diff((n, on) => (n.language = on ? "rust" : null)),
   "Node.diff.painted": diff((n, on) => (n.painted = on ? n.lines.map((l: any) => [{ text: String(l.text ?? ""), token: "keyword" }]) : [])),
+  "Node.diff.words": diff((n, on) => (n.words = on ? n.lines.map(() => [[0, 3]]) : [])),
   "PaintRun.text": diff((n, on) => (n.painted = n.lines.map((l: any) => [{ text: on ? "ZZPAINT" : String(l.text ?? ""), token: "plain" }]))),
   "PaintRun.token": diff((n, on) => (n.painted = n.lines.map((l: any) => [{ text: String(l.text ?? ""), token: on ? "keyword" : "plain" }]))),
   "Node.diff.empty": diff((n, on) => {

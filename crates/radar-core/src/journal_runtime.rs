@@ -368,6 +368,28 @@ impl Recording {
     pub(crate) fn open_at(path: &std::path::Path, origin: SessionOrigin) -> anyhow::Result<Self> {
         let mut journal = Journal::open(path)?;
         let session = journal.start_session_with(origin)?;
+        Ok(Self::spawn(move || Ok((journal, session))))
+    }
+
+    /// As [`Recording::open`], with the journal opened on the writer's
+    /// thread: its checks read the whole file (half a second for a journal
+    /// of 300,000 events, seconds when the file is not in the page cache),
+    /// and the screen does not wait for them. What is recorded meanwhile
+    /// waits in the queue, stamped when it happened. A journal that cannot
+    /// be opened turns recording off with the warning the runner shows.
+    pub fn open_in_background(origin: SessionOrigin) -> anyhow::Result<Self> {
+        Ok(Self::open_in_background_at(Journal::default_path()?, origin))
+    }
+
+    pub(crate) fn open_in_background_at(path: std::path::PathBuf, origin: SessionOrigin) -> Self {
+        Self::spawn(move || {
+            let mut journal = Journal::open(&path)?;
+            let session = journal.start_session_with(origin)?;
+            Ok((journal, session))
+        })
+    }
+
+    fn spawn(open: impl FnOnce() -> anyhow::Result<(Journal, SessionId)> + Send + 'static) -> Self {
         let (sender, receiver) = mpsc::sync_channel(WRITER_LIMIT);
         let warning = Arc::new(Mutex::new(None));
         let sink = Sink {
@@ -378,7 +400,27 @@ impl Recording {
         };
         let status = sink.warning.clone();
         let dropped = sink.dropped.clone();
+        let accepting = sink.accepting.clone();
         let worker = std::thread::spawn(move || {
+            let (mut journal, session) = match open() {
+                Ok(opened) => opened,
+                Err(_) => {
+                    if let Ok(mut accepting) = accepting.lock() {
+                        *accepting = false;
+                    }
+                    if let Ok(mut warning) = status.lock() {
+                        *warning = Some("action recording unavailable: could not open private journal storage");
+                    }
+                    // What was queued is dropped: a read's reply closes, so its
+                    // caller hears the journal is unavailable.
+                    while let Ok(work) = receiver.recv() {
+                        if matches!(work, Work::Finish) {
+                            break;
+                        }
+                    }
+                    return;
+                }
+            };
             let mut write_errors = 0u64;
             while let Ok(work) = receiver.recv() {
                 // A UI read must not flush pending gaps or otherwise mutate the
@@ -483,10 +525,10 @@ impl Recording {
                 }
             }
         });
-        Ok(Self {
+        Self {
             sink,
             worker: Some(worker),
-        })
+        }
     }
 
     pub fn finish(&mut self) {
@@ -587,6 +629,41 @@ mod tests {
         sink.begin("test.second", Origin::Host, None);
         assert!(sink.take_warning().unwrap().contains("writer queue full"));
         assert_eq!(sink.dropped.load(Ordering::Relaxed), 1);
+    }
+
+    /// What is recorded while the journal opens on the writer's thread is
+    /// kept, in order; a journal that cannot be opened turns recording off
+    /// and says so.
+    #[test]
+    fn a_journal_opened_in_the_background_keeps_what_came_first_or_says_it_is_unavailable() {
+        let dir = std::env::temp_dir().join(format!("radar-background-{}", uuid::Uuid::new_v4()));
+        let path = dir.join("actions.sqlite3");
+        let mut recording = Recording::open_in_background_at(path.clone(), SessionOrigin::Tui);
+        recording.sink.begin("test.early", Origin::Host, None);
+        recording.finish();
+        assert_eq!(recording.sink.take_warning(), None);
+        let journal = Journal::open(&path).unwrap();
+        let kinds: Vec<String> = journal
+            .query(&crate::journal::Query { limit: 10, ..Default::default() })
+            .unwrap()
+            .into_iter()
+            .map(|e| e.kind.as_str().to_owned())
+            .collect();
+        assert!(kinds.iter().any(|k| k == "test.early"), "{kinds:?}");
+        drop(journal);
+        // Not a journal: recording is off, and the warning says why.
+        std::fs::write(&path, b"not a database").unwrap();
+        for side in ["-wal", "-shm"] {
+            let _ = std::fs::remove_file(dir.join(format!("actions.sqlite3{side}")));
+        }
+        let mut recording = Recording::open_in_background_at(path, SessionOrigin::Tui);
+        recording.sink.begin("test.lost", Origin::Host, None);
+        recording.finish();
+        assert_eq!(
+            recording.sink.take_warning(),
+            Some("action recording unavailable: could not open private journal storage")
+        );
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

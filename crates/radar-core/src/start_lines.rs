@@ -835,8 +835,8 @@ impl Line {
             .iter()
             .map(|c| Cond::parse(c))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(&at)?;
-        let pieces = parse_template(&text).map_err(&at)?;
+            .map_err(at)?;
+        let pieces = parse_template(&text).map_err(at)?;
         let binds = Binds::of(&when);
         let mut cells = 0;
         for piece in &pieces {

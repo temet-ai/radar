@@ -9,7 +9,8 @@ and it runs coding agents (Claude, Codex, GitHub Copilot) beside that work.
 
 ## What it is for
 
-You open radar in a terminal and keep it open. Each screen is one part of your day, and
+You open radar in a terminal and keep it open. You can use it with one service or all of
+them; the parts you do not set up have no screen. Each screen is one part of your day, and
 each part works the same way: views on the left, items in the middle, the selected item's
 detail on the right, and a page for each item. The bottom line shows the keys that work
 where you are; `x` lists them all.
@@ -64,20 +65,23 @@ declined.
 
 A dock under the middle pane runs Claude (through your own Claude Code), Codex or Copilot
 sessions. `A` on a row starts a session with that item already described to the agent, and
-`i` on a merge request asks an agent to review it locally. Each agent runs as your own CLI,
-with your own login, and waits for you before it runs a command or changes a file.
+`i` on a merge request asks an agent to review it locally. The agents are the `claude`,
+`codex` or `copilot` programs, which you install and sign in to separately. When an agent
+asks to run a command or change a file, the dock shows the request and it runs once you
+approve it.
 
 ![The agent dock](docs/user-guide/images/agent-dock.png)
 
 ### The parts work together
 
 A ticket shows its merge requests and the Slack threads that discuss it; a merge request
-shows its ticket and where it is checked out. Every write (a comment, an approval, a merge)
-is shown in full and sent when you confirm it, and the mode at the top right (read only,
-write or edit) sets which writes radar may send at all.
+shows its ticket and where it is checked out. A write (a comment, an approval, a merge) is
+shown in full and sent when you confirm it. The mode at the top right (read only, write or
+edit) sets which writes radar may send; setup asks you to choose one.
 
-radar is one file. It needs no Node, Python or other runtime, and it works in any modern
-terminal, over SSH and inside tmux.
+radar is a single binary with its renderer built in, so it needs no Node or Python. It runs
+in a terminal, including over SSH and inside tmux. The Claude Agent SDK is the one thing it
+downloads, the first time you start a Claude session.
 
 ## Install
 
@@ -90,7 +94,9 @@ brew install temet-ai/radar/radar
 Use the full name: Homebrew has an unrelated app called `radar`, and the short name
 installs that one. Later releases come with `brew upgrade temet-ai/radar/radar`.
 
-With [mise](https://mise.jdx.dev), add this to `mise.toml` and run `mise install`:
+With [mise](https://mise.jdx.dev), add this to `mise.toml` and run `mise install`.
+`prerelease = true` is needed because every release so far is a prerelease, and
+`minimum_release_age = "0s"` lets mise install a release on the day it comes out:
 
 ```toml
 [tools]
@@ -106,10 +112,11 @@ Windows, run the Linux build in WSL2.
 ## First run
 
 Run `radar`. The first time, it walks you through setup: it asks before it looks for
-keys you already have, then sets up what you choose: icons, theme and motion, your local
-code, each service, and your agents. `radar setup` runs it again. [Connect your services](docs/user-guide/connect.md) says what each service needs,
-and the [user guide](docs/user-guide/README.md) covers the screens, keys, agents and
-settings. Press `x` anywhere to see every key that works there.
+tokens you already have, then sets up what you choose (your local code, each service, your
+agents, and icons, theme and motion), and last asks which mode to run in. A service needs
+a token; [Connect your services](docs/user-guide/connect.md) says which, with what access.
+`radar setup` runs setup again. The [user guide](docs/user-guide/README.md) covers the
+screens, keys, agents and settings. Press `x` anywhere to see every key that works there.
 
 ## Status
 

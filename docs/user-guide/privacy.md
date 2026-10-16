@@ -1,29 +1,30 @@
 # What radar stores and sends
 
+Back to the [user guide](README.md).
+
 ## Network
 
 | To | What | When |
 |---|---|---|
 | Each service you connect (GitLab, GitHub, Jira, Slack), at the address you configured | API requests with that service's token: reads, and the writes you confirm | while radar syncs, and when you act |
 | The same service | pictures in descriptions, tickets and threads, with that service's token | when a picture scrolls into view |
-| The npm registry (`registry.npmjs.org`) | Anthropic's Claude Agent SDK, at the version radar was built with, checked against its pinned checksum | the first time you start a Claude session with that version |
+| The npm registry (`registry.npmjs.org`) | Anthropic's Claude Agent SDK (about 1.6 MB), at the version radar was built with, checked against its pinned checksum | the first time you start a Claude session with that version |
 
-radar makes no other network requests. A token goes only to the address configured for its
-service, and radar does not follow a redirect to another host. Tokens are not written to the
-log.
+radar makes no other network requests. A token is sent to the address configured for its
+service. When a service redirects a request to another host, the request goes on without
+the token. Tokens are not written to the log.
 
-A write (a comment, a reply, an approval, a merge, a moved ticket) is shown in full and sent
-when you confirm it. In read-only mode writes are shown and not sent.
+Which writes radar may send depends on its [mode](README.md#the-mode).
 
 ## Coding agents
 
 The agents run as your own `claude`, `codex` or `copilot` programs, with their own logins,
 and talk to their vendor (Anthropic, OpenAI, GitHub) as they do in a terminal. radar does
-not handle those logins. An agent receives what you type to it, or an item you hand it with
-`A`; radar shows that text before it is sent.
+not read or store those logins. An agent receives what you type to it, or an item you hand
+it with `A`; radar shows that text before it is sent.
 
 Each agent session also gets an MCP tool server from radar. It listens on a local socket
-that only your user can open, answers only that session (by a one-time ticket), and stops
+that your user alone can open, answers that one session (by a one-time ticket), and stops
 when the session ends.
 
 ## Files
@@ -43,12 +44,13 @@ when the session ends.
 
 `XDG_CONFIG_HOME`, `XDG_STATE_HOME` and `XDG_CACHE_HOME` move these folders when set.
 
-The config file holds a token only if you typed one in. Otherwise it holds where the token
+The config file holds a token if you typed one in. Otherwise it holds where the token
 is: `env:GITLAB_TOKEN`, or `glab` for the GitLab CLI's login.
 
 The action history records which operation ran on which item and how it ended. It does not
-record typed text, the clipboard, drafts, credentials or service responses. The cache and
-the history are created readable only by your user.
+record typed text, the clipboard, drafts, credentials or service responses. Paths and item
+names in it still say something about your work. The cache and the history are created
+readable by your user alone.
 
 Deleting any of these is safe. radar recreates the cache and the runtime on its next start,
 and downloads the SDK again the next time a Claude session starts.

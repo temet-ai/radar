@@ -1,8 +1,10 @@
 # Contributing to radar
 
-Thank you for helping. radar is in alpha, so the most useful contributions right now are
-bug reports from real use, and small fixes. For anything larger, open an issue first and
-say what you have in mind, so we can agree on the shape before you spend time on it.
+The most useful contributions now are bug reports from real use and small fixes. For
+anything larger, open an issue first and say what you have in mind, so we can agree on the
+shape before you spend time on it.
+[When something looks wrong](docs/user-guide/troubleshooting.md#report-a-problem) says
+what a bug report needs.
 
 ## Licence
 
@@ -25,8 +27,8 @@ cd ink && npm ci && npm run typecheck && npm test
 cd sidecars/claude-agent && npm ci && npm test
 ```
 
-Tests never touch your desktop or accounts: cargo sets `RADAR_SANDBOX`, so radar opens no
-browser, copies nothing, shows no notification and starts no real agent CLI during a test.
+cargo sets `RADAR_SANDBOX` for tests, so during a test radar opens no browser, copies
+nothing, shows no notification and starts no real agent CLI.
 To see links open from a build you run by hand, use `RADAR_SANDBOX= cargo run`.
 
 ## How radar is put together

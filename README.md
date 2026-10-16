@@ -9,11 +9,16 @@ and it runs coding agents (Claude, Codex, GitHub Copilot) beside that work.
 
 ## What it is for
 
-You open radar in a terminal and keep it open. You can use it with one service or all of
-them; the parts you do not set up have no screen. Each screen is one part of your day, and
-each part works the same way: views on the left, items in the middle, the selected item's
-detail on the right, and a page for each item. The bottom line shows the keys that work
-where you are; `x` lists them all.
+The same piece of work is usually spread over several tools: a ticket in Jira, a merge
+request in GitLab, a thread about it in Slack, a branch on your machine. radar links them.
+A ticket shows its merge requests and the Slack threads that discuss it, a merge request
+shows its ticket and where it is checked out, and you can open, check out, comment or ask an
+agent from whichever one you are looking at.
+
+Each service (GitLab, GitHub, Jira, Slack) and your local Git are a *part* of radar, with a
+screen of its own. You can use one service or all of them; a part you do not set up has no
+screen, and with no service at all the Git and Work screens still work. GitLab and GitHub
+can be your own servers; Jira works with Atlassian Cloud sites.
 
 ### Merge requests (GitLab)
 
@@ -63,7 +68,7 @@ declined.
 
 ### Agents
 
-A dock under the middle pane runs Claude (through your own Claude Code), Codex or Copilot
+A dock under the middle pane runs Claude Agent (your own Claude Code), Codex or Copilot
 sessions. `A` on a row starts a session with that item already described to the agent, and
 `i` on a merge request asks an agent to review it locally. The agents are the `claude`,
 `codex` or `copilot` programs, which you install and sign in to separately. When an agent
@@ -72,18 +77,26 @@ approve it.
 
 ![The agent dock](docs/user-guide/images/agent-dock.png)
 
-### The parts work together
+### Getting around
 
-A ticket shows its merge requests and the Slack threads that discuss it; a merge request
-shows its ticket and where it is checked out. A write (a comment, an approval, a merge) is
-shown in full and sent when you confirm it. The mode at the top right (read only, write or
-edit) sets which writes radar may send; setup asks you to choose one.
+Every part is laid out the same way: views on the left, items in the middle, the selected
+item's detail on the right, and a page for each item. `j` `k` or the arrows move, `tab`
+goes to the next pane, `⏎` opens, `esc` goes back, a capital letter goes to a screen (`R`,
+`J`, `S`, `B`), and `q` quits. The bottom line shows the keys that work where you are; `x`
+lists them all.
 
-radar is a single binary with its renderer built in, so it needs no Node or Python. It runs
-in a terminal, including over SSH and inside tmux. The Claude Agent SDK is the one thing it
-downloads, the first time you start a Claude session.
+### Writes and the mode
+
+A write (a comment, an approval, a merge) is shown in full and sent when you confirm it. The
+mode at the top right sets which writes radar may send: **read only** sends none, **write**
+may add comments, replies, reactions and new items, and **edit** may also approve, resolve,
+move, assign, rebase and merge. A click on the mode changes it. The mode covers what radar
+sends; an agent's own commands go through the dock's approvals.
 
 ## Install
+
+radar is a single binary with its renderer built in, so it needs no Node or Python. It runs
+in a terminal, including over SSH and inside tmux.
 
 On macOS or Linux with Homebrew:
 
@@ -94,9 +107,8 @@ brew install temet-ai/radar/radar
 Use the full name: Homebrew has an unrelated app called `radar`, and the short name
 installs that one. Later releases come with `brew upgrade temet-ai/radar/radar`.
 
-With [mise](https://mise.jdx.dev), add this to `mise.toml` and run `mise install`.
-`prerelease = true` is needed because every release so far is a prerelease, and
-`minimum_release_age = "0s"` lets mise install a release on the day it comes out:
+With [mise](https://mise.jdx.dev), add this to `mise.toml` and run `mise install` (the two
+options let mise take prereleases, and on the day they come out):
 
 ```toml
 [tools]
@@ -114,14 +126,14 @@ Windows, run the Linux build in WSL2.
 Run `radar`. The first time, it walks you through setup: it asks before it looks for
 tokens you already have, then sets up what you choose (your local code, each service, your
 agents, and icons, theme and motion), and last asks which mode to run in. A service needs
-a token; [Connect your services](docs/user-guide/connect.md) says which, with what access.
+a token (GitHub's public repositories need none); [Connect your services](docs/user-guide/connect.md) says which, with what access.
 `radar setup` runs setup again. The [user guide](docs/user-guide/README.md) covers the
-screens, keys, agents and settings. Press `x` anywhere to see every key that works there.
+screens, keys, agents and settings.
 
 ## Status
 
 Version 0.1.0-alpha.6. Screens, keys and the config file can still change between
-releases. GitHub is read-only for now, and the agent dock is the newest part.
+releases. The agent dock is the newest part.
 
 ## Privacy
 
@@ -133,8 +145,8 @@ services you connect, and to the npm registry once, to fetch Anthropic's Claude 
 
 ## Contributing
 
-Bug reports and small fixes are welcome; for anything larger, open an issue first.
-[CONTRIBUTING.md](CONTRIBUTING.md) explains how to build radar and run its tests.
+[CONTRIBUTING.md](CONTRIBUTING.md) says what to send, how to build radar and how to run
+its tests.
 
 ## Licence
 

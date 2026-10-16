@@ -103,6 +103,8 @@ export function mount(columns: number, rows: number, throttled: boolean) {
       return at;
     },
     intents: () => (conn.sent as any[]).filter((x) => x.type === "intent"),
+    /** Write `bytes` to stdin and return at once. */
+    type: (bytes: string) => stdin.type(bytes),
     /** Write `bytes` to stdin; the time until an intent leaves the connection (ms), and the intent. */
     async key(bytes: string) {
       const before = conn.sent.length;
@@ -119,14 +121,14 @@ export function mount(columns: number, rows: number, throttled: boolean) {
     async frameAfter(over: { chrome: any; screen?: any; section?: any }) {
       const from = out.writes.length;
       const fromC = commits.length;
-      const cpu0 = process.cpuUsage();
+      const cpu0 = threadCpu();
       const t0 = this.snapshot(over);
       await until(() => out.writes.length > from, 1000);
       const first = out.writes[from];
       let n = out.writes.length;
-      let cpu1 = process.cpuUsage(cpu0);
+      let cpu1 = threadCpu(cpu0);
       for (;;) {
-        cpu1 = process.cpuUsage(cpu0);
+        cpu1 = threadCpu(cpu0);
         await sleep(60);
         if (out.writes.length === n) break;
         n = out.writes.length;
@@ -139,6 +141,11 @@ export function mount(columns: number, rows: number, throttled: boolean) {
     },
   };
 }
+
+/** CPU time (user, system) of this thread: the test's own worker, where the App renders. `process.cpuUsage` counts the
+ * whole process, vitest's other threads too, and doubled what a frame cost under the default thread pool. */
+export const threadCpu = (prev?: NodeJS.CpuUsage): NodeJS.CpuUsage =>
+  ((process as any).threadCpuUsage ?? process.cpuUsage).call(process, prev);
 
 export const median = (xs: number[]) => {
   const s = xs.filter((x) => !Number.isNaN(x)).sort((a, b) => a - b);

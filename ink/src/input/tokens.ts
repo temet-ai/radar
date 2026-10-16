@@ -115,8 +115,9 @@ export function tokenize(text: string): { events: InputEvent[]; rest: string } {
       }
       const m = Number(params.split(";")[1] ?? 1) || 1;
       const named = CSI_NAMED[final];
-      // CSI 1;2D is shift-left: shift is carried beside the chord for the editor's selection keys.
-      const shift = (m - 1) % 2 === 1 && (named === "left" || named === "right" || named === "home" || named === "end");
+      // CSI 1;2D is shift-left: shift is carried beside the chord for the editor's selection keys and for extending a
+      // mouse selection (shift+↑/↓ too, input/selection.ts).
+      const shift = (m - 1) % 2 === 1 && (named === "left" || named === "right" || named === "home" || named === "end" || named === "up" || named === "down");
       if (named) key(named === "back_tab" ? { key: "back_tab" } : withMods(named, m), shift);
       else if (final === "u") {
         // kitty: code[:shifted[:base]] ; mods[:event] . Event 3 is a release, which is no key.

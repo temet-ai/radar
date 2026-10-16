@@ -77,26 +77,13 @@
         ]
       },
       {
-        "target": "row:3",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "terminal   "
-          },
-          {
-            "ink": "secondary",
-            "text": "found for you"
-          }
-        ]
-      },
-      {
         "right": [
           {
             "ink": "good",
             "text": "3 found"
           }
         ],
-        "target": "row:4",
+        "target": "row:3",
         "text": [
           {
             "ink": "muted",
@@ -154,6 +141,190 @@
         "text": "config: [git] roots"
       }
     ]
+  ],
+  "detail_blocks": [
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "Another folder to look for git checkouts in. radar matches each checkout to its repo by its origin remote."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "ACCEPTS"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "secondary",
+          "text": "a full path, or one starting with ~/ (pasted links to files work too)"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "NOW"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "1 folder"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "config: [git] roots"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "The git checkouts under these folders, as far down as look down."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "New clones inside them show up at the next look."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "With git on this machine: branches, changes, ahead, behind."
+            }
+          ]
+        }
+      ],
+      "mark": "folder",
+      "title": "WHAT IT READS"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Branches (B): every branch in these checkouts."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "A repo or merge request: where it is checked out, e and t."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Agents start in the checkout you pick."
+            }
+          ]
+        }
+      ],
+      "mark": "branch",
+      "title": "WHERE IT SHOWS"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Settings / git / checkouts"
+            }
+          ]
+        }
+      ],
+      "mark": "settings",
+      "title": "CHANGE IT LATER"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Branches stay empty until a folder is set."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "The services work without it."
+            }
+          ]
+        }
+      ],
+      "mark": "info",
+      "title": "SKIP IT?"
+    }
   ],
   "detail_title": "add a folder",
   "scope": "checkouts",

@@ -32,7 +32,7 @@ prerelease, render it from that release's
 `checksums.txt` and commit the new formula:
 
 ```sh
-scripts/render-homebrew-formula 0.1.0-alpha.4 temet-ai/radar checksums.txt > Formula/radar.rb
+scripts/render-homebrew-formula 0.1.0-alpha.5 temet-ai/radar checksums.txt > Formula/radar.rb
 brew install temet-ai/radar/radar
 brew update && brew upgrade temet-ai/radar/radar
 ```
@@ -59,7 +59,7 @@ Run `mise install` to install and `mise upgrade` to follow the next alpha.
 The `prerelease = true` option is necessary because GitHub marks these releases
 as prereleases. The tool-specific `minimum_release_age = "0s"` allows immediate
 alpha updates; mise otherwise holds new GitHub releases for 24 hours by default.
-Pin `version = "0.1.0-alpha.4"` for reproducible projects.
+Pin `version = "0.1.0-alpha.5"` for reproducible projects.
 mise chooses the platform archive and checks its release digest. For a private
 release repository, each user needs repository access and an authenticated
 GitHub token; the public distribution route is simpler.

@@ -24,6 +24,24 @@
       "label": "check the connection"
     },
     {
+      "id": "gitlab.connection.token_page",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open GitLab's new-token page"
+    },
+    {
+      "id": "gitlab.connection.copy_token_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the new-token page's link"
+    },
+    {
       "id": "gitlab.connection.kept_comments",
       "key": {
         "ctrl": true,
@@ -148,6 +166,171 @@
             "text": "the last 14 days"
           }
         ]
+      },
+      {
+        "heading": true,
+        "target": "row:7",
+        "text": []
+      },
+      {
+        "heading": true,
+        "target": "row:8",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "ACCESS"
+          },
+          {
+            "ink": "muted",
+            "text": "  what radar may do in GitLab"
+          }
+        ]
+      },
+      {
+        "target": "row:9",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "done",
+            "icon_lead": true,
+            "ink": "good",
+            "text": "[x] "
+          },
+          {
+            "ink": "primary",
+            "text": "read only       "
+          },
+          {
+            "ink": "muted",
+            "text": "merge requests, pipelines, diffs      "
+          },
+          {
+            "ink": "secondary",
+            "text": "read_api"
+          }
+        ]
+      },
+      {
+        "target": "row:10",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "todo",
+            "icon_lead": true,
+            "ink": "muted",
+            "text": "[ ] "
+          },
+          {
+            "ink": "primary",
+            "text": "read and write  "
+          },
+          {
+            "ink": "muted",
+            "text": "adds comment, approve, merge, rebase  "
+          },
+          {
+            "ink": "secondary",
+            "text": "api"
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:11",
+        "text": []
+      },
+      {
+        "heading": true,
+        "target": "row:12",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "FOLLOW"
+          },
+          {
+            "ink": "muted",
+            "text": "  groups and repositories"
+          }
+        ]
+      },
+      {
+        "target": "row:13",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a group or repository"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste a link or a path"
+          }
+        ]
+      },
+      {
+        "target": "row:14",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "icon": "group"
+          },
+          {
+            "look": "tenant.cyan bold",
+            "text": "b     "
+          },
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "acme/team-b"
+          },
+          {
+            "ink": "muted",
+            "text": "   0 repos · 1 open MR"
+          }
+        ]
+      },
+      {
+        "target": "row:15",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "icon": "group"
+          },
+          {
+            "look": "tenant.green bold",
+            "text": "a     "
+          },
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "acme/team-a"
+          },
+          {
+            "ink": "muted",
+            "text": "   4 repos · 3 open MRs"
+          }
+        ]
       }
     ],
     "selected": 0
@@ -209,6 +392,280 @@
         "text": "config: [gitlab] url"
       }
     ]
+  ],
+  "detail_blocks": [
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "CHECKED"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "not checked yet"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "NOW"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "https://gitlab.com"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "The GitLab server radar talks to."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "ACCEPTS"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "secondary",
+          "text": "https://gitlab.com or your own server's address"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "config: [gitlab] url"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "1 Open GitLab's new-token page:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://gitlab.com/-/user_settings/personal_access_tokens?name=radar&scopes=read_api",
+              "text": "gitlab.com / new token"
+            },
+            {
+              "ink": "muted",
+              "text": "   o opens · y copies"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "  name radar · scope from access: read_api"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "2 Pick an expiry date, then Create personal access token."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "3 Copy the glpat-… value into token, or keep it out of radar's config:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "$ "
+            },
+            {
+              "ink": "primary",
+              "text": "export GITLAB_TOKEN=glpat-…"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "  then the token is env:GITLAB_TOKEN"
+            }
+          ]
+        }
+      ],
+      "mark": "connection",
+      "title": "GET A GITLAB TOKEN"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Type glab as the token. Not signed in?"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "$ "
+            },
+            {
+              "ink": "primary",
+              "text": "glab auth login"
+            }
+          ]
+        }
+      ],
+      "mark": "terminal",
+      "title": "ALREADY USE GLAB?"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Set server first; the link above then points at your server's page."
+            }
+          ]
+        }
+      ],
+      "mark": "site",
+      "title": "YOUR OWN GITLAB"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Expired, or without read_api: make a new one with the link."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "radar shows GitLab's own reason."
+            }
+          ]
+        }
+      ],
+      "mark": "warning",
+      "title": "IF IT IS REFUSED"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://docs.gitlab.com/user/profile/personal_access_tokens/",
+              "text": "GitLab docs: access tokens"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://github.com/temet-ai/radar/blob/main/docs/user-guide/connect.md#gitlab",
+              "text": "radar guide: connect GitLab"
+            }
+          ]
+        }
+      ],
+      "mark": "link",
+      "title": "MORE"
+    }
   ],
   "detail_title": "server",
   "scope": "connection",

@@ -91,12 +91,6 @@
       },
       "tabs": [
         {
-          "active": true,
-          "label": "repositories",
-          "mnemonic": "R",
-          "target": "chrome:tab:0"
-        },
-        {
           "icon": "log",
           "label": "history",
           "mnemonic": "H",

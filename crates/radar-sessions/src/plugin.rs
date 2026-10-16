@@ -24,7 +24,7 @@ use crate::adapter::*;
 use crate::dock::{self, Inputs};
 use crate::event::*;
 use crate::settings::{self, AgentsSettings, Request};
-use crate::store::{SessionMeta, Store};
+use crate::store::{Attach, SessionMeta, SessionState, Store};
 use crate::warm::{self, Cache, Spare};
 
 /// A reviewed merge request's `x` menu: open its local review, copy its path.
@@ -48,6 +48,30 @@ enum Inbound {
     /// catalog and the reason as a notice.
     CatalogFailed { provider: String, key: String, why: String },
     Login(String, LoginEvent),
+    /// A resume of `radar` returned (with why it failed): the history it read
+    /// back came before this, through the same stream.
+    Resumed { radar: RadarSessionId, error: Option<String> },
+}
+
+/// Whether a provider's update stream is open: `None` until `subscribe`
+/// answered, then its outcome.
+type Ready = Option<Result<(), String>>;
+
+/// One provider's way into the inbox besides its own updates: a resume's
+/// end goes through here, so it reaches the store after the history it
+/// read back (the adapter sends that before `resume` returns).
+struct Link {
+    marks: tokio::sync::mpsc::UnboundedSender<Inbound>,
+    /// Taken by the task that forwards the provider's updates.
+    marks_rx: Option<tokio::sync::mpsc::UnboundedReceiver<Inbound>>,
+    ready: tokio::sync::watch::Sender<Ready>,
+}
+
+impl Link {
+    fn new() -> Self {
+        let (marks, marks_rx) = tokio::sync::mpsc::unbounded_channel();
+        Self { marks, marks_rx: Some(marks_rx), ready: tokio::sync::watch::channel(None).0 }
+    }
 }
 
 /// What the spawned tasks brought, and the host's waker, rung on each push.
@@ -92,8 +116,11 @@ pub struct SessionsPlugin {
     inbox: Inbox,
     handle: Option<Handle>,
     runtime: Option<Runtime>,
+    /// `runtime` runs on the calling thread, only in [`SessionsPlugin::run_tasks`] (a test's).
+    driven: bool,
     started: bool,
-    restored: Vec<SessionMeta>,
+    /// Per provider: how a resume's end reaches the inbox in order, and whether its stream is open.
+    links: BTreeMap<String, Link>,
     counter: u64,
     now: i64,
     /// Local reviews in progress and the ones saved (task T11).
@@ -136,6 +163,32 @@ impl Default for SessionsPlugin {
 }
 
 impl SessionsPlugin {
+    /// A plugin whose background tasks run on the calling thread, and only inside
+    /// [`SessionsPlugin::run_tasks`]: a test drives every task explicitly, so nothing it checks
+    /// races the plugin's own work and no load on the machine can make a task late.
+    pub fn on_this_thread() -> Self {
+        let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("a runtime for a test");
+        let mut p = Self::new();
+        p.handle = Some(rt.handle().clone());
+        p.runtime = Some(rt);
+        p.driven = true;
+        p
+    }
+
+    /// Let every task spawned so far on a plugin made [`SessionsPlugin::on_this_thread`] run
+    /// until each waits. The fake provider's calls wait on nothing outside the thread, so this
+    /// makes all the progress there is (a task a task wakes runs in the same call); for any
+    /// other plugin it does nothing.
+    pub fn run_tasks(&self) {
+        if let (true, Some(rt)) = (self.driven, &self.runtime) {
+            rt.block_on(async {
+                for _ in 0..64 {
+                    tokio::task::yield_now().await;
+                }
+            });
+        }
+    }
+
     pub fn new() -> Self {
         Self {
             adapters: Vec::new(),
@@ -156,8 +209,9 @@ impl SessionsPlugin {
             inbox: Inbox::default(),
             handle: None,
             runtime: None,
+            driven: false,
             started: false,
-            restored: Vec::new(),
+            links: BTreeMap::new(),
             counter: 0,
             now: 0,
             review: Default::default(),
@@ -212,11 +266,90 @@ impl SessionsPlugin {
         }
     }
 
-    /// The tab showing in a shown dock has been seen.
+    /// The tab showing in a shown dock has been seen. A session restored from
+    /// the last run is read back from its provider when its tab first shows,
+    /// not at start: a provider's resume runs only for a tab looked at (one
+    /// whose resume failed waits for a message or the resume key).
     fn seen(&mut self) {
         if let (true, Some(radar)) = (self.dock_visible, self.active.clone()) {
             self.unread.remove(&radar);
+            if self.store.get(&radar).is_some_and(|s| s.attach == Attach::Detached && s.state != SessionState::Error) {
+                self.resume_session(&radar);
+            }
         }
+    }
+
+    /// A review session: the journey's own, or one restored from the last run.
+    fn is_review(&self, radar: &RadarSessionId) -> bool {
+        self.review.is_review(radar) || self.store.get(radar).is_some_and(|s| s.meta.review)
+    }
+
+    /// Resolves once `provider`'s updates are listened to (its `subscribe`
+    /// answered), or with why they never will be. A session is created,
+    /// opened or resumed only after that, so its first message and what it
+    /// says back are never told to nobody: a real CLI keeps no backlog for
+    /// a listener that comes late.
+    fn listening(&self, provider: &str) -> impl Future<Output = Result<(), String>> + Send + 'static {
+        let ready = self.links.get(provider).map(|l| l.ready.subscribe());
+        let provider = provider.to_string();
+        async move {
+            let Some(mut ready) = ready else {
+                return Err(format!("this radar has no {provider}"));
+            };
+            match ready.wait_for(Option::is_some).await {
+                Ok(open) => open.clone().unwrap_or(Ok(())),
+                Err(_) => Err("the adapter stopped".into()),
+            }
+        }
+    }
+
+    /// Attach a session that is not attached (restored, or its resume
+    /// failed): the provider's own resume with its persisted session id,
+    /// which replays the history; what waited in it lapses when the resume
+    /// returns ([`Inbound::Resumed`]). Messages typed meanwhile wait and go
+    /// once it is attached.
+    fn resume_session(&mut self, radar: &RadarSessionId) {
+        let now = self.now;
+        let Some(s) = self.store.get(radar) else { return };
+        if s.attach != Attach::Detached {
+            return;
+        }
+        let provider = s.meta.provider.to_string();
+        let meta = s.meta.clone();
+        let adapter = self.adapter(&provider);
+        let link = self.links.get(&provider).map(|l| (l.marks.clone(), self.listening(&provider)));
+        let Some(s) = self.store.get_mut(radar) else { return };
+        let (Some(adapter), Some((marks, listening))) = (adapter, link) else {
+            s.fail(format!("this radar has no {provider}: the session cannot be resumed here"));
+            return;
+        };
+        if meta.provider_session_id.as_str().is_empty() {
+            s.fail(format!("the session never started with {provider}: there is nothing to resume"));
+            return;
+        }
+        s.attach = Attach::Resuming;
+        s.attach_at = now;
+        if s.state == SessionState::Error {
+            s.state = SessionState::Idle;
+        }
+        self.warm_provider(&provider);
+        let setup = self.setup(&provider);
+        let req = ResumeSession {
+            radar_session_id: radar.clone(),
+            provider_session_id: meta.provider_session_id.clone(),
+            cwd: meta.cwd.clone().into(),
+            cursor: None,
+            setup: SessionSetup { agent: meta.agent.clone().or_else(|| setup.agent.clone()), review: meta.review, ..setup },
+        };
+        let radar = radar.clone();
+        self.spawn(async move {
+            // Not before the provider's stream is open: the history would be told to nobody.
+            let error = match listening.await {
+                Ok(()) => adapter.resume(req).await.err().map(|e| e.to_string()),
+                Err(why) => Some(why),
+            };
+            let _ = marks.send(Inbound::Resumed { radar, error });
+        });
     }
 
     /// Bring every session's clock up to the store at `now`: a turn that
@@ -225,6 +358,10 @@ impl SessionsPlugin {
     fn time_turns(&mut self) -> Vec<Effect> {
         let mut told = Vec::new();
         for s in self.store.sessions() {
+            // Not attached: its history is not news, and nothing in it waits for anyone.
+            if !s.attached() {
+                continue;
+            }
             let radar = s.meta.radar_session_id.clone();
             let needs = dock::needs_you(s, &self.auto_answered);
             let Some(change) = self.clocks.entry(radar.clone()).or_default().step(s, needs, self.now) else { continue };
@@ -314,6 +451,7 @@ impl SessionsPlugin {
             created_at: self.now,
             cursor: None,
             agent: None,
+            review: true,
         };
         // The brief goes with the create: anything typed meanwhile waits for its turn.
         self.store.insert(meta).sending();
@@ -333,7 +471,11 @@ impl SessionsPlugin {
         if let Some(s) = self.store.get_mut(&radar) {
             s.meta.agent = setup.agent.clone();
         }
+        let listening = self.listening(&provider);
         self.spawn(async move {
+            if let Err(why) = listening.await {
+                return Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not start: {why}")));
+            }
             match adapter.create(CreateSession { radar_session_id: radar.clone(), cwd, model, setup }).await {
                 Ok(psid) => {
                     Self::push(&inbox, Inbound::Created(radar.clone(), psid));
@@ -384,6 +526,7 @@ impl SessionsPlugin {
     /// Register a provider adapter; the first added is the default.
     pub fn add_adapter(&mut self, adapter: Box<dyn Adapter>) {
         adapter.configure(self.settings.provider_setup(adapter.id().as_str()));
+        self.links.insert(adapter.id().to_string(), Link::new());
         self.adapters.push(Arc::from(adapter));
         self.settings.set_available(self.adapters.iter().map(|a| a.id().to_string()).collect());
     }
@@ -456,7 +599,12 @@ impl SessionsPlugin {
     /// dock can be exercised with no CLI installed.
     pub fn with_fake_from_env(mut self) -> Self {
         if std::env::var_os("RADAR_FAKE_AGENT").is_some() {
-            self.add_adapter(Box::new(crate::fake::FakeAdapter::new()));
+            // With `RADAR_FAKE_AGENT_STATE=<file>` its sessions' history outlives radar's run, as a real CLI's does.
+            let provider = match std::env::var_os("RADAR_FAKE_AGENT_STATE") {
+                Some(file) => crate::fake::FakeProvider::with_state_file(file.into()),
+                None => crate::fake::FakeProvider::new(),
+            };
+            self.add_adapter(Box::new(provider.adapter().paced_from_env()));
         }
         self
     }
@@ -501,10 +649,12 @@ impl SessionsPlugin {
         }
     }
 
-    /// The first tick with an adapter: every adapter's updates start flowing and the sessions
-    /// of the last run come back; the default provider's client is started in the background
-    /// (and any other provider that has such a session). Nothing else starts a CLI: the others
-    /// start when something needs them (a new tab, a picker, Settings → Agents).
+    /// The first tick with an adapter: every adapter's updates start flowing; the default
+    /// provider's client is started in the background (and any other provider that has a
+    /// session from the last run, so reading it back is quick). The sessions of the last run
+    /// are not resumed here: each is read back when its tab shows, a message is typed in it,
+    /// or the resume key is pressed. Nothing else starts a CLI: the others start when
+    /// something needs them (a new tab, a picker, Settings → Agents).
     fn start(&mut self) {
         self.started = true;
         let adapters = self.adapters.clone();
@@ -512,35 +662,41 @@ impl SessionsPlugin {
         for adapter in adapters {
             let inbox = self.inbox.clone();
             let provider = adapter.id();
-            let restored: Vec<SessionMeta> =
-                self.restored.iter().filter(|m| m.provider == provider).cloned().collect();
-            let warm = default.as_deref() == Some(provider.as_str()) || !restored.is_empty();
+            let restored = self.store.sessions().any(|s| s.meta.provider == provider && !s.attached());
+            let warm = default.as_deref() == Some(provider.as_str()) || restored;
             let name = provider.to_string();
-            let setup = self.setup(provider.as_str());
+            let link = self.links.entry(name.clone()).or_insert_with(Link::new);
+            let ready = link.ready.clone();
+            let mut marks = link.marks_rx.take().unwrap_or_else(|| tokio::sync::mpsc::unbounded_channel().1);
             // Listening comes first: nothing a session says is lost to the client starting.
             self.spawn(async move {
                 let mut updates = match adapter.subscribe().await {
                     Ok(updates) => updates,
                     Err(e) => {
+                        ready.send_replace(Some(Err(e.to_string())));
                         Self::push(&inbox, Inbound::Failed(None, format!("{provider}: {e}")));
+                        while let Some(mark) = marks.recv().await {
+                            Self::push(&inbox, mark);
+                        }
                         return;
                     }
                 };
-                // Sessions from the last run: the provider replays its history.
-                for meta in restored {
-                    let req = ResumeSession {
-                        radar_session_id: meta.radar_session_id.clone(),
-                        provider_session_id: meta.provider_session_id.clone(),
-                        cwd: meta.cwd.clone().into(),
-                        cursor: None,
-                        setup: SessionSetup { agent: meta.agent.clone().or_else(|| setup.agent.clone()), ..setup.clone() },
-                    };
-                    if let Err(e) = adapter.resume(req).await {
-                        Self::push(&inbox, Inbound::Failed(Some(meta.radar_session_id), format!("could not resume: {e}")));
+                ready.send_replace(Some(Ok(())));
+                loop {
+                    tokio::select! {
+                        biased;
+                        update = updates.recv() => match update {
+                            Some(update) => Self::push(&inbox, Inbound::Update(provider.clone(), update)),
+                            None => break,
+                        },
+                        // A resume returned: what it read back is in `updates` already, and goes first.
+                        Some(mark) = marks.recv() => {
+                            while let Ok(update) = updates.try_recv() {
+                                Self::push(&inbox, Inbound::Update(provider.clone(), update));
+                            }
+                            Self::push(&inbox, mark);
+                        }
                     }
-                }
-                while let Some(update) = updates.recv().await {
-                    Self::push(&inbox, Inbound::Update(provider.clone(), update));
                 }
                 Self::push(
                     &inbox,
@@ -660,6 +816,7 @@ impl SessionsPlugin {
             created_at: self.now,
             cursor: None,
             agent: None,
+            review: false,
         };
         self.store.insert(meta);
         self.order.push(radar.clone());
@@ -669,7 +826,12 @@ impl SessionsPlugin {
         // The sign-in is the operator's to answer: the dock shows it, on Settings too.
         self.review_fx.push(Effect::ShowDock);
         let inbox = self.inbox.clone();
+        let listening = self.listening(adapter.id().as_str());
         self.spawn(async move {
+            if let Err(why) = listening.await {
+                Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not start: {why}")));
+                return Self::push(&inbox, Inbound::Login(provider, LoginEvent::Failed(why)));
+            }
             match adapter.open_command(CreateSession { radar_session_id: radar.clone(), cwd, model: None, setup: SessionSetup::default() }, argv).await {
                 Ok(psid) => Self::push(&inbox, Inbound::Created(radar, psid)),
                 Err(e) => {
@@ -746,12 +908,14 @@ impl SessionsPlugin {
                 Inbound::Update(provider, Update::Event(mut event)) => {
                     // A review session keeps its own stricter policy: nothing in it is approved for the session.
                     if let EventKind::PermissionRequested { request } = &mut event.kind
-                        && self.review.is_review(&event.radar_session_id)
+                        && self.is_review(&event.radar_session_id)
                     {
                         request.can_offer_session_approval = false;
                     }
-                    let review = self.review.is_review(&event.radar_session_id).then(|| event.clone());
-                    let asked = matches!(event.kind, EventKind::PermissionRequested { .. }).then(|| event.clone());
+                    // Read back while resuming: history. Nothing in it is answered again (its asker is gone).
+                    let live = self.store.get(&event.radar_session_id).is_some_and(|s| s.attached());
+                    let review = (live && self.review.is_review(&event.radar_session_id)).then(|| event.clone());
+                    let asked = (live && matches!(event.kind, EventKind::PermissionRequested { .. })).then(|| event.clone());
                     // The cursor moves on persisted events only: streamed text writes no cache.
                     persist |= event.durability == Durability::Persisted;
                     let ingested = self.store.ingest(event);
@@ -774,8 +938,10 @@ impl SessionsPlugin {
                     }
                     self.store.set_connected(&provider, false);
                     for s in self.store.sessions().map(|s| s.meta.radar_session_id.clone()).collect::<Vec<_>>() {
+                        // A session not attached in this run had no connection to lose.
                         if let Some(s) = self.store.get_mut(&s)
                             && s.meta.provider == provider
+                            && s.attached()
                         {
                             s.note(format!("connection lost: {reason}"));
                         }
@@ -863,6 +1029,25 @@ impl SessionsPlugin {
                     }
                 }
                 Inbound::Login(provider, event) => self.settings.login_event(&provider, event),
+                Inbound::Resumed { radar, error } => {
+                    let Some(s) = self.store.get_mut(&radar) else { continue };
+                    match error {
+                        // The session stays, readable as far as it was read, and a message or the resume key tries again.
+                        Some(e) => {
+                            s.attach = Attach::Detached;
+                            s.fail(format!("could not resume: {e}"));
+                        }
+                        None => {
+                            s.attach = Attach::Attached;
+                            if let Some(words) = s.lapse().words() {
+                                s.note(words);
+                            }
+                            persist = true;
+                        }
+                    }
+                    // Its clock starts from what it is now: a turn read back is not news.
+                    self.clocks.remove(&radar);
+                }
             }
         }
         self.send_due();
@@ -886,10 +1071,11 @@ impl SessionsPlugin {
 
     fn resume_all(&mut self, provider: &ProviderId) {
         let Some(adapter) = self.adapter(provider.as_str()) else { return };
+        // Only the attached ones: a restored session is read back when it is used.
         let sessions: Vec<SessionMeta> = self
             .store
             .sessions()
-            .filter(|s| &s.meta.provider == provider)
+            .filter(|s| &s.meta.provider == provider && s.attached())
             .map(|s| s.meta.clone())
             .collect();
         let inbox = self.inbox.clone();
@@ -965,6 +1151,7 @@ impl SessionsPlugin {
             created_at: self.now,
             cursor: None,
             agent: setup.agent.clone(),
+            review: false,
         };
         let s = self.store.insert(meta);
         // The first message goes with the create: anything typed meanwhile waits for its turn.
@@ -974,6 +1161,8 @@ impl SessionsPlugin {
         self.order.push(radar.clone());
         self.active = Some(radar.clone());
         let inbox = self.inbox.clone();
+        // The first message, and what the session says to it, only once the provider is listened to.
+        let listening = self.listening(&provider);
         if let Some(spare) = spare {
             // What the session said while it waited is its history now, in the order it came.
             for event in spare.events {
@@ -984,6 +1173,9 @@ impl SessionsPlugin {
             }
             if let Some(text) = first {
                 self.spawn(async move {
+                    if let Err(why) = listening.await {
+                        return Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not send: {why}")));
+                    }
                     if let Err(e) = adapter.send(&radar, SendInput { text }).await {
                         Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not send: {e}")));
                     }
@@ -993,27 +1185,43 @@ impl SessionsPlugin {
             self.settle();
             return;
         }
+        // A session the provider holds (the session picker): read back as a restored one is, and what its
+        // history shows waiting lapses (whoever asked it is not this process).
+        if resume.is_some() {
+            if let Some(s) = self.store.get_mut(&radar) {
+                s.attach = Attach::Detached;
+            }
+            self.resume_session(&radar);
+            return;
+        }
         self.spawn(async move {
-            match resume {
-                Some(psid) => {
-                    let req = ResumeSession { radar_session_id: radar.clone(), provider_session_id: psid, cwd, cursor: None, setup };
-                    if let Err(e) = adapter.resume(req).await {
-                        Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not resume: {e}")));
+            if let Err(why) = listening.await {
+                return Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not start: {why}")));
+            }
+            match adapter.create(CreateSession { radar_session_id: radar.clone(), cwd, model, setup }).await {
+                Ok(psid) => {
+                    Self::push(&inbox, Inbound::Created(radar.clone(), psid));
+                    if let Some(text) = first
+                        && let Err(e) = adapter.send(&radar, SendInput { text }).await
+                    {
+                        Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not send: {e}")));
                     }
                 }
-                None => match adapter.create(CreateSession { radar_session_id: radar.clone(), cwd, model, setup }).await {
-                    Ok(psid) => {
-                        Self::push(&inbox, Inbound::Created(radar.clone(), psid));
-                        if let Some(text) = first
-                            && let Err(e) = adapter.send(&radar, SendInput { text }).await
-                        {
-                            Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not send: {e}")));
-                        }
-                    }
-                    Err(e) => Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not start: {e}"))),
-                },
+                Err(e) => Self::push(&inbox, Inbound::Failed(Some(radar), format!("could not start: {e}"))),
             }
         });
+    }
+
+    /// The active session is not attached to its provider (restored, or its resume failed).
+    fn active_detached(&self) -> bool {
+        self.active.as_ref().and_then(|g| self.store.get(g)).is_some_and(|s| s.attach == Attach::Detached)
+    }
+
+    /// The resume key and `/resume`: attach the active session, sending nothing.
+    fn resume_active(&mut self) {
+        if let Some(radar) = self.active.clone() {
+            self.resume_session(&radar);
+        }
     }
 
     fn active_adapter(&self) -> Option<(RadarSessionId, Arc<dyn Adapter>)> {
@@ -1027,18 +1235,53 @@ impl SessionsPlugin {
         self.answer_for(&radar, id, decision)
     }
 
+    /// "always allow" on a waiting request: its rules (each command of a
+    /// chain, a file's folder, a website) go on Settings → Agents → always
+    /// allow, the request is approved, and every other waiting request the
+    /// rules now match, in any session, is approved with it.
+    fn always_allow(&mut self, id: &str) {
+        let Some(radar) = self.active.clone() else { return };
+        let Some(request) =
+            self.store.get(&radar).filter(|s| s.attached()).and_then(|s| s.pending().into_iter().find(|r| r.request_id == id).cloned())
+        else {
+            return;
+        };
+        let rules = crate::settings::config::Rule::suggest(&request);
+        if rules.is_empty() {
+            return;
+        }
+        self.settings.always_allow(&rules);
+        let words: Vec<String> = rules.iter().map(crate::settings::rule_words).collect();
+        if let Some(s) = self.store.get_mut(&radar) {
+            s.note(format!("always allowed from now on: {} (Settings → Agents → always allow)", words.join(", ")));
+        }
+        self.answer_for(&radar, id, PermissionDecision::ApproveOnce);
+        let waiting: Vec<(RadarSessionId, crate::event::PermissionRequest)> = self
+            .store
+            .sessions()
+            .flat_map(|s| s.pending().into_iter().map(|r| (s.meta.radar_session_id.clone(), r.clone())).collect::<Vec<_>>())
+            .filter(|(g, r)| !(g == &radar && r.request_id == id))
+            .collect();
+        for (g, r) in waiting {
+            self.standing_rule_for(&g, &r);
+        }
+    }
+
     /// A standing allow or deny rule from Settings → Agents that matches the
     /// request answers it, with a line in the transcript naming the rule.
     /// Only a match answers; everything else waits for the operator. Returns
     /// whether a rule answered.
     fn standing_rule(&mut self, event: &Event) -> bool {
         let EventKind::PermissionRequested { request } = &event.kind else { return false };
-        let verdict = self.settings.defaults().standing(request).map(|(allow, rule)| (allow, rule.to_string()));
+        self.standing_rule_for(&event.radar_session_id, request)
+    }
+
+    fn standing_rule_for(&mut self, radar: &RadarSessionId, request: &crate::event::PermissionRequest) -> bool {
+        let verdict = self.settings.defaults().standing(request).map(|(allow, rule)| (allow, crate::settings::rule_words(rule)));
         let Some((allow, rule)) = verdict else { return false };
-        let radar = &event.radar_session_id;
         // A review session's own refusals (writes, posting tools, the network)
         // stand over an allow rule.
-        if allow && self.review.is_review(radar) {
+        if allow && self.is_review(radar) {
             let cwd = self.store.get(radar).map(|s| s.meta.cwd.clone()).unwrap_or_default();
             if matches!(crate::review::policy::decide(request, std::path::Path::new(&cwd)), crate::review::policy::Verdict::Deny(_)) {
                 return false;
@@ -1064,7 +1307,7 @@ impl SessionsPlugin {
     fn session_approval(&mut self, event: &Event) -> bool {
         let EventKind::PermissionRequested { request } = &event.kind else { return false };
         let radar = &event.radar_session_id;
-        if self.review.is_review(radar) {
+        if self.is_review(radar) {
             return false;
         }
         let Some(s) = self.store.get_mut(radar) else { return false };
@@ -1080,13 +1323,15 @@ impl SessionsPlugin {
     fn answer_for(&mut self, radar: &RadarSessionId, id: &str, decision: PermissionDecision) {
         let radar = radar.clone();
         let Some(adapter) = self.store.get(&radar).and_then(|s| self.adapter(s.meta.provider.as_str())) else { return };
-        // Only a request that is waiting in the store can be answered.
-        let Some(request) = self.store.get(&radar).and_then(|s| s.pending().into_iter().find(|r| r.request_id == id).cloned()) else {
+        // Only a request that is waiting in the store of an attached session can be answered.
+        let Some(request) =
+            self.store.get(&radar).filter(|s| s.attached()).and_then(|s| s.pending().into_iter().find(|r| r.request_id == id).cloned())
+        else {
             return;
         };
         // Approve for session only where the request offers it (never in a review session); radar remembers it too.
         let decision = match decision {
-            PermissionDecision::ApproveForSession if !request.can_offer_session_approval || self.review.is_review(&radar) => {
+            PermissionDecision::ApproveForSession if !request.can_offer_session_approval || self.is_review(&radar) => {
                 PermissionDecision::ApproveOnce
             }
             PermissionDecision::ApproveForSession => {
@@ -1113,7 +1358,7 @@ impl SessionsPlugin {
     /// takes none) is dropped: nothing is sent that the operator did not pick.
     fn reply(&mut self, id: &str, question: &str, choices: &[String], text: Option<&str>) {
         let Some(radar) = self.active.clone() else { return };
-        let Some(s) = self.store.get_mut(&radar) else { return };
+        let Some(s) = self.store.get_mut(&radar).filter(|s| s.attached()) else { return };
         let (values, own_words) = match text.map(str::trim) {
             Some(t) if !t.is_empty() => (vec![t.to_string()], true),
             _ => (choices.to_vec(), false),
@@ -1145,7 +1390,7 @@ impl SessionsPlugin {
         let radar = radar.clone();
         let Some(adapter) = self.store.get(&radar).and_then(|s| self.adapter(s.meta.provider.as_str())) else { return };
         // Only a question that is waiting in the store can be answered.
-        let waiting = self.store.get(&radar).is_some_and(|s| s.pending_questions().iter().any(|r| r.request_id == id));
+        let waiting = self.store.get(&radar).is_some_and(|s| s.attached() && s.pending_questions().iter().any(|r| r.request_id == id));
         if !waiting {
             return;
         }
@@ -1171,6 +1416,12 @@ impl SessionsPlugin {
         self.history.push(text.clone());
         let caps = adapter.capabilities();
         let Some(s) = self.store.get_mut(&radar) else { return };
+        // Not attached (restored from the last run): it waits, shown queued, while radar resumes the session.
+        if !s.attached() {
+            s.queue(text, crate::store::Holder::Radar);
+            self.resume_session(&radar);
+            return;
+        }
         let ready = s.connected() && !s.meta.provider_session_id.as_str().is_empty();
         let held = s.queued.iter().any(|q| q.holder == crate::store::Holder::Radar);
         if !ready || held || (s.busy() && !caps.steer && !caps.queue) {
@@ -1337,7 +1588,11 @@ impl SessionsPlugin {
             commands: None,
         });
         let inbox = self.inbox.clone();
+        let listening = self.listening(provider);
         self.spawn(async move {
+            if let Err(why) = listening.await {
+                return Self::push(&inbox, Inbound::Failed(Some(radar), why));
+            }
             match adapter.create(CreateSession { radar_session_id: radar.clone(), cwd, model, setup }).await {
                 Ok(psid) => Self::push(&inbox, Inbound::Created(radar, psid)),
                 Err(e) => Self::push(&inbox, Inbound::Failed(Some(radar), e.to_string())),
@@ -1417,7 +1672,7 @@ impl SessionsPlugin {
         let radar = RadarSessionId::new(id);
         let Some(s) = self.store.get(&radar) else { return vec![] };
         let on_terminal = self.adapter(s.meta.provider.as_str()).is_some_and(|a| a.terminal(&radar).is_some());
-        if !on_terminal && matches!(s.state, crate::store::SessionState::Running | crate::store::SessionState::WaitingApproval) {
+        if !on_terminal && s.attached() && matches!(s.state, SessionState::Running | SessionState::WaitingApproval) {
             let ask = radar_core::Menu::confirm(format!("{}{id}", Self::CLOSE_MENU), format!("close {}?", s.meta.title), "stop it and close", "keep it")
                 .saying("its turn is still running; closing stops it. The session stays in the provider's list (alt-s opens it again).");
             return vec![Effect::Menu(ask)];
@@ -1433,7 +1688,9 @@ impl SessionsPlugin {
         let Some(s) = self.store.get(radar) else { return vec![] };
         let provider = s.meta.provider.clone();
         let psid = s.meta.provider_session_id.clone();
-        if let Some(adapter) = self.adapter(provider.as_str()) {
+        // A session never attached in this run has nothing running here: its provider is not started to be told.
+        let attached = s.attached();
+        if let Some(adapter) = self.adapter(provider.as_str()).filter(|_| attached) {
             if adapter.terminal(radar).is_some() {
                 self.spawn(async move {
                     let _ = adapter.delete_session(&psid).await;
@@ -1518,11 +1775,14 @@ impl Plugin for SessionsPlugin {
             }
             self.cache = warm;
         }
+        // Each comes back detached: read back from its provider when it is used.
         let mut store = Store::new();
         store.restore(cache.get("sessions").cloned().unwrap_or_default());
-        self.restored = store.sessions().map(|s| s.meta.clone()).collect();
-        for meta in &self.restored {
-            self.store.insert(meta.clone());
+        let restored: Vec<SessionMeta> = store.sessions().map(|s| s.meta.clone()).collect();
+        for meta in &restored {
+            if self.store.get(&meta.radar_session_id).is_none() {
+                self.store.insert(meta.clone()).attach = Attach::Detached;
+            }
         }
         self.order = cache
             .get("order")
@@ -1531,7 +1791,7 @@ impl Plugin for SessionsPlugin {
             .into_iter()
             .filter(|id| self.store.get(id).is_some())
             .collect();
-        for meta in &self.restored {
+        for meta in &restored {
             if !self.order.contains(&meta.radar_session_id) {
                 self.order.push(meta.radar_session_id.clone());
             }
@@ -1578,6 +1838,22 @@ impl Plugin for SessionsPlugin {
         settings::sections()
     }
 
+    /// Setup's agents step: the Agents section is its card.
+    fn setup_step(&self) -> Option<radar_core::plugin::SetupStep> {
+        Some(settings::setup::step(&self.settings, self.settings_seen.load(Ordering::Relaxed)))
+    }
+
+    /// The yes to setup's look: the CLIs nobody has asked yet are asked on
+    /// the next tick, as when Settings → Agents is drawn, so the chooser's
+    /// rows say which are signed in and the look ticks those.
+    fn setup_looked(&mut self) {
+        self.settings_seen.store(true, Ordering::Relaxed);
+    }
+
+    fn setup_finds(&self) -> radar_core::plugin::SetupFinds {
+        settings::setup::finds()
+    }
+
     fn section_view(&self, section: &str, cx: &ViewCx<'_>) -> Option<SectionView> {
         // Settings → Agents is open: the CLIs not asked yet are asked on the next tick.
         self.settings_seen.store(true, Ordering::Relaxed);
@@ -1585,6 +1861,14 @@ impl Plugin for SessionsPlugin {
     }
 
     fn intent(&mut self, scope: &str, _pane: Pane, intent: &ViewIntent) -> Outcome {
+        // Always allow and always deny offer what the agents asked for.
+        if scope == settings::SECTION {
+            let asked = self.store.sessions().flat_map(|s| s.items.iter()).filter_map(|i| match i {
+                crate::store::Item::Permission { request, .. } => Some(request),
+                _ => None,
+            });
+            self.settings.set_asked(asked);
+        }
         let outcome = self.settings.intent(scope, intent);
         self.handle_requests();
         outcome
@@ -1725,10 +2009,14 @@ impl Plugin for SessionsPlugin {
                 let id = self.active.clone().map(|g| g.to_string()).unwrap_or_default();
                 return Outcome::Handled(self.close_tab(&id));
             }
+            // `/resume` (listed while the session is not attached) attaches it without sending anything.
+            DockIntent::Send { text } if text.trim() == format!("/{}", dock::RESUME) && self.active_detached() => self.resume_active(),
             DockIntent::Send { text } => self.send(text.clone()),
+            DockIntent::Resume => self.resume_active(),
             DockIntent::Stop => self.stop(),
             DockIntent::Approve { id } => self.answer(id, PermissionDecision::ApproveOnce),
             DockIntent::ApproveForSession { id } => self.answer(id, PermissionDecision::ApproveForSession),
+            DockIntent::AlwaysAllow { id } => self.always_allow(id),
             DockIntent::Deny { id } => self.answer(id, PermissionDecision::Deny { reason: Some("denied in radar".into()) }),
             DockIntent::Answer { id, question, choices, text } => self.reply(id, question, choices, text.as_deref()),
             DockIntent::Decline { id } => {
@@ -1889,13 +2177,14 @@ mod run_in_tab_tests {
         p.settings.intent(settings::SECTION, &ViewIntent::Activate { target: Target::new("cli:codex") });
     }
 
+    /// Tick and run the plugin's tasks until `done`: a bound on steps, not on time.
     fn spin(p: &mut SessionsPlugin, done: impl Fn(&SessionsPlugin) -> bool) {
-        for n in 0..2_000_000i64 {
+        for n in 0..256i64 {
             p.tick(n);
             if done(p) {
                 return;
             }
-            std::thread::yield_now();
+            p.run_tasks();
         }
         panic!("never reached");
     }
@@ -1904,7 +2193,7 @@ mod run_in_tab_tests {
     fn run_in_tab_opens_a_tab_running_the_given_command_and_its_end_reads_the_status() {
         let ran = Arc::new(StdMutex::new(Vec::new()));
         let exit = Arc::new(StdMutex::new(TerminalStatus::Running));
-        let mut p = SessionsPlugin::new();
+        let mut p = SessionsPlugin::on_this_thread();
         p.add_adapter(Box::new(Tab { ran: ran.clone(), exit: exit.clone() }));
         p.tick(0);
         let argv = vec!["codex".to_string(), "login".to_string()];

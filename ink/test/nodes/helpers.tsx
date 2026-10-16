@@ -44,7 +44,7 @@ export function frameAt(element: React.ReactElement, columns: number, rows = 24)
   app.unmount();
   const last = stdout.frames.filter((f) => f.trim().length > 0).at(-1) ?? "";
   // eslint-disable-next-line no-control-regex
-  return last.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "").replace(/\s+$/gm, "");
+  return last.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "").replace(/[ \t]+$/gm, "");
 }
 
 /** The same with styles kept, for tests that look at colour. */

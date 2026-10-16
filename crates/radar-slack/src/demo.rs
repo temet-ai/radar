@@ -87,7 +87,7 @@ pub(crate) fn sample() -> SlackPlugin {
         url: "https://acme.slack.com/".into(),
         scopes: [
             "channels:history", "channels:read", "groups:history", "groups:read", "search:read",
-            "users:read", "usergroups:read", "chat:write",
+            "users:read", "usergroups:read", "chat:write", "files:read",
         ]
         .iter()
         .map(|s| s.to_string())

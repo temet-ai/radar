@@ -1049,7 +1049,7 @@ pub fn intent(p: &mut JiraPlugin, pane: Pane, intent: &Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) => Outcome::Ignored,
+        Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
             Some(chord) => key(p, pane, radar_core::view_tui::key_of(chord)),
             None => Outcome::Ignored,

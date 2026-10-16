@@ -8,7 +8,7 @@ import chalk from "chalk";
 import { bgOf, hexRgb, mix, monoTier, slotStyle, type Rgb } from "../text/look.js";
 import { BOLD, DIM, restyle, styleId, styleOf, type Sgr } from "./fast-output.js";
 
-export type ScrimRect = { x: number; y: number; w: number; h: number };
+export type ScrimRect = { x: number; y: number; w: number; h: number; /** Only the shadow: nothing around the layer dims (the tour's card). */ shadowOnly?: boolean };
 
 /** Per mille toward bg.base (the scrim's text and ground, the shadow's text) and toward black (the shadow's ground). */
 const SCRIM_FG = 720;
@@ -64,13 +64,14 @@ export function paintScrim(output: string, width: number, height: number, layer:
   const { x, y, w, h } = layer;
   let out = output;
   // Around the layer: the rows above and below it, then left and right of it.
-  for (const r of [
-    { x: 0, y: 0, w: width, h: y },
-    { x: 0, y: y + h, w: width, h: height - (y + h) },
-    { x: 0, y, w: x, h },
-    { x: x + w, y, w: width - (x + w), h },
-  ])
-    if (r.w > 0 && r.h > 0) out = restyle(out, width, r, dim);
+  if (!layer.shadowOnly)
+    for (const r of [
+      { x: 0, y: 0, w: width, h: y },
+      { x: 0, y: y + h, w: width, h: height - (y + h) },
+      { x: 0, y, w: x, h },
+      { x: x + w, y, w: width - (x + w), h },
+    ])
+      if (r.w > 0 && r.h > 0) out = restyle(out, width, r, dim);
   if (w <= 0 || h <= 0) return out;
   // The column right of it from its second row down, and the row below it from its second column across.
   out = restyle(out, width, { x: x + w, y: y + 1, w: 1, h }, shade);
@@ -82,13 +83,13 @@ export function paintScrim(output: string, width: number, height: number, layer:
  * text is written in (its `radarLayer`): the frame paint (fast-output.ts, app/hover.ts) reads it from the frame's writes
  * and lays the scrim and shadow around it. One function per size, so a frame drawn again with the same menu is the same
  * writes (fast-output reuses it). */
-const marks = new Map<string, ((s: string) => string) & { radarLayer: { w: number; h: number } }>();
-export function layerMark(w: number, h: number): (s: string) => string {
-  const key = `${w}x${h}`;
+const marks = new Map<string, ((s: string) => string) & { radarLayer: { w: number; h: number; shadowOnly?: boolean } }>();
+export function layerMark(w: number, h: number, shadowOnly = false): (s: string) => string {
+  const key = `${w}x${h}${shadowOnly ? "s" : ""}`;
   let fn = marks.get(key);
   if (!fn) {
     if (marks.size > 64) marks.clear();
-    fn = Object.assign((s: string) => s, { radarLayer: { w, h } });
+    fn = Object.assign((s: string) => s, { radarLayer: { w, h, ...(shadowOnly ? { shadowOnly } : {}) } });
     marks.set(key, fn);
   }
   return fn;

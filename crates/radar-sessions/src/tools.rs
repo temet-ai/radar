@@ -262,7 +262,15 @@ where
         tokio::pin!(up, down);
         tokio::select! {
             r = &mut down => { r?; }
-            r = &mut up => { r?; (&mut down).await?; }
+            r = &mut up => {
+                // The listener closing (a wrong ticket, a line over the limit) ends the relay
+                // however it is seen first: as the end of what it sends, or as a write it refuses.
+                match r {
+                    Err(e) if matches!(e.kind(), io::ErrorKind::BrokenPipe | io::ErrorKind::ConnectionReset) => {}
+                    r => r?,
+                }
+                (&mut down).await?;
+            }
         }
     }
     output.flush().await
@@ -422,6 +430,26 @@ mod tests {
         assert!(c.relay.await.unwrap().is_ok());
         drop(l);
         assert!(seen.recv().await.is_none());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[tokio::test]
+    async fn a_listener_that_closes_while_the_cli_still_writes_ends_the_relay_cleanly() {
+        // A server that reads the hello and hangs up, as the listener does at a wrong ticket;
+        // the CLI's line is already waiting, so the relay may meet the close as a refused write.
+        let dir = scratch();
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("s5.sock");
+        let server = UnixListener::bind(&path).unwrap();
+        let mut c = Client::start(&path, "not-the-ticket");
+        c.send(call(1, "tools/call", json!({ "name": "echo", "arguments": { "text": "x" } }))).await;
+        let (conn, _) = server.accept().await.unwrap();
+        let mut conn = BufReader::new(conn);
+        conn.read_line(&mut String::new()).await.unwrap();
+        drop(conn);
+        c.send(call(2, "ping", Value::Null)).await;
+        assert_eq!(c.recv().await, None);
+        assert!(c.relay.await.unwrap().is_ok(), "a closed socket is the end, not a failure");
         let _ = std::fs::remove_dir_all(&dir);
     }
 

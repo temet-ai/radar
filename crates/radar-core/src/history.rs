@@ -21,7 +21,7 @@ use crate::view::{Chord, Ink, Key, Seg, Target, Text};
 use crate::widgets;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 #[cfg(test)]
 mod view_tests {
@@ -71,7 +71,12 @@ mod view_tests {
     }
 
     fn loaded() -> History {
-        let (mut history, request) = History::new(EventFilter::default(), 1);
+        loaded_by(1)
+    }
+
+    /// An overlay opened by the host's request `id`, its first page read.
+    fn loaded_by(id: u64) -> History {
+        let (mut history, request) = History::new(EventFilter::default(), id);
         let snapshot: Snapshot = serde_json::from_value(serde_json::json!({
             "database_id": "30000000-0000-4000-8000-000000000001",
             "event_sequence": 9, "map_sequence": 0, "gap_sequence": 0,
@@ -104,7 +109,7 @@ mod view_tests {
         let view = history.view(80, 24);
         assert!(!view.rows.is_empty());
         for (i, row) in view.rows.iter().enumerate() {
-            assert_eq!(row.target, targets::row(i));
+            assert_eq!(row.target, history.row_target(i));
         }
         assert_eq!(view.selected, Some(0));
         assert!(!view.pending && view.error.is_none());
@@ -117,8 +122,8 @@ mod view_tests {
             .iter()
             .flat_map(|h| h.keys_of.iter().map(|k| k.target.as_str().to_owned()))
             .collect();
-        assert!(footer.contains(&"chrome:history:key:enter".to_owned()));
-        assert!(footer.contains(&"chrome:history:key:esc".to_owned()));
+        assert!(footer.contains(&history.key_target("enter").0));
+        assert!(footer.contains(&history.key_target("esc").0));
         // Loading and error states are data too.
         let (pending, _) = History::new(EventFilter::default(), 2);
         let view = pending.view(80, 24);
@@ -161,21 +166,51 @@ mod view_tests {
     fn history_targets_select_rows_and_press_shown_keys_only() {
         let mut history = loaded();
         let last = history.view(80, 24).rows.len() - 1;
-        assert!(history.target(&targets::row(last)).is_none());
+        assert!(history.target(&history.row_target(last)).is_none());
         assert_eq!(history.view(80, 24).selected, Some(last));
-        assert!(history.target(&targets::row(last + 1)).is_none());
+        assert!(history.target(&history.row_target(last + 1)).is_none());
         assert_eq!(history.selected, last);
-        let enter = history.target(&targets::key("enter")).unwrap();
+        let enter = history.target(&history.key_target("enter")).unwrap();
         assert_eq!(enter.code, KeyCode::Enter);
         assert_eq!(
-            history.target(&targets::key("c")).unwrap().code,
+            history.target(&history.key_target("c")).unwrap().code,
             KeyCode::Char('c')
         );
         // `tab` is not shown while the events have the keys.
-        assert!(history.target(&targets::key("tab")).is_none());
+        assert!(history.target(&history.key_target("tab")).is_none());
         assert!(history.target(&Target::new("chrome:menu:0")).is_none());
+        // Malformed ones name nothing.
+        for bad in ["chrome:history:row:0", "chrome:history:x.0:row:0", "chrome:history:1.0:pane:0"] {
+            assert!(history.target(&Target::new(bad)).is_none(), "{bad}");
+        }
         history.key(enter, 3);
-        assert!(history.target(&targets::key("tab")).is_some());
+        assert!(history.target(&history.key_target("tab")).is_some());
+    }
+
+    #[test]
+    fn history_targets_drawn_for_an_earlier_page_or_overlay_do_nothing() {
+        let mut history = loaded();
+        let row = history.row_target(2);
+        let key = history.key_target("enter");
+        // A refresh: the page those targets were drawn for is gone.
+        let refresh = history
+            .key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE), 2)
+            .expect("a refresh reads again");
+        assert!(history.target(&row).is_none() && history.target(&key).is_none());
+        let reloaded = loaded().page.unwrap();
+        assert!(history.receive(refresh.id, Ok(reloaded)));
+        assert!(history.target(&row).is_none(), "the same rows, a new drawing");
+        assert!(history.target(&key).is_none());
+        assert_eq!((history.selected, history.focus), (0, Focus::Events));
+        // The drawing shown now takes its own.
+        assert!(history.target(&history.row_target(2)).is_none());
+        assert_eq!(history.selected, 2);
+        // An overlay closed and opened again (a later request) is another
+        // drawing, even on its first page: the old overlay's targets miss.
+        let mut reopened = loaded_by(3);
+        assert!(reopened.target(&row).is_none() && reopened.target(&history.row_target(1)).is_none());
+        assert!(reopened.target(&history.key_target("enter")).is_none());
+        assert_eq!(reopened.selected, 0);
     }
 }
 
@@ -199,8 +234,9 @@ pub enum HistoryFocus {
 }
 
 /// The history overlay for one frame, as view data: what it says and what
-/// can be pointed at, each by a [`Target`] (`chrome:history:row:<i>`,
-/// `chrome:history:key:<k>`) that [`History::target`] resolves. Bounded: one
+/// can be pointed at, each by an opaque `chrome:history:` [`Target`] that
+/// [`History::target`] resolves, and only while the page it was drawn for
+/// is the one shown (a frontend echoes it back, never builds one). Bounded: one
 /// page of at most [`RECORDS_PER_PAGE`] rows, a fixed set of detail fields,
 /// each text already passed through the overlay's allowlist. Nothing here
 /// names a terminal library; the Ratatui overlay paints from it.
@@ -276,19 +312,57 @@ pub struct HistoryRow {
     pub target: Target,
 }
 
-/// The targets the history overlay names.
+/// The targets the history overlay names. Each carries the [`Drawn`] it was
+/// made for, so a target sent back after the page under it changed (another
+/// page loaded, a refresh, the overlay closed and opened again) does nothing
+/// instead of acting on whatever sits at the same place now. A renderer
+/// only echoes them back; their shape is the overlay's own.
 pub mod targets {
     use crate::view::Target;
 
     pub const PREFIX: &str = "chrome:history:";
 
-    /// Row `index` of the event list.
-    pub fn row(index: usize) -> Target {
-        Target(format!("chrome:history:row:{index}"))
+    /// Which drawing of the overlay a target belongs to: the overlay (the
+    /// host's request id that opened it, never reused) and its page
+    /// generation, bumped each time a page loads or the scope restarts.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct Drawn {
+        pub(super) open: u64,
+        pub(super) page: u64,
     }
-    /// The key labelled `label` (`j`, `enter`, `PgDn`, `?`).
-    pub fn key(label: &str) -> Target {
-        Target(format!("chrome:history:key:{label}"))
+
+    /// What a target points at, once its drawing is known.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub(super) enum Points<'a> {
+        Row(usize),
+        Key(&'a str),
+    }
+
+    /// Row `index` of the event list, as drawn in `drawn`.
+    pub fn row(drawn: Drawn, index: usize) -> Target {
+        Target(format!("{PREFIX}{}.{}:row:{index}", drawn.open, drawn.page))
+    }
+    /// The key labelled `label` (`j`, `enter`, `PgDn`, `?`), as drawn in `drawn`.
+    pub fn key(drawn: Drawn, label: &str) -> Target {
+        Target(format!("{PREFIX}{}.{}:key:{label}", drawn.open, drawn.page))
+    }
+
+    /// The drawing a target was made for and what it points at; `None` for
+    /// anything that is not one of the overlay's targets.
+    pub(super) fn parse(target: &Target) -> Option<(Drawn, Points<'_>)> {
+        let rest = target.as_str().strip_prefix(PREFIX)?;
+        let (drawn, what) = rest.split_once(':')?;
+        let (open, page) = drawn.split_once('.')?;
+        let drawn = Drawn {
+            open: open.parse().ok()?,
+            page: page.parse().ok()?,
+        };
+        let points = if let Some(index) = what.strip_prefix("row:") {
+            Points::Row(index.parse().ok()?)
+        } else {
+            Points::Key(what.strip_prefix("key:")?)
+        };
+        Some((drawn, points))
     }
 }
 
@@ -332,6 +406,8 @@ pub struct History {
     list_scroll: Scroll,
     detail_scroll: Scroll,
     help_scroll: Scroll,
+    /// The drawing the targets handed out now belong to.
+    drawn: targets::Drawn,
     list_area: Cell<Rect>,
     detail_area: Cell<Rect>,
     /// Where the painted view's targets landed.
@@ -362,6 +438,10 @@ impl History {
             list_scroll: Scroll::new(),
             detail_scroll: Scroll::new(),
             help_scroll: Scroll::new(),
+            drawn: targets::Drawn {
+                open: request_id,
+                page: 0,
+            },
             list_area: Cell::new(Rect::default()),
             detail_area: Cell::new(Rect::default()),
             hits: RefCell::new(Vec::new()),
@@ -411,8 +491,25 @@ impl History {
         self.select(0);
         self.list_scroll.top();
         self.detail_scroll.top();
-        self.clear_hits();
+        self.redrawn();
         self.request(id, None, 0)
+    }
+
+    /// What the targets pointed at is gone (a page loaded, the scope
+    /// restarted): the targets handed out before point at nothing now.
+    fn redrawn(&mut self) {
+        self.drawn.page = self.drawn.page.wrapping_add(1);
+        self.clear_hits();
+    }
+
+    /// Row `index`'s target in the drawing shown now.
+    pub fn row_target(&self, index: usize) -> Target {
+        targets::row(self.drawn, index)
+    }
+
+    /// The target of the key labelled `label` in the drawing shown now.
+    pub fn key_target(&self, label: &str) -> Target {
+        targets::key(self.drawn, label)
     }
 
     fn restart_recent(&mut self, id: u64) -> Request {
@@ -452,7 +549,7 @@ impl History {
                 self.select(0);
                 self.list_scroll.top();
                 self.detail_scroll.top();
-                self.clear_hits();
+                self.redrawn();
             }
             Ok(_) => self.error = Some(ReadError::Unavailable),
             Err(error) => self.error = Some(error),
@@ -557,16 +654,30 @@ impl History {
         was_open
     }
 
+    /// The events panel and the detail panel as the last paint put them
+    /// (empty when not drawn): where a drag can select.
+    pub fn panes(&self) -> (Rect, Rect) {
+        (self.list_area.get(), self.detail_area.get())
+    }
+
     /// Only local rendered targets are exposed to the host's hover treatment.
     pub fn hit_regions(&self) -> Vec<Rect> {
         self.hits.borrow().iter().map(|(area, _)| *area).collect()
     }
 
-    /// A new page's rows are not the painted ones; the keys stay.
+    /// A new page's rows are not the painted ones; the keys stay where they
+    /// were painted, named in the drawing shown now.
     fn clear_hits(&self) {
-        self.hits
-            .borrow_mut()
-            .retain(|(_, target)| !target.as_str().starts_with("chrome:history:row:"));
+        let drawn = self.drawn;
+        let mut hits = self.hits.borrow_mut();
+        let kept = hits
+            .drain(..)
+            .filter_map(|(area, target)| match targets::parse(&target)?.1 {
+                targets::Points::Key(label) => Some((area, targets::key(drawn, label))),
+                targets::Points::Row(_) => None,
+            })
+            .collect();
+        *hits = kept;
         #[cfg(test)]
         self.rows.borrow_mut().clear();
     }
@@ -575,14 +686,15 @@ impl History {
     fn hit(&self, area: Rect, target: &Target) {
         #[cfg(test)]
         {
-            let id = target.as_str().strip_prefix(targets::PREFIX).unwrap_or("");
-            if let Some(index) = id.strip_prefix("row:").and_then(|i| i.parse().ok()) {
-                self.rows.borrow_mut().push((area, index));
-            } else if let Some(label) = id.strip_prefix("key:") {
-                let chord = hint_key(label).chord;
-                self.keys
-                    .borrow_mut()
-                    .push((area, crate::view_tui::key_of(chord)));
+            match targets::parse(target).map(|(_, points)| points) {
+                Some(targets::Points::Row(index)) => self.rows.borrow_mut().push((area, index)),
+                Some(targets::Points::Key(label)) => {
+                    let chord = hint_key(self.drawn, label).chord;
+                    self.keys
+                        .borrow_mut()
+                        .push((area, crate::view_tui::key_of(chord)));
+                }
+                None => {}
             }
         }
         self.hits.borrow_mut().push((area, target.clone()));
@@ -618,10 +730,13 @@ impl History {
     pub fn mouse(&mut self, kind: MouseKind, column: u16, row: u16) -> Option<KeyEvent> {
         let at = Position::new(column, row);
         let target = self.target_at(at);
+        fn points(t: &Target) -> Option<targets::Points<'_>> {
+            targets::parse(t).map(|(_, points)| points)
+        }
         if matches!(kind, MouseKind::Press)
             && let Some(target) = target
                 .as_ref()
-                .filter(|t| t.as_str().starts_with("chrome:history:key:"))
+                .filter(|t| matches!(points(t), Some(targets::Points::Key(_))))
         {
             return self.target(target);
         }
@@ -648,7 +763,7 @@ impl History {
             MouseKind::Press | MouseKind::Context => {
                 self.focus = focus;
                 if let Some(target) =
-                    target.filter(|t| t.as_str().starts_with("chrome:history:row:"))
+                    target.filter(|t| matches!(points(t), Some(targets::Points::Row(_))))
                 {
                     self.target(&target);
                     self.focus = focus;
@@ -700,7 +815,8 @@ impl History {
         let scope = Paragraph::new(format!(" Scope: {}", view.scope))
             .style(theme.s(Slot::TextSecondary))
             .wrap(Wrap { trim: false });
-        let scope_height = (scope.line_count(area.width) as u16)
+        let scope_height = u16::try_from(scope.line_count(area.width))
+            .unwrap_or(u16::MAX)
             .min(2)
             .min(area.height.saturating_sub(1));
         scope.render(
@@ -714,7 +830,8 @@ impl History {
         let warnings: Vec<_> = view.notes.iter().map(|note| lead(theme, note)).collect();
         let header = Paragraph::new(warnings).wrap(Wrap { trim: false });
         // Scope is also fully available in the scrollable details and help.
-        let warning_height = (header.line_count(area.width) as u16)
+        let warning_height = u16::try_from(header.line_count(area.width))
+            .unwrap_or(u16::MAX)
             .min(area.height.saturating_sub(scope_height + 1));
         header.render(
             Rect {
@@ -883,7 +1000,9 @@ impl History {
             let error = Paragraph::new(view.state.as_str())
                 .style(theme.s(Slot::StatusWarning))
                 .wrap(Wrap { trim: true });
-            let h = (error.line_count(inner.width.saturating_sub(2)) as u16).min(inner.height);
+            let h = u16::try_from(error.line_count(inner.width.saturating_sub(2)))
+                .unwrap_or(u16::MAX)
+                .min(inner.height);
             error.render(widgets::padded(Rect { height: h, ..inner }), buf);
             inner.y += h;
             inner.height = inner.height.saturating_sub(h);
@@ -1035,7 +1154,7 @@ impl History {
             detail: self.detail_text(),
             detail_keys_line: selected.map(|_| 3),
             detail_keys: if selected.is_some() {
-                ["c", "i", "a"].iter().map(|k| hint_key(k)).collect()
+                ["c", "i", "a"].iter().map(|k| hint_key(self.drawn, k)).collect()
             } else {
                 vec![]
             },
@@ -1049,20 +1168,26 @@ impl History {
 
     /// What a pointer at `target` does: a row selects its event (and
     /// focuses the list); a key comes back to be pressed through
-    /// [`History::key`]. A target the overlay does not show now does
-    /// nothing.
+    /// [`History::key`]. A target the overlay does not show now, or one
+    /// made for an earlier drawing (another page, before a refresh, an
+    /// overlay since closed), does nothing.
     pub fn target(&mut self, target: &Target) -> Option<KeyEvent> {
-        let id = target.as_str().strip_prefix(targets::PREFIX)?;
-        if let Some(index) = id.strip_prefix("row:") {
-            let index: usize = index.parse().ok()?;
-            if self.help || index >= self.len() {
-                return None;
-            }
-            self.focus = Focus::Events;
-            self.select(index);
+        let (drawn, points) = targets::parse(target)?;
+        if drawn != self.drawn {
             return None;
         }
-        let label = id.strip_prefix("key:")?;
+        let label = match points {
+            targets::Points::Row(index) => {
+                if self.help || index >= self.len() {
+                    return None;
+                }
+                self.focus = Focus::Events;
+                self.select(index);
+                return None;
+            }
+            targets::Points::Key(label) => label,
+        };
+        let drawn = self.drawn;
         let shown = self
             .footer()
             .into_iter()
@@ -1071,7 +1196,7 @@ impl History {
                 self.selected_entry()
                     .filter(|_| !self.help)
                     .into_iter()
-                    .flat_map(|_| ["c", "i", "a"].map(hint_key)),
+                    .flat_map(|_| ["c", "i", "a"].map(|k| hint_key(drawn, k))),
             )
             .find(|key| key.label == label)?;
         Some(crate::view_tui::key_of(shown.chord))
@@ -1127,7 +1252,7 @@ impl History {
                     subject,
                     outcome: event.outcome.as_str().into(),
                     outcome_ink: outcome_ink(event.outcome),
-                    target: targets::row(index),
+                    target: targets::row(self.drawn, index),
                 }
             })
             .collect()
@@ -1168,7 +1293,7 @@ impl History {
                 keys: keys.into(),
                 label: label.into(),
                 icon: None,
-                keys_of: keys.split('/').map(hint_key).collect(),
+                keys_of: keys.split('/').map(|k| hint_key(self.drawn, k)).collect(),
             })
             .collect()
     }
@@ -1344,8 +1469,9 @@ impl History {
 
 const COLUMNS: [&str; 4] = ["observed UTC", "action", "subject", "outcome"];
 
-/// A key the overlay names, by its label (`j`, `enter`, `PgDn`, `?`).
-fn hint_key(label: &str) -> HintKey {
+/// A key the overlay names, by its label (`j`, `enter`, `PgDn`, `?`), with
+/// its target in drawing `drawn`.
+fn hint_key(drawn: targets::Drawn, label: &str) -> HintKey {
     let key = match label {
         "tab" => Key::Tab,
         "enter" => Key::Enter,
@@ -1358,7 +1484,7 @@ fn hint_key(label: &str) -> HintKey {
         label: label.into(),
         chord: Chord::new(key),
         action: None,
-        target: targets::key(label),
+        target: targets::key(drawn, label),
     }
 }
 

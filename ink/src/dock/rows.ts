@@ -46,6 +46,7 @@ const QUEUED: Record<string, string> = {
 const ACTIONS: Record<string, [string, string]> = {
   approve_once: ["approve once", "a"],
   approve_for_session: ["approve for session", "s"],
+  always_allow: ["always allow", "l"],
   deny: ["deny", "d"],
   view_diff: ["view diff", "v"],
 };
@@ -60,7 +61,7 @@ export const hitTarget = (what: string, ...parts: string[]) => `dock:${what}:${p
 /** Ink-side picks of a question that takes several choices, by request and question (DockLocal.picks). */
 export const pickKey = (request: string, question: string) => `${request}\u0000${question}`;
 
-const ACTION_TARGET: Record<string, string> = { approve_once: "approve", approve_for_session: "session", deny: "deny", view_diff: "diff" };
+const ACTION_TARGET: Record<string, string> = { approve_once: "approve", approve_for_session: "session", always_allow: "always", deny: "deny", view_diff: "diff" };
 
 export function itemRows(item: DockItem, width: number, diffs: string[] = [], picks: Record<string, string[]> = {}, opts: LayoutOpts = {}): Cell[][] {
   return itemLayout(item, width, diffs, picks, opts).rows;
@@ -287,6 +288,12 @@ export function itemLayout(item: DockItem, width: number, diffs: string[] = [], 
       break;
     }
     case "permission": {
+      // It waited when radar closed and the process that asked is gone: muted, no buttons, no diff, never "needs you".
+      if (item.lapsed) {
+        push(lead("run_skipped", "text.muted"), cellsOf(`${item.kind}: lapsed · radar closed before this was answered`, style("text.muted")));
+        wrap(cellsOf(item.target, style("text.muted")), body - 1).forEach((r) => push(indent(3), r));
+        break;
+      }
       if (item.answered) {
         // Answered, with no call of its own in the transcript to tell it: one row.
         const no = item.answered === "deny";
@@ -338,8 +345,10 @@ export function itemLayout(item: DockItem, width: number, diffs: string[] = [], 
           keys.push([glyphKey("esc", "decline"), hitTarget("decline", item.id)]);
           buttons(3, keys);
         } else if (q.answered || !waiting) {
-          const said = q.answer?.length ? q.answer.join(", ") : item.state === "declined" ? "declined" : "answered";
-          push(first ? lead("mention", "text.muted") : cont, clipCells([...cellsOf(head, style("text.muted")), ...cellsOf(` → ${said}`, style("text.secondary"))], body));
+          // Lapsed: asked before radar closed, nobody can answer it now; the whole row stays muted.
+          const lapsed = item.state === "lapsed";
+          const said = lapsed ? "lapsed" : q.answer?.length ? q.answer.join(", ") : item.state === "declined" ? "declined" : "answered";
+          push(first ? lead("mention", "text.muted") : cont, clipCells([...cellsOf(head, style("text.muted")), ...cellsOf(` → ${said}`, style(lapsed ? "text.muted" : "text.secondary"))], body));
         } else {
           push(cont, clipCells(cellsOf(`then: ${head}`, style("text.muted")), body));
         }
@@ -381,27 +390,94 @@ export function transcriptView(
   anchor?: number,
   opts: LayoutOpts = {},
 ): { rows: Cell[][]; owners: DockItem[]; hits: RowHit[][]; targets: Array<string | undefined>; max: number; total: number } {
-  const all: Cell[][] = [];
-  const own: DockItem[] = [];
-  const hs: RowHit[][] = [];
-  const ts: Array<string | undefined> = [];
+  // Each unit's rows come from the cache (laid out once per item, width, look and what else they show).
+  const blocks: Array<{ laid: Layout; owner: DockItem; gap: boolean }> = [];
+  let total = 0;
   const units = transcriptUnits(items);
   const lastItem = items[items.length - 1];
   let prev: Unit | undefined;
   for (const u of units) {
     const it = u.u === "item" ? u.item : u.tools[0]!;
     // The latest reasoning shows what it thinks while the session works.
-    const l = unitLayout(u, width, diffs, picks, { ...opts, live: !!opts.live && it === lastItem });
+    const l = cachedUnitLayout(u, width, diffs, picks, { ...opts, live: !!opts.live && it === lastItem });
     if (l.rows.length === 0) continue;
-    if (prev && (prose(u) || prose(prev))) (all.push([]), own.push(it), hs.push([]), ts.push(undefined));
-    l.rows.forEach((r, i) => (all.push(r), own.push(it), hs.push(l.hits[i] ?? []), ts.push(l.targets[i])));
+    const gap = !!prev && (prose(u) || prose(prev));
+    blocks.push({ laid: l, owner: it, gap });
+    total += l.rows.length + (gap ? 1 : 0);
     prev = u;
   }
-  const max = Math.max(0, all.length - height);
-  const up = anchor === undefined ? scroll : dockScroll({ scroll, anchor }, all.length);
-  const end = all.length - Math.min(max, Math.max(0, up));
+  const max = Math.max(0, total - height);
+  const up = anchor === undefined ? scroll : dockScroll({ scroll, anchor }, total);
+  const end = total - Math.min(max, Math.max(0, up));
   const start = Math.max(0, end - height);
-  return { rows: all.slice(start, end), owners: own.slice(start, end), hits: hs.slice(start, end), targets: ts.slice(start, end), max, total: all.length };
+  // Only the rows that show are gathered, from the foot up, so a frame costs the rows on screen and a lookup per unit.
+  const rows: Cell[][] = [];
+  const owners: DockItem[] = [];
+  const hits: RowHit[][] = [];
+  const targets: Array<string | undefined> = [];
+  const take = (row: Cell[], owner: DockItem, hit: RowHit[], target: string | undefined) => (rows.push(row), owners.push(owner), hits.push(hit), targets.push(target));
+  let at = total;
+  for (let i = blocks.length - 1; i >= 0 && at > start; i--) {
+    const { laid: l, owner, gap } = blocks[i]!;
+    const first = at - l.rows.length;
+    for (let r = l.rows.length - 1; r >= 0; r--) {
+      const row = first + r;
+      if (row < start) break;
+      if (row >= end) continue;
+      take(l.rows[r]!, owner, l.hits[r] ?? [], l.targets[r]);
+    }
+    at = first;
+    if (gap) {
+      at -= 1;
+      if (at >= start && at < end) take(GAP, owner, [], undefined);
+    }
+  }
+  return { rows: rows.reverse(), owners: owners.reverse(), hits: hits.reverse(), targets: targets.reverse(), max, total };
+}
+
+/** The empty row between prose and what is next to it: one array, so its padded row is worked out once (Dock.tsx). */
+const GAP: Cell[] = [];
+
+/** How many unit layouts were worked out rather than taken from the cache (tests read it). */
+export const layoutStats = { made: 0 };
+
+/** Each unit's layout as last worked out, by its item object (a group's: its first call's): the host sends an
+ * unchanged item once and Ink keeps that object (app/session.ts takes in the transcript's changed tail only), so a
+ * streamed word lays out the one item it changed. What else the rows depend on is kept beside them: the width, the
+ * look, the calls of a group, and `extraOf`. */
+const layouts = new WeakMap<DockItem, { width: number; look: unknown; extra: string; tools?: ToolItem[]; laid: Layout }>();
+
+/** What besides the unit and the width its rows depend on: the session's folders, a group shown open, the spinner's
+ * frame for a call that runs, a reasoning shown live, a permission's diff shown, a question's picks. */
+function extraOf(u: Unit, diffs: string[], picks: Record<string, string[]>, o: LayoutOpts): string {
+  const parts = [o.cwd ?? "", o.home ?? ""];
+  if (u.u === "group") {
+    parts.push((o.groups ?? []).includes(u.id) ? "open" : "");
+    if (u.tools.some((t) => t.state === "running")) parts.push(o.spin ?? "");
+    return parts.join("\u0000");
+  }
+  const item = u.item;
+  if (item.item === "tool" && item.state === "running") parts.push(o.spin ?? "");
+  if (item.item === "reasoning") parts.push(o.live ? "live" : "");
+  if (item.item === "permission") parts.push(diffs.includes(item.id) ? "diff" : "");
+  if (item.item === "question") parts.push(item.questions.map((q) => (picks[pickKey(item.id, q.id)] ?? []).join("\u0001")).join("\u0002"));
+  return parts.join("\u0000");
+}
+
+const sameTools = (a: ToolItem[] | undefined, b: ToolItem[] | undefined) =>
+  a === b || (!!a && !!b && a.length === b.length && a.every((t, i) => t === b[i]));
+
+function cachedUnitLayout(u: Unit, width: number, diffs: string[], picks: Record<string, string[]>, o: LayoutOpts): Layout {
+  const key = u.u === "item" ? u.item : u.tools[0]!;
+  const tools = u.u === "group" ? u.tools : undefined;
+  const look = currentLook();
+  const extra = extraOf(u, diffs, picks, o);
+  const kept = layouts.get(key);
+  if (kept && kept.width === width && kept.look === look && kept.extra === extra && sameTools(kept.tools, tools)) return kept.laid;
+  const laid = unitLayout(u, width, diffs, picks, o);
+  layoutStats.made++;
+  layouts.set(key, { width, look, extra, tools, laid });
+  return laid;
 }
 
 export function transcriptRows(items: DockItem[], width: number, height: number, diffs: string[] = [], scroll = 0): Cell[][] {
@@ -414,15 +490,18 @@ const STATE: Record<string, [string, string]> = {
   error: ["run_failed", "status.error"],
   stopped: ["run_canceled", "text.muted"],
   ended: ["run_skipped", "text.muted"],
+  // Restored from the last run and not attached to its provider yet.
+  detached: ["connection", "text.muted"],
 };
 
 /** The kit's spinner frame for `seconds` of a running turn (ui::states::spinner, the top bar's throbber). */
 export const spinAt = (seconds: number): string => SPIN[Math.abs(Math.floor(seconds)) % SPIN.length]!;
 
-/** A tab's state mark: the spinner while its turn runs, the attention mark while it needs you, the failed mark, the
- * unread mark when a turn ended out of sight, and nothing for an idle tab already seen. */
+/** A tab's state mark: the spinner while its turn runs or the session is read back, the attention mark while it needs
+ * you, the failed mark, the not-attached mark of a restored session, the unread mark when a turn ended out of sight,
+ * and nothing for an idle tab already seen. */
 export function tabState(t: DockTab): { glyph: string; slot: string } | undefined {
-  if (t.state === "streaming") return { glyph: spinAt(t.running ?? 0), slot: "status.info" };
+  if (t.state === "streaming" || t.state === "resuming") return { glyph: spinAt(t.running ?? 0), slot: "status.info" };
   if (t.unread && t.state !== "error" && t.state !== "approval") {
     const g = iconOf("unread")?.glyph;
     return g ? { glyph: g, slot: "accent.primary" } : undefined;
@@ -514,7 +593,19 @@ export function tokenWords(n: number): string {
  */
 export function activityCells(a: DockActivity, width: number): Cell[] {
   const tail = [duration(a.elapsed), a.tokens != null ? tokenWords(a.tokens) : "", a.queued ? `${a.queued} queued` : ""].filter(Boolean);
-  const live = ["thinking", "writing", "running", "approval", "question"].includes(a.doing);
+  // A restored session: reading it back is live (spinner, time since it began); before that it only says it is not
+  // attached and what attaches it, muted like the ended ones, with no time.
+  if (a.doing === "detached") {
+    const words = a.detail ? `not attached to ${a.detail} · a message or alt-r resumes it` : "not attached · a message or alt-r resumes it";
+    return padCells(clipCells([...cellsOf(" "), ...mark("connection", "text.muted"), ...cellsOf(fit(words, Math.max(1, width - 3)), style("text.muted"))], width), width);
+  }
+  if (a.doing === "resuming") {
+    const after = cellsOf(` · ${duration(a.elapsed)}`, style("text.muted"));
+    const room = Math.max(1, width - 1 - 2 - rowWidth(after));
+    const words = cellsOf(fit(`resuming ${a.detail ?? ""}`.trimEnd() + "…", room), style("text.secondary"));
+    return padCells(clipCells([...cellsOf(" "), ...padCells(cellsOf(spinAt(a.elapsed), style("status.info")), 2), ...words, ...after], width), width);
+  }
+  const live =["thinking", "writing", "running", "approval", "question"].includes(a.doing);
   const ended: Record<string, [string, string, string]> = {
     done: ["run_passed", "status.success", `done in ${tail.join(" · ")}`],
     stopped: ["run_canceled", "text.muted", `stopped after ${tail.join(" · ")}`],

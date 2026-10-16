@@ -12,6 +12,14 @@ struct Docked {
     supplies: bool,
     /// What the host told it of the dock being shown, in order.
     told: Arc<Mutex<Vec<bool>>>,
+    /// An item page open over its screen, and the intents its screen got.
+    page: Arc<Mutex<Page>>,
+}
+
+#[derive(Default)]
+struct Page {
+    open: bool,
+    got: Vec<Intent>,
 }
 
 impl Plugin for Docked {
@@ -30,6 +38,20 @@ impl Plugin for Docked {
     fn view(&self, scope: &str, _: &crate::view::ViewCx<'_>) -> Option<ScreenView> {
         let rows = vec![ListRow::new("one", "one"), ListRow::new("two", "two")];
         let list = |pane, rows: Vec<ListRow>| PaneView::new(pane, "rows", Node::List { rows, selected: Some(0), editing: None });
+        if self.page.lock().unwrap().open {
+            let page = crate::view::PageView {
+                crumbs: vec![],
+                title: crate::view::Text::plain("one"),
+                details: crate::view::Text::new(),
+                under: None,
+                tabs: vec![],
+                tab: 0,
+                notice: None,
+                panes: vec![list(PaneId::Middle, rows)],
+                layout: None,
+            };
+            return Some(ScreenView::page(scope, page));
+        }
         Some(ScreenView::new(
             scope,
             vec![list(PaneId::Nav, vec![ListRow::new("nav", "nav")]), list(PaneId::Middle, rows)],
@@ -49,13 +71,17 @@ impl Plugin for Docked {
     fn dock_visible(&mut self, visible: bool) {
         self.told.lock().unwrap().push(visible);
     }
+    fn intent(&mut self, _: &str, _: Pane, intent: &Intent) -> Outcome {
+        self.page.lock().unwrap().got.push(intent.clone());
+        Outcome::done()
+    }
 }
 
 type Got = Arc<Mutex<Vec<DockIntent>>>;
 
 fn host_with(view: DockView, supplies: bool) -> (Host, Got) {
     let got = Got::default();
-    let part = Docked { view: Arc::new(Mutex::new(view)), got: got.clone(), supplies, told: Default::default() };
+    let part = Docked { view: Arc::new(Mutex::new(view)), got: got.clone(), supplies, told: Default::default(), page: Default::default() };
     (Host::new(vec![Box::new(part)], 0).unwrap(), got)
 }
 
@@ -64,7 +90,7 @@ type Told = Arc<Mutex<Vec<bool>>>;
 
 fn live_host(view: DockView) -> (Host, Arc<Mutex<DockView>>, Got, Told) {
     let (got, told, view) = (Got::default(), Told::default(), Arc::new(Mutex::new(view)));
-    let part = Docked { view: view.clone(), got: got.clone(), supplies: true, told: told.clone() };
+    let part = Docked { view: view.clone(), got: got.clone(), supplies: true, told: told.clone(), page: Default::default() };
     (Host::new(vec![Box::new(part)], 0).unwrap(), view, got, told)
 }
 
@@ -150,6 +176,37 @@ fn the_part_is_told_each_time_the_dock_shows_or_hides_whatever_did_it() {
     host.update(Event::Tick(2));
     host.update(Event::Intent(Intent::Dock(DockIntent::Blur)));
     assert_eq!(*told.lock().unwrap(), vec![false, true, false, true]);
+}
+
+/// Live, the dock key on an item page showed the dock with the keys though
+/// the page has no place for it: the keys went nowhere visible, and the
+/// lists took them back into the composer. Where the dock is not drawn the
+/// key shows or hides it for the lists, and the keys stay with the page.
+#[test]
+fn on_an_item_page_the_dock_key_never_gives_the_dock_the_keys() {
+    let page = Arc::new(Mutex::new(Page { open: true, got: vec![] }));
+    let part = Docked { view: Default::default(), got: Got::default(), supplies: true, told: Default::default(), page: page.clone() };
+    let mut host = Host::new(vec![Box::new(part)], 0).unwrap();
+    assert!(!host.dock_has_place());
+    key(&mut host, dock::KEY);
+    assert!(host.dock.visible && !host.dock.focused, "shown for the lists, without the keys");
+    assert!(!shown(&host).unwrap().focused);
+    assert!(host.message.as_deref().is_some_and(|m| m.contains("not on this page")), "{:?}", host.message);
+    // The next key is the page's.
+    key(&mut host, 'j');
+    assert!(!page.lock().unwrap().got.is_empty(), "the page got the key");
+    // Nothing else gives it the keys there: a focus, a show from a part.
+    host.update(Event::Intent(Intent::Dock(DockIntent::Focus)));
+    host.route(0, vec![Effect::ShowDock], 0);
+    assert!(host.dock.visible && !host.dock.focused);
+    // Pressed again on the page, it hides.
+    key(&mut host, dock::KEY);
+    assert!(!host.dock.visible);
+    // Back on the list the key shows it with the keys, as before.
+    page.lock().unwrap().open = false;
+    assert!(host.dock_has_place());
+    key(&mut host, dock::KEY);
+    assert!(host.dock.visible && host.dock.focused && shown(&host).unwrap().focused);
 }
 
 #[test]
@@ -247,7 +304,7 @@ fn on_settings_every_change_to_the_dock_is_sent_to_the_renderer() {
     let running = states().remove("streaming").unwrap();
     assert!(running.composer.can_stop);
     let content = Arc::new(Mutex::new(running));
-    let part = Docked { view: content.clone(), got: Got::default(), supplies: true, told: Default::default() };
+    let part = Docked { view: content.clone(), got: Got::default(), supplies: true, told: Default::default(), page: Default::default() };
     let mut bridge = Bridge::new(Host::new(vec![Box::new(part)], 0).unwrap(), 100, 30);
     bridge.receive(ToHost::Hello {
         protocol: PROTOCOL,
@@ -465,6 +522,7 @@ fn permission() -> dock::DockItem {
         actions: vec![dock::PermissionAction::ApproveOnce, dock::PermissionAction::Deny, dock::PermissionAction::ViewDiff],
         answered: None,
         tool: None,
+        lapsed: false,
     })
 }
 
@@ -570,6 +628,57 @@ fn states() -> std::collections::BTreeMap<&'static str, DockView> {
         composer(true, true),
     ));
     all.get_mut("question").unwrap().activity = doing(dock::Doing::Question, "", 40, None);
+    // Restored from the last run and read back: what waited when radar closed lapsed, nothing to press; the other tabs
+    // are not attached yet, or being read back.
+    all.insert("restored", {
+        let mut v = base(
+            vec![
+                tab("s1", "copilot", "review dock", S::Idle),
+                tab("s2", "codex", "codex 2", S::Detached),
+                tab("s3", "claude", "claude 3", S::Resuming),
+            ],
+            vec![
+                user("push the branch and ask me which remote"),
+                dock::DockItem::Permission(dock::DockPermission {
+                    id: "perm-1".into(),
+                    kind: "shell".into(),
+                    target: "git push origin agent-dock".into(),
+                    diff: vec![],
+                    actions: vec![],
+                    answered: None,
+                    tool: None,
+                    lapsed: true,
+                }),
+                dock::DockItem::Question(dock::DockQuestion {
+                    id: "ask-1".into(),
+                    questions: vec![dock::DockAsk {
+                        id: "0".into(),
+                        header: None,
+                        text: "Which remote?".into(),
+                        choices: vec![dock::DockAskChoice { label: "origin".into(), detail: String::new() }],
+                        free_text: true,
+                        multiple: false,
+                        answered: true,
+                        answer: vec![],
+                    }],
+                    state: dock::AskState::Lapsed,
+                }),
+                dock::DockItem::Notice { id: "n1".into(), text: "the turn that was waiting was ended when radar closed; send a message to carry on".into() },
+            ],
+            composer(true, false),
+        );
+        v.status.usage = None;
+        v
+    });
+    // A restored tab not attached to its provider: a message, alt-r or /resume reads it back.
+    all.insert("detached", {
+        let mut c = composer(true, false);
+        c.commands.push(dock::DockCommand { name: "resume".into(), detail: "attach to the provider again and read the session back (alt-r)".into() });
+        let mut v = base(vec![tab("s1", "copilot", "review dock", S::Detached), tab("s2", "claude", "claude 2", S::Resuming)], vec![], c);
+        v.activity = Some(dock::DockActivity { doing: dock::Doing::Detached, detail: "copilot".into(), elapsed: 0, tokens: None, queued: 0 });
+        v.status.usage = None;
+        v
+    });
     all.insert("error", DockView {
         activity: doing(dock::Doing::Failed, "", 12, None),
         ..base(
@@ -653,6 +762,7 @@ fn states() -> std::collections::BTreeMap<&'static str, DockView> {
             actions: vec![dock::PermissionAction::ApproveOnce, dock::PermissionAction::ApproveForSession, dock::PermissionAction::Deny],
             answered: None,
             tool: Some("t8".into()),
+            lapsed: false,
         }));
         let mut v = base(vec![tab("s1", "claude", "review", S::Approval)], items, composer(false, true));
         v.status.provider = "claude".into();
@@ -812,6 +922,7 @@ fn approved(id: &str, kind: &str, target: &str, tool: &str) -> dock::DockItem {
         actions: vec![dock::PermissionAction::ApproveOnce, dock::PermissionAction::Deny],
         answered: Some(dock::PermissionAction::ApproveOnce),
         tool: Some(tool.into()),
+        lapsed: false,
     })
 }
 

@@ -33,6 +33,15 @@ fn settings_host(section: &str) -> radar_core::Host {
     host.focus = Pane::Middle;
     host
 }
+/// The connection section with the cursor on its server row, past the
+/// three sign-in choices.
+fn connection_host() -> radar_core::Host {
+    let mut host = settings_host("connection");
+    for _ in 0..3 {
+        host.update(Event::Key(key(KeyCode::Down)));
+    }
+    host
+}
 pub(crate) fn exported(name: &str, host: &radar_core::Host, w: u16, h: u16) {
     if let Ok(dir) = std::env::var("RADAR_GITHUB_RENDER_DIR") {
         std::fs::create_dir_all(&dir).unwrap();
@@ -117,6 +126,11 @@ fn every_menu_row_and_mouse_target_acts() {
         Place::section("connection").down(1),
         Place::section("connection").down(2),
         Place::section("connection").down(3),
+        Place::section("connection").down(4),
+        Place::section("connection").down(5),
+        Place::section("connection").down(6),
+        Place::section("connection").down(7),
+        Place::section("connection").down(8),
         Place::section("repositories"),
         Place::section("repositories").down(1),
     ]);
@@ -328,7 +342,7 @@ fn links_cannot_replay_after_same_target_refresh_or_replacement() {
 
 #[test]
 fn host_typing_paste_validation_save_and_cancel() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     host.update(Event::Key(key(KeyCode::Down)));
     host.update(Event::Key(key(KeyCode::Enter)));
     assert!(host.plugins[0].capturing());
@@ -373,7 +387,7 @@ fn host_typing_paste_validation_save_and_cancel() {
 
 #[test]
 fn the_server_row_edits_the_api_address_and_a_default_is_left_out_of_the_file() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     assert!(host.plugins[0].config().unwrap().get("api").is_none());
     let text = to_text(&host, 160, 40);
     assert!(text.contains("https://api.github.com"), "{text}");
@@ -488,7 +502,7 @@ fn mouse_rows_blank_space_double_click_and_context_selection() {
     assert_eq!(host.plugins[0].depth("github"), 1);
     let mut p = demo::sample();
     assert!(matches!(
-        p.context_select("connection", "setting:1"),
+        p.context_select("connection", "setting:6"),
         Outcome::Handled(_)
     ));
     assert!(!p.capturing());
@@ -676,7 +690,7 @@ fn reloaded(text: &str) -> radar_core::Host {
 #[test]
 fn public_and_reference_settings_save_acknowledge_and_reload_without_resolving_credentials() {
     for value in ["", "env:SYNTHETIC_EXISTING_REFERENCE"] {
-        let mut host = settings_host("connection");
+        let mut host = connection_host();
         assert!(!host.dirty());
         host.update(Event::Key(key(KeyCode::Down)));
         assert!(saved_text(&host.update(Event::Key(key(KeyCode::Enter)))).is_none());
@@ -711,25 +725,28 @@ fn public_and_reference_settings_save_acknowledge_and_reload_without_resolving_c
 
 #[test]
 fn cancelled_invalid_and_fixed_settings_never_save_or_spawn_reads() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     let before = host.plugins[0].config();
-    host.update(Event::Key(key(KeyCode::Home)));
-    for _ in 0..3 {
-        host.update(Event::Key(key(KeyCode::Down)));
-    }
+    // Home is the first sign-in choice; the server row is three below it.
+    let down = |host: &mut radar_core::Host, n: usize| {
+        host.update(Event::Key(key(KeyCode::Home)));
+        for _ in 0..n {
+            host.update(Event::Key(key(KeyCode::Down)));
+        }
+    };
+    down(&mut host, 6);
     let effects = host.update(Event::Key(key(KeyCode::Enter)));
     assert!(effects.is_empty());
     assert!(!host.plugins[0].capturing());
     // The server row is typed into, but a bad address is never kept.
-    host.update(Event::Key(key(KeyCode::Home)));
+    down(&mut host, 3);
     host.update(Event::Key(key(KeyCode::Enter)));
     assert!(host.plugins[0].capturing());
     assert!(replace_field(&mut host, "ftp://elsewhere.test").is_empty());
     assert!(host.plugins[0].capturing());
     assert_eq!(host.plugins[0].config(), before);
     host.update(Event::Key(key(KeyCode::Esc)));
-    host.update(Event::Key(key(KeyCode::Home)));
-    host.update(Event::Key(key(KeyCode::Down)));
+    down(&mut host, 4);
     host.update(Event::Key(key(KeyCode::Enter)));
     assert!(replace_field(&mut host, "bad token with spaces").is_empty());
     assert!(host.plugins[0].capturing());
@@ -800,7 +817,7 @@ fn repository_add_edit_duplicate_cancel_and_remove_save_exact_config() {
 
 #[test]
 fn failed_settings_save_is_visible_and_write_retries_current_config() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     host.update(Event::Key(key(KeyCode::Down)));
     host.update(Event::Key(key(KeyCode::Enter)));
     let effects = replace_field(&mut host, "");
@@ -819,7 +836,7 @@ fn failed_settings_save_is_visible_and_write_retries_current_config() {
 
 #[test]
 fn explicit_access_check_uses_host_task_dispatch_and_empty_settings_explain_why() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     host.update(Event::Key(key(KeyCode::Down)));
     host.update(Event::Key(key(KeyCode::Down)));
     let effects = host.update(Event::Key(key(KeyCode::Enter)));
@@ -1090,7 +1107,7 @@ fn owner_input_and_browse_key_start_access_discovery_without_repositories() {
 
 #[test]
 fn typed_token_is_masked_after_save_and_checks_without_repositories() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     host.update(Event::Key(key(KeyCode::Down)));
     host.update(Event::Key(key(KeyCode::Enter)));
     let token = "github_pat_synthetic_screen_123";
@@ -1131,7 +1148,7 @@ fn old_connection_check_cannot_replace_a_changed_token() {
         generation,
         request,
         action: history::connection_action(),
-        result: Ok(Some("old-user".into())),
+        result: Ok((Some("old-user".into()), None)),
     });
     assert!(p.connection_check.is_none());
     assert!(
@@ -1695,14 +1712,14 @@ fn title_action_hit_cannot_replay_after_a_page_refresh_response() {
 
 #[test]
 fn settings_context_selects_without_editing_or_checking_and_blank_dismisses() {
-    let mut host = settings_host("connection");
+    let mut host = connection_host();
     to_text(&host, 160, 40);
     let row = host
         .hits
         .borrow()
         .iter()
         .find_map(|(area, hit)| {
-            matches!(hit, Hit::Plugin { id, .. } if id == "setting:1").then_some(*area)
+            matches!(hit, Hit::Plugin { id, .. } if id == "setting:6").then_some(*area)
         })
         .unwrap();
     assert!(

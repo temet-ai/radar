@@ -7,7 +7,7 @@ use radar_sessions::fake::FakeHarness;
 async fn the_fake_passes_every_contract_check() {
     let report = run_all(&mut FakeHarness::new()).await;
     assert!(report.skipped.is_empty(), "the fake supports everything: {:?}", report.skipped);
-    assert_eq!(report.ran.len(), 12, "{:?}", report.ran);
+    assert_eq!(report.ran.len(), 13, "{:?}", report.ran);
     assert!(report.ran.contains(&"question"), "{:?}", report.ran);
     assert!(report.ran.contains(&"approve_for_session"), "{:?}", report.ran);
 }

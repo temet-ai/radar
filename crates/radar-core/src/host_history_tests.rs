@@ -327,7 +327,8 @@ fn history_masks_the_screen_under_it_from_every_intent() {
     assert!(headless.records().is_empty());
     assert!(!headless.host().quit);
     assert!(headless.host().history.is_some());
-    headless.send(Intent::Activate { target: crate::history::targets::key("esc") });
+    let esc = headless.host().history.as_ref().unwrap().key_target("esc");
+    headless.send(Intent::Activate { target: esc });
     assert!(headless.host().history.is_none(), "a chrome target of the overlay acts");
     let h = headless.host();
     assert_eq!(before, (h.view, h.focus, h.bar, h.tabs));
@@ -399,4 +400,66 @@ fn history_draws_in_a_tiny_terminal() {
         let _ = crate::shell::to_text(&host, width, height);
         let _ = host.chrome_view(width, height);
     }
+}
+
+/// A target is pressed for the page it was drawn for: one sent back after
+/// another page loaded, a refresh, or the overlay was closed and opened
+/// again does nothing, never what now sits at its place.
+#[test]
+fn a_history_target_drawn_for_an_earlier_page_does_nothing() {
+    use crate::history::HistoryFocus;
+    use crate::history::tests::{entry, page};
+    use crate::journal::Outcome as Observed;
+    use crate::view::Intent;
+    let (mut host, _) = fixture();
+    let read = |host: &mut Host, request: &crate::history::Request, events: std::ops::RangeInclusive<i64>, more: bool| {
+        let events = events.map(|n| entry(n, Observed::Requested)).collect();
+        host.update(Event::History { id: request.id, result: Ok(Box::new(page(request.filter.clone(), events, more))) });
+    };
+    let first = request(&press(&mut host, KeyCode::Char('H'))).clone();
+    read(&mut host, &first, 1..=5, true);
+    let one = host.chrome_view(160, 40).history.unwrap();
+    assert_eq!((one.rows.len(), one.selected), (5, Some(0)));
+    let row3 = one.rows[3].target.clone();
+    let key = |view: &crate::history::HistoryView, label: &str| {
+        view.footer.iter().flat_map(|h| &h.keys_of).chain(&view.detail_keys)
+            .find(|k| k.label == label).unwrap_or_else(|| panic!("{label} shown")).target.clone()
+    };
+    let (enter, causal) = (key(&one, "enter"), key(&one, "c"));
+    // n: page 2.
+    let next = request(&press(&mut host, KeyCode::Char('n'))).clone();
+    read(&mut host, &next, 6..=10, false);
+    let shown = |host: &Host| {
+        let v = host.chrome_view(160, 40).history.unwrap();
+        (v.events_title.clone(), v.scope.clone(), v.selected, v.focus)
+    };
+    let two = shown(&host);
+    assert!(two.0.contains("page 2"), "{two:?}");
+    assert_eq!((two.2, two.3), (Some(0), HistoryFocus::Events));
+    for old in [&row3, &enter, &causal] {
+        assert!(host.update(Event::Intent(Intent::Activate { target: old.clone() })).is_empty(), "{old:?}");
+        assert!(host.update(Event::Intent(Intent::Select { target: old.clone() })).is_empty(), "{old:?}");
+        assert_eq!(shown(&host), two, "{old:?} names page 1");
+    }
+    // The page shown takes its own targets.
+    let now = host.chrome_view(160, 40).history.unwrap();
+    host.update(Event::Intent(Intent::Activate { target: now.rows[3].target.clone() }));
+    assert_eq!(shown(&host).2, Some(3));
+    let row3_two = now.rows[3].target.clone();
+    // Closed and opened again: page 1 at the same place, a new drawing.
+    press(&mut host, KeyCode::Esc);
+    let again = request(&press(&mut host, KeyCode::Char('H'))).clone();
+    read(&mut host, &again, 1..=5, true);
+    let reopened = shown(&host);
+    for old in [&row3, &row3_two, &enter] {
+        assert!(host.update(Event::Intent(Intent::Activate { target: old.clone() })).is_empty());
+        assert_eq!(shown(&host), reopened, "{old:?} names a closed overlay");
+    }
+    // A refresh: the same rows read again, a new drawing.
+    let fresh = host.chrome_view(160, 40).history.unwrap();
+    let refresh = request(&press(&mut host, KeyCode::Char('r'))).clone();
+    read(&mut host, &refresh, 1..=5, true);
+    host.update(Event::Intent(Intent::Activate { target: fresh.rows[3].target.clone() }));
+    host.update(Event::Intent(Intent::Activate { target: key(&fresh, "enter") }));
+    assert_eq!(shown(&host), reopened, "targets drawn before the refresh");
 }

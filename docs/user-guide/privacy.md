@@ -43,7 +43,10 @@ with a one-time ticket), and is gone when the session ends.
 | the log | `~/.local/state/radar/radar.log` |
 | pictures | `~/.cache/radar/images` on Linux, `~/Library/Caches/radar/images` on macOS (at most 200 MB) |
 | radar's renderer, unpacked from the binary | `~/.cache/radar/runtime` (macOS: `~/Library/Caches/radar/runtime`) |
-| the Claude Agent SDK, once downloaded | `~/.cache/radar/claude-agent-sdk` (macOS: `~/Library/Caches/radar/claude-agent-sdk`) |
+| the Claude Agent SDK, once downloaded, in a folder named for its version | `~/.cache/radar/claude-agent-sdk/<version>` (macOS: `~/Library/Caches/radar/claude-agent-sdk/<version>`) |
+| local reviews, when no work item takes them (`[sessions] reviews_dir` moves it) | `~/.local/state/radar/reviews` |
+| the sockets of terminal tabs in the dock | `~/.local/state/radar/terminals` |
+| which start lines showed lately, by id, so they do not repeat | `~/.local/state/radar/start-lines.toml` |
 
 `XDG_CONFIG_HOME`, `XDG_STATE_HOME` and `XDG_CACHE_HOME` move these folders when set.
 

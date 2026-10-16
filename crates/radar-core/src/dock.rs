@@ -72,6 +72,34 @@ pub struct DockView {
     /// the dock key goes to it. Host state, from the tabs.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub attention: Option<String>,
+    /// The transcript's revision as the host's pipe to a renderer sent it
+    /// (`ipc::Bridge`); 0 everywhere else. A renderer keeps it with the
+    /// transcript it holds, for the next [`DockView::kept`].
+    #[serde(default, skip_serializing_if = "is_zero_u64")]
+    #[ts(optional, type = "number")]
+    pub revision: u64,
+    /// Over the pipe only: `transcript` is not the whole of it but what
+    /// follows the first `kept.items` items of the transcript the renderer
+    /// holds at `kept.revision`, so a streamed word sends one item, not the
+    /// session's history. A renderer that holds another revision asks for
+    /// the whole (`ipc::ToHost::Resync`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub kept: Option<DockKept>,
+}
+
+fn is_zero_u64(n: &u64) -> bool {
+    *n == 0
+}
+
+/// The head of the transcript a renderer already holds ([`DockView::kept`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct DockKept {
+    /// The revision it was sent at.
+    #[ts(type = "number")]
+    pub revision: u64,
+    /// How many of its first items stand unchanged.
+    pub items: u32,
 }
 
 /// The dock key with alt: the dock takes the whole middle column, and back.
@@ -122,6 +150,12 @@ pub enum Doing {
     Stopped,
     /// The last turn failed.
     Failed,
+    /// radar reads the session back from its provider (restored from the last
+    /// run): the transcript and the live state follow.
+    Resuming,
+    /// Restored from the last run and not attached to its provider: the
+    /// next message, or the resume key, attaches it.
+    Detached,
 }
 
 /// A session's tab.
@@ -167,6 +201,11 @@ pub enum SessionState {
     Stopped,
     /// The session or its terminal ended.
     Ended,
+    /// Restored from the last run, not attached to its provider yet: what
+    /// its history shows waiting needs no one.
+    Detached,
+    /// Being read back from its provider.
+    Resuming,
 }
 
 /// A terminal tab's surface ([`DockTab::terminal`]).
@@ -467,6 +506,10 @@ pub struct DockPermission {
     /// provider said: once answered, the call's own row tells it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tool: Option<String>,
+    /// It waited when radar closed, and the process that asked is gone: nothing
+    /// can answer it now. Drawn without buttons or keys, never "needs you".
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub lapsed: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
@@ -477,6 +520,9 @@ pub enum PermissionAction {
     /// Approve it and the same again for the rest of the session. Offered
     /// only where the request allows it.
     ApproveForSession,
+    /// Approve it and add it to Settings → Agents → always allow, so the
+    /// same request never asks again in any session.
+    AlwaysAllow,
     Deny,
     /// Open the diff. Ink-side only; it sends no answer.
     ViewDiff,
@@ -537,6 +583,9 @@ pub enum AskState {
     Answered,
     /// The user declined, or the turn ended before an answer.
     Declined,
+    /// It waited when radar closed, and the process that asked is gone: nothing
+    /// can answer it now.
+    Lapsed,
 }
 
 /// The composer: the text being written is Ink's editor state until it is
@@ -631,6 +680,8 @@ pub enum DockIntent {
     Approve { id: String },
     /// Approve it and the same again for the rest of the session.
     ApproveForSession { id: String },
+    /// Approve it and add it to the standing allow rules.
+    AlwaysAllow { id: String },
     Deny { id: String },
     /// Answer question `question` ([`DockAsk::id`]) of request `id`
     /// ([`DockQuestion::id`]): the labels of the choices picked, or the
@@ -668,6 +719,9 @@ pub enum DockIntent {
     CloseTab { id: String },
     /// Restart a terminal tab's command.
     RestartTerminal { id: String },
+    /// Attach the active tab to its provider again (a session restored from
+    /// the last run, or one whose resume failed) without sending anything.
+    Resume,
     Show,
     Hide,
     Toggle,

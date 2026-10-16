@@ -1,4 +1,5 @@
 import type { Hit } from "../chrome/types.js";
+import { areaAt, type SelectArea } from "../input/selection.js";
 
 /**
  * Transient renderer state keyed by target: focus, scroll and pane widths. Nothing here is the
@@ -55,6 +56,7 @@ export type PaneArea = { x: number; y: number; w: number; h: number; pane: strin
 export class HitRegistry {
   private hits: Hit[] = [];
   private areas: PaneArea[] = [];
+  private selects: SelectArea[] = [];
   private cleared = false;
   /** A frame is about to register its hits. The old ones stay answerable until the first new one arrives (or `settle`),
    * so a render that yields to the event loop between its render phase and its commit does not leave a key or click
@@ -66,8 +68,22 @@ export class HitRegistry {
     if (this.cleared) {
       this.hits = [];
       this.areas = [];
+      this.selects = [];
       this.cleared = false;
     }
+  }
+  /** An area text is selected in (input/selection.ts): a pane's inside, the dock's transcript, the editor's text. */
+  addSelect(area: SelectArea) {
+    this.fresh();
+    this.selects.push(area);
+  }
+  /** Every selection area of the frame, in the order registered. */
+  selectAreas(): readonly SelectArea[] {
+    return this.selects;
+  }
+  /** The area a press at the cell starts a selection in, if any (the last registered wins: an overlay is over a pane). */
+  selectAt(x: number, y: number): SelectArea | undefined {
+    return areaAt(this.selects, x, y);
   }
   add(hit: Hit) {
     this.fresh();

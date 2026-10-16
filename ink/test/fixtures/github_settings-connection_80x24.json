@@ -3,23 +3,14 @@
     {
       "heading": true,
       "id": "",
-      "label": "server"
+      "label": "public only"
     },
     {
-      "id": "github.connection.edit",
-      "key": {
-        "key": {
-          "char": "e"
-        }
-      },
-      "label": "change it"
-    },
-    {
-      "id": "github.connection.activate_setting",
+      "id": "github.connection.choose",
       "key": {
         "key": "enter"
       },
-      "label": "change it"
+      "label": "sign in this way"
     },
     {
       "id": "github.connection.check",
@@ -29,13 +20,120 @@
         }
       },
       "label": "check GitHub connection"
+    },
+    {
+      "id": "github.connection.token_page",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open GitHub's new-token page"
+    },
+    {
+      "id": "github.connection.copy_token_link",
+      "key": {
+        "key": {
+          "char": "y"
+        }
+      },
+      "label": "copy the new-token page's link"
     }
   ],
   "body": {
     "node": "list",
     "rows": [
       {
+        "heading": true,
         "target": "setting:0",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "SIGN IN"
+          },
+          {
+            "ink": "muted",
+            "text": "  how radar reads GitHub"
+          }
+        ]
+      },
+      {
+        "target": "setting:1",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "todo",
+            "icon_lead": true,
+            "ink": "muted",
+            "text": "[ ] "
+          },
+          {
+            "ink": "primary",
+            "text": "public only     "
+          },
+          {
+            "ink": "muted",
+            "text": "public repositories, no token"
+          }
+        ]
+      },
+      {
+        "target": "setting:2",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "todo",
+            "icon_lead": true,
+            "ink": "muted",
+            "text": "[ ] "
+          },
+          {
+            "ink": "primary",
+            "text": "gh's sign-in    "
+          },
+          {
+            "ink": "muted",
+            "text": "asks gh for its token"
+          }
+        ]
+      },
+      {
+        "target": "setting:3",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "done",
+            "icon_lead": true,
+            "ink": "good",
+            "text": "[x] "
+          },
+          {
+            "ink": "primary",
+            "text": "a token         "
+          },
+          {
+            "ink": "muted",
+            "text": "env:NAME, or one pasted"
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "setting:4",
+        "text": []
+      },
+      {
+        "target": "setting:5",
         "text": [
           {
             "text": " "
@@ -51,7 +149,7 @@
         ]
       },
       {
-        "target": "setting:1",
+        "target": "setting:6",
         "text": [
           {
             "text": " "
@@ -62,12 +160,12 @@
           },
           {
             "ink": "primary",
-            "text": "configured token"
+            "text": "env:GITHUB_TOKEN"
           }
         ]
       },
       {
-        "target": "setting:2",
+        "target": "setting:7",
         "text": [
           {
             "text": " "
@@ -77,13 +175,13 @@
             "text": "check           "
           },
           {
-            "ink": "primary",
-            "text": "GitHub connection"
+            "ink": "muted",
+            "text": "not checked yet"
           }
         ]
       },
       {
-        "target": "setting:3",
+        "target": "setting:8",
         "text": [
           {
             "text": " "
@@ -97,9 +195,138 @@
             "text": "once on start, then on request"
           }
         ]
+      },
+      {
+        "heading": true,
+        "target": "setting:9",
+        "text": []
+      },
+      {
+        "heading": true,
+        "target": "setting:10",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "ACCESS"
+          },
+          {
+            "ink": "muted",
+            "text": "  what radar may do on GitHub"
+          }
+        ]
+      },
+      {
+        "target": "setting:11",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "done",
+            "icon_lead": true,
+            "ink": "good",
+            "text": "[x] "
+          },
+          {
+            "ink": "primary",
+            "text": "read only       "
+          },
+          {
+            "ink": "muted",
+            "text": "pull requests, checks, runs"
+          }
+        ]
+      },
+      {
+        "target": "setting:12",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "icon": "todo",
+            "icon_lead": true,
+            "ink": "muted",
+            "text": "[ ] "
+          },
+          {
+            "ink": "primary",
+            "text": "read and write  "
+          },
+          {
+            "ink": "muted",
+            "text": "adds comment, approve, merge, re-run"
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "setting:13",
+        "text": []
+      },
+      {
+        "heading": true,
+        "target": "setting:14",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "REPOSITORIES"
+          },
+          {
+            "ink": "muted",
+            "text": "  github.com/owner, owner/repo or a group name"
+          }
+        ]
+      },
+      {
+        "target": "setting:15",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a repository or group"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste or type it"
+          }
+        ]
+      },
+      {
+        "target": "setting:16",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "icon": "group"
+          },
+          {
+            "ink": "emphasis",
+            "strong": true,
+            "text": "github.com/acme"
+          },
+          {
+            "ink": "muted",
+            "text": "   2 repositories"
+          }
+        ]
       }
     ],
-    "selected": 0
+    "selected": 1
   },
   "detail": [
     [
@@ -113,14 +340,14 @@
       {
         "ink": "emphasis",
         "strong": true,
-        "text": "https://api.github.com"
+        "text": "env:GITHUB_TOKEN"
       }
     ],
     [],
     [
       {
         "ink": "primary",
-        "text": "The GitHub API radar talks to: api.github.com for github.com, or your own GitHub Enterprise Server or a local server. The token is sent only to this address."
+        "text": "No token: radar reads public repositories only."
       }
     ],
     [],
@@ -134,18 +361,272 @@
     [
       {
         "ink": "secondary",
-        "text": "https://api.github.com · a GitHub Enterprise Server's https://HOST/api/v3 · http://127.0.0.1:PORT for a local server"
+        "text": "empty, gh, env:NAME, or a token"
       }
     ],
     [],
     [
       {
         "ink": "muted",
-        "text": "config: [github] api"
+        "text": "config: [github] token"
       }
     ]
   ],
-  "detail_title": "server",
+  "detail_blocks": [
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "NOW"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "env:GITHUB_TOKEN"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "No token: radar reads public repositories only."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "ACCEPTS"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "secondary",
+          "text": "empty, gh, env:NAME, or a token"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "config: [github] token"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Choose gh's sign-in. Not signed in yet?"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "$ "
+            },
+            {
+              "ink": "primary",
+              "text": "gh auth login"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://cli.github.com/",
+              "text": "cli.github.com: install gh"
+            }
+          ]
+        }
+      ],
+      "mark": "terminal",
+      "title": "EASIEST: THE GH PROGRAM"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Public repositories need none. For private ones:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "1 Open the fine-grained token page:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://github.com/settings/personal-access-tokens/new?name=radar&description=radar&contents=read&pull_requests=read&actions=read&statuses=read",
+              "text": "github.com / new token"
+            },
+            {
+              "ink": "muted",
+              "text": "   o opens · y copies"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "2 Repository access: the repositories to follow."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "3 Permissions come filled in from access: contents, pull requests, actions, statuses: read."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "4 Generate token, copy the github_pat_… value into token, or:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "$ "
+            },
+            {
+              "ink": "primary",
+              "text": "export GITHUB_TOKEN=…"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "  then the token is env:GITHUB_TOKEN"
+            }
+          ]
+        }
+      ],
+      "mark": "connection",
+      "title": "OR A TOKEN"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Choose the organisation as the token's resource owner."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Some need an owner to approve the token."
+            }
+          ]
+        }
+      ],
+      "mark": "team",
+      "title": "AN ORGANISATION'S REPOSITORIES"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+              "text": "GitHub docs: access tokens"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://github.com/temet-ai/radar/blob/main/docs/user-guide/connect.md#github",
+              "text": "radar guide: connect GitHub"
+            }
+          ]
+        }
+      ],
+      "mark": "link",
+      "title": "MORE"
+    }
+  ],
+  "detail_title": "public only",
   "scope": "connection",
   "version": 1
 }

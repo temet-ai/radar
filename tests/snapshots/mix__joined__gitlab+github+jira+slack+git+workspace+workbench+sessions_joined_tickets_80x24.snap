@@ -1,8 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 744
 expression: "to_text(&host, 80, 24)"
 ---
- radar    R 2   J   S   B   I   History   Settings (,)  not synced yet … ✎ edit
+ radar    R 2   J   B   I   History   Settings (,)  not synced yet · ev… ✎ edit
 ╭ Our project ─────────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
 │▌ acme  acme.atlassian.net                                                    │

@@ -164,12 +164,6 @@
           "target": "chrome:tab:2"
         },
         {
-          "icon": "chat",
-          "label": "slack",
-          "mnemonic": "S",
-          "target": "chrome:tab:3"
-        },
-        {
           "icon": "branch",
           "label": "branches",
           "mnemonic": "B",
@@ -348,16 +342,6 @@
         "label": "kept Jira text…"
       }
     ],
-    "dock": {
-      "composer": {
-        "can_send": false,
-        "can_stop": false,
-        "disabled": "no session: start one with a new session"
-      },
-      "focused": false,
-      "status": {},
-      "visible": false
-    },
     "page": {
       "crumbs": [
         {

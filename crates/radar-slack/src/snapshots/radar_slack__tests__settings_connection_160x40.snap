@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
@@ -7,33 +8,33 @@ expression: "to_text(&host, 160, 40)"
 │General               ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
 │  ├─ parts            ││  api             https://slack.com                                             ││ not checked yet                                    │
 │  ├─ mode             ││  token           xoxp…ests (typed in)                                          ││                                                    │
-│  ├─ colours          ││  signed in as    Alice Example  alice                                          ││ NOW                                                │
-│  └─ icons            ││  check           not checked yet                                               ││ Acme · https://acme.slack.com                      │
-│Slack                 ││  refresh         every 2m                                                      ││                                                    │
-│  ├─ connection       ││  read back       7 days                                                        ││ The Slack workspace the token is for: a user token │
-│  ├─ channels         ││  permissions   ├─ public channels                                            ✓ ││ belongs to one. The check finds it.                │
-│  ├─ review           ││                ├─ private channels                                           ✓ ││                                                    │
-│  ├─ alerts           ││                ├─ for you                                                    ✓ ││                                                    │
-│  └─ look             ││                ├─ names                                                      ✓ ││                                                    │
-│                      ││                ├─ user groups                                                ✓ ││                                                    │
-│                      ││                ├─ asking and replying                                        ✓ ││                                                    │
-│                      ││                └─ reacting        needs reactions:write                      ✗ ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│  ├─ appearance       ││  signed in as    Alice Example  alice                                          ││ NOW                                                │
+│  ├─ colours          ││  check           not checked yet                                               ││ Acme · https://acme.slack.com                      │
+│  └─ icons            ││  refresh         every 2m                                                      ││                                                    │
+│Slack                 ││  read back       7 days                                                        ││ The Slack workspace the token is for: a user token │
+│  ├─ connection       ││  permissions   ├─ public channels                                       has it ││ belongs to one. The check finds it.                │
+│  ├─ channels         ││                ├─ private channels                                      has it ││                                                    │
+│  ├─ review           ││                ├─ for you                                               has it ││ MAKE A USER TOKEN  about two minutes, once ─────── │
+│  ├─ alerts           ││                ├─ names                                                 has it ││   1 Open Slack's new-app page, radar's manifest    │
+│  └─ look             ││                ├─ user groups                                           has it ││   filled in:                                       │
+│                      ││                ├─ asking and replying                                   has it ││   api.slack.com / new app   o opens · m copies the │
+│                      ││                ├─ reacting        needs reactions:write                missing ││   manifest                                         │
+│                      ││                └─ pictures                                              has it ││     user scopes only: 10                           │
+│                      ││                                                                                ││   2 Pick your workspace, Next, Create.             │
+│                      ││  CHANNELS  the registry; watched ones are read                                 ││   3 Install to Workspace, then Allow.              │
+│                      ││  + add a channel   paste its link, a message link, or its id                   ││   4 OAuth & Permissions shows the User OAuth       │
+│                      ││    #team   team · watched                                                      ││   Token, xoxp-…: paste it into token, or:          │
+│                      ││    #svc   service · watched                                                    ││   $ export SLACK_TOKEN=xoxp-…                      │
+│                      ││    #try   test · not watched                                                   ││     then the token is env:SLACK_TOKEN              │
+│                      ││                                                                                ││   api.slack.com / your apps                        │
+│                      ││                                                                                ││ NEEDS AN ADMIN? ────────────────────────────────── │
+│                      ││                                                                                ││   If Slack says Request to Install, your admin     │
+│                      ││                                                                                ││   approves it first.                               │
+│                      ││                                                                                ││   A missing scope switches off only its own        │
+│                      ││                                                                                ││   actions.                                         │
+│                      ││                                                                                ││ MORE ───────────────────────────────────────────── │
+│                      ││                                                                                ││   Slack: what each scope allows                    │
+│                      ││                                                                                ││   radar guide: connect Slack                       │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

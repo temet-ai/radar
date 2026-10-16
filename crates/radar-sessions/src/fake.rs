@@ -20,6 +20,8 @@ use crate::event::*;
 pub enum Step {
     /// Stream the text word by word (ephemeral), then the persisted message.
     Say(String),
+    /// The persisted message alone, with nothing streamed before it.
+    Said(String),
     /// Start a shell tool and ask permission to run it; the turn waits for
     /// the operator.
     Shell(String),
@@ -46,13 +48,28 @@ pub enum Step {
 /// The steps of one turn.
 pub type Script = Vec<Step>;
 
+/// What `fill` and `stream` say: a paragraph long enough to wrap.
+const PARAGRAPH: &str = "The change moves the transcript out of the snapshot's hot path, so a streamed word costs the same \
+    whether the session holds ten messages or five hundred; the renderer keeps what it already wrapped and draws only \
+    the rows that show, and the host compares versions instead of writing the whole view out to find what changed.";
+
 /// What a turn does when no script is queued: it reacts to the prompt, so a
 /// person can drive the fake in the dock. A prompt starting with "ask" asks
 /// a question, "run" asks to run a command, "long" keeps working until
 /// stopped, "demo" reasons, reads, searches, edits and answers in markdown
-/// (what the transcript draws, all at once), anything else is echoed.
+/// (what the transcript draws, all at once), "fill N" answers N paragraphs at
+/// once, "stream N" streams an answer of N words, anything else is echoed.
 pub fn auto_script(prompt: &str) -> Script {
     let lower = prompt.to_lowercase();
+    // `fill N`: N answers of a paragraph each (a long transcript); `stream N`: one answer of N words.
+    let count = |word: &str| lower.trim().strip_prefix(word).and_then(|n| n.trim().parse::<usize>().ok()).map(|n| n.min(5000));
+    if let Some(n) = count("fill") {
+        return (1..=n).map(|i| Step::Said(format!("Answer {i}: {}", PARAGRAPH))).collect();
+    }
+    if let Some(n) = count("stream") {
+        let words: Vec<&str> = PARAGRAPH.split(' ').collect();
+        return vec![Step::Say((0..n).map(|i| words[i % words.len()]).collect::<Vec<_>>().join(" "))];
+    }
     if lower.trim_start().starts_with("demo") {
         demo_script()
     } else if lower.trim_start().starts_with("ask") {
@@ -134,6 +151,51 @@ struct Sess {
     /// Held back by `Step::Reorder`.
     held: Option<Event>,
     reorder_next: bool,
+    /// The command a turn waited to run when the provider's process ended
+    /// ([`FakeProvider::restart`]); [`FakeProvider::reask`] asks it again.
+    interrupted: Option<String>,
+}
+
+impl Sess {
+    fn new(radar: RadarSessionId, provider_session_id: ProviderSessionId, cwd: String) -> Self {
+        Sess {
+            radar,
+            provider_session_id,
+            cwd,
+            seq: 0,
+            next_event: 0,
+            next_message: 0,
+            history: Vec::new(),
+            turn: None,
+            answered: BTreeSet::new(),
+            held: None,
+            reorder_next: false,
+            interrupted: None,
+        }
+    }
+}
+
+/// What the fake keeps on disk between radar's runs (`RADAR_FAKE_AGENT_STATE`):
+/// each session's persisted history, as a real CLI keeps its own.
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Saved {
+    next_session: u64,
+    sessions: Vec<SavedSess>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct SavedSess {
+    radar: RadarSessionId,
+    provider_session_id: ProviderSessionId,
+    cwd: String,
+    seq: u64,
+    next_event: u64,
+    next_message: u64,
+    history: Vec<Event>,
+    answered: BTreeSet<String>,
+    /// The command the turn waited to run when that run's process ended.
+    #[serde(default)]
+    interrupted: Option<String>,
 }
 
 struct State {
@@ -142,6 +204,10 @@ struct State {
     tx: Option<mpsc::UnboundedSender<Update>>,
     /// Updates made before anything subscribed.
     backlog: Vec<Update>,
+    /// A CLI slow to listen ([`FakeProvider::hold_subscribe`]): `subscribe` answers once this
+    /// reads true, and what is said before that is told to nobody (counted in `unheard`).
+    held: Option<tokio::sync::watch::Sender<bool>>,
+    unheard: usize,
     connected: bool,
     clock: i64,
     scripts: VecDeque<Script>,
@@ -160,6 +226,43 @@ struct State {
     /// `create`, `list_sessions`), and the sessions radar discarded unused.
     calls: BTreeMap<&'static str, usize>,
     discarded: Vec<RadarSessionId>,
+    /// Where the sessions' persisted history is kept between radar's runs, when anywhere.
+    file: Option<std::path::PathBuf>,
+}
+
+impl State {
+    /// Write what the provider keeps (persisted history, no running turn) to its file. A turn
+    /// that waits for a permission is kept as interrupted: the next run's process asks again.
+    fn save(&self) {
+        let Some(file) = &self.file else { return };
+        let saved = Saved {
+            next_session: self.next_session,
+            sessions: self
+                .sessions
+                .values()
+                .map(|s| SavedSess {
+                    radar: s.radar.clone(),
+                    provider_session_id: s.provider_session_id.clone(),
+                    cwd: s.cwd.clone(),
+                    seq: s.seq,
+                    next_event: s.next_event,
+                    next_message: s.next_message,
+                    history: s.history.clone(),
+                    answered: s.answered.clone(),
+                    interrupted: match s.turn.as_ref().and_then(|t| t.blocked.as_ref()) {
+                        Some(Blocked::Permission { command, .. }) => Some(command.clone()),
+                        _ => s.interrupted.clone(),
+                    },
+                })
+                .collect(),
+        };
+        if let Ok(text) = serde_json::to_string(&saved) {
+            let tmp = file.with_extension("tmp");
+            if std::fs::write(&tmp, text).is_ok() {
+                let _ = std::fs::rename(&tmp, file);
+            }
+        }
+    }
 }
 
 /// The provider's side. Cheap to clone; clones share state.
@@ -187,6 +290,8 @@ impl FakeProvider {
                 next_session: 1,
                 tx: None,
                 backlog: vec![],
+                held: None,
+                unheard: 0,
                 connected: true,
                 clock: 1_000,
                 scripts: VecDeque::new(),
@@ -199,7 +304,66 @@ impl FakeProvider {
                 idle_free: false,
                 calls: BTreeMap::new(),
                 discarded: vec![],
+                file: None,
             })),
+        }
+    }
+
+    /// A provider that keeps its sessions' persisted history in `file`, read
+    /// back now: what a radar run before this one did is there to resume, and
+    /// nothing of it is running (its process ended with that run).
+    pub fn with_state_file(file: std::path::PathBuf) -> Self {
+        let p = Self::new();
+        {
+            let mut st = p.lock();
+            if let Some(saved) = std::fs::read_to_string(&file).ok().and_then(|t| serde_json::from_str::<Saved>(&t).ok()) {
+                st.next_session = saved.next_session;
+                for s in saved.sessions {
+                    let mut sess = Sess::new(s.radar, s.provider_session_id.clone(), s.cwd);
+                    sess.seq = s.seq;
+                    sess.next_event = s.next_event;
+                    sess.next_message = s.next_message;
+                    sess.history = s.history;
+                    sess.answered = s.answered;
+                    sess.interrupted = s.interrupted;
+                    st.sessions.insert(s.provider_session_id, sess);
+                }
+            }
+            st.file = Some(file);
+        }
+        p
+    }
+
+    /// The provider's process ends, as it does when radar closes: persisted
+    /// history stays, nothing runs any more, and what a turn waited for is
+    /// asked of nobody (a command it waited to run is remembered for
+    /// [`FakeProvider::reask`]). The next adapter subscribes afresh.
+    pub fn restart(&self) {
+        let mut st = self.lock();
+        st.tx = None;
+        st.backlog.clear();
+        st.connected = true;
+        for s in st.sessions.values_mut() {
+            if let Some(Blocked::Permission { command, .. }) = s.turn.take().and_then(|t| t.blocked) {
+                s.interrupted = Some(command);
+            }
+            s.held = None;
+            s.reorder_next = false;
+        }
+    }
+
+    /// A provider that asks the interrupted tool call again once resumed: a
+    /// new turn asks to run the command the last one waited for, with a new
+    /// request id.
+    pub fn reask(&self) {
+        let mut st = self.lock();
+        let ids: Vec<ProviderSessionId> =
+            st.sessions.iter().filter(|(_, s)| s.interrupted.is_some() && s.turn.is_none()).map(|(id, _)| id.clone()).collect();
+        for id in ids {
+            let Some(command) = session(&mut st, &id).interrupted.take() else { continue };
+            emit(&mut st, &id, EventKind::TurnStarted, Durability::Persisted);
+            session(&mut st, &id).turn = Some(Turn { steps: vec![Step::Shell(command), Step::Say("The command finished.".into())].into(), blocked: None });
+            advance(&mut st, &id);
         }
     }
 
@@ -249,6 +413,25 @@ impl FakeProvider {
     /// turn's events are lost, as a real CLI's are to nobody listening).
     pub fn listening(&self) -> bool {
         self.lock().tx.is_some()
+    }
+
+    /// A CLI slow to listen: `subscribe` answers only after [`FakeProvider::let_subscribe`], and
+    /// what the provider says before anyone listens is lost, as a real CLI's is (no backlog), and
+    /// counted ([`FakeProvider::unheard`]).
+    pub fn hold_subscribe(&self) {
+        self.lock().held = Some(tokio::sync::watch::channel(false).0);
+    }
+
+    /// The held `subscribe` answers now.
+    pub fn let_subscribe(&self) {
+        if let Some(held) = &self.lock().held {
+            held.send_replace(true);
+        }
+    }
+
+    /// How many updates were told to nobody while `subscribe` was held.
+    pub fn unheard(&self) -> usize {
+        self.lock().unheard
     }
 
     pub fn set_signed_in(&self, signed_in: bool) {
@@ -307,7 +490,7 @@ impl FakeProvider {
 
     /// A handle for radar's side.
     pub fn adapter(&self) -> FakeAdapter {
-        FakeAdapter { provider: self.clone(), subscribed: Arc::new(Mutex::new(false)) }
+        FakeAdapter { provider: self.clone(), subscribed: Arc::new(Mutex::new(false)), pace: None }
     }
 }
 
@@ -349,6 +532,9 @@ fn emit(st: &mut State, id: &ProviderSessionId, kind: EventKind, durability: Dur
         }
     }
     deliver_all(st, deliver);
+    if durability == Durability::Persisted {
+        st.save();
+    }
 }
 
 /// What the provider tells the part: at once when it listens, else kept for when it does (as a
@@ -359,6 +545,7 @@ fn push_update(st: &mut State, update: Update) {
         Some(tx) => {
             let _ = tx.send(update);
         }
+        None if st.held.is_some() => st.unheard += 1,
         None => st.backlog.push(update),
     }
 }
@@ -413,6 +600,12 @@ fn advance(st: &mut State, id: &ProviderSessionId) {
                 let call_id = format!("call{}", s.next_message);
                 emit(st, id, EventKind::ToolStarted { call_id: call_id.clone(), name, summary, diff }, Durability::Persisted);
                 emit(st, id, EventKind::ToolCompleted { call_id, ok, summary: result }, Durability::Persisted);
+            }
+            Some(Step::Said(text)) => {
+                let s = session(st, id);
+                s.next_message += 1;
+                let message_id = format!("m{}", s.next_message);
+                emit(st, id, EventKind::AssistantMessage { message_id, text }, Durability::Persisted);
             }
             Some(Step::Shell(command)) => {
                 let s = session(st, id);
@@ -482,11 +675,30 @@ fn advance(st: &mut State, id: &ProviderSessionId) {
 pub struct FakeAdapter {
     provider: FakeProvider,
     subscribed: Arc<Mutex<bool>>,
+    /// Live use only: each streamed delta is delivered this long after the
+    /// one before, so the dock sees text arrive as a CLI streams it.
+    pace: Option<std::time::Duration>,
 }
+
+/// The variable that paces the fake's streamed deltas, in ms (live checks).
+pub const PACE_VAR: &str = "RADAR_FAKE_AGENT_PACE_MS";
 
 impl FakeAdapter {
     pub fn new() -> Self {
         FakeProvider::new().adapter()
+    }
+
+    /// The fake as `RADAR_FAKE_AGENT` runs it: paced by `RADAR_FAKE_AGENT_PACE_MS`
+    /// when that is set (a person watching, a latency trace), at once
+    /// otherwise.
+    pub fn from_env() -> Self {
+        Self::new().paced_from_env()
+    }
+
+    /// This adapter, paced by `RADAR_FAKE_AGENT_PACE_MS` when that is set.
+    pub fn paced_from_env(self) -> Self {
+        let pace = std::env::var(PACE_VAR).ok().and_then(|v| v.trim().parse::<u64>().ok()).filter(|ms| *ms > 0);
+        Self { pace: pace.map(std::time::Duration::from_millis), ..self }
     }
 
     pub fn provider(&self) -> &FakeProvider {
@@ -609,11 +821,17 @@ impl Adapter for FakeAdapter {
 
     fn subscribe(&self) -> BoxFuture<'_, anyhow::Result<Updates>> {
         Box::pin(async move {
-            let mut done = self.subscribed.lock().expect("flag");
-            if *done {
-                anyhow::bail!("already subscribed");
+            {
+                let mut done = self.subscribed.lock().expect("flag");
+                if *done {
+                    anyhow::bail!("already subscribed");
+                }
+                *done = true;
             }
-            *done = true;
+            let held = self.provider.lock().held.as_ref().map(|h| h.subscribe());
+            if let Some(mut held) = held {
+                let _ = held.wait_for(|open| *open).await;
+            }
             let (tx, rx) = mpsc::unbounded_channel();
             let mut st = self.provider.lock();
             // What happened before the part listened comes first, in order.
@@ -627,7 +845,22 @@ impl Adapter for FakeAdapter {
                 }
             }
             st.tx = Some(tx);
-            Ok(rx)
+            let Some(pace) = self.pace else { return Ok(rx) };
+            // Paced: a thread passes the updates on, waiting `pace` before each
+            // streamed delta, in order.
+            let (paced, out) = mpsc::unbounded_channel();
+            let mut rx = rx;
+            std::thread::spawn(move || {
+                while let Some(update) = rx.blocking_recv() {
+                    if matches!(&update, Update::Event(e) if matches!(e.kind, EventKind::AssistantDelta { .. })) {
+                        std::thread::sleep(pace);
+                    }
+                    if paced.send(update).is_err() {
+                        break;
+                    }
+                }
+            });
+            Ok(out)
         })
     }
 
@@ -642,22 +875,8 @@ impl Adapter for FakeAdapter {
             let n = st.next_session;
             st.next_session += 1;
             let id = ProviderSessionId::new(format!("fake-session-{n}"));
-            st.sessions.insert(
-                id.clone(),
-                Sess {
-                    radar: req.radar_session_id,
-                    provider_session_id: id.clone(),
-                    cwd: req.cwd.display().to_string(),
-                    seq: 0,
-                    next_event: 0,
-                    next_message: 0,
-                    history: Vec::new(),
-                    turn: None,
-                    answered: BTreeSet::new(),
-                    held: None,
-                    reorder_next: false,
-                },
-            );
+            st.sessions.insert(id.clone(), Sess::new(req.radar_session_id, id.clone(), req.cwd.display().to_string()));
+            st.save();
             if let Some(commands) = st.commands.clone() {
                 let session = st.sessions[&id].radar.clone();
                 push_update(&mut st, Update::Commands { session, commands });
@@ -763,7 +982,9 @@ impl Adapter for FakeAdapter {
     fn delete_session(&self, session_id: &ProviderSessionId) -> BoxFuture<'_, anyhow::Result<()>> {
         let session_id = session_id.clone();
         Box::pin(async move {
-            self.provider.lock().sessions.remove(&session_id);
+            let mut st = self.provider.lock();
+            st.sessions.remove(&session_id);
+            st.save();
             Ok(())
         })
     }
@@ -883,6 +1104,8 @@ impl Harness for FakeHarness {
     }
 
     fn restart(&mut self) -> BoxFuture<'_, Box<dyn Adapter>> {
+        // radar's restart ends the provider's process with it: nothing of a turn survives but its history.
+        self.provider.restart();
         let adapter: Box<dyn Adapter> = Box::new(self.provider.adapter());
         Box::pin(async move { adapter })
     }
@@ -904,5 +1127,22 @@ impl Harness for FakeHarness {
     fn release(&mut self) -> BoxFuture<'_, ()> {
         self.provider.release();
         Box::pin(async {})
+    }
+}
+
+#[cfg(test)]
+mod long_tests {
+    use super::*;
+
+    /// `fill N` and `stream N` make the long transcripts a latency check needs.
+    #[test]
+    fn fill_answers_n_times_at_once_and_stream_streams_n_words() {
+        let fill = auto_script("fill 3");
+        assert_eq!(fill.len(), 3);
+        assert!(fill.iter().all(|s| matches!(s, Step::Said(t) if t.starts_with("Answer "))));
+        let stream = auto_script("stream 40");
+        let [Step::Say(text)] = stream.as_slice() else { panic!("one streamed answer: {stream:?}") };
+        assert_eq!(text.split(' ').count(), 40);
+        assert_eq!(auto_script("hello"), vec![Step::Say("You said: hello".into())]);
     }
 }

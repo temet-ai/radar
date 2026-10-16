@@ -33,8 +33,10 @@ mod read_context;
 mod reaction_context;
 mod reply_context;
 mod screen;
+mod manifest;
 mod settings;
 mod settings_history;
+mod setup;
 mod sync_history;
 mod view;
 
@@ -352,6 +354,9 @@ pub struct SlackPlugin {
     pub(crate) page_links_scope: RefCell<Option<page::LinkScope>>,
     // settings
     pub(crate) section_rows: [usize; 5],
+    /// The connection section was last drawn as a setup step, without the
+    /// rows only Settings needs; `ws_rows` follows it.
+    pub(crate) setup_card: std::cell::Cell<bool>,
     pub(crate) section_scroll: Scroll,
     pub(crate) edit: Option<(Target, TextInput)>,
     /// Checks against Slack, by key: `workspace`, `channel:<id>`.
@@ -359,6 +364,8 @@ pub struct SlackPlugin {
     /// The environment the first-run offer looks in; `None` is this
     /// process's own (tests give their own).
     pub(crate) env: Option<Vec<(String, String)>>,
+    /// This process's environment as [`SlackPlugin::vars`] first read it.
+    pub(crate) own_env: std::sync::OnceLock<Vec<(String, String)>>,
     pub(crate) via: Via,
     /// What tasks that run together share: the calls in flight, a lookup
     /// each, a wait out of a rate limit (see `client::Pace`).
@@ -452,11 +459,22 @@ impl SlackPlugin {
             .map_err(|e| format!("{e:#}"))
     }
 
-    /// The environment, as names and values (values never shown).
-    pub(crate) fn vars(&self) -> Vec<(String, String)> {
+    /// The environment, as names and values (values never shown): this
+    /// process's is read once, and only the names that could hold a Slack
+    /// token are kept. The host asks whether the part is set up on every
+    /// frame, and that asks here: reading and upper-casing the whole
+    /// environment each time was nearly half of what a frame cost.
+    pub(crate) fn vars(&self) -> &[(String, String)] {
         match &self.env {
-            Some(vars) => vars.clone(),
-            None => std::env::vars().collect(),
+            Some(vars) => vars,
+            None => self.own_env.get_or_init(|| {
+                std::env::vars()
+                    .filter(|(name, _)| {
+                        let up = name.to_uppercase();
+                        up.contains("SLACK") && up.contains("TOKEN")
+                    })
+                    .collect()
+            }),
         }
     }
 
@@ -466,7 +484,7 @@ impl SlackPlugin {
         if self.data.me.is_some() {
             return vec![];
         }
-        config::offers(&self.vars(), &self.cfg.token)
+        config::offers(self.vars(), &self.cfg.token)
     }
 
     /// The workspace's address, as Slack gave it: `https://acme.slack.com/`.
@@ -1268,6 +1286,9 @@ impl Plugin for SlackPlugin {
         Some(self.pictures())
     }
     fn section_view(&self, section: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::SectionView> {
+        if section == "connection" {
+            self.setup_card.set(cx.setup);
+        }
         match section {
             "look" => Some(settings::look_view(self)),
             "connection" => Some(settings::connection_view(self, cx.width, cx.now)),
@@ -1332,6 +1353,12 @@ impl Plugin for SlackPlugin {
 
     fn sections(&self) -> Vec<SectionSpec> {
         SECTIONS.to_vec()
+    }
+    fn setup_step(&self) -> Option<radar_core::plugin::SetupStep> {
+        Some(setup::step(self))
+    }
+    fn setup_finds(&self) -> radar_core::plugin::SetupFinds {
+        setup::finds()
     }
     fn section_hints(&self, _: &str) -> Vec<KeyHint<'static>> {
         let mut hints = if self.edit.is_some() {

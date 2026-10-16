@@ -5,7 +5,11 @@ Jira and Slack. It shows your merge requests, pull requests, tickets and the Sla
 about them on one screen, joined to each other and to the code checked out on your machine,
 and it runs coding agents (Claude, Codex, GitHub Copilot) beside that work.
 
-![radar's Repositories screen: merge requests grouped by repository, with a detail pane](docs/user-guide/images/repositories.png)
+> radar is an alpha: screens, keys and the config file can still change ([status](#status)).
+
+![radar starting, then moving through merge requests, a merge request's page, Jira, Slack and an agent session](docs/user-guide/images/demo.gif)
+
+The same demo as a video, which you can pause: [demo.mp4](docs/user-guide/images/demo.mp4).
 
 ## What it does
 
@@ -54,15 +58,15 @@ Windows, run the Linux build in WSL2.
 
 ## First run
 
-Run `radar`. With no config it opens on Settings and offers the GitLab, GitHub, Jira and
-Slack tokens it finds in your environment; add the ones you use, and their items appear.
-[Connect your services](docs/user-guide/connect.md) explains what each one needs, and the
-[user guide](docs/user-guide/README.md) covers the screens, keys, agents and settings.
-Press `x` anywhere to see every key that works there.
+Run `radar`. The first time, it walks you through setup: it asks before it looks for
+keys you already have, then sets up what you choose: icons, theme and motion, your local
+code, each service, and your agents. `radar setup` runs it again. [Connect your services](docs/user-guide/connect.md) says what each service needs,
+and the [user guide](docs/user-guide/README.md) covers the screens, keys, agents and
+settings. Press `x` anywhere to see every key that works there.
 
 ## Status
 
-radar is an alpha (0.1.0-alpha.5). It is used every day by its maintainers, but screens,
+radar is an alpha (0.1.0-alpha.6). It is used every day by its maintainers, but screens,
 keys and the config file can still change between releases, and some parts are newer than
 others: GitHub is read-only for now, and the agent dock is the newest part.
 

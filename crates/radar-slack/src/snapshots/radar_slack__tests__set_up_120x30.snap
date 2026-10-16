@@ -1,8 +1,9 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 542
 expression: text
 ---
- radar    Slack   History   Settings (,)                                                                         ✎ edit
+ radar    History   Settings (,)                                                                                 ✎ edit
 ╭ set up Slack ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Slack is not set up yet.                                                                                             │
 │                                                                                                                      │
@@ -10,7 +11,7 @@ expression: text
 │ holding a user token; workspace offers it.                                                                           │
 │                                                                                                                      │
 │ Press ⏎ to set it up in settings, under slack.                                                                       │
-│                                                                                                                      │
+│ Press s to walk its setup step.                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │

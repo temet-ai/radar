@@ -6,7 +6,10 @@ alice, bob and carol), so every screen shows a normal, successful sync; the agen
 there are three small git checkouts and a few local work items. Keys are typed from the first screen after
 start; `R J S B I H ,` are Shift-letters.
 
-- splash.png — the start splash (logo, "one screen, one set of keys") — none; it shows for the first moments after `radar` starts
+- splash.png — the start splash: the radar sweep with a contact for each part, the mark, the parts' names and that start's line (a new one each start, so a regenerated picture has another) — none; it shows for the first moments after `radar` starts
+- setup-scan.png, setup-choose.png, setup-look.png, setup-ready.png — setup's first question, the chooser (the look said yes; nothing was found, so nothing is ticked but look), the look & terminal step and ready — `RADAR_LIVE_FRESH=1 ink-live start NAME ink 160x40` (no config, so setup opens), then `⏎` to each; taken by hand, not yet in `capture-all.sh`
+- setup-slack.png — setup's Slack step on its own, no config: the card (the same section as Settings › Slack › connection) and the help beside it, with a "Found in your environment" question from a dummy `SLACK_TOKEN` (a fake value, never used) — `RADAR_LIVE_FRESH=1 RADAR_ARGS='setup slack' ink-live start NAME ink 160x40`. Take it at 160x40: at 80x24 Ink cuts the found row. The other services' steps are their Settings connection pictures below
+- demo.gif, demo.mp4 — the README's clip, 120x36, about 23 seconds: the splash, Repositories, !263's page and its Changes tab, Jira, Slack, then an agent asked about !263 — `tools/clip.sh demo`
 - repositories.png — GitLab source of Repositories: views, tree of team-a/api/web with branches, detail pane — `R`
 - repositories-100x30.png — the same screen at 100x30 (the top bar shrinks to letters) — `R`, terminal resized to 100x30
 - menu-row-actions.png — the actions menu of merge request !263 (open, GitLab, agent, Jira, Git, Work, History groups) — `R`, right-click on the `!263` row (`x` opens the same menu from the keyboard)
@@ -39,8 +42,8 @@ start; `R J S B I H ,` are Shift-letters.
 - Paths in the dock and the Local workspaces detail read `/tmp/radar-live/gd/home/...`; the CLI list in
   settings.sessions.agents reads the Copilot, Codex and Claude Code versions installed on the machine that ran it.
 - On Jira, the summary column is narrow (radar's layout at 160 columns), so long summaries are cut.
-- settings.github.connection.png still says "server https://github.com (fixed)"; the `[github] api` key is for
-  tests and guides, not shown in Settings.
+- settings.github.connection.png shows the stand-in's address as the server (the `[github] api` key, for tests
+  and guides); with no such key it reads `https://api.github.com`.
 
 ## Regenerate them all
 
@@ -60,3 +63,16 @@ stderr as `UNKNOWN ...`, and `capture-all.sh` prints them at the end, or keep th
 clones: `tools/make-fixtures.sh`. It needs a radar build that has the `[github] api` and `[slack] api` keys.
 Needs `google-chrome-stable` (or Chrome/Chromium), `magick` or `convert`, `python3`, `tmux`, `node`, and a
 Nerd Font named `0xProto Nerd Font Mono` (change `FONT` in `ansi2html.py` for another).
+
+## Clips
+
+```bash
+docs/user-guide/tools/clip.sh demo              # about three minutes; writes images/demo.gif and demo.mp4
+```
+
+`clip.sh` uses the same stand-in, start and helpers as `capture-all.sh` (`tools/lib.sh`), plays one story
+(a function in `clip.sh`), and while it plays `tools/frames.py` grabs the screen ten times a second, keeping
+each one that changed with the time it appeared. Each is drawn as a still is (`render.sh`) and shown for as
+long as it was on screen; ffmpeg joins them into a GIF (for the README, which GitHub plays inline) and an
+MP4. Add a story as a function and a line in its `case`. Keep a clip short (under 30 seconds) and about one
+thing; a picture is enough where nothing moves. Needs ffmpeg as well.

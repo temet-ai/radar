@@ -1408,6 +1408,210 @@
       ],
       "import": "import { Compare, StatusLine, StatusRow } from 'radar-ink';\nimport chrome80 from '../../test/fixtures/host_chrome_80x24.json';\nimport chrome160 from '../../test/fixtures/host_chrome_160x40.json';\nimport attention80 from '../../test/fixtures/dock/status/attention_80x24.json';\nimport attention160 from '../../test/fixtures/dock/status/attention_160x40.json';"
     },
+    "chrome-steprail": {
+      "id": "chrome-steprail",
+      "name": "RailRows",
+      "path": "./stories/chrome/StepRail.stories.tsx",
+      "jsDocTags": {},
+      "description": "The step rail of setup (`ChromeView.setup.rail`, Ratatui `ui::rail`, the kit's element for the steps of a run along\none line). Each stop sits on a track at its own place; under it a line says how it went. It is two rows tall, one\ncell in from each side of setup's body, and a click on a stop (its slot, both rows) goes back to it.\n\n**Use it** for the steps of a guided run: the host fills `RailStop` (id, label, icon, state, result, target); a part\noffers a step and the host puts it on the rail.\n\n**States:** `done` (a check, the label in primary text, its result under it), `skipped` (`»`, muted, `skipped`),\n`upcoming` (a hollow dot, muted), `current` (a square chip on the accent with the step's own icon, `step n of m`\nunder it). The track is lit up to the current stop, or the last one done or skipped when none is current.\n\n**Rules:** the chip is square, never a pill; a cell of ground on each side of a label breaks the track around it;\na label is cut to its stop's room in display cells with an ellipsis, never padded; a stop with no room for its words\ndraws nothing and is not a target. No chevrons, no left-edge stripes.\n\nThe story draws `layoutRail` (chrome/rail.ts) through `RailRows` (chrome/Chrome.tsx). The reference is the insta\ntext of the radar-core test (`ui/tests.rs rail_80`, `rail_160`): text only, so the colours are read from rail.rs in\ntest/chrome/rail.test.ts.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/chrome/Chrome.tsx",
+        "description": "Setup's step rail (chrome/rail.ts): its two rows, `inset` cells of ground on each side (setup's body keeps one).",
+        "displayName": "RailRows",
+        "methods": [],
+        "props": {
+          "rail": {
+            "defaultValue": null,
+            "description": "",
+            "name": "rail",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "RailLaid"
+            }
+          },
+          "inset": {
+            "defaultValue": {
+              "value": "0"
+            },
+            "description": "",
+            "name": "inset",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "number"
+            }
+          }
+        },
+        "exportName": "RailRows"
+      },
+      "stories": [
+        {
+          "id": "chrome-steprail--narrow",
+          "name": "Narrow",
+          "snippet": "const Narrow = (_args, { globals }) => (\n  <Draw globals={globals} width={80} snap={rail80Snap} source=\"crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_80.snap\" />\n);",
+          "description": "At 80 wide the labels are cut to their stops' room.",
+          "warning": "Incomplete snippet: `STOPS` could not be resolved statically."
+        },
+        {
+          "id": "chrome-steprail--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (_args, { globals }) => (\n  <Draw globals={globals} width={160} snap={rail160Snap} source=\"crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_160.snap\" />\n);",
+          "description": "At 160 wide each stop has room for its words; the long name is cut once.",
+          "warning": "Incomplete snippet: `STOPS` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, RailRows } from 'radar-ink';\nimport { layoutRail } from '../../src/chrome/rail';"
+    },
+    "chrome-textselection": {
+      "id": "chrome-textselection",
+      "name": "PaneFrame",
+      "path": "./stories/chrome/TextSelection.stories.tsx",
+      "jsDocTags": {},
+      "description": "Text selected with the mouse (issue #51; Ratatui `select::paint`, Ink `app/selected.ts` over `input/selection.ts`):\ngg captures the mouse, so the terminal cannot select text and the renderer does. A drag starts in the text of a pane\nand selects from the press to the pane's right edge, every row between from edge to edge, then from the left edge to\nthe pointer, as a terminal's selection runs. It belongs to the pane it started in: the border, the title row and the\nscrollbar are never part of it, and a pointer dragged outside stops at the pane's edge.\n\n**Use it** through the host: a drag in a document, rich text, a log or the dock's transcript selects, a double-click\nselects a word (a path or URL whole), a triple-click the line, shift+arrows extend, `ctrl+c` copies and any other key\nor the wheel clears it. On rows (a list, tree, table) a double-click still opens, so a drag there does not select. A\npart never draws a selection; it is a paint over the finished frame, like the hover.\n\n**States:** a drag across two rows (the press to the edge, then the left edge to the pointer), and the mono tier.\n\n**Rules:** the selected cells take `bg.selection` and keep their text colour and glyph; in the mono tier, where the\nslot has no colour, they are reversed instead. The cells just outside the pane (its border and scrollbar, the rows\nabove and below the drag, the cells before the press and after the pointer) are never selected. While a drag selects,\nthe status line names the key for the terminal's own selection.\n\n**Reference gap:** the scene records the drag (`view.selection`) but not which pane has the keys. The border colour\nsays: the log's is the accent (the keys), the detail pane's `accent.muted` (not), so the stories draw them so.\n`test/app/selection-cells.test.tsx` makes the same drag in the whole App and compares every body cell's selection\nbackground with these cells.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/app/Panes.tsx",
+        "description": "",
+        "displayName": "PaneFrame",
+        "methods": [],
+        "props": {
+          "pane": {
+            "defaultValue": null,
+            "description": "",
+            "name": "pane",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "Pane"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "height": {
+            "defaultValue": null,
+            "description": "",
+            "name": "height",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "focused": {
+            "defaultValue": null,
+            "description": "",
+            "name": "focused",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "boolean"
+            }
+          },
+          "cx": {
+            "defaultValue": null,
+            "description": "",
+            "name": "cx",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "NodeCx"
+            }
+          },
+          "renderNode": {
+            "defaultValue": null,
+            "description": "",
+            "name": "renderNode",
+            "declarations": [
+              {
+                "fileName": "ink/src/app/Panes.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "RenderNode"
+            }
+          }
+        },
+        "exportName": "PaneFrame"
+      },
+      "stories": [
+        {
+          "id": "chrome-textselection--two-rows",
+          "name": "Two Rows",
+          "snippet": "const TwoRows = (args, { globals }) => <Draw args={args} globals={globals} scene={scene80} />;",
+          "description": "A drag across two rows of a job's log at 80x24 (`highlight_selection`): from the press to the pane's right edge,\nthen from its left edge to the pointer.",
+          "warning": "Incomplete snippet: `args: argsOf(scene80, true)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-textselection--wide",
+          "name": "Wide",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} scene={scene160} />;",
+          "description": "The same drag in the rich text of a detail pane at 160x40: the pane has no keys, so its border is the muted one.",
+          "warning": "Incomplete snippet: `args: argsOf(scene80, true)`, `args: argsOf(scene160, false)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-textselection--mono",
+          "name": "Mono",
+          "snippet": "const Mono = (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: \"mono\" }} scene={scene80} mono />;",
+          "description": "The mono tier, where `bg.selection` has no colour: the selected cells are reversed.",
+          "warning": "Incomplete snippet: `args: argsOf(scene80, true)` could not be resolved statically."
+        },
+        {
+          "id": "chrome-textselection--mono-wide",
+          "name": "Mono Wide",
+          "snippet": "const MonoWide = (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: \"mono\" }} scene={scene160} mono />;",
+          "description": "The mono tier at 160x40.",
+          "warning": "Incomplete snippet: `args: argsOf(scene80, true)`, `args: argsOf(scene160, false)` could not be resolved statically."
+        }
+      ],
+      "import": "import { Compare, PaneFrame } from 'radar-ink';"
+    },
     "chrome-topbar": {
       "id": "chrome-topbar",
       "name": "TopBarRow",
@@ -1456,6 +1660,92 @@
         }
       ],
       "import": "import { Compare, TopBarRow, TopRows } from 'radar-ink';\nimport chrome80 from '../../test/fixtures/host_chrome_80x24.json';\nimport chrome160 from '../../test/fixtures/host_chrome_160x40.json';"
+    },
+    "chrome-tourcard": {
+      "id": "chrome-tourcard",
+      "name": "TourCardBox",
+      "path": "./stories/chrome/TourCard.stories.tsx",
+      "jsDocTags": {},
+      "description": "The tour's card (`ChromeView.tour`, Ratatui `shell/tour.rs`): a panel titled `tour · N of M` over the app at the body's\nlower right, one cell in from the right and from the bottom, with the kit's shadow. Inside, with a cell of padding:\nthe title in bold emphasis, a blank line, the stop's lines, a blank line, what to try in muted words (when there is\none), then its keys. It is as wide as its widest line plus 4 (at least 40, at most the body less 2) and as tall as its\nlines plus 2.\n\n**Use it** through the host: `radar setup tour`, or the tour at the end of setup, sends the card for the stop that\nshows and takes it away when the tour ends. Nothing but the shadow dims: the app under it stays lit and keeps its\nclick targets. A menu draws over it and dims it with the rest.\n\n**States:** a stop with something to try, the last stop without, narrow (80x24), a body too small for it (nothing\ndrawn under 10 wide or 4 tall).\n\n**Rules:** the panel is on bg.surface with the accent border (focused); square keys, no chevrons, no pill shapes.",
+      "reactDocgenTypescript": {
+        "tags": {},
+        "filePath": "ink/src/chrome/Chrome.tsx",
+        "description": "The tour's card (shell/tour.rs): a panel on bg.surface at the body's lower right, thrown a shadow and nothing else\ndims (the layer's mark is shadow-only, app/scrim.ts). A menu draws after it and over it.",
+        "displayName": "TourCardBox",
+        "methods": [],
+        "props": {
+          "card": {
+            "defaultValue": null,
+            "description": "",
+            "name": "card",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "TourCard"
+            }
+          },
+          "width": {
+            "defaultValue": null,
+            "description": "",
+            "name": "width",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          },
+          "height": {
+            "defaultValue": null,
+            "description": "",
+            "name": "height",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": true,
+            "type": {
+              "name": "number"
+            }
+          }
+        },
+        "exportName": "TourCardBox"
+      },
+      "stories": [
+        {
+          "id": "chrome-tourcard--first",
+          "name": "First",
+          "snippet": "const First = (args, { globals }) => <Draw args={args} globals={globals} width={160} height={37} />;",
+          "description": "Stop 1 of 5 at 160x40: the body is 37 rows under the sources row.",
+          "warning": "Incomplete snippet: `text`, `padded` could not be resolved statically."
+        },
+        {
+          "id": "chrome-tourcard--last",
+          "name": "Last",
+          "snippet": "const Last = (args, { globals }) => <Draw args={args} globals={globals} width={160} height={37} />;",
+          "description": "The last stop: nothing to try, so the keys follow the lines directly.",
+          "warning": "Incomplete snippet: `text` could not be resolved statically."
+        },
+        {
+          "id": "chrome-tourcard--narrow",
+          "name": "Narrow",
+          "snippet": "const Narrow = (args, { globals }) => <Draw args={args} globals={globals} width={80} height={21} />;",
+          "description": "At 80x24 the card keeps its width (the widest line plus 4) and sits in the lower right.",
+          "warning": "Incomplete snippet: `text` could not be resolved statically."
+        }
+      ],
+      "import": "import { Box } from 'ink';\nimport { Compare, InPanel, TourCardBox } from 'radar-ink';"
     },
     "page-pagebody": {
       "id": "page-pagebody",
@@ -1673,7 +1963,7 @@
             ],
             "required": false,
             "type": {
-              "name": "{ add(hit: { x: number; y: number; w: number; h: number; target: string; }): void; addPane?(area: { x: number; y: number; w: number; h: number; pane: string; }): void; }"
+              "name": "{ add(hit: { x: number; y: number; w: number; h: number; target: string; }): void; addPane?(area: { x: number; y: number; w: number; h: number; pane: string; }): void; addSelect?(area: SelectArea): void; }"
             }
           },
           "base": {
@@ -1775,6 +2065,21 @@
             "required": true,
             "type": {
               "name": "number"
+            }
+          },
+          "registry": {
+            "defaultValue": null,
+            "description": "",
+            "name": "registry",
+            "declarations": [
+              {
+                "fileName": "ink/src/editor/EditorOverlay.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "{ addSelect?(area: SelectArea): void; }"
             }
           }
         },
@@ -2222,7 +2527,7 @@
       "name": "Dock",
       "path": "./stories/dock/Dock.stories.tsx",
       "jsDocTags": {},
-      "description": "The agent dock under the middle pane (host `DockView`, crates/radar-core/src/dock.rs; Ink only, `src/dock/Dock.tsx`;\nRatatui draws the one-line notice in its place). A frame holding the tab row (one tab per session: pack icon, name,\nstate; the one showing in brackets and bold accent, as the page tab row's), the transcript, the composer and the\nstatus line. Every story draws a state the host recorded (ink/test/fixtures/dock, written by radar-core).\n\n**Use it** through the host: a part supplies the dock's content, the host adds shown/focused/height and sends it on\nevery screen (backtick shows and focuses it, again hides it). Ink keeps no state of record; every key, click and\ndrag is an `Intent::Dock`.\n\n**States:** empty, streaming (text marked by the running icon until saved), an answer in markdown (laid out as\nui::rich lays out a description, src/text/richRows.ts) and the same half received, tool calls one row each (kind\nicon, verb, target relative to the session's folder, `+n −m` for an edit) folded to `⋯ n` and open with tree lines,\nreads in a row folded into one row, an edit's diff opened, reasoning with its latest line while the session works,\nan approval waiting, a question waiting, an error, stopped, a terminal tab (T7's surface); the activity line above\nthe composer (thinking, writing, running a command, waiting for your approval or answer, with the turn's time and\ntokens; done, stopped or failed after it); each tab's state mark (spinner, needs you, failed, unread); full height\n(`alt-f`).\n\n**Rules:** no chevrons or `[+]`/`[-]` for folding; every mark is a pack icon; keys sit inside their word, underlined\n(`a̲pprove once`, `d̲eny`, `v̲iew diff`), and a click on the word does what the key does; nothing is approved or\nanswered but by the user, and an approval shows the exact command, path or URL. A question's choices are numbered\n(the number is the key, before the word), the composer's words answer one that takes them, esc declines.",
+      "description": "The agent dock under the middle pane (host `DockView`, crates/radar-core/src/dock.rs; Ink only, `src/dock/Dock.tsx`;\nRatatui draws the one-line notice in its place). A frame holding the tab row (one tab per session: pack icon, name,\nstate; the one showing in brackets and bold accent, as the page tab row's), the transcript, the composer and the\nstatus line. Every story draws a state the host recorded (ink/test/fixtures/dock, written by radar-core).\n\n**Use it** through the host: a part supplies the dock's content, the host adds shown/focused/height and sends it on\nevery screen (backtick shows and focuses it, again hides it). Ink keeps no state of record; every key, click and\ndrag is an `Intent::Dock`.\n\n**States:** empty, streaming (text marked by the running icon until saved), an answer in markdown (laid out as\nui::rich lays out a description, src/text/richRows.ts) and the same half received, tool calls one row each (kind\nicon, verb, target relative to the session's folder, `+n −m` for an edit) folded to `⋯ n` and open with tree lines,\nreads in a row folded into one row, an edit's diff opened, reasoning with its latest line while the session works,\nan approval waiting, a question waiting, an error, stopped, a terminal tab (T7's surface); the activity line above\nthe composer (thinking, writing, running a command, waiting for your approval or answer, with the turn's time and\ntokens; done, stopped or failed after it); each tab's state mark (spinner, needs you, failed, unread, not attached,\nbeing read back); full height (`alt-f`); a session restored from the last run (lapsed requests and questions,\ndetached and resuming, `alt-r` and `/resume`).\n\n**Rules:** no chevrons or `[+]`/`[-]` for folding; every mark is a pack icon; keys sit inside their word, underlined\n(`a̲pprove once`, `d̲eny`, `v̲iew diff`), and a click on the word does what the key does; nothing is approved or\nanswered but by the user, and an approval shows the exact command, path or URL. A question's choices are numbered\n(the number is the key, before the word), the composer's words answer one that takes them, esc declines.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/dock/Dock.tsx",
@@ -2500,7 +2805,7 @@
           "name": "Empty",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  79 |\n  80 | /** A session with nothing sent (empty_160x40). */\n> 81 | export const Empty = at(empty160);\n     |                      ^^^^^^^^^^^^\n  82 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n  83 | export const Streaming = at(streaming160);\n  84 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  82 |\n  83 | /** A session with nothing sent (empty_160x40). */\n> 84 | export const Empty = at(empty160);\n     |                      ^^^^^^^^^^^^\n  85 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n  86 | export const Streaming = at(streaming160);\n  87 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */"
           }
         },
         {
@@ -2508,7 +2813,7 @@
           "name": "Streaming",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  81 | export const Empty = at(empty160);\n  82 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n> 83 | export const Streaming = at(streaming160);\n     |                          ^^^^^^^^^^^^^^^^\n  84 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n  85 | export const ToolFolded = at(toolFolded160);\n  86 | /** The same open: tree lines for the result (tool-open_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  84 | export const Empty = at(empty160);\n  85 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n> 86 | export const Streaming = at(streaming160);\n     |                          ^^^^^^^^^^^^^^^^\n  87 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n  88 | export const ToolFolded = at(toolFolded160);\n  89 | /** The same open: tree lines for the result (tool-open_160x40). */"
           }
         },
         {
@@ -2516,7 +2821,7 @@
           "name": "Tool Folded",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  83 | export const Streaming = at(streaming160);\n  84 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n> 85 | export const ToolFolded = at(toolFolded160);\n     |                           ^^^^^^^^^^^^^^^^^\n  86 | /** The same open: tree lines for the result (tool-open_160x40). */\n  87 | export const ToolOpen = at(toolOpen160);\n  88 | /** A write request waits: the exact path and its keys (approval_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  86 | export const Streaming = at(streaming160);\n  87 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n> 88 | export const ToolFolded = at(toolFolded160);\n     |                           ^^^^^^^^^^^^^^^^^\n  89 | /** The same open: tree lines for the result (tool-open_160x40). */\n  90 | export const ToolOpen = at(toolOpen160);\n  91 | /** A write request waits: the exact path and its keys (approval_160x40). */"
           }
         },
         {
@@ -2524,7 +2829,7 @@
           "name": "Tool Open",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  85 | export const ToolFolded = at(toolFolded160);\n  86 | /** The same open: tree lines for the result (tool-open_160x40). */\n> 87 | export const ToolOpen = at(toolOpen160);\n     |                         ^^^^^^^^^^^^^^^\n  88 | /** A write request waits: the exact path and its keys (approval_160x40). */\n  89 | export const Approval = at(approval160);\n  90 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the"
+            "message": "Expected story to be csf factory, function or an object expression\n  88 | export const ToolFolded = at(toolFolded160);\n  89 | /** The same open: tree lines for the result (tool-open_160x40). */\n> 90 | export const ToolOpen = at(toolOpen160);\n     |                         ^^^^^^^^^^^^^^^\n  91 | /** A write request waits: the exact path and its keys (approval_160x40). */\n  92 | export const Approval = at(approval160);\n  93 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the"
           }
         },
         {
@@ -2532,7 +2837,7 @@
           "name": "Approval",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  87 | export const ToolOpen = at(toolOpen160);\n  88 | /** A write request waits: the exact path and its keys (approval_160x40). */\n> 89 | export const Approval = at(approval160);\n     |                         ^^^^^^^^^^^^^^^\n  90 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  91 |  * composer's words answer it too, esc declines (question_160x40). */\n  92 | export const Question = at(question160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  90 | export const ToolOpen = at(toolOpen160);\n  91 | /** A write request waits: the exact path and its keys (approval_160x40). */\n> 92 | export const Approval = at(approval160);\n     |                         ^^^^^^^^^^^^^^^\n  93 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  94 |  * composer's words answer it too, esc declines (question_160x40). */\n  95 | export const Question = at(question160);"
           }
         },
         {
@@ -2540,7 +2845,7 @@
           "name": "Question",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  90 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  91 |  * composer's words answer it too, esc declines (question_160x40). */\n> 92 | export const Question = at(question160);\n     |                         ^^^^^^^^^^^^^^^\n  93 | /** The connection was lost (error_160x40). */\n  94 | export const Failed = at(error160);\n  95 | /** The user stopped the turn (stopped_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  93 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  94 |  * composer's words answer it too, esc declines (question_160x40). */\n> 95 | export const Question = at(question160);\n     |                         ^^^^^^^^^^^^^^^\n  96 | /** The connection was lost (error_160x40). */\n  97 | export const Failed = at(error160);\n  98 | /** The user stopped the turn (stopped_160x40). */"
           }
         },
         {
@@ -2548,7 +2853,7 @@
           "name": "Failed",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  92 | export const Question = at(question160);\n  93 | /** The connection was lost (error_160x40). */\n> 94 | export const Failed = at(error160);\n     |                       ^^^^^^^^^^^^\n  95 | /** The user stopped the turn (stopped_160x40). */\n  96 | export const Stopped = at(stopped160);\n  97 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n   95 | export const Question = at(question160);\n   96 | /** The connection was lost (error_160x40). */\n>  97 | export const Failed = at(error160);\n      |                       ^^^^^^^^^^^^\n   98 | /** The user stopped the turn (stopped_160x40). */\n   99 | export const Stopped = at(stopped160);\n  100 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */"
           }
         },
         {
@@ -2556,7 +2861,7 @@
           "name": "Stopped",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  94 | export const Failed = at(error160);\n  95 | /** The user stopped the turn (stopped_160x40). */\n> 96 | export const Stopped = at(stopped160);\n     |                        ^^^^^^^^^^^^^^\n  97 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n  98 | export const Pty = at(pty160);\n  99 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A"
+            "message": "Expected story to be csf factory, function or an object expression\n   97 | export const Failed = at(error160);\n   98 | /** The user stopped the turn (stopped_160x40). */\n>  99 | export const Stopped = at(stopped160);\n      |                        ^^^^^^^^^^^^^^\n  100 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n  101 | export const Pty = at(pty160);\n  102 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A"
           }
         },
         {
@@ -2564,7 +2869,7 @@
           "name": "Pty",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n   96 | export const Stopped = at(stopped160);\n   97 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n>  98 | export const Pty = at(pty160);\n      |                    ^^^^^^^^^^\n   99 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A\n  100 |  * click on a mark or a middle click on a tab closes it, `alt-w` closes the showing one (the status line says so); a\n  101 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the"
+            "message": "Expected story to be csf factory, function or an object expression\n   99 | export const Stopped = at(stopped160);\n  100 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n> 101 | export const Pty = at(pty160);\n      |                    ^^^^^^^^^^\n  102 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A\n  103 |  * click on a mark or a middle click on a tab closes it, `alt-w` closes the showing one (the status line says so); a\n  104 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the"
           }
         },
         {
@@ -2572,7 +2877,7 @@
           "name": "Tabs",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  101 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the\n  102 |  * neighbour shows (tabs_160x40). */\n> 103 | export const Tabs = at(tabs160);\n      |                     ^^^^^^^^^^^\n  104 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  105 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n  106 | export const Activity = at(toolFolded160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  104 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the\n  105 |  * neighbour shows (tabs_160x40). */\n> 106 | export const Tabs = at(tabs160);\n      |                     ^^^^^^^^^^^\n  107 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  108 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n  109 | export const Activity = at(toolFolded160);"
           }
         },
         {
@@ -2580,7 +2885,7 @@
           "name": "Activity",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  104 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  105 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n> 106 | export const Activity = at(toolFolded160);\n      |                         ^^^^^^^^^^^^^^^^^\n  107 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  108 |  * jump when the next turn starts (tool-open_160x40). */\n  109 | export const ActivityDone = at(toolOpen160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  107 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  108 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n> 109 | export const Activity = at(toolFolded160);\n      |                         ^^^^^^^^^^^^^^^^^\n  110 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  111 |  * jump when the next turn starts (tool-open_160x40). */\n  112 | export const ActivityDone = at(toolOpen160);"
           }
         },
         {
@@ -2588,7 +2893,7 @@
           "name": "Activity Done",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  107 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  108 |  * jump when the next turn starts (tool-open_160x40). */\n> 109 | export const ActivityDone = at(toolOpen160);\n      |                             ^^^^^^^^^^^^^^^\n  110 | /** Every tab state at once: the one showing thinks (the spinner), the others need you (the attention mark), failed,\n  111 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  112 |  * goes to the one that wants you most (attention_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  110 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  111 |  * jump when the next turn starts (tool-open_160x40). */\n> 112 | export const ActivityDone = at(toolOpen160);\n      |                             ^^^^^^^^^^^^^^^\n  113 | /** Every tab state at once: the one showing thinks (the spinner), the others need you (the attention mark), failed,\n  114 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  115 |  * goes to the one that wants you most (attention_160x40). */"
           }
         },
         {
@@ -2596,7 +2901,7 @@
           "name": "Tab States",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  111 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  112 |  * goes to the one that wants you most (attention_160x40). */\n> 113 | export const TabStates = at(attention160);\n      |                          ^^^^^^^^^^^^^^^^\n  114 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  115 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n  116 | export const FullHeight = at(full160, 132, 37);"
+            "message": "Expected story to be csf factory, function or an object expression\n  114 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  115 |  * goes to the one that wants you most (attention_160x40). */\n> 116 | export const TabStates = at(attention160);\n      |                          ^^^^^^^^^^^^^^^^\n  117 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  118 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n  119 | export const FullHeight = at(full160, 132, 37);"
           }
         },
         {
@@ -2604,7 +2909,23 @@
           "name": "Full Height",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  114 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  115 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n> 116 | export const FullHeight = at(full160, 132, 37);\n      |                           ^^^^^^^^^^^^^^^^^^^^\n  117 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n  118 | export const Narrow = at(empty80, 56, 20);\n  119 | /** An approval at 80x24 (approval_80x24). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  117 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  118 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n> 119 | export const FullHeight = at(full160, 132, 37);\n      |                           ^^^^^^^^^^^^^^^^^^^^\n  120 | /** Sessions restored from the last radar run. The showing one is attached; the request and the question that waited when\n  121 |  * radar closed come back lapsed (the process that asked is gone): muted, the pack's skipped mark, `lapsed · radar closed\n  122 |  * before this was answered` and `→ lapsed`, no buttons and no keys. A notice says the turn was ended and a message"
+          }
+        },
+        {
+          "id": "dock-dock--restored",
+          "name": "Restored",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  123 |  * carries on. The other tabs are not attached (the pack's connection mark) or being read back (the spinner)\n  124 |  * (restored_160x40). */\n> 125 | export const Restored = at(restored160);\n      |                         ^^^^^^^^^^^^^^^\n  126 | /** A restored session not attached to its provider: the body says so, the activity line says `not attached to copilot ·\n  127 |  * a message or alt-r resumes it`, the status line leads with `⏎ or alt-r resume`, and `/resume` is in the slash menu.\n  128 |  * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back"
+          }
+        },
+        {
+          "id": "dock-dock--detached",
+          "name": "Detached",
+          "error": {
+            "name": "SyntaxError",
+            "message": "Expected story to be csf factory, function or an object expression\n  128 |  * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back\n  129 |  * (detached_160x40). */\n> 130 | export const Detached = at(detached160);\n      |                         ^^^^^^^^^^^^^^^\n  131 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n  132 | export const Narrow = at(empty80, 56, 20);\n  133 | /** An approval at 80x24 (approval_80x24). */"
           }
         },
         {
@@ -2612,7 +2933,7 @@
           "name": "Narrow",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  116 | export const FullHeight = at(full160, 132, 37);\n  117 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n> 118 | export const Narrow = at(empty80, 56, 20);\n      |                       ^^^^^^^^^^^^^^^^^^^\n  119 | /** An approval at 80x24 (approval_80x24). */\n  120 | export const NarrowApproval = at(approval80, 56, 20);\n  121 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code"
+            "message": "Expected story to be csf factory, function or an object expression\n  130 | export const Detached = at(detached160);\n  131 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n> 132 | export const Narrow = at(empty80, 56, 20);\n      |                       ^^^^^^^^^^^^^^^^^^^\n  133 | /** An approval at 80x24 (approval_80x24). */\n  134 | export const NarrowApproval = at(approval80, 56, 20);\n  135 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code"
           }
         },
         {
@@ -2620,7 +2941,7 @@
           "name": "Narrow Approval",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  118 | export const Narrow = at(empty80, 56, 20);\n  119 | /** An approval at 80x24 (approval_80x24). */\n> 120 | export const NarrowApproval = at(approval80, 56, 20);\n      |                               ^^^^^^^^^^^^^^^^^^^^^^\n  121 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code\n  122 |  * in accent.secondary, nested lists with hanging indents, a quote behind its bar, fenced code coloured by the host's\n  123 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart"
+            "message": "Expected story to be csf factory, function or an object expression\n  132 | export const Narrow = at(empty80, 56, 20);\n  133 | /** An approval at 80x24 (approval_80x24). */\n> 134 | export const NarrowApproval = at(approval80, 56, 20);\n      |                               ^^^^^^^^^^^^^^^^^^^^^^\n  135 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code\n  136 |  * in accent.secondary, nested lists with hanging indents, a quote behind its bar, fenced code coloured by the host's\n  137 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart"
           }
         },
         {
@@ -2628,7 +2949,7 @@
           "name": "Markdown",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  123 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart\n  124 |  * (markdown_160x40). */\n> 125 | export const Markdown = at(markdown160, 100, 34);\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  126 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  127 |  * (markdown-streaming_160x40). */\n  128 | export const MarkdownStreaming = at(markdownStreaming160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  137 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart\n  138 |  * (markdown_160x40). */\n> 139 | export const Markdown = at(markdown160, 100, 34);\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  140 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  141 |  * (markdown-streaming_160x40). */\n  142 | export const MarkdownStreaming = at(markdownStreaming160);"
           }
         },
         {
@@ -2636,7 +2957,7 @@
           "name": "Markdown Streaming",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  126 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  127 |  * (markdown-streaming_160x40). */\n> 128 | export const MarkdownStreaming = at(markdownStreaming160);\n      |                                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  129 | /** A run of tool calls, one row each: the kind's pack icon, what it does, the target relative to the session's folder\n  130 |  * (cut in the middle by cells), `+n −m` for an edit, `failed` in the error slot, a running call's mark; five reads fold\n  131 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full"
+            "message": "Expected story to be csf factory, function or an object expression\n  140 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  141 |  * (markdown-streaming_160x40). */\n> 142 | export const MarkdownStreaming = at(markdownStreaming160);\n      |                                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  143 | /** A run of tool calls, one row each: the kind's pack icon, what it does, the target relative to the session's folder\n  144 |  * (cut in the middle by cells), `+n −m` for an edit, `failed` in the error slot, a running call's mark; five reads fold\n  145 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full"
           }
         },
         {
@@ -2644,7 +2965,7 @@
           "name": "Tool Calls",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  131 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full\n  132 |  * (tools_160x40). */\n> 133 | export const ToolCalls = at(tools160, 100, 18);\n      |                          ^^^^^^^^^^^^^^^^^^^^^\n  134 | /** The reads opened (a click on the row, or alt-o): each on a tree line, each opening on its own (tools_160x40,\n  135 |  * DockLocal.groups). */\n  136 | export const ToolCallsOpen = { args: { recorded: tools160 as unknown as Recorded, cols: 100, rows: 22, groups: [\"group:t0\"] } } satisfies Story;"
+            "message": "Expected story to be csf factory, function or an object expression\n  145 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full\n  146 |  * (tools_160x40). */\n> 147 | export const ToolCalls = at(tools160, 100, 18);\n      |                          ^^^^^^^^^^^^^^^^^^^^^\n  148 | /** The reads opened (a click on the row, or alt-o): each on a tree line, each opening on its own (tools_160x40,\n  149 |  * DockLocal.groups). */\n  150 | export const ToolCallsOpen = { args: { recorded: tools160 as unknown as Recorded, cols: 100, rows: 22, groups: [\"group:t0\"] } } satisfies Story;"
           }
         },
         {
@@ -2658,7 +2979,7 @@
           "name": "Edit Open",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  137 | /** An edit opened: its diff under the row in the diff view's look, the changed words on the stronger tint\n  138 |  * (edit-open_160x40). */\n> 139 | export const EditOpen = at(editOpen160);\n      |                         ^^^^^^^^^^^^^^^\n  140 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n  141 | export const ReasoningLive = at(reasoningLive160);\n  142 | /** The tool calls at 80x24 (tools_80x24). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  151 | /** An edit opened: its diff under the row in the diff view's look, the changed words on the stronger tint\n  152 |  * (edit-open_160x40). */\n> 153 | export const EditOpen = at(editOpen160);\n      |                         ^^^^^^^^^^^^^^^\n  154 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n  155 | export const ReasoningLive = at(reasoningLive160);\n  156 | /** The tool calls at 80x24 (tools_80x24). */"
           }
         },
         {
@@ -2666,7 +2987,7 @@
           "name": "Reasoning Live",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  139 | export const EditOpen = at(editOpen160);\n  140 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n> 141 | export const ReasoningLive = at(reasoningLive160);\n      |                              ^^^^^^^^^^^^^^^^^^^^\n  142 | /** The tool calls at 80x24 (tools_80x24). */\n  143 | export const NarrowToolCalls = at(tools80, 56, 20);\n  144 |"
+            "message": "Expected story to be csf factory, function or an object expression\n  153 | export const EditOpen = at(editOpen160);\n  154 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n> 155 | export const ReasoningLive = at(reasoningLive160);\n      |                              ^^^^^^^^^^^^^^^^^^^^\n  156 | /** The tool calls at 80x24 (tools_80x24). */\n  157 | export const NarrowToolCalls = at(tools80, 56, 20);\n  158 |"
           }
         },
         {
@@ -2674,7 +2995,7 @@
           "name": "Narrow Tool Calls",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  141 | export const ReasoningLive = at(reasoningLive160);\n  142 | /** The tool calls at 80x24 (tools_80x24). */\n> 143 | export const NarrowToolCalls = at(tools80, 56, 20);\n      |                                ^^^^^^^^^^^^^^^^^^^\n  144 |"
+            "message": "Expected story to be csf factory, function or an object expression\n  155 | export const ReasoningLive = at(reasoningLive160);\n  156 | /** The tool calls at 80x24 (tools_80x24). */\n> 157 | export const NarrowToolCalls = at(tools80, 56, 20);\n      |                                ^^^^^^^^^^^^^^^^^^^\n  158 |"
           }
         }
       ],
@@ -2902,6 +3223,6 @@
   },
   "meta": {
     "docgen": "react-docgen-typescript",
-    "durationMs": 1082
+    "durationMs": 1097
   }
 }

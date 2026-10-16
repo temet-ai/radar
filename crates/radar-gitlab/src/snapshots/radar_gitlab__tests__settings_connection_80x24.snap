@@ -1,27 +1,28 @@
 ---
 source: crates/radar-gitlab/src/lib.rs
+assertion_line: 2433
 expression: "radar_core::shell::to_text(&host, 80, 24)"
 ---
  radar    Repositories 1   History   Settings (,)                        ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
-│General               ││  server          https://gitlab.com                  │
-│  ├─ parts            ││  base group      acme                                │
-│  ├─ mode             ││  token           env:GITLAB_TOKEN                    │
-│  ├─ colours          ││  signed in as    me                                  │
-│  └─ icons            ││  check           not checked yet                     │
-│GitLab                ││  refresh         every 1m                            │
-│  ├─ connection       ││  merged, closed  the last 14 days                    │
-│  ├─ tenancies        ││                                                      │
-│  ├─ views            ││                                                      │
-│  └─ look             │╰──────────────────────────────────────────────────────╯
-│                      │╭ server ──────────────────────────────────────────────╮
+│General               ││  server          https://gitlab.com                  █
+│  ├─ parts            ││  base group      acme                                █
+│  ├─ mode             ││  token           env:GITLAB_TOKEN                    █
+│  ├─ appearance       ││  signed in as    me                                  █
+│  ├─ colours          ││  check           not checked yet                     █
+│  └─ icons            ││  refresh         every 1m                            ║
+│GitLab                ││  merged, closed  the last 14 days                    ║
+│  ├─ connection       ││                                                      ║
+│  ├─ tenancies        ││  ACCESS  what radar may do in GitLab                 ║
+│  ├─ views            │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ server ──────────────────────────────────────────────╮
 │                      ││ CHECKED                                              █
 │                      ││ not checked yet                                      █
-│                      ││                                                      █
-│                      ││ NOW                                                  █
-│                      ││ https://gitlab.com                                   █
-│                      ││                                                      █
-│                      ││ The GitLab server radar talks to.                    █
+│                      ││                                                      ║
+│                      ││ NOW                                                  ║
+│                      ││ https://gitlab.com                                   ║
+│                      ││                                                      ║
+│                      ││ The GitLab server radar talks to.                    ║
 │                      ││                                                      ║
 │                      ││ ACCEPTS                                              ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯

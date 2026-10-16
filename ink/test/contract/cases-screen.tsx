@@ -519,7 +519,6 @@ export const SCREEN_KNOWN_UNDRAWN: Record<string, string> = {
   "TreeRow.chips": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
   "Chips.text": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
   "PaneView.from": "T11: a pane's `from` (the width it shows from) is not applied (app/Panes.tsx)",
-  "Editing.at": "T11: an inline edit's start column is not applied (nodes/lists.tsx)",
   "TreeEditing.at": "T11: an inline edit's start column is not applied (nodes/tree.tsx)",
   "ScreenView.overlay": "T11: an editor overlay over the foot of the body is never drawn (App.tsx does not read screen.overlay)",
   "ListRow.link": "T11: a list row's link is not drawn (nodes/lists.tsx)",

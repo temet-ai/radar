@@ -1,5 +1,6 @@
 ---
 source: crates/radar-git/src/settings.rs
+assertion_line: 2820
 expression: "shot(\"links\", 160, 40)"
 ---
  radar    Branches   History   Settings (,)                                                                                                              ✎ edit
@@ -7,15 +8,15 @@ expression: "shot(\"links\", 160, 40)"
 │General               ││  + link a repo to your clone   the repo's path, then the folder                ││ CHECKED                                            │
 │  ├─ parts            ││ acme/team-a/api → /work/acme/api                                        ✓ main ││ ⚠ no such folder                                   │
 │  ├─ mode             ││ acme/team-b/web → /radar/no/such/web                          ✗ no such folder ││                                                    │
-│  ├─ colours          ││ …lling/payments-gateway → /work/acme/payments-ga…    ⚠ origin: acme/platform-… ││ acme/team-b/web is worked on in                    │
-│  └─ icons            ││                                                                                ││ /radar/no/such/web.                                │
-│Git                   ││                                                                                ││                                                    │
-│  ├─ checkouts        ││                                                                                ││ branch    {type}/{key}-{slug}                      │
-│  ├─ editors          ││                                                                                ││ base      develop                                  │
-│  ├─ links            ││                                                                                ││ worktrees 0 known                                  │
-│  └─ branches         ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ACCEPTS                                            │
-│                      ││                                                                                ││ repo: HTTPS URL or legacy path · folder: your      │
+│  ├─ appearance       ││ …lling/payments-gateway → /work/acme/payments-ga…    ⚠ origin: acme/platform-… ││ acme/team-b/web is worked on in                    │
+│  ├─ colours          ││                                                                                ││ /radar/no/such/web.                                │
+│  └─ icons            ││                                                                                ││                                                    │
+│Git                   ││                                                                                ││ branch    {type}/{key}-{slug}                      │
+│  ├─ checkouts        ││                                                                                ││ base      develop                                  │
+│  ├─ terminal         ││                                                                                ││ worktrees 0 known                                  │
+│  ├─ editors          ││                                                                                ││                                                    │
+│  ├─ links            ││                                                                                ││ ACCEPTS                                            │
+│  └─ branches         ││                                                                                ││ repo: HTTPS URL or legacy path · folder: your      │
 │                      ││                                                                                ││ clone · branch: a name template · base: a branch   │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ config: [[git.link]] repo, dir, branch, base       │

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-jira/src/tests.rs
+assertion_line: 1786
 expression: "text(&host, 80, 24)"
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
@@ -7,18 +8,18 @@ expression: "text(&host, 80, 24)"
 │General               ││  ? Found: a Jira site. Use it?                       █
 │  ├─ parts            ││  ? Found: a Jira site (JIRA_OTHER_URL, …). Use it?   █
 │  ├─ mode             ││  + add a site                                        █
-│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects             █
-│  └─ icons            ││    ├─ site            https://acme.atlassian.net     █
-│Jira                  ││    ├─ account         alice@example.com              ║
-│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
-│  ├─ projects         ││    ├─ signed in as    Alice Example                  ║
-│  ├─ views            ││    └─ check           not checked yet                ║
-│  └─ look             │╰──────────────────────────────────────────────────────╯
-│                      │╭ found in /work/acme/.mcp.json ───────────────────────╮
+│  ├─ appearance       ││ ▌ acme   acme.atlassian.net · 2 projects             █
+│  ├─ colours          ││    ├─ site            https://acme.atlassian.net     ║
+│  └─ icons            ││    ├─ account         alice@example.com              ║
+│Jira                  ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
+│  ├─ connection       ││    ├─ signed in as    Alice Example                  ║
+│  ├─ projects         ││    ├─ check           not checked yet                ║
+│  ├─ views            │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ found in /work/acme/.mcp.json ───────────────────────╮
 │                      ││ radar found a Jira site in /work/acme/.mcp.json. Do  █
 │                      ││ you want to use it?                                  █
-│                      ││                                                      █
-│                      ││ FOUND                                                █
+│                      ││                                                      ║
+│                      ││ FOUND                                                ║
 │                      ││ gamma.atlassian.net  the site's address, as written  ║
 │                      ││ JIRA_EMAIL           the account                     ║
 │                      ││                                                      ║

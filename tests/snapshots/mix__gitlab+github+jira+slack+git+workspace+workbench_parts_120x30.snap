@@ -1,0 +1,35 @@
+---
+source: tests/mix.rs
+assertion_line: 262
+expression: text
+---
+ radar    Branches   Work (I)   History   Settings (,)                                                           ✎ edit
+╭ settings ────────────╮╭ parts ─────────────────────────────────────────────────╮╭ GitLab ────────────────────────────╮
+│General              █││ COMPILED INTO THIS RADAR                               ││ ○ not set up: Add a tenancy: a     █
+│  ├─ parts           █││                                                        ││ GitLab group or repo whose merge   █
+│  ├─ mode            █││ ○ GitLab      not set up                               ││ requests to follow.                █
+│  ├─ appearance      █││ ○ GitHub      not set up                               ││                                    █
+│  ├─ colours         █││ ○ Jira        not set up                               ││ has     merge requests, repos,     █
+│  └─ icons           █││ ○ Slack       not set up                               ││ pipelines, jobs                    █
+│GitLab               █││ ✓ Git         set up                                   ││ opens   merge requests, repos,     █
+│  ├─ connection      █││ ○ Workspace   not set up                               ││ jobs on their own pages            █
+│  ├─ tenancies       █││ ✓ Work        set up                                   ││                                    █
+│  ├─ views           █││                                                        ││ OTHER PARTS CAN ADD                █
+│  └─ look            █││                                                        ││ · chips on merge request rows      █
+│GitHub               █││                                                        ││ · chips on repo rows and page      █
+│  ├─ connection      █││                                                        ││ · a column on merge request lists  █
+│  └─ repositories    █││                                                        ││ · a column on the repositories     █
+│Jira                 █││                                                        ││ middle pane                        █
+│  ├─ connection      █││                                                        ││ · a section on the merge request   █
+│  ├─ projects        █││                                                        ││ page and detail pane               █
+│  ├─ views           █││                                                        ││ · a tab on the merge request page  █
+│  └─ look            █││                                                        ││ · a tab on the repo page           █
+│Slack                █││                                                        ││ · actions on merge requests        █
+│  ├─ connection      █││                                                        ││ · actions on repos                 ║
+│  ├─ channels        ║││                                                        ││ · actions on the job page          ║
+│  ├─ review          ║││                                                        ││ · a line on the merge request      ║
+│  ├─ alerts          ║││                                                        ││ page, under its title              ║
+│  └─ look            ║││                                                        ││ · a line on the repo page, under   ║
+│Git                  ║││                                                        ││ its title                          ║
+╰──────────────────────╯╰────────────────────────────────────────────────────────╯╰────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 160, 40)"
 │General               ││ channel          team                                                          ││ Where review asks go. The user group is mentioned  │
 │  ├─ parts            ││ user group       @review-squad                                                 ││ only here.                                         │
 │  ├─ mode             ││ template         {group} :gitlab: {mrs}                                        ││                                                    │
-│  ├─ colours          ││ link text        mr                                                            ││ ACCEPTS                                            │
-│  └─ icons            ││ test channel     try                                                           ││ a channel in the registry                          │
-│Slack                 ││ ask again        after 2 working days without a reply                          ││                                                    │
-│  ├─ connection       ││                                                                                ││ NOW                                                │
-│  ├─ channels         ││                                                                                ││ team                                               │
-│  ├─ review           ││                                                                                ││                                                    │
-│  ├─ alerts           ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
-│  └─ look             ││                                                                                ││ @review-squad :gitlab: mr Add a stats endpoint for │
-│                      ││                                                                                ││ the dashboard                                      │
+│  ├─ appearance       ││ link text        mr                                                            ││ ACCEPTS                                            │
+│  ├─ colours          ││ test channel     try                                                           ││ a channel in the registry                          │
+│  └─ icons            ││ ask again        after 2 working days without a reply                          ││                                                    │
+│Slack                 ││                                                                                ││ NOW                                                │
+│  ├─ connection       ││                                                                                ││ team                                               │
+│  ├─ channels         ││                                                                                ││                                                    │
+│  ├─ review           ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
+│  ├─ alerts           ││                                                                                ││ @review-squad :gitlab: mr Add a stats endpoint     │
+│  └─ look             ││                                                                                ││ for the dashboard                                  │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ WITH TWO                                           │
 │                      ││                                                                                ││ @review-squad :gitlab:                             │

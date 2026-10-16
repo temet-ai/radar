@@ -1,0 +1,778 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "screen_keys": [
+      "R",
+      "G",
+      "J",
+      "S",
+      "B",
+      "W",
+      "I"
+    ],
+    "status": {
+      "counts": [
+        {
+          "ink": "plain",
+          "text": "1 open"
+        },
+        {
+          "ink": "warn",
+          "text": "1 to review"
+        }
+      ],
+      "health": [
+        {
+          "ink": "muted",
+          "label": "gitlab",
+          "part": "gitlab",
+          "state": "stale",
+          "target": "chrome:health:gitlab"
+        },
+        {
+          "ink": "muted",
+          "label": "slack",
+          "part": "slack",
+          "state": "stale",
+          "target": "chrome:health:slack"
+        }
+      ],
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "bulk",
+          "keys": "b",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "b"
+                }
+              },
+              "label": "b",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "bulk"
+        },
+        {
+          "icon": "fold",
+          "keys": "+/-",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "+"
+                }
+              },
+              "label": "+",
+              "target": "chrome:key:2:0"
+            },
+            {
+              "chord": {
+                "key": {
+                  "char": "-"
+                }
+              },
+              "label": "-",
+              "target": "chrome:key:2:1"
+            }
+          ],
+          "label": "expand/collapse"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:4:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:5:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:5:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:5:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:5:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "REPOSITORIES"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "badge": {
+            "ink": "warn",
+            "text": "1"
+          },
+          "icon": "repo",
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "chat",
+          "label": "slack",
+          "mnemonic": "S",
+          "target": "chrome:tab:3"
+        },
+        {
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:4"
+        },
+        {
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:6"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "not synced yet"
+      }
+    },
+    "version": 1,
+    "width": 220
+  },
+  "focus": "middle",
+  "height": 40,
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "icon": "group",
+        "id": "",
+        "label": "team-a"
+      },
+      {
+        "id": "gitlab.repos.open",
+        "key": {
+          "key": "enter"
+        },
+        "label": "open its page"
+      },
+      {
+        "id": "gitlab.repos.toggle_fold",
+        "key": {
+          "key": {
+            "char": " "
+          }
+        },
+        "label": "hide its repos"
+      },
+      {
+        "id": "gitlab.repos.open_link",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open the group in GitLab"
+      },
+      {
+        "id": "gitlab.repos.copy_link",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy the group's link"
+      },
+      {
+        "id": "gitlab.repos.filter",
+        "key": {
+          "key": {
+            "char": "/"
+          }
+        },
+        "label": "filter the view by words"
+      },
+      {
+        "id": "gitlab.repos.toggle_empty_repos",
+        "key": {
+          "key": {
+            "char": "."
+          }
+        },
+        "label": "show only repos with merge requests in the view"
+      },
+      {
+        "id": "gitlab.repos.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh now"
+      },
+      {
+        "id": "gitlab.repos.goto",
+        "key": {
+          "key": {
+            "char": ":"
+          }
+        },
+        "label": "go to a tenancy, repo or merge request…"
+      },
+      {
+        "id": "gitlab.repos.authors",
+        "key": {
+          "key": {
+            "char": "a"
+          }
+        },
+        "label": "show one author's merge requests…"
+      },
+      {
+        "id": "gitlab.repos.kept_comments",
+        "key": {
+          "ctrl": true,
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "kept comments…"
+      }
+    ],
+    "medium_from": 70,
+    "panes": [
+      {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "target": "view:0",
+              "text": [
+                {
+                  "icon": "change"
+                },
+                {
+                  "text": "Everything"
+                }
+              ]
+            },
+            {
+              "right": [
+                {
+                  "ink": "number",
+                  "text": "1"
+                }
+              ],
+              "target": "view:1",
+              "text": [
+                {
+                  "icon": "needs_approval"
+                },
+                {
+                  "text": "Needs my action"
+                }
+              ]
+            },
+            {
+              "target": "view:2",
+              "text": [
+                {
+                  "icon": "you"
+                },
+                {
+                  "text": "Opened by me"
+                }
+              ]
+            },
+            {
+              "target": "view:3",
+              "text": [
+                {
+                  "icon": "team"
+                },
+                {
+                  "text": "Opened by teammates"
+                }
+              ]
+            },
+            {
+              "target": "view:4",
+              "text": [
+                {
+                  "icon": "bot"
+                },
+                {
+                  "text": "Opened by bots"
+                }
+              ]
+            }
+          ],
+          "selected": 0
+        },
+        "pane": "nav",
+        "title": "views",
+        "width": 26
+      },
+      {
+        "body": {
+          "columns": [
+            {
+              "heading": "state",
+              "icon": "pipeline",
+              "keep": 6,
+              "width": 20
+            },
+            {
+              "heading": "approvals",
+              "icon": "approved",
+              "keep": 1,
+              "width": 11
+            },
+            {
+              "heading": "threads",
+              "icon": "thread",
+              "keep": 2,
+              "width": 8
+            },
+            {
+              "heading": "updated",
+              "icon": "updated",
+              "keep": 4,
+              "width": 8
+            },
+            {
+              "heading": "for you",
+              "icon": "you",
+              "keep": 5,
+              "width": 9
+            }
+          ],
+          "header": [
+            {
+              "text": "OPENED BY "
+            },
+            {
+              "icon": "team"
+            },
+            {
+              "ink": "secondary",
+              "text": "everyone"
+            },
+            {
+              "ink": "muted",
+              "text": " · 2 repos"
+            }
+          ],
+          "header_target": "authors",
+          "look": {
+            "band": "bg.overlay",
+            "band_level": 1,
+            "heading": "bg.overlay",
+            "lines": "text.muted"
+          },
+          "name_width": 30,
+          "node": "tree",
+          "open": [
+            [
+              "t:team-a"
+            ],
+            [
+              "t:team-a",
+              "r:acme/team-a/api"
+            ]
+          ],
+          "ordered_columns": true,
+          "rows": [
+            {
+              "children": [
+                {
+                  "cells": [
+                    {
+                      "heading": "state",
+                      "text": [
+                        {
+                          "ink": "muted",
+                          "text": "— no recent run"
+                        }
+                      ]
+                    },
+                    {
+                      "heading": "updated",
+                      "text": [
+                        {
+                          "ink": "muted",
+                          "text": "—"
+                        }
+                      ]
+                    },
+                    {
+                      "heading": "for you",
+                      "text": [
+                        {
+                          "icon": "change"
+                        },
+                        {
+                          "ink": "number",
+                          "text": "1 MR"
+                        }
+                      ]
+                    }
+                  ],
+                  "children": [
+                    {
+                      "cells": [
+                        {
+                          "heading": "state",
+                          "text": [
+                            {
+                              "icon": "needs_approval",
+                              "icon_lead": true,
+                              "ink": "warn",
+                              "text": "◷ "
+                            },
+                            {
+                              "ink": "warn",
+                              "strong": true,
+                              "text": "needs 1 approval"
+                            }
+                          ]
+                        },
+                        {
+                          "heading": "approvals",
+                          "text": [
+                            {
+                              "ink": "secondary",
+                              "text": "0 of 1"
+                            }
+                          ]
+                        },
+                        {
+                          "heading": "threads",
+                          "text": [
+                            {
+                              "ink": "muted",
+                              "text": "—"
+                            }
+                          ]
+                        },
+                        {
+                          "heading": "updated",
+                          "text": [
+                            {
+                              "ink": "muted",
+                              "text": "16m"
+                            }
+                          ]
+                        },
+                        {
+                          "heading": "for you",
+                          "text": [
+                            {
+                              "look": "status.warning bold",
+                              "text": "review"
+                            }
+                          ]
+                        }
+                      ],
+                      "glow": "merge-request:acme/team-a/api!263",
+                      "id": "m:acme/team-a/api!263",
+                      "name": [
+                        {
+                          "icon": "change"
+                        },
+                        {
+                          "ink": "accent_secondary",
+                          "text": "!263 "
+                        },
+                        {
+                          "ink": "primary",
+                          "text": "Add a stats endpoint"
+                        },
+                        {
+                          "ink": "muted",
+                          "text": "  "
+                        },
+                        {
+                          "icon": "person"
+                        },
+                        {
+                          "ink": "muted",
+                          "text": "Alice E."
+                        }
+                      ]
+                    }
+                  ],
+                  "chips": {
+                    "gives": 1,
+                    "text": [
+                      {
+                        "text": " "
+                      },
+                      {
+                        "chip": true,
+                        "icon": "alert_firing",
+                        "ink": "bad",
+                        "text": "firing · 1"
+                      }
+                    ]
+                  },
+                  "id": "r:acme/team-a/api",
+                  "name": [
+                    {
+                      "icon": "repo"
+                    },
+                    {
+                      "ink": "primary",
+                      "strong": true,
+                      "text": "api"
+                    }
+                  ]
+                },
+                {
+                  "cells": [
+                    {
+                      "heading": "state",
+                      "text": [
+                        {
+                          "ink": "muted",
+                          "text": "— no recent run"
+                        }
+                      ]
+                    },
+                    {
+                      "heading": "updated",
+                      "text": [
+                        {
+                          "ink": "muted",
+                          "text": "—"
+                        }
+                      ]
+                    },
+                    {
+                      "heading": "for you",
+                      "text": [
+                        {
+                          "ink": "muted",
+                          "text": "—"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "r:acme/team-a/web",
+                  "name": [
+                    {
+                      "icon": "repo"
+                    },
+                    {
+                      "ink": "secondary",
+                      "text": "web"
+                    }
+                  ]
+                }
+              ],
+              "id": "t:team-a",
+              "name": [
+                {
+                  "icon": "group"
+                },
+                {
+                  "look": "tenant.green bold",
+                  "text": "A "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "team-a"
+                }
+              ],
+              "stripe": "tenant.green"
+            }
+          ],
+          "selected": [
+            "t:team-a"
+          ]
+        },
+        "notes": [
+          [
+            {
+              "ink": "secondary",
+              "text": "every open merge request"
+            },
+            {
+              "ink": "muted",
+              "text": " · listing every repo, also those without"
+            }
+          ]
+        ],
+        "notes_most": 3,
+        "pane": "middle",
+        "title": "Everything"
+      },
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "icon": "group"
+                },
+                {
+                  "look": "tenant.green bold",
+                  "text": "a "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "acme/team-a"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "repos       "
+                },
+                {
+                  "text": "2 shown · 0 hidden"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "with MRs    "
+                },
+                {
+                  "text": "1 repos, in this view"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "open MRs    "
+                },
+                {
+                  "ink": "number",
+                  "text": "1"
+                }
+              ]
+            }
+          ],
+          "node": "rich"
+        },
+        "pane": "detail",
+        "title": "team-a"
+      }
+    ],
+    "scope": "repos",
+    "version": 1
+  },
+  "section": null,
+  "width": 220
+}

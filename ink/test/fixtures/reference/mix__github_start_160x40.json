@@ -91,12 +91,6 @@
       },
       "tabs": [
         {
-          "active": true,
-          "label": "repositories",
-          "mnemonic": "R",
-          "target": "chrome:tab:0"
-        },
-        {
           "icon": "log",
           "label": "history",
           "mnemonic": "H",
@@ -142,6 +136,12 @@
               {
                 "ink": "secondary",
                 "text": "Press ⏎ to set it up in settings, under github."
+              }
+            ],
+            [
+              {
+                "ink": "secondary",
+                "text": "Press s to walk its setup step."
               }
             ]
           ],

@@ -1,37 +1,53 @@
 //! The plugin drives the fake provider the way the host does: ticks and dock
-//! intents, no renderer. Nothing waits on a clock: a bounded spin on state.
+//! intents, no renderer. Nothing waits on a clock or races the test: the
+//! plugin's tasks run on the test's thread, only when a step lets them
+//! ([`SessionsPlugin::on_this_thread`]).
 
 use radar_core::Plugin;
 use radar_core::dock::{AskState, DockIntent, DockItem, DockQuestion, DockView, PermissionAction, SessionState, ToolState};
 use radar_sessions::SessionsPlugin;
 use radar_sessions::fake::FakeProvider;
 
+/// Steps a test gives anything before it fails: a bound on work, not on time.
+const STEPS: u64 = 256;
+
 fn plugin(provider: &FakeProvider) -> SessionsPlugin {
-    let mut p = SessionsPlugin::new();
+    let mut p = SessionsPlugin::on_this_thread();
     p.add_adapter(Box::new(provider.adapter()));
     // The plugin listens before anything is sent: a turn run before it would be told to nobody.
-    for n in 0..2_000_000 {
+    for n in 0..STEPS as i64 {
         if provider.listening() {
             return p;
         }
         p.tick(n);
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("the plugin never subscribed");
 }
 
-/// Tick until `done` holds on the dock; fail after a bounded number of turns.
+/// Tick and run the plugin's tasks until `done` holds on the dock.
 fn until(p: &mut SessionsPlugin, what: &str, done: impl Fn(&DockView) -> bool) -> DockView {
-    for n in 0..2_000_000u64 {
+    for n in 0..STEPS {
         p.tick(n as i64);
         if let Some(dock) = p.dock()
             && done(&dock)
         {
             return dock;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("never reached: {what}; dock = {:?}", p.dock());
+}
+
+/// Tick and run every task to its end, a few times over: whatever the plugin and the provider
+/// would still do has been done. Returns how many effects ran a task (a desktop notification).
+fn quiet(p: &mut SessionsPlugin) -> usize {
+    let mut spawned = 0;
+    for n in 0..8 {
+        spawned += p.tick(n).iter().filter(|e| matches!(e, radar_core::Effect::Spawn(_))).count();
+        p.run_tasks();
+    }
+    spawned
 }
 
 fn permission(dock: &DockView) -> Option<(String, Option<PermissionAction>)> {
@@ -70,9 +86,7 @@ fn a_question_waits_for_the_operator_and_a_picked_choice_is_the_answer() {
     assert_eq!(q.questions[0].choices.iter().map(|c| c.label.as_str()).collect::<Vec<_>>(), ["red", "blue"]);
     // A label the question does not offer, and ticking on, answer nothing.
     p.dock_intent(&DockIntent::Answer { id: q.id.clone(), question: q.questions[0].id.clone(), choices: vec!["green".into()], text: None });
-    for n in 0..200 {
-        p.tick(n);
-    }
+    quiet(&mut p);
     assert_eq!(question(&p.dock().unwrap()).unwrap().state, AskState::Waiting);
 
     p.dock_intent(&DockIntent::Answer { id: q.id.clone(), question: q.questions[0].id.clone(), choices: vec!["blue".into()], text: None });
@@ -110,13 +124,9 @@ fn a_request_waits_until_the_operator_approves_and_then_the_tool_runs() {
     let waiting = until(&mut p, "a pending request", |d| permission(d).is_some());
     assert_eq!(waiting.tabs[0].state, SessionState::Approval);
     // Ticking on, and answering an unknown id, change nothing: nothing auto-approves.
-    for n in 0..200 {
-        p.tick(n);
-    }
+    quiet(&mut p);
     p.dock_intent(&DockIntent::Approve { id: "not-a-request".into() });
-    for n in 0..200 {
-        p.tick(n);
-    }
+    quiet(&mut p);
     let still = p.dock().unwrap();
     let (id, answered) = permission(&still).unwrap();
     assert_eq!(answered, None);
@@ -192,9 +202,256 @@ fn a_restarted_plugin_restores_the_session_and_reads_its_history_back_from_the_p
 
     let mut second = plugin(&provider);
     second.restore(snapshot);
+    // Read back when its tab shows, not at start.
+    second.dock_visible(true);
     let after = until(&mut second, "the history", |d| say(d, "You said: hello there"));
     assert_eq!(after.tabs.len(), 1);
     assert_eq!(after.transcript, before.transcript);
+}
+
+// ---- restored sessions: what waited lapses, and a message or the resume key carries on ----
+
+/// The plugin of the next run: `provider`'s process ended with the last one (nothing runs, history stays), and
+/// the new plugin holds what the last one kept.
+fn next_run(provider: &FakeProvider, snapshot: serde_json::Value) -> SessionsPlugin {
+    provider.restart();
+    let mut p = plugin(provider);
+    p.restore(snapshot);
+    p
+}
+
+/// How many times radar created or resumed a session with the provider.
+fn calls(provider: &FakeProvider) -> usize {
+    provider.setups().len()
+}
+
+fn notices(dock: &DockView) -> Vec<String> {
+    dock.transcript
+        .iter()
+        .filter_map(|i| match i {
+            DockItem::Notice { text, .. } => Some(text.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn lapsed_permission(dock: &DockView) -> Option<&radar_core::dock::DockPermission> {
+    dock.transcript.iter().find_map(|i| match i {
+        DockItem::Permission(p) if p.lapsed => Some(p),
+        _ => None,
+    })
+}
+
+const CARRY_ON: &str = "the turn that was waiting was ended when radar closed; send a message to carry on";
+
+#[test]
+fn a_request_and_a_question_that_waited_when_radar_closed_lapse_and_need_no_one() {
+    let provider = FakeProvider::new();
+    let mut first = plugin(&provider);
+    // Two sessions: one waits for an approval, the other for an answer.
+    two_tabs(&mut first);
+    let tabs = first.dock().unwrap().tabs;
+    first.dock_intent(&DockIntent::SwitchTab { id: tabs[0].id.clone() });
+    first.dock_intent(&DockIntent::Send { text: "run something".into() });
+    until(&mut first, "an approval waiting", |d| permission(d).is_some_and(|(_, a)| a.is_none()));
+    first.dock_intent(&DockIntent::SwitchTab { id: tabs[1].id.clone() });
+    first.dock_intent(&DockIntent::Send { text: "ask me".into() });
+    until(&mut first, "a question waiting", |d| question(d).is_some_and(|q| q.state == AskState::Waiting));
+    let snapshot = first.snapshot().unwrap();
+    drop(first);
+
+    let mut p = next_run(&provider, snapshot);
+    let before = calls(&provider);
+    quiet(&mut p);
+    // Restored, nothing resumed: every tab is not attached, and none needs you.
+    let (restored, active) = p.dock_tabs().unwrap();
+    assert!(restored.iter().all(|t| t.state == SessionState::Detached), "{restored:?}");
+    assert!(radar_core::dock::wanting(&restored, active.as_deref(), false).is_empty(), "no chip for a restored session");
+    assert_eq!(calls(&provider), before, "no resume before a tab shows");
+    let dock = p.dock().unwrap();
+    assert!(dock.composer.can_send && dock.composer.disabled.is_none(), "a message attaches it: {:?}", dock.composer);
+    assert!(dock.composer.commands.iter().any(|c| c.name == "resume"));
+    assert_eq!(dock.activity.as_ref().map(|a| a.doing), Some(radar_core::dock::Doing::Detached));
+
+    // The question's tab shows: it is read back, and the question lapses.
+    p.dock_visible(true);
+    let asked = until(&mut p, "the question read back", |d| question(d).is_some() && !notices(d).is_empty());
+    let q = question(&asked).unwrap();
+    assert_eq!(q.state, AskState::Lapsed);
+    assert!(q.questions.iter().all(|a| a.answered), "nothing to answer: {q:?}");
+    assert_eq!(notices(&asked), vec![CARRY_ON.to_string()]);
+    assert_eq!(calls(&provider), before + 1, "only the tab that showed was resumed");
+    assert_eq!(asked.tabs[1].state, SessionState::Idle);
+    assert_eq!(asked.tabs[0].state, SessionState::Detached, "the other tab waits until it shows");
+    assert!(asked.activity.is_none(), "a turn read back is not news: {:?}", asked.activity);
+    assert!(!asked.composer.commands.iter().any(|c| c.name == "resume"), "attached: no resume command");
+
+    // The request's tab: the same, without buttons, and an answer reaches nobody.
+    p.dock_intent(&DockIntent::SwitchTab { id: tabs[0].id.clone() });
+    let shown = until(&mut p, "the request read back", |d| lapsed_permission(d).is_some());
+    let r = lapsed_permission(&shown).unwrap().clone();
+    assert!(r.actions.is_empty() && r.answered.is_none(), "{r:?}");
+    let (all, active) = p.dock_tabs().unwrap();
+    assert!(radar_core::dock::wanting(&all, active.as_deref(), true).is_empty() && radar_core::dock::wanting(&all, active.as_deref(), false).is_empty());
+    p.dock_intent(&DockIntent::Approve { id: r.id.clone() });
+    p.dock_intent(&DockIntent::AlwaysAllow { id: r.id.clone() });
+    quiet(&mut p);
+    let after = p.dock().unwrap();
+    assert!(!after.transcript.iter().any(|i| matches!(i, DockItem::Error { .. })), "{:?}", after.transcript);
+    assert_eq!(lapsed_permission(&after).map(|p| p.id.clone()), Some(r.id));
+    assert!(!notices(&after).iter().any(|n| n.starts_with("always allowed")), "no rule is made from a lapsed request");
+
+    // A message carries on.
+    p.dock_intent(&DockIntent::Send { text: "hello".into() });
+    until(&mut p, "the answer", |d| say(d, "You said: hello"));
+}
+
+#[test]
+fn a_restored_request_sends_no_desktop_notification_before_or_after_it_is_read_back() {
+    let provider = FakeProvider::new();
+    let dir = std::env::temp_dir().join(format!("radar-notify-restored-{}", std::process::id()));
+    let table: toml::Value = toml::from_str(&format!("notify = true\nreviews_dir = {:?}\n", dir.display().to_string())).unwrap();
+    let mut first = plugin(&provider);
+    start(&mut first);
+    first.dock_intent(&DockIntent::Send { text: "run something".into() });
+    until(&mut first, "an approval waiting", |d| permission(d).is_some());
+    let snapshot = first.snapshot().unwrap();
+    drop(first);
+
+    let mut p = next_run(&provider, snapshot);
+    p.configure(Some(&table)).unwrap();
+    let hidden = quiet(&mut p);
+    assert_eq!(hidden, 0, "a restored session needs no one");
+    // Read back with its tab out of sight (another tab shows): still nothing to tell.
+    p.dock_intent(&DockIntent::Resume);
+    let (back, spawned) = until_counting(&mut p, "the request read back", |d| lapsed_permission(d).is_some() && !notices(d).is_empty());
+    let more = quiet(&mut p);
+    assert_eq!(spawned + more, 0, "a lapsed request is not news");
+    assert!(!back.tabs[0].unread, "a turn read back is not unread");
+    let _ = std::fs::remove_dir_all(dir);
+}
+
+#[test]
+fn a_message_typed_in_a_restored_session_resumes_it_and_then_goes() {
+    use radar_core::dock::Queued;
+    let provider = FakeProvider::new();
+    let mut first = plugin(&provider);
+    start(&mut first);
+    first.dock_intent(&DockIntent::Send { text: "hello there".into() });
+    until(&mut first, "the answer", |d| say(d, "You said: hello there"));
+    let snapshot = first.snapshot().unwrap();
+    drop(first);
+
+    let mut p = next_run(&provider, snapshot);
+    // The dock is hidden: nothing is read back until the message.
+    p.dock_intent(&DockIntent::Send { text: "and now?".into() });
+    let waiting = p.dock().unwrap();
+    assert_eq!(users(&waiting), vec![("and now?".into(), Some(Queued::Here))]);
+    let done = until(&mut p, "the history, then the answer", |d| say(d, "You said: hello there") && say(d, "You said: and now?"));
+    assert_eq!(users(&done), vec![("hello there".into(), None), ("and now?".into(), None)]);
+    assert!(notices(&done).is_empty(), "the last turn had ended: nothing was cut: {:?}", done.transcript);
+    assert!(!done.composer.commands.iter().any(|c| c.name == "resume"), "attached: no resume command");
+}
+
+#[test]
+fn the_resume_key_and_slash_resume_attach_without_sending() {
+    let provider = FakeProvider::new();
+    let mut first = plugin(&provider);
+    start(&mut first);
+    first.dock_intent(&DockIntent::Send { text: "hello there".into() });
+    until(&mut first, "the answer", |d| say(d, "You said: hello there"));
+    let snapshot = first.snapshot().unwrap();
+    drop(first);
+
+    for how in [DockIntent::Resume, DockIntent::Send { text: " /resume ".into() }] {
+        let mut p = next_run(&provider, snapshot.clone());
+        p.dock_intent(&how);
+        // The history reaches the dock event by event before the resume's end does: until then the tab says
+        // `resuming`. Waiting for the history alone left the state to how far the end had come (failed once in
+        // ten runs of the crate when the tasks ran on their own threads).
+        let back = until(&mut p, "the history, attached", |d| say(d, "You said: hello there") && d.tabs[0].state != SessionState::Resuming);
+        assert_eq!(users(&back), vec![("hello there".into(), None)], "nothing was sent: {how:?}");
+        assert_eq!(back.tabs[0].state, SessionState::Idle);
+    }
+}
+
+#[test]
+fn a_provider_that_asks_again_after_the_resume_gets_a_fresh_request_that_is_answered() {
+    let provider = FakeProvider::new();
+    let mut first = plugin(&provider);
+    start(&mut first);
+    first.dock_intent(&DockIntent::Send { text: "run something".into() });
+    until(&mut first, "an approval waiting", |d| permission(d).is_some());
+    let snapshot = first.snapshot().unwrap();
+    drop(first);
+
+    let mut p = next_run(&provider, snapshot);
+    p.dock_visible(true);
+    let old = until(&mut p, "the lapsed request", |d| lapsed_permission(d).is_some() && !notices(d).is_empty()).transcript.len();
+    provider.reask();
+    let fresh = until(&mut p, "the request asked again", |d| {
+        d.transcript.iter().any(|i| matches!(i, DockItem::Permission(r) if !r.lapsed && r.answered.is_none() && !r.actions.is_empty()))
+    });
+    assert!(fresh.transcript.len() > old);
+    assert_eq!(fresh.tabs[0].state, SessionState::Approval, "this one needs you");
+    let id = fresh.transcript.iter().find_map(|i| match i {
+        DockItem::Permission(r) if !r.lapsed => Some(r.id.clone()),
+        _ => None,
+    });
+    p.dock_intent(&DockIntent::Approve { id: id.unwrap() });
+    until(&mut p, "the tool ran", |d| say(d, "The command finished."));
+}
+
+#[test]
+fn a_resume_the_provider_refuses_says_so_and_the_session_stays_to_try_again() {
+    let provider = FakeProvider::new();
+    let mut first = plugin(&provider);
+    start(&mut first);
+    let snapshot = first.snapshot().unwrap();
+    drop(first);
+
+    // Another provider that never held the session.
+    let other = FakeProvider::new();
+    let mut p = next_run(&other, snapshot);
+    p.dock_visible(true);
+    let failed = until(&mut p, "the refusal", |d| d.transcript.iter().any(|i| matches!(i, DockItem::Error { .. })));
+    let errors = |d: &DockView| d.transcript.iter().filter(|i| matches!(i, DockItem::Error { text, .. } if text.starts_with("could not resume:"))).count();
+    assert_eq!(errors(&failed), 1);
+    assert_eq!(failed.tabs.len(), 1, "the tab stays");
+    assert_eq!(failed.tabs[0].state, SessionState::Error);
+    assert!(failed.composer.can_send && failed.composer.commands.iter().any(|c| c.name == "resume"));
+    // Showing it again does not try again by itself; the resume key does.
+    p.dock_visible(false);
+    p.dock_visible(true);
+    quiet(&mut p);
+    assert_eq!(errors(&p.dock().unwrap()), 1);
+    p.dock_intent(&DockIntent::Resume);
+    until(&mut p, "a second try", |d| errors(d) == 2);
+}
+
+#[test]
+fn a_restored_review_session_keeps_the_review_policy() {
+    let provider = FakeProvider::new();
+    let mut first = plugin(&provider);
+    start(&mut first);
+    let mut snapshot = first.snapshot().unwrap();
+    drop(first);
+    // As the review journey's session is kept.
+    snapshot["sessions"][0]["review"] = serde_json::Value::Bool(true);
+
+    let mut p = next_run(&provider, snapshot);
+    let before = calls(&provider);
+    p.dock_visible(true);
+    until(&mut p, "attached", |d| d.tabs[0].state == SessionState::Idle);
+    assert!(provider.setups()[before..].iter().all(|s| s.review), "resumed with the review policy: {:?}", provider.setups());
+    assert_eq!(calls(&provider), before + 1);
+    p.dock_intent(&DockIntent::Send { text: "run make".into() });
+    let asked = until(&mut p, "a request", |d| permission(d).is_some());
+    let r = asked.transcript.iter().find_map(|i| match i {
+        DockItem::Permission(r) => Some(r.clone()),
+        _ => None,
+    });
+    assert!(!r.unwrap().actions.contains(&PermissionAction::ApproveForSession), "a review session never offers approve for session");
 }
 
 #[test]
@@ -288,12 +545,12 @@ fn stop_and_close_of_the_last_tab_hides_the_dock_and_the_provider_runs_nothing()
     let ask = menu_of(p.dock_intent(&DockIntent::CloseTab { id: running.tabs[0].id.clone() })).expect("a question");
     let fx = p.on_menu(&ask.id, "yes");
     assert!(fx.iter().any(|e| matches!(e, radar_core::Effect::HideDock)));
-    for n in 0..2_000_000u64 {
+    for n in 0..STEPS {
         p.tick(n as i64);
         if provider.running() == 0 {
             return;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("the provider still runs the closed session's turn");
 }
@@ -396,9 +653,7 @@ fn a_message_sent_while_a_turn_runs_is_shown_queued_and_sent_when_the_turn_ends(
         users(&queued),
         vec![("a long job".into(), None), ("and?".into(), Some(Queued::Here)), ("one more".into(), Some(Queued::Here))]
     );
-    for n in 0..200 {
-        p.tick(n);
-    }
+    quiet(&mut p);
     assert_eq!(users(&p.dock().unwrap()).len(), 3, "nothing is sent while the turn runs");
 
     provider.release();
@@ -439,14 +694,14 @@ fn slash_close_closes_the_session_showing_and_is_listed_among_the_commands() {
 /// Tick until `done` holds on the dock, counting the effects that run a task (a desktop notification is one).
 fn until_counting(p: &mut SessionsPlugin, what: &str, done: impl Fn(&DockView) -> bool) -> (DockView, usize) {
     let mut spawned = 0;
-    for n in 0..2_000_000u64 {
+    for n in 0..STEPS {
         spawned += p.tick(n as i64).iter().filter(|e| matches!(e, radar_core::Effect::Spawn(_))).count();
         if let Some(dock) = p.dock()
             && done(&dock)
         {
             return (dock, spawned);
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("never reached: {what}; dock = {:?}", p.dock());
 }
@@ -485,7 +740,7 @@ fn with_notifications_on_a_request_out_of_sight_goes_to_the_desktop_once() {
     start(&mut p);
     p.dock_intent(&DockIntent::Send { text: "run something".into() });
     let (_, spawned) = until_counting(&mut p, "a pending request", |d| permission(d).is_some());
-    let more: usize = (0..200).map(|n| p.tick(n).iter().filter(|e| matches!(e, radar_core::Effect::Spawn(_))).count()).sum();
+    let more = quiet(&mut p);
     assert_eq!(spawned + more, 1, "one notification for the request, not one a tick");
     let _ = std::fs::remove_dir_all(dir);
 }

@@ -124,6 +124,10 @@ pub enum ToHost {
     Log { level: LogLevel, text: String },
     /// The renderer is leaving (the user quit through it).
     Bye,
+    /// The dock's transcript came as a change to a revision the renderer
+    /// does not hold ([`crate::dock::DockView::kept`]): the next snapshot
+    /// sends it whole.
+    Resync,
 }
 
 /// What is showing, whole: the newest replaces any not yet sent.
@@ -155,6 +159,33 @@ pub struct Snapshot {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub splash: Option<crate::splash::SplashView>,
+    /// With `RADAR_TRACE_LATENCY=1` only: what this snapshot answers and how
+    /// long the host took, so the renderer can log the whole way from a key
+    /// or an agent's words to the frame painted. Absent otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub trace: Option<SnapshotTrace>,
+}
+
+/// What a snapshot answers, for latency tracing (`RADAR_TRACE_LATENCY=1`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+pub struct SnapshotTrace {
+    /// The oldest change it shows: `intent dock send`, `intent key`,
+    /// `event wake` (an agent's output), `event tick`, `event msg`, or
+    /// `session ready (...)` (a session started
+    /// earlier can now be written to).
+    pub cause: String,
+    /// The newest renderer intent (its `seq`) this snapshot answers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional, type = "number")]
+    pub seq: Option<u64>,
+    /// When the cause reached the host, in ms since the Unix epoch.
+    pub at_ms: f64,
+    /// From the cause to the snapshot ready to send, in ms.
+    pub host_ms: f64,
+    /// The snapshot's size as sent, in bytes.
+    #[ts(type = "number")]
+    pub bytes: u64,
 }
 
 /// How much motion runs here (`[theme] motion`, held back over SSH and
@@ -407,12 +438,17 @@ impl Lines {
 mod bridge;
 pub mod look;
 pub mod supervisor;
+pub mod trace;
 
 pub use bridge::{Bridge, Received};
 pub use look::{ColourTier, Look, LookIcon};
 
 #[cfg(test)]
+mod bridge_settings_tests;
+#[cfg(test)]
 mod bridge_tests;
+#[cfg(test)]
+mod dock_pipe_tests;
 #[cfg(test)]
 mod fixture;
 #[cfg(test)]

@@ -25,10 +25,13 @@ describe("shift+movement in the capturing editor", () => {
     return sent;
   };
 
-  it("the tokenizer carries shift on left right home end, and only there", () => {
+  it("the tokenizer carries shift on the arrows, home and end (a mouse selection extends on shift+↑/↓), and only there", () => {
     const shifted = (b: string) => tokenize(b).events.map((e) => (e.kind === "key" ? !!e.shift : null));
-    expect(shifted("\x1b[1;2D\x1b[1;2C\x1b[1;2H\x1b[1;2F")).toEqual([true, true, true, true]);
-    expect(shifted("\x1b[D\x1b[1;5D\x1b[1;2A")).toEqual([false, false, false]);
+    expect(shifted("\x1b[1;2D\x1b[1;2C\x1b[1;2H\x1b[1;2F\x1b[1;2A\x1b[1;2B")).toEqual([true, true, true, true, true, true]);
+    expect(shifted("\x1b[D\x1b[1;5D\x1b[A\x1b[5;2~")).toEqual([false, false, false, false]);
+  });
+  it("shift+↑/↓ in the capturing editor are the key, as before (only ←→ home end select there)", () => {
+    expect(run("\x1b[1;2A")).toEqual([{ intent: "key", chord: { key: "up" } }]);
   });
   it("shift-left/right grow from the caret by one code point, home/end to the line's ends", () => {
     expect(run("\x1b[1;2D")).toEqual([{ intent: "edit_select", anchor: 5, extent: 4 }]);

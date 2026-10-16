@@ -1,9 +1,8 @@
 ---
 source: tests/mix.rs
-assertion_line: 571
 expression: "to_text(&host, 80, 24)"
 ---
- radar    R 2   J   S   B   I   History   Settings (,)  not synced yet · e… ✎ edit
+ radar    R 2   J   B   I   History   Settings (,)  not synced yet · ev… ✎ edit
 ╭ Our project ─────────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
 │▌ acme  acme.atlassian.net                                                    │
@@ -26,4 +25,4 @@ expression: "to_text(&host, 80, 24)"
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ what its JQL asks for (settings, views)                                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- JIRA   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu
+ JIRA   b bulk   +/- expand/collapse   q quit   x menu              gitlab jira

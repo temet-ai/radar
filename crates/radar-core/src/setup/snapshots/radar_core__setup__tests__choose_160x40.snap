@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+assertion_line: 598
+expression: "screen(&host, 160, 40)"
+---
+ radar  setup / choose                                                                                                                                   ✎ edit
+           about this step
+
+            TICKED ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+              radar found a token or a sign-in for each service ticked.
+            KEYS ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+              ⏎ starts at the row you are on. esc in a step skips it, and ← goes back one.
+              Anything you leave unticked can be set up later in Settings (,).
+
+           choose
+
+            What would you like to set up?
+            Tick the ones you use. Each one ticked gets a short step, in this order.
+
+             THIS MACHINE
+             ○ local code       checkouts, branches
+
+             SERVICES
+             ● Shelves          boxes, labels                                                                                           token found
+
+             AGENTS
+             ○ Chat             conversations
+
+             OPTIONAL
+             ○ look & terminal  icons, theme, motion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ SETUP   ⏎ start here   space tick   a all   n none   esc not now   ← back                                                                           shelf talk

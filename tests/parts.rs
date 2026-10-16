@@ -140,11 +140,15 @@ fn a_name_is_named_only_whole() {
     assert!(names_whole("p.id() == \"git\"", "\"git\""));
 }
 
-/// The one named exemption: the reviewer's command policy in radar-sessions
-/// matches the program `git` that an agent runs. That is a program name, not
-/// the radar-git part; every other part name in radar-sessions is still caught.
+/// The named exemptions: the reviewer's command policy in radar-sessions matches
+/// the program `git` that an agent runs, and the always-allow rules name it
+/// among the programs whose subcommand makes a rule (`shell(git status)`).
+/// That is a program name, not the radar-git part; every other part name in
+/// radar-sessions is still caught.
 fn is_program_name(path: &Path, name: &str) -> bool {
-    name == "\"git\"" && path.ends_with("radar-sessions/src/review/policy.rs")
+    name == "\"git\""
+        && (path.ends_with("radar-sessions/src/review/policy.rs")
+            || path.ends_with("radar-sessions/src/settings/config.rs"))
 }
 
 #[test]

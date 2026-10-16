@@ -109,8 +109,18 @@ pub enum Owner {
     Parts,
     /// The host's mode: which writes radar may send.
     Mode,
+    /// The look: icons, theme and motion, as setup's look step shows them.
+    Look,
     Plugin(usize),
 }
+
+/// The host's own settings section: icons, theme and motion, the same card
+/// as setup's look step ([`Host::look_settings_view`]).
+pub const LOOK_SECTION: SectionSpec = SectionSpec {
+    id: "appearance",
+    name: "appearance",
+    group: "general",
+};
 
 /// The host's own settings section: the theme.
 pub const COLOURS_SECTION: SectionSpec = SectionSpec {
@@ -357,6 +367,8 @@ pub enum Event {
     },
     /// Text pasted into the terminal.
     Paste(String),
+    /// What setup's look for keys found ([`HostEffect::Scan`]): names only.
+    Scanned(Vec<crate::setup::Found>),
     /// What the user did, from a frontend that speaks the view contract
     /// ([`crate::view::Intent`]) instead of terminal events. Routed, checked
     /// and journalled as the key or click it stands for.
@@ -407,6 +419,10 @@ pub enum Hit {
     /// A key shown on the status line: a click presses it. The number is
     /// the hint it is part of (`PgUp/PgDn scroll` is one hint, two keys).
     Key(KeyEvent, usize),
+    /// A row of one of setup's own steps, by its target.
+    Setup(String),
+    /// A stop of setup's rail.
+    SetupStop(usize),
     /// An area a plugin marked: on its screen, or in one of its sections.
     Plugin {
         plugin: usize,
@@ -445,6 +461,10 @@ pub enum HostEffect {
         web: String,
     },
     Copy(String),
+    /// Copy text the user selected on the screen ([`crate::view::Intent::Copy`]):
+    /// as [`HostEffect::Copy`], and the status line says how many characters
+    /// and by which way.
+    CopySelection(String),
     /// Write the config file with this text.
     Save(String),
     /// Write a plugin's cache.
@@ -452,6 +472,10 @@ pub enum HostEffect {
         plugin: &'static str,
         value: Value,
     },
+    /// Setup's look for keys, which the user said yes to: the runner reads
+    /// the variable names and checks which files exist
+    /// ([`crate::setup::scan`]), and answers with [`Event::Scanned`].
+    Scan(crate::setup::Asks),
 }
 
 impl std::fmt::Debug for HostEffect {
@@ -465,8 +489,10 @@ impl std::fmt::Debug for HostEffect {
             Self::Open(u) => write!(f, "Open({u})"),
             Self::OpenApp { link, web } => write!(f, "OpenApp({link}, else {web})"),
             Self::Copy(t) => write!(f, "Copy({t})"),
+            Self::CopySelection(t) => write!(f, "CopySelection({t})"),
             Self::Save(_) => f.write_str("Save(..)"),
             Self::WriteCache { plugin, .. } => write!(f, "WriteCache({plugin})"),
+            Self::Scan(asks) => write!(f, "Scan({} parts)", asks.len()),
         }
     }
 }
@@ -504,6 +530,10 @@ pub struct Host {
     pub folded: std::collections::HashSet<&'static str>,
     /// The status line's message (its words, and an icon drawn before them).
     pub message: Option<crate::plugin::Message>,
+    /// A drag is selecting text (the Ratatui runner's): the key that makes
+    /// the terminal select its own text instead ([`crate::select::bypass_key`]),
+    /// which the status line names while it lasts.
+    pub selecting: Option<&'static str>,
     /// Detected terminal layers and the current right-click routing state.
     pub(crate) terminal: Option<crate::terminal_host::State>,
     pub now: i64,
@@ -518,6 +548,8 @@ pub struct Host {
     pub back: Vec<Return>,
     /// The selected row of the parts section.
     pub parts_row: usize,
+    /// The cursor in Settings' look section.
+    pub look_row: usize,
     /// "save and quit" was chosen: quit once the save succeeds.
     quit_after_save: bool,
     /// An event changed the config while something was being typed: save
@@ -555,6 +587,15 @@ pub struct Host {
     pub mode_env: Option<(crate::writes::Mode, String)>,
     /// The pause every part shares ([`crate::mode::PauseState`]).
     pub pause: crate::mode::PauseState,
+    /// Setup, while it shows ([`crate::setup`]).
+    pub setup: Option<crate::setup::Setup>,
+    /// The tour, while it shows ([`crate::tour`]).
+    pub tour: Option<crate::tour::Tour>,
+    /// The start line on the status line, and when it goes (unix seconds).
+    start_line: Option<(String, i64)>,
+    /// Where the config file is, as the user would write it
+    /// (`~/.config/radar/config.toml`); the runner says.
+    pub config_place: Option<String>,
 }
 
 /// What the screen showed before an event, to tell what it changed.
@@ -563,6 +604,8 @@ struct Seen {
     depth: Option<usize>,
     menu: Option<(String, String)>,
     message: Option<crate::plugin::Message>,
+    /// Setup's screen, while it shows.
+    setup: Option<crate::setup::At>,
 }
 
 /// Cues kept for a runner that does not take them (tests).
@@ -578,6 +621,7 @@ impl Host {
         let mut sections = vec![
             (Owner::Parts, PARTS_SECTION),
             (Owner::Mode, crate::mode::MODE_SECTION),
+            (Owner::Look, LOOK_SECTION),
             (Owner::Host, COLOURS_SECTION),
             (Owner::Host, ICONS_SECTION),
         ];
@@ -589,6 +633,7 @@ impl Host {
             }
             if [
                 COLOURS_SECTION.id,
+                LOOK_SECTION.id,
                 PARTS_SECTION.id,
                 ICONS_SECTION.id,
                 ICONS_TABLE,
@@ -596,6 +641,7 @@ impl Host {
                 crate::mode::MODE_SECTION.id,
                 crate::mode::GENERAL_TABLE,
                 "terminal",
+                "setup",
             ]
             .contains(&p.id())
             {
@@ -685,6 +731,7 @@ impl Host {
             on_heading: false,
             folded: Default::default(),
             message: None,
+            selecting: None,
             terminal: None,
             now,
             quit: false,
@@ -693,6 +740,7 @@ impl Host {
             menu_keys: Vec::new(),
             back: Vec::new(),
             parts_row: 0,
+            look_row: 0,
             quit_after_save: false,
             changed: false,
             saving: Default::default(),
@@ -712,6 +760,10 @@ impl Host {
                 last_input: now,
                 ..Default::default()
             },
+            setup: None,
+            tour: None,
+            start_line: None,
+            config_place: None,
         })
         .inspect(|host| host.apply_mode())
     }
@@ -731,22 +783,27 @@ impl Host {
     }
 
     fn colours_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
+        if !self.colours_take(key) && key.code == KeyCode::Esc {
+            self.focus = Pane::Nav;
+        }
+        vec![]
+    }
+
+    /// A key for the colours (or icons) section; false when it did not
+    /// take it.
+    pub(crate) fn colours_take(&mut self, key: KeyEvent) -> bool {
         let reply = if self.on_icons() {
             self.colours.icons_key(key)
         } else {
             self.colours.key(key)
         };
         match reply {
-            Reply::Ignored => {
-                if key.code == KeyCode::Esc {
-                    self.focus = Pane::Nav;
-                }
-            }
+            Reply::Ignored => return false,
             Reply::Done => {}
             Reply::Say(m) => self.message = Some(m.into()),
             Reply::Menu(menu) => self.menu = Some(OpenMenu::open(Owner::Host, menu)),
         }
-        vec![]
+        true
     }
 
     /// Keys while a menu is open: move, choose by `⏎` or the item's key, close.
@@ -1015,7 +1072,7 @@ impl Host {
                 }
                 vec![]
             }
-            Owner::Parts | Owner::Mode => vec![],
+            Owner::Parts | Owner::Mode | Owner::Look => vec![],
             Owner::Plugin(p) => {
                 let fx = self.plugins[p].on_menu(&open.menu.id, &item.value);
                 self.route(p, fx, 0)
@@ -1061,23 +1118,24 @@ impl Host {
         };
         self.apply_mode();
         self.read_idle(&table);
-        if text.is_some() {
+        let unfinished = table
+            .get(crate::mode::GENERAL_TABLE)
+            .and_then(|g| g.get("setup"))
+            .and_then(|v| v.as_str())
+            == Some("unfinished");
+        if text.is_some() && unfinished {
+            // Quit during setup: it opens again, from its start.
+            let _ = self.open_setup(None);
+            self.saved = self.config_table();
+        } else if text.is_some() {
             self.saved = self.config_table();
         } else {
-            let notes: Vec<String> = self
-                .plugins
-                .iter_mut()
-                .filter_map(|p| p.first_run())
-                .collect();
-            self.message = Some(
-                if notes.is_empty() {
-                    "new config: each change is saved as you make it".to_string()
-                } else {
-                    notes.join(" · ")
-                }
-                .into(),
-            );
-            self.view = View::Settings;
+            // First run: setup, from its start. The parts' first-run notes
+            // are what setup's steps cover.
+            for p in &mut self.plugins {
+                let _ = p.first_run();
+            }
+            let _ = self.open_setup(None);
         }
         self.changed = false;
         Ok(())
@@ -1091,7 +1149,7 @@ impl Host {
 
     /// Write the config as it is now. `asked`: `w` asked for it, so say
     /// when it is written.
-    fn save(&mut self, asked: bool) -> HostEffect {
+    pub(crate) fn save(&mut self, asked: bool) -> HostEffect {
         let table = self.config_table();
         let mut owned: Vec<&str> = self.plugins.iter().map(|p| p.id()).collect();
         owned.extend(["theme", ICONS_TABLE, crate::mode::GENERAL_TABLE]);
@@ -1147,6 +1205,11 @@ impl Host {
                 (self.pause.idle_minutes as i64).into(),
             );
         }
+        // Setup walked from its start and not yet left: the next start
+        // opens it again (quitting is not finishing).
+        if self.setup.as_ref().is_some_and(|s| !s.single) {
+            general.insert("setup".into(), "unfinished".into());
+        }
         if !general.is_empty() {
             table.insert(crate::mode::GENERAL_TABLE.into(), general.into());
         }
@@ -1173,11 +1236,34 @@ impl Host {
         self.plugins[*plugin].screen_group(screen.id)
     }
 
+    /// Screen `i` is offered (a tab, a source): its part is set up. A part
+    /// that is not shows nowhere until setup or Settings sets it up.
+    pub fn screen_shown(&self, i: usize) -> bool {
+        self.screens.get(i).is_some_and(|(p, _)| self.ready(*p))
+    }
+
+    /// At start: open on a screen that is offered, as a part not set up
+    /// has none (the runner, after the config is read).
+    pub fn open_on_a_shown_screen(&mut self) {
+        if self.setup.is_none()
+            && let View::Screen(i) = self.view
+            && !self.screen_shown(i)
+        {
+            self.view = self.first_screen().map_or(View::Settings, View::Screen);
+        }
+    }
+
+    /// The first screen offered, where radar opens.
+    pub fn first_screen(&self) -> Option<usize> {
+        (0..self.screens.len()).find(|&i| self.screen_shown(i))
+    }
+
     pub fn top_screens(&self) -> Vec<usize> {
         let mut seen = std::collections::HashSet::new();
         self.screens
             .iter()
             .enumerate()
+            .filter(|(i, _)| self.screen_shown(*i))
             .filter_map(|(i, _)| match self.screen_group(i) {
                 Some(group) if !seen.insert(group.id) => None,
                 _ => Some(i),
@@ -1193,8 +1279,7 @@ impl Host {
             .iter()
             .enumerate()
             .filter_map(|(i, _)| {
-                self.screen_group(i)
-                    .is_some_and(|other| other.id == group.id)
+                (self.screen_shown(i) && self.screen_group(i).is_some_and(|other| other.id == group.id))
                     .then_some(i)
             })
             .collect()
@@ -1205,6 +1290,13 @@ impl Host {
     }
 
     /// Whether plugin `p` is set up (see [`compose::ready`]).
+    /// The splash's start line, on the status line for five seconds: the
+    /// splash went before it could show it.
+    pub fn show_start_line(&mut self, words: String) {
+        self.message = Some(words.clone().into());
+        self.start_line = Some((words, self.now + 5));
+    }
+
     pub fn ready(&self, p: usize) -> bool {
         compose::ready(self.plugins[p].as_ref())
     }
@@ -1232,7 +1324,7 @@ impl Host {
     }
 
     /// Select section `i` in the settings nav, unfolding its group.
-    fn select_section(&mut self, i: usize) {
+    pub(crate) fn select_section(&mut self, i: usize) {
         self.settings_detail.top();
         self.section = i;
         self.on_heading = false;
@@ -1377,6 +1469,8 @@ impl Host {
     fn target(&self) -> Option<usize> {
         match self.view {
             View::Screen(_) => self.screen().map(|(p, _)| p).filter(|&p| self.ready(p)),
+            // Setup's own steps have no section under them.
+            View::Settings if self.setup_host_step() => None,
             View::Settings => match self.current_section() {
                 Some((Owner::Plugin(p), _)) => Some(p),
                 _ => None,
@@ -1470,6 +1564,8 @@ impl Host {
                 Event::Intent(intent) => {
                     self.someone_is_there();
                     return match &intent {
+                        // Text selected on the overlay copies like any other.
+                        crate::view::Intent::Copy { .. } => self.on_intent(intent),
                         crate::view::Intent::Activate { target } | crate::view::Intent::Select { target }
                             if target.as_str().starts_with(crate::view::chrome::targets::PREFIX) =>
                         {
@@ -1583,6 +1679,9 @@ impl Host {
                     _ => None,
                 }
             }
+            // Copying what is selected acts on no screen: its own span is
+            // `system.copy.selection`, not a `ui.action` over it.
+            Event::Intent(crate::view::Intent::Copy { .. }) => None,
             Event::Key(_) | Event::Intent(_) if menu_before => Some("ui.menu.action"),
             Event::Key(_) | Event::Intent(_) => Some("ui.action"),
             Event::Mouse { .. } if menu_before => Some("ui.menu.action"),
@@ -1663,11 +1762,13 @@ impl Host {
             HostEffect::Open(_) => "system.open",
             HostEffect::OpenApp { .. } => "system.open.app",
             HostEffect::Copy(_) => "system.copy",
+            HostEffect::CopySelection(_) => "system.copy.selection",
             HostEffect::Save(_) => "config.save",
             HostEffect::WriteCache { .. } => "cache.save",
             HostEffect::Tracked { .. }
             | HostEffect::Journal(_)
             | HostEffect::History(_)
+            | HostEffect::Scan(_)
             | HostEffect::Work { .. } => {
                 return effect;
             }
@@ -1740,6 +1841,7 @@ impl Host {
                 .as_ref()
                 .map(|m| (m.menu.id.clone(), m.menu.title.clone())),
             message: self.message.clone(),
+            setup: self.setup.as_ref().map(|s| s.at),
         }
     }
 
@@ -1749,6 +1851,10 @@ impl Host {
         let now = self.seen();
         if now.view != before.view {
             self.cue(Cue::Screen);
+        } else if now.setup.is_some() && before.setup.is_some() && now.setup != before.setup {
+            // Another step of setup: a fade (subtle), the sweep over it (full).
+            self.cue(Cue::Screen);
+            self.cue(Cue::Page);
         } else if let (Some(was), Some(is)) = (before.depth, now.depth)
             && is > was
         {
@@ -1771,6 +1877,14 @@ impl Host {
             Event::Tick(now) => {
                 self.now = now;
                 self.frame = self.frame.wrapping_add(1);
+                if let Some((words, until)) = &self.start_line
+                    && now >= *until
+                {
+                    if self.message.as_ref().is_some_and(|m| m.text == *words) {
+                        self.message = None;
+                    }
+                    self.start_line = None;
+                }
                 self.check_idle(now);
                 let mut out = Vec::new();
                 // Paused: no part asks its service.
@@ -1818,6 +1932,10 @@ impl Host {
             Event::Intent(intent) => {
                 self.someone_is_there();
                 self.on_intent(intent)
+            }
+            Event::Scanned(found) => {
+                self.setup_scanned(found);
+                vec![]
             }
             Event::Paste(text) => {
                 self.someone_is_there();
@@ -2088,11 +2206,11 @@ impl Host {
                     out.extend(fx);
                 }
                 Effect::ShowDock => {
-                    self.dock.apply(&crate::dock::DockIntent::Show);
-                    self.dock.apply(&crate::dock::DockIntent::Focus);
+                    self.apply_dock(&crate::dock::DockIntent::Show);
+                    self.apply_dock(&crate::dock::DockIntent::Focus);
                 }
                 Effect::HideDock => {
-                    self.dock.apply(&crate::dock::DockIntent::Hide);
+                    self.apply_dock(&crate::dock::DockIntent::Hide);
                 }
                 Effect::SendToAgent(request) => {
                     // Ask the parts (the one that owns the subject answers),
@@ -2105,7 +2223,7 @@ impl Host {
                             if let Outcome::Handled(fx) = self.plugins[d].agent_brief(contexts) {
                                 out.extend(self.route(d, fx, depth + 1));
                             }
-                            self.dock.apply(&crate::dock::DockIntent::Show);
+                            self.apply_dock(&crate::dock::DockIntent::Show);
                         }
                     }
                 }
@@ -2530,7 +2648,7 @@ impl Host {
         self.trace.current = parent;
     }
 
-    fn deliver(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
+    pub(crate) fn deliver(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
         self.deliver_input(Input::Key(key))
     }
 
@@ -2573,7 +2691,7 @@ impl Host {
                 out.extend(self.route(d, fx, depth + 1));
             }
         }
-        self.dock.apply(&crate::dock::DockIntent::Show);
+        self.apply_dock(&crate::dock::DockIntent::Show);
         out
     }
 
@@ -2645,12 +2763,38 @@ impl Host {
             .map(|content| Box::new(self.dock.over(content)))
     }
 
+    /// Whether the dock is drawn where the user is now: beside a settings
+    /// section, or under the middle pane of a screen of panes (a part's
+    /// set-up page is one). An item page and the work area have no place
+    /// for it ([`crate::view::ScreenView::has_dock_place`]).
+    pub fn dock_has_place(&self) -> bool {
+        if self.view == View::Settings {
+            return true;
+        }
+        let Some((p, spec)) = self.screen() else {
+            return false;
+        };
+        self.setting_up().is_some() || self.screen_view(p, spec.id).is_some_and(|v| v.has_dock_place())
+    }
+
+    /// Apply a host-owned dock intent (`false` for one the part takes). The
+    /// dock takes the keys only where it is drawn: shown where it has no
+    /// place, it waits for the screen of panes without them, and the keys
+    /// stay with the page.
+    fn apply_dock(&mut self, intent: &crate::dock::DockIntent) -> bool {
+        let hosts = self.dock.apply(intent);
+        if hosts && self.dock.focused && !self.dock_has_place() {
+            self.dock.focused = false;
+        }
+        hosts
+    }
+
     /// A dock intent: show, hide, focus and height are the host's; the rest
     /// go to the owner under a dispatch span, so the journal reads the same
     /// whichever frontend sent them and effects keep mode checks and
     /// causality.
     fn on_dock_intent(&mut self, intent: crate::dock::DockIntent) -> Vec<HostEffect> {
-        if self.dock.apply(&intent) {
+        if self.apply_dock(&intent) {
             return vec![];
         }
         let Some(p) = self.dock_owner() else {
@@ -2674,6 +2818,9 @@ impl Host {
         if let Intent::Dock(dock) = intent {
             return self.on_dock_intent(dock);
         }
+        if let Intent::Copy { text } = intent {
+            return self.copy_selection(text);
+        }
         // The chrome's own targets (a tab, a menu row, a key on the status
         // line, a settings row): what a click on them does.
         if let Intent::Activate { target } | Intent::Select { target } = &intent
@@ -2681,6 +2828,31 @@ impl Host {
         {
             let activate = matches!(intent, Intent::Activate { .. });
             return self.chrome_intent(&target.clone(), activate);
+        }
+        // A row of one of setup's own steps.
+        if self.setup.is_some()
+            && let Intent::Activate { target } | Intent::Select { target } = &intent
+            && target.as_str().starts_with(crate::setup::PREFIX)
+        {
+            if self.menu.is_some() || self.capturing() {
+                return vec![];
+            }
+            let activate = matches!(intent, Intent::Activate { .. });
+            return self.setup_target(&target.clone(), activate);
+        }
+        // A row of Settings' look section (the same card as setup's look).
+        if self.setup.is_none()
+            && self.view == View::Settings
+            && self.current_section().is_some_and(|(o, _)| o == Owner::Look)
+            && let Intent::Activate { target } | Intent::Select { target } = &intent
+            && target.as_str().starts_with(crate::setup::PREFIX)
+        {
+            if self.menu.is_some() {
+                return vec![];
+            }
+            self.focus = Pane::Middle;
+            self.look_settings_target(&target.clone(), matches!(intent, Intent::Activate { .. }));
+            return vec![];
         }
         if let Some(open) = &mut self.menu {
             let Intent::Invoke { action } = &intent else {
@@ -2708,8 +2880,25 @@ impl Host {
             }
             return vec![];
         }
+        // While a field has the keys (an edit, a filter, a reply), a press
+        // on one of the part's rows waits for it (⏎ or esc), as a click
+        // does in the terminal (`on_mouse`): moving the selection under an
+        // open edit would commit the edit into the row pressed. The field's
+        // own intents (keys, actions, its text selection) still reach it.
+        if self.capturing()
+            && matches!(
+                intent,
+                Intent::Select { .. }
+                    | Intent::Activate { .. }
+                    | Intent::Context { .. }
+                    | Intent::Fold { .. }
+                    | Intent::Show { .. }
+            )
+        {
+            return vec![];
+        }
         self.message = None;
-        let context = matches!(intent, Intent::Context { .. }) && !self.capturing();
+        let context = matches!(intent, Intent::Context { .. });
         let invoked = match &intent {
             Intent::Invoke { action } => Some(action.clone()),
             _ => None,
@@ -2733,11 +2922,43 @@ impl Host {
         out.unwrap_or_default()
     }
 
+    /// Selected screen text a renderer sent ([`crate::view::Intent::Copy`]):
+    /// the runner copies it through [`crate::system::copy_ways`] and says how.
+    /// Text over [`crate::ipc::MAX_CLIPBOARD`] bytes is refused, blank text
+    /// is nothing to copy.
+    fn copy_selection(&mut self, text: String) -> Vec<HostEffect> {
+        if text.trim().is_empty() {
+            return vec![];
+        }
+        if text.len() > crate::ipc::MAX_CLIPBOARD {
+            self.message = Some("too much text to copy".into());
+            return vec![];
+        }
+        vec![HostEffect::CopySelection(text)]
+    }
+
     /// Route a key or an intent from any frontend to the focused part, under
     /// the same dispatch span, so the journal reads the same whichever
     /// frontend sent it.
     fn deliver_input(&mut self, input: Input) -> Option<Vec<HostEffect>> {
         let p = self.target()?;
+        // A press on a section's row from a renderer that lays the section
+        // out itself (Ink) focuses the section first, as a click on it does
+        // in the terminal (`on_mouse`, `Hit::Plugin`). The nav's rows are
+        // chrome targets and never come here.
+        if self.view == View::Settings
+            && self.focus != Pane::Middle
+            && matches!(
+                &input,
+                Input::Intent(
+                    crate::view::Intent::Select { .. }
+                        | crate::view::Intent::Activate { .. }
+                        | crate::view::Intent::Context { .. }
+                )
+            )
+        {
+            self.focus = Pane::Middle;
+        }
         let (scope, section) = match (self.view, self.focus) {
             (View::Screen(_), _) => (self.screen()?.1.id, false),
             (View::Settings, Pane::Middle) => (self.current_section()?.1.id, true),
@@ -2814,6 +3035,7 @@ impl Host {
             height,
             parts: compose::Parts::new(&self.plugins, Some(p)),
             icon_lead: self.frontend.lead(),
+            setup: self.setup_on_section(),
         }
     }
 
@@ -2847,7 +3069,14 @@ impl Host {
         width: u16,
         height: u16,
     ) -> Option<crate::view::SectionView> {
-        self.plugins[p].section_view(scope, &self.view_cx(p, width, height))
+        let mut view = self.plugins[p].section_view(scope, &self.view_cx(p, width, height))?;
+        // On a setup step ⏎ goes on and space is the section's ⏎: its help
+        // says so.
+        if self.setup_on_section() {
+            crate::setup::help_only(&mut view);
+            crate::setup::space_for_enter(&mut view);
+        }
+        Some(view)
     }
 
     fn has_view(&self, p: usize, scope: &str) -> bool {
@@ -2861,7 +3090,7 @@ impl Host {
     /// The capital letters the host takes as screen keys (every screen's
     /// key) or as the current screen's action keys, in order, once each: a
     /// renderer leaves these to the host and uses any other capital itself.
-    fn claimed_capitals(&self) -> Vec<char> {
+    pub(crate) fn claimed_capitals(&self) -> Vec<char> {
         let mut keys: Vec<char> = self
             .plugins
             .iter()
@@ -3262,7 +3491,9 @@ impl Host {
         let Some(hit) = hit else { return vec![] };
         let pane = match &hit {
             Hit::Section(_) | Hit::Group(_) => Some(Pane::Nav),
-            Hit::ColourRow(_) | Hit::PartsRow(_) | Hit::Mode | Hit::PauseIdle => Some(Pane::Middle),
+            Hit::ColourRow(_) | Hit::PartsRow(_) | Hit::Mode | Hit::PauseIdle | Hit::Setup(_) => {
+                Some(Pane::Middle)
+            }
             Hit::Pane(p) | Hit::Plugin { pane: p, .. } => Some(*p),
             _ => None,
         };
@@ -3295,7 +3526,10 @@ impl Host {
         }
         // Page tabs act on the first click. Repeating one before a redraw
         // must not press Enter on the new tab's first row.
-        let single_click = matches!(&hit, Hit::SourceTab(_))
+        // A chooser's row ticks on each click.
+        let ticking = matches!(&hit, Hit::Setup(id) if id.starts_with("setup:choose:"));
+        let single_click = matches!(&hit, Hit::SourceTab(_) | Hit::SetupStop(_))
+            || ticking
             || matches!(&hit, Hit::Plugin { id, .. } if id.starts_with("tab:"));
         let double = !single_click
             && self
@@ -3325,6 +3559,7 @@ impl Host {
             | Hit::Group(_)
             | Hit::Mode
             | Hit::Health(_)
+            | Hit::SetupStop(_)
             | Hit::Attention) => {
                 return match self.chrome_target_of(&hit) {
                     Some(target) => self.on_intent(crate::view::Intent::Activate { target }),
@@ -3333,6 +3568,15 @@ impl Host {
             }
             Hit::PartsRow(i) => {
                 self.parts_row = i;
+                vec![]
+            }
+            // Selected (a chooser's row ticked); a double click chooses.
+            Hit::Setup(id) => {
+                if self.setup.is_none() {
+                    self.look_settings_target(&crate::view::Target::new(id), false);
+                } else {
+                    self.setup_target(&crate::view::Target::new(id), ticking);
+                }
                 vec![]
             }
             Hit::PauseIdle => {
@@ -3370,7 +3614,14 @@ impl Host {
             Hit::History | Hit::Pane(_) | Hit::MenuBox | Hit::MenuItem(_) | Hit::Key(..) => vec![],
         };
         if double {
-            out.extend(self.on_key(key(KeyCode::Enter)));
+            // On a setup step that is a section, a double click is the
+            // row's own ⏎, not setup's "continue".
+            let enter = key(KeyCode::Enter);
+            if self.setup_on_section() {
+                out.extend(self.setup_section_takes(enter).unwrap_or_default());
+            } else {
+                out.extend(self.on_key(enter));
+            }
         }
         out
     }
@@ -3394,6 +3645,18 @@ impl Host {
         if key.modifiers.contains(KeyModifiers::CONTROL) {
             // Other ctrl keys are the plugin's.
             return self.deliver(key).unwrap_or_default();
+        }
+        // Setup's keys ([`crate::setup`]); what it leaves goes on below, to
+        // the host's quit and menu, and to the section a step shows.
+        if self.setup.is_some()
+            && let Some(fx) = self.setup_key(key)
+        {
+            return fx;
+        }
+        if self.tour.is_some()
+            && let Some(fx) = self.tour_key(key)
+        {
+            return fx;
         }
         if key.code == KeyCode::Char(HISTORY_KEY) {
             return self.open_recent_history();
@@ -3458,18 +3721,28 @@ impl Host {
             }
             // The agent dock: shows and takes the keys, then hides.
             KeyCode::Char(crate::dock::KEY) if key.modifiers.is_empty() && self.dock_owner().is_some() => {
+                // Where the dock is not drawn (an item page, the work area)
+                // the key shows or hides it for the lists, and the keys stay
+                // here.
+                let placed = self.dock_has_place();
                 // A session that wants the user out of sight comes first.
-                if let Some(out) = self.go_to_attention() {
-                    return out;
-                }
-                let intent = if !self.dock.visible {
-                    crate::dock::DockIntent::Show
-                } else if !self.dock.focused {
-                    crate::dock::DockIntent::Focus
-                } else {
-                    crate::dock::DockIntent::Hide
+                let out = match self.go_to_attention() {
+                    Some(out) => out,
+                    None => {
+                        let intent = if !self.dock.visible {
+                            crate::dock::DockIntent::Show
+                        } else if !self.dock.focused && placed {
+                            crate::dock::DockIntent::Focus
+                        } else {
+                            crate::dock::DockIntent::Hide
+                        };
+                        self.on_dock_intent(intent)
+                    }
                 };
-                return self.on_dock_intent(intent);
+                if !placed && self.dock.visible {
+                    self.message = Some("the agent dock shows beside the lists, not on this page".into());
+                }
+                return out;
             }
             // One pause for every part.
             KeyCode::Char('z') if key.modifiers.is_empty() => {
@@ -3639,6 +3912,19 @@ impl Host {
         }
         if self.view == View::Settings
             && self.focus == Pane::Middle
+            && self.setup.is_none()
+            && self.current_section().is_some_and(|(o, _)| o == Owner::Look)
+        {
+            if self.look_settings_key(key) {
+                return vec![];
+            }
+            if key.code == KeyCode::Esc {
+                self.focus = Pane::Nav;
+                return vec![];
+            }
+        }
+        if self.view == View::Settings
+            && self.focus == Pane::Middle
             && self
                 .current_section()
                 .is_some_and(|(o, _)| o == Owner::Mode)
@@ -3655,6 +3941,10 @@ impl Host {
         if let Some(p) = self.setting_up() {
             if key.code == KeyCode::Enter {
                 self.go_to_settings_of(p);
+            } else if key.code == KeyCode::Char('s')
+                && let Some(step) = self.plugins[p].setup_step()
+            {
+                let _ = self.open_setup(Some(step.id));
             } else if key.code == KeyCode::Esc {
                 self.come_back(true);
             } else if matches!(key.code, KeyCode::Up | KeyCode::Char('k')) {
@@ -3728,7 +4018,7 @@ impl Host {
             View::Screen(_) => self.screen().map(|(p, s)| (p, s.id))?,
             View::Settings => match self.current_section()? {
                 (Owner::Plugin(p), s) => (p, s.id),
-                (Owner::Host | Owner::Parts | Owner::Mode, _) => return None,
+                (Owner::Host | Owner::Parts | Owner::Mode | Owner::Look, _) => return None,
             },
         };
         if !self.ready(p) && self.view != View::Settings {
@@ -3861,6 +4151,10 @@ impl Host {
             (View::Settings, Pane::Middle) => match self.current_section() {
                 Some((Owner::Parts, _)) => crate::parts::keys(self),
                 Some((Owner::Mode, _)) => crate::mode::keys(self),
+                Some((Owner::Look, _)) => vec![
+                    crate::Binding::new("space", "choose"),
+                    crate::Binding::new("↑↓", "move"),
+                ],
                 Some((Owner::Plugin(p), s)) => self.section_keys(p, s.id),
                 Some((Owner::Host, s)) if s.id == ICONS_SECTION.id => self.colours.icons_keys(),
                 Some((Owner::Host, s)) => {
@@ -4359,6 +4653,10 @@ impl Host {
 
     /// The panes of what is showing, left to right.
     pub fn panes(&self) -> Vec<Pane> {
+        // Setup has one place for the keys: the card.
+        if self.setup.is_some() && self.view == View::Settings {
+            return vec![Pane::Middle];
+        }
         let panes = match self.screen() {
             Some((p, _)) if !self.ready(p) => vec![Pane::Middle],
             Some((p, s)) => self.plugins[p].panes(s.id),
@@ -4562,13 +4860,17 @@ impl Host {
         // The services' marks as this theme's icons draw them.
         out.status.health = self.health_chips(theme.icons());
         out.menu = self.menu_view();
-        if self.view == View::Settings && self.history.is_none() {
+        if self.history.is_none() {
+            out.setup = self.setup_chrome();
+            out.tour = self.tour_card();
+        }
+        if self.view == View::Settings && self.history.is_none() && out.setup.is_none() {
             out.settings = Some(self.settings_nav());
         }
         out
     }
 
-    fn chrome_top_bar(&self) -> crate::view::chrome::TopBar {
+    pub(crate) fn chrome_top_bar(&self) -> crate::view::chrome::TopBar {
         use crate::view::Ink;
         use crate::view::chrome::{self as c, targets};
         use crate::ui::icon::Icon;
@@ -4604,6 +4906,10 @@ impl Host {
             strong: mode == crate::writes::Mode::ReadOnly,
             target: targets::mode(),
         };
+        // Setup's top bar is `setup / <step>` (its chrome), not the tabs.
+        if self.setup.is_some() {
+            return bar;
+        }
         for i in self.top_screens().into_iter().take(c::MOST) {
             let (p, s) = &self.screens[i];
             let group = self.screen_group(i);
@@ -4682,8 +4988,9 @@ impl Host {
             .enumerate()
             .map(|(n, h)| chrome_hint(n, h))
             .collect();
+        let scope = if self.setup.is_some() { "setup" } else { self.screen().map_or("settings", |(_, s)| s.name) };
         c::StatusLine {
-            scope: self.screen().map_or("settings", |(_, s)| s.name).to_uppercase(),
+            scope: scope.to_uppercase(),
             hints,
             least_needed: least_needed.iter().map(|s| s.to_string()).collect(),
             counts: counts
@@ -4729,16 +5036,62 @@ impl Host {
     /// the parts' order, and whether each is ready: set up, and, for one
     /// that syncs with a service, holding something to show (a cache
     /// restored, a sync behind it) or its first sync begun.
-    pub fn splash_parts(&self) -> Vec<(String, bool)> {
-        use crate::health::SourceState;
+    /// What radar holds now, for the start line: the parts' own facts, then
+    /// the host's (agents set up, a service signed out or not answering).
+    pub fn start_facts(&self) -> Vec<(String, crate::start_lines::Value)> {
+        use crate::start_lines::Value;
+        use crate::view::chrome::HealthState;
+        let mut out: Vec<(String, Value)> = Vec::new();
+        for (p, plugin) in self.plugins.iter().enumerate() {
+            if !self.ready(p) {
+                continue;
+            }
+            out.extend(plugin.start_facts(self.now).into_iter().map(|(k, v)| (k.to_string(), v)));
+        }
+        let agents = (0..self.plugins.len())
+            .filter(|&p| self.ready(p) && self.plugins[p].dock_tabs().is_some())
+            .count();
+        out.push(("agents.setup".into(), Value::Num(agents as i64)));
+        for plugin in &self.plugins {
+            let Some(health) = plugin.health() else { continue };
+            let fact = match health.state(self.now) {
+                HealthState::SignedOut => "auth.expired",
+                HealthState::Failing => "sync.last_failed",
+                _ => continue,
+            };
+            if !out.iter().any(|(k, _)| k == fact) {
+                out.push((fact.into(), Value::Bool(true)));
+                out.push(("service".into(), Value::Str(plugin.name().into())));
+            }
+        }
+        out
+    }
+
+    pub fn splash_parts(&self, icons: &crate::ui::icon::Icons) -> Vec<crate::splash::Contact> {
+        use crate::view::chrome::HealthState;
         (0..self.plugins.len())
             .filter(|&p| self.plugins[p].on_splash())
             .map(|p| {
                 let plugin = &self.plugins[p];
-                let started = plugin.health().is_none_or(|h| {
-                    h.syncing || h.sources.iter().any(|s| s.at.is_some() || s.state != SourceState::Ok)
-                });
-                (plugin.name().to_string(), self.ready(p) && started)
+                let health = plugin.health();
+                let live = self.ready(p)
+                    && health.as_ref().is_none_or(|h| {
+                        !matches!(h.state(self.now), HealthState::Failing | HealthState::SignedOut)
+                    });
+                // What its first screen's tab counts: things that need you.
+                let count = plugin
+                    .screens()
+                    .first()
+                    .and_then(|s| plugin.badge(s.id))
+                    .and_then(|(n, _)| n.trim().parse::<u32>().ok())
+                    .unwrap_or(0);
+                crate::splash::Contact {
+                    name: plugin.name().to_string(),
+                    mark: health.map(|h| h.mark.in_pack(icons)).unwrap_or_default(),
+                    tail: (count > 0).then(|| format!("{} for you", count.min(999))),
+                    count,
+                    live,
+                }
             })
             .collect()
     }
@@ -4789,6 +5142,10 @@ impl Host {
 
     /// The status line's keys, in the order shown.
     fn status_hints(&self) -> Vec<KeyHint<'static>> {
+        // While a drag selects: how to select with the terminal instead.
+        if let Some(key) = self.selecting {
+            return vec![KeyHint::new(key, "terminal's own selection")];
+        }
         if let Some(open) = &self.menu {
             // Moving only where there is somewhere to move to.
             let choices = open
@@ -4797,16 +5154,30 @@ impl Host {
                 .iter()
                 .filter(|i| !i.heading && !i.note)
                 .count();
+            let typed = open.input.is_some();
             let mut h = Vec::new();
             if choices > 1 {
-                // A question's buttons sit in a row.
+                // A question's buttons sit in a row; in a field j and k are
+                // letters.
                 h.push(KeyHint::new(
-                    if open.menu.question { "←→" } else { "j/k" },
+                    if open.menu.question {
+                        "←→"
+                    } else if typed {
+                        "↑↓"
+                    } else {
+                        "j/k"
+                    },
                     "move",
                 ));
             }
             if open.viewport.more() {
                 h.push(KeyHint::new("PgUp/PgDn", "scroll"));
+            }
+            // A field: how to finish it.
+            if typed {
+                h.push(KeyHint::new("⏎", "save"));
+                h.push(KeyHint::new("esc", "cancel"));
+                return h;
             }
             if choices > 0 && open.viewport.usable.get() {
                 h.push(KeyHint::new("⏎", "choose"));
@@ -4831,6 +5202,9 @@ impl Host {
                 }
             }
             _ => {}
+        }
+        if let Some(h) = self.setup_hints() {
+            return h;
         }
         // A page's tab row has the keys: moving between its tabs and back in.
         if self.tabs && self.page_tabs().is_some() {
@@ -4959,6 +5333,7 @@ impl Host {
                         let icon = match owner {
                             Owner::Parts => Some(Icon::Parts),
                             Owner::Mode => Some(self.mode().icon()),
+                            Owner::Look => Some(Icon::Colours),
                             Owner::Host if spec.id == crate::icons::ICONS_SECTION.id => {
                                 Some(Icon::Icons)
                             }
@@ -4991,6 +5366,7 @@ impl Host {
             Some((Owner::Host, s)) => (s.name.to_string(), self.colours.detail_title()),
             Some((Owner::Parts, s)) => (s.name.to_string(), crate::parts::detail_title(self)),
             Some((Owner::Mode, s)) => (s.name.to_string(), "the modes".into()),
+            Some((Owner::Look, s)) => (s.name.to_string(), self.look_settings_view().detail_title),
             None => ("nothing to set".into(), "about".into()),
         };
         c::SettingsNav {
@@ -5018,6 +5394,7 @@ impl Host {
             "menu" => Hit::MenuItem(index()?),
             "section" => Hit::Section(index().filter(|i| *i < self.sections.len())?),
             "group" => Hit::Group(self.nav_groups().into_iter().find(|(g, _)| *g == arg)?.0),
+            "setup" if self.setup.is_some() => Hit::SetupStop(index()?),
             "key" => {
                 let (n, k) = arg.split_once(':')?;
                 let (n, k) = (n.parse::<usize>().ok()?, k.parse::<usize>().ok()?);
@@ -5045,6 +5422,7 @@ impl Host {
             Hit::Health(p) => targets::health(self.plugins.get(*p)?.id()),
             Hit::Attention => targets::attention(),
             Hit::MenuItem(i) => targets::menu_item(*i),
+            Hit::SetupStop(i) => targets::setup_stop(*i),
             Hit::Key(key, n) => {
                 let hints = self.status_hints();
                 let k = hint_labels(hints.get(*n)?.keys)
@@ -5102,6 +5480,12 @@ impl Host {
             };
         }
         if !activate || self.capturing() {
+            return vec![];
+        }
+        // Setup draws no tabs and no settings nav: none of theirs act.
+        if self.setup.is_some()
+            && matches!(hit, Hit::Tab(_) | Hit::HistoryTab | Hit::SourceTab(_) | Hit::Section(_) | Hit::Group(_))
+        {
             return vec![];
         }
         self.bar = false;
@@ -5173,6 +5557,10 @@ impl Host {
                 vec![]
             }
             Hit::Attention => self.go_to_attention().unwrap_or_default(),
+            Hit::SetupStop(i) => {
+                self.setup_stop(i);
+                vec![]
+            }
             _ => return None,
         })
     }
@@ -5847,18 +6235,33 @@ pub(crate) mod tests {
             .position(|(o, _)| *o == Owner::Host)
             .unwrap();
         host.focus = Pane::Middle;
-        press(&mut host, KeyCode::Char('j')); // colours depth
+        // The motion and the icon pack are chosen in the look section,
+        // on its card: space or ⏎ on a row, no menu.
+        let colours_section = host.section;
+        host.section = host
+            .sections
+            .iter()
+            .position(|(o, _)| *o == Owner::Look)
+            .unwrap();
+        press(&mut host, KeyCode::End); // off
+        press(&mut host, KeyCode::Up); // full
+        press(&mut host, KeyCode::Char(' '));
+        assert!(host.menu.is_none(), "the card is the choice");
+        assert_eq!(host.colours.cfg.motion, "full");
+        assert!(host.config_text().contains("motion = \"full\""));
+        press(&mut host, KeyCode::Home); // the first pack: nerd
+        press(&mut host, KeyCode::Down); // plain: unicode
+        press(&mut host, KeyCode::Enter);
+        assert_eq!(host.colours.cfg.icons, "unicode");
+        assert!(host.config_text().contains("icons = \"unicode\""));
+        host.section = colours_section;
+        // The colours section starts at the depth.
         press(&mut host, KeyCode::Enter);
         assert!(host.menu.is_some(), "⏎ opens a menu");
         press(&mut host, KeyCode::Char('j'));
         press(&mut host, KeyCode::Enter); // second item: full colour
         assert!(host.menu.is_none());
         assert_eq!(host.colours.cfg.colors, "truecolor");
-        press(&mut host, KeyCode::Char('j')); // motion
-        press(&mut host, KeyCode::Enter);
-        press(&mut host, KeyCode::Enter); // first item: full
-        assert_eq!(host.colours.cfg.motion, "full");
-        assert!(host.config_text().contains("motion = \"full\""));
         press(&mut host, KeyCode::Char('j')); // splash
         assert!(!host.config_text().contains("splash"), "auto is not written");
         press(&mut host, KeyCode::Enter);
@@ -5866,13 +6269,6 @@ pub(crate) mod tests {
         press(&mut host, KeyCode::Enter); // second item: off
         assert_eq!(host.colours.cfg.splash, "off");
         assert!(host.config_text().contains("splash = \"off\""));
-        press(&mut host, KeyCode::Char('j')); // icons
-        press(&mut host, KeyCode::Enter);
-        press(&mut host, KeyCode::Char('j'));
-        press(&mut host, KeyCode::Char('j'));
-        press(&mut host, KeyCode::Enter); // third item: unicode
-        assert_eq!(host.colours.cfg.icons, "unicode");
-        assert!(host.config_text().contains("icons = \"unicode\""));
         press(&mut host, KeyCode::Char('j')); // first slot: canvas
         press(&mut host, KeyCode::Enter);
         press(&mut host, KeyCode::Char('e'));
@@ -6067,8 +6463,9 @@ pub(crate) mod tests {
         host.update(Event::Intent(Intent::Activate { target: crate::view::chrome::targets::history_tab() }));
         let view = host.chrome_view(80, 24).history.expect("the overlay as view data");
         assert_eq!((view.width, view.height), (80, 23), "it takes the body under the top bar");
-        // Its esc key, pressed by target, closes it.
-        host.update(Event::Intent(Intent::Activate { target: crate::history::targets::key("esc") }));
+        // Its esc key, pressed by the target the view gave, closes it.
+        let esc = view.footer.iter().flat_map(|h| &h.keys_of).find(|k| k.label == "esc").unwrap();
+        host.update(Event::Intent(Intent::Activate { target: esc.target.clone() }));
         assert!(host.history.is_none());
     }
 

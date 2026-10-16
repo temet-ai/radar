@@ -18,7 +18,7 @@ use crate::journal_runtime::{JournalRecord, Recording, Sink};
 use crate::log;
 use crate::motion;
 use crate::plugin::{CliExecution, Plugin};
-use crate::select::{self, Selection};
+use crate::select;
 use crate::system::{self, Done, Env};
 use crate::terminal_host;
 
@@ -212,6 +212,7 @@ fn icons_cli(host: &Host, m: &clap::ArgMatches) -> Result<()> {
 pub fn host(plugins: Vec<Box<dyn Plugin>>) -> Result<Host> {
     let mut host = Host::new(plugins, time::now_secs())?;
     let path = config_path();
+    host.config_place = Some(place_of(&path, dirs::home_dir().as_deref()));
     let text = path
         .exists()
         .then(|| std::fs::read_to_string(&path))
@@ -224,6 +225,7 @@ pub fn host(plugins: Vec<Box<dyn Plugin>>) -> Result<Host> {
         log::error(format!("config {} unreadable: {e:#}", path.display()));
         return Err(e).with_context(|| format!("reading {}", path.display()));
     }
+    host.open_on_a_shown_screen();
     // RADAR_MODE (or the old RADAR_NO_WRITES switches) for this run.
     host.set_env_mode(crate::writes::env_mode(std::env::vars()));
     log::info(format!(
@@ -236,6 +238,14 @@ pub fn host(plugins: Vec<Box<dyn Plugin>>) -> Result<Host> {
     ));
     restore_caches(&mut host);
     Ok(host)
+}
+
+/// A path as the user would write it: under `home`, from `~`.
+pub fn place_of(path: &std::path::Path, home: Option<&std::path::Path>) -> String {
+    match home.and_then(|h| path.strip_prefix(h).ok()) {
+        Some(rest) => format!("~/{}", rest.display()),
+        None => path.display().to_string(),
+    }
 }
 
 /// Each part's cache from radar's database (its old JSON file once), then the
@@ -308,6 +318,15 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
                 )
                 .subcommand(clap::Command::new("path").about("The folder your packs go in")),
         )
+        .subcommand(
+            clap::Command::new("setup")
+                .about("Set radar up: from the start, or one step on its own")
+                .arg(
+                    clap::Arg::new("step")
+                        .value_name("STEP")
+                        .help("scan, choose, look, local, ready, or a part's step; an unknown one lists them"),
+                ),
+        )
         .subcommand(clap::Command::new("terminal").about("Show the terminal layers radar detected"))
         .subcommand(clap::Command::new("licenses").about("Print radar's licence and the licences of what it carries"))
         .subcommand(crate::shot::command())
@@ -365,7 +384,9 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
             .collect::<Vec<_>>()
             .join(", ")
     ));
-    let mut recording = start_recording(if matches.subcommand().is_some() {
+    // `radar setup [STEP]` is the TUI, opened on setup.
+    let cli_command = matches.subcommand().is_some_and(|(name, _)| name != "setup");
+    let mut recording = start_recording(if cli_command {
         SessionOrigin::Cli
     } else {
         SessionOrigin::Tui
@@ -373,7 +394,7 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
     let sink = recording.as_ref().map(|recording| recording.sink.clone());
     let action = sink.as_ref().map(|sink| {
         sink.begin(
-            if matches.subcommand().is_some() {
+            if cli_command {
                 "session.cli"
             } else {
                 "session.tui"
@@ -390,10 +411,10 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
     );
     let result = async {
         icons_here();
-        let host = host(plugins)?;
+        let mut host = host(plugins)?;
         let command = sink
             .as_ref()
-            .filter(|_| matches.subcommand().is_some())
+            .filter(|_| cli_command)
             .map(|sink| {
                 let mut descriptor = cli_descriptor(&matches, &host.plugins);
                 descriptor.metadata.mode = Some(journal_mode(host.mode()));
@@ -406,8 +427,12 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
             None,
         );
         let result = async {
+            if let Some(("setup", m)) = matches.subcommand() {
+                let step = m.get_one::<String>("step").map(String::as_str);
+                host.open_setup(step).map_err(|why| anyhow::anyhow!(why))?;
+            }
             match matches.subcommand() {
-                None => {
+                None | Some(("setup", _)) => {
                     let renderer =
                         Renderer::chosen(default, std::env::var("RADAR_RENDERER").ok().as_deref());
                     let result = match renderer {
@@ -748,6 +773,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     ));
     // The startup splash, over the first frames (crate::splash).
     let mut splash = crate::splash::Splash::new(crate::splash::Setting::parse(&theme_cfg.splash), motion.level());
+    splash.roll(motion.level() == crate::motion::Level::Full, theme.icons().width == 2, host.start_facts());
     let splash_clock = std::time::Instant::now();
     let (tx, mut rx) = unbounded_channel::<Event>();
     // The left button, kept by the runner: a press that does not move is a
@@ -933,22 +959,25 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
             let _ = reply.send(Event::TerminalRoute(result));
         });
     }
-    // The left button: where it went down (and when), and the drag from it.
-    let mut pressed: Option<(ratatui::layout::Position, u64)> = None;
-    let mut selection: Option<Selection> = None;
+    // The left button, the selection it makes and the presses counted.
+    let mut gesture = select::Gesture::default();
+    let bypass = select::bypass_key(std::env::var("TERM_PROGRAM").ok().as_deref());
     let mut shown = ratatui::buffer::Buffer::empty(ratatui::layout::Rect::ZERO);
+    let mut shown_area = shown.area;
     // The pointer's shape as last sent, and a pointer event read while
     // moves were being gathered, to handle next.
     let mut shape = crate::ui::pointer::Shape::Default;
     let mut held: Option<Pointer> = None;
     let mut redraw = true;
+    // The splash's picture is on the screen ([`crate::splash::picture`]).
+    let mut pictured = false;
     let result = async {
         loop {
             if redraw {
                 let started = std::time::Instant::now();
                 // The splash: its frame now, or the hand-off to the first
                 // screen, which fades in with the screen cue.
-                let over = match splash.step(splash_clock.elapsed(), true, &host.splash_parts()) {
+                let over = match splash.step(splash_clock.elapsed(), true, &host.splash_parts(theme.icons())) {
                     crate::splash::Step::Show(scene) => {
                         let size = terminal.size().unwrap_or_default();
                         let frame = crate::splash::frame(&theme, &scene, size.width, size.height);
@@ -963,6 +992,12 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     }
                     crate::splash::Step::Hidden => None,
                 };
+                // Where the terminal shows kitty's pictures, the scope in
+                // pixels over its cells (written after the frame).
+                let picture = over
+                    .as_ref()
+                    .zip(crate::ui::image::kitty_cell())
+                    .and_then(|(frame, cell)| crate::splash::picture(frame, cell));
                 terminal.draw(|f| {
                     crate::shell::render(&host, &theme, f);
                     // What is on screen before the selection is marked: the
@@ -973,11 +1008,34 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     // targets, so a click acts on it.
                     if let Some(frame) = &over {
                         crate::splash::draw(frame, f.buffer_mut());
+                        if let Some(pic) = &picture {
+                            crate::splash::clear_under(pic, f.buffer_mut());
+                        }
                     }
-                    if let Some(s) = &selection {
-                        select::paint(f.buffer_mut(), s);
+                    if let Some(s) = &gesture.selection {
+                        select::paint(f.buffer_mut(), s, select::style(&theme));
                     }
                 })?;
+                // The splash's picture over the frame just drawn; once the
+                // splash goes, the picture goes with it.
+                match &picture {
+                    Some(pic) => {
+                        let _ = terminal.backend_mut().write_all(crate::splash::kitty_at(pic).as_bytes());
+                        let _ = terminal.backend_mut().flush();
+                        pictured = true;
+                    }
+                    None if pictured && over.is_none() => {
+                        let _ = terminal.backend_mut().write_all(crate::splash::kitty_hide().as_bytes());
+                        let _ = terminal.backend_mut().flush();
+                        pictured = false;
+                    }
+                    None => {}
+                }
+                // The screen changed size: what was selected is not there.
+                if shown.area != shown_area {
+                    shown_area = shown.area;
+                    gesture.clear();
+                }
                 if let Some(why) = motion.drew_in(started.elapsed()) {
                     log::info(why);
                     let _ = tx.send(Event::Notice(why.into()));
@@ -986,7 +1044,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
             redraw = true;
             // The pointer: a hand over what a click acts on, a text cursor
             // while a drag selects.
-            let want = if selection.as_ref().is_some_and(Selection::moved) {
+            let want = if gesture.selecting() {
                 crate::ui::pointer::Shape::Text
             } else {
                 host.pointer_shape()
@@ -1038,60 +1096,47 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                             continue;
                         }
                         Pointer::Down(at, ms) => {
-                            pressed = Some((at, ms));
-                            selection = None;
+                            gesture.down(at, ms, &host.frontend.selectable());
                             continue;
                         }
                         Pointer::Drag(head) => {
-                            if let Some((anchor, _)) = pressed {
-                                selection = Some(Selection { anchor, head });
-                            }
+                            gesture.drag(head);
+                            // While a drag selects, the status line names the
+                            // key that selects with the terminal instead.
+                            host.selecting = gesture.selecting().then_some(bypass);
                             continue;
                         }
                         Pointer::Up => {
-                            let down = pressed.take();
-                            match selection.take().filter(Selection::moved) {
-                                Some(s) => {
-                                    let text = select::text(&shown, &s);
-                                    if text.trim().is_empty() {
-                                        continue;
-                                    }
-                                    let n = text.chars().count();
-                                    let effect = match journal.as_ref() {
-                                        Some(sink) => HostEffect::Tracked {
-                                            action: sink.begin_descriptor(
-                                                ActionDescriptor::new(
-                                                    "system.copy.selection",
-                                                    Origin::Host,
-                                                )
-                                                .with_metadata(crate::journal::Metadata {
-                                                    mode: Some(journal_mode(host.mode())),
-                                                    ..Default::default()
-                                                }),
-                                                None,
-                                            ),
-                                            semantic: None,
-                                            effect: Box::new(HostEffect::Copy(text)),
-                                        },
-                                        None => HostEffect::Copy(text),
-                                    };
-                                    perform(effect, &tx, journal.as_ref());
-                                    Event::Notice(format!("copied {n} characters"))
+                            host.selecting = None;
+                            match gesture.up(&shown) {
+                                select::Released::Copy(text) => {
+                                    Event::Intent(crate::view::Intent::Copy { text })
                                 }
-                                None => match down {
-                                    Some((at, at_ms)) => Event::Mouse {
-                                        kind: crate::host::MouseKind::Press,
-                                        column: at.x,
-                                        row: at.y,
-                                        at_ms,
-                                    },
-                                    None => continue,
+                                select::Released::Click(at, at_ms) => Event::Mouse {
+                                    kind: crate::host::MouseKind::Press,
+                                    column: at.x,
+                                    row: at.y,
+                                    at_ms,
                                 },
+                                select::Released::Nothing => continue,
                             }
                         }
                     }
                 }
             };
+            // With a selection showing: shift+arrows move its head, ctrl+c
+            // copies it again, any other key (or the wheel) ends it.
+            match &event {
+                Event::Key(k) => match gesture.key(k, host.capturing() || host.menu.is_some(), &shown) {
+                    select::Keyed::Used => continue,
+                    select::Keyed::Copy(text) => {
+                        event = Event::Intent(crate::view::Intent::Copy { text });
+                    }
+                    select::Keyed::Pass => {}
+                },
+                Event::Mouse { kind, .. } if *kind != crate::host::MouseKind::Press => gesture.clear(),
+                _ => {}
+            }
             // Unwrap before handling terminal clipboard fallbacks; the
             // reducer still receives the same originating action afterward.
             let (plain, action, semantic) = match event {
@@ -1130,6 +1175,9 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                 motion.input();
                 // The splash ends at once; the key acts on the screen.
                 splash.input();
+                if let Some(line) = splash.take_early_line() {
+                    host.show_start_line(line);
+                }
             }
             let event = tracked_event(event, action, semantic);
             for effect in host.update(event) {
@@ -1259,12 +1307,12 @@ fn open_web(
     let ways = system::open_ways(env, &url);
     let done = system::try_ways(&ways, None);
     match &done {
-        Ok(Done::Ran) => record_outcome(journal, action.as_ref(), JournalOutcome::Succeeded, None),
+        Ok(Done::Ran { .. }) => record_outcome(journal, action.as_ref(), JournalOutcome::Succeeded, None),
         Err(_) => record_outcome(journal, action.as_ref(), JournalOutcome::Failed, None),
         Ok(Done::UseTerminal { .. }) => {}
     }
     let event = match done {
-        Ok(Done::Ran) => Event::Notice("opened in your browser".into()),
+        Ok(Done::Ran { .. }) => Event::Notice("opened in your browser".into()),
         Ok(Done::UseTerminal { why }) => Event::ToClipboard {
             note: if env.ssh {
                 "on ssh, the link is on your own clipboard: paste it in your browser".into()
@@ -1278,6 +1326,78 @@ fn open_web(
         Err(e) => Event::Notice(format!("could not open the link: {e}")),
     };
     let _ = tx.send(tracked_event(event, action, semantic));
+}
+
+/// What the status line says about text copied from the screen: how many
+/// characters, and the way that took them (a program's name, or `terminal`
+/// for OSC 52).
+fn copied_note(characters: usize, way: &str) -> String {
+    format!("copied {characters} characters \u{b7} {way}")
+}
+
+/// Put `text` on the clipboard in the first way that works. `report` says
+/// the user selected it from the screen, so the status line names the way;
+/// a copy a part asked for says what it copied itself.
+fn copy_text(
+    text: String,
+    report: bool,
+    tx: &UnboundedSender<Event>,
+    journal: Option<&Sink>,
+    action: Option<ActionId>,
+    semantic: Option<ActionId>,
+) {
+    let ways = system::copy_ways(&Env::detect());
+    let tx = tx.clone();
+    let journal = journal.cloned();
+    std::thread::spawn(move || {
+        copy_through(&ways, text, report, &tx, journal.as_ref(), action, semantic)
+    });
+}
+
+/// [`copy_text`] with the ways chosen: runs them in order (it blocks while a
+/// program runs) and sends what the status line should say.
+fn copy_through(
+    ways: &[system::Way],
+    text: String,
+    report: bool,
+    tx: &UnboundedSender<Event>,
+    journal: Option<&Sink>,
+    action: Option<ActionId>,
+    semantic: Option<ActionId>,
+) {
+    let n = text.chars().count();
+    match system::try_ways(ways, Some(&text)) {
+        Ok(Done::Ran { way }) => {
+            record_outcome(journal, action.as_ref(), JournalOutcome::Succeeded, None);
+            if report {
+                let _ = tx.send(tracked_event(
+                    Event::Notice(copied_note(n, &way)),
+                    action,
+                    semantic,
+                ));
+            }
+        }
+        Ok(Done::UseTerminal { .. }) => {
+            let note = if report {
+                copied_note(n, "terminal")
+            } else {
+                String::new()
+            };
+            let _ = tx.send(tracked_event(
+                Event::ToClipboard { text, note },
+                action,
+                semantic,
+            ));
+        }
+        Err(e) => {
+            record_outcome(journal, action.as_ref(), JournalOutcome::Failed, None);
+            let _ = tx.send(tracked_event(
+                Event::Notice(format!("could not copy: {e}")),
+                action,
+                semantic,
+            ));
+        }
+    }
 }
 
 fn perform(effect: HostEffect, tx: &UnboundedSender<Event>, journal: Option<&Sink>) {
@@ -1389,7 +1509,7 @@ fn perform_in(
                     return open_web(&env, web, &tx, journal.as_ref(), action, semantic);
                 }
                 match system::try_ways(&ways, None) {
-                    Ok(Done::Ran) => {
+                    Ok(Done::Ran { .. }) => {
                         record_outcome(
                             journal.as_ref(),
                             action.as_ref(),
@@ -1406,45 +1526,8 @@ fn perform_in(
                 }
             });
         }
-        HostEffect::Copy(text) => {
-            let env = Env::detect();
-            let tx = tx.clone();
-            let journal = journal.cloned();
-            std::thread::spawn(move || {
-                let ways = system::copy_ways(&env);
-                match system::try_ways(&ways, Some(&text)) {
-                    Ok(Done::Ran) => record_outcome(
-                        journal.as_ref(),
-                        action.as_ref(),
-                        JournalOutcome::Succeeded,
-                        None,
-                    ),
-                    Ok(Done::UseTerminal { .. }) => {
-                        let _ = tx.send(tracked_event(
-                            Event::ToClipboard {
-                                text,
-                                note: String::new(),
-                            },
-                            action,
-                            semantic,
-                        ));
-                    }
-                    Err(e) => {
-                        record_outcome(
-                            journal.as_ref(),
-                            action.as_ref(),
-                            JournalOutcome::Failed,
-                            None,
-                        );
-                        let _ = tx.send(tracked_event(
-                            Event::Notice(format!("could not copy: {e}")),
-                            action,
-                            semantic,
-                        ));
-                    }
-                }
-            });
-        }
+        HostEffect::Copy(text) => copy_text(text, false, tx, journal, action, semantic),
+        HostEffect::CopySelection(text) => copy_text(text, true, tx, journal, action, semantic),
         HostEffect::Save(text) => {
             let result = save(&text).map_err(|e| e.to_string());
             record_outcome(
@@ -1480,6 +1563,17 @@ fn perform_in(
                 );
             });
             crate::plugin_cache::save(plugin, value, Some(done));
+        }
+        // Setup's look for keys, which the user said yes to: the names of
+        // the variables (their values are dropped unread) and which sign-in
+        // files exist, off the UI thread.
+        HostEffect::Scan(asks) => {
+            let tx = tx.clone();
+            tokio::task::spawn_blocking(move || {
+                let names = std::env::vars_os().map(|(name, _)| name.to_string_lossy().into_owned());
+                let found = crate::setup::scan(&asks, names, dirs::home_dir().as_deref(), |p| p.exists());
+                let _ = tx.send(tracked_event(Event::Scanned(found), action, semantic));
+            });
         }
     }
 }
@@ -1607,8 +1701,10 @@ mod tests {
     }
 
     /// The runner's loop waits on `frame_tick(motion.next_frame())` beside
-    /// its events: a tick comes only while an effect runs.
-    #[tokio::test]
+    /// its events: a tick comes only while an effect runs. On tokio's paused
+    /// clock: a frame's sleep and the wait for it are virtual, so a loaded
+    /// machine cannot make the frame miss its 120 ms.
+    #[tokio::test(start_paused = true)]
     async fn the_frame_tick_comes_only_while_an_effect_runs() {
         use super::frame_tick;
         use crate::design::theme::Tier;
@@ -1675,6 +1771,53 @@ mod tests {
             assert_eq!(std::fs::read_to_string(&path).unwrap(), "a = 3\n");
         }
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    fn copy(ways: &[crate::system::Way], report: bool) -> Vec<crate::host::Event> {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+        super::copy_through(ways, "héllo".into(), report, &tx, None, None, None);
+        let mut out = vec![];
+        while let Ok(event) = rx.try_recv() {
+            out.push(event);
+        }
+        out
+    }
+
+    #[test]
+    fn copied_selection_says_which_program_took_it() {
+        use crate::host::Event;
+        crate::system::real_programs_on_this_thread();
+        let by_program = [crate::system::Way::Run("cat".into(), vec![])];
+        assert!(matches!(
+            &copy(&by_program, true)[..],
+            [Event::Notice(note)] if note == "copied 5 characters \u{b7} cat"
+        ));
+        // A copy a part asked for names what it copied itself.
+        assert!(copy(&by_program, false).is_empty());
+    }
+
+    #[test]
+    fn copied_selection_says_terminal_when_the_terminal_takes_it() {
+        use crate::host::Event;
+        assert!(matches!(
+            &copy(&[crate::system::Way::Terminal], true)[..],
+            [Event::ToClipboard { text, note }]
+                if text == "héllo" && note == "copied 5 characters \u{b7} terminal"
+        ));
+        assert!(matches!(
+            &copy(&[crate::system::Way::Terminal], false)[..],
+            [Event::ToClipboard { note, .. }] if note.is_empty()
+        ));
+    }
+
+    #[test]
+    fn a_copy_no_way_can_do_says_so() {
+        use crate::host::Event;
+        let none = [crate::system::Way::Run("radar-no-such-program".into(), vec![])];
+        assert!(matches!(
+            &copy(&none, true)[..],
+            [Event::Notice(note)] if note.starts_with("could not copy: ")
+        ));
     }
 }
 

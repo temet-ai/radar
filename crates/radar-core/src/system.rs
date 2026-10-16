@@ -51,6 +51,13 @@ pub fn sandboxed() -> bool {
     std::env::var_os("RADAR_SANDBOX").is_some_and(|v| !v.is_empty())
 }
 
+/// For a test elsewhere in the crate of how a program is run: harmless ones
+/// (`true`, `cat`) run on this thread despite the sandbox.
+#[cfg(test)]
+pub(crate) fn real_programs_on_this_thread() {
+    tests::REAL_PROGRAMS.with(|c| c.set(true));
+}
+
 /// Where radar is running, as far as opening links and copying go.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Env {
@@ -226,8 +233,8 @@ pub fn osc52(text: &str, tmux: bool) -> String {
 /// What happened, for the status line.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Done {
-    /// A program did it.
-    Ran,
+    /// A program did it: `way` is its command (`wl-copy`, `xdg-open`).
+    Ran { way: String },
     /// No program could (`why` says what the last one said, if any was
     /// tried): the text must go to the terminal (OSC 52), which only the
     /// thread drawing the screen may write to.
@@ -245,7 +252,7 @@ pub fn try_ways(ways: &[Way], stdin: Option<&str>) -> Result<Done, String> {
             return Ok(Done::UseTerminal { why });
         };
         match try_run(cmd, args, stdin, None, Duration::from_secs(3)) {
-            Ok(()) => return Ok(Done::Ran),
+            Ok(()) => return Ok(Done::Ran { way: cmd.clone() }),
             Err(e) => why = e,
         }
     }
@@ -934,14 +941,18 @@ mod tests {
     fn a_missing_program_falls_through_to_the_next_way() {
         REAL_PROGRAMS.with(|c| c.set(true));
         let ways = [run("radar-no-such-program", &[]), run("true", &[])];
-        assert_eq!(try_ways(&ways, None), Ok(Done::Ran));
+        assert_eq!(try_ways(&ways, None), Ok(Done::Ran { way: "true".into() }));
         let ways = [run("radar-no-such-program", &[]), Way::Terminal];
         assert!(matches!(
             try_ways(&ways, Some("x")),
             Ok(Done::UseTerminal { why }) if why.starts_with("radar-no-such-program")
         ));
-        let ways = [run("false", &[])];
+        let ways = [run("radar-no-such-program", &[]), run("radar-no-such-program-either", &[])];
         assert!(try_ways(&ways, None).is_err());
+        // A program that fails is an error. Asked without patience: with the
+        // three seconds `try_ways` gives, a `false` the loaded machine had not
+        // yet let exit would count as an opener still running.
+        assert!(try_run("false", &[], None, None, Duration::MAX).is_err());
     }
 
     // --- a folder ---------------------------------------------------------------
@@ -1155,7 +1166,9 @@ mod tests {
             start("true", vec![], "the second"),
         ];
         assert_eq!(start_in(&ok, &dir), Ok("the second".into()));
-        let bad = [start("false", vec![], "never")];
+        // Not `false`: with the 1.5 s `start_in` gives, one the loaded machine
+        // had not yet let exit would count as started.
+        let bad = [start("radar-no-such-program", vec![], "never")];
         assert!(start_in(&bad, &dir).is_err());
         assert!(on_path("sh"));
         assert!(!on_path("radar-no-such-program"));

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/icons.rs
+assertion_line: 375
 expression: "crate::shell::to_text(&host, 80, 24)"
 ---
  radar    ≣ History   ⚙ Settings (,)                                     ✎ edit
@@ -7,9 +8,9 @@ expression: "crate::shell::to_text(&host, 80, 24)"
 │General               ││ code                                                 █
 │  ├─ ⊞ parts          ││   ◆  group                                           ║
 │  ├─ ✎ mode           ││   R  repo              a repository            yours ║
-│  ├─ ◑ colours        ││   ⎇  branch            a branch                      ║
-│  └─ ☺ icons          ││   ◦  commit            a commit                      ║
-│                      ││   ⇄  change                                          ║
+│  ├─ ◑ appearance     ││   ⎇  branch            a branch                      ║
+│  ├─ ◑ colours        ││   ◦  commit            a commit                      ║
+│  └─ ☺ icons          ││   ⇄  change                                          ║
 │                      ││   ◌  draft             a change still in draft       ║
 │                      ││   ◈  merged            a change merged               ║
 │                      ││   ⊘  closed                                          ║

@@ -3,6 +3,8 @@ import type { Capabilities } from "../protocol/generated/Capabilities.js";
 import type { SplashView } from "../protocol/generated/SplashView.js";
 import type { ChromeView, Intent, MenuView } from "../chrome/types.js";
 import { applyHostLook, type HostLook } from "../text/look.js";
+import { tracer } from "./trace.js";
+import { takeTranscript, type HeldTranscript } from "../dock/transcript.js";
 
 /** The protocol and view contract this renderer speaks (crates/radar-core/src/ipc.rs `PROTOCOL`, view::VERSION). */
 export const PROTOCOL = 1;
@@ -69,6 +71,9 @@ export class Session {
   state: SessionState = { phase: "connecting", questions: [], notices: [] };
   private listeners = new Set<() => void>();
   private seq = 0;
+  /** The dock's transcript as last taken in; the host sends only what changed after it. */
+  private transcript: HeldTranscript | undefined;
+  private resync = false;
 
   constructor(
     private readonly conn: Connection,
@@ -141,17 +146,36 @@ export class Session {
         break;
       case "snapshot": {
         const { type: _t, ...snap } = m;
+        tracer.snapshot(m.cursor, m.trace);
+        // The dock's transcript comes as what changed since the last one (dock/transcript.ts): made whole here.
+        const dock = snap.screen?.dock ?? snap.dock;
+        if (dock) {
+          const took = takeTranscript(this.transcript, dock);
+          this.transcript = took.held;
+          if (!took.ok) {
+            this.transcript = undefined;
+            this.resync = true;
+          }
+        }
         // The snapshot is the truth for which menu is open (the host sends every menu it opens as a question, and a
         // click on a menu row closes it without an intent that names it). A question asked at or before this
         // snapshot that is not the chrome's menu now is closed; later ones are not in this snapshot yet.
         const open = (snap as SnapshotState).chrome?.menu?.id;
         const questions = this.state.questions.filter((q) => q.cursor > m.cursor || q.menu.id === open);
-        this.set(
-          questions.length === this.state.questions.length
-            ? { snapshot: snap as SnapshotState }
-            : { snapshot: snap as SnapshotState, questions },
-        );
+        // An input request is closed the same way: a snapshot at or after it with no typed menu open. Kept, it was
+        // drawn over the body and took every key as typing after ⏎ or esc had closed it in the host.
+        const req = this.state.inputRequest;
+        const closed = req !== undefined && req.cursor <= m.cursor && (snap as SnapshotState).chrome?.menu?.typed == null;
+        this.set({
+          snapshot: snap as SnapshotState,
+          ...(questions.length === this.state.questions.length ? {} : { questions }),
+          ...(closed ? { inputRequest: undefined } : {}),
+        });
         this.conn.send({ type: "ack", cursor: m.cursor });
+        if (this.resync) {
+          this.resync = false;
+          this.conn.send({ type: "resync" });
+        }
         break;
       }
       case "look":
@@ -194,6 +218,7 @@ export class Session {
       // A click on a menu row chooses it and closes the menu.
       this.set({ questions: this.state.questions.slice(1) });
     }
+    tracer.intent(this.seq);
     this.conn.send({ type: "intent", seq: this.seq, cursor: this.cursor, intent });
   }
 

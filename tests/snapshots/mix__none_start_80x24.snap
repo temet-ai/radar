@@ -1,5 +1,6 @@
 ---
 source: tests/mix.rs
+assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    History   Settings (,)                                         ✎ edit
@@ -7,9 +8,9 @@ expression: "to_text(&started(), 80, 24)"
 │General               ││ No parts are compiled into this build of radar. Each │
 │  ├─ parts            ││ part is a cargo feature: build radar with the ones   │
 │  ├─ mode             ││ you want (cargo build --features <part>).            │
+│  ├─ appearance       ││                                                      │
 │  ├─ colours          ││                                                      │
 │  └─ icons            ││                                                      │
-│                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │

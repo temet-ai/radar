@@ -1,8 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 143
 expression: "to_text(&started(), 160, 40)"
 ---
- radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
+ radar    History   Settings (,)                                                                                                                         ✎ edit
 ╭ set up Workspace ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Workspace is not set up yet.                                                                                                                                 │
 │                                                                                                                                                              │

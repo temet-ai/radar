@@ -97,8 +97,9 @@ fn checks(effects: &[HostEffect]) -> Vec<(String, String)> {
 fn x_menu_base_check_keeps_surviving_field_when_loaded_removes_token_offer() {
     let mut p = demo::sample();
     p.me.clear();
+    p.cfg.token = "glab".into();
     p.env = Some(vec![(
-        "OTHER_GITLAB_TOKEN".into(),
+        "GITLAB_TOKEN".into(),
         "fake-token-long-enough-for-offer".into(),
     )]);
     assert_eq!(p.offers().len(), 1);

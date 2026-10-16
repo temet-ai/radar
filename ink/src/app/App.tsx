@@ -7,21 +7,42 @@ import { Box, Text, useInput, useStdin, useStdout, type DOMElement } from "ink";
 import { Session } from "./session.js";
 import { shellRenderNode, type NodeCx, type RenderNode } from "./Body.js";
 import type { ActionSpec } from "./actions.js";
-import { afterIntent, desynced, screenKey, scrollKey, sectionKey, workingFrom } from "../input/route.js";
+import { afterIntent, desynced, screenKey, scrollKey, sectionKey, sheetKey, workingFrom } from "../input/route.js";
 import { scrollerAt, scrollers } from "../nodes/index.js";
 import { layoutHistory } from "../chrome/history.js";
-import { HistoryOverlay, MenuBox, SettingsNavPane, SourcesRow, StatusRow, TopBarRow, frameOf, withNotice } from "../chrome/Chrome.js";
+import { HistoryOverlay, MenuBox, SettingsNavPane, SourcesRow, StatusRow, TopBarRow, TourCardBox, frameOf, withNotice } from "../chrome/Chrome.js";
+import { useSplashPicture } from "./splashPicture.js";
+import { SetupBody } from "./SetupBody.js";
 import { InputController, menuShowing, type InputView } from "../input/controller.js";
 import { WorkArea } from "../workarea/index.js";
 import { Framed, PageBody, PaneArea, ScreenPanes, share, type DockSlot } from "./Panes.js";
 import { splitDock } from "../dock/layout.js";
 import { Dock } from "../dock/Dock.js";
 import { TerminalSurface } from "../terminal/index.js";
-import { dockClick, dockClose, dockCloseKey, dockKey, isCloseChord, emptyLocal, scrollDock, WHEEL, type DockLocal } from "../dock/composer.js";
+import { dockClick, dockCommand, dockClose, dockCloseKey, dockKey, isCloseChord, emptyLocal, scrollDock, WHEEL, type DockLocal } from "../dock/composer.js";
 import { Splash } from "./Splash.js";
 import type { MouseBus } from "../input/stdin-tap.js";
 import { HitRegistry, UiState } from "../state/ui-state.js";
+import { tracer } from "./trace.js";
 import type { ChromeView, Intent, MenuView } from "../chrome/types.js";
+import { selected } from "./selected.js";
+import { areaAt, insideOf, selectKindOf } from "../input/selection.js";
+
+/** The key that lets the terminal select past radar's mouse capture: shift in most terminals, option in iTerm2, fn in
+ * Terminal.app (issue #51). */
+export function bypassKey(env: NodeJS.ProcessEnv = typeof process !== "undefined" ? process.env : {}): string {
+  const term = env.TERM_PROGRAM ?? "";
+  if (term === "iTerm.app") return "option";
+  if (term === "Apple_Terminal") return "fn";
+  return "shift";
+}
+
+/** While a drag selects text the status line's keys give way to one: how to get the terminal's own selection (host.rs
+ * status_hints, while `selecting`). */
+export function withDragHint(chrome: ChromeView, dragging: boolean, key = bypassKey()): ChromeView {
+  if (!dragging) return chrome;
+  return { ...chrome, status: { ...chrome.status, hints: [{ keys: key, label: "terminal's own selection" }], least_needed: [] } };
+}
 
 export type AppProps = {
   session: Session;
@@ -70,6 +91,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     (fn) => session.subscribe(fn),
     () => session.state,
   );
+  // RADAR_TRACE_LATENCY=1: what was marked before this render shows in the next frame written.
+  tracer.rendered();
   const ui = useMemo(() => uiProp ?? new UiState(), [uiProp]);
   const registry = useMemo(() => regProp ?? new HitRegistry(), [regProp]);
   const size = useSize();
@@ -81,16 +104,20 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   const dockMetrics = useRef({ max: 0, total: 0 });
   // A blur or focus of the dock Ink sent since snapshot `base`: the keys after it in the same read go where it sent them.
   const dockFocus = useRef<{ base: any; focused: boolean } | null>(null);
+  // While a drag selects text: the status line names the key that gives the terminal its own selection.
+  const [dragging, setDragging] = React.useState(false);
 
-  // Resize: tell the host and relayout; focus is never touched.
+  // Resize: tell the host and relayout; focus is never touched. A selection, in screen cells, is dropped.
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
       first.current = false;
       return;
     }
+    controllerRef.current?.selector.resized();
     session.resize(size.columns, size.rows);
   }, [size.columns, size.rows, session]);
+  const controllerRef = useRef<InputController | null>(null);
 
   useEffect(() => {
     if (state.phase === "refused" || state.phase === "closed") onExit?.(state.exitCode ?? 1, state.message);
@@ -112,7 +139,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     : null;
   const menu: MenuView | null = (menuShowing(state.questions[0]?.menu, chrome.menu) ?? requestMenu);
   const notice = state.notices[0];
-  const shownChrome: ChromeView = withNotice(chrome, notice);
+  const shownChrome: ChromeView = withDragHint(withNotice(chrome, notice), dragging);
   const actions: ActionSpec[] = (snap?.section?.actions ?? snap?.screen?.actions ?? []) as ActionSpec[];
   const baseFrame = frameOf(shownChrome, menu, size.columns, size.rows);
   // The history overlay replaces everything under the top bar (shell.rs): body, nav, menu and status line.
@@ -130,8 +157,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   // them live, so a click lands on what is on screen now.
   registry.clear();
   const bodyKeys = (chrome.keys_at ?? "body") === "body" && !history;
-  const live = useRef({ frame, menu, capturing, actions, snap, bodyKeys, registry });
-  live.current = { frame, menu, capturing, actions, snap, bodyKeys, registry };
+  const live = useRef({ frame, menu, capturing, actions, snap, bodyKeys, registry, history: historyLaid });
+  live.current = { frame, menu, capturing, actions, snap, bodyKeys, registry, history: historyLaid };
   const pending = useRef<{ base: any; working: any } | undefined>(undefined);
 
   const view: InputView = useMemo(() => {
@@ -151,7 +178,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     return {
       // The session's own state is read now, not the last frame: answering a question clears it at once, and
       // the keys after it in the same read are no longer the question's.
-      menu: () => menuShowing(session.state.questions[0]?.menu, live.current.snap?.chrome?.menu),
+      // Under the history overlay its keys are the overlay's: a question or menu it covers waits (host.rs).
+      menu: () => (live.current.snap?.chrome?.history ? null : menuShowing(session.state.questions[0]?.menu, live.current.snap?.chrome?.menu)),
       capturing: () => live.current.capturing,
       route: (chord) => {
         // Keys that arrive together are routed one from the other, not all from the newest snapshot.
@@ -197,10 +225,21 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         // A press anywhere but the dock and the bars takes the keys from the dock (as a click takes them from the top bar).
         if (ev.kind === "press" && !target.startsWith("dock:") && !target.startsWith("chrome:") && dockHasKeys()) send({ dock: "blur" });
         if (ev.kind !== "press" || ev.button !== "left") return false;
-        if (/^dock:(approve|session|deny|diff|choose|submit|decline|group):/.test(target)) {
-          // A request's button: what its key does (approve once, approve for session, deny, view diff, a question's
-          // choice, submit, decline).
+        if (/^dock:(approve|session|always|deny|diff|choose|submit|decline|group):/.test(target)) {
+          // A request's button: what its key does (approve once, approve for session, always allow, deny, view diff,
+          // a question's choice, submit, decline).
           const r = dockClick(dockRef.current, dock, target);
+          if (r) {
+            dockRef.current = r.local;
+            setDockLocal(r.local);
+            for (const i of r.intents) send(i);
+          }
+          if (!dockHasKeys()) send({ dock: "focus" });
+          return true;
+        }
+        if (target.startsWith("dock:cmd:")) {
+          // A row of the slash menu: its command runs, as ⏎ on it does.
+          const r = dockCommand(dockRef.current, dock, target);
           if (r) {
             dockRef.current = r.local;
             setDockLocal(r.local);
@@ -251,6 +290,23 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         return r.handled;
       },
       paneAt: (x, y) => live.current.registry.paneAt(x, y),
+      // Text is selected in a pane, the dock's transcript or the editor; with a menu or a typed prompt up only inside
+      // it (nothing behind the scrim, shell.rs); over the history in its panels; never over the splash.
+      selectAt: (x, y) => {
+        const l = live.current;
+        if (l.snap?.splash) return undefined;
+        if (l.menu) {
+          const m = l.frame.menu;
+          return m ? areaAt([{ ...insideOf(m), id: "menu", kind: "rows" }], x, y) : undefined;
+        }
+        if (l.history) return areaAt(l.history.selects, x, y);
+        return l.registry.selectAt(x, y);
+      },
+      frameRow: (y) => selected.row(y),
+      showSelection: (sel, dragging) => {
+        selected.set(sel, session.plainText);
+        setDragging(dragging);
+      },
       wheel: (pane, up, x, y) => {
         // The history overlay is the host's: it takes the wheel as k/j (history.rs on_mouse).
         if (live.current.snap?.chrome?.history) return false;
@@ -291,9 +347,9 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         const base = live.current.snap;
         pending.current = workingFrom(pending.current, base);
         const s = pending.current?.working;
-        return live.current.bodyKeys && s?.screen
-          ? scrollKey(s.screen, typeof s.focus === "string" ? s.focus : undefined, chord, scrollers())
-          : undefined;
+        if (!live.current.bodyKeys) return undefined;
+        if (s?.section) return sheetKey(s.section, chord, scrollers());
+        return s?.screen ? scrollKey(s.screen, typeof s.focus === "string" ? s.focus : undefined, chord, scrollers()) : undefined;
       },
       // A menu is over the body: body rows under it are not pointable (its hits and the bars' are the frame's).
       hits: () => {
@@ -331,6 +387,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       ),
     [view, session, ui],
   );
+  controllerRef.current = controller;
 
   // shell.rs hover: a redraw can move a row under a still pointer; ask again once this frame's hits are registered (a
   // frame follows only when what is under the pointer changed).
@@ -348,7 +405,11 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     const redraw = () => r?.onRender?.();
     // Nothing is lit over the startup splash either.
     hover.attach(redraw, () => live.current.menu !== null || !!live.current.snap?.splash);
-    return () => hover.detach(redraw);
+    selected.attach(redraw);
+    return () => {
+      hover.detach(redraw);
+      selected.detach(redraw);
+    };
   }, []);
 
   // The set of targets showing, so focus survives a snapshot while its target exists. UiState is read by the
@@ -369,8 +430,9 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
             if (!ev.on) controller.blur();
           }
           else {
-            // The host's rule (host.rs): a key clears the message and is handled as the same key.
-            session.dismissNotices();
+            // The host's rule (host.rs): a key clears the message and is handled as the same key; a notice the
+            // history overlay covers stays for when it closes.
+            if (!live.current.snap?.chrome?.history) session.dismissNotices();
             controller.keyChord(ev.chord, ev.shift);
           }
         }
@@ -384,7 +446,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   useInput((input, key) => {
     if (mouse) return;
     if (/^\[?<\d+;\d+;\d+[Mm]$/.test(input)) return;
-    session.dismissNotices();
+    if (!live.current.snap?.chrome?.history) session.dismissNotices();
     controller.key(input, key);
   }, { isActive: isRawModeSupported });
 
@@ -404,6 +466,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   const focusPane = keysInBody ? (typeof snap?.focus === "string" ? snap.focus : undefined) : "none";
   const bodyW = size.columns;
   const bodyH = frame.bodyHeight;
+  const raw = useStdout().stdout;
+  useSplashPicture(snap?.splash, (data) => void raw.write(data));
   // The startup splash, while the host sends it, in place of everything (radar_core::splash). The screen under it is in
   // the same snapshot: keys and clicks are routed to it as usual, and the host ends the splash on the first one.
   if (snap?.splash) {
@@ -415,12 +479,27 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   }
   let body: React.ReactNode = null;
   if (state.phase === "connecting" && !snap) body = <Text dimColor>radar ink renderer: waiting for the host</Text>;
-  else if (snap?.section) {
+  else if (snap?.section && shownChrome.setup) {
+    body = (
+      <SetupBody
+        section={snap.section}
+        width={bodyW}
+        height={bodyH}
+        cx={cx}
+        renderNode={renderNode}
+        title={shownChrome.setup.title}
+        heading={shownChrome.setup.heading}
+        lead={shownChrome.setup.lead}
+        detailTitle={snap.section.detail_title}
+      />
+    );
+  } else if (snap?.section) {
     body = (
       <SectionBody
         section={snap.section}
         nav={shownChrome.settings ? <SettingsNavPane chrome={shownChrome} frame={frame} focused={focusPane === "nav"} /> : null}
         navWidth={frame.navWidth}
+        navBar={frame.navTotal > Math.max(1, frame.bodyHeight - 2)}
         focus={focusPane ?? "middle"}
         width={bodyW}
         height={bodyH}
@@ -452,9 +531,10 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         </Box>
         {editor ? (
           <Box position="absolute" marginTop={Math.max(0, bodyH - editorOverlayHeight(editor.lines?.length ?? 1, bodyH))} width={size.columns}>
-            <EditorOverlay data={editor} width={size.columns} areaHeight={bodyH} />
+            <EditorOverlay data={editor} width={size.columns} areaHeight={bodyH} registry={registry} />
           </Box>
         ) : null}
+        {shownChrome.tour ? <TourCardBox card={shownChrome.tour} width={size.columns} height={bodyH} /> : null}
         {menu ? <MenuBox menu={menu} frame={frame} /> : null}
       </Box>
       <StatusRow frame={frame} />
@@ -510,19 +590,24 @@ function ScreenBody({ screen, dockLocal, bus, metrics, menuOpen, leave, cx, rend
   return <ScreenPanes screen={screen} focus={focus} width={width} height={height} cx={cx} renderNode={renderNode} dock={dock} />;
 }
 
+/** One framed pane of a settings section or of setup: the section's rows (`middle`) or its detail (`detail`). */
+function sectionPane(cx: NodeCx, renderNode: RenderNode, focused: boolean, title: string, node: any, w: number, h: number, pane: string) {
+  return (
+    <Framed title={title} width={w} height={h} focused={focused} pane={pane} registry={cx.registry} select={selectKindOf(node)}>
+      {renderNode(node, { ...cx, focused, scrolls: node.node === "document", sheet: pane === "detail", width: Math.max(0, w - 2), height: Math.max(1, h - 2) })}
+    </Framed>
+  );
+}
+
 /** A settings section: the nav beside the section's rows and its detail (a stack when narrow). */
-function SectionBody(p: { section: any; nav: React.ReactNode; navWidth: number; focus: string; width: number; height: number; cx: NodeCx; renderNode: RenderNode; title: string; detailTitle: string; dock?: DockSlot }) {
+function SectionBody(p: { section: any; nav: React.ReactNode; navWidth: number; navBar?: boolean; focus: string; width: number; height: number; cx: NodeCx; renderNode: RenderNode; title: string; detailTitle: string; dock?: DockSlot }) {
   const { section, nav, navWidth, width, height, cx, renderNode } = p;
   const rest = Math.max(0, width - navWidth);
   // shell.rs settings_areas: from 120 cells the section and its detail sit side by side (3:2), below that the detail is
   // under the section, the two halves equal (Fill(1), Fill(1)).
   const wide = width >= 120;
   const detailNode = section.detail_blocks?.length ? { node: "rich", blocks: section.detail_blocks } : { node: "document", lines: section.detail ?? [] };
-  const mk = (title: string, node: any, w: number, h: number, pane: string) => (
-    <Framed title={title} width={w} height={h} focused={p.focus === pane} pane={pane} registry={cx.registry}>
-      {renderNode(node, { ...cx, focused: p.focus === pane, scrolls: node.node === "document", width: Math.max(0, w - 2), height: Math.max(1, h - 2) })}
-    </Framed>
-  );
+  const mk = (title: string, node: any, w: number, h: number, pane: string) => sectionPane(cx, renderNode, p.focus === pane, title, node, w, h, pane);
   // Ratatui's Fill constraints round the first share to the nearest cell (136 cells at 3:2 are 82 and 54).
   // The dock sits under the section (under the section and its detail when they stack); narrow, it covers them.
   const split = p.dock ? splitDock(height, width, true, p.dock.rows, p.dock.full) : null;
@@ -535,7 +620,7 @@ function SectionBody(p: { section: any; nav: React.ReactNode; navWidth: number; 
   return (
     <Box flexDirection="row" width={width} height={height} overflow="hidden">
       {nav ? (
-        <PaneArea pane="nav" registry={cx.registry} width={navWidth} height={height}>
+        <PaneArea pane="nav" registry={cx.registry} width={navWidth} height={height} select="rows" selectRight={p.navBar ? 1 : 0}>
           {nav}
         </PaneArea>
       ) : null}

@@ -18,7 +18,7 @@ use crate::view::{ChromeView, Intent, PaneId};
 use super::{
     Capabilities, InputRequest, Look, MAX_CLIPBOARD, MAX_INPUT, MAX_LINE, MAX_NOTICE, MotionCue,
     MotionRegion, MotionView, Notice,
-    PROTOCOL, Question, Snapshot, ToHost, ToRenderer, encode,
+    PROTOCOL, Question, Snapshot, ToHost, ToRenderer,
 };
 
 /// What a renderer's message came to.
@@ -45,7 +45,16 @@ pub struct Bridge {
     /// The snapshot sent and not yet acknowledged.
     in_flight: Option<u64>,
     /// What the last snapshot sent showed, to send only a change.
-    last_state: Option<String>,
+    /// Without the dock's transcript, which `sent` holds.
+    last_state: Option<Snapshot>,
+    /// The dock's transcript as the renderer holds it, so the next snapshot
+    /// sends only what changed ([`Bridge::send_snapshot`]).
+    sent: Option<Sent>,
+    /// The last transcript revision given out.
+    revision: u64,
+    /// The icon column's width, with the theme and tier it was worked out
+    /// for: building the theme for it on every snapshot cost a millisecond.
+    lead: std::cell::RefCell<Option<(ThemeConfig, Tier, usize)>>,
     /// The question or captured input open as last told, by its contents.
     asked: Option<String>,
     question_id: u64,
@@ -67,9 +76,16 @@ pub struct Bridge {
     /// The startup splash's timing, and its frame as last worked out.
     splash: Splash,
     splash_view: Option<SplashView>,
+    /// While the splash shows: the rest of the snapshot as last built. Only
+    /// the splash moves between the host's own changes, so its frames (every
+    /// [`splash::FRAME`]) do not rebuild the screen under it; anything that
+    /// reaches the host drops this.
+    held: Option<Snapshot>,
     /// The splash's clock: since the bridge was made, or as a test sets it.
     origin: std::time::Instant,
     clock_ms: Option<u64>,
+    /// Latency tracing (`RADAR_TRACE_LATENCY=1`), when on.
+    trace: Option<super::trace::Trace>,
 }
 
 /// Cues kept for a snapshot not sent yet.
@@ -91,6 +107,9 @@ impl Bridge {
             cursor: 0,
             in_flight: None,
             last_state: None,
+            sent: None,
+            revision: 0,
+            lead: std::cell::RefCell::new(None),
             asked: None,
             question_id: 0,
             told: None,
@@ -103,8 +122,10 @@ impl Bridge {
             // Only a real start shows it ([`Bridge::show_splash`]).
             splash: Splash::new(splash::Setting::Off, Level::Off),
             splash_view: None,
+            held: None,
             origin: std::time::Instant::now(),
             clock_ms: None,
+            trace: super::trace::wanted(std::env::var(super::trace::VAR).ok().as_deref()).then(Default::default),
         }
     }
 
@@ -112,6 +133,17 @@ impl Bridge {
     /// snapshot (the runner does, at radar's start).
     pub fn show_splash(&mut self) {
         self.splash = Splash::new(splash::Setting::parse(&self.host.colours.cfg.splash), Level::Off);
+        if self.splash.active() {
+            let emoji = self.host.build_theme(self.tier).icons().width == 2;
+            let facts = self.host.start_facts();
+            self.splash.roll(self.motion_level().0 == Level::Full, emoji, facts);
+        }
+    }
+
+    /// Trace latency (as `RADAR_TRACE_LATENCY=1` does): each snapshot sent
+    /// carries what it answers and radar.log says what it cost.
+    pub fn set_trace(&mut self, on: bool) {
+        self.trace = on.then(Default::default);
     }
 
     /// Set the splash's clock, in ms (tests).
@@ -139,16 +171,24 @@ impl Bridge {
         }
         self.splash.set_setting(splash::Setting::parse(&self.host.colours.cfg.splash));
         self.splash.set_level(self.motion_level().0);
-        let parts = self.host.splash_parts();
+        let theme = self.host.build_theme(self.tier);
+        let parts = self.host.splash_parts(theme.icons());
         let now = self.now();
         self.splash_view = match self.splash.step(now, true, &parts) {
             splash::Step::Show(scene) => {
-                let theme = self.host.build_theme(self.tier);
                 let frame = splash::frame(&theme, &scene, self.width, self.height);
                 if frame.is_none() {
                     self.splash.input();
                 }
-                frame.map(|f| splash::view(&f))
+                let kitty = self.capabilities.as_ref().is_some_and(|c| c.image == crate::ipc::ImageProtocol::Kitty);
+                frame.map(|f| {
+                    let mut view = splash::view(&f);
+                    // Kitty scales the picture to its cells: a usual cell's pixels.
+                    if kitty {
+                        view.picture = splash::picture(&f, (10, 20)).as_ref().map(splash::SplashPicture::of);
+                    }
+                    view
+                })
             }
             splash::Step::HandOff => {
                 self.cues.push(MotionCue::Screen { region: MotionRegion::Body });
@@ -166,6 +206,7 @@ impl Bridge {
     /// Whether motion is held back as over SSH (a test sets it).
     pub fn set_ssh(&mut self, ssh: bool) {
         self.ssh = ssh;
+        self.held = None;
     }
 
     /// The motion level that runs and why it is held back, as the Ratatui
@@ -206,6 +247,7 @@ impl Bridge {
     pub fn set_tier(&mut self, tier: Tier) {
         self.tier = tier;
         self.looked = None;
+        self.held = None;
     }
 
     /// The look the renderer is sent: the host's theme at this tier.
@@ -218,6 +260,7 @@ impl Bridge {
     }
 
     pub fn host_mut(&mut self) -> &mut Host {
+        self.held = None;
         &mut self.host
     }
 
@@ -243,15 +286,20 @@ impl Bridge {
         self.welcomed = false;
         self.in_flight = None;
         self.last_state = None;
+        self.sent = None;
         self.asked = None;
         self.told = None;
         self.looked = None;
         self.cues.clear();
         self.outbox.clear();
+        self.held = None;
     }
 
     /// Handle one message from the renderer.
     pub fn receive(&mut self, message: ToHost) -> Received {
+        // An intent reaches the host through `update` and a resize through
+        // `resize`, both of which drop what is held; an ack or a log line
+        // changes nothing that shows.
         let mut out = Received::default();
         match message.bounded() {
             ToHost::Hello {
@@ -291,9 +339,12 @@ impl Bridge {
                 });
             }
             ToHost::Resize { columns, rows } => self.resize(columns, rows),
-            ToHost::Intent { intent, cursor, .. } => {
+            ToHost::Intent { intent, cursor, seq } => {
                 if !self.welcomed {
                     return out;
+                }
+                if let Some(trace) = &mut self.trace {
+                    trace.intent(seq, &intent, self.sent.as_ref().map_or(0, |s| s.items.len()));
                 }
                 if cursor > self.cursor {
                     crate::log::warn(format!(
@@ -326,6 +377,13 @@ impl Bridge {
                 }
             }
             ToHost::Bye => out.quit = true,
+            // The renderer lost the transcript a change was built on: the
+            // next snapshot sends it whole.
+            ToHost::Resync => {
+                crate::log::info("renderer asked for the dock's transcript whole");
+                self.sent = None;
+                self.last_state = None;
+            }
         }
         out.quit |= self.host.quit;
         out
@@ -338,11 +396,18 @@ impl Bridge {
         // Whatever the user did ends the splash, and acts on the screen
         // under it.
         self.splash.input();
+        if let Some(line) = self.splash.take_early_line() {
+            self.host_mut().show_start_line(line);
+        }
         self.update(Event::Intent(intent))
     }
 
     /// Hand the host an event (a tick, a finished task's message).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
+        self.held = None;
+        if let Some(trace) = &mut self.trace {
+            trace.event(&event);
+        }
         let out = self.host.update(event);
         self.records.extend(out.iter().filter_map(|e| match e {
             HostEffect::Journal(r) => Some(r.clone()),
@@ -352,6 +417,7 @@ impl Bridge {
     }
 
     fn resize(&mut self, columns: u16, rows: u16) {
+        self.held = None;
         self.width = columns.max(1);
         self.height = rows.max(1);
         self.host.set_view_room(self.width, self.height);
@@ -367,21 +433,37 @@ impl Bridge {
         true
     }
 
+    /// The icon column's width for the theme as it is now: worked out again
+    /// only when the theme configuration or the tier changed.
+    fn lead(&self) -> usize {
+        let cfg = &self.host.colours.cfg;
+        let mut lead = self.lead.borrow_mut();
+        if let Some((c, t, w)) = lead.as_ref()
+            && c == cfg
+            && *t == self.tier
+        {
+            return *w;
+        }
+        let w = crate::ui::icon::lead_width(&self.host.build_theme(self.tier));
+        *lead = Some((cfg.clone(), self.tier, w));
+        w
+    }
+
     /// The chrome, screen, section and focus as they are now.
     pub fn snapshot_now(&self, cursor: u64) -> Snapshot {
         let chrome = self.host.chrome_view(self.width, self.height);
         let (w, h) = (self.width, self.height);
         // The icon column the views are built for, as the Ratatui shell sets it
         // before it asks for a view: no frame is drawn here to set it.
-        self.host
-            .frontend
-            .set_lead(crate::ui::icon::lead_width(&self.host.build_theme(self.tier)));
+        self.host.frontend.set_lead(self.lead());
         // As Headless reads them: the screen showing, or the settings
         // section a part owns. The host keeps its section index while a
         // screen shows, so a section is sent only on the settings view: a
         // renderer draws what it is sent.
         let mut screen = crate::view::screen_showing(&self.host, w, h);
         let mut section = match self.host.current_section() {
+            // Setup's own steps (a step that is a section sends the section).
+            _ if self.host.setup_host_step() => self.host.setup_section_view(),
             Some((Owner::Plugin(p), s)) if self.host.view == View::Settings => {
                 self.host.section_view_in(p, s.id, w, h)
             }
@@ -413,6 +495,7 @@ impl Bridge {
                 }
             },
             splash: self.splash_view.clone(),
+            trace: None,
         }
     }
 
@@ -432,24 +515,141 @@ impl Bridge {
             self.step_splash();
             self.gather_cues();
             if self.in_flight.is_none() {
-                let mut snap = self.snapshot_now(0);
-                let state = state_key(&snap);
-                if self.last_state.as_deref() != Some(state.as_str()) || !self.cues.is_empty() {
-                    self.cursor += 1;
-                    snap.cursor = self.cursor;
-                    snap.motion.cues = std::mem::take(&mut self.cues);
-                    if encode(&ToRenderer::Snapshot(Box::new(snap.clone()))).len() > MAX_LINE {
-                        crate::log::warn("a view is over the protocol's line bound: sent without its body");
-                        snap.screen = None;
-                        snap.section = None;
-                    }
-                    self.in_flight = Some(self.cursor);
-                    self.last_state = Some(state);
-                    self.outbox.push_back(ToRenderer::Snapshot(Box::new(snap)));
-                }
+                self.send_snapshot();
             }
         }
         self.outbox.drain(..).collect()
+    }
+
+    /// The snapshot to send now. While the splash shows, the rest of it is
+    /// built once per change of the host ([`Bridge::held`]) and only the
+    /// splash is new.
+    fn snapshot_to_send(&mut self) -> Snapshot {
+        if !self.splash.active() {
+            self.held = None;
+            return self.snapshot_now(0);
+        }
+        let base = match self.held.take() {
+            Some(held) => held,
+            None => {
+                let mut base = self.snapshot_now(0);
+                base.splash = None;
+                base
+            }
+        };
+        let mut snap = base.clone();
+        snap.splash = self.splash_view.clone();
+        self.held = Some(base);
+        snap
+    }
+
+    /// Queue a snapshot when what shows changed since the last one sent.
+    ///
+    /// The dock's transcript is the one part of a snapshot that grows
+    /// without bound (a session's whole history), and it changes at its foot
+    /// (a streamed word, a new message). It is taken out of the snapshot,
+    /// compared with the transcript last sent item by item, and sent as
+    /// what changed: the items after the unchanged head, with `kept` naming
+    /// that head at the revision the renderer holds
+    /// ([`crate::dock::DockView::kept`]).
+    /// The rest of the snapshot is compared as values, not written out to
+    /// find a change, so a check and a send both cost what changed plus the
+    /// screen, whatever the transcript holds.
+    fn send_snapshot(&mut self) {
+        let started = std::time::Instant::now();
+        let mut snap = self.snapshot_to_send();
+        let built = std::time::Instant::now();
+        let transcript = dock_mut(&mut snap).map(|d| (d.active.clone(), std::mem::take(&mut d.transcript)));
+        // The unchanged head, when the renderer holds this tab's transcript.
+        let head = match (&transcript, &self.sent) {
+            (Some((tab, items)), Some(sent)) if sent.tab == *tab => {
+                Some(sent.items.iter().zip(items).take_while(|(a, b)| a == b).count())
+            }
+            _ => None,
+        };
+        let same_transcript = match (&transcript, &self.sent, head) {
+            (None, _, _) => true,
+            (Some((_, items)), Some(sent), Some(k)) => k == items.len() && k == sent.items.len(),
+            _ => false,
+        };
+        let same = same_transcript && self.last_state.as_ref().is_some_and(|last| same_state(last, &snap));
+        let compared = std::time::Instant::now();
+        if same && self.cues.is_empty() {
+            if let Some(trace) = &mut self.trace {
+                trace.unchanged();
+            }
+            return;
+        }
+        self.last_state = Some(snap.clone());
+        self.cursor += 1;
+        snap.cursor = self.cursor;
+        snap.motion.cues = std::mem::take(&mut self.cues);
+        // What the renderer will hold once it has this snapshot.
+        let mut held = None;
+        let (mut items_all, mut items_sent) = (0, 0);
+        if let Some((tab, items)) = transcript {
+            items_all = items.len();
+            let (kept, tail, revision) = match (self.sent.take(), head) {
+                // Nothing to keep: an empty transcript is sent as it is, at
+                // revision 0, so a dock with no session reads as it always did.
+                _ if items.is_empty() => {
+                    held = Some(Sent { tab, revision: 0, items });
+                    (None, Vec::new(), 0)
+                }
+                (Some(sent), Some(k)) if same_transcript => {
+                    // Unchanged: the renderer keeps all of it.
+                    let revision = sent.revision;
+                    held = Some(sent);
+                    (Some((revision, k)), Vec::new(), revision)
+                }
+                (Some(mut sent), Some(k)) => {
+                    self.revision += 1;
+                    sent.items.truncate(k);
+                    let tail = items[k..].to_vec();
+                    sent.items.extend(items.into_iter().skip(k));
+                    held = Some(Sent { tab, revision: self.revision, items: sent.items });
+                    (Some((sent.revision, k)), tail, self.revision)
+                }
+                _ => {
+                    self.revision += 1;
+                    let tail = items.clone();
+                    held = Some(Sent { tab, revision: self.revision, items });
+                    (None, tail, self.revision)
+                }
+            };
+            items_sent = tail.len();
+            if let Some(dock) = dock_mut(&mut snap) {
+                dock.transcript = tail;
+                dock.revision = revision;
+                dock.kept = kept.map(|(revision, items)| crate::dock::DockKept { revision, items: items as u32 });
+            }
+        }
+        let bytes = encoded_len(&snap);
+        if bytes > MAX_LINE {
+            crate::log::warn("a view is over the protocol's line bound: sent without its body");
+            snap.screen = None;
+            snap.section = None;
+            snap.dock = None;
+            // The renderer gets no transcript: it holds what it held.
+            held = None;
+            self.last_state = None;
+        }
+        if held.is_some() {
+            self.sent = held;
+        }
+        if let Some(trace) = &mut self.trace {
+            let costs = super::trace::Costs {
+                build_ms: (built - started).as_secs_f64() * 1000.0,
+                compare_ms: (compared - built).as_secs_f64() * 1000.0,
+                measure_ms: super::trace::ms_since(compared),
+                bytes,
+                items: items_all,
+                items_sent,
+            };
+            snap.trace = trace.sent(self.cursor, dock_of(&snap), costs);
+        }
+        self.in_flight = Some(self.cursor);
+        self.outbox.push_back(ToRenderer::Snapshot(Box::new(snap)));
     }
 
     /// A question or captured input that opened, and the status line's
@@ -510,11 +710,60 @@ impl Bridge {
     }
 }
 
-/// What a snapshot shows, without its cursor.
-fn state_key(s: &Snapshot) -> String {
-    // Every part of the snapshot a renderer draws or routes keys by: the
-    // dock beside a section too (left out, Ink kept the dock it was last
-    // sent on Settings, and its keys went to the wrong place).
-    serde_json::to_string(&(&s.chrome, &s.screen, &s.section, &s.dock, s.focus, s.motion.level, &s.splash))
-        .unwrap_or_default()
+/// The dock a snapshot carries: a screen's, or the one beside a settings
+/// section.
+fn dock_of(s: &Snapshot) -> Option<&crate::dock::DockView> {
+    s.screen.as_ref().and_then(|v| v.dock.as_deref()).or(s.dock.as_deref())
+}
+
+fn dock_mut(s: &mut Snapshot) -> Option<&mut crate::dock::DockView> {
+    match s.screen.as_mut() {
+        Some(v) => v.dock.as_deref_mut(),
+        None => s.dock.as_deref_mut(),
+    }
+}
+
+/// Whether two snapshots show the same, cursor and cues aside: every part
+/// a renderer draws or routes keys by, the dock beside a section too (left
+/// out, Ink kept the dock it was last sent on Settings, and its keys went
+/// to the wrong place). Compared as values: writing both out to compare
+/// them cost as much as sending them.
+fn same_state(a: &Snapshot, b: &Snapshot) -> bool {
+    a.chrome == b.chrome
+        && a.screen == b.screen
+        && a.section == b.section
+        && a.dock == b.dock
+        && a.focus == b.focus
+        && a.motion.level == b.motion.level
+        && a.splash == b.splash
+}
+
+/// A snapshot's line length, counted as it is written, without keeping it.
+fn encoded_len(snap: &Snapshot) -> usize {
+    struct Count(usize);
+    impl std::io::Write for Count {
+        fn write(&mut self, b: &[u8]) -> std::io::Result<usize> {
+            self.0 += b.len();
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    #[derive(serde::Serialize)]
+    #[serde(tag = "type", rename_all = "snake_case")]
+    enum Line<'a> {
+        Snapshot(&'a Snapshot),
+    }
+    let mut n = Count(0);
+    let _ = serde_json::to_writer(&mut n, &Line::Snapshot(snap));
+    n.0 + 1
+}
+
+/// The dock's transcript as the renderer holds it: the tab it is of, the
+/// revision it was sent at, its items.
+struct Sent {
+    tab: Option<String>,
+    revision: u64,
+    items: Vec<crate::dock::DockItem>,
 }

@@ -463,34 +463,47 @@ function blockElement(lines: Cell[][], plain: boolean | undefined, bg: string | 
 export function wrapCells(cs: Cell[], width: number): Cell[][] {
   if (width <= 0) return [cs];
   if (widthOfCells(cs) <= width) return [cs];
+  // Widths are kept as running sums and cells pushed in place: a long paragraph (an agent's answer) wraps in one pass.
   const lines: Cell[][] = [];
   let line: Cell[] = [];
+  let lineW = 0;
   let word: Cell[] = [];
+  let wordW = 0;
   let gap: Cell[] = [];
+  let gapW = 0;
   const flushWord = () => {
     if (word.length === 0) return;
-    const w = widthOfCells(word);
-    if (widthOfCells(line) + widthOfCells(gap) + w <= width) {
-      line = [...line, ...gap, ...word];
+    if (lineW + gapW + wordW <= width) {
+      for (const c of gap) line.push(c);
+      for (const c of word) line.push(c);
+      lineW += gapW + wordW;
     } else {
       if (line.length) lines.push(line);
-      line = [];
       let rest = word;
-      while (widthOfCells(rest) > width) {
+      let restW = wordW;
+      while (restW > width) {
         const head = clipCells(rest, width);
         lines.push(head);
         rest = rest.slice(head.length);
+        restW -= widthOfCells(head);
       }
       line = rest;
+      lineW = restW;
     }
     word = [];
+    wordW = 0;
     gap = [];
+    gapW = 0;
   };
   for (const c of cs) {
     if (c.ch === " ") {
       flushWord();
       gap.push(c);
-    } else word.push(c);
+      gapW += c.w;
+    } else {
+      word.push(c);
+      wordW += c.w;
+    }
   }
   flushWord();
   if (line.length || lines.length === 0) lines.push(line);

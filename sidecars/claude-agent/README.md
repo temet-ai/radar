@@ -28,14 +28,18 @@ radar → sidecar: `{"id":n,"op":…,…}`. sidecar → radar: `{"type":"reply",
 | `send` | `session`, `text` | |
 | `interrupt` | `session` | |
 | `answer` | `session`, `request_id`, `behavior` (`allow`/`deny`), `message?`, `scope?` (`session`: approve for session) | `{outcome: "answered" \| "duplicate"}`; an unknown id is an error |
-| `pending` | `session` | re-emits unanswered permission requests |
+| `answer_question` | `session`, `request_id`, `answers` (object keyed by question text, or `null` when declined), `message?` | `{outcome}`; a question (`AskUserQuestion`) is answered with this op, `answer` refuses its id |
+| `pending` | `session` | re-emits unanswered permission requests and questions |
 | `set_model`, `close` | `session`, … | |
 | `list`, `history`, `delete` | `dir`, `provider_session_id`, `config_dir?`, … | provider-owned sessions and transcript |
 
 Event lines: `{type:"event", session, provider_session_id, provider_event_id, durability:"persisted"|"ephemeral", kind, parent?, payload}`.
 Kinds: `session_started`, `user_message`, `text_delta`, `reasoning_delta` (ephemeral), `assistant_message`,
-`reasoning`, `tool_call`, `tool_result`, `permission_request`, `permission_resolved`, `turn_end`, `error`,
-`session_ended`. `provider_event_id` is the SDK's uuid (or `tool:<id>`, `result:<id>`, `perm:<request id>`), so a
+`reasoning`, `tool_call`, `tool_result`, `permission_request`, `permission_resolved`, `question_request`,
+`question_resolved`, `turn_end`, `error`, `session_ended`. A `question_request` carries `request_id` and
+`questions` (`question`, `header?`, `options`, `multi_select`); a `question_resolved` carries `request_id` and
+`answers` (`null` when declined). `provider_event_id` is the SDK's uuid (or `tool:<id>`, `result:<id>`, `perm:<request id>`,
+`ask:<request id>`, `ask-done:<request id>`), so a
 history replay carries the ids the live stream had.
 
 Commands line: `{type:"commands", session, commands:[{name, description, argument_hint?}]}`, sent once a session
@@ -65,8 +69,8 @@ With `project_config` on, the operator's allow, deny and ask rules in those sett
 
 ## Permissions
 
-Every session starts with `permissionMode: "default"`, so the `defaultMode` in the operator's own settings (this
-machine has `auto`) never answers for the dock. What else applies (`askRules` in `src/server.js`; an ask rule beats
+Every session starts with `permissionMode: "default"`, so the `defaultMode` in the operator's own settings (for
+example `auto`) never answers for the dock. What else applies (`askRules` in `src/server.js`; an ask rule beats
 every allow rule):
 
 - **Project configuration on** (`settingSources` `["user","project","local"]`): radar adds no ask rule. Claude Code applies
@@ -98,5 +102,7 @@ sign in with `claude auth login` (a PTY tab in Settings → Agents); API-key aut
 ## Recording
 
 `node scripts/record.mjs <scratch git repo> <out.ndjson>` runs one live session (ls approved, a write denied, a
-turn interrupted, resumed in a second process). Scrub with `scripts/scan-secrets`
+turn interrupted, resumed in a second process). `node scripts/record-mcp.mjs <scratch git repo> <out.ndjson> <server.json>`
+records a session set up with radar's own MCP server (`setup.tool_server`, from the `mcp_listen` example of
+radar-sessions): it calls the echo tool, then a second process resumes the session and calls it again. Scrub with `scripts/scan-secrets`
 before committing; delete the session afterwards.

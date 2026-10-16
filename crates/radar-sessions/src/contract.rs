@@ -88,7 +88,7 @@ pub async fn run_all(h: &mut dyn Harness) -> Report {
         // A PTY-style adapter: no events, no permissions. Only the lifecycle.
         lifecycle(h).await;
         report.ran.push("lifecycle");
-        for name in ["stream", "approve", "deny", "question", "stop", "resume", "duplicates", "out_of_order", "lost_connection"] {
+        for name in ["stream", "approve", "deny", "question", "stop", "resume", "resume_waiting", "duplicates", "out_of_order", "lost_connection"] {
             report.skipped.push((name, "the adapter has no structured events".into()));
         }
         return report;
@@ -138,6 +138,12 @@ pub async fn run_all(h: &mut dyn Harness) -> Report {
         report.ran.push("stop");
     } else {
         report.skipped.push(("stop", "the adapter cannot stop a turn".into()));
+    }
+    if caps.resume && caps.permissions {
+        resume_waiting(h).await;
+        report.ran.push("resume_waiting");
+    } else {
+        report.skipped.push(("resume_waiting", "needs resume and structured permissions".into()));
     }
     if caps.resume {
         resume(h).await;
@@ -209,6 +215,7 @@ impl Run {
             created_at: 1,
             cursor: None,
             agent: None,
+            review: false,
         });
         Run { adapter, updates, radar, provider_session_id, session, events: Vec::new(), signals: Vec::new(), ingested: Vec::new() }
     }
@@ -540,6 +547,48 @@ pub async fn resume(h: &mut dyn Harness) {
     assert_eq!(run.session.state, SessionState::Idle);
 }
 
+/// radar closes while a request waits, and starts again: the provider's
+/// process that asked is gone. The resumed history replays persisted events
+/// only; a request it holds (Copilot keeps one, Claude Code and Codex may
+/// not) comes back as it was asked, and lapses when the history ends, as the
+/// part does it ([`Session::lapse`]): nothing waits, nothing needs the
+/// operator, and the turn that waited is over.
+pub async fn resume_waiting(h: &mut dyn Harness) {
+    let adapter = h.adapter(Scenario::Tool).await;
+    let mut run = Run::start(adapter, "contract-resume-waiting").await;
+    run.send(h, "run something").await;
+    let asked = waiting_request(&run);
+    let (radar, provider_session_id) = (run.radar.clone(), run.provider_session_id.clone());
+    drop(run);
+
+    let adapter = h.restart().await;
+    let mut run = Run::start_resumed(adapter, radar.clone(), provider_session_id.clone()).await;
+    run.adapter
+        .resume(ResumeSession { radar_session_id: radar, provider_session_id, cwd: scratch(), cursor: None, setup: Default::default() })
+        .await
+        .expect("resume after the restart");
+    h.settle().await;
+    run.pump();
+    check_envelope(&run, false);
+    assert!(
+        run.events.iter().all(|e| e.durability == Durability::Persisted),
+        "history replay carries persisted events only: {:?}",
+        run.events.iter().filter(|e| e.durability != Durability::Persisted).collect::<Vec<_>>()
+    );
+    let replayed = run.saw(|k| matches!(k, EventKind::PermissionRequested { request } if request.request_id == asked.request_id));
+    let lapsed = run.session.lapse();
+    assert!(run.session.pending().is_empty() && run.session.pending_questions().is_empty(), "nothing waits after the history: {:?}", run.session.items);
+    assert!(!run.session.busy(), "the turn that waited is over: {:?} {:?}", run.session.state, run.session.items);
+    if replayed {
+        assert_eq!(lapsed.requests, 1, "the request the history holds lapses: {:?}", run.session.items);
+        assert!(
+            run.session.items.iter().any(|i| matches!(i, Item::Permission { request, state: PermissionState::Lapsed } if request.request_id == asked.request_id)),
+            "{:?}",
+            run.session.items
+        );
+    }
+}
+
 /// Events delivered twice change nothing the second time; a permission
 /// request delivered twice is still one request.
 pub async fn duplicates(h: &mut dyn Harness) {
@@ -640,6 +689,7 @@ impl Run {
             created_at: 1,
             cursor: None,
             agent: None,
+            review: false,
         });
         Run { adapter, updates, radar, provider_session_id, session, events: Vec::new(), signals: Vec::new(), ingested: Vec::new() }
     }

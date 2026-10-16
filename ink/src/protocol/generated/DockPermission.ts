@@ -33,4 +33,9 @@ answered?: PermissionAction | null,
  * The tool call it asks for ([`DockItem::Tool`]'s `id`), when the
  * provider said: once answered, the call's own row tells it.
  */
-tool?: string | null, };
+tool?: string | null, 
+/**
+ * It waited when radar closed, and the process that asked is gone: nothing
+ * can answer it now. Drawn without buttons or keys, never "needs you".
+ */
+lapsed?: boolean, };

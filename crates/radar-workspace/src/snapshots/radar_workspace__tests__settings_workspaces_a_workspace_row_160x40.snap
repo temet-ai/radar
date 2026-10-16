@@ -1,5 +1,6 @@
 ---
 source: crates/radar-workspace/src/tests.rs
+assertion_line: 316
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
@@ -7,11 +8,11 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │General               ││  ? Found in /work/other: a workspace with 3 clones. Use it?                    ││ CHECKED                                            │
 │  ├─ parts            ││  + add a workspace   a folder of clones                                        ││ ✓ 14 clones found                                  │
 │  ├─ mode             ││ acme        /work/acme                                               14 clones ││ ✓ .okf.yaml read: knowledge in artifacts, docs     │
-│  ├─ colours          ││                                                                                ││ ✓ 3 notes for 1 ticket · 212 files read · 2m ago   │
-│  └─ icons            ││                                                                                ││                                                    │
-│Workspace             ││                                                                                ││ acme is a workspace: tickets of ABC are worked     │
-│  └─ workspaces       ││                                                                                ││ from /work/acme, and the editor and a terminal     │
-│                      ││                                                                                ││ open at its top.                                   │
+│  ├─ appearance       ││                                                                                ││ ✓ 3 notes for 1 ticket · 212 files read · 2m ago   │
+│  ├─ colours          ││                                                                                ││                                                    │
+│  └─ icons            ││                                                                                ││ acme is a workspace: tickets of ABC are worked     │
+│Workspace             ││                                                                                ││ from /work/acme, and the editor and a terminal     │
+│  └─ workspaces       ││                                                                                ││ open at its top.                                   │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ folder          /work/acme                         │
 │                      ││                                                                                ││ name            acme                               │

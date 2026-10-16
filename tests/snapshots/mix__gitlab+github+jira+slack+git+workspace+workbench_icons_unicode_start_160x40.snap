@@ -1,15 +1,16 @@
 ---
 source: tests/mix.rs
+assertion_line: 189
 expression: "to_text(&host, 160, 40)"
 ---
- radar    ▤ Repositories   ◇ Jira   ✉ Slack   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)                                                         ✎ edit
-  GitLab    GitHub    Local workspaces
+ radar    ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)                                                                                             ✎ edit
 ╭ set up GitLab ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ⚙ GitLab is not set up yet.                                                                                                                                  │
 │                                                                                                                                                              │
 │ Add a tenancy: a GitLab group or repo whose merge requests to follow.                                                                                        │
 │                                                                                                                                                              │
 │ Press ⏎ to set it up in settings, under gitlab.                                                                                                              │
+│ Press s to walk its setup step.                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │

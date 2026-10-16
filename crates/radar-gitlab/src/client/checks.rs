@@ -88,6 +88,16 @@ impl Client {
         })
     }
 
+    /// The token's scopes, as GitLab says them for a personal, group or
+    /// project access token; `None` when it does not say (an OAuth token
+    /// such as glab's, an older server, or any refusal). Never an error:
+    /// a check that signed in stays signed in.
+    pub(crate) async fn token_scopes(&self) -> Option<Vec<String>> {
+        let body = self.get_rest("personal_access_tokens/self").await.ok()?;
+        let scopes = body.get("scopes")?.as_array()?;
+        Some(scopes.iter().filter_map(|s| s.as_str().map(str::to_owned)).collect())
+    }
+
     pub(crate) async fn check_path_observed(&self, full_path: &str) -> Result<CheckRead> {
         let d = self.query(PATH_QUERY, json!({ "path": full_path })).await?;
         let (g, p) = (&d["group"], &d["project"]);

@@ -1,6 +1,6 @@
 # radar
 
-A Rust terminal workspace: one screen and one set of keys across GitLab, GitHub, Jira,
+A Rust terminal workspace over GitLab, GitHub, Jira,
 Slack and local Git, built as a host (`crates/radar-core`) plus one crate per part. The host
 owns all state and sends view data; two renderers draw it: Ratatui (in radar-core) and
 Ink/React (`ink/`, the default). Read this file first; it points to the rest.
@@ -13,7 +13,7 @@ Ink/React (`ink/`, the default). Read this file first; it points to the rest.
 | Every UI element, who draws it, canonical forms, known drift | `docs/components.md` |
 | Host, plugin contract, theme, UI kit, Ratatui renderer | `crates/radar-core` (`ui/`, `design/`, `view.rs`, `view_tui.rs`, `shell.rs`) |
 | Parts | `crates/radar-gitlab`, `radar-github`, `radar-jira`, `radar-slack`, `radar-git`, `radar-workspace`, `radar-workbench` |
-| Ink renderer | `ink/src` (`app`, `chrome`, `nodes`, `text`, `motion`, `editor`, `media`); protocol types are generated into `ink/src/protocol/generated/` from the Rust types, never edited by hand |
+| Ink renderer | `ink/src` (`app`, `chrome`, `dock`, `editor`, `input`, `media`, `motion`, `nodes`, `state`, `terminal`, `text`, `transport`, `workarea`); protocol types are generated into `ink/src/protocol/generated/` from the Rust types, never edited by hand |
 | Agent sessions: the adapter contract, event envelope, cursor store, fake provider, briefs, and the state the agent dock draws | `crates/radar-sessions` |
 | Agent providers: Copilot (Rust SDK), Codex (App Server), Claude Agent (Agent SDK sidecar in `sidecars/claude-agent`; the SDK is fetched on first use), any CLI in a PTY tab | `crates/radar-sessions-copilot`, `radar-sessions-codex`, `radar-sessions-claude`, `radar-sessions-pty` |
 | How radar frames context for an agent, and the recipes it sends with it | `agents/briefing.md` (instructions), `agents/recipes/` (one file per recipe, versioned; `README.md` lists them) |

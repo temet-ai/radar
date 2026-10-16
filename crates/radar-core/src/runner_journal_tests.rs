@@ -848,10 +848,9 @@ async fn typed_action_runs_from_request_through_confirmation_to_sqlite_outcome()
     for effect in host.update(key(KeyCode::Char('y'))) {
         perform(effect, &tx, Some(&recording.sink));
     }
-    let result = tokio::time::timeout(std::time::Duration::from_secs(3), rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    // No deadline of its own: the task's answer comes when it is done (nextest
+    // ends a test that hangs); three seconds could run out on a loaded machine.
+    let result = rx.recv().await.unwrap();
     for effect in host.update(result) {
         perform(effect, &tx, Some(&recording.sink));
     }
@@ -1035,10 +1034,8 @@ async fn panicked_task_records_unknown_without_panic_payload() {
         &tx,
         Some(sink),
     );
-    let event = tokio::time::timeout(std::time::Duration::from_secs(3), rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    // No deadline of its own: the task's answer comes when it is done.
+    let event = rx.recv().await.unwrap();
     assert!(matches!(event, Event::Notice(ref note) if note.contains("outcome is unknown")));
     recording.finish();
     assert_eq!(recording.sink.take_warning(), None);

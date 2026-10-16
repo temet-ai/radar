@@ -11,21 +11,6 @@
       "W",
       "I"
     ],
-    "sources": [
-      {
-        "active": true,
-        "label": "GitLab",
-        "target": "chrome:source:0"
-      },
-      {
-        "label": "GitHub",
-        "target": "chrome:source:1"
-      },
-      {
-        "label": "Local workspaces",
-        "target": "chrome:source:5"
-      }
-    ],
     "status": {
       "hints": [
         {
@@ -112,25 +97,6 @@
       },
       "tabs": [
         {
-          "active": true,
-          "icon": "repo",
-          "label": "repositories",
-          "mnemonic": "R",
-          "target": "chrome:tab:0"
-        },
-        {
-          "icon": "issue",
-          "label": "jira",
-          "mnemonic": "J",
-          "target": "chrome:tab:2"
-        },
-        {
-          "icon": "chat",
-          "label": "slack",
-          "mnemonic": "S",
-          "target": "chrome:tab:3"
-        },
-        {
           "icon": "branch",
           "label": "branches",
           "mnemonic": "B",
@@ -187,6 +153,12 @@
               {
                 "ink": "secondary",
                 "text": "Press ⏎ to set it up in settings, under gitlab."
+              }
+            ],
+            [
+              {
+                "ink": "secondary",
+                "text": "Press s to walk its setup step."
               }
             ]
           ],

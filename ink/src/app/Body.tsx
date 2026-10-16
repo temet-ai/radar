@@ -12,6 +12,8 @@ export type NodeCx = {
   plainText?: boolean;
   /** A Document scrolls in this pane (the settings detail). */
   scrolls?: boolean;
+  /** The pane is the sheet of settings or setup (NodeContext.sheet). */
+  sheet?: boolean;
   onIntent?: NodeContext["onIntent"];
   registry?: NodeContext["registry"];
   /** The page's tab row has the keys (ChromeView.keys_at is page_tabs). */
@@ -34,6 +36,7 @@ export const shellRenderNode: RenderNode = (node, cx) => {
     focused: cx.focused ?? true,
     plainText: cx.plainText,
     scrolls: cx.scrolls,
+    sheet: cx.sheet,
     onIntent: cx.onIntent,
     registry: cx.registry,
   };

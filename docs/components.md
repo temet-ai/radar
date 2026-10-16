@@ -79,8 +79,9 @@ mirrored to `ink/src/protocol/generated/` by ts-rs). Two renderers draw it:
 - **Ink:** `ink/src/nodes`, `chrome`, `text`, `app`, `editor`, `media`
 
 `ink/test/contract/every-field-is-drawn.test.tsx` walks every generated field. A field
-either has a case, is marked `INVISIBLE` with a reason, or is listed in `KNOWN_UNDRAWN`
-(`ink/test/contract/cases-screen.tsx`). That list is the live parity backlog.
+either has a case, is marked `INVISIBLE` with a reason, or is listed in `SCREEN_KNOWN_UNDRAWN`
+(`ink/test/contract/cases-screen.tsx`) or `DOCK_KNOWN_UNDRAWN` (`ink/test/contract/cases-dock.tsx`).
+Those two lists are the live parity backlog.
 
 | View type | Ratatui | Ink | Parity gaps (Ink unless said) |
 |---|---|---|---|
@@ -96,7 +97,7 @@ either has a case, is marked `INVISIBLE` with a reason, or is listed in `KNOWN_U
 | `Node::State` (empty, loading, failed) | `ui::states::empty` | `text/StateView.tsx` | the three states look alike on both sides |
 | `Node::Extension` | always the fallback text | `nodes/index.tsx` (`OWN_CAPABILITIES = ["editor"]`) | Ink-only in-pane editor; `work.*` and `media` drawers exist in Ink but the host sends neither |
 | `Editor` overlay | `view_tui::draw_overlay` + `field` | `editor/EditorOverlay.tsx`, `EditorView.tsx` | Ratatui ignores `selection` |
-| `ScreenView`, `PaneView` | `render_screen`, `render_panes`, `draw_pane` | `app/Panes.tsx` `ScreenPanes`, `Framed` | `PaneView.from` |
+| `ScreenView`, `PaneView` | `render_screen`, `render_panes`, `draw_pane` | `app/Panes.tsx` `ScreenPanes`, `Framed` | `PaneView.from`, `ScreenView.overlay` (an editor over the foot of the body) not drawn |
 | `PageView`, `TabView`, `PageLayout` | `render_page` → `ui::page::PageFrame` | `app/Panes.tsx` `PageBody`, `app/TabRow.tsx`, `nodes/pagetitle.tsx` | none known |
 | `FieldBar` | `draw_field_bar` → `input::TextInput` | `chrome/filter.tsx` | none (cell-compared) |
 | `SectionView` (settings) | `render_section`, `shell::settings` | `app/App.tsx` `SectionBody` | `actions` drawn by neither (the menu owns them) |
@@ -128,8 +129,9 @@ That line is the one recorded exception to "both renderers, same picture"
 | Dock part | Ratatui | Ink (who draws it) | States (fixtures and stories) |
 |---|---|---|---|
 | Frame: under the middle pane, about 40% of its column, top edge drags to resize, full height over the pane below 100 columns; `alt-f` (hinted `alt-f full`, then `alt-f split`) makes it take the whole middle column at any width and back, host state (`DockView.full`, `DockIntent::ToggleFull`) kept for the run like the dragged height; a drag gives the column back | the notice line only | `ink/src/dock/Dock.tsx`, `ink/src/dock/layout.ts` (`splitDock(.., full)`), slot in `ink/src/app/Panes.tsx` (`ScreenPanes`) | shown and hidden, focused, resize floor, full height (`full_*`, `Dock/Dock` FullHeight) |
-| Activity line: one row above the composer once the session has had a turn (`DockView.activity`, built by radar-sessions from the turn and the plugin's clock). While a turn runs: the kit's spinner (or the pack's `warning` while it waits for you), what it does (`thinking`, `writing`, `running <command>`, `waiting for your approval · <target>`, `waiting for your answer`), the turn's time (`1m 12s`) and tokens when the provider reports usage. Once it ended, muted: `done in 42s · 3.4k tokens`, `stopped after 31s`, `failed after 12s` with the pack's `run_passed`, `run_canceled`, `run_failed`. The row stays so the dock does not jump; the words are cut, never the time. A turn read back from history (resume) shows nothing. Messages sent while the turn runs and waiting for after it are counted (`2 queued`, `DockActivity.queued`) | notice line only | `ink/src/dock/rows.ts` (`activityCells`, `duration`, `tokenWords`), `ink/src/dock/Dock.tsx` | every activity state at 40, 78 and 158 cells (`ink/test/dock/attention.test.ts`), `Dock/Dock` Activity, ActivityDone |
-| Tab state marks: after the name, in their own slot inside the tab: the kit's spinner while its turn runs (frame from `DockTab.running`, the turn's seconds), the pack's `warning` while it needs you, `run_failed` when it failed, `unread` when a turn ended while the tab was out of sight (`DockTab.unread`, cleared when the tab shows in a shown dock), `run_canceled` and `run_skipped` once seen. Names, never counts; the name is cut before the mark | notice line only | `ink/src/dock/rows.ts` (`tabState`, `tabRowCells`, `tabSpans`) | `attention_*`, `Dock/Dock` TabStates |
+| Activity line: one row above the composer once the session has had a turn (`DockView.activity`, built by radar-sessions from the turn and the plugin's clock). While a turn runs: the kit's spinner (or the pack's `warning` while it waits for you), what it does (`thinking`, `writing`, `running <command>`, `waiting for your approval · <target>`, `waiting for your answer`), the turn's time (`1m 12s`) and tokens when the provider reports usage. Once it ended, muted: `done in 42s · 3.4k tokens`, `stopped after 31s`, `failed after 12s` with the pack's `run_passed`, `run_canceled`, `run_failed`. The row stays so the dock does not jump; the words are cut, never the time. A turn read back from history (resume) shows nothing. Messages sent while the turn runs and waiting for after it are counted (`2 queued`, `DockActivity.queued`). A session restored from the last run: `detached` (muted, the pack's `connection`, `not attached to <provider> · a message or alt-r resumes it`, no time) and `resuming` (the spinner, `resuming <provider>…`, then the seconds since the read-back began) | notice line only | `ink/src/dock/rows.ts` (`activityCells`, `duration`, `tokenWords`), `ink/src/dock/Dock.tsx` | every activity state at 40, 78 and 158 cells (`ink/test/dock/attention.test.ts`, `restored.test.ts`), `detached_*`, `Dock/Dock` Activity, ActivityDone, Detached |
+| Tab state marks: after the name, in their own slot inside the tab: the kit's spinner while its turn runs (frame from `DockTab.running`, the turn's seconds), the pack's `warning` while it needs you, `run_failed` when it failed, `unread` when a turn ended while the tab was out of sight (`DockTab.unread`, cleared when the tab shows in a shown dock), `run_canceled` and `run_skipped` once seen. A session restored from the last run and not attached to its provider (`detached`) shows the pack's `connection` in `text.muted`; one being read back (`resuming`) shows the spinner in `status.info`; neither ever needs you (no chip, no desktop notification). Names, never counts; the name is cut before the mark | notice line only | `ink/src/dock/rows.ts` (`tabState`, `tabRowCells`, `tabSpans`) | `attention_*`, `restored_*`, `detached_*`, `Dock/Dock` TabStates, Restored, Detached |
+| Text selection by mouse (one selection per pane): a drag, a double click (word, iTerm2 word characters, a path or URL whole) or a triple click (line) in text, shift+arrows/home/end to extend, ctrl+c to copy again, any other key or click to clear; painted on `bg.selection` (reversed in the mono tier); copied by the host (`Intent::Copy`, `HostEffect::CopySelection`, `copy_ways`), notice `copied n characters · way`; the status line hint names the terminal's bypass key (`shift`, `option`, `fn`) while a drag selects. The areas a drag can select in are the inside of each pane (`Frontend::mark_selectable`, `select::Area`); text panes (`Node::is_text`: the `node` tag `document`, `rich`, `log`, `state`, `extension`) take word and line clicks, row panes keep double-click | `crates/radar-core/src/select.rs` (`Gesture`, pure), `runner.rs` | `ink/src/input/selection.ts` | `select::tests` (two panes, edges, words, paths, URLs, keys), `ink/test/app/selection*.test.tsx` |
 | Attention chip on the status line: while a session needs you or ended unseen and its tab is out of sight (dock hidden, or another tab showing), the dock key `` ` `` then a square chip after the scope: the pack's icon, the session's name (cut at 24 cells) and `needs you` / `failed` / `done`, `+n` for the others, bold base text on the state's ground (`Ink::Warn`, `Bad`, `Good`). It never gives way. Under the pointer its key is lit and the chip keeps its ground (`ui::hover::paint` and `ink/src/app/hover.ts` keep the state grounds as they keep the selection and the accent). The key (from a pane, or from an empty composer in the dock) or a click shows the dock on that tab (`StatusLine.attention`, `chrome:attention`, `DockView.attention`). Desktop notifications of the same, opt-in in Settings → Agents ("while you are away"), through `system::notify_ways` (notify-send on Linux, osascript on macOS, none over SSH) | the same chip, `crates/radar-core/src/shell.rs` `status_line` | `ink/src/chrome/layout.ts` (`layoutStatus`) | `status/attention_*` with Ratatui's row beside it, `Chrome/StatusLine` Attention, AttentionWide |
 | Tabs: one per session (provider icon, name, state, then a close mark `×`, the pack's `close` icon); a PTY tab with the terminal icon. A click on the mark or a middle click on the tab closes it; `alt-w` closes the showing one (`ctrl-w` too from an empty composer) and the status line says so; `/close` is in the slash menu. A session whose turn runs is asked about first (stop it and close / keep it); the closed session stays in the provider's list for `alt-s`; the neighbour tab shows; the last tab closing hides the dock and gives the page its keys back (alt-w on a dock with no tab hides it too), and alt-w works while the dock is shown without the keys; the key is read as ESC w, kitty CSI-u (`CSI 119;3u`) or modifyOtherKeys (`CSI 27;3;119~`) | notice line only | `ink/src/dock/Dock.tsx`, `ink/src/dock/rows.ts` (`tabRowCells`, `tabSpans`), `ink/src/dock/composer.ts` (`dockClose`, `dockHint`) | streaming, stopped, error, PTY tab, two tabs, three tabs (`Dock/Dock` Tabs) |
 | Transcript items: user message, streamed text, tool call (`⋯ n` folded, tree lines open), result, error, reasoning (folded); prose (user, answer) a row apart from what is next to it, calls and requests in a run together | notice line only | `ink/src/dock/rows.ts` (marks come from the icon pack) | empty, streaming, tool folded, tool open, error |
@@ -137,24 +139,26 @@ That line is the one recorded exception to "both renderers, same picture"
 | Tool call row: one row, `<kind icon> <verb> <target> [+a −r] [failed] ⋯ n`: the kind from the tool's own name (read, search, shell, edit, write, web, mcp, agent, todo), the target relative to the session's folder and cut in the middle by cells, a running call's and a failed call's marks; an approval already answered sits in its call's row (`DockPermission.tool`), one without a call in the transcript is one row (`✓ read approved  path`); two or more reads (or searches) in a row fold into `read 5 files ⋯ 5`, the target of the read still running beside it, opened (click, alt-o; Ink-side `DockLocal.groups`) each on a tree line | notice line only | `ink/src/dock/tools.ts` (`toolKind`, `transcriptUnits`, `shortPaths`, `middleFit`), `ink/src/dock/rows.ts` (`unitLayout`) | tools, both sizes (`Dock/Dock` ToolCalls, ToolCallsOpen, NarrowToolCalls) |
 | Edit: `+a −r` on its row (`DockItem::Tool.diff`, from the provider's edit input: `radar_sessions::event::edit_diff`), opened its diff on tree lines in the diff view's look (tinted rows, changed words on the stronger tint) | notice line only | `ink/src/dock/rows.ts` (`diffRows`, `lookOf` and `changedWords` from `ink/src/text/DiffView.tsx`) | edit open (`Dock/Dock` EditOpen) |
 | Reasoning while the session works: folded, `thinking · <its latest line> ⋯ n`; after, `reasoning ⋯ n` | notice line only | `ink/src/dock/rows.ts` | reasoning live (`Dock/Dock` ReasoningLive) |
-| Approval box: exact command, path, diff or URL; approve once, approve for session (where offered), deny, view diff; the buttons wrap to a second row when narrow | notice line only | `ink/src/dock/rows.ts` (`itemRows`, permission rows), `ink/src/dock/Dock.tsx` | approval pending |
-| Composer: the editor in `ink/src/editor`, multiline, history, the adapter's slash commands | notice line only | `ink/src/dock/composer.ts` | the Dock stories (`ink/stories/dock`) |
-| Terminal tab: any CLI's own TUI in a PTY (host PTY in `crates/radar-sessions-pty`) | notice line only | `ink/src/terminal/TerminalView.tsx`, `ink/src/terminal/TerminalSurface.tsx` | running, exited, failed |
+| Approval box: exact command, path, diff or URL; approve once, approve for session (where offered), always allow (adds the request's rules to Settings → Agents, key l), deny, view diff; the buttons wrap to a second row when narrow. A request (or question) that waited when radar closed comes back lapsed (`DockPermission.lapsed`, `AskState` `lapsed`): the process that asked is gone, so it is muted, the pack's `run_skipped`, `<kind>: lapsed · radar closed before this was answered` and the target (a question: each row ends `→ lapsed`), with no buttons, no diff and no keys (a, s, l, d, v, the numbers, esc and clicks ignore it); a notice says the turn was ended and a message carries on. A request the provider asks again after the resume waits and is answered as any other | notice line only | `ink/src/dock/rows.ts` (`itemRows`, permission rows), `ink/src/dock/composer.ts` (`pendingAsk`, `dockClick`), `ink/src/dock/Dock.tsx` | approval pending, `restored_*`, `Dock/Dock` Approval, Restored (`ink/test/dock/restored.test.ts`) |
+| Composer: the editor in `ink/src/editor`, multiline, history, the adapter's slash commands (a `/` opens their menu over the foot of the transcript: ↑↓ and tab choose, ⏎ finishes the word and then runs it, a click on a row runs that command at once, `dockCommand`). On a detached session (restored, not attached to its provider) `alt-r` attaches it and reads it back without sending anything (`DockIntent::Resume`; also on an errored tab, a resume that failed; the host ignores it when attached), `/resume` is in the slash menu (the host handles it) and a message typed there resumes it first; the status line leads with `⏎ or alt-r resume` (`resuming…` while it is read back) and an empty transcript says `not attached · a message or alt-r reads it back` (`reading the session back…`). A restored tab is read back when it first shows in a shown dock, never at start | notice line only | `ink/src/dock/composer.ts` (`dockKey`, `dockHint`), `ink/src/dock/Dock.tsx` (`emptyWords`) | the Dock stories (`ink/stories/dock`), `detached_*`, `Dock/Dock` Detached |
+| Terminal tab: any CLI's own TUI in a PTY (host PTY in `crates/radar-sessions-pty`) | notice line only | `ink/src/terminal/TerminalView.tsx`, `ink/src/terminal/TerminalSurface.tsx` | running, exited, failed (`Dock/TerminalView` stories) |
 
 Recorded states are the files in `ink/test/fixtures/dock/`, written from the host by
 `dock_fixtures_are_what_the_host_sends` (`crates/radar-core/src/host_dock_tests.rs`) when
 `RADAR_DOCK_FIXTURES_DIR` is set, and drawn at 80x24 and 160x40 by `ink/test/dock/recorded.test.tsx`;
 `status/attention_*` (the status line with the attention chip, and the row Ratatui draws from it) by
-`the_attention_chip_is_recorded_with_the_row_ratatui_draws` in the same file, compared by `ink/test/dock/attention.test.ts`.
-Stories: `ink/stories/dock/Dock.stories.tsx` and `ink/stories/terminal/TerminalView.stories.tsx`.
+`the_attention_chip_is_recorded_with_the_row_ratatui_draws` in `crates/radar-core/src/host_dock_tests.rs`, compared by `ink/test/dock/attention.test.ts`.
+Stories: `Dock/Dock` (`ink/stories/dock/Dock.stories.tsx`) and `Dock/TerminalView` (`ink/stories/terminal/TerminalView.stories.tsx`).
 
 ---
 
 ## 3. Kit elements
 
 All Rust paths are under `crates/radar-core/src/`. "Gallery" names the tab in the kit
-gallery: the 9 element tabs plus the stories (Colours, Tones, Row states, Grid states,
-Waiting, Long text, Icons).
+gallery: the 9 element tabs (Tree, Table, Card, Meters, Rows & states, Entries & log,
+Markdown, Diff, Motion) plus the stories (Colours, Tones, Row states, Grid states,
+Waiting, Long text, Icons). The Motion tab (`ui/motion_demo.rs`, `MotionDemo`) starts each
+effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and runs only in full colour.
 
 ### 3.1 Primitives
 
@@ -171,7 +175,7 @@ Waiting, Long text, Icons).
 | `design::select` | design/select.rs | Row selection styles, no glyphs | focused: TextEmphasis on BgSelection, bold; unfocused: TextPrimary on BgOverlay; Mono adds underline | | none | |
 | `design::theme`, `theme::Theme` | design/theme/, theme.rs | Slot palette, tiers, style specs | TrueColor, 256, Ansi16, Mono | all slots | | Colours |
 | `design::help_bar::KeyHint` | design/help_bar.rs | (keys, action) data | | | | |
-| `input::TextInput` | input.rs | One-row editable field | | BgOverlay, TextEmphasis | reversed block caret | Long text |
+| `input::TextInput` | input.rs | One-row editable field | | BgOverlay, TextEmphasis | reversed block caret | Grid states |
 | `Icon`, `icon::*` | ui/icon.rs | Semantic icons and packs | nerd, unicode, emoji, off | icon's own slot | from pack | Icons |
 | `hover::paint` | ui/hover.rs | Lights what the pointer is over | BgHover, or underline on Ansi16 and Mono | BgHover | | **missing** |
 | `scrim::scrim`, `scrim::shadow` | ui/scrim.rs / `app/scrim.ts` | Dims the screen behind a menu, question or help; a one-cell shadow right of and below the box, glyphs kept | truecolour: fg 72%, bg 43% toward BgBase, bold off; shadow bg 60% toward black, fg 45% toward BgBase. 256/16: SGR dim, shadow on black. Mono: dim | BgBase, TextPrimary | | none (Storybook Design/Surfaces, Overlays) |
@@ -203,7 +207,9 @@ Waiting, Long text, Icons).
 | `meter::{stages, ratio, sparkline}` | ui/meter.rs | Stage bar, `━─` ratio, sparkline | | | Meters, Card |
 | `states::{empty, set_up, loading, failed, busy, spinner}` | ui/states.rs | Empty, not set up, loading, failed, spinner | | | Rows & states, Waiting |
 | `Composer` | ui/composer.rs | Multi-line write input | one line, multi-line | `⏎`, `ctrl-s`, `esc` | Long text |
+| `motion_demo::MotionDemo` | ui/motion_demo.rs | The gallery's Motion tab: every effect of `motion` on sample rows, each started by a key | screen switch, and the other effects (`s m g p n t l`); levels full, subtle, off (`f`) | `s m g p n t l`, `f` | Motion |
 | `connection::*` | ui/connection.rs | A part's connection section | token masked, env found | | Rows & states |
+| `rail::{render, Stop}` | ui/rail.rs | Setup's step rail: the steps along one track, two rows (the stop, then its line: a result, `skipped`, `step n of m`); the track is lit (`status.success`) up to the current stop | done (`run_passed`), skipped (`run_skipped`), ahead (`todo`, muted), current (its own icon on `accent.primary`, a square chip); labels cut with `…` in display cells | a click on a stop reached goes back to it | snapshots `rail_80`, `rail_160` (no gallery tab yet) |
 
 ### 3.3 Chrome
 
@@ -216,9 +222,11 @@ Waiting, Long text, Icons).
 | Field bar | `view_tui::draw_field_bar` / `chrome/filter.tsx` | Filter (`/`) and go-to (`:`) at the top of a pane | |
 | Panes and frames | `shell`, `view_tui::draw_pane` / `app/Panes.tsx` | Nav, middle, detail; focused frame | jump numbers and detail skeleton (#46); focus ramp and lap (#31, #32) |
 | Settings | `shell::settings` / `layoutNav`, `SectionBody` | Settings nav and sections | |
+| Setup | `shell/setup.rs` / `app/SetupBody.tsx` | `radar  setup / <step>` with `step n of m` and the mode; at most 140×40, centred; the sheet ("about this step", the step's help) on top as high as its text, then the card (heading, lead, then the step's settings section or a host step's rows) under it, each a filled panel under its tab; no rail; the key bar is the status line scoped `SETUP` | from `ChromeView.setup` (`SetupChrome`) and `Snapshot.section`; no tabs, no settings nav |
 | History | `history.rs` / `chrome/history.ts` | Action history overlay | |
 | Editor overlay | `draw_overlay` / `editor/EditorOverlay.tsx` | Writing a description or comment | split preview planned (#37) |
-| Startup splash | `splash::frame` + `splash::draw` (runner) / `app/Splash.tsx` from `Snapshot.splash` | The `radar` mark in half blocks (`splash::BITMAP`, 19×4 cells, block cursor), the parts on it (`Plugin::on_splash`) lighting as each is ready, the tagline; centred on `bg.base` | One layout for both: radar-core works out every cell and colour (ramp `glow.purple` → `accent.tertiary` → `glow.cyan` on full colour, `accent.primary` below, bold with none). Timing in `splash::Splash`: full assembles then hands off by 680 ms with the screen fade; subtle 400 ms; motion off only when startup is slow. Any input ends it and acts. Text only below 7 rows, nothing below 20 columns. `[theme] splash = auto \| off`. Cells compared in `ink/test/splash` |
+| Startup splash | `splash::frame` + `splash::draw` (runner) / `app/Splash.tsx` from `Snapshot.splash` | A 64×24 braille radar scope with a contact for each part on the splash (`Plugin::on_splash`: mark, name, what it holds for you, or `no signal`). Under it: the readout, the `radar` mark in half blocks (`splash::BITMAP`, 29×4 cells), the parts' names and the start line (`start_lines`). All 34 rows are centred on `bg.base` | One layout for both: radar-core works out every cell and colour. The phosphor ramp is mixed from `glow.cyan`, `accent.muted` and `glow.purple`; the mark's ramp runs `glow.purple` → `accent.tertiary` → `glow.cyan` on full colour, `accent.primary` below, bold with none. Timing in `splash::Splash`: full hands off at 2300 ms with the screen fade (an event 1.5 s later); subtle at 1600 ms; motion off only when startup is slow. Any input ends it and acts. Below 64×34 it drops the scope, below 29×8 the mark, below 20 columns it shows nothing. `[theme] splash = auto \| off`. Skipped before 1.5 s, its start line shows on the status line for 5 s. Pixel tier: where the terminal takes kitty's graphics, the scope's dots are painted in pixels, each in its own colour (`splash::picture`, kitty image 7370 replaced each frame and deleted when the splash goes; `SplashView.picture` for Ink); braille everywhere else. Cells compared in `ink/test/splash` |
+| Tour card | `shell/tour.rs` / Ink from `ChromeView.tour` | `tour · n of m` in a panel at the body's lower right, over the app: the stop's title (bold), its lines, `try it: press …` (muted), its keys; the kit's shadow | from `TourCard`; the app under it keeps its keys; `→ ← esc`, the key a stop names goes on |
 
 ---
 
@@ -235,7 +243,7 @@ the "today" column lists what has to change. Paths are under `crates/`.
 | Run and state marks | `Mark` and `Icon`, one meaning per glyph | `●` means running (GitLab), done (Jira), in use (Git), unread (Slack); GitLab `ready::blocks`, Jira category marks, GitHub plain words | #45 |
 | State chips | `widgets::chip` by tone, tinted ground (the kit draws it since #30) | GitHub uses a bare word in Secondary; Slack builds its own | |
 | People | person or `you` icon + short name; avatar when pictures work | GitLab `person_icon`, Jira `assignee_segs`, Slack `who()`, GitHub none | #38 |
-| Ages | `time::ago` (`5m`, `3d`) in cells; `N ago` in details | four local wrappers (Jira `ago`, Slack `age`, Slack `demo::ago`, GitLab `ago_str`); only Jira tints by age | |
+| Ages | `time::ago` (`5m`, `3d`) in cells; `N ago` in details | local wrappers (Jira `ago`, Slack `age`, Slack `demo::ago`) beside core's `time::ago_str` (`crates/radar-core/src/time.rs`); only Jira tints by age | |
 | Counts | `data.number` in cells; none on tabs | bare numbers, `"{n} NEW"`, `"{n} repos"`, `"{n} PRs"`, `"{n} MR(s)"`, `↑n`, `"Comments · 3"` in tabs | #33 |
 | Section headings | `widgets::heading` (muted bold capitals) | a detail pane's sections are `view::Block::section` (drawn as `ui::card::section`, muted bold capitals and a rule) in GitLab, Jira, GitHub, Slack and Git; Workbench uses Emphasis | #46 |
 | Tree header strip | `widgets::heading` | Plain in GitLab and Jira, Muted bold in Git, Secondary in Slack | |
@@ -246,7 +254,7 @@ the "today" column lists what has to change. Paths are under `crates/`.
 | Day divider | one kit line | hand-written `"── #chan · day ──"` and `"── … ──"` in Slack | |
 | Colour swatch, tenancy bullet | one kit element | `"██ "` and `"● "` in GitLab and Jira settings | |
 | Editor titles | `Icon::Comment` + words | literal `"✎ …"` in GitLab and Slack | |
-| Site and tenancy colours | one shared `SITE_SLOTS` table | copied three times (GitLab, Jira, Slack `lib.rs`) | |
+| Site and tenancy colours | one shared slot table | copied three times in `lib.rs`: `TENANT_SLOTS` (GitLab), `SITE_SLOTS` (Jira), `CHANNEL_SLOTS` (Slack) | |
 | Detail pane | Head on the heading shade, aligned facts, sections under named rules, actions with keys in words | sections under named rules are shared (`view::Block::section`, rows two cells in; GitLab's actions `Block::keyed`, `[k]` at the edge); the head and facts each part arranges its own | #46 |
 
 ---
@@ -285,25 +293,29 @@ Found by inventory on 13 October 2026. Each item is a defect against the rules a
    `states::empty`/`widgets::empty`, `rows::kv`/`widgets::kv`,
    `scroll::paragraph`/`widgets::paragraph`, `look_heading`/`heading`,
    `status::strip` and the status line's own counts join.
-5. **Three `padded` functions** with different meanings (`widgets`, `view_tui`, `plugin`).
+5. **Two `padded` functions** with different meanings (`widgets.rs`, `view_tui.rs`).
 6. **Width-rule violations**: `shell.rs` tab labels, `shell/menu.rs` caret, `meter::stages`,
    `input::render_field`, `help_bar.rs`.
-7. **Glyph literals outside the pack**: `ui/status.rs` (`✓ ✗ ⚠`), `view/kit.rs`, and the
+7. **Glyph literals outside the pack**: `ui/status.rs` (`✓ ✗`), `view/kit.rs` (`✓ ✗ ⚠`), and the
    part literals in section 4.
 8. **The spinner is drawn two ways**: the top bar uses `BRAILLE_SIX` directly; the kit
    uses `states::spinner`.
 9. **Three field paths**: the field bar, the menu's typed field, the tree row input.
 10. **Log fold glyphs duplicated** in two render paths of `ui/log.rs`.
-11. **Missing from the gallery**: `Button`, `TextInput`/`FieldBar`, `Link`, `Pointer`,
+11. **Missing from the gallery**: `Button`, `FieldBar`, `Link`, `Pointer`,
     `Image`, `Hover`, and all chrome (top bar, status line, menu, settings panes).
+    Fixed for `TextInput` (Grid states story) and `Composer` (Long text story).
 12. **Three hand-copied tone and slot maps in Ink**: `text/theme.ts` `SLOT_OF`,
     `chrome/layout.ts` `chromeInk`, and `text/generated/pack.ts`, which has no script
     to regenerate it.
 13. **GUIDE names that no longer exist**: GUIDE 2.1 and 2.2 cite `shell::hints`;
     the work is in `status_line` and `key_hits`.
 14. **Dead ratatui render in a part**: `radar-workspace/src/screen.rs` (`#[allow(dead_code)]`).
-15. **`KNOWN_UNDRAWN` entries that may be stale**: `ScreenView.overlay`, `Seg.marked`,
-    `Seg.link`, `Seg.look`.
+15. **`KNOWN_UNDRAWN` entries that may be stale**: `SCREEN_KNOWN_UNDRAWN` holds 27 fields
+    today (state nodes, tree look and chips, `heading`, `Seg.marked`, `Seg.link`, `Seg.look`,
+    `PaneView.from`, `ScreenView.overlay`, inline inputs under a diff, `TerminalState.exited.code`, ...);
+    `DOCK_KNOWN_UNDRAWN` holds `DockTab.provider` and `TerminalView.cwd`. Each goes red with
+    "now drawn" when fixed. Check each against its renderer and remove the ones already drawn.
 
 ---
 
@@ -312,7 +324,7 @@ Found by inventory on 13 October 2026. Each item is a defect against the rules a
 - **Change it in the same commit** as the element: a new element, a new state, a new key
   in a kind of place, or a fix from section 6.
 - **A new view field** shows up in `ink/test/contract/every-field-is-drawn.test.tsx`.
-  If it can't be drawn yet, it goes into `KNOWN_UNDRAWN` and into section 2 here.
+  If it can't be drawn yet, it goes into `SCREEN_KNOWN_UNDRAWN` or `DOCK_KNOWN_UNDRAWN` and into section 2 here.
 - **The view-type and node-kind lists could be generated** from the `Node` and `Block`
   enums (ts-rs already exports them, and `ink/test/contract/support.tsx` already derives
   the kinds), with a check that each kind has a drawer on both sides. Until that exists,

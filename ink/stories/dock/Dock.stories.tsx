@@ -18,6 +18,8 @@ import approval80 from "../../test/fixtures/dock/approval_80x24.json";
 import question160 from "../../test/fixtures/dock/question_160x40.json";
 import attention160 from "../../test/fixtures/dock/attention_160x40.json";
 import full160 from "../../test/fixtures/dock/full_160x40.json";
+import restored160 from "../../test/fixtures/dock/restored_160x40.json";
+import detached160 from "../../test/fixtures/dock/detached_160x40.json";
 import markdown160 from "../../test/fixtures/dock/markdown_160x40.json";
 import markdownStreaming160 from "../../test/fixtures/dock/markdown-streaming_160x40.json";
 import tools160 from "../../test/fixtures/dock/tools_160x40.json";
@@ -58,8 +60,9 @@ function Draw({ args, globals }: { args: Args; globals: Globals }) {
  * reads in a row folded into one row, an edit's diff opened, reasoning with its latest line while the session works,
  * an approval waiting, a question waiting, an error, stopped, a terminal tab (T7's surface); the activity line above
  * the composer (thinking, writing, running a command, waiting for your approval or answer, with the turn's time and
- * tokens; done, stopped or failed after it); each tab's state mark (spinner, needs you, failed, unread); full height
- * (`alt-f`).
+ * tokens; done, stopped or failed after it); each tab's state mark (spinner, needs you, failed, unread, not attached,
+ * being read back); full height (`alt-f`); a session restored from the last run (lapsed requests and questions,
+ * detached and resuming, `alt-r` and `/resume`).
  *
  * **Rules:** no chevrons or `[+]`/`[-]` for folding; every mark is a pack icon; keys sit inside their word, underlined
  * (`a̲pprove once`, `d̲eny`, `v̲iew diff`), and a click on the word does what the key does; nothing is approved or
@@ -114,6 +117,17 @@ export const TabStates = at(attention160);
 /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,
  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */
 export const FullHeight = at(full160, 132, 37);
+/** Sessions restored from the last radar run. The showing one is attached; the request and the question that waited when
+ * radar closed come back lapsed (the process that asked is gone): muted, the pack's skipped mark, `lapsed · radar closed
+ * before this was answered` and `→ lapsed`, no buttons and no keys. A notice says the turn was ended and a message
+ * carries on. The other tabs are not attached (the pack's connection mark) or being read back (the spinner)
+ * (restored_160x40). */
+export const Restored = at(restored160);
+/** A restored session not attached to its provider: the body says so, the activity line says `not attached to copilot ·
+ * a message or alt-r resumes it`, the status line leads with `⏎ or alt-r resume`, and `/resume` is in the slash menu.
+ * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back
+ * (detached_160x40). */
+export const Detached = at(detached160);
 /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */
 export const Narrow = at(empty80, 56, 20);
 /** An approval at 80x24 (approval_80x24). */

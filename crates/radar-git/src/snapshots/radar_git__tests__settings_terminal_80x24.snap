@@ -1,0 +1,29 @@
+---
+source: crates/radar-git/src/tests.rs
+assertion_line: 247
+expression: "radar_core::shell::to_text(&host, 80, 24)"
+---
+ radar    Branches   History   Settings (,)                              ✎ edit
+╭ settings ────────────╮╭ terminal ────────────────────────────────────────────╮
+│General               ││ terminal   ghostty · from $TERMINAL                  │
+│  ├─ parts            ││                                                      │
+│  ├─ mode             ││                                                      │
+│  ├─ appearance       ││                                                      │
+│  ├─ colours          ││                                                      │
+│  └─ icons            ││                                                      │
+│Git                   ││                                                      │
+│  ├─ checkouts        ││                                                      │
+│  ├─ terminal         ││                                                      │
+│  ├─ editors          │╰──────────────────────────────────────────────────────╯
+│  ├─ links            │╭ terminal ────────────────────────────────────────────╮
+│  └─ branches         ││ What opens a terminal in a checkout (t on a repo or  █
+│                      ││ a merge request). Inside tmux it is a new tmux       █
+│                      ││ window; on a desktop your terminal app; over ssh     █
+│                      ││ without tmux, radar puts `cd <folder>` on your       █
+│                      ││ clipboard instead.                                   ║
+│                      ││                                                      ║
+│                      ││ ACCEPTS                                              ║
+│                      ││ ⏎ picks one of the terminals found here, or type a   ║
+│                      ││ command line: {dir} is the folder, {cmd} the command ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

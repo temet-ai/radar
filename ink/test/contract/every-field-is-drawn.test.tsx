@@ -127,6 +127,30 @@ const history = (f: (h: any, on: boolean) => void): Case => (on) => {
 const historyRow = (f: (r: any, on: boolean) => void): Case => history((h, on) => f(h.rows[1], on));
 
 const pick = <T,>(on: boolean, off: T, yes: T): T => (on ? yes : off);
+
+// Setup: the chrome holds a title, a step and the card's heading and lead; the card and the sheet are the snapshot's
+// section. The rail is never sent (the host's rail is always empty), so it is not drawn.
+const setupBase = (): any => ({
+  title: "step title",
+  step: null,
+  rail: [],
+  current: null,
+  heading: "head",
+  lead: "lead",
+});
+const setup = (f: (s: any, on: boolean) => void): Case => (on) => {
+  const s = setupBase();
+  f(s, on);
+  return { chrome: chromeOf(W, H, { setup: s }), section };
+};
+
+// The tour's card over the body (shell/tour.rs): a counter in its border, a title, lines, what to try, its keys.
+const tourBase = (): any => ({ stop: 2, of: 5, title: "tour title", lines: [text("tour line")], try_it: "try it: press J", keys: text("next key") });
+const tour = (f: (t: any, on: boolean) => void): Case => (on) => {
+  const t = tourBase();
+  f(t, on);
+  return { chrome: chromeOf(W, H, { tour: t }), screen: docScreen() };
+};
 const healthChip = () => ({ part: "svc", label: "svc", state: "ok", ink: "good", target: "chrome:health:svc" });
 const attentionChip = () => ({ text: "review needs you", icon: "warning", ink: "warn", keys: "`", target: "chrome:attention" });
 
@@ -140,6 +164,8 @@ const CASES: Record<string, Case> = {
   "ChromeView.menu": (on) => ({ chrome: chromeOf(W, H, { menu: on ? menuBase() : null }), screen: docScreen() }),
   "ChromeView.settings": (on) => ({ chrome: chromeOf(W, H, { settings: on ? { groups: [{ id: "g", name: "ZZGROUP", open: false, target: "chrome:group:g", sections: [] }], section_title: "s", detail_title: "d" } : null }), section }),
   "ChromeView.keys_at": (on) => ({ chrome: chromeOf(W, H, { keys_at: on ? "bar" : "body" }), screen: docScreen() }),
+  "ChromeView.tour": (on) => ({ chrome: chromeOf(W, H, { tour: on ? tourBase() : null }), screen: docScreen() }),
+  "ChromeView.setup": (on) => ({ chrome: chromeOf(W, H, { setup: on ? setupBase() : null }), section }),
   "ChromeView.history": (on) => ({ chrome: chromeOf(W, H, { history: on ? historyBase() : null }), screen: docScreen() }),
 
   // TopBar
@@ -242,6 +268,20 @@ const CASES: Record<string, Case> = {
   "NavSection.name": navSection((s, on) => (s.name = pick(on, "views", "ZZSEC"))),
   "NavSection.icon": navSection((s, on) => (s.icon = on ? "settings" : null)),
 
+  // SetupChrome
+  "SetupChrome.title": setup((s, on) => (s.title = pick(on, "step title", "ZZTITLE"))),
+  "SetupChrome.step": setup((s, on) => (s.step = on ? "ZZ step 9 of 9" : null)),
+  "SetupChrome.heading": setup((s, on) => (s.heading = pick(on, "head", "ZZHEADING"))),
+  "SetupChrome.lead": setup((s, on) => (s.lead = pick(on, "lead", "ZZLEAD"))),
+
+  // TourCard
+  "TourCard.stop": tour((t, on) => (t.stop = on ? 4 : 2)),
+  "TourCard.of": tour((t, on) => (t.of = on ? 9 : 5)),
+  "TourCard.title": tour((t, on) => (t.title = pick(on, "tour title", "ZZTITLE"))),
+  "TourCard.lines": tour((t, on) => (t.lines = on ? t.lines : [])),
+  "TourCard.try_it": tour((t, on) => (t.try_it = on ? "ZZ try it" : null)),
+  "TourCard.keys": tour((t, on) => (t.keys = text(pick(on, "next key", "ZZKEYS")))),
+
   // HistoryView
   "HistoryView.title": history((h, on) => (h.title = pick(on, "History", "ZZTITLE"))),
   "HistoryView.boundary": history((h, on) => (h.boundary = pick(on, "snapshot", "ZZBOUND"))),
@@ -316,6 +356,14 @@ const INVISIBLE: Record<string, string> = {
   "NavGroup.target": "pointer target",
   "NavSection.id": "identity for the host",
   "NavSection.target": "pointer target",
+  "SetupChrome.rail": "the host always sends it empty (setup shows `step n of m` on the top bar); neither renderer draws a rail",
+  "SetupChrome.current": "the index of a rail stop; there is no rail",
+  "RailStop.id": "no rail is sent",
+  "RailStop.label": "no rail is sent",
+  "RailStop.icon": "no rail is sent",
+  "RailStop.state": "no rail is sent",
+  "RailStop.result": "no rail is sent",
+  "RailStop.target": "no rail is sent",
   "HistoryView.version": "view contract version",
   "HistoryView.width": "the room the host made the view for",
   "HistoryView.height": "the room the host made the view for",
@@ -355,7 +403,7 @@ async function frameOf(scene: Scene): Promise<string> {
 
 describe("the generated types are read", () => {
   it("finds ChromeView's fields in the generated file", () => {
-    expect(fieldsOf("ChromeView")).toEqual(["version", "width", "height", "top_bar", "sources", "status", "menu", "settings", "keys_at", "history", "screen_keys"]);
+    expect(fieldsOf("ChromeView")).toEqual(["version", "width", "height", "top_bar", "sources", "status", "menu", "settings", "keys_at", "history", "screen_keys", "setup", "tour"]);
   });
 });
 

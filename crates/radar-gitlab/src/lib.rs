@@ -38,6 +38,7 @@ mod runs_history;
 mod runs_ownership;
 mod screen;
 mod settings;
+mod setup;
 mod settings_checks;
 mod settings_history;
 #[cfg(test)]
@@ -262,6 +263,9 @@ pub struct GitlabPlugin {
     pub(crate) folded: std::collections::BTreeSet<String>,
     // settings
     pub(crate) section_rows: [usize; 4],
+    /// The connection section was last drawn as a setup step, without the
+    /// rows only Settings needs; `conn_rows` follows it.
+    pub(crate) setup_card: std::cell::Cell<bool>,
     /// How far each section's rows are scrolled.
     pub(crate) section_scroll: [radar_core::ui::Scroll; 4],
     pub(crate) edit: Option<(Target, radar_core::input::TextInput)>,
@@ -875,6 +879,7 @@ impl GitlabPlugin {
             height: area.height,
             parts: radar_core::Parts::none(),
             icon_lead: 0,
+            setup: false,
         };
         let view = Plugin::view(self, screen, &vcx).expect("the screen has a view");
         let frontend = radar_core::view_tui::Frontend::default();
@@ -904,6 +909,7 @@ impl GitlabPlugin {
             height: 40,
             parts: radar_core::Parts::none(),
             icon_lead: 0,
+            setup: false,
         };
         let Some(view) = Plugin::view(self, scope, &vcx) else {
             return self.on_key(pane, key);
@@ -1411,6 +1417,9 @@ impl Plugin for GitlabPlugin {
         Some(view)
     }
     fn section_view(&self, section: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::SectionView> {
+        if section == "connection" {
+            self.setup_card.set(cx.setup);
+        }
         match section {
             "look" => Some(settings::look_view(self)),
             "views" => Some(settings::views_view(self, cx.width)),
@@ -1520,6 +1529,12 @@ impl Plugin for GitlabPlugin {
 
     fn sections(&self) -> Vec<SectionSpec> {
         SECTIONS.to_vec()
+    }
+    fn setup_step(&self) -> Option<radar_core::plugin::SetupStep> {
+        Some(setup::step(self))
+    }
+    fn setup_finds(&self) -> radar_core::plugin::SetupFinds {
+        setup::finds()
     }
     fn section_hints(&self, section: &str) -> Vec<KeyHint<'static>> {
         let mut hints = settings::hints(self, section);
@@ -2425,8 +2440,9 @@ pub(crate) mod tests {
         let mut host = radar_core::Host::new(vec![Box::new(sample())], 1_791_271_000).unwrap();
         host.load_config(Some("")).unwrap();
         let mut p = sample();
+        p.cfg.token = "glab".into();
         p.env = Some(vec![(
-            "MY_GITLAB_TOKEN".into(),
+            "GITLAB_TOKEN".into(),
             "glpat-not.a.real.token.1234".into(),
         )]);
         p.me.clear();

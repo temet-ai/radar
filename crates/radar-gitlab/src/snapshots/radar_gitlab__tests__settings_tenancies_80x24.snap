@@ -1,5 +1,6 @@
 ---
 source: crates/radar-gitlab/src/lib.rs
+assertion_line: 2426
 expression: "radar_core::shell::to_text(&host, 80, 24)"
 ---
  radar    Repositories 1   History   Settings (,)                        ✎ edit
@@ -7,14 +8,14 @@ expression: "radar_core::shell::to_text(&host, 80, 24)"
 │General               ││ + add a tenancy                                      │
 │  ├─ parts            ││▌ ● b    team-b   0 repos · 0 hidden                  │
 │  ├─ mode             ││▌ ● a    team-a   4 repos · 1 hidden                  │
-│  ├─ colours          ││▌ ├─ api                                      shown   │
-│  └─ icons            ││▌ ├─ docs                                     shown   │
-│GitLab                ││▌ ├─ tools/renovate                           hidden  │
-│  ├─ connection       ││▌ └─ web                                      shown   │
+│  ├─ appearance       ││▌ ├─ api                                      shown   │
+│  ├─ colours          ││▌ ├─ docs                                     shown   │
+│  └─ icons            ││▌ ├─ tools/renovate                           hidden  │
+│GitLab                ││▌ └─ web                                      shown   │
+│  ├─ connection       ││                                                      │
 │  ├─ tenancies        ││                                                      │
-│  ├─ views            ││                                                      │
-│  └─ look             │╰──────────────────────────────────────────────────────╯
-│                      │╭ add a tenancy ───────────────────────────────────────╮
+│  ├─ views            │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ add a tenancy ───────────────────────────────────────╮
 │                      ││ Track another GitLab group (every repo in it), or    █
 │                      ││ one repo on its own.                                 █
 │                      ││                                                      █

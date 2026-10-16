@@ -135,6 +135,10 @@ impl Headless {
 
     /// The settings section showing, as its part describes it.
     pub fn section(&self) -> Option<SectionView> {
+        // Setup's own steps (a step that is a section is that section).
+        if self.host.setup_host_step() {
+            return self.host.setup_section_view();
+        }
         match self.host.current_section()? {
             (Owner::Plugin(p), s) => self.host.section_view_in(p, s.id, self.width, self.height),
             _ => crate::settings_view::section_view(&self.host, crate::design::theme::Tier::TrueColor),

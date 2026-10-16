@@ -11,8 +11,10 @@ licensed under the MIT licence too. There is no contributor licence agreement to
 
 ## Building and testing
 
-You need Rust 1.90 or later and Node 25.5 or later (for the Ink renderer and the Claude
-Agent connector). From the repository root:
+You need Rust 1.90 or later and Node. The Ink renderer's bundle targets Node 22 and the
+Claude Agent sidecar needs Node 20 or later. Node 25.5 or later is needed only for
+`scripts/build-runtime` (`node --build-sea`), which `scripts/install` runs to embed the
+runtime. From the repository root:
 
 ```bash
 cargo build                                   # the radar binary, at target/debug/radar

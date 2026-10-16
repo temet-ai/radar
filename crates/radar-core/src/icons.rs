@@ -395,27 +395,44 @@ mod tests {
 
     #[test]
     fn the_icons_row_offers_every_pack_with_a_preview() {
+        // The pack is chosen in Settings / general / look & terminal now:
+        // its card lists the packs, each with a preview, and space picks one.
         let mut host = settings_host("nerd");
         host.section = host
             .sections
             .iter()
-            .position(|(_, s)| s.id == "colours")
+            .position(|(o, _)| *o == crate::host::Owner::Look)
             .unwrap();
-        for _ in 0..4 {
+        let key = |host: &mut crate::Host, code| {
             host.update(crate::host::Event::Key(KeyEvent::new(
-                KeyCode::Down,
+                code,
                 KeyModifiers::NONE,
             )));
+        };
+        let text = crate::shell::to_text(&host, 160, 40);
+        for (pack, needs) in [
+            ("nerd", "needs a Nerd Font"),
+            ("plain", "any font"),
+            ("emoji", "wide; columns shift"),
+        ] {
+            let line = text
+                .lines()
+                .find(|l| l.contains(pack) && l.contains(needs))
+                .unwrap_or_else(|| panic!("a row for {pack}:\n{text}"));
+            let between = line.split(pack).nth(1).unwrap().split(needs).next().unwrap();
+            assert!(
+                between.trim().chars().count() >= 2,
+                "{pack} has a preview: {line}"
+            );
         }
-        assert_eq!(host.colours.selected(), crate::colours::Row::Icons);
-        host.update(crate::host::Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
-        )));
-        let menu = &host.menu.as_ref().expect("a menu").menu;
-        let names: Vec<&str> = menu.items.iter().map(|i| i.value.as_str()).collect();
-        assert_eq!(names, ["auto", "nerd", "unicode", "emoji", "off"]);
-        insta::assert_snapshot!("icons_menu_100x30", crate::shell::to_text(&host, 100, 30));
+        // Down once is the second pack, plain (unicode); space chooses it.
+        key(&mut host, KeyCode::Down);
+        key(&mut host, KeyCode::Char(' '));
+        assert_eq!(host.colours.cfg.icons, "unicode");
+        assert!(host.menu.is_none(), "no menu: the card is the choice");
+        key(&mut host, KeyCode::Up);
+        key(&mut host, KeyCode::Enter);
+        assert_eq!(host.colours.cfg.icons, "nerd", "⏎ chooses too");
     }
 
     #[test]

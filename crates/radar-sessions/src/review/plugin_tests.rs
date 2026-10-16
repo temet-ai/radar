@@ -87,12 +87,13 @@ impl World {
     }
 
     fn until(&mut self, p: &mut SessionsPlugin, what: &str, done: impl Fn(&World, &SessionsPlugin) -> bool) {
-        for _ in 0..2_000_000u64 {
+        // The plugin's tasks run on this thread, only here: a bound on steps, not on time.
+        for _ in 0..256u64 {
             self.step(p);
             if done(self, p) {
                 return;
             }
-            std::thread::yield_now();
+            p.run_tasks();
         }
         panic!("never reached: {what}; notices {:?}; asked {:?}; dock {:?}", self.notices, self.asked, p.dock());
     }
@@ -110,7 +111,7 @@ fn scratch(name: &str) -> PathBuf {
 }
 
 fn plugin(provider: &FakeProvider, notes: &std::path::Path) -> SessionsPlugin {
-    let mut p = SessionsPlugin::new().with_review_dir(notes.to_path_buf());
+    let mut p = SessionsPlugin::on_this_thread().with_review_dir(notes.to_path_buf());
     p.add_adapter(Box::new(provider.adapter()));
     p
 }

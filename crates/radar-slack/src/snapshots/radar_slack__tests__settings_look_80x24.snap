@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack 4   History   Settings (,)                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 80, 24)"
 │General               ││ MESSAGES                                             █
 │  ├─ parts            ││   density                                    compact █
 │  ├─ mode             ││   author   who wrote a message        links and keys █
-│  ├─ colours          ││   you                                         accent █
-│  └─ icons            ││   pinged                              warning · bold ║
-│Slack                 ││   mention                               third accent ║
-│  ├─ connection       ││   link     a link                   info · underline ║
-│  ├─ channels         ││   emoji                                   muted text ║
-│  ├─ review           ││   code     code, inline or in a block    data string ║
-│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ density ─────────────────────────────────────────────╮
-│                      ││ How the messages of a thread, the detail pane and a  █
+│  ├─ appearance       ││   you                                         accent █
+│  ├─ colours          ││   pinged                              warning · bold ║
+│  └─ icons            ││   mention                               third accent ║
+│Slack                 ││   link     a link                   info · underline ║
+│  ├─ connection       ││   emoji                                   muted text ║
+│  ├─ channels         ││   code     code, inline or in a block    data string ║
+│  ├─ review           │╰──────────────────────────────────────────────────────╯
+│  ├─ alerts           │╭ density ─────────────────────────────────────────────╮
+│  └─ look             ││ How the messages of a thread, the detail pane and a  █
 │                      ││ direct message are laid out.                         █
 │                      ││                                                      █
 │                      ││ compact  in use                                      █

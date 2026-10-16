@@ -1,0 +1,1036 @@
+# radar's start lines: one under the mark, a new one each start.
+#
+# Shipped inside radar; a user's own file (~/.config/radar/start-lines.toml)
+# is read after it and may add lines, turn groups off or change weights.
+#
+# text      at most 56 cells once every placeholder is at its widest
+#           (an emoji is 2 cells).
+# {name}    a fact radar already holds (see FACTS); never fetched for a line.
+#           Names are cut to 16 cells with an ellipsis, counts stop at 999.
+# {n:word}  a count with its noun: "1 branch", "3 branches"
+#           ({n:branch|branches} when the plural is not word + s).
+# {key:x}   a key, drawn in the key colour.
+# when      every condition must hold; a fact radar does not hold, or holds
+#           from more than a day ago, makes the line ineligible.
+# emoji     true when the line needs emoji: skipped unless [theme] icons is
+#           auto or emoji and the terminal draws them.
+# anim      very rare: the line comes with a small animation in the tagline's
+#           row. Needs motion = full; otherwise the line is skipped.
+# id        stable: the state file remembers lines by id, never by text.
+
+version = 1
+
+# ------------------------------------------------------------------ order
+# Checked top to bottom; the first that yields a line wins.
+#   plain      something is wrong: a plain line, never a joke
+#   first_run  the first start ever
+#   day        first start of the day only: date, milestone, news, gap
+#   animated   1 in 300 starts, at most one a month, motion full only
+#   rare       1 in 100 starts, at most one a week
+#   draw       a weighted draw over the groups below
+
+[draw]
+weights = { scope = 20, work = 24, facts = 22, tips = 10, agents = 10, time = 9, glyph = 5 }
+tips_early = 25          # the tips weight for the first 30 starts
+same_group_max = 2       # never three starts in a row from one group
+facts_unchanged = "skip" # a fact line whose numbers are the same as when it last showed waits
+
+[odds]
+rare = { chance = 0.01, min_days_between = 7 }
+animated = { chance = 0.0033, min_days_between = 30 }
+
+# A group whose every line also needs these conditions (agents: only when one
+# is set up).
+[gates]
+agents = ["agents.setup >= 1"]
+
+# The widest a text placeholder gets, for the 56-cell check. A placeholder
+# that is not a count (n, m, days, today, starts) is the fact of that name;
+# it must be listed here. {time} is the clock when no fact holds it.
+[widest]
+repo = "xxxxxxxxxxxxxxxx"
+ticket = "WATCH-1234"
+agent = "Copilot"
+agent2 = "Copilot"
+mr = "!1234"
+time = "03:00"
+version = "0.12.10"
+service = "GitLab"
+
+# ------------------------------------------------------------------ plain
+# No jokes, no emoji. These win over everything; the most important shows.
+
+[[plain]]
+id = "crashed"
+text = "radar closed unexpectedly last time. Your tabs are back."
+when = ["start.after_crash"]
+
+[[plain]]
+id = "signed-out"
+text = "{service} wants you to sign in again: Settings / {service}."
+when = ["auth.expired"]
+
+[[plain]]
+id = "scope-lost"
+text = "The Slack token lost a scope. Settings / Slack has it."
+when = ["slack.scope_missing"]
+
+[[plain]]
+id = "no-answer"
+text = "{service} didn't answer last time. Asking again."
+when = ["sync.last_failed"]
+
+[[plain]]
+id = "offline"
+text = "Offline. Showing what radar held at {time}."
+when = ["net.offline"]
+
+[[plain]]
+id = "pipes-failed"
+text = "{n:pipeline} of yours failed since your last start."
+when = ["pipelines.failed_new >= 1"]
+
+# -------------------------------------------------------------- first run
+
+[[first_run]]
+id = "first-contact"
+text = "First contact. Let's see what's out there."
+
+# -------------------------------------------------------------------- day
+# First start of a day only. Dates first, then milestones, news, gap.
+
+[[day]]
+id = "new-year"
+text = "New year. Same merge requests."
+when = ["date == 01-01"]
+
+[[day]]
+id = "leap-day"
+text = "Leap day. A whole day nobody estimated."
+when = ["date == 02-29"]
+
+[[day]]
+id = "pi-day"
+text = "Pi day. Round your estimates up. 🥧"
+emoji = true
+when = ["date == 03-14"]
+
+[[day]]
+id = "april-fax"
+text = "New today: radar syncs with your fax machine."
+when = ["date == 04-01"]
+
+[[day]]
+id = "may-fourth"
+text = "May the fourth be with your pipelines."
+when = ["date == 05-04"]
+
+[[day]]
+id = "towel-day"
+text = "Towel day. Don't panic. Know where your branches are."
+when = ["date == 05-25"]
+
+[[day]]
+id = "programmers-day"
+text = "Day 256. Happy programmers' day. Off by one? Tomorrow."
+when = ["day_of_year == 256"]
+
+[[day]]
+id = "pirate-day"
+text = "Arr. Thar be merge conflicts off the starboard bow."
+when = ["date == 09-19"]
+
+[[day]]
+id = "halloween-stale"
+text = "🎃 A branch untouched for {days} days. It stirs."
+emoji = true
+when = ["date == 10-31", "git.stalest_branch_days >= 90"]
+
+[[day]]
+id = "halloween"
+text = "Halloween. Some of these branches died years ago."
+when = ["date == 10-31"]
+
+[[day]]
+id = "friday-13"
+text = "Friday the 13th. Perhaps skip the force push."
+when = ["weekday == fri", "month_day == 13"]
+
+[[day]]
+id = "holidays"
+text = "Season's greetings. The pipelines are on a holiday rota."
+anim = "snow"
+when = ["date in 12-24..12-26"]
+
+[[day]]
+id = "year-end"
+text = "Last day of the year. Merge nothing you'd regret in it."
+when = ["date == 12-31"]
+
+[[day]]
+id = "anniversary"
+text = "{n:year} of radar today. Thanks for keeping watch."
+when = ["install.anniversary"]
+
+[[day]]
+id = "start-42"
+text = "Start 42. The answer was radar all along."
+when = ["start.count == 42"]
+
+[[day]]
+id = "start-100"
+text = "Start 100. radar is not crying. You're crying."
+when = ["start.count == 100"]
+
+[[day]]
+id = "start-256"
+text = "Start 256. A lovely round number, in binary."
+when = ["start.count == 256"]
+
+[[day]]
+id = "start-404"
+text = "Start 404. Line not found."
+when = ["start.count == 404"]
+
+[[day]]
+id = "start-1000"
+text = "Start 1,000. You and radar should get a cat."
+anim = "confetti"
+when = ["start.count == 1000"]
+
+[[day]]
+id = "updated"
+text = "radar is now {version}. Same keys, fewer surprises."
+when = ["start.version_changed"]
+
+[[day]]
+id = "gap-long"
+text = "Welcome back. {n:thing} happened. radar read them all."
+when = ["start.gap_days >= 3", "changes.since_last >= 1"]
+
+[[day]]
+id = "gap-quiet"
+text = "Welcome back. Nothing happened. Genuinely nothing."
+when = ["start.gap_days >= 3", "changes.since_last == 0"]
+
+# --------------------------------------------------------------- animated
+# Special events. 1 in 300, at most one a month, only at motion full. An
+# event owns the splash: its animation takes the mark's place (rows 26-33,
+# no mark, no parts row) and its words take the line's. The splash holds
+# 1.5 s longer; any key skips. Never over a failure: none of these shows
+# while a plain line or a failing pipeline is held. A day line with `anim`
+# (snow, confetti) is an event too.
+# stage = "mark": the animation draws where the mark would (64 x 8 cells).
+
+[[animated]]
+id = "this-is-fine"
+text = "This is fine."
+anim = "fire"
+when = ["pipelines.failing == 0"]
+
+[[animated]]
+id = "tumbleweed"
+text = "Nothing to review. Nothing at all."
+anim = "tumbleweed"
+when = ["reviews.count == 0"]
+
+[[animated]]
+id = "duck-walk"
+text = "The duck has been consulted. It had no comment."
+anim = "duck"
+emoji = true
+
+[[animated]]
+id = "ufo"
+text = "Unidentified contact. Probably nothing."
+anim = "ufo"
+emoji = true
+
+[[animated]]
+id = "brewing"
+text = "Brewing."
+anim = "steam"
+emoji = true
+when = ["hour < 10"]
+
+# ------------------------------------------------------------------- rare
+
+# When the sweep paints a rare echo (starship, battlestar, mech: 1 in 50),
+# the start takes no other rare thing: this line, no animation.
+[[rare]]
+id = "not-a-plane"
+text = "That wasn't a plane."
+when = ["splash.echo_rare"]
+
+[[rare]]
+id = "found-it"
+text = "You found the rare line. Tell no one."
+
+[[rare]]
+id = "achievement"
+text = "🏆 Achievement unlocked: opened radar."
+emoji = true
+
+[[rare]]
+id = "first-try"
+text = "A pipeline green on the first try. Rarer than this line."
+
+[[rare]]
+id = "electric"
+text = "radar dreamt of electric merge requests."
+
+[[rare]]
+id = "plot-twist"
+text = "Plot twist: the merge request was reviewing you."
+
+[[rare]]
+id = "explain"
+text = "The sweep found a contact it can't explain. It's you."
+
+[[rare]]
+id = "nervous"
+text = "radar has started {starts} times. It still gets nervous."
+when = ["start.count >= 200"]
+
+[[rare]]
+id = "probably"
+text = "This line was chosen at random. Probably."
+
+[[rare]]
+id = "too-slow"
+text = "If you can read this whole line, radar was slow today."
+
+[[rare]]
+id = "shiny"
+text = "✨ Shiny blip. ✨"
+emoji = true
+
+# ------------------------------------------------------------------ scope
+# radar itself: the dish, the sweep, the blips. Dry.
+
+[[line]]
+group = "scope"
+id = "horizon"
+text = "Sweeping the horizon for merge requests."
+
+[[line]]
+group = "scope"
+id = "ping"
+text = "Ping. Ping. Ping. Somebody wants a review."
+
+[[line]]
+group = "scope"
+id = "bogey"
+text = "Bogey at two o'clock. It's a merge conflict."
+
+[[line]]
+group = "scope"
+id = "draft-blip"
+text = "Unidentified blip. Almost certainly a draft."
+
+[[line]]
+group = "scope"
+id = "tabs"
+text = "Turning twelve browser tabs into one terminal."
+
+[[line]]
+group = "scope"
+id = "ground-control"
+text = "Ground control to main branch."
+
+[[line]]
+group = "scope"
+id = "weather"
+text = "Forecast: scattered reviews, high chance of rebase."
+
+[[line]]
+group = "scope"
+id = "all-quiet"
+text = "All quiet on the main branch."
+
+[[line]]
+group = "scope"
+id = "judges"
+text = "radar sees everything. radar judges nothing. Out loud."
+
+[[line]]
+group = "scope"
+id = "no-tabs-harmed"
+text = "One sweep, every service. No tabs were harmed."
+
+[[line]]
+group = "scope"
+id = "too-quiet"
+text = "The scope is quiet. Too quiet. Looking again."
+
+[[line]]
+group = "scope"
+id = "range-bearing"
+text = "Contact. Range: one rebase. Bearing: main."
+
+[[line]]
+group = "scope"
+id = "lock-on"
+text = "Locking on. Nothing fires without your say-so."
+
+[[line]]
+group = "scope"
+id = "dish-turns"
+text = "The dish is turning. That's all the dish does."
+
+[[line]]
+group = "scope"
+id = "the-bit"
+text = "Scanning. This is the part where it scans."
+
+[[line]]
+group = "scope"
+id = "no-aliens"
+text = "No aliens detected. Only merge requests."
+
+[[line]]
+group = "scope"
+id = "operators-log"
+text = "Operator's log, day {days}. Still merge requests."
+when = ["install.days >= 2"]
+
+[[line]]
+group = "scope"
+id = "signal-acquired"
+text = "Signal acquired. Enthusiasm pending."
+
+[[line]]
+group = "scope"
+id = "ticket-or-weather"
+text = "Everything on the scope is a ticket or weather."
+
+[[line]]
+group = "scope"
+id = "satellite"
+text = "📡 Listening."
+emoji = true
+
+# ------------------------------------------------------------------- work
+# The work radar shows: merge requests, pipelines, tickets, threads, Git.
+
+[[line]]
+group = "work"
+id = "rebasing-reality"
+text = "Rebasing reality onto main."
+
+[[line]]
+group = "work"
+id = "my-machine"
+text = "It works on my machine. This is your machine."
+
+[[line]]
+group = "work"
+id = "two-hard"
+text = "Naming things, cache invalidation and Slack threads."
+
+[[line]]
+group = "work"
+id = "yaml"
+text = "Somewhere, a YAML file is two spaces short."
+
+[[line]]
+group = "work"
+id = "force-push"
+text = "git push --force is a feeling, not a plan."
+
+[[line]]
+group = "work"
+id = "small-mrs"
+text = "Small merge requests get reviewed. Large ones get LGTM."
+
+[[line]]
+group = "work"
+id = "lgtm"
+text = "LGTM: short for I scrolled to the bottom."
+
+[[line]]
+group = "work"
+id = "quick-fix"
+text = "The ticket says quick fix. The ticket has lied before."
+
+[[line]]
+group = "work"
+id = "estimate"
+text = "Estimate: two points. Actual: two weeks. Tradition."
+
+[[line]]
+group = "work"
+id = "final2"
+text = "The commit says final. The next one says final2."
+
+[[line]]
+group = "work"
+id = "see-title"
+text = "Description: see title. Title: fix."
+
+[[line]]
+group = "work"
+id = "wip"
+text = "WIP is not a status. It's a lifestyle."
+
+[[line]]
+group = "work"
+id = "stash-remembers"
+text = "Your stash remembers what you don't."
+
+[[line]]
+group = "work"
+id = "thread-decision"
+text = "Forty replies, one decision. Possibly."
+
+[[line]]
+group = "work"
+id = "flaky-character"
+text = "A flaky test is just a test of character."
+
+[[line]]
+group = "work"
+id = "another-day"
+text = "Another day, another merge request."
+
+[[line]]
+group = "work"
+id = "still-here"
+text = "Your work is still here. Sorry."
+
+[[line]]
+group = "work"
+id = "two-more"
+text = "Fixed one bug. Found two more. Classic."
+
+[[line]]
+group = "work"
+id = "nobody-touch"
+text = "The build is green. Nobody touch anything."
+
+[[line]]
+group = "work"
+id = "temporary"
+text = "A comment says temporary. It is older than some interns."
+
+[[line]]
+group = "work"
+id = "conflict-right"
+text = "A merge conflict is two people being right at once."
+
+[[line]]
+group = "work"
+id = "staging"
+text = "Works in staging is not a test result."
+
+[[line]]
+group = "work"
+id = "narrator"
+text = "Docs updated. (Narrator: they were not.)"
+
+[[line]]
+group = "work"
+id = "meeting"
+text = "That meeting could have been a merge request."
+
+[[line]]
+group = "work"
+id = "duck"
+text = "Explain it to the duck first. 🦆"
+emoji = true
+
+[[line]]
+group = "work"
+id = "it-depends"
+text = "The answer is it depends. The question was the deadline."
+
+# ------------------------------------------------------------------ facts
+# Only when true, from what radar already holds. The sweep's blips already
+# show the counts, so a fact line says what a count does not: how old, how
+# it changed, what to do next.
+
+[[line]]
+group = "facts"
+id = "oldest-mr"
+text = "Your oldest open merge request turns {days} today. 🎂"
+emoji = true
+when = ["mine.oldest_days >= 7"]
+
+[[line]]
+group = "facts"
+id = "oldest-mr-plain"
+text = "Your oldest open merge request is {days} days old."
+when = ["mine.oldest_days >= 7", "no_emoji"]
+
+[[line]]
+group = "facts"
+id = "ready-to-merge"
+text = "{mr} is approved and green. {key:m} merges it."
+when = ["mine.ready >= 1"]
+
+[[line]]
+group = "facts"
+id = "behind-main"
+text = "{n:merge request} of yours behind main. {key:u} rebases."
+when = ["mine.behind >= 1"]
+
+[[line]]
+group = "facts"
+id = "queue-down"
+text = "Review queue: {n}, down from {m}. Look at you."
+when = ["reviews.count < reviews.prev"]
+
+[[line]]
+group = "facts"
+id = "queue-empty"
+text = "Nobody needs a review from you. Suspicious."
+when = ["reviews.count == 0"]
+
+[[line]]
+group = "facts"
+id = "staring"
+text = "{n:merge request}, staring at you. 👀"
+emoji = true
+when = ["reviews.count >= 3"]
+
+[[line]]
+group = "facts"
+id = "approvals-overnight"
+text = "{n:approval} arrived while you were away. Popular."
+when = ["mine.approvals_new >= 1"]
+
+[[line]]
+group = "facts"
+id = "all-green"
+text = "Every pipeline you follow is green. Screenshot it."
+when = ["pipelines.followed >= 3", "pipelines.failing == 0"]
+
+[[line]]
+group = "facts"
+id = "days-no-red"
+text = "{days} days without a red pipeline on main."
+when = ["main.green_days >= 5"]
+
+[[line]]
+group = "facts"
+id = "drafts"
+text = "{n:draft} open. Drafts are shy merge requests."
+when = ["mine.drafts >= 2"]
+
+[[line]]
+group = "facts"
+id = "ticket-stuck"
+text = "{ticket}: In Progress for {days} days. Just saying."
+when = ["jira.stuck_days >= 10"]
+
+[[line]]
+group = "facts"
+id = "tickets-moved"
+text = "{n:ticket} of yours moved while you were away."
+when = ["jira.moved_since_last >= 2"]
+
+[[line]]
+group = "facts"
+id = "mentions-answered"
+text = "Every Slack mention answered. Remarkable."
+when = ["slack.mentions_open == 0", "slack.mentions_week >= 3"]
+
+[[line]]
+group = "facts"
+id = "long-thread"
+text = "A thread you follow hit {n} replies. Bring snacks."
+when = ["slack.longest_thread >= 50"]
+
+[[line]]
+group = "facts"
+id = "main-moved"
+text = "{repo}: main is {n:commit} ahead of you."
+when = ["git.behind >= 10"]
+
+[[line]]
+group = "facts"
+id = "merged-branches"
+text = "{n:branch|branches} here already merged. They can go."
+when = ["git.merged_branches >= 3"]
+
+[[line]]
+group = "facts"
+id = "stashes"
+text = "{repo}: {n:stash|stashes}. One matters."
+when = ["git.stashes >= 3"]
+
+[[line]]
+group = "facts"
+id = "unpushed"
+text = "{repo}: {n:commit} never left this machine."
+when = ["git.unpushed >= 1", "git.unpushed_days >= 2"]
+
+[[line]]
+group = "facts"
+id = "all-clean"
+text = "Every working tree clean. Who are you?"
+when = ["git.repos >= 3", "git.dirty == 0"]
+
+[[line]]
+group = "facts"
+id = "agent-finished"
+text = "{agent} finished while you were away. The diff waits."
+when = ["agents.finished_since_last >= 1"]
+
+[[line]]
+group = "facts"
+id = "agent-asking"
+text = "{n:session} waiting for your yes or no. {key:`} shows them."
+when = ["agents.waiting >= 1"]
+
+[[line]]
+group = "facts"
+id = "friday-open"
+text = "Friday, {n:merge request} still open. Choose wisely."
+when = ["weekday == fri", "hour >= 13", "mine.open >= 3"]
+
+[[line]]
+group = "facts"
+id = "reviewer-week"
+text = "{n:review} from you this week. radar noticed."
+when = ["reviews.done_week >= 8"]
+
+# ----------------------------------------------------------------- agents
+# Only when at least one agent is set up; {agent} is one that is.
+
+[[line]]
+group = "agents"
+id = "not-even-this"
+text = "Nothing is approved for you. Not even this line."
+
+[[line]]
+group = "agents"
+id = "propose-dispose"
+text = "Agents propose. You dispose."
+
+[[line]]
+group = "agents"
+id = "npm-install"
+text = "The robots are here. They'd like to run npm install."
+
+[[line]]
+group = "agents"
+id = "menacingly"
+text = "{agent} is ready. Waiting. Menacingly."
+
+[[line]]
+group = "agents"
+id = "pair"
+text = "Pair programming. Your pair never grabs the keyboard."
+
+[[line]]
+group = "agents"
+id = "read-ticket"
+text = "The agents read the ticket. Somebody had to."
+
+[[line]]
+group = "agents"
+id = "opinions"
+text = "{agent} has opinions about your tests. Ask at own risk."
+
+[[line]]
+group = "agents"
+id = "two-agents"
+text = "{agent} and {agent2}. Two agents, zero meetings."
+when = ["agents.setup >= 2"]
+
+[[line]]
+group = "agents"
+id = "copilot-seat"
+text = "Copilot is in the passenger seat. As the name promised."
+when = ["agents.has_copilot"]
+
+[[line]]
+group = "agents"
+id = "claude-right"
+text = "Claude is ready. You're absolutely right, as usual."
+when = ["agents.has_claude"]
+
+[[line]]
+group = "agents"
+id = "codex-coffee"
+text = "Codex is ready. It doesn't drink coffee. Smug."
+when = ["agents.has_codex"]
+
+[[line]]
+group = "agents"
+id = "step-one"
+text = "The agent has a plan. Step one: read everything."
+
+[[line]]
+group = "agents"
+id = "every-command"
+text = "Every command an agent wants, you see first."
+
+[[line]]
+group = "agents"
+id = "robot-coffee"
+text = "🤖 ☕"
+emoji = true
+
+# ------------------------------------------------------------------- time
+# The local clock. Each line at most once a day.
+
+[[line]]
+group = "time"
+id = "monday"
+text = "Monday. The pipelines had a weekend too."
+when = ["weekday == mon", "hour < 12"]
+
+[[line]]
+group = "time"
+id = "tuesday"
+text = "Tuesday. The most productive day, according to nobody."
+when = ["weekday == tue"]
+
+[[line]]
+group = "time"
+id = "wednesday"
+text = "Wednesday. Statistically, very Wednesday."
+when = ["weekday == wed"]
+
+[[line]]
+group = "time"
+id = "thursday"
+text = "Thursday: Friday's dress rehearsal."
+when = ["weekday == thu"]
+
+[[line]]
+group = "time"
+id = "friday-pm"
+text = "Friday afternoon. Maybe don't merge that. 🧯"
+emoji = true
+when = ["weekday == fri", "hour >= 14"]
+
+[[line]]
+group = "time"
+id = "weekend"
+text = "It's the weekend. Whatever this is, keep it small."
+when = ["weekday in sat,sun"]
+
+[[line]]
+group = "time"
+id = "early"
+text = "Up before the build servers. Respect."
+when = ["hour < 7"]
+
+[[line]]
+group = "time"
+id = "lunch"
+text = "Lunch first? radar will keep watch."
+when = ["hour == 12"]
+
+[[line]]
+group = "time"
+id = "late"
+text = "It's late. The review will still be there tomorrow."
+when = ["hour >= 22"]
+
+[[line]]
+group = "time"
+id = "small-hours"
+text = "It's {time}. The bugs are nocturnal. You needn't be."
+when = ["hour in 1..4"]
+
+[[line]]
+group = "time"
+id = "month-start"
+text = "First start of the month. Fresh scope, same tickets."
+when = ["month_day == 1", "start.first_today"]
+
+[[line]]
+group = "time"
+id = "quarter-end"
+text = "Last week of the quarter. The tickets know."
+when = ["quarter_days_left <= 7"]
+
+[[line]]
+group = "time"
+id = "off-on"
+text = "Have you tried turning it off and on again? Yes."
+when = ["start.since_quit_min < 2"]
+
+[[line]]
+group = "time"
+id = "busy-day"
+text = "Start number {today} today. Everything all right?"
+when = ["start.today >= 8"]
+
+[[line]]
+group = "time"
+id = "late-morning"
+text = "Good morning. Or late morning. radar doesn't judge."
+when = ["start.first_today", "hour in 10..11"]
+
+# ------------------------------------------------------------------ glyph
+# Nothing but emoji. Needs emoji; a small weight, so they stay a surprise.
+
+[[line]]
+group = "glyph"
+id = "coffee"
+text = "☕"
+emoji = true
+when = ["hour < 11"]
+
+[[line]]
+group = "glyph"
+id = "dish"
+text = "📡"
+emoji = true
+
+[[line]]
+group = "glyph"
+id = "salute"
+text = "🫡"
+emoji = true
+
+[[line]]
+group = "glyph"
+id = "eyes"
+text = "👀"
+emoji = true
+when = ["reviews.count >= 1"]
+
+[[line]]
+group = "glyph"
+id = "moon"
+text = "🌙"
+emoji = true
+when = ["hour >= 22"]
+
+[[line]]
+group = "glyph"
+id = "bugs"
+text = "🐛 🔨 🐛"
+emoji = true
+
+[[line]]
+group = "glyph"
+id = "zen"
+text = "🧘"
+emoji = true
+when = ["pipelines.followed >= 3", "pipelines.failing == 0"]
+
+[[line]]
+group = "glyph"
+id = "ship"
+text = "🚢 ?"
+emoji = true
+when = ["mine.ready >= 1"]
+
+# ------------------------------------------------------------------- tips
+# Useful, with a little wit. A tip retires once you have used its key
+# three times (counted on this machine, never sent).
+
+[[line]]
+group = "tips"
+id = "tip-filter"
+text = "{key:/} filters any list. {key:esc} clears it."
+used = "filter"
+
+[[line]]
+group = "tips"
+id = "tip-goto"
+text = "{key::} jumps to any repository or merge request by name."
+used = "goto"
+
+[[line]]
+group = "tips"
+id = "tip-menu"
+text = "{key:x} lists every key here. Nobody remembers them all."
+used = "menu"
+
+[[line]]
+group = "tips"
+id = "tip-bulk"
+text = "{key:b} does one thing to everything shown. Carefully."
+used = "bulk"
+
+[[line]]
+group = "tips"
+id = "tip-pause"
+text = "{key:z} pauses refreshing, for when the scope is too much."
+used = "pause"
+
+[[line]]
+group = "tips"
+id = "tip-open-copy"
+text = "{key:o} opens a row in its service. {key:y} copies its link."
+used = "open"
+
+[[line]]
+group = "tips"
+id = "tip-ask"
+text = "{key:A} on any row asks an agent about it."
+used = "ask_agent"
+when = ["agents.setup >= 1"]
+
+[[line]]
+group = "tips"
+id = "tip-review-local"
+text = "{key:i} on a merge request: an agent reviews, nothing posts."
+used = "review_local"
+when = ["agents.setup >= 1"]
+
+[[line]]
+group = "tips"
+id = "tip-dock"
+text = "{key:`} shows the agent dock. {key:ctrl-t} starts a session."
+used = "dock"
+when = ["agents.setup >= 1"]
+
+[[line]]
+group = "tips"
+id = "tip-slack-mark"
+text = "{key:m} in Slack marks read in radar only. Slack never knows."
+used = "slack_mark"
+when = ["slack.ready"]
+
+[[line]]
+group = "tips"
+id = "tip-jira-move"
+text = "{key:t} moves a ticket along. {key:i} makes it yours."
+used = "jira_move"
+when = ["jira.ready"]
+
+[[line]]
+group = "tips"
+id = "tip-history"
+text = "{key:H} is History: every write you said yes or no to."
+used = "history"
+
+[[line]]
+group = "tips"
+id = "tip-work"
+text = "{key:I} is Work: your own list, kept on this machine."
+used = "work"
+
+[[line]]
+group = "tips"
+id = "tip-checkout"
+text = "{key:c} on a merge request checks out its branch here."
+used = "checkout"
+when = ["git.repos >= 1"]
+
+[[line]]
+group = "tips"
+id = "tip-settings"
+text = "{key:,} is Settings. Every row says what it writes."
+used = "settings"
+
+[[line]]
+group = "tips"
+id = "tip-own-lines"
+text = "Write your own start lines: Settings / General."
+when = ["start.count >= 50"]
+
+[[line]]
+group = "tips"
+id = "tip-lines-off"
+text = "Had enough of these? Settings / General turns them off."
+when = ["start.count >= 100"]

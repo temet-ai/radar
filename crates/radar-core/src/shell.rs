@@ -26,6 +26,8 @@ use crate::ui::icon::{self, Icon};
 use crate::{ui, widgets};
 
 pub(crate) mod menu;
+mod setup;
+mod tour;
 
 #[cfg(test)]
 mod setup_hints_tests;
@@ -34,6 +36,7 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
     let area = f.area();
     let cursor = std::cell::Cell::new(None);
     host.hits.borrow_mut().clear();
+    host.frontend.begin_selectable();
     motion::begin();
     // The chrome is view data the host produces (having measured what
     // scrolls at this size); this paints it.
@@ -48,6 +51,15 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
         // target each area is, so a press resolves to it.
         if let Some(history) = &host.history {
             history.paint(view, body, buf, theme);
+            // Its events (rows), its detail (text) or its help (text): each
+            // panel's inside; the help alone fills the body.
+            let inside = |r: Rect| r.inner(ratatui::layout::Margin::new(1, 1));
+            let (list, detail) = history.panes();
+            if list.is_empty() && detail.is_empty() {
+                host.frontend.mark_selectable(inside(body), true);
+            }
+            host.frontend.mark_selectable(inside(list), false);
+            host.frontend.mark_selectable(inside(detail), true);
             host.hits
                 .borrow_mut()
                 .extend(history.hit_regions().into_iter().map(|area| (area, Hit::History)));
@@ -66,7 +78,10 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
         .areas(area);
         motion::region(Region::Body, body);
 
-        top_bar(host, theme, &chrome, top, buf);
+        match &chrome.setup {
+            Some(s) => setup::top_bar(host, theme, &chrome, s, top, buf),
+            None => top_bar(host, theme, &chrome, top, buf),
+        }
         let body = if !chrome.sources.is_empty() && body.height > 1 {
             let [source_row, content] =
                 Layout::vertical([Constraint::Length(1), Constraint::Fill(1)]).areas(body);
@@ -76,6 +91,7 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
             body
         };
         match host.screen() {
+            _ if let Some(s) = &chrome.setup => setup::body(host, theme, s, body, buf, &cursor),
             Some((p, _)) if !host.ready(p) => crate::parts::setup_page(host, p, theme, body, buf),
             Some((p, spec)) => {
                 let plugin_hits = std::cell::RefCell::new(Vec::new());
@@ -111,6 +127,9 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
             .as_ref()
             .map(|view| (view, menu::Layout::new(view, theme, body)));
         status_line(host, theme, &chrome.status, bottom, buf);
+        if let Some(card) = &chrome.tour {
+            tour::card(theme, card, body, buf);
+        }
         // A menu, question or help sits over a scrim and throws a shadow;
         // nothing behind it is lit.
         let lit = modal.is_none();
@@ -118,6 +137,9 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
             cursor.set(None);
             let frame = layout.frame();
             ui::scrim::scrim(buf, frame, theme);
+            // Nothing behind the scrim is selected: only the menu's inside.
+            host.frontend.begin_selectable();
+            host.frontend.mark_selectable(frame.inner(ratatui::layout::Margin::new(1, 1)), false);
             menu::render(host, view, theme, layout, buf, &cursor);
             ui::scrim::shadow(buf, frame, theme);
         }
@@ -695,7 +717,9 @@ pub(crate) fn measure(host: &Host, theme: &Theme, width: u16, height: u16) {
         return;
     }
     let body = body_of(host, width, height);
-    if host.screen().is_none() {
+    if host.setup.is_some() {
+        setup::measure(host, theme, body);
+    } else if host.screen().is_none() {
         measure_settings_detail(host, theme, body);
     }
     if let Some(open) = &host.menu {
@@ -721,6 +745,7 @@ fn measure_settings_detail(host: &Host, theme: &Theme, body: Rect) {
             .as_ref()
             .map(|view| section_detail_lines(theme, view, det.width)),
         Some((Owner::Mode, _)) => Some(crate::mode::detail_lines(host, theme)),
+        Some((Owner::Look, _)) => Some(section_detail_lines(theme, &host.look_settings_view(), det.width)),
         Some((Owner::Parts, _)) => Some(crate::parts::detail_lines(host, theme)),
         Some((Owner::Host, _)) if host.on_icons() => Some(host.colours.icons_detail_lines(theme)),
         Some((Owner::Host, _)) => Some(host.colours.detail_lines(theme)),
@@ -741,12 +766,15 @@ fn measure_settings_detail(host: &Host, theme: &Theme, body: Rect) {
     }
 }
 
-/// A part's section detail as lines at the detail's inner width.
+/// A part's section detail as lines at the detail's inner width. The blocks
+/// fill one cell past the width they are given (a section's rule, a line's
+/// `[key]`), so they are given one less than the padded pane, which they
+/// then fill exactly instead of wrapping that cell onto a line of its own.
 fn section_detail_lines(theme: &Theme, view: &crate::view::SectionView, det_width: u16) -> Vec<Line<'static>> {
     if view.detail_blocks.is_empty() {
         view.detail.iter().map(|l| crate::view_tui::line(theme, l)).collect()
     } else {
-        crate::view_tui::rich_lines_with_urls(theme, &view.detail_blocks, det_width.saturating_sub(2), false, false).0
+        crate::view_tui::rich_lines_with_urls(theme, &view.detail_blocks, det_width.saturating_sub(3), false, false).0
     }
 }
 
@@ -871,6 +899,12 @@ fn settings(
     let det_block = widgets::panel(theme, &about, has(Pane::Detail));
     let det = det_block.inner(detail);
     det_block.render(detail, buf);
+    // Rows to choose in the navigation and the section, text in the detail.
+    // The nav's rows, not its scrollbar column (the tree's rows area is as
+    // wide as the rows it drew).
+    host.frontend.mark_selectable(Rect { width: rows_area.width, ..inner }, false);
+    host.frontend.mark_selectable(mid, false);
+    host.frontend.mark_selectable(det, true);
     // Capture owns every key, so the live verdict at the start stays visible.
     if host.capturing() {
         host.settings_detail.top();
@@ -894,6 +928,19 @@ fn settings(
         }
         Some((Owner::Plugin(_), _)) => {
             host.settings_detail.fit(0, 0);
+        }
+        Some((Owner::Look, _)) => {
+            let view = host.look_settings_view();
+            let look_hits = std::cell::RefCell::new(Vec::new());
+            let look_cx = Cx { hits: &look_hits, parts: Parts::new(&host.plugins, None), ..cx(Pane::Middle, 0) };
+            crate::view_tui::render_section(&host.frontend, &view, mid, buf, &look_cx);
+            draw_detail(section_detail_lines(theme, &view, det.width), buf);
+            let mut hits = host.hits.borrow_mut();
+            for (rect, _, id) in look_hits.into_inner() {
+                if id != crate::view_tui::PANE_HIT {
+                    hits.push((rect, Hit::Setup(id)));
+                }
+            }
         }
         Some((Owner::Mode, _)) => {
             if let Some(r) = crate::mode::render(host, theme, mid, buf, has(Pane::Middle)) {

@@ -1,4 +1,5 @@
 import net from "node:net";
+import { tracer } from "../app/trace.js";
 
 /** One JSON message per newline-terminated UTF-8 line. */
 export interface Connection {
@@ -27,6 +28,7 @@ export function connect(path: string): Promise<Connection> {
 
     const deliver = (line: Buffer) => {
       if (line.length === 0) return;
+      tracer.received(line.length);
       let parsed: unknown;
       try {
         parsed = JSON.parse(line.toString("utf8"));

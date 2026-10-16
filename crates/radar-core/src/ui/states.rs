@@ -30,7 +30,7 @@ pub fn set_up(theme: &Theme, area: Rect, buf: &mut Buffer, name: &str, needs: &s
         Line::styled(needs.to_string(), theme.s(Slot::TextPrimary)),
         Line::default(),
     ];
-    if let Some(how) = how {
+    for how in how.into_iter().flat_map(|h| h.lines()) {
         lines.push(Line::styled(how.to_string(), theme.s(Slot::TextSecondary)));
     }
     widgets::paragraph(buf, area, lines);

@@ -1,5 +1,6 @@
 //! The `git` settings sections. `checkouts`: the folders radar looks in for
-//! checkouts, how far down, which terminal opens there, and the last look.
+//! checkouts, how far down, and the last look. `terminal`: which terminal
+//! opens in a checkout, what radar found and how.
 //! `editors`: the project types, the marker files that tell them apart,
 //! and the editor each opens in. Rows explain themselves in the detail
 //! panel, validate as you type, and a change to where radar looks offers to
@@ -23,10 +24,15 @@ use crate::local::{self, DEPTH_MAX, Link, ProjectType};
 /// Where the input on a `+ add …` row starts: past the row's mark.
 const ADD_AT: u16 = 4;
 
-pub const SECTIONS: [SectionSpec; 4] = [
+pub const SECTIONS: [SectionSpec; 5] = [
     SectionSpec {
         id: "checkouts",
         name: "checkouts",
+        group: "git",
+    },
+    SectionSpec {
+        id: "terminal",
+        name: "terminal",
         group: "git",
     },
     SectionSpec {
@@ -80,16 +86,60 @@ pub enum Field {
 enum Row {
     Add,
     Root(usize),
+    /// A folder in the home folder found holding checkouts, not looked in
+    /// yet (`p.local.places[i]`): ⏎ looks in it.
+    Found(usize),
     Depth,
-    Terminal,
     Scan,
+}
+
+/// The found places not looked in yet, by their index in `p.local.places`.
+fn found(p: &GitPlugin) -> Vec<usize> {
+    let roots: Vec<String> = p.cfg.roots.iter().map(|r| local::clean_folder(r)).collect();
+    (0..p.local.places.len())
+        .filter(|&i| !roots.contains(&local::clean_folder(&p.local.places[i].0)))
+        .collect()
 }
 
 fn rows(p: &GitPlugin) -> Vec<Row> {
     let mut rows = vec![Row::Add];
     rows.extend((0..p.cfg.roots.len()).map(Row::Root));
-    rows.extend([Row::Depth, Row::Terminal, Row::Scan]);
+    rows.extend(found(p).into_iter().map(Row::Found));
+    rows.extend([Row::Depth, Row::Scan]);
     rows
+}
+
+/// Whether the section's first row is a `+ add …` row.
+fn has_add(section: &str) -> bool {
+    section != "terminal"
+}
+
+/// The terminal that opens in a checkout and how it was chosen: the
+/// command you set, else what radar found here and how.
+fn terminal_now(p: &GitPlugin) -> (String, String) {
+    let chosen = p.local.terminals.as_ref().map(|t| t.chosen.clone());
+    if !p.cfg.terminal.is_empty() {
+        let how = match chosen {
+            Some(Some((prog, _))) if prog == "tmux" => "set by you; inside tmux a tmux window opens",
+            _ => "set by you",
+        };
+        return (p.cfg.terminal.clone(), how.into());
+    }
+    match chosen {
+        Some(Some(found)) => found,
+        Some(None) => ("none found".into(), "radar copies `cd <folder>` instead".into()),
+        None => ("radar finds one".into(), "when it opens".into()),
+    }
+}
+
+/// Look in found place `i` from now on, and look now.
+fn follow(p: &mut GitPlugin, i: usize) -> Vec<Effect> {
+    let Some((place, _)) = p.local.places.get(i).cloned() else { return vec![] };
+    p.cfg.roots.push(local::clean_folder(&place));
+    let mut fx = vec![Effect::Notify(format!("looking in {place} from now on"))];
+    p.local.started = true;
+    fx.extend(local::scan_now(p, true));
+    fx
 }
 
 fn at(section: &str) -> usize {
@@ -97,12 +147,14 @@ fn at(section: &str) -> usize {
         "editors" => 1,
         "links" => 2,
         "branches" => 3,
+        "terminal" => 4,
         _ => 0,
     }
 }
 
 fn row_count(p: &GitPlugin, section: &str) -> usize {
     match section {
+        "terminal" => 1,
         "editors" => p.cfg.types.len() + 1,
         "links" => p.cfg.links.len() + 1,
         "branches" => brows(p).len(),
@@ -937,6 +989,15 @@ fn section_rows(
             };
             drawn.push((line, Some(right)));
         }
+    } else if section == "terminal" {
+        if editing(&Field::Terminal) {
+            input_at = Some((0, VALUE_AT));
+        }
+        let (what, how) = terminal_now(p);
+        let value = Text::new()
+            .push(Seg::new(what, Ink::Primary))
+            .push(Seg::new(format!(" · {how}"), Ink::Muted));
+        drawn.push((labelled("terminal", LABEL, value), None));
     } else {
         for (n, row) in rows(p).into_iter().enumerate() {
             // Labels in a column; an input starts where the value does.
@@ -968,6 +1029,18 @@ fn section_rows(
                         Some(right),
                     )
                 }
+                Row::Found(i) => {
+                    let (place, n) = &p.local.places[i];
+                    (
+                        kv(
+                            "found",
+                            Text::new()
+                                .push(Seg::icon_or_lead(radar_core::ui::icon::Icon::Todo, "[ ] ", Ink::Muted))
+                                .push(Seg::new(local::tilde(place), Ink::Secondary)),
+                        ),
+                        Some(Text::of(plural(*n, "checkout", "checkouts"), Ink::Number)),
+                    )
+                }
                 Row::Depth => {
                     if editing(&Field::Depth) {
                         input_at = Some((n, VALUE_AT));
@@ -975,17 +1048,6 @@ fn section_rows(
                     let d = p.cfg.depth;
                     let value = format!("{d} folder{}", if d == 1 { "" } else { "s" });
                     (kv("look down", Text::of(value, Ink::Primary)), None)
-                }
-                Row::Terminal => {
-                    if editing(&Field::Terminal) {
-                        input_at = Some((n, VALUE_AT));
-                    }
-                    let value = if p.cfg.terminal.is_empty() {
-                        Text::of("found for you", Ink::Secondary)
-                    } else {
-                        Text::of(p.cfg.terminal.clone(), Ink::Primary)
-                    };
-                    (kv("terminal", value), None)
                 }
                 Row::Scan => {
                     let mark = match (&p.local.index, p.local.scanning) {
@@ -1044,11 +1106,14 @@ pub fn detail_title(p: &GitPlugin, section: &str) -> String {
             |i| p.cfg.types[i].name.clone(),
         );
     }
+    if section == "terminal" {
+        return "terminal".into();
+    }
     match selected_row(p) {
         Row::Add => "add a folder".into(),
         Row::Root(i) => local::tilde(&p.cfg.roots[i]),
+        Row::Found(i) => local::tilde(&p.local.places[i].0),
         Row::Depth => "look down".into(),
-        Row::Terminal => "terminal".into(),
         Row::Scan => "last look".into(),
     }
 }
@@ -1271,6 +1336,8 @@ fn detail(p: &GitPlugin, section: &str, now: i64) -> Vec<Text> {
                 )
             }
         }
+    } else if section == "terminal" {
+        terminal_about(p)
     } else {
         checkout_about(p, now)
     };
@@ -1286,6 +1353,9 @@ fn detail(p: &GitPlugin, section: &str, now: i64) -> Vec<Text> {
         lines.push(Text::new());
         lines.push(view_heading("now"));
         lines.push(strong(value, Ink::Emphasis));
+    }
+    if section == "terminal" {
+        lines.extend(terminal_found(p));
     }
     if !key.is_empty() {
         lines.push(Text::new());
@@ -1321,21 +1391,20 @@ fn checkout_about(p: &GitPlugin, now: i64) -> (&'static str, &'static str, Strin
                 "[git] roots",
             )
         }
+        Row::Found(i) => {
+            let (place, n) = &p.local.places[i];
+            (
+                "A folder in your home folder that holds git checkouts, found when you let setup look. radar does not look in it yet; ⏎ looks in it from now on.",
+                "",
+                format!("{} · {}", local::tilde(place), plural(*n, "checkout", "checkouts")),
+                "[git] roots",
+            )
+        }
         Row::Depth => (
             "How many folders down from each folder radar looks. Hidden folders and build output (node_modules, target, build, …) are never looked in.",
-            "a whole number from 1 to 12",
+            "a number from 1 to 6, typed in place: ⏎ keeps it, esc leaves it, ↑↓ step it",
             format!("{}", p.cfg.depth),
             "[git] depth",
-        ),
-        Row::Terminal => (
-            "What opens a terminal in a checkout. Inside tmux it is a new tmux window; on a desktop your terminal app; over ssh without tmux, radar puts `cd <folder>` on your clipboard instead.",
-            "empty to let radar find one, or a command line: {dir} is the folder, {cmd} the command it runs (else -e is added)",
-            if p.cfg.terminal.is_empty() {
-                "found for you".into()
-            } else {
-                p.cfg.terminal.clone()
-            },
-            "[git] terminal",
         ),
         Row::Scan => (
             "When radar last looked for checkouts. It looks once at start-up, and again when you ask.",
@@ -1344,6 +1413,38 @@ fn checkout_about(p: &GitPlugin, now: i64) -> (&'static str, &'static str, Strin
             "",
         ),
     }
+}
+
+/// What the terminal row is, what it accepts, what opens now, its key.
+fn terminal_about(p: &GitPlugin) -> (&'static str, &'static str, String, &'static str) {
+    let (what, how) = terminal_now(p);
+    (
+        "What opens a terminal in a checkout (t on a repo or a merge request). Inside tmux it is a new tmux window; on a desktop your terminal app; over ssh without tmux, radar puts `cd <folder>` on your clipboard instead.",
+        "⏎ picks one of the terminals found here, or type a command line: {dir} is the folder, {cmd} the command it runs (else -e is added)",
+        format!("{what} · {how}"),
+        "[git] terminal",
+    )
+}
+
+/// The terminals installed on this machine, for the terminal section's
+/// detail: the one radar runs in first, marked.
+fn terminal_found(p: &GitPlugin) -> Vec<Text> {
+    let Some(t) = &p.local.terminals else { return vec![] };
+    let mut lines = vec![Text::new(), view_heading("installed here")];
+    if t.found.is_empty() {
+        lines.push(Text::of("No terminal radar knows was found. Type a command instead.", Ink::Muted));
+        return lines;
+    }
+    let w = t.found.iter().map(|k| ui::width(k.name)).max().unwrap_or(0) + 2;
+    for k in &t.found {
+        let pad = " ".repeat(w.saturating_sub(ui::width(k.name)));
+        let mut line = Text::new().push(Seg::new(format!("{}{pad}", k.name), Ink::Primary));
+        if t.current == Some(k.name) {
+            line.add(Seg::new("radar is running in it", Ink::Good));
+        }
+        lines.push(line);
+    }
+    lines
 }
 
 // --- the checkouts section as view data ------------------------------------------
@@ -1373,8 +1474,21 @@ pub fn section_view(p: &GitPlugin, section: &str, cx: &v::ViewCx<'_>) -> Option<
             editing,
         },
         detail_title: detail_title(p, section),
+        detail_blocks: if section == "checkouts" {
+            // The row's detail, then what local code is (setup's sheet).
+            let mut blocks: Vec<v::Block> = Vec::new();
+            if p.local.home == local::HomeWalk::Walking {
+                blocks.push(v::Block::line(Text::of("Looking in your home folder for folders that hold checkouts…", Ink::Info)));
+                blocks.push(v::Block::line(Text::new()));
+            }
+            blocks.extend(detail(p, section, cx.now).into_iter().map(v::Block::line));
+            blocks.push(v::Block::line(Text::new()));
+            blocks.extend(crate::setup::help());
+            blocks
+        } else {
+            vec![]
+        },
         detail: detail(p, section, cx.now),
-        detail_blocks: vec![],
         actions: section_actions(p, section),
     })
 }
@@ -1383,7 +1497,7 @@ pub fn section_view(p: &GitPlugin, section: &str, cx: &v::ViewCx<'_>) -> Option<
 /// menu item's value as its verb (`git.checkouts.dir`); a row without a menu is
 /// named by hand from its key.
 fn section_actions(p: &GitPlugin, section: &str) -> Vec<v::ActionSpec> {
-    if p.local.rows[at(section)] == 0 {
+    if has_add(section) && p.local.rows[at(section)] == 0 {
         return keys(p, section)
             .iter()
             .map(|b| v::ActionSpec::named(action_id(section, b), b))
@@ -1443,18 +1557,79 @@ pub fn intent(p: &mut GitPlugin, section: &str, intent: &v::Intent) -> Outcome {
             click(p, section, target.as_str());
             press(p, section, v::Chord::new(v::Key::Enter))
         }
-        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) => Outcome::Ignored,
+        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => {
             let Some(chord) = intent.chord() else {
                 return Outcome::Ignored;
             };
-            if p.local.edit.is_some() {
+            if let Some(outcome) = depth_key(p, chord) {
+                outcome
+            } else if p.local.edit.is_some() {
                 typed(p, |input| input.chord(chord))
             } else {
                 press(p, section, chord)
             }
         }
     }
+}
+
+/// A key while look down is typed into: a digit takes the field's place
+/// (it holds one), ↑↓ step it from 1 to 6, other letters are not taken;
+/// ⏎, esc and the editing keys go to the field.
+fn depth_key(p: &mut GitPlugin, chord: v::Chord) -> Option<Outcome> {
+    let Some((Field::Depth, input)) = p.local.edit.as_mut() else { return None };
+    if chord.ctrl || chord.alt {
+        return None;
+    }
+    let now = input.value().trim().parse::<usize>().unwrap_or(p.cfg.depth);
+    let set = match chord.key {
+        v::Key::Char(c) if depth_digit(c) => c.to_string(),
+        v::Key::Char(_) => return Some(Outcome::done()),
+        v::Key::Up => now.saturating_add(1).clamp(1, DEPTH_MAX).to_string(),
+        v::Key::Down => now.saturating_sub(1).clamp(1, DEPTH_MAX).to_string(),
+        _ => return None,
+    };
+    *input = TextInput::new(&set);
+    Some(Outcome::done())
+}
+
+/// A digit look down takes: 1 to [`DEPTH_MAX`].
+pub(crate) fn depth_digit(c: char) -> bool {
+    c.to_digit(10).is_some_and(|d| (1..=DEPTH_MAX).contains(&(d as usize)))
+}
+
+/// Look down's field, opened on its row with `value` in it.
+fn edit_depth(p: &mut GitPlugin, value: &str) -> Outcome {
+    p.local.edit = Some((Field::Depth, TextInput::new(value)));
+    Outcome::done()
+}
+
+/// The menu of the terminal row: the terminals installed here, the one
+/// radar runs in first, then a command of your own, and back to radar's
+/// choice.
+fn terminal_menu(p: &GitPlugin) -> Menu {
+    let (found, current) = match &p.local.terminals {
+        Some(t) => (t.found.clone(), t.current),
+        None => (vec![], None),
+    };
+    let mut items: Vec<MenuItem> = found
+        .into_iter()
+        .map(|k| {
+            let hint = if p.cfg.terminal == k.command {
+                "in use"
+            } else if current == Some(k.name) {
+                "radar is running in it"
+            } else {
+                ""
+            };
+            MenuItem::pick(k.name, hint, format!("use:{}", k.name))
+        })
+        .collect();
+    items.push(MenuItem::new('e', "type a command…", "any terminal's command line", "edit"));
+    if !p.cfg.terminal.is_empty() {
+        items.push(MenuItem::new('r', "let radar find one", "clear it", "reset"));
+    }
+    Menu::new("lc-term", "terminal", items)
 }
 
 // --- menus -----------------------------------------------------------------------
@@ -1548,6 +1723,9 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
             ],
         ));
     }
+    if section == "terminal" {
+        return Some(terminal_menu(p));
+    }
     let look = MenuItem::new(
         's',
         "look now",
@@ -1556,6 +1734,14 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
     );
     Some(match selected_row(p) {
         Row::Add => return None,
+        Row::Found(i) => Menu::new(
+            format!("lc-found:{i}"),
+            local::tilde(&p.local.places[i].0),
+            vec![
+                MenuItem::new(' ', "look in it", "from now on, and now", "follow"),
+                MenuItem::new('a', "add a folder", "another folder to look in", "add"),
+            ],
+        ),
         Row::Root(i) => Menu::new(
             format!("lc-root:{i}"),
             local::tilde(&p.cfg.roots[i]),
@@ -1570,22 +1756,10 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
             "lc-depth",
             "look down",
             vec![
-                MenuItem::new('e', "change it", "a whole number from 1 to 12", "edit"),
+                MenuItem::new('e', "change it", "a number from 1 to 6", "edit"),
                 look,
             ],
         ),
-        Row::Terminal => {
-            let mut items = vec![MenuItem::new(
-                'e',
-                "change it",
-                "your terminal's command line",
-                "edit",
-            )];
-            if !p.cfg.terminal.is_empty() {
-                items.push(MenuItem::new('r', "let radar find one", "clear it", "reset"));
-            }
-            Menu::new("lc-term", "terminal", items)
-        }
         Row::Scan => Menu::new("lc-scan", "last look", vec![look]),
     })
 }
@@ -1620,8 +1794,12 @@ pub fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<Effect>
             let v = p.cfg.roots[i].clone();
             edit(p, Field::Root(i), &v)
         }
-        ("lc-root" | "lc-type", "add") => {
-            let (row, f) = if kind == "lc-root" {
+        ("lc-found", "follow") => {
+            let i = idx.filter(|i| *i < p.local.places.len())?;
+            follow(p, i)
+        }
+        ("lc-root" | "lc-type" | "lc-found", "add") => {
+            let (row, f) = if kind != "lc-type" {
                 (0, Field::RootAdd)
             } else {
                 (1, Field::TypeAdd)
@@ -1667,6 +1845,11 @@ pub fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<Effect>
         ("lc-term", "reset") => {
             p.cfg.terminal.clear();
             vec![Effect::Notify("radar finds a terminal for you".into())]
+        }
+        ("lc-term", v) if v.starts_with("use:") => {
+            let k = crate::terminal::by_name(&v["use:".len()..])?;
+            p.cfg.terminal = k.command.to_string();
+            vec![Effect::Notify(format!("{} opens in a checkout from now on", k.name))]
         }
         ("lc-type", v) => {
             let i = idx.filter(|i| *i < p.cfg.types.len())?;
@@ -1861,8 +2044,16 @@ fn commit(p: &mut GitPlugin, field: Field, text: String) -> Vec<Effect> {
             vec![ask_to_scan()]
         }
         Field::Depth => {
-            cfg.depth = text.parse().unwrap_or(cfg.depth);
-            vec![ask_to_scan()]
+            let n = text.parse().unwrap_or(cfg.depth);
+            if n == cfg.depth {
+                return vec![];
+            }
+            cfg.depth = n;
+            let mut fx = vec![Effect::Notify(format!("looks {} down from now on", plural(n, "folder", "folders")))];
+            if !cfg.roots.is_empty() {
+                fx.extend(local::scan_now(p, false));
+            }
+            fx
         }
         Field::Terminal => {
             cfg.terminal = text;
@@ -2017,7 +2208,7 @@ fn typed(p: &mut GitPlugin, key: impl FnOnce(&mut TextInput) -> Edit) -> Outcome
 /// the row's options, an option's key does it, `a` adds, `s` looks again.
 fn press(p: &mut GitPlugin, section: &str, key: v::Chord) -> Outcome {
     let a = at(section);
-    let on_add = p.local.rows[a] == 0;
+    let on_add = has_add(section) && p.local.rows[a] == 0;
     let add = |p: &mut GitPlugin| {
         p.local.rows[a] = 0;
         p.local.edit = Some((
@@ -2037,6 +2228,23 @@ fn press(p: &mut GitPlugin, section: &str, key: v::Chord) -> Outcome {
     if key.key == v::Key::Enter && on_add {
         return add(p);
     }
+    // ⏎ on a found place looks in it, as its space does.
+    if key.key == v::Key::Enter
+        && a == 0
+        && let Row::Found(i) = selected_row(p)
+    {
+        return Outcome::Handled(follow(p, i));
+    }
+    // Look down is a number typed in place: ⏎ opens it with the value
+    // now, a digit opens it with that digit.
+    if a == 0 && section != "terminal" && selected_row(p) == Row::Depth {
+        let now = p.cfg.depth.to_string();
+        match key.key {
+            v::Key::Enter => return edit_depth(p, &now),
+            v::Key::Char(c) if depth_digit(c) => return edit_depth(p, &c.to_string()),
+            _ => {}
+        }
+    }
     if key.key == v::Key::Enter {
         return Outcome::Handled(row_menu(p, section).map(Effect::Menu).into_iter().collect());
     }
@@ -2048,7 +2256,7 @@ fn press(p: &mut GitPlugin, section: &str, key: v::Chord) -> Outcome {
         return Outcome::Handled(on_menu(p, &menu.id, &value).unwrap_or_default());
     }
     match key.key {
-        v::Key::Char('a') => add(p),
+        v::Key::Char('a') if has_add(section) => add(p),
         v::Key::Char('s') if a == 0 => Outcome::Handled(local::scan_now(p, true)),
         _ => Outcome::Ignored,
     }
@@ -2066,7 +2274,9 @@ fn click(p: &mut GitPlugin, section: &str, id: &str) -> Outcome {
 }
 
 pub fn hints(p: &GitPlugin) -> Vec<KeyHint<'static>> {
-    if p.local.edit.is_some() {
+    if matches!(p.local.edit, Some((Field::Depth, _))) {
+        vec![KeyHint::new("1-6", "look down"), KeyHint::new("↑↓", "step"), KeyHint::new("⏎", "keep"), KeyHint::new("esc", "cancel")]
+    } else if p.local.edit.is_some() {
         vec![KeyHint::new("⏎", "keep"), KeyHint::new("esc", "cancel")]
     } else {
         vec![]
@@ -2075,7 +2285,7 @@ pub fn hints(p: &GitPlugin) -> Vec<KeyHint<'static>> {
 
 /// The actions menu (`x`) for the selected row.
 pub fn keys(p: &GitPlugin, section: &str) -> Vec<Binding> {
-    if p.local.rows[at(section)] == 0 {
+    if has_add(section) && p.local.rows[at(section)] == 0 {
         return if section == "links" {
             vec![
                 Binding::heading("link a repo to your clone"),
@@ -2176,12 +2386,109 @@ mod tests {
     fn depth_is_a_number_in_range() {
         let p = sample();
         assert!(matches!(validate(&p, &Field::Depth, "0"), Verdict::Bad(_)));
-        assert!(matches!(validate(&p, &Field::Depth, "13"), Verdict::Bad(_)));
+        assert!(matches!(validate(&p, &Field::Depth, "7"), Verdict::Bad(_)));
         assert!(matches!(validate(&p, &Field::Depth, "x"), Verdict::Bad(_)));
         assert_eq!(
             validate(&p, &Field::Depth, "3"),
             Verdict::Good("3 folders down from each".into())
         );
+    }
+
+    fn cx() -> v::ViewCx<'static> {
+        v::ViewCx {
+            now: 0,
+            focus: v::PaneId::Middle,
+            width: 80,
+            height: 24,
+            parts: radar_core::compose::Parts::none(),
+            icon_lead: 0,
+            setup: false,
+        }
+    }
+
+    /// The field being typed into: its row, where it starts, its text.
+    fn field(p: &GitPlugin, section: &str) -> Option<(usize, u16, String)> {
+        match section_view(p, section, &cx()).unwrap().body {
+            v::Node::List { editing, .. } => editing.map(|e| (e.row, e.at, e.text)),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn look_down_is_a_number_typed_in_place() {
+        let mut p = sample();
+        p.local.rows[0] = rows(&p).iter().position(|r| *r == Row::Depth).unwrap();
+        let row = p.local.rows[0];
+        // ⏎ opens the field on the row with the value now; no menu.
+        let fx = press(&mut p, "checkouts", KeyCode::Enter);
+        assert!(fx.is_empty(), "{fx:?}");
+        assert_eq!(field(&p, "checkouts"), Some((row, VALUE_AT, "4".into())));
+        // A digit takes the field's place; out of range and letters are not taken.
+        for (c, want) in [('2', "2"), ('9', "2"), ('x', "2"), ('0', "2"), ('6', "6")] {
+            press(&mut p, "checkouts", KeyCode::Char(c));
+            assert_eq!(field(&p, "checkouts").unwrap().2, want, "after {c}");
+        }
+        // ↑↓ step it within 1 to 6.
+        let step = |p: &mut GitPlugin, k: v::Key| intent(p, "checkouts", &v::Intent::Key { chord: v::Chord::new(k) });
+        step(&mut p, v::Key::Up);
+        assert_eq!(field(&p, "checkouts").unwrap().2, "6");
+        step(&mut p, v::Key::Down);
+        assert_eq!(field(&p, "checkouts").unwrap().2, "5");
+        // ⏎ keeps it and looks again; esc leaves it as it was.
+        let fx = press(&mut p, "checkouts", KeyCode::Enter);
+        assert_eq!(p.cfg.depth, 5);
+        assert!(p.local.edit.is_none() && !fx.iter().any(|e| matches!(e, Effect::Menu(_))), "{fx:?}");
+        press(&mut p, "checkouts", KeyCode::Char('3'));
+        assert_eq!(field(&p, "checkouts").unwrap().2, "3", "a digit on the row opens it with that digit");
+        press(&mut p, "checkouts", KeyCode::Esc);
+        assert_eq!((p.cfg.depth, p.local.edit.is_none()), (5, true));
+    }
+
+    fn found_here() -> crate::terminal::Terminals {
+        let k = |n: &str| *crate::terminal::by_name(n).unwrap();
+        crate::terminal::Terminals {
+            chosen: Some(("ghostty".into(), "from $TERMINAL".into())),
+            found: vec![k("ghostty"), k("foot")],
+            current: Some("ghostty"),
+        }
+    }
+
+    #[test]
+    fn the_terminal_section_says_what_was_found_and_offers_the_ones_here() {
+        let mut p = sample();
+        p.local.terminals = Some(found_here());
+        let view = section_view(&p, "terminal", &cx()).unwrap();
+        let body = format!("{:?}", view.body);
+        assert!(body.contains("ghostty") && body.contains(" · from $TERMINAL"), "{body}");
+        let detail: Vec<String> = view.detail.iter().map(|t| t.0.iter().map(|s| s.text.as_str()).collect()).collect();
+        let detail = detail.join("\n");
+        for want in ["INSTALLED HERE", "ghostty", "radar is running in it", "foot", "config: [git] terminal"] {
+            assert!(detail.contains(want), "{want} in\n{detail}");
+        }
+        assert!(!detail.contains("not installed"), "only what is installed: {detail}");
+        // ⏎ offers the installed ones, the one radar runs in first, then a command of your own.
+        let fx = press(&mut p, "terminal", KeyCode::Enter);
+        let [Effect::Menu(m)] = &fx[..] else { panic!("{fx:?}") };
+        let items: Vec<(&str, &str, bool)> = m.items.iter().map(|i| (i.label.as_str(), i.hint.as_str(), i.muted)).collect();
+        assert_eq!(items, [
+            ("ghostty", "radar is running in it", false),
+            ("foot", "", false),
+            ("type a command…", "any terminal's command line", false),
+        ]);
+        let ids: Vec<String> = view.actions.iter().map(|a| a.id.clone()).collect();
+        assert!(ids.contains(&"git.terminal.edit".to_string()), "{ids:?}");
+        // A pick is kept in [git] terminal, and the row says you set it.
+        on_menu(&mut p, "lc-term", "use:foot").unwrap();
+        assert_eq!(p.cfg.terminal, "foot --working-directory={dir} {cmd}");
+        assert_eq!(terminal_now(&p).1, "set by you");
+        assert!(radar_core::Plugin::config(&p).unwrap()["terminal"].as_str().is_some());
+        assert!(terminal_menu(&p).items.iter().any(|i| i.value == "reset"));
+        // `a` adds nothing here: the section has no add row.
+        assert!(press(&mut p, "terminal", KeyCode::Char('a')).is_empty() && p.local.edit.is_none());
+        // Not read yet (the sandbox): radar says it finds one when it opens.
+        let mut p = sample();
+        p.local.terminals = None;
+        assert_eq!(terminal_now(&p), ("radar finds one".into(), "when it opens".into()));
     }
 
     #[test]

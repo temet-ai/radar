@@ -25,6 +25,7 @@ mod page_history;
 mod rate;
 mod screen;
 mod settings;
+mod setup;
 mod settings_checks;
 mod settings_history;
 mod start;
@@ -448,6 +449,9 @@ pub struct JiraPlugin {
     pub(crate) next_page_read: u64,
     // settings
     pub(crate) section_rows: [usize; 4],
+    /// The connection section was last drawn as a setup step, without the
+    /// rows only Settings needs; `site_rows` follows it.
+    pub(crate) setup_card: std::cell::Cell<bool>,
     /// Each section's list, how far it is scrolled.
     pub(crate) section_scroll: [radar_core::ui::Scroll; 4],
     pub(crate) edit: Option<(Target, radar_core::input::TextInput)>,
@@ -1537,6 +1541,9 @@ impl Plugin for JiraPlugin {
         Some(view)
     }
     fn section_view(&self, section: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::SectionView> {
+        if canon(section) == "connection" {
+            self.setup_card.set(cx.setup);
+        }
         match canon(section) {
             "look" => Some(settings::look_view(self)),
             "views" => Some(settings::views_view(self, cx.width)),
@@ -1599,6 +1606,12 @@ impl Plugin for JiraPlugin {
 
     fn sections(&self) -> Vec<SectionSpec> {
         SECTIONS.to_vec()
+    }
+    fn setup_step(&self) -> Option<radar_core::plugin::SetupStep> {
+        Some(setup::step(self))
+    }
+    fn setup_finds(&self) -> radar_core::plugin::SetupFinds {
+        setup::finds()
     }
     fn section_hints(&self, _: &str) -> Vec<KeyHint<'static>> {
         let mut hints = settings::hints(self);

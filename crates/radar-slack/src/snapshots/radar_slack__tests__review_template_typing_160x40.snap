@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 790
 expression: text
 ---
  radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
@@ -7,15 +8,15 @@ expression: text
 │General               ││ channel          team                                                          ││ AS YOU TYPE                                        │
 │  ├─ parts            ││ user group       @review-squad                                                 ││ ✓ mentions the group picked under user group (in   │
 │  ├─ mode             ││ template         Review please {group}: {mrs}                                  ││ the review channel); posts: Review please          │
-│  ├─ colours          ││ link text        mr                                                            ││ <!subteam^S0REVIEW01>:                             │
-│  └─ icons            ││ test channel     try                                                           ││ <https://git.example/acme/team-a/api/-/merge_reque │
-│Slack                 ││ ask again        after 2 working days without a reply                          ││ sts/263|mr> Add a stats endpoint for the dashboard │
-│  ├─ connection       ││                                                                                ││                                                    │
-│  ├─ channels         ││                                                                                ││ The message: {mrs} is the merge request linked     │
-│  ├─ review           ││                                                                                ││ with its words, or one bullet each for several;    │
-│  ├─ alerts           ││                                                                                ││ {group} mentions the user group picked above, and  │
-│  └─ look             ││                                                                                ││ {@handle} any of Slack's user groups by its        │
-│                      ││                                                                                ││ handle. Both are sent as Slack's mention of the    │
+│  ├─ appearance       ││ link text        mr                                                            ││ <!subteam^S0REVIEW01>:                             │
+│  ├─ colours          ││ test channel     try                                                           ││ <https://git.example/acme/team-a/api/-/merge_reque │
+│  └─ icons            ││ ask again        after 2 working days without a reply                          ││ sts/263|mr> Add a stats endpoint for the dashboard │
+│Slack                 ││                                                                                ││                                                    │
+│  ├─ connection       ││                                                                                ││ The message: {mrs} is the merge request linked     │
+│  ├─ channels         ││                                                                                ││ with its words, or one bullet each for several;    │
+│  ├─ review           ││                                                                                ││ {group} mentions the user group picked above, and  │
+│  ├─ alerts           ││                                                                                ││ {@handle} any of Slack's user groups by its        │
+│  └─ look             ││                                                                                ││ handle. Both are sent as Slack's mention of the    │
 │                      ││                                                                                ││ group's id, so it pings, and only in the review    │
 │                      ││                                                                                ││ channel. :name: is an emoji.                       │
 │                      ││                                                                                ││                                                    │

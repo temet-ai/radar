@@ -471,10 +471,9 @@ function BlockView({ block, ctx }: { block: Block; ctx: NodeContext }) {
       const inner = { ...ctx, width: Math.max(1, ctx.width - 2) };
       return (
         <Box flexDirection="column">
-          <CellLine
-            cells={sectionHeading(block, ctx.width, ctx.plainText)}
-            plain={ctx.plainText}
-          />
+          {/* shell.rs section_detail_lines gives the blocks one cell less than the padded pane (width - 3, and the heading
+              is asked for that plus one): the rule fills the heading's line exactly, on the sheet as everywhere. */}
+          <CellLine cells={sectionHeading(block, ctx.width, ctx.plainText)} plain={ctx.plainText} />
           {block.blocks.map((b, i) => (
             <Box key={i} flexDirection="column" paddingLeft={2}>
               {b.block === "line" ? (
@@ -541,6 +540,44 @@ function BlockView({ block, ctx }: { block: Block; ctx: NodeContext }) {
         />
       );
   }
+}
+
+/** How many rows a block takes at `width`, the count of what BlockView draws (a doc block is counted by its parts, as
+ * rows of one line each: the setup sheet, its one reader, holds only lines and sections). */
+function blockRows(block: Block, width: number): number {
+  switch (block.block) {
+    case "line":
+      return lineRows(block, width, width).length;
+    case "section": {
+      const inner = Math.max(1, width - 2);
+      return (
+        1 +
+        block.blocks.reduce(
+          (n, b) => n + (b.block === "line" ? lineRows(b, inner, inner).length : blockRows(b, inner)),
+          0,
+        )
+      );
+    }
+    case "meter":
+      return block.stages.length === 0 ? 0 : 2;
+    case "wrapped":
+      return wrapWords(block.text, width + 1, cellWidth(segWords(block.prefix))).length;
+    case "doc":
+      return Math.max(1, block.doc.length);
+    default:
+      return 1;
+  }
+}
+
+/** The rows a detail node (a sheet) takes at `width`: a rich node's blocks laid in two cells less, a document's lines
+ * wrapped to the same room as DocumentNode. `width` is the node's, as the sheet gives it. */
+export function detailRows(node: { node: string; blocks?: Block[]; lines?: Text[] }, width: number): number {
+  if (node.node === "rich") {
+    const w = Math.max(1, width - 2);
+    return (node.blocks ?? []).reduce((n, b) => n + blockRows(b, w), 0);
+  }
+  const room = Math.max(1, width - 2);
+  return (node.lines ?? []).reduce((n, l) => n + wrapCells(lineCells(l), room).length, 0);
 }
 
 const MARK_SYMBOL = {

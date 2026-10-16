@@ -16,6 +16,11 @@ pub struct Settings {
     #[serde(skip_serializing_if = "is_default_api")]
     pub api: String,
     pub token: String,
+    /// What a token is made to allow, `[github] access`: `read` (the
+    /// default, left out of the file) or `write`. The new-token page fills
+    /// its permissions in from it.
+    #[serde(skip_serializing_if = "TokenAccess::is_read")]
+    pub access: TokenAccess,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub groups: Vec<Group>,
     #[serde(skip_serializing)]
@@ -32,11 +37,49 @@ pub struct Group {
     pub repositories: Vec<String>,
 }
 
+/// `[github] access`: what a token is made to allow.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenAccess {
+    /// Pull requests, checks and runs.
+    #[default]
+    Read,
+    /// Also comment, approve, merge and re-run.
+    Write,
+}
+
+impl TokenAccess {
+    pub const ALL: [Self; 2] = [Self::Read, Self::Write];
+
+    pub fn is_read(&self) -> bool {
+        *self == Self::Read
+    }
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Read => "read only",
+            Self::Write => "read and write",
+        }
+    }
+
+    /// The fine-grained token's permissions, as the new-token page takes
+    /// them: what radar reads, and for write what reviewing (pull requests),
+    /// merging (contents) and re-running (actions) need. Statuses are only
+    /// read.
+    pub const fn permissions(self) -> [(&'static str, &'static str); 4] {
+        match self {
+            Self::Read => [("contents", "read"), ("pull_requests", "read"), ("actions", "read"), ("statuses", "read")],
+            Self::Write => [("contents", "write"), ("pull_requests", "write"), ("actions", "write"), ("statuses", "read")],
+        }
+    }
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Self {
             api: DEFAULT_API.into(),
             token: String::new(),
+            access: TokenAccess::Read,
             groups: Vec::new(),
             repositories: Vec::new(),
         }
@@ -108,6 +151,16 @@ impl Endpoint {
         self.url.scheme() == "https"
     }
 
+    /// The host gh signs in to for this API: `github.com` for
+    /// api.github.com, else the server's own host (and port).
+    pub(crate) fn gh_host(&self) -> String {
+        match (self.url.host_str(), self.url.port()) {
+            (Some("api.github.com") | None, _) => "github.com".into(),
+            (Some(host), Some(port)) => format!("{host}:{port}"),
+            (Some(host), None) => host.into(),
+        }
+    }
+
     /// The path the REST base sits under (empty, or `/api/v3`).
     pub(crate) fn base_path(&self) -> &str {
         self.url.path().trim_end_matches('/')
@@ -135,10 +188,13 @@ impl std::fmt::Debug for Settings {
                     "public"
                 } else if self.token.starts_with("env:") {
                     "environment reference"
+                } else if self.token == auth::GH {
+                    "gh sign-in"
                 } else {
                     "[redacted]"
                 },
             )
+            .field("access", &self.access)
             .field("repositories", &self.repositories)
             .field("groups", &self.groups)
             .finish()
@@ -155,7 +211,7 @@ impl Settings {
         };
         self.token = self.token.trim().to_owned();
         auth::validate_reference(&self.token)?;
-        if !self.token.is_empty() && !self.token.starts_with("env:") {
+        if auth::is_typed(&self.token) {
             radar_core::log::secret(&self.token);
         }
         // Older configurations contain a flat repository list. Give each
@@ -274,6 +330,19 @@ mod tests {
                 .unwrap(),
             cfg
         );
+    }
+
+    /// `access` is read from the file and saved only once it is write.
+    #[test]
+    fn the_access_is_loaded_and_saved_only_when_it_is_write() {
+        let cfg = toml::from_str::<Settings>("token = 'gh'\naccess = 'write'").unwrap().validated().unwrap();
+        assert_eq!(cfg.access, TokenAccess::Write);
+        let saved = toml::to_string(&cfg).unwrap();
+        assert!(saved.contains("access = \"write\""), "{saved}");
+        assert_eq!(toml::from_str::<Settings>(&saved).unwrap().access, TokenAccess::Write);
+        assert_eq!(toml::from_str::<Settings>("token = ''").unwrap().access, TokenAccess::Read);
+        assert!(!toml::to_string(&Settings::default()).unwrap().contains("access"));
+        assert!(toml::from_str::<Settings>("access = 'admin'").is_err());
     }
 
     #[test]

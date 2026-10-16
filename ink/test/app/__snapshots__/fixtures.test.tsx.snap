@@ -216,8 +216,8 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_8
 │GitLab                ││  + add a folder to look in   paste or type a folder  │
 │  ├─ connection       ││ folder     /work                             3 found │
 │  └─ projects         ││ look down  4 folders                                 │
-│Slack ⋯               ││ terminal   found for you                             │
-│                      ││ last look  2m ago                            3 found │
+│Slack ⋯               ││ last look  2m ago                            3 found │
+│                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -227,10 +227,10 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_8
 │                      ││ Another folder to look for git checkouts in. radar   █
 │                      ││ matches each checkout to its repo by its origin      █
 │                      ││ remote.                                              █
-│                      ││                                                      █
-│                      ││ ACCEPTS                                              █
-│                      ││ a full path, or one starting with ~/ (pasted links   █
-│                      ││ to files work too)                                   █
+│                      ││                                                      ║
+│                      ││ ACCEPTS                                              ║
+│                      ││ a full path, or one starting with ~/ (pasted links   ║
+│                      ││ to files work too)                                   ║
 │                      ││                                                      ║
 │                      ││ NOW                                                  ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
@@ -243,8 +243,8 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_1
 │GitLab                ││  + add a folder to look in   paste or type a folder                            ││ Another folder to look for git checkouts in. radar │
 │  ├─ connection       ││ folder     /work                                                       3 found ││ matches each checkout to its repo by its origin    │
 │  └─ projects         ││ look down  4 folders                                                           ││ remote.                                            │
-│Slack ⋯               ││ terminal   found for you                                                       ││                                                    │
-│                      ││ last look  2m ago                                                      3 found ││ ACCEPTS                                            │
+│Slack ⋯               ││ last look  2m ago                                                      3 found ││                                                    │
+│                      ││                                                                                ││ ACCEPTS                                            │
 │                      ││                                                                                ││ a full path, or one starting with ~/ (pasted links │
 │                      ││                                                                                ││ to files work too)                                 │
 │                      ││                                                                                ││                                                    │
@@ -253,22 +253,22 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_1
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ config: [git] roots                                │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ ▪ WHAT IT READS ────────────────────────────────── │
+│                      ││                                                                                ││   The git checkouts under these folders, as far    │
+│                      ││                                                                                ││   down as look down.                               │
+│                      ││                                                                                ││   New clones inside them show up at the next look. │
+│                      ││                                                                                ││   With git on this machine: branches, changes,     │
+│                      ││                                                                                ││   ahead, behind.                                   │
+│                      ││                                                                                ││ ⎇ WHERE IT SHOWS ───────────────────────────────── │
+│                      ││                                                                                ││   Branches (B): every branch in these checkouts.   │
+│                      ││                                                                                ││   A repo or merge request: where it is checked     │
+│                      ││                                                                                ││   out, e and t.                                    │
+│                      ││                                                                                ││   Agents start in the checkout you pick.           │
+│                      ││                                                                                ││ ⚙ CHANGE IT LATER ──────────────────────────────── │
+│                      ││                                                                                ││   Settings / git / checkouts                       │
+│                      ││                                                                                ││ ℹ SKIP IT? ─────────────────────────────────────── │
+│                      ││                                                                                ││   Branches stay empty until a folder is set.       │
+│                      ││                                                                                ││   The services work without it.                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
@@ -418,6 +418,76 @@ exports[`recorded view fixtures through the whole App > git_settings-links_160x4
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
  LINKS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+`;
+
+exports[`recorded view fixtures through the whole App > git_settings-terminal_80x24.json at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ settings ────────────╮╭ terminal ────────────────────────────────────────────╮
+│GitLab                ││ terminal   radar finds one · when it opens           │
+│  ├─ connection       ││                                                      │
+│  └─ projects         ││                                                      │
+│Slack ⋯               ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ terminal ────────────────────────────────────────────╮
+│                      ││ What opens a terminal in a checkout (t on a repo or  █
+│                      ││ a merge request). Inside tmux it is a new tmux       █
+│                      ││ window; on a desktop your terminal app; over ssh     █
+│                      ││ without tmux, radar puts \`cd <folder>\` on your       █
+│                      ││ clipboard instead.                                   █
+│                      ││                                                      ║
+│                      ││ ACCEPTS                                              ║
+│                      ││ ⏎ picks one of the terminals found here, or type a   ║
+│                      ││ command line: {dir} is the folder, {cmd} the command ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ TERMINAL   q ✕ quit   x ≡ menu                        gitlab github jira slack"
+`;
+
+exports[`recorded view fixtures through the whole App > git_settings-terminal_160x40.json at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ settings ────────────╮╭ terminal ──────────────────────────────────────────────────────────────────────╮╭ terminal ──────────────────────────────────────────╮
+│GitLab                ││ terminal   radar finds one · when it opens                                     ││ What opens a terminal in a checkout (t on a repo   │
+│  ├─ connection       ││                                                                                ││ or a merge request). Inside tmux it is a new tmux  │
+│  └─ projects         ││                                                                                ││ window; on a desktop your terminal app; over ssh   │
+│Slack ⋯               ││                                                                                ││ without tmux, radar puts \`cd <folder>\` on your     │
+│                      ││                                                                                ││ clipboard instead.                                 │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ ACCEPTS                                            │
+│                      ││                                                                                ││ ⏎ picks one of the terminals found here, or type a │
+│                      ││                                                                                ││ command line: {dir} is the folder, {cmd} the       │
+│                      ││                                                                                ││ command it runs (else -e is added)                 │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ NOW                                                │
+│                      ││                                                                                ││ radar finds one · when it opens                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ config: [git] terminal                             │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ TERMINAL   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                   gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github_80x24.json at 80x24 1`] = `
@@ -773,66 +843,66 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 exports[`recorded view fixtures through the whole App > github_settings-connection_80x24.json at 80x24 1`] = `
 " radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
-│GitLab                ││  server          https://api.github.com              │
-│  ├─ connection       ││  token           configured token                    │
-│  └─ projects         ││  check           GitHub connection                   │
-│Slack ⋯               ││  refresh         once on start, then on request      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ server ──────────────────────────────────────────────╮
-│                      ││ NOW                                                  █
-│                      ││ https://api.github.com                               █
+│GitLab                ││  SIGN IN  how radar reads GitHub                     █
+│  ├─ connection       ││  ○ public only     public repositories, no token     █
+│  └─ projects         ││  ○ gh's sign-in    asks gh for its token             █
+│Slack ⋯               ││  ● a token         env:NAME, or one pasted           █
 │                      ││                                                      █
-│                      ││ The GitHub API radar talks to: api.github.com for    █
-│                      ││ github.com, or your own GitHub Enterprise Server or  █
-│                      ││ a local server. The token is sent only to this       █
-│                      ││ address.                                             ║
+│                      ││  server          https://api.github.com              ║
+│                      ││  token           env:GITHUB_TOKEN                    ║
+│                      ││  check           not checked yet                     ║
+│                      ││  refresh         once on start, then on request      ║
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ public only ─────────────────────────────────────────╮
+│                      ││ NOW                                                  █
+│                      ││ env:GITHUB_TOKEN                                     █
+│                      ││                                                      █
+│                      ││ No token: radar reads public repositories only.      ║
 │                      ││                                                      ║
 │                      ││ ACCEPTS                                              ║
+│                      ││ empty, gh, env:NAME, or a token                      ║
+│                      ││                                                      ║
+│                      ││ config: [github] token                               ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
  CONNECTION   q ✕ quit   x ≡ menu                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-connection_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ server ────────────────────────────────────────────╮
-│GitLab                ││  server          https://api.github.com                                        ││ NOW                                                │
-│  ├─ connection       ││  token           configured token                                              ││ https://api.github.com                             │
-│  └─ projects         ││  check           GitHub connection                                             ││                                                    │
-│Slack ⋯               ││  refresh         once on start, then on request                                ││ The GitHub API radar talks to: api.github.com for  │
-│                      ││                                                                                ││ github.com, or your own GitHub Enterprise Server   │
-│                      ││                                                                                ││ or a local server. The token is sent only to this  │
-│                      ││                                                                                ││ address.                                           │
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ public only ───────────────────────────────────────╮
+│GitLab                ││  SIGN IN  how radar reads GitHub                                               ││ NOW                                                │
+│  ├─ connection       ││  ○ public only     public repositories, no token                               ││ env:GITHUB_TOKEN                                   │
+│  └─ projects         ││  ○ gh's sign-in    asks gh for its token                                       ││                                                    │
+│Slack ⋯               ││  ● a token         env:NAME, or one pasted                                     ││ No token: radar reads public repositories only.    │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ACCEPTS                                            │
-│                      ││                                                                                ││ https://api.github.com · a GitHub Enterprise       │
-│                      ││                                                                                ││ Server's https://HOST/api/v3 ·                     │
-│                      ││                                                                                ││ http://127.0.0.1:PORT for a local server           │
+│                      ││  server          https://api.github.com                                        ││ ACCEPTS                                            │
+│                      ││  token           env:GITHUB_TOKEN                                              ││ empty, gh, env:NAME, or a token                    │
+│                      ││  check           not checked yet                                               ││                                                    │
+│                      ││  refresh         once on start, then on request                                ││ config: [github] token                             │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ config: [github] api                               │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││  ACCESS  what radar may do on GitHub                                           ││ $ EASIEST: THE GH PROGRAM ──────────────────────── │
+│                      ││  ● read only       pull requests, checks, runs                                 ││   Choose gh's sign-in. Not signed in yet?          │
+│                      ││  ○ read and write  adds comment, approve, merge, re-run                        ││   $ gh auth login                                  │
+│                      ││                                                                                ││   cli.github.com: install gh                       │
+│                      ││  REPOSITORIES  github.com/owner, owner/repo or a group name                    ││ ⇌ OR A TOKEN ───────────────────────────────────── │
+│                      ││  + add a repository or group   paste or type it                                ││   Public repositories need none. For private ones: │
+│                      ││    ◆ github.com/acme   2 repositories                                          ││   1 Open the fine-grained token page:              │
+│                      ││                                                                                ││   github.com / new token   o opens · y copies      │
+│                      ││                                                                                ││   2 Repository access: the repositories to follow. │
+│                      ││                                                                                ││   3 Permissions come filled in from access:        │
+│                      ││                                                                                ││   contents, pull requests, actions, statuses:      │
+│                      ││                                                                                ││   read.                                            │
+│                      ││                                                                                ││   4 Generate token, copy the github_pat_… value    │
+│                      ││                                                                                ││   into token, or:                                  │
+│                      ││                                                                                ││   $ export GITHUB_TOKEN=…                          │
+│                      ││                                                                                ││     then the token is env:GITHUB_TOKEN             │
+│                      ││                                                                                ││ ⚇ AN ORGANISATION'S REPOSITORIES ───────────────── │
+│                      ││                                                                                ││   Choose the organisation as the token's resource  │
+│                      ││                                                                                ││   owner.                                           │
+│                      ││                                                                                ││   Some need an owner to approve the token.         │
+│                      ││                                                                                ││ ↗ MORE ─────────────────────────────────────────── │
+│                      ││                                                                                ││   GitHub docs: access tokens                       │
+│                      ││                                                                                ││   radar guide: connect GitHub                      │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
@@ -1403,24 +1473,24 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 exports[`recorded view fixtures through the whole App > gitlab_settings-connection_80x24.json at 80x24 1`] = `
 " radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
-│GitLab                ││  server          https://gitlab.com                  │
-│  ├─ connection       ││  base group      acme                                │
-│  └─ projects         ││  token           env:GITLAB_TOKEN                    │
-│Slack ⋯               ││  signed in as    me                                  │
-│                      ││  check           not checked yet                     │
-│                      ││  refresh         every 1m                            │
-│                      ││  merged, closed  the last 14 days                    │
-│                      ││                                                      │
-│                      ││                                                      │
+│GitLab                ││  server          https://gitlab.com                  █
+│  ├─ connection       ││  base group      acme                                █
+│  └─ projects         ││  token           env:GITLAB_TOKEN                    █
+│Slack ⋯               ││  signed in as    me                                  █
+│                      ││  check           not checked yet                     █
+│                      ││  refresh         every 1m                            ║
+│                      ││  merged, closed  the last 14 days                    ║
+│                      ││                                                      ║
+│                      ││  ACCESS  what radar may do in GitLab                 ║
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ server ──────────────────────────────────────────────╮
 │                      ││ CHECKED                                              █
 │                      ││ not checked yet                                      █
-│                      ││                                                      █
-│                      ││ NOW                                                  █
-│                      ││ https://gitlab.com                                   █
-│                      ││                                                      █
-│                      ││ The GitLab server radar talks to.                    █
+│                      ││                                                      ║
+│                      ││ NOW                                                  ║
+│                      ││ https://gitlab.com                                   ║
+│                      ││                                                      ║
+│                      ││ The GitLab server radar talks to.                    ║
 │                      ││                                                      ║
 │                      ││ ACCEPTS                                              ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
@@ -1438,34 +1508,34 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-connecti
 │                      ││  refresh         every 1m                                                      ││                                                    │
 │                      ││  merged, closed  the last 14 days                                              ││ The GitLab server radar talks to.                  │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ACCEPTS                                            │
-│                      ││                                                                                ││ https://gitlab.com or your own server's address    │
-│                      ││                                                                                ││                                                    │
+│                      ││  ACCESS  what radar may do in GitLab                                           ││ ACCEPTS                                            │
+│                      ││  ● read only       merge requests, pipelines, diffs      read_api              ││ https://gitlab.com or your own server's address    │
+│                      ││  ○ read and write  adds comment, approve, merge, rebase  api                   ││                                                    │
 │                      ││                                                                                ││ config: [gitlab] url                               │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││  FOLLOW  groups and repositories                                               ││                                                    │
+│                      ││  + add a group or repository   paste a link or a path                          ││ ⇌ GET A GITLAB TOKEN ───────────────────────────── │
+│                      ││    ◆ b     acme/team-b   0 repos · 1 open MR                                   ││   1 Open GitLab's new-token page:                  │
+│                      ││    ◆ a     acme/team-a   4 repos · 3 open MRs                                  ││   gitlab.com / new token   o opens · y copies      │
+│                      ││                                                                                ││     name radar · scope from access: read_api       │
+│                      ││                                                                                ││   2 Pick an expiry date, then Create personal      │
+│                      ││                                                                                ││   access token.                                    │
+│                      ││                                                                                ││   3 Copy the glpat-… value into token, or keep it  │
+│                      ││                                                                                ││   out of radar's config:                           │
+│                      ││                                                                                ││   $ export GITLAB_TOKEN=glpat-…                    │
+│                      ││                                                                                ││     then the token is env:GITLAB_TOKEN             │
+│                      ││                                                                                ││ $ ALREADY USE GLAB? ────────────────────────────── │
+│                      ││                                                                                ││   Type glab as the token. Not signed in?           │
+│                      ││                                                                                ││   $ glab auth login                                │
+│                      ││                                                                                ││ ⊕ YOUR OWN GITLAB ──────────────────────────────── │
+│                      ││                                                                                ││   Set server first; the link above then points at  │
+│                      ││                                                                                ││   your server's page.                              │
+│                      ││                                                                                ││ ⚠ IF IT IS REFUSED ─────────────────────────────── │
+│                      ││                                                                                ││   Expired, or without read_api: make a new one     │
+│                      ││                                                                                ││   with the link.                                   │
+│                      ││                                                                                ││   radar shows GitLab's own reason.                 │
+│                      ││                                                                                ││ ↗ MORE ─────────────────────────────────────────── │
+│                      ││                                                                                ││   GitLab docs: access tokens                       │
+│                      ││                                                                                ││   radar guide: connect GitLab                      │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
  CONNECTION   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
 `;
@@ -1757,17 +1827,17 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 │  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHE █
 │  └─ projects         ││  + add a site   paste its link, e.g. https://acme.at █
 │Slack ⋯               ││ ▌ acme   acme.atlassian.net · 2 projects             █
-│                      ││    ├─ site            https://acme.atlassian.net     █
+│                      ││    ├─ site            https://acme.atlassian.net     ║
 │                      ││    ├─ account         alice@example.com              ║
 │                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
 │                      ││    ├─ signed in as    Alice Example                  ║
-│                      ││    └─ check           not checked yet                ║
+│                      ││    ├─ check           not checked yet                ║
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ found in /work/acme/.mcp.json ───────────────────────╮
 │                      ││ radar found a Jira site in /work/acme/.mcp.json. Do  █
 │                      ││ you want to use it?                                  █
-│                      ││                                                      █
-│                      ││ FOUND                                                █
+│                      ││                                                      ║
+│                      ││ FOUND                                                ║
 │                      ││ gamma.atlassian.net  the site's address, as written  ║
 │                      ││ JIRA_EMAIL           the account                     ║
 │                      ││                                                      ║
@@ -1780,42 +1850,42 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 exports[`recorded view fixtures through the whole App > jira_settings-connection_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
-│GitLab                ││  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL ││ radar found a Jira site in /work/acme/.mcp.json.   │
-│  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, J ││ Do you want to use it?                             │
-│  └─ projects         ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    │
-│Slack ⋯               ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ FOUND                                              │
-│                      ││    ├─ site            https://acme.atlassian.net                               ││ gamma.atlassian.net  the site's address, as        │
-│                      ││    ├─ account         alice@example.com                                        ││ written                                            │
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ JIRA_EMAIL           the account                   │
-│                      ││    ├─ signed in as    Alice Example                                            ││                                                    │
-│                      ││    └─ check           not checked yet                                          ││ radar stores only the variables' names (env:NAME)  │
-│                      ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ and reads their values each time it starts. It     │
-│                      ││    ├─ site            https://beta.atlassian.net                               ││ never shows the values or saves them.              │
-│                      ││    ├─ account         alice@example.com                                        ││                                                    │
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ It is the file's "tools" entry. It also watches    │
-│                      ││    ├─ signed in as    —                                                        ││ GAM (acceptance criteria in customfield_10044).    │
-│                      ││    └─ check           not checked yet                                          ││ Its token is typed into the file: radar does not   │
-│                      ││  refresh         every 2m                                                      ││ copy it, and asks which variable holds it.         │
-│                      ││  on start        ask first                                                     ││                                                    │
-│                      ││                                                                                ││ IF YOU USE IT                                      │
-│                      ││                                                                                ││ radar adds the site gamma and asks which variable  │
-│                      ││                                                                                ││ holds its token.                                   │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ⏎ uses it                                          │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│GitLab                ││  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL ││ radar found a Jira site in /work/acme/.mcp.json.   █
+│  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, J ││ Do you want to use it?                             █
+│  └─ projects         ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    █
+│Slack ⋯               ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ FOUND                                              █
+│                      ││    ├─ site            https://acme.atlassian.net                               ││ gamma.atlassian.net  the site's address, as        █
+│                      ││    ├─ account         alice@example.com                                        ││ written                                            █
+│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ JIRA_EMAIL           the account                   █
+│                      ││    ├─ signed in as    Alice Example                                            ││                                                    █
+│                      ││    ├─ check           not checked yet                                          ││ radar stores only the variables' names (env:NAME)  █
+│                      ││    └─ projects        ABC, DEF                                                 ││ and reads their values each time it starts. It     █
+│                      ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ never shows the values or saves them.              █
+│                      ││    ├─ site            https://beta.atlassian.net                               ││                                                    █
+│                      ││    ├─ account         alice@example.com                                        ││ It is the file's "tools" entry. It also watches    █
+│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ GAM (acceptance criteria in customfield_10044).    █
+│                      ││    ├─ signed in as    —                                                        ││ Its token is typed into the file: radar does not   █
+│                      ││    ├─ check           not checked yet                                          ││ copy it, and asks which variable holds it.         █
+│                      ││    └─ projects        XYZ                                                      ││                                                    █
+│                      ││  refresh         every 2m                                                      ││ IF YOU USE IT                                      █
+│                      ││  on start        ask first                                                     ││ radar adds the site gamma and asks which variable  █
+│                      ││                                                                                ││ holds its token.                                   █
+│                      ││                                                                                ││                                                    █
+│                      ││                                                                                ││ ⏎ uses it                                          █
+│                      ││                                                                                ││                                                    █
+│                      ││                                                                                ││ ⊕ SITE ─────────────────────────────────────────── █
+│                      ││                                                                                ││   The address you use for Jira, like               █
+│                      ││                                                                                ││   ankh-morpork.atlassian.net.                      █
+│                      ││                                                                                ││   Paste any Jira link; radar keeps the site part.  ║
+│                      ││                                                                                ││ ☺ EMAIL ────────────────────────────────────────── ║
+│                      ││                                                                                ││   The email you sign in to Atlassian with, on your ║
+│                      ││                                                                                ││   profile:                                         ║
+│                      ││                                                                                ││   id.atlassian.com / profile                       ║
+│                      ││                                                                                ││ ⇌ API TOKEN  about a minute ────────────────────── ║
+│                      ││                                                                                ││   1 Open Atlassian's API token page:               ║
+│                      ││                                                                                ││   id.atlassian.com / api tokens   o opens · y      ║
+│                      ││                                                                                ││   copies                                           ║
+│                      ││                                                                                ││   2 Create API token, label it radar, pick an      ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
  CONNECTION   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
 `;
@@ -2240,6 +2310,76 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
  TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                    gitlab github jira slack"
 `;
 
+exports[`recorded view fixtures through the whole App > sessions_settings-agents_80x24.json at 80x24 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ settings ────────────╮╭ agents ──────────────────────────────────────────────╮
+│GitLab                ││ COMMAND LINE TOOLS                                   █
+│  ├─ connection       ││                                                      █
+│  └─ projects         ││ ◷ Copilot       checking                             █
+│Slack ⋯               ││ ◷ Codex         checking                             ║
+│                      ││ ◷ Claude Agent  checking                             ║
+│                      ││  + add a command   aider, opencode, …                ║
+│                      ││                                                      ║
+│                      ││ NEW SESSIONS · FOR EVERY WORKSPACE                   ║
+│                      ││                                                      ║
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ install and sign in ─────────────────────────────────╮
+│                      ││ Each agent is its own program with its own sign-in.  █
+│                      ││ radar finds it on your PATH; r looks again.          █
+│                      ││                                                      █
+│                      ││ ◙ COPILOT  checking ──────────────────────────────── ║
+│                      ││   $ npm i -g @github/copilot                         ║
+│                      ││   $ copilot login                                [y] ║
+│                      ││   Needs a Copilot plan on GitHub.                    ║
+│                      ││   ↗  GitHub: install Copilot CLI                 [o] ║
+│                      ││ ◙ CODEX  checking ────────────────────────────────── ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ AGENTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+`;
+
+exports[`recorded view fixtures through the whole App > sessions_settings-agents_160x40.json at 160x40 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ settings ────────────╮╭ agents ────────────────────────────────────────────────────────────────────────╮╭ install and sign in ───────────────────────────────╮
+│GitLab                ││ COMMAND LINE TOOLS                                                             ││ Each agent is its own program with its own         │
+│  ├─ connection       ││                                                                                ││ sign-in. radar finds it on your PATH; r looks      │
+│  └─ projects         ││ ◷ Copilot       checking                                                       ││ again.                                             │
+│Slack ⋯               ││ ◷ Codex         checking                                                       ││                                                    │
+│                      ││ ◷ Claude Agent  checking                                                       ││ ◙ COPILOT  checking ────────────────────────────── │
+│                      ││  + add a command   aider, opencode, …                                          ││   $ npm i -g @github/copilot                       │
+│                      ││                                                                                ││   $ copilot login                              [y] │
+│                      ││ NEW SESSIONS · FOR EVERY WORKSPACE                                             ││   Needs a Copilot plan on GitHub.                  │
+│                      ││                                                                                ││   ↗  GitHub: install Copilot CLI               [o] │
+│                      ││ provider              Copilot                                                  ││ ◙ CODEX  checking ──────────────────────────────── │
+│                      ││ model                 the provider's own                                       ││   $ npm i -g @openai/codex                         │
+│                      ││ working folder        where radar was started                                  ││   $ codex login                                    │
+│                      ││ permitted folders     none                                                     ││   ↗  Codex: install and sign in                    │
+│                      ││ skill folders         none                                                     ││ ◙ CLAUDE AGENT  checking ───────────────────────── │
+│                      ││ CLI's own config      yes                                                      ││   $ npm i -g @anthropic-ai/claude-code             │
+│                      ││ always allow          none                                                     ││   $ claude auth login                              │
+│                      ││ always deny           none                                                     ││   radar runs your own claude and offers no sign-in │
+│                      ││ local only            yes                                                      ││   of its own.                                      │
+│                      ││ reviewer commands     yes                                                      ││   Anthropic does not allow a claude.ai login in a  │
+│                      ││                                                                                ││   product: for one it asks for an API key          │
+│                      ││ RECIPES AND REVIEWS                                                            ││   (ANTHROPIC_API_KEY).                             │
+│                      ││                                                                                ││   ↗  Claude Code: set up                           │
+│                      ││ recipes folder        ~/.config/radar/recipes                                  ││ $ ANY OTHER CLI ────────────────────────────────── │
+│                      ││ recipe ask            v2 · built-in                                            ││   add a command takes what you would type in a     │
+│                      ││ recipe review-mr      v2 · built-in                                            ││   terminal; radar runs it in a tab of the dock.    │
+│                      ││ reviews folder        radar's state folder                                     ││ ⚠ NOTHING IS APPROVED FOR YOU ──────────────────── │
+│                      ││                                                                                ││   A request waits in the dock for your answer:     │
+│                      ││ WHILE YOU ARE AWAY                                                             ││   a approve · s session · d deny · v view diff     │
+│                      ││                                                                                ││   alt-a switches the agent new sessions start as.  │
+│                      ││ desktop notifications no                                                       ││ ↗ MORE ─────────────────────────────────────────── │
+│                      ││                                                                                ││   ↗  radar guide: agents                           │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ AGENTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+`;
+
 exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at 80x24 1`] = `
 " radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ For you ─────────────────────────────────────────────────────────────────────╮
@@ -2527,22 +2667,22 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 │  ├─ connection       ││  api             https://slack.com                   █
 │  └─ projects         ││  token           xoxp…ests (typed in)                █
 │Slack ⋯               ││  signed in as    Alice Example  alice                █
-│                      ││  check           not checked yet                     █
-│                      ││  refresh         every 2m                            █
+│                      ││  check           not checked yet                     ║
+│                      ││  refresh         every 2m                            ║
 │                      ││  read back       7 days                              ║
-│                      ││  permissions   ├─ public channels                  ✓ ║
-│                      ││                ├─ private channels                 ✓ ║
+│                      ││  permissions   ├─ public channels                  ● ║
+│                      ││                ├─ private channels                 ● ║
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ workspace ───────────────────────────────────────────╮
-│                      ││ CHECKED                                              │
-│                      ││ not checked yet                                      │
-│                      ││                                                      │
-│                      ││ NOW                                                  │
-│                      ││ Acme · https://acme.slack.com                        │
-│                      ││                                                      │
-│                      ││ The Slack workspace the token is for: a user token   │
-│                      ││ belongs to one. The check finds it.                  │
-│                      ││                                                      │
+│                      ││ CHECKED                                              █
+│                      ││ not checked yet                                      █
+│                      ││                                                      █
+│                      ││ NOW                                                  ║
+│                      ││ Acme · https://acme.slack.com                        ║
+│                      ││                                                      ║
+│                      ││ The Slack workspace the token is for: a user token   ║
+│                      ││ belongs to one. The check finds it.                  ║
+│                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
  CONNECTION   q ✕ quit   x ≡ menu                      gitlab github jira slack"
 `;
@@ -2557,29 +2697,29 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 │                      ││  check           not checked yet                                               ││ Acme · https://acme.slack.com                      │
 │                      ││  refresh         every 2m                                                      ││                                                    │
 │                      ││  read back       7 days                                                        ││ The Slack workspace the token is for: a user token │
-│                      ││  permissions   ├─ public channels                                            ✓ ││ belongs to one. The check finds it.                │
-│                      ││                ├─ private channels                                           ✓ ││                                                    │
-│                      ││                ├─ for you                                                    ✓ ││                                                    │
-│                      ││                ├─ names                                                      ✓ ││                                                    │
-│                      ││                ├─ user groups                                                ✓ ││                                                    │
-│                      ││                ├─ asking and replying                                        ✓ ││                                                    │
-│                      ││                └─ reacting        needs reactions:write                      ✗ ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││  permissions   ├─ public channels                                            ● ││ belongs to one. The check finds it.                │
+│                      ││                ├─ private channels                                           ● ││                                                    │
+│                      ││                ├─ for you                                                    ● ││ ⇌ MAKE A USER TOKEN  about two minutes, once ───── │
+│                      ││                ├─ names                                                      ● ││   1 Open Slack's new-app page, radar's manifest    │
+│                      ││                ├─ user groups                                                ● ││   filled in:                                       │
+│                      ││                ├─ asking and replying                                        ● ││   api.slack.com / new app   o opens · m copies the │
+│                      ││                ├─ reacting        needs reactions:write                      ✗ ││   manifest                                         │
+│                      ││                └─ pictures                                                   ● ││     user scopes only: 10                           │
+│                      ││                                                                                ││   2 Pick your workspace, Next, Create.             │
+│                      ││  CHANNELS  the registry; watched ones are read                                 ││   3 Install to Workspace, then Allow.              │
+│                      ││  + add a channel   paste its link, a message link, or its id                   ││   4 OAuth & Permissions shows the User OAuth       │
+│                      ││    # #team   team · watched                                                    ││   Token, xoxp-…: paste it into token, or:          │
+│                      ││    # #svc   service · watched                                                  ││   $ export SLACK_TOKEN=xoxp-…                      │
+│                      ││    # #try   test · not watched                                                 ││     then the token is env:SLACK_TOKEN              │
+│                      ││                                                                                ││   api.slack.com / your apps                        │
+│                      ││                                                                                ││ ⚇ NEEDS AN ADMIN? ──────────────────────────────── │
+│                      ││                                                                                ││   If Slack says Request to Install, your admin     │
+│                      ││                                                                                ││   approves it first.                               │
+│                      ││                                                                                ││   A missing scope switches off only its own        │
+│                      ││                                                                                ││   actions.                                         │
+│                      ││                                                                                ││ ↗ MORE ─────────────────────────────────────────── │
+│                      ││                                                                                ││   Slack: what each scope allows                    │
+│                      ││                                                                                ││   radar guide: connect Slack                       │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

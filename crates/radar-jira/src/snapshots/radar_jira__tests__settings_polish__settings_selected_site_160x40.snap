@@ -1,44 +1,45 @@
 ---
 source: crates/radar-jira/src/settings_polish_tests.rs
+assertion_line: 33
 expression: "text(&host, 160, 40)"
 ---
  radar    Jira   History   Settings (,)                                                                                                                  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ site ──────────────────────────────────────────────╮
-│General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ CHECKED                                            │
-│  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ not checked yet                                    │
-│  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    │
-│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ NOW                                                │
-│  └─ icons            ││    ├─ site            https://acme.atlassian.net                               ││ https://acme.atlassian.net                         │
-│Jira                  ││    ├─ account         alice@example.com                                        ││                                                    │
-│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ The Jira Cloud site radar reads tickets from.      │
-│  ├─ projects         ││    ├─ signed in as    Alice Example                                            ││                                                    │
-│  ├─ views            ││    └─ check           not checked yet                                          ││ ACCEPTS                                            │
-│  └─ look             ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ https://acme.atlassian.net, any link on the site,  │
-│                      ││    ├─ site            https://beta.atlassian.net                               ││ or env:NAME                                        │
-│                      ││    ├─ account         alice@example.com                                        ││                                                    │
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ config: [[jira.site]] url                          │
-│                      ││    ├─ signed in as    —                                                        ││                                                    │
-│                      ││    └─ check           not checked yet                                          ││                                                    │
-│                      ││  refresh         every 2m                                                      ││                                                    │
-│                      ││  on start        ask first                                                     ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ CHECKED                                            █
+│  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ not checked yet                                    █
+│  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    █
+│  ├─ appearance       ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ NOW                                                █
+│  ├─ colours          ││    ├─ site            https://acme.atlassian.net                               ││ https://acme.atlassian.net                         █
+│  └─ icons            ││    ├─ account         alice@example.com                                        ││                                                    █
+│Jira                  ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ The Jira Cloud site radar reads tickets from.      █
+│  ├─ connection       ││    ├─ signed in as    Alice Example                                            ││                                                    █
+│  ├─ projects         ││    ├─ check           not checked yet                                          ││ ACCEPTS                                            █
+│  ├─ views            ││    └─ projects        ABC, DEF                                                 ││ https://acme.atlassian.net, any link on the site,  █
+│  └─ look             ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ or env:NAME                                        █
+│                      ││    ├─ site            https://beta.atlassian.net                               ││                                                    █
+│                      ││    ├─ account         alice@example.com                                        ││ config: [[jira.site]] url                          █
+│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││                                                    █
+│                      ││    ├─ signed in as    —                                                        ││ SITE ───────────────────────────────────────────── █
+│                      ││    ├─ check           not checked yet                                          ││   The address you use for Jira, like               █
+│                      ││    └─ projects        XYZ                                                      ││   ankh-morpork.atlassian.net.                      █
+│                      ││  refresh         every 2m                                                      ││   Paste any Jira link; radar keeps the site part.  █
+│                      ││  on start        ask first                                                     ││ EMAIL ──────────────────────────────────────────── █
+│                      ││                                                                                ││   The email you sign in to Atlassian with, on your █
+│                      ││                                                                                ││   profile:                                         █
+│                      ││                                                                                ││   id.atlassian.com / profile                       █
+│                      ││                                                                                ││ API TOKEN  about a minute ──────────────────────── █
+│                      ││                                                                                ││   1 Open Atlassian's API token page:               █
+│                      ││                                                                                ││   id.atlassian.com / api tokens   o opens · y      █
+│                      ││                                                                                ││   copies                                           █
+│                      ││                                                                                ││   2 Create API token, label it radar, pick an      █
+│                      ││                                                                                ││   expiry, then Create.                             █
+│                      ││                                                                                ││   3 Copy it now: Atlassian shows it once. Paste it █
+│                      ││                                                                                ││   into token, or:                                  █
+│                      ││                                                                                ││   $ export JIRA_TOKEN=…                            █
+│                      ││                                                                                ││     then the token is env:JIRA_TOKEN               █
+│                      ││                                                                                ││ IF IT IS REFUSED ───────────────────────────────── ║
+│                      ││                                                                                ││   401: the email and token don't match, or the     ║
+│                      ││                                                                                ││   token expired.                                   ║
+│                      ││                                                                                ││   Company login (SSO)? An API token still works;   ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                       jira
+ SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                    jira

@@ -34,8 +34,13 @@ esac
 
 # Anthropic's Agent SDK is left out: the sidecar fetches it from npm on first use
 # (sidecars/claude-agent/src/sdk.js), so radar ships none of Anthropic's code.
+# In a Node 26 single executable, import.meta.url is sometimes undefined (the
+# same executable, about 4 starts in 10); every use in the bundle reads the
+# executable's own file URL instead, which is what it holds when it is set.
 "$root/ink/node_modules/.bin/esbuild" runtime/entry.mjs --bundle --platform=node --format=esm \
     --target=node24 --outfile="$out/radar-js.mjs" --log-level=warning \
+    --banner:js='import { pathToFileURL as __radarFileUrl } from "node:url"; const __radarMetaUrl = import.meta.url ?? __radarFileUrl(process.execPath).href;' \
+    --define:import.meta.url=__radarMetaUrl \
     --external:@anthropic-ai/claude-agent-sdk
 if grep -q 'Anthropic PBC' "$out/radar-js.mjs"; then
     echo "build-runtime: the runtime carries Anthropic's code; the SDK must stay external" >&2

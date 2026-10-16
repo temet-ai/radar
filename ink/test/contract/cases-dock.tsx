@@ -133,6 +133,7 @@ export const DOCK_CASES: Record<string, Case> = {
   "DockPermission.kind": perm((p, on) => (p.kind = pick(on, "shell", "PERMKIND")), "allow PERMKIND?"),
   "DockPermission.target": perm((p, on) => (p.target = pick(on, "plain", "PERMTARGET")), "PERMTARGET"),
   "DockPermission.actions": perm((p, on) => (p.actions = on ? ["approve_once", "deny"] : []), "approve once"),
+  "DockPermission.lapsed": perm((p, on) => ((p.lapsed = on), (p.actions = on ? [] : ["approve_once", "deny"])), "lapsed · radar closed before this was answered"),
   "DockPermission.answered": perm((p, on) => (p.answered = on ? "deny" : null), "shell denied"),
   // Answered for a call in the transcript, the request draws nothing of its own: the call's row tells it.
   "DockPermission.tool": dock((d, on) => {
@@ -192,6 +193,10 @@ export const DOCK_CASES: Record<string, Case> = {
 
 /** Fields the dock carries for the host or the keys, not for the eye, each with its reason. */
 export const DOCK_INVISIBLE: Record<string, string> = {
+  "DockView.revision": "the transcript's revision over the pipe; kept for the next DockView.kept (test/dock/transcript.test.ts), never drawn",
+  "DockView.kept": "the head of the transcript Ink already holds; session.ts makes the transcript whole from it (test/dock/transcript.test.ts), never drawn",
+  "DockKept.revision": "which transcript the kept head is of (test/dock/transcript.test.ts); never drawn",
+  "DockKept.items": "how many items of it stand (test/dock/transcript.test.ts); never drawn",
   "DockTab.id": "pointer target (dock:tab:<id>) and what DockView.active names; sent back, never drawn",
   "DockItem.user.id": "identity of the row for the host's cursor; never drawn",
   "DockItem.assistant.id": "identity of the row for the host's cursor; never drawn",

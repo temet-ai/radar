@@ -1,44 +1,45 @@
 ---
 source: crates/radar-jira/src/tests.rs
+assertion_line: 898
 expression: shown
 ---
  radar    Jira   History   Settings (,)                                                                                                                  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
-│General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ radar found a Jira site in /work/acme/.mcp.json.   │
-│  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ Do you want to use it?                             │
-│  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    │
-│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ FOUND                                              │
-│  └─ icons            ││    ├─ site            https://acme.atlassian.net                               ││ gamma.atlassian.net  the site's address, as        │
-│Jira                  ││    ├─ account         alice@example.com                                        ││ written                                            │
-│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ JIRA_EMAIL           the account                   │
-│  ├─ projects         ││    ├─ signed in as    Alice Example                                            ││                                                    │
-│  ├─ views            ││    └─ check           not checked yet                                          ││ radar stores only the variables' names (env:NAME)  │
-│  └─ look             ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ and reads their values each time it starts. It     │
-│                      ││    ├─ site            https://beta.atlassian.net                               ││ never shows the values or saves them.              │
-│                      ││    ├─ account         alice@example.com                                        ││                                                    │
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ It is the file's "tools" entry. It also watches    │
-│                      ││    ├─ signed in as    —                                                        ││ GAM (acceptance criteria in customfield_10044).    │
-│                      ││    └─ check           not checked yet                                          ││ Its token is typed into the file: radar does not   │
-│                      ││  refresh         every 2m                                                      ││ copy it, and asks which variable holds it.         │
-│                      ││  on start        ask first                                                     ││                                                    │
-│                      ││                                                                                ││ IF YOU USE IT                                      │
-│                      ││                                                                                ││ radar adds the site gamma and asks which variable  │
-│                      ││                                                                                ││ holds its token.                                   │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ⏎ uses it                                          │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ radar found a Jira site in /work/acme/.mcp.json.   █
+│  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ Do you want to use it?                             █
+│  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    █
+│  ├─ appearance       ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ FOUND                                              █
+│  ├─ colours          ││    ├─ site            https://acme.atlassian.net                               ││ gamma.atlassian.net  the site's address, as        █
+│  └─ icons            ││    ├─ account         alice@example.com                                        ││ written                                            █
+│Jira                  ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ JIRA_EMAIL           the account                   █
+│  ├─ connection       ││    ├─ signed in as    Alice Example                                            ││                                                    █
+│  ├─ projects         ││    ├─ check           not checked yet                                          ││ radar stores only the variables' names (env:NAME)  █
+│  ├─ views            ││    └─ projects        ABC, DEF                                                 ││ and reads their values each time it starts. It     █
+│  └─ look             ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ never shows the values or saves them.              █
+│                      ││    ├─ site            https://beta.atlassian.net                               ││                                                    █
+│                      ││    ├─ account         alice@example.com                                        ││ It is the file's "tools" entry. It also watches    █
+│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ GAM (acceptance criteria in customfield_10044).    █
+│                      ││    ├─ signed in as    —                                                        ││ Its token is typed into the file: radar does not   █
+│                      ││    ├─ check           not checked yet                                          ││ copy it, and asks which variable holds it.         █
+│                      ││    └─ projects        XYZ                                                      ││                                                    █
+│                      ││  refresh         every 2m                                                      ││ IF YOU USE IT                                      █
+│                      ││  on start        ask first                                                     ││ radar adds the site gamma and asks which variable  █
+│                      ││                                                                                ││ holds its token.                                   █
+│                      ││                                                                                ││                                                    █
+│                      ││                                                                                ││ ⏎ uses it                                          █
+│                      ││                                                                                ││                                                    █
+│                      ││                                                                                ││ SITE ───────────────────────────────────────────── █
+│                      ││                                                                                ││   The address you use for Jira, like               █
+│                      ││                                                                                ││   ankh-morpork.atlassian.net.                      █
+│                      ││                                                                                ││   Paste any Jira link; radar keeps the site part.  ║
+│                      ││                                                                                ││ EMAIL ──────────────────────────────────────────── ║
+│                      ││                                                                                ││   The email you sign in to Atlassian with, on your ║
+│                      ││                                                                                ││   profile:                                         ║
+│                      ││                                                                                ││   id.atlassian.com / profile                       ║
+│                      ││                                                                                ││ API TOKEN  about a minute ──────────────────────── ║
+│                      ││                                                                                ││   1 Open Atlassian's API token page:               ║
+│                      ││                                                                                ││   id.atlassian.com / api tokens   o opens · y      ║
+│                      ││                                                                                ││   copies                                           ║
+│                      ││                                                                                ││   2 Create API token, label it radar, pick an      ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                       jira
+ SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                    jira

@@ -47,7 +47,7 @@ pub fn intent(p: &mut GithubPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             let rows = super::keys(p, pane);
             crate::chord_for(&rows, intent).map_or(Outcome::Ignored, |chord| p.press(pane, chord))
         }
-        v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) => Outcome::Ignored,
+        v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
     }
 }
 

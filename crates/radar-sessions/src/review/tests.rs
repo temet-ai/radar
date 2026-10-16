@@ -264,9 +264,50 @@ fn git_reads_are_allowed_and_everything_else_asks() {
         "rg --pre ./x foo",
         "cat ../secret",
         "cat /etc/passwd",
+        "git status && git push",
+        "git log | sh",
+        "git diff & rm x",
+        "git branch -D old",
+        "git branch new-one",
+        "git remote add x y",
+        "git stash pop",
+        "git diff 2>/tmp/x",
     ] {
         assert_eq!(shell(c), Verdict::Ask, "{c}");
     }
+}
+
+#[test]
+fn a_chain_of_reads_is_a_read() {
+    // What Copilot sends in a review (2026-10-15): each part reads, so none of them asks.
+    for c in [
+        "git status --short && git branch -avv && git remote -v",
+        "git diff --stat main...HEAD && git diff --name-status main...HEAD && git diff --find-renames main...HEAD",
+        "git show -s --format='%H%n%P%n%s' b896b0d && git merge-base origin/main HEAD",
+        "git log --oneline -20 | head -5",
+        "git diff --check origin/main...HEAD; git stash list",
+        "git rev-parse HEAD 2>/dev/null || git status",
+        "zsh -lc 'git status && git log -3'",
+    ] {
+        assert_eq!(shell(c), Verdict::Allow, "{c}");
+    }
+}
+
+#[test]
+fn a_worktree_reached_through_a_symlink_is_the_same_folder() {
+    let base = std::env::temp_dir().join(format!("radar-policy-{}", std::process::id()));
+    let real = base.join("real/wt");
+    std::fs::create_dir_all(real.join("src")).unwrap();
+    std::fs::write(real.join("src/a.rs"), "").unwrap();
+    let link = base.join("link");
+    let _ = std::fs::remove_file(&link);
+    std::os::unix::fs::symlink(base.join("real"), &link).unwrap();
+    // The session was started in the link; the CLI asks with the real path, and the other way round.
+    let read = |cwd: &Path, p: &Path| decide(&request(PermissionKind::Read, PermissionTarget::Path { path: p.display().to_string() }), cwd);
+    assert_eq!(read(&link.join("wt"), &real.join("src/a.rs")), Verdict::Allow);
+    assert_eq!(read(&real, &link.join("wt/src/a.rs")), Verdict::Allow);
+    assert_eq!(read(&link.join("wt"), &base.join("real/other")), Verdict::Ask);
+    let _ = std::fs::remove_dir_all(&base);
 }
 
 #[test]

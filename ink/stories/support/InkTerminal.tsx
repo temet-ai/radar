@@ -55,6 +55,7 @@ export function InkTerminal({
   canvas,
   label = "Ink",
   version,
+  paint,
 }: {
   children: React.ReactElement;
   cols: number;
@@ -63,6 +64,9 @@ export function InkTerminal({
   label?: string;
   /** Changes when the look changes, so the element is drawn again in it. */
   version?: string;
+  /** What the renderer paints over a finished frame that is not the component's own (the mouse selection,
+   * app/selected.ts): given Ink's frame, the frame to show. */
+  paint?: (frame: string) => string;
 }) {
   const [frame, setFrame] = useState("");
   useEffect(() => {
@@ -86,5 +90,5 @@ export function InkTerminal({
       app?.unmount();
     };
   }, [children, cols, rows, version]);
-  return <CellGrid cells={frameCells(frame)} cols={cols} rows={rows} canvas={canvas} label={label} />;
+  return <CellGrid cells={frameCells(paint ? paint(frame.replace(/\n$/, "")) : frame)} cols={cols} rows={rows} canvas={canvas} label={label} />;
 }

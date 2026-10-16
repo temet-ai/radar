@@ -1,10 +1,11 @@
 import type { Key as InkKey } from "ink";
 import type { Chord, Hit, Intent, MenuView } from "../chrome/types.js";
-import { hitAt } from "../chrome/layout.js";
+import { hitAt, MENU_BOX } from "../chrome/layout.js";
 import { chordOf } from "./keys.js";
 import { selectIntent, type SelectMove } from "../editor/selection.js";
 import { parseMouse, type MouseEvent } from "./mouse.js";
 import type { UiState } from "../state/ui-state.js";
+import { Selector, type RowCells, type SelectArea, type Selection } from "./selection.js";
 
 /** What the controller needs to know about the frame showing. */
 export interface InputView {
@@ -33,6 +34,13 @@ export interface InputView {
   /** The wheel over pane `pane` (none: over no pane) at the cell: that pane scrolls (and has the focus, host.rs
    * on_mouse), nothing else does. False, or without it: the wheel is k/j to whatever has the keys. */
   wheel?(pane: string | undefined, up: boolean, x: number, y: number): boolean;
+  /** The area a left press at the cell starts a text selection in (input/selection.ts); without it nothing is selected
+   * and a press acts at once, as before. */
+  selectAt?(x: number, y: number): SelectArea | undefined;
+  /** The cells of row `y` of the frame showing: what a selection copies. */
+  frameRow?(y: number): RowCells;
+  /** Show the selection (null: none); `dragging` while a drag makes it. */
+  showSelection?(sel: Selection | null, dragging: boolean): void;
 }
 
 /** The pane a work area's section target names (`pane:<id>` or `pane:<id>#n`, workarea/model.ts). */
@@ -75,7 +83,26 @@ export class InputController {
     private readonly hover: (hit: Hit | null) => void = () => {},
     /** The cell a right-click pressed (0-based), told to the host just before its Context so the menu opens there. */
     private readonly pointer: (column: number, row: number) => void = () => {},
-  ) {}
+  ) {
+    // A left press inside a pane's text is held until it moves (a selection, copied when let go) or is let go (a click,
+    // handled then, as the Ratatui runner does: runner.rs Pointer::Up).
+    this.selector = new Selector(
+      {
+        areaAt: (x, y) => this.view.selectAt?.(x, y),
+        row: (y) => this.view.frameRow?.(y) ?? [],
+        show: (sel, dragging) => this.view.showSelection?.(sel, dragging),
+        copy: (text) => this.sendRaw({ intent: "copy", text }),
+        click: (press, release) => {
+          this.pointerEvent(press);
+          if (release) this.pointerEvent(release);
+        },
+      },
+      now,
+    );
+  }
+
+  /** The mouse selection (input/selection.ts). */
+  readonly selector: Selector;
 
   private send(intent: Intent) {
     this.sendRaw(intent);
@@ -106,6 +133,9 @@ export class InputController {
   }
 
   keyChord(chord: Chord, shift = false) {
+    // With a selection showing, shift+arrows extend it and ctrl+c copies it again; any other key clears it and is
+    // handled as usual (issue #51). A press still held is a click, before the key.
+    if (this.selector.key(chord, shift, this.view.capturing() || !!this.view.menu()) === "took") return;
     // A key between two clicks makes them two clicks, not a double one.
     this.lastClick = undefined;
     const menu = this.view.menu();
@@ -213,6 +243,16 @@ export class InputController {
   }
 
   mouseEvent(ev: MouseEvent) {
+    // The selection first: a left press in a pane's text, the moves and release after it, and any press clears it.
+    // The wheel ends a selection showing (runner.rs) and scrolls as before.
+    if (ev.kind === "wheel_up" || ev.kind === "wheel_down") this.selector.wheel();
+    else if (this.selector.mouse(ev, false)) return;
+    this.pointerEvent(ev);
+  }
+
+  /** A pointer report as a click, a move or the wheel (what it was before selection: the selector hands held presses
+   * back here). */
+  private pointerEvent(ev: MouseEvent) {
     const menu = this.view.menu();
     const typing = this.view.capturing();
     if (!menu && !typing && this.view.dockMouse?.(ev, hitAt(this.view.hits(), ev.x, ev.y))) return;
@@ -252,9 +292,12 @@ export class InputController {
     }
     if (ev.kind !== "press") return;
     const hit = hitAt(this.view.hits(), ev.x, ev.y);
+    // A menu with a field is closed by a press away from it, as any menu is (host.rs on_mouse): only typing outside a
+    // menu goes on through a click elsewhere. The status line's keys still press.
+    const field = menu?.typed != null;
     if (!hit) {
       // A press away from an open menu closes it (the host's own rule).
-      if (menu && !this.view.capturing()) this.sendRaw({ intent: "key", chord: { key: "esc" } });
+      if (menu && (!typing || field)) this.sendRaw({ intent: "key", chord: { key: "esc" } });
       // A left press on a pane's empty space or border only focuses it (host.rs on_mouse, Hit::Pane).
       else if (!menu && !typing && ev.button === "left") {
         const pane = this.view.paneAt?.(ev.x, ev.y);
@@ -263,6 +306,12 @@ export class InputController {
       return;
     }
     const target = hit.target;
+    // Inside a menu's frame, off its rows: nothing (Hit::MenuBox).
+    if (target === MENU_BOX) return;
+    if (field && ev.button === "left" && !target.startsWith("chrome:key:") && !target.startsWith("chrome:menu:")) {
+      this.sendRaw({ intent: "key", chord: { key: "esc" } });
+      return;
+    }
     // Typing goes on until ⏎ or esc: a click elsewhere does not drop it. The status line's keys and a menu's own
     // rows are still pressed (host.rs on_mouse).
     if (typing && !target.startsWith("chrome:key:") && !target.startsWith("chrome:menu:")) return;
@@ -280,6 +329,9 @@ export class InputController {
     // The chrome (tabs, mode chip, status keys, menu rows) acts on one click; rows select, and
     // two clicks within 400 ms are ⏎ (docs/GUIDE.md 2.5, host.rs on_mouse).
     if (target.startsWith("chrome:")) this.sendRaw({ intent: "activate", target });
+    // A chooser's row ticks on each click, never a double click's ⏎ (host.rs on_mouse, `ticking`): the host's Activate
+    // on a `setup:choose:` row ticks it, its Select only moves the cursor there.
+    else if (target.startsWith("setup:choose:")) this.sendRaw({ intent: "activate", target });
     else {
       // The host's click is Select; the second click of a double adds ⏎ on the selection.
       this.sendRaw({ intent: "select", target });

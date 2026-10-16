@@ -15,6 +15,7 @@ mod live_tests;
 pub mod model;
 mod screen;
 mod settings;
+mod setup;
 mod sync;
 #[cfg(test)]
 mod sync_tests;
@@ -73,9 +74,14 @@ pub struct GithubPlugin {
     detail_scroll: Scroll,
     section_scroll: Scroll,
     connection_row: usize,
+    /// The connection section was last drawn as a setup step, without the
+    /// rows only Settings needs; `conn_rows` follows it.
+    setup_card: Cell<bool>,
     repository_row: usize,
     editor: Option<settings::Editor>,
     connection_check: Option<Check>,
+    /// Who the last check signed in as; `None` for public access or before.
+    pub(crate) login: Option<String>,
     links: RefCell<Vec<Link>>,
     /// Rows the view had at its last frame: the Actions tab asks GitHub for
     /// about two screens of runs, not everything.
@@ -137,7 +143,9 @@ enum Answer {
         generation: u64,
         request: u64,
         action: ActionDescriptor,
-        result: Result<Option<String>, String>,
+        /// Who the token signs in as (none for public access), and its
+        /// OAuth scopes when GitHub said them.
+        result: Result<(Option<String>, Option<Vec<String>>), String>,
     },
     Discovery {
         generation: u64,
@@ -655,7 +663,7 @@ impl GithubPlugin {
             action,
             task: Box::pin(async move {
                 let result = match client::Client::new(&[], &token, &api) {
-                    Ok(client) => client.check_connection().await.map_err(|e| e.to_string()),
+                    Ok(client) => client.check_connection_scopes().await.map_err(|e| e.to_string()),
                     Err(error) => Err(error.to_string()),
                 };
                 Box::new(Answer::Connection {
@@ -816,9 +824,15 @@ impl GithubPlugin {
                     return effects;
                 }
                 let passed = result.is_ok();
+                if let Ok((login, _)) = &result {
+                    self.login = login.clone();
+                }
                 let said = match result {
-                    Ok(Some(login)) => format!("GitHub token works · signed in as @{login}"),
-                    Ok(None) => "GitHub public API access works".into(),
+                    Ok((Some(login), scopes)) => format!(
+                        "GitHub token works · signed in as @{login}{}",
+                        setup::scope_note(self.cfg.access, scopes.as_deref()).unwrap_or_default()
+                    ),
+                    Ok((None, _)) => "GitHub public API access works".into(),
                     Err(error) => error,
                 };
                 self.connection_check = Some(if passed {
@@ -1369,6 +1383,12 @@ impl Plugin for GithubPlugin {
     }
     fn section_keys(&self, section: &str) -> Vec<Binding> {
         bindings(settings::keys(self, section))
+    }
+    fn setup_step(&self) -> Option<radar_core::plugin::SetupStep> {
+        Some(setup::step(self))
+    }
+    fn setup_finds(&self) -> radar_core::plugin::SetupFinds {
+        setup::finds()
     }
     fn capturing(&self) -> bool {
         self.editor.is_some()

@@ -79,32 +79,37 @@ pub(super) fn section(s: &AgentsSettings, cx: &ViewCx<'_>) -> SectionView {
             rows.push(row);
         }
     }
-    rows.push(ListRow::heading("b:1", Text::new()));
-    let scope = s.workspace.as_deref().map_or("for every workspace".to_string(), |w| format!("for workspace {w}"));
-    rows.push(ListRow::heading("h:defaults", heading(&format!("new sessions · {scope}"))));
-    rows.push(ListRow::heading("b:2", Text::new()));
+    rows.push(ListRow::new(Row::AddCli.target(), radar_core::view::kit::add_line("add a command", "aider, opencode, …", cx.width)));
+    // In setup the card is the tools alone (`rows()` ends at the add row);
+    // the defaults, recipes and away notices are Settings'.
+    if !cx.setup {
+        rows.push(ListRow::heading("b:1", Text::new()));
+        let scope = s.workspace.as_deref().map_or("for every workspace".to_string(), |w| format!("for workspace {w}"));
+        rows.push(ListRow::heading("h:defaults", heading(&format!("new sessions · {scope}"))));
+        rows.push(ListRow::heading("b:2", Text::new()));
+    }
     let kv = |row: &Row, key: &str, value: String| {
         ListRow::new(row.target(), Text::new().push(Seg::new(radar_core::ui::pad(key, 22), Ink::Muted)).push(Seg::new(value, Ink::Primary)))
     };
     let recipes_dir = s.recipes_dir();
     let mut recipes_heading = false;
     for r in &all {
-        if !r.is_default() && !recipes_heading && !matches!(r, Row::Cli(_)) {
+        if !r.is_default() && !recipes_heading && !matches!(r, Row::Cli(_) | Row::AddCli) {
             recipes_heading = true;
             rows.push(ListRow::heading("b:3", Text::new()));
             rows.push(ListRow::heading("h:recipes", heading("recipes and reviews")));
             rows.push(ListRow::heading("b:4", Text::new()));
         }
         let row = match r {
-            Row::Cli(_) => continue,
+            Row::Cli(_) | Row::AddCli => continue,
             Row::Provider => kv(r, "provider", s.name_of(&d.provider)),
             Row::Model => kv(r, "model", d.model.clone().unwrap_or_else(|| "the provider's own".into())),
             Row::WorkDir => kv(r, "working folder", d.work_dir.clone().unwrap_or_else(|| "where radar was started".into())),
             Row::Roots => kv(r, "permitted folders", list(&d.permitted_roots)),
             Row::Skills => kv(r, "skill folders", list(&d.skill_dirs)),
             Row::ProjectConfig => kv(r, "CLI's own config", yes(d.project_config).into()),
-            Row::Allow => kv(r, "always allow", list(&d.allow.iter().map(ToString::to_string).collect::<Vec<_>>())),
-            Row::Deny => kv(r, "always deny", list(&d.deny.iter().map(ToString::to_string).collect::<Vec<_>>())),
+            Row::Allow => kv(r, "always allow", list(&d.allow.iter().map(super::rule_words).collect::<Vec<_>>())),
+            Row::Deny => kv(r, "always deny", list(&d.deny.iter().map(super::rule_words).collect::<Vec<_>>())),
             Row::LocalOnly => kv(r, "local only", yes(d.local_only).into()),
             Row::Reviewer => kv(r, "reviewer commands", yes(d.reviewer_may_run_commands).into()),
             Row::RecipesDir => kv(r, "recipes folder", recipes_dir.as_ref().map_or("none".into(), |p| tilde(p))),
@@ -136,14 +141,19 @@ pub(super) fn section(s: &AgentsSettings, cx: &ViewCx<'_>) -> SectionView {
     }
     let target = s.selected().target();
     let selected = rows.iter().position(|r| r.target.as_str() == target).or(Some(first));
-    let _ = cx;
+    // A CLI's row (or the add row) has the sheet: how to install and sign in.
+    let detail_blocks = match s.selected() {
+        Row::Cli(id) => super::setup::sheet(s, login_lines(s, &id), Some(&id)),
+        Row::AddCli => super::setup::sheet(s, vec![], None),
+        _ => vec![],
+    };
     SectionView {
         version: radar_core::view::VERSION,
         scope: SECTION.into(),
         body: Node::List { rows, selected, editing: None },
-        detail_title: detail_title(s),
+        detail_title: if detail_blocks_for(s) { "install and sign in".into() } else { detail_title(s) },
         detail: detail(s),
-        detail_blocks: vec![],
+        detail_blocks,
         actions: actions(s),
     }
 }
@@ -151,6 +161,7 @@ pub(super) fn section(s: &AgentsSettings, cx: &ViewCx<'_>) -> SectionView {
 fn detail_title(s: &AgentsSettings) -> String {
     match s.selected() {
         Row::Cli(id) => s.name_of(&id),
+        Row::AddCli => "add a command".into(),
         Row::Provider => "default provider".into(),
         Row::Model => "default model".into(),
         Row::WorkDir => "working folder".into(),
@@ -168,12 +179,10 @@ fn detail_title(s: &AgentsSettings) -> String {
     }
 }
 
-fn cli_detail(s: &AgentsSettings, id: &str) -> Vec<Text> {
-    let state = s.state(id);
-    let status: Option<&AdapterStatus> = s.status(id);
-    let kv = |k: &str, v: String| Text::new().push(Seg::new(radar_core::ui::pad(k, 14), Ink::Muted)).push(Seg::new(v, Ink::Primary));
+/// A CLI's sign-in under way, as lines (with its heading and a blank after);
+/// nothing while none runs.
+fn login_lines(s: &AgentsSettings, id: &str) -> Vec<Text> {
     let mut lines = vec![];
-    // A sign-in under way comes first: the code must be in view in a short pane.
     if let Some((p, l)) = &s.login
         && p == id
         && *l != Login::Idle
@@ -182,6 +191,20 @@ fn cli_detail(s: &AgentsSettings, id: &str) -> Vec<Text> {
         lines.extend(l.words().into_iter().map(|w| Text::of(w, Ink::Primary)));
         lines.push(Text::new());
     }
+    lines
+}
+
+/// Whether the selected row has the install-and-sign-in sheet.
+fn detail_blocks_for(s: &AgentsSettings) -> bool {
+    matches!(s.selected(), Row::Cli(_) | Row::AddCli)
+}
+
+fn cli_detail(s: &AgentsSettings, id: &str) -> Vec<Text> {
+    let state = s.state(id);
+    let status: Option<&AdapterStatus> = s.status(id);
+    let kv = |k: &str, v: String| Text::new().push(Seg::new(radar_core::ui::pad(k, 14), Ink::Muted)).push(Seg::new(v, Ink::Primary));
+    // A sign-in under way comes first: the code must be in view in a short pane.
+    let mut lines = login_lines(s, id);
     lines.push(Text::new().push(state_seg(&state)).push(Seg::new(state.advice(), ink_of(&state))));
     lines.push(Text::new());
     if let Some(st) = status {
@@ -222,6 +245,7 @@ fn detail(s: &AgentsSettings) -> Vec<Text> {
     let words = |t: &str| vec![Text::of(t, Ink::Primary)];
     match s.selected() {
         Row::Cli(id) => cli_detail(s, &id),
+        Row::AddCli => words("A program you would run in a terminal, such as aider or opencode: radar runs it in a tab of the dock."),
         Row::Provider => words("The CLI a new session starts with. A session already running keeps its own."),
         Row::Model => words("The model a new session asks for. Empty leaves it to the provider."),
         Row::Roots => words("Folders a session may read and write besides its working directory. Empty: its working directory only. Copilot and Claude Code get them as extra directories, Codex as writable roots of its sandbox."),
@@ -231,12 +255,27 @@ fn detail(s: &AgentsSettings) -> Vec<Text> {
         Row::RecipesDir => recipes_detail(s),
         Row::Recipe(name) => recipe_detail(s, &name),
         Row::ReviewsDir => words("Where a local review is saved when no workspace keeps notes for it. Empty: radar's state folder ($XDG_STATE_HOME/radar/reviews)."),
-        Row::Allow => words("Requests that never ask, as kind(argument): shell(git diff), read(src/**), url(github.com). Each provider's adapter maps them onto its own permissions."),
-        Row::Deny => words("Requests that are always refused, as kind(argument). A deny wins over an allow."),
+        Row::Allow => rules_detail(
+            "When an agent asks to run a command, read or change a file, open a website or use an MCP tool, and it matches one of these, radar says yes for you; what your CLI already allows in its own settings never asks either.",
+            &s.defaults().allow,
+        ),
+        Row::Deny => rules_detail("Requests radar refuses for you without asking. A deny wins over an allow.", &s.defaults().deny),
         Row::LocalOnly => words("Sessions run on this machine only: no remote or delegated runs. Copilot refuses /delegate, & and --remote and keeps custom agents local; Codex and Claude Code have no remote run to refuse."),
         Row::Reviewer => words("A reviewer session may ask to run commands that execute the change's code; each one is approved in the dock. Off: it reads and runs git diff, log and show only."),
         Row::Notify => words("A desktop notification when a session needs you (an approval, a question) or its turn ends while the dock is hidden or shows another tab: notify-send on Linux, the notification centre on macOS. The status line's chip says the same in radar whether this is on or off. Off by default."),
     }
+}
+
+/// What a rule list is for, then each rule on its own line, then how to change it.
+fn rules_detail(what: &str, rules: &[super::config::Rule]) -> Vec<Text> {
+    let mut lines = vec![Text::of(what, Ink::Primary), Text::new(), heading("listed")];
+    if rules.is_empty() {
+        lines.push(Text::of("nothing yet", Ink::Muted));
+    }
+    lines.extend(rules.iter().map(|r| Text::of(super::rule_words(r), Ink::Primary)));
+    lines.push(Text::new());
+    lines.push(Text::of("⏎ shows what your agents asked for: one key adds it. ⏎ on one listed takes it off.", Ink::Secondary));
+    lines
 }
 
 fn recipes_detail(s: &AgentsSettings) -> Vec<Text> {
@@ -295,10 +334,14 @@ fn actions(s: &AgentsSettings) -> Vec<ActionSpec> {
             named("sessions.agents.edit", Binding::new("⏎", "agent, skills, edit")),
             named("sessions.agents.recipe.edit", Binding::new("e", "edit in your editor")),
         ],
+        Row::AddCli => vec![named("", Binding::heading("terminal tools")), named("sessions.agents.add", Binding::new("a", "add a command"))],
         Row::Cli(_) => {
             let mut v = vec![
                 named("", Binding::heading("this tool")),
                 named("sessions.agents.sign_in", Binding::new("i", "sign in")),
+                named("sessions.agents.copy", Binding::new("y", "copy the install or sign-in command")),
+                named("sessions.agents.open", Binding::new("o", "open its install page")),
+                named("sessions.agents.add", Binding::new("a", "add a command")),
                 named("sessions.agents.refresh", Binding::new("r", "read its status again")),
                 named("sessions.agents.paths", Binding::new("p", "paths, agent and folders")),
             ];

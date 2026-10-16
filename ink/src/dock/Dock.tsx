@@ -2,7 +2,17 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 import { Box, type DOMElement } from "ink";
 import type { HitRegistry } from "../state/ui-state.js";
 import { Framed } from "../app/Panes.js";
-import { CellLine, padCells, cellsOf } from "../text/cells.js";
+import { CellBlock, CellLine, padCells, cellsOf, type Cell } from "../text/cells.js";
+
+/** A transcript row padded to the body's width, once per row and width (the rows come from dock/rows.ts's cache). */
+const padded = new WeakMap<Cell[], { width: number; row: Cell[] }>();
+function paddedRow(row: Cell[], width: number): Cell[] {
+  const kept = padded.get(row);
+  if (kept && kept.width === width) return kept.row;
+  const out = padCells(row, width);
+  padded.set(row, { width, row: out });
+  return out;
+}
 import { InputField } from "../editor/InputField.js";
 import { slotStyle } from "../text/look.js";
 import type { DockView } from "./model.js";
@@ -21,6 +31,10 @@ export function composerLines(text: string, caret: number, focused: boolean, row
   const first = Math.max(0, Math.min(at - rows + 1, lines.length - rows));
   return lines.slice(first, first + rows).map((t, i) => ({ text: t, caret: focused && first + i === at ? before : null }));
 }
+
+/** The line a transcript with nothing in it shows. */
+export const emptyWords = (noTabs: boolean, state?: string): string =>
+  noTabs ? " no sessions · ctrl-t starts one" : state === "detached" ? " not attached · a message or alt-r reads it back" : state === "resuming" ? " reading the session back…" : " no messages yet · type below";
 
 /** Rows the composer takes: its text's lines, one to three; none on a terminal tab. */
 export const composerRows = (draft: string) => Math.min(3, Math.max(1, draft.split("\n").length));
@@ -123,6 +137,9 @@ export function Dock({
     if (origin.row !== y + 3 || origin.col !== x + 2) setOrigin({ row: y + 3, col: x + 2 });
     if (!registry) return;
     registry.add({ x, y, w: width, h: height, target: "dock:body" });
+    // Text is selected in the transcript (under the tab row, above the activity line and the composer): not the frame,
+    // not a terminal tab, whose program has the mouse.
+    if (!tab?.terminal && inner > 0 && bodyH > 0) registry.addSelect({ x: x + 1, y: y + 2, w: inner, h: bodyH, id: "dock", kind: "text" });
     // each tab, then its close mark on top of it (a click closes it, as a middle click anywhere on the tab does)
     for (const s of tabSpans(data.tabs ?? [], inner, at)) {
       registry.add({ x: x + 1 + s.x, y: y + 1, w: s.w, h: 1, target: `dock:tab:${s.id}` });
@@ -137,6 +154,11 @@ export function Dock({
     // answer on a click
     if (!data.picker && !tab?.terminal)
       shown.hits.forEach((row, i) => row.forEach((h) => registry.add({ x: x + 1 + h.x, y: y + 2 + i, w: h.w, h: 1, target: h.target })));
+    // each row of the slash menu runs its command on a click, as ⏎ on it does; the menu sits under what the body shows
+    if (!data.picker && !tab?.terminal && cmds.length > 0) {
+      const top = items.length === 0 ? Math.min(1, Math.max(0, bodyH - cmds.length)) : shown.rows.length;
+      cmds.forEach((c, i) => registry.add({ x: x + 1, y: y + 2 + top + i, w: inner, h: 1, target: `dock:cmd:${encodeURIComponent(c.name)}` }));
+    }
     registry.add({ x, y, w: width, h: 1, target: `dock:edge:${y + height}` });
   });
   return (
@@ -152,12 +174,14 @@ export function Dock({
         ) : data.picker ? (
           pickerRows(data.picker, pick, inner, bodyH).map((r, i) => <CellLine key={i} cells={r} plain={plain} />)
         ) : items.length === 0 ? (
-          [padCells(cellsOf(tabs.length === 0 ? " no sessions · ctrl-t starts one" : " no messages yet · type below", slotStyle("text.muted")), inner)]
+          [padCells(cellsOf(emptyWords(tabs.length === 0, tab?.state), slotStyle("text.muted")), inner)]
             .slice(0, Math.max(0, bodyH - cmds.length))
             .concat(menuRows)
             .map((r, i) => <CellLine key={i} cells={r} plain={plain} />)
         ) : (
-          shown.rows.concat(menuRows).map((r, i) => <CellLine key={i} cells={padCells(r, inner)} plain={plain} />)
+          // One block for the rows that show, each padded once: a key typed in the composer draws the same rows, so the
+          // block is the element it was and nothing in the transcript renders again.
+          <CellBlock lines={[...shown.rows.map((r) => paddedRow(r, inner)), ...menuRows]} plain={plain} />
         )}
       </Box>
       {activity ? <CellLine cells={activityCells(activity, inner)} plain={plain} /> : null}

@@ -114,7 +114,7 @@ pub struct ProjectType {
     pub editor: String,
 }
 
-pub const DEPTH_MAX: usize = 12;
+pub const DEPTH_MAX: usize = 6;
 
 fn default_depth() -> usize {
     4
@@ -275,7 +275,7 @@ pub struct State {
     /// Editors found installed by the last scan or editor lookup.
     pub installed: Vec<(String, String)>,
     /// The selected row of the checkouts, editors, links and branches sections.
-    pub rows: [usize; 4],
+    pub rows: [usize; 5],
     pub edit: Option<(crate::settings::Field, TextInput)>,
     /// Checkouts whose branch is being switched, by folder.
     pub switching: BTreeSet<String>,
@@ -292,6 +292,98 @@ pub struct State {
     /// What to open (`terminal`, `editor`) in a folder once the checkout
     /// or worktree being made there is done.
     pub then_open: BTreeMap<String, String>,
+    /// The folders under the home folder that hold checkouts, with how
+    /// many, most first: what the walk of the home folder found
+    /// ([`walk_home`]), offered in the checkouts section to look in.
+    pub places: Vec<(String, usize)>,
+    /// Where the walk of the home folder is. It runs only once the user
+    /// said yes to setup's look, and never under `RADAR_SANDBOX`.
+    pub home: HomeWalk,
+    /// The terminals found on this machine, read once at start-up (never
+    /// under `RADAR_SANDBOX`): the terminal section shows them.
+    pub terminals: Option<crate::terminal::Terminals>,
+}
+
+/// The walk of the home folder for folders that hold checkouts.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum HomeWalk {
+    /// Not asked: nothing is walked.
+    #[default]
+    Off,
+    /// The user said yes; the next tick starts it.
+    Wanted,
+    Walking,
+    Done,
+}
+
+/// How far down the home folder the walk goes, how many folders it opens,
+/// and how long it may take.
+const WALK_DEPTH: usize = 3;
+const WALK_FOLDERS: usize = 20_000;
+const WALK_TIME: std::time::Duration = std::time::Duration::from_secs(1);
+
+/// The folders under `home` that hold git checkouts (a folder with a
+/// `.git`), checkouts at most `depth` folders down, grouped by the folder
+/// that holds them, with how many each holds, most first. A checkout's own
+/// folders are looked in too (workspaces hold checkouts inside checkouts).
+/// Hidden folders, `Library` and build output are not opened; a symbolic
+/// link to a folder is followed (`~/projects` is often one), each folder
+/// opened once; it stops after `most` folders or `time`. Paths are kept as
+/// walked, links and all.
+pub fn walk_home(home: &Path, depth: usize, most: usize, time: std::time::Duration) -> Vec<(String, usize)> {
+    let started = std::time::Instant::now();
+    let mut counts: BTreeMap<PathBuf, usize> = BTreeMap::new();
+    let mut seen: HashSet<PathBuf> = HashSet::new();
+    let mut level: Vec<PathBuf> = vec![home.to_path_buf()];
+    let mut opened = 0usize;
+    'walk: for _ in 0..depth {
+        let mut next = Vec::new();
+        for dir in level {
+            if !seen.insert(dir.canonicalize().unwrap_or_else(|_| dir.clone())) {
+                continue;
+            }
+            opened += 1;
+            if opened > most || started.elapsed() > time {
+                break 'walk;
+            }
+            let Ok(entries) = std::fs::read_dir(&dir) else { continue };
+            let mut subs: Vec<PathBuf> = entries
+                .flatten()
+                .filter(|e| e.file_type().is_ok_and(|t| t.is_dir() || (t.is_symlink() && e.path().is_dir())))
+                .filter(|e| {
+                    let n = e.file_name();
+                    let n = n.to_string_lossy();
+                    !n.starts_with('.') && n != "Library" && !SKIP.contains(&n.as_ref())
+                })
+                .map(|e| e.path())
+                .collect();
+            subs.sort();
+            for sub in subs {
+                if sub.join(".git").exists() {
+                    *counts.entry(dir.clone()).or_default() += 1;
+                }
+                next.push(sub);
+            }
+        }
+        level = next;
+    }
+    let mut out: Vec<(String, usize)> = counts.into_iter().map(|(d, n)| (d.display().to_string(), n)).collect();
+    out.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    out
+}
+
+/// The walk was asked for: start it at the next tick, off the screen
+/// thread. Never under `RADAR_SANDBOX`, where a test gives the answer.
+pub fn want_home_walk(p: &mut GitPlugin) {
+    if !radar_core::system::sandboxed() && p.local.home == HomeWalk::Off {
+        p.local.home = HomeWalk::Wanted;
+    }
+}
+
+/// What the walk found came back.
+pub fn walked(p: &mut GitPlugin, places: Vec<(String, usize)>) {
+    p.local.home = HomeWalk::Done;
+    p.local.places = places.into_iter().map(|(d, n)| (tilde(&d), n)).collect();
 }
 
 /// The repo path a remote URL names, in any of git's forms:
@@ -475,18 +567,15 @@ const SKIP: [&str; 8] = [
 /// Most folders one scan looks in, so a root like `/` cannot run for ever.
 const MOST_FOLDERS: usize = 50_000;
 
-/// Where to look for a repo's clone when nothing is set up yet: the folders
-/// radar looks in, then the ones people keep code in under their home folder.
-pub fn usual_places(roots: &[String]) -> Vec<String> {
+/// Where to look for a repo's clone: the folders radar looks in, then the
+/// ones the walk of the home folder found holding checkouts.
+pub fn usual_places(roots: &[String], places: &[(String, usize)]) -> Vec<String> {
     let mut out: Vec<String> = roots.to_vec();
-    if let Some(h) = home() {
-        for place in ["projects", "work", "code", "dev", "src", "repos", "git", "workspace"] {
-            if h.join(place).is_dir() {
-                out.push(format!("~/{place}"));
-            }
+    for (place, _) in places {
+        if !out.iter().any(|r| clean_folder(r) == clean_folder(place)) {
+            out.push(place.clone());
         }
     }
-    out.dedup();
     out
 }
 
@@ -752,6 +841,8 @@ pub enum LocalMsg {
     },
     /// A look for a repo's clone, to link it, found these.
     LookedFor { project: String, found: Vec<Checkout> },
+    /// The walk of the home folder found these folders holding checkouts.
+    Walked { places: Vec<(String, usize)> },
     /// A worktree was made to open a branch in (or why not).
     Worktree {
         dir: String,
@@ -762,7 +853,7 @@ pub enum LocalMsg {
 
 /// Look for `project`'s clone in the usual places, off the event loop.
 pub fn look(p: &GitPlugin, project: &str) -> Vec<Effect> {
-    let places = usual_places(&p.cfg.roots);
+    let places = usual_places(&p.cfg.roots, &p.local.places);
     let project = project.to_string();
     let name = project.rsplit('/').next().unwrap_or(&project).to_string();
     vec![
@@ -819,10 +910,23 @@ pub fn tick(p: &mut GitPlugin) -> Vec<Effect> {
     if !p.local.linked_read {
         refresh_links(p);
     }
-    if p.local.started || p.cfg.roots.is_empty() {
-        return vec![];
+    if p.local.terminals.is_none() && !radar_core::system::sandboxed() {
+        p.local.terminals = Some(crate::terminal::here());
     }
-    scan_now(p, false)
+    let mut fx = vec![];
+    if p.local.home == HomeWalk::Wanted {
+        p.local.home = HomeWalk::Walking;
+        if let Some(h) = home() {
+            fx.push(blocking(move || LocalMsg::Walked { places: walk_home(&h, WALK_DEPTH, WALK_FOLDERS, WALK_TIME) }));
+        } else {
+            p.local.home = HomeWalk::Done;
+        }
+    }
+    if p.local.started || p.cfg.roots.is_empty() {
+        return fx;
+    }
+    fx.extend(scan_now(p, false));
+    fx
 }
 
 /// A freshly read checkout may not be in the index yet, notably just after
@@ -930,6 +1034,10 @@ pub const PICK_EDITOR: &str = "local-editor";
 
 pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
     match msg {
+        LocalMsg::Walked { places } => {
+            walked(p, places);
+            vec![]
+        }
         LocalMsg::Scanned {
             mut index,
             installed,
@@ -1126,6 +1234,63 @@ pub fn on_pick(p: &mut GitPlugin, arg: &str, editor: &str) -> Vec<Effect> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A home folder of throwaway folders, each `.git` a checkout.
+    fn fake_home(name: &str, checkouts: &[&str]) -> PathBuf {
+        let home = std::env::temp_dir().join(format!("radar-walk-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&home);
+        for c in checkouts {
+            std::fs::create_dir_all(home.join(c).join(".git")).unwrap();
+        }
+        home
+    }
+
+    #[test]
+    fn the_walk_finds_the_folders_that_hold_checkouts_most_first() {
+        let home = fake_home("found", &[
+            "projects/api",
+            "projects/web",
+            "projects/web/vendored",
+            "work/watch/pseudopolis",
+            "dotfiles",
+            ".hidden/secret",
+            "node_modules/dep",
+            "Library/caches",
+            "deep/one/two/three",
+        ]);
+        // Code kept elsewhere, linked into the home folder; the link back
+        // up is opened once.
+        let elsewhere = fake_home("elsewhere", &["ankh", "morpork"]);
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(&elsewhere, home.join("linked")).unwrap();
+            std::os::unix::fs::symlink(&home, elsewhere.join("ankh/back")).unwrap();
+        }
+        let at = |rel: &str| if rel.is_empty() { home.display().to_string() } else { home.join(rel).display().to_string() };
+        let found = walk_home(&home, 3, 1000, std::time::Duration::from_secs(10));
+        // A checkout's own folders are looked in; hidden folders,
+        // node_modules and Library are skipped; three folders down at most.
+        let mut want = vec![(at("projects"), 2), (at(""), 1), (at("projects/web"), 1), (at("work/watch"), 1)];
+        if cfg!(unix) {
+            want.insert(0, (at("linked"), 2));
+        }
+        assert_eq!(found, want);
+        // The count cap stops it: only the home folder itself is opened.
+        assert_eq!(walk_home(&home, 3, 1, std::time::Duration::from_secs(10)), [(at(""), 1)]);
+        let _ = std::fs::remove_dir_all(&home);
+        let _ = std::fs::remove_dir_all(&elsewhere);
+    }
+
+    #[test]
+    fn nothing_is_walked_under_the_sandbox_and_a_given_answer_is_offered() {
+        let mut p = GitPlugin::default();
+        want_home_walk(&mut p);
+        assert_eq!(p.local.home, HomeWalk::Off, "the sandbox never walks");
+        assert!(tick(&mut p).is_empty());
+        on_msg(&mut p, LocalMsg::Walked { places: vec![("/home/vimes/projects".into(), 5)] });
+        assert_eq!(p.local.home, HomeWalk::Done);
+        assert_eq!(usual_places(&["~/watch".into()], &p.local.places).len(), 2);
+    }
 
     #[test]
     fn launch_observations_keep_dispatch_and_clipboard_facts_separate() {

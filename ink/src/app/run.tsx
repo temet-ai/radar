@@ -10,6 +10,7 @@ import { MouseBus, tapMouse } from "../input/stdin-tap.js";
 import { routeHerdrRightClick } from "../input/mouse.js";
 import { attachMotion } from "../motion/attach.js";
 import { spawn } from "node:child_process";
+import { tracer, traceTerminal } from "./trace.js";
 
 /**
  * The renderer's entry (ink/src/main.tsx calls it). Owns the TTY while it runs; on every way out
@@ -53,6 +54,9 @@ export async function run(env: NodeJS.ProcessEnv = process.env): Promise<never> 
   routeHerdrRightClick(env, spawn, (err) =>
     err ? session.log("warn", err) : session.log("info", "Herdr right-clicks routed to this pane"),
   );
+  // RADAR_TRACE_LATENCY=1: reads and frames are timed (before the tap, which reads through the wrapper).
+  tracer.logTo((t) => session.log("info", t));
+  traceTerminal(process.stdout as any, process.stdin as any);
   const mouse = new MouseBus();
   tapMouse(process.stdin, mouse);
   attachMotion(session, mouse, process.stdout);

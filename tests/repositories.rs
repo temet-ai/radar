@@ -163,7 +163,9 @@ fn repositories_key_works_when_gitlab_is_absent() {
         radar_core::plugin::DEMO_NOW,
     )
     .unwrap();
-    host.load_config(Some("")).unwrap();
+    // GitHub set up (a group), so its screen has a tab.
+    host.load_config(Some("[[github.groups]]\nname = \"github.com/ankh-morpork\"\nowner = \"ankh-morpork\"\n"))
+        .unwrap();
     assert_eq!(host.top_screens(), vec![0]);
     host.view = View::Settings;
     host.update(Event::Key(KeyEvent::new(

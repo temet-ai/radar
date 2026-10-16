@@ -114,7 +114,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) => Outcome::Ignored,
+        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
     }
 }
 

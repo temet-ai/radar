@@ -262,11 +262,18 @@ async fn a_slow_renderer_process_loses_no_question_or_notice() {
 /// and started again. The renderer started again reads every line of the
 /// same flood, so it is not ended: a queue that is full only until the
 /// writer's next turn is not a renderer that stopped reading.
+///
+/// Real processes on a real clock: the restarted renderer must keep its
+/// queue from staying full for `stalled_after`, and on a loaded machine a
+/// fresh process can be off the CPU for a few hundred milliseconds, and
+/// 300 ms could end it too. The rule itself is checked on a paused clock
+/// above; here the margin is a second (the first renderer still takes
+/// only that long to be found out).
 #[tokio::test]
 async fn a_renderer_that_stops_reading_is_ended_and_started_again() {
     let dir = scratch("stuck");
     let mut sup = supervisor("stuck-once", &dir);
-    sup.stalled_after = Duration::from_millis(300);
+    sup.stalled_after = Duration::from_secs(1);
     let mut bridge = Bridge::new(fixture::host(), 80, 24);
     let long = "x".repeat(MAX_NOTICE);
     let events = (0..2000)
@@ -321,6 +328,30 @@ async fn a_renderer_that_keeps_crashing_falls_back_to_ratatui_after_three_restar
     // The host is whole for the Ratatui renderer.
     let host = bridge.into_host();
     assert!(host.menu_view().is_some());
+}
+
+/// The stall rule itself, on tokio's paused clock: a queue that is full
+/// only until the writer's next turn takes the line; one nobody reads
+/// refuses it once `stalled_after` has passed, and not before.
+#[tokio::test(start_paused = true)]
+async fn a_full_queue_is_a_renderer_that_stopped_reading_only_once_it_stayed_full() {
+    let stalled_after = Duration::from_millis(300);
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<u8>>(1);
+    tx.try_send(b"one".to_vec()).unwrap();
+    // The writer has not had its turn: it takes a line when it does.
+    let writer = tokio::spawn(async move {
+        rx.recv().await;
+        rx
+    });
+    let t = tokio::time::Instant::now();
+    assert!(super::supervisor::queue(&tx, b"two".to_vec(), stalled_after).await);
+    assert!(t.elapsed() < stalled_after);
+    let rx = writer.await.unwrap();
+    // Nobody reads any more: the line waits the whole while, then is refused.
+    let t = tokio::time::Instant::now();
+    assert!(!super::supervisor::queue(&tx, b"three".to_vec(), stalled_after).await);
+    assert_eq!(t.elapsed(), stalled_after);
+    drop(rx);
 }
 
 #[test]

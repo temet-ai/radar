@@ -711,6 +711,36 @@ fn card_text(w: u16, scroll: &Scroll) -> String {
     })
 }
 
+/// A run of six steps in every state, and a stop with a long name.
+fn rail_text(w: u16) -> String {
+    use crate::view::chrome::StopState as S;
+    use super::rail::{Stop, render};
+    let stop = |label, state, note| Stop { label, icon: Some(icon::Icon::Board), state, note };
+    let stops = [
+        stop("look & terminal", S::Done, Some("neon · nerd icons")),
+        stop("local code", S::Skipped, Some("skipped")),
+        stop("Shelves", S::Current, Some("step 3 of 5")),
+        stop("the Unseen University archive", S::Upcoming, None),
+        stop("Ledger", S::Upcoming, None),
+        stop("tour?", S::Upcoming, Some("asked at the end")),
+    ];
+    draw(w, 2, |t, area, buf| {
+        let hits = render(t, &stops, area, buf);
+        assert_eq!(hits.len(), stops.len(), "every stop can be clicked");
+        assert!(hits.iter().all(|(r, _)| r.right() <= area.right()));
+    })
+}
+
+#[test]
+fn rail_80() {
+    insta::assert_snapshot!(rail_text(80));
+}
+
+#[test]
+fn rail_160() {
+    insta::assert_snapshot!(rail_text(160));
+}
+
 #[test]
 fn card_80() {
     insta::assert_snapshot!(card_text(80, &Scroll::new()));

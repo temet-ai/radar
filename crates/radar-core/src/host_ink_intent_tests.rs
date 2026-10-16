@@ -229,3 +229,126 @@ fn an_activate_on_a_source_tab_ends_where_a_press_on_it_ends() {
     assert!(!host.sources && !host.bar, "Down leaves the source row for the screen");
     assert_eq!(host.focus, Pane::Nav);
 }
+
+fn copy_records(effects: &[HostEffect]) -> Vec<String> {
+    effects
+        .iter()
+        .filter_map(|e| match e {
+            HostEffect::Journal(crate::journal_runtime::JournalRecord::Begin { descriptor, .. }) => {
+                Some(descriptor.kind.as_str().to_string())
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+/// What the renderer selected is copied by the host, as a drag is in the
+/// Ratatui runner: one effect the runner sends through `copy_ways`, journalled
+/// as `system.copy.selection` (and not as an action on the screen under it).
+#[test]
+fn a_copy_intent_becomes_the_copy_effect_and_is_journalled_as_a_selection() {
+    let (mut host, seen) = fixture();
+    host.enable_journal();
+    let effects = host.update(Event::Intent(Intent::Copy { text: "ABC-12".into() }));
+    assert_eq!(copy_records(&effects), ["system.copy.selection"]);
+    let copies: Vec<_> = effects
+        .iter()
+        .filter_map(|e| match e {
+            HostEffect::Tracked { effect, .. } => match effect.as_ref() {
+                HostEffect::CopySelection(text) => Some(text.clone()),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect();
+    assert_eq!(copies, ["ABC-12"]);
+    assert!(seen.lock().unwrap().is_empty(), "no part sees a copy");
+}
+
+#[test]
+fn a_copy_intent_copies_with_no_journal_too() {
+    let (mut host, _) = fixture();
+    let effects = host.update(Event::Intent(Intent::Copy { text: "two\nrows".into() }));
+    assert!(matches!(&effects[..], [HostEffect::CopySelection(t)] if t == "two\nrows"));
+}
+
+#[test]
+fn a_copy_intent_over_the_clipboard_cap_is_refused_and_blank_text_is_nothing() {
+    let (mut host, _) = fixture();
+    host.enable_journal();
+    let big = "x".repeat(crate::ipc::MAX_CLIPBOARD + 1);
+    let effects = host.update(Event::Intent(Intent::Copy { text: big }));
+    assert!(effects.iter().all(|e| !matches!(
+        e,
+        HostEffect::Copy(_) | HostEffect::CopySelection(_) | HostEffect::Tracked { .. }
+    )));
+    assert!(copy_records(&effects).is_empty(), "a refused copy is not recorded as a copy");
+    assert!(host.message.as_ref().is_some_and(|m| m.contains("too much text")));
+    let exactly = "x".repeat(crate::ipc::MAX_CLIPBOARD);
+    assert!(!host.update(Event::Intent(Intent::Copy { text: exactly })).is_empty());
+    host.message = None;
+    assert!(host.update(Event::Intent(Intent::Copy { text: "  \n ".into() })).is_empty());
+}
+
+/// A drag selects inside the pane it started in: the frame marks the inside
+/// of each pane (border, title and scrollbar column left out), and nothing
+/// of the top bar or the status line.
+#[test]
+fn a_frame_marks_each_panes_inside_as_selectable_and_nothing_of_the_chrome() {
+    let (host, _) = fixture();
+    let _ = crate::shell::to_text(&host, 100, 24);
+    let areas = host.frontend.selectable();
+    assert_eq!(areas.len(), 2, "the nav and the middle pane: {areas:?}");
+    for a in &areas {
+        assert!(a.rect.x >= 1 && a.rect.y >= 2, "inside the border and under the top bar: {a:?}");
+        assert!(a.rect.bottom() <= 22, "above the bottom border and the status line: {a:?}");
+        assert!(!a.text, "lists are rows to choose from, not text");
+    }
+    assert!(areas[0].rect.right() < areas[1].rect.x, "the panes' borders lie between them");
+    // A new frame starts afresh.
+    let _ = crate::shell::to_text(&host, 100, 24);
+    assert_eq!(host.frontend.selectable().len(), 2);
+}
+
+#[test]
+fn an_open_menu_is_the_only_place_a_drag_selects() {
+    let (mut host, _) = fixture();
+    host.on_key(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::NONE));
+    assert!(host.menu.is_some());
+    let _ = crate::shell::to_text(&host, 100, 24);
+    let areas = host.frontend.selectable();
+    assert_eq!(areas.len(), 1, "{areas:?}");
+    let menu = host
+        .hits
+        .borrow()
+        .iter()
+        .find_map(|(rect, hit)| matches!(hit, Hit::MenuBox).then_some(*rect))
+        .unwrap();
+    assert!(areas[0].rect.x > menu.x && areas[0].rect.right() < menu.right(), "inside the menu's border");
+}
+
+#[test]
+fn the_status_line_names_the_terminals_own_selection_key_while_a_drag_selects() {
+    let (mut host, _) = fixture();
+    let words = |host: &Host| {
+        host.chrome_status().hints.iter().map(|h| (h.keys.clone(), h.label.clone())).collect::<Vec<_>>()
+    };
+    assert!(!words(&host).iter().any(|(k, _)| k == "shift"));
+    host.selecting = Some("shift");
+    assert_eq!(words(&host), [("shift".to_string(), "terminal's own selection".to_string())]);
+    host.selecting = Some("option");
+    assert_eq!(words(&host)[0].0, "option");
+    host.selecting = None;
+    assert!(words(&host).len() > 1, "the usual keys come back");
+}
+
+#[test]
+fn only_text_nodes_are_text_panes() {
+    use crate::view::Text;
+    let doc = Node::Document { lines: vec![Text::default()], cut: false };
+    assert!(doc.is_text());
+    assert!(Node::Rich { blocks: vec![], pictures: None }.is_text());
+    assert!(Node::State { state: crate::view::State::Empty, text: String::new() }.is_text());
+    let list = Node::List { rows: vec![], selected: None, editing: None };
+    assert!(!list.is_text());
+}

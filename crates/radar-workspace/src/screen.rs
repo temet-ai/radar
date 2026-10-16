@@ -95,7 +95,7 @@ pub fn intent(p: &mut WorkspacePlugin, pane: Pane, intent: &v::Intent) -> Outcom
             out
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| key(p, pane, radar_core::view_tui::key_of(chord))),
-        v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) => Outcome::Ignored,
+        v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
     }
 }
 

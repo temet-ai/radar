@@ -8,25 +8,26 @@ use radar_core::{Outcome, Plugin};
 use radar_sessions::SessionsPlugin;
 use radar_sessions::fake::FakeProvider;
 
+/// The plugin's tasks run on the test's thread, only when a step lets them: nothing races the
+/// test, so no load on the machine makes it late.
 fn plugin(provider: &FakeProvider) -> SessionsPlugin {
-    let mut p = SessionsPlugin::new();
+    let mut p = SessionsPlugin::on_this_thread();
     p.add_adapter(Box::new(provider.adapter()));
-    // The host ticks long before anyone sends: the plugin has started and subscribed.
-    for n in 0..50 {
-        p.tick(n);
-    }
+    // The first tick starts the plugin; a send waits for the subscription by itself.
+    p.tick(0);
     p
 }
 
+/// Tick and run the plugin's tasks until `done`: a bound on steps, not on time.
 fn until(p: &mut SessionsPlugin, what: &str, done: impl Fn(&DockView) -> bool) -> DockView {
-    for n in 0..2_000_000u64 {
+    for n in 0..256u64 {
         p.tick(n as i64);
         if let Some(dock) = p.dock()
             && done(&dock)
         {
             return dock;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("never reached: {what}; dock = {:?}", p.dock());
 }
@@ -51,6 +52,35 @@ fn sending_to_an_agent_starts_a_session_and_sends_the_brief_at_once() {
     let texts = user_texts(&dock);
     assert!(texts[0].contains("## Ticket: Fix the login") && texts[0].contains("Description: Users are logged out after a minute"), "{texts:?}");
     assert!(!texts[0].contains("untrusted"));
+}
+
+/// A CLI slow to listen: its subscription is held until the test lets it go. The plugin's tasks
+/// run only when the test runs them, in the order they were spawned: the subscription first
+/// (it waits), then the new session's. Created and sent at once, the session's answer to the
+/// brief would be told to nobody; the brief waits until the adapter listens, then it is the
+/// session's first message, once.
+#[test]
+fn the_brief_waits_for_the_adapter_to_listen_and_arrives_first_once() {
+    let provider = FakeProvider::new();
+    provider.hold_subscribe();
+    let mut p = plugin(&provider);
+    // The first tick asked for the subscription; the send comes before it is answered.
+    assert!(matches!(p.agent_brief(vec![context()]), Outcome::Handled(_)));
+    p.run_tasks();
+    p.tick(1);
+    p.run_tasks();
+    assert!(!provider.listening());
+    assert_eq!(provider.calls("create"), 0, "no session is made before the adapter listens");
+    assert_eq!(provider.unheard(), 0);
+    provider.let_subscribe();
+    // Then the session is made, the brief sent and the fake's turn says "ok".
+    let dock = until(&mut p, "the brief answered", |d| d.transcript.iter().any(|i| matches!(i, DockItem::Assistant { .. })));
+    assert_eq!(provider.unheard(), 0, "nothing the session said was lost");
+    assert_eq!(provider.calls("create"), 1);
+    let texts = user_texts(&dock);
+    assert_eq!(texts.len(), 1, "the brief is sent once: {texts:?}");
+    assert!(texts[0].contains("## Ticket: Fix the login"));
+    assert!(matches!(dock.transcript.first(), Some(DockItem::User { .. })), "the brief comes first: {:?}", dock.transcript);
 }
 
 #[test]

@@ -137,12 +137,12 @@ fn settings_edits_and_token_offers_use_the_same_generation() {
     edit_connection(&mut p, Field::Refresh, "90");
     assert_eq!(p.connection_stamp(), fourth);
     p.env = Some(vec![(
-        "PRIVATE_GITLAB_TOKEN".into(),
+        "GITLAB_TOKEN".into(),
         "glpat-not.a.real.token.1234".into(),
     )]);
     p.me.clear();
     settings::on_menu(&mut p, "offer:0", "use");
-    assert_eq!(p.cfg.token, "env:PRIVATE_GITLAB_TOKEN");
+    assert_eq!(p.cfg.token, "env:GITLAB_TOKEN");
     assert_ne!(p.connection_stamp(), fourth);
 }
 

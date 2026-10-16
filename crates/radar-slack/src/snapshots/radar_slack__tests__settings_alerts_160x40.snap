@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 160, 40)"
 │General               ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
 │  ├─ parts            ││ keep resolved    24 hours                                                      ││                                                    │
 │  ├─ mode             ││                                                                                ││ Type the start of its name; the repo it belongs to │
-│  ├─ colours          ││                                                                                ││ is asked next. The service, a label to match and   │
-│  └─ icons            ││                                                                                ││ an environment can be set under the rule. The      │
-│Slack                 ││                                                                                ││ first rule that matches an alert decides.          │
+│  ├─ appearance       ││                                                                                ││ is asked next. The service, a label to match and   │
+│  ├─ colours          ││                                                                                ││ an environment can be set under the rule. The      │
+│  └─ icons            ││                                                                                ││ first rule that matches an alert decides.          │
+│Slack                 ││                                                                                ││                                                    │
 │  ├─ connection       ││                                                                                ││                                                    │
 │  ├─ channels         ││                                                                                ││                                                    │
 │  ├─ review           ││                                                                                ││                                                    │
 │  ├─ alerts           ││                                                                                ││                                                    │
 │  └─ look             ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

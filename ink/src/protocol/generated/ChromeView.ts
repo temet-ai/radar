@@ -3,9 +3,11 @@ import type { HistoryView } from "./HistoryView.js";
 import type { KeysAt } from "./KeysAt.js";
 import type { MenuView } from "./MenuView.js";
 import type { SettingsNav } from "./SettingsNav.js";
+import type { SetupChrome } from "./SetupChrome.js";
 import type { SourceTab } from "./SourceTab.js";
 import type { StatusLine } from "./StatusLine.js";
 import type { TopBar } from "./TopBar.js";
+import type { TourCard } from "./TourCard.js";
 
 /**
  * The host's chrome for one frame.
@@ -39,4 +41,12 @@ history?: HistoryView | null,
  * document pane to the end, as Ratatui's `Scroll::key` does).
  * Filled by the host; empty until it is.
  */
-screen_keys?: Array<string>, };
+screen_keys?: Array<string>, 
+/**
+ * Setup, while it shows (instead of the tabs and the settings nav).
+ */
+setup?: SetupChrome | null, 
+/**
+ * The tour's card, while the tour shows.
+ */
+tour?: TourCard | null, };

@@ -1,5 +1,6 @@
 ---
 source: tests/mix.rs
+assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    History   Settings (,)                                         ✎ edit
@@ -7,22 +8,22 @@ expression: "to_text(&started(), 80, 24)"
 │General               ││ COMMAND LINE TOOLS                                   █
 │  ├─ parts            ││                                                      █
 │  ├─ mode             ││ … Copilot       checking                             █
-│  ├─ colours          ││ … Codex         checking                             ║
-│  └─ icons            ││ … Claude Agent  checking                             ║
+│  ├─ appearance       ││ … Codex         checking                             ║
+│  ├─ colours          ││ … Claude Agent  checking                             ║
+│  └─ icons            ││  + add a command   aider, opencode, …                ║
 │Agents                ││                                                      ║
 │  └─ Tools and defau  ││ NEW SESSIONS · FOR EVERY WORKSPACE                   ║
 │                      ││                                                      ║
-│                      ││ provider              Copilot                        ║
 │                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ Copilot ─────────────────────────────────────────────╮
-│                      ││ … Reading the CLI's status…                          │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
+│                      │╭ install and sign in ─────────────────────────────────╮
+│                      ││ Each agent is its own program with its own sign-in.  █
+│                      ││ radar finds it on your PATH; r looks again.          █
+│                      ││                                                      █
+│                      ││ COPILOT  checking ────────────────────────────────── ║
+│                      ││   $ npm i -g @github/copilot                         ║
+│                      ││   $ copilot login                                [y] ║
+│                      ││   Needs a Copilot plan on GitHub.                    ║
+│                      ││    GitHub: install Copilot CLI                   [o] ║
+│                      ││ CODEX  checking ──────────────────────────────────── ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

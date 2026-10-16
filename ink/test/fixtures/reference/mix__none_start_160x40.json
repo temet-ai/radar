@@ -24,15 +24,21 @@
             },
             {
               "icon": "colours",
+              "id": "appearance",
+              "name": "appearance",
+              "target": "chrome:section:2"
+            },
+            {
+              "icon": "colours",
               "id": "colours",
               "name": "colours",
-              "target": "chrome:section:2"
+              "target": "chrome:section:3"
             },
             {
               "icon": "icons",
               "id": "icons",
               "name": "icons",
-              "target": "chrome:section:3"
+              "target": "chrome:section:4"
             }
           ],
           "target": "chrome:group:general"

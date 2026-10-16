@@ -69,6 +69,12 @@ pub struct ChromeView {
     /// Filled by the host; empty until it is.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub screen_keys: Vec<char>,
+    /// Setup, while it shows (instead of the tabs and the settings nav).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub setup: Option<SetupChrome>,
+    /// The tour's card, while the tour shows.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tour: Option<TourCard>,
 }
 
 impl ChromeView {
@@ -86,8 +92,28 @@ impl ChromeView {
             keys_at: KeysAt::Body,
             history: None,
             screen_keys: vec![],
+            setup: None,
+            tour: None,
         }
     }
+}
+
+/// The tour's card over the body, while the tour shows
+/// ([`crate::tour`]): `tour · 2 of 5`, a title, its lines, what to try,
+/// and its keys. Drawn at the body's lower right, over the app.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct TourCard {
+    /// This stop, from 1.
+    pub stop: usize,
+    pub of: usize,
+    pub title: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub lines: Vec<crate::view::Text>,
+    /// `try it: press J`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub try_it: Option<String>,
+    /// `→ next   ← back   esc end the tour`.
+    pub keys: crate::view::Text,
 }
 
 /// ` radar   Books 3   history   settings          ⠷ synced 12s   read-only `
@@ -512,4 +538,62 @@ pub mod targets {
     pub fn nav_section(index: usize) -> Target {
         Target(format!("chrome:section:{index}"))
     }
+    /// Stop `index` of setup's rail.
+    pub fn setup_stop(index: usize) -> Target {
+        Target(format!("chrome:setup:{index}"))
+    }
+}
+
+/// Setup's chrome, while setup shows: the screen's title for the top bar
+/// (`setup / <title>`), `step n of m`, and the rail. The card and the
+/// sheet are the snapshot's section (its body and its detail); the key bar
+/// is the status line, scoped `SETUP`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct SetupChrome {
+    /// The screen's name, after `setup / ` in the top bar and over the card.
+    pub title: String,
+    /// `step 2 of 5`, on a step's screen.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<String>,
+    /// One stop per chosen step, then `tour?`; empty before the choice.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rail: Vec<RailStop>,
+    /// The stop of the step showing, an index into `rail`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current: Option<usize>,
+    /// The card's first line, bold (`What would you like to set up?`).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub heading: String,
+    /// The muted line under it.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub lead: String,
+}
+
+/// A stop of setup's rail.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct RailStop {
+    /// The step's id (`look`, a part's step id, `tour`).
+    pub id: String,
+    pub label: String,
+    #[serde(default, skip_serializing_if = "Option::is_none", with = "icon_name")]
+    #[ts(as = "Option<String>")]
+    pub icon: Option<Icon>,
+    pub state: StopState,
+    /// The line under the stop: a done step's result, `skipped`, the
+    /// current one's `step n of m`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub result: Option<String>,
+    /// Activating a stop reached before goes back to it.
+    pub target: Target,
+}
+
+/// Where a rail's stop is in the run.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum StopState {
+    #[default]
+    Upcoming,
+    Current,
+    Done,
+    Skipped,
 }

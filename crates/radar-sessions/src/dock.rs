@@ -10,7 +10,10 @@ use radar_core::ui::icon::Icon;
 
 use crate::adapter::{Capabilities, ModelInfo, ProviderSessionInfo};
 use crate::event::{RadarSessionId, PermissionKind, PermissionTarget, QuestionReply};
-use crate::store::{Holder, Item, PermissionState, QuestionState, Session, SessionState, Store, ToolState};
+use crate::store::{Attach, Holder, Item, PermissionState, QuestionState, Session, SessionState, Store, ToolState};
+
+/// radar's own command that attaches a restored session ([`view::DockIntent::Resume`]), listed while it is detached.
+pub const RESUME: &str = "resume";
 
 /// Everything the dock needs besides the store.
 pub struct Inputs<'a> {
@@ -109,7 +112,8 @@ impl Clock {
 /// Something of `s` waits for the user: a question, or a request no
 /// standing rule answers (`auto` holds the ones answered for them).
 pub fn needs_you(s: &Session, auto: &BTreeSet<String>) -> bool {
-    !s.pending_questions().is_empty() || s.pending().iter().any(|r| !auto.contains(&r.request_id))
+    // Not attached: what its history shows waiting was asked by a process that is gone.
+    s.attached() && (!s.pending_questions().is_empty() || s.pending().iter().any(|r| !auto.contains(&r.request_id)))
 }
 
 fn busy(s: &Session) -> bool {
@@ -120,6 +124,15 @@ fn busy(s: &Session) -> bool {
 /// before its first turn, and for a turn read back from history (resume:
 /// it did not run here).
 pub fn activity(s: &Session, clock: Option<&Clock>, now: i64) -> Option<view::DockActivity> {
+    // Restored from the last run: being read back, or waiting to be.
+    let since = u32::try_from((now - s.attach_at).max(0)).unwrap_or(u32::MAX);
+    let queued = u32::try_from(s.queued.len()).unwrap_or(u32::MAX);
+    let detached = |doing| Some(view::DockActivity { doing, detail: s.meta.provider.to_string(), elapsed: since, tokens: None, queued });
+    match s.attach {
+        Attach::Resuming => return detached(view::Doing::Resuming),
+        Attach::Detached => return detached(view::Doing::Detached),
+        Attach::Attached => {}
+    }
     let c = clock.filter(|c| c.seq > 0 && c.seq == s.turn.seq)?;
     let running = busy(s);
     if !running && !c.ran(s) {
@@ -234,17 +247,27 @@ fn items(s: &Session, folds: &BTreeMap<String, bool>) -> Vec<view::DockItem> {
                 result: result.as_deref().map(lines).unwrap_or_default(),
             },
             Item::Permission { request, state } => {
+                // Read back while not attached: asked by a process that is gone, so it lapses with the history's end.
+                let state = if !s.attached() && *state == PermissionState::Pending { &PermissionState::Lapsed } else { state };
+                let lapsed = *state == PermissionState::Lapsed;
                 let diff = match &request.target {
                     PermissionTarget::Write { diff: Some(d), .. } => lines(d),
                     _ => Vec::new(),
                 };
-                let mut actions = vec![view::PermissionAction::ApproveOnce];
-                if request.can_offer_session_approval {
-                    actions.push(view::PermissionAction::ApproveForSession);
-                }
-                actions.push(view::PermissionAction::Deny);
-                if !diff.is_empty() {
-                    actions.push(view::PermissionAction::ViewDiff);
+                // A lapsed request has nothing to press: no answer reaches anyone.
+                let mut actions = vec![];
+                if !lapsed {
+                    actions.push(view::PermissionAction::ApproveOnce);
+                    if request.can_offer_session_approval {
+                        actions.push(view::PermissionAction::ApproveForSession);
+                    }
+                    if !crate::settings::config::Rule::suggest(request).is_empty() {
+                        actions.push(view::PermissionAction::AlwaysAllow);
+                    }
+                    actions.push(view::PermissionAction::Deny);
+                    if !diff.is_empty() {
+                        actions.push(view::PermissionAction::ViewDiff);
+                    }
                 }
                 view::DockItem::Permission(view::DockPermission {
                     id: request.request_id.clone(),
@@ -253,8 +276,9 @@ fn items(s: &Session, folds: &BTreeMap<String, bool>) -> Vec<view::DockItem> {
                     diff,
                     actions,
                     tool: request.tool_call_id.clone(),
+                    lapsed,
                     answered: match state {
-                        PermissionState::Pending => None,
+                        PermissionState::Pending | PermissionState::Lapsed => None,
                         PermissionState::Approved if s.answered_for_session(&request.request_id) => {
                             Some(view::PermissionAction::ApproveForSession)
                         }
@@ -264,6 +288,7 @@ fn items(s: &Session, folds: &BTreeMap<String, bool>) -> Vec<view::DockItem> {
                 })
             }
             Item::Question { request, state, replies } => {
+                let state = if !s.attached() && *state == QuestionState::Pending { &QuestionState::Lapsed } else { state };
                 // While it waits, the operator's answers so far; once settled, what was answered.
                 let given: &[QuestionReply] = if *state == QuestionState::Pending { s.drafts(&request.request_id) } else { replies };
                 view::DockItem::Question(view::DockQuestion {
@@ -293,6 +318,7 @@ fn items(s: &Session, folds: &BTreeMap<String, bool>) -> Vec<view::DockItem> {
                         QuestionState::Pending => view::AskState::Waiting,
                         QuestionState::Answered => view::AskState::Answered,
                         QuestionState::Declined => view::AskState::Declined,
+                        QuestionState::Lapsed => view::AskState::Lapsed,
                     },
                 })
             }
@@ -331,7 +357,16 @@ fn tab(s: &Session, i: &Inputs<'_>) -> view::DockTab {
                 view::TerminalState::Failed => view::SessionState::Error,
             },
         ),
-        None => (Icon::Bot, state(s)),
+        // Restored and not attached: never "needs you" for what its history shows waiting.
+        None => (
+            Icon::Bot,
+            match s.attach {
+                Attach::Resuming => view::SessionState::Resuming,
+                Attach::Detached if s.state == SessionState::Error => view::SessionState::Error,
+                Attach::Detached => view::SessionState::Detached,
+                Attach::Attached => state(s),
+            },
+        ),
     };
     view::DockTab { id, provider: s.meta.provider.to_string(), icon: Some(icon), title: s.meta.title.clone(), state, unread, running, terminal }
 }
@@ -372,7 +407,7 @@ pub fn dock_view(i: &Inputs<'_>) -> view::DockView {
             dock.transcript = items(s, i.folds);
             dock.activity = activity(s, i.clocks.get(&s.meta.radar_session_id), i.now);
             let can_stop = i.capabilities.is_some_and(|c| c.stop);
-            let busy = matches!(s.state, SessionState::Running | SessionState::WaitingApproval);
+            let busy = s.attached() && matches!(s.state, SessionState::Running | SessionState::WaitingApproval);
             dock.composer.can_stop = busy && can_stop;
             // A message sent while a turn runs is never refused: the provider steers with it or queues it, or radar
             // keeps it until the turn ends (shown queued at the foot of the transcript).
@@ -394,6 +429,11 @@ pub fn dock_view(i: &Inputs<'_>) -> view::DockView {
             // radar's own: closing is the dock's, whatever the provider offers.
             if !dock.composer.commands.iter().any(|c| c.name == "close") {
                 dock.composer.commands.push(view::DockCommand { name: "close".into(), detail: "close this session (alt-s brings it back)".into() });
+            }
+            // Restored and not attached: attach without sending (a message attaches it too).
+            if s.attach == Attach::Detached {
+                dock.composer.commands.retain(|c| c.name != RESUME);
+                dock.composer.commands.push(view::DockCommand { name: RESUME.into(), detail: "attach to the provider again and read the session back (alt-r)".into() });
             }
             dock.status = view::DockStatus {
                 provider: s.meta.provider.to_string(),
@@ -479,6 +519,7 @@ mod tests {
             created_at: 1,
             cursor: None,
             agent: None,
+            review: false,
         });
         for (n, kind) in events.into_iter().enumerate() {
             let durability = match kind {
@@ -693,7 +734,7 @@ mod tests {
             view::DockItem::Permission(p) => {
                 assert_eq!(p.target, "ls -la");
                 assert_eq!(p.answered, None);
-                assert_eq!(p.actions, vec![view::PermissionAction::ApproveOnce, view::PermissionAction::Deny]);
+                assert_eq!(p.actions, vec![view::PermissionAction::ApproveOnce, view::PermissionAction::AlwaysAllow, view::PermissionAction::Deny]);
             }
             other => panic!("{other:?}"),
         }
@@ -745,9 +786,9 @@ mod tests {
         let perms: Vec<&view::DockPermission> =
             dock.transcript.iter().filter_map(|i| if let view::DockItem::Permission(p) = i { Some(p) } else { None }).collect();
         assert_eq!(perms[0].answered, Some(view::PermissionAction::ApproveForSession));
-        use view::PermissionAction::{ApproveForSession, ApproveOnce, Deny};
-        assert_eq!(perms[1].actions, vec![ApproveOnce, ApproveForSession, Deny]);
-        assert_eq!(perms[2].actions, vec![ApproveOnce, Deny]);
+        use view::PermissionAction::{AlwaysAllow, ApproveForSession, ApproveOnce, Deny};
+        assert_eq!(perms[1].actions, vec![ApproveOnce, ApproveForSession, AlwaysAllow, Deny]);
+        assert_eq!(perms[2].actions, vec![ApproveOnce, AlwaysAllow, Deny]);
     }
 
     #[test]

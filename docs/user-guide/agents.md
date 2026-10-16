@@ -9,7 +9,7 @@ one conversation with one agent. radar can start one with an item already descri
 
 | Agent | Needs |
 |---|---|
-| Claude Code | the `claude` program, signed in |
+| Claude Agent | the `claude` program (Claude Code), signed in; radar runs it through your own Claude Code login |
 | Codex | the `codex` program, signed in |
 | GitHub Copilot | the `copilot` program, signed in |
 
@@ -23,9 +23,15 @@ when you reopen a session.
 | `` ` `` (backtick) | show the dock; with a session waiting for you out of sight, go to that session |
 | `ctrl-t` | start a new session |
 | `alt-f` | the dock takes the whole middle column, and back |
-| `alt-w` | close the session tab showing |
+| `alt-w` | close the session tab showing (`ctrl-w` too, while the composer is empty) |
+| `alt-←` `alt-→` | switch to the previous / next session tab |
 | `alt-a` | choose the agent new sessions start as |
+| `alt-m` | choose the model for the session |
+| `alt-s` | choose a session to open |
 | `alt-k` | put a skill's request in the composer |
+| `alt-o` | fold or open the latest tool call |
+| `esc` | while a turn runs, stop it |
+| `alt-r` | on a tab restored from the last run: read it back from the agent |
 
 Each session is a tab. Type your message in the box at the bottom and press `⏎`. A message sent
 while a turn is running is queued and sent afterwards. Drag the dock's top edge to resize it.
@@ -45,11 +51,25 @@ command, path, diff or address and waits. Nothing is approved for you.
 |---|---|
 | a̲pprove | allow it once |
 | s̲ession | allow this kind of request for the rest of the session (when the agent offers it) |
+| al̲ways allow | allow this kind of request from now on, as a standing rule (when the agent offers it) |
 | d̲eny | refuse; the agent is told |
 | v̲iew diff | see the change before choosing |
 
 A request waits as long as it needs to. Rules you already set in an agent's own configuration
-still apply.
+still apply. Settings, Agents has **always allow** and **always deny**, which list the requests
+your agents made so you can turn one into a standing rule.
+
+## After you quit radar
+
+Your session tabs come back when you start radar again, but the agent programs that ran them ended
+with radar. A restored tab shows a connection mark and says it is not attached. radar reads the session back
+from the agent when you first look at its tab, type a message in it, or press `alt-r` (or type
+`/resume`).
+
+A request or question that was waiting when radar closed comes back muted, marked "radar closed before
+this was answered", with no buttons: nothing can answer it any more, and it does not count as
+needing you. A line says the turn was ended. Send a message to carry on; if the agent asks again,
+the new request waits for you as usual.
 
 ## Sending an item to an agent
 

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-gitlab/src/lib.rs
+assertion_line: 2458
 expression: "radar_core::shell::to_text(&host, 80, 24)"
 ---
  radar    Repositories 1   History   Settings (,)                        ✎ edit
@@ -7,14 +8,14 @@ expression: "radar_core::shell::to_text(&host, 80, 24)"
 │General               ││ MERGE REQUEST STATES                                 █
 │  ├─ parts            ││    review                             warning · bold █
 │  ├─ mode             ││    fix                                  error · bold █
-│  ├─ colours          ││    ready                              success · bold ║
-│  └─ icons            ││    waiting                                      info ║
-│GitLab                ││    draft    your draft                    muted text ║
-│  ├─ connection       ││    you                                        accent ║
-│  ├─ tenancies        ││    team                               secondary text ║
-│  ├─ views            ││    bot      a merge request from a bot    muted text ║
-│  └─ look             │╰──────────────────────────────────────────────────────╯
-│                      │╭ review ──────────────────────────────────────────────╮
+│  ├─ appearance       ││    ready                              success · bold ║
+│  ├─ colours          ││    waiting                                      info ║
+│  └─ icons            ││    draft    your draft                    muted text ║
+│GitLab                ││    you                                        accent ║
+│  ├─ connection       ││    team                               secondary text ║
+│  ├─ tenancies        ││    bot      a merge request from a bot    muted text ║
+│  ├─ views            │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ review ──────────────────────────────────────────────╮
 │                      ││ How a merge request open for your review is drawn.   █
 │                      ││                                                      █
 │                      ││   sample  review                                     █

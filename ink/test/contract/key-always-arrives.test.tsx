@@ -222,7 +222,9 @@ describe("a state that consumes input on purpose says so, and the input works ag
   const rowPress = (m: Mounted) => {
     const lines = m.lines();
     const y = lines.findIndex((l) => l.includes("!3"));
-    return `\x1b[<0;${lines[y]!.indexOf("!3") + 2};${y + 1}M`;
+    // a press and its release, as a terminal sends them: a click on a pane's row acts when let go (runner.rs Pointer::Up)
+    const at = `${lines[y]!.indexOf("!3") + 2};${y + 1}`;
+    return `\x1b[<0;${at}M\x1b[<0;${at}m`;
   };
 
   it("an open menu takes a press away from it (it closes it: Esc to the host), a press on the top bar still acts", async () => {
@@ -233,10 +235,13 @@ describe("a state that consumes input on purpose says so, and the input works ag
     expect(await press(m, `\x1b[<0;${bar.indexOf("Work") + 2};1M`)).toEqual([{ intent: "activate", target: "chrome:tab:1" }]);
   });
 
-  it("while text is being typed a press away from the field does not close it", async () => {
+  it("a menu with a field takes a press away from it as any menu does (it closes it: Esc to the host); a press on the field does not", async () => {
     const m = fresh({ menu: menuOf({ typed: "ab", caret: 2 }) });
     await m.settle();
-    expect(await press(m, `\x1b[<0;2;${H - 2}M`)).toEqual([]);
+    expect(await press(m, `\x1b[<0;2;${H - 2}M`)).toEqual([{ intent: "key", chord: { key: "esc" } }]);
+    const field = m.lines().findIndex((l) => /│ ab +│/.test(l));
+    expect(field).toBeGreaterThan(0);
+    expect(await press(m, `\x1b[<0;${m.lines()[field]!.indexOf("ab") + 2};${field + 1}M`)).toEqual([]);
   });
 
   // Live defect (owner: T11, nodes; T10 for the page): no node component registers its rows with the

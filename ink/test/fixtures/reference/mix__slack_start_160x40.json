@@ -91,13 +91,6 @@
       },
       "tabs": [
         {
-          "active": true,
-          "icon": "chat",
-          "label": "slack",
-          "mnemonic": "S",
-          "target": "chrome:tab:0"
-        },
-        {
           "icon": "log",
           "label": "history",
           "mnemonic": "H",
@@ -143,6 +136,12 @@
               {
                 "ink": "secondary",
                 "text": "Press ⏎ to set it up in settings, under slack."
+              }
+            ],
+            [
+              {
+                "ink": "secondary",
+                "text": "Press s to walk its setup step."
               }
             ]
           ],

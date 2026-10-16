@@ -326,3 +326,23 @@ fn empty_and_whitespace_path_names_are_type_valid_without_claiming_identity() {
         }
     }
 }
+
+/// A token's scopes come from GitLab's own answer about the token; an
+/// OAuth token, a refusal or an answer without them says nothing.
+#[test]
+fn token_scopes_are_read_from_gitlabs_answer_or_left_unknown() {
+    let scopes = |status: u16, body: Value| {
+        let recorded = Replay::new(vec![(status, body)]);
+        let got = block(Client::over(recorded.clone()).token_scopes());
+        let asked = recorded.asked();
+        assert_eq!((asked[0].method, asked[0].path.as_str()), (Method::Get, "/api/v4/personal_access_tokens/self"));
+        got
+    };
+    assert_eq!(
+        scopes(200, json!({"id": 7, "name": "radar", "scopes": ["read_api", "read_user"]})),
+        Some(vec!["read_api".to_string(), "read_user".to_string()])
+    );
+    assert_eq!(scopes(404, json!({"message": "404 Not Found"})), None, "an OAuth token");
+    assert_eq!(scopes(401, json!({"message": "401 Unauthorized"})), None);
+    assert_eq!(scopes(200, json!({"id": 7})), None);
+}

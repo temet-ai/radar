@@ -181,6 +181,7 @@ pub(crate) fn draw_page(
         height,
         parts: radar_core::Parts::none(),
         icon_lead: 0,
+        setup: false,
     };
     let view = crate::page::view(p, &vcx).expect("a page");
     let mut buf = Buffer::empty(Rect::new(0, 0, width + 4, rows));
@@ -2017,7 +2018,8 @@ fn settings_validate(p: &JiraPlugin, t: &Target, s: &str) -> Result<String, Stri
         .skip_while(|l| !l.contains("AS YOU TYPE"))
         .nth(1)
         .unwrap_or_default()
-        .split('│')
+        // The panel's edge, or its scroll bar when the sheet is longer.
+        .split(['│', '█', '║'])
         .rev()
         .nth(1)
         .unwrap_or_default()
@@ -2217,7 +2219,8 @@ fn every_settings_input_starts_where_its_value_was_drawn() {
     input_sits_on_its_value(&mut host, "connection", 4, &[Char('e')], "│    ├─ site ", "https://acme");
     input_sits_on_its_value(&mut host, "connection", 5, &[Char('e')], "│    ├─ account ", "alice@");
     input_sits_on_its_value(&mut host, "connection", 6, &[Char('e')], "│    ├─ token ", "env:RADAR");
-    input_sits_on_its_value(&mut host, "connection", 15, &[Char('e')], "│  refresh ", "every 2m");
+    input_sits_on_its_value(&mut host, "connection", 9, &[Enter], "│    └─ projects ", "ABC");
+    input_sits_on_its_value(&mut host, "connection", 17, &[Char('e')], "│  refresh ", "every 2m");
     // projects: the add row under each site.
     input_sits_on_its_value(&mut host, "projects", 2, &[Char('a')], "├─ + watch a project", "watch a project");
     input_sits_on_its_value(&mut host, "projects", 6, &[Char('a')], "├─ + watch a project", "watch a project");

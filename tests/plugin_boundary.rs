@@ -449,3 +449,188 @@ fn the_review_key_and_id_of_a_gitlab_merge_request_reach_the_part_through_the_ho
     h.send(Intent::Invoke { action: "agent.review_locally".into() });
     assert_eq!(requests(&h, "agent.review.request"), 2, "the id: {:#?}", shape(h.records()));
 }
+
+/// Setup's part steps, each opened as `radar setup <step>` opens it: the
+/// card is the part's own settings section, so its actions are listed and
+/// run by their ids through the host, and an unlisted id does nothing.
+#[cfg(all(feature = "gitlab", feature = "github", feature = "slack"))]
+mod setup_steps {
+    use super::*;
+    use radar_core::view::ListRow;
+
+    /// Every compiled-in part with its sample, setup open at `step`.
+    fn at_step(step: &str) -> Headless {
+        let mut h = all_parts(160, 40);
+        h.host_mut().open_setup(Some(step)).unwrap();
+        h
+    }
+
+    fn rows(h: &Headless) -> Vec<ListRow> {
+        match h.section().expect("the step's section").body {
+            Node::List { rows, .. } => rows,
+            other => panic!("a list: {other:?}"),
+        }
+    }
+
+    /// Select the first row whose words hold `words`.
+    fn select(h: &mut Headless, words: &str) {
+        let row = rows(h).into_iter().find(|r| r.text.words().contains(words)).unwrap_or_else(|| panic!("no row {words:?}"));
+        h.send(Intent::Select { target: row.target });
+    }
+
+    fn listed(h: &Headless, id: &str) -> bool {
+        h.section().unwrap().actions.iter().any(|a| a.id == id)
+    }
+
+    /// An effect, out of the journal's tracking.
+    fn bare(e: &HostEffect) -> &HostEffect {
+        match e {
+            HostEffect::Tracked { effect, .. } => bare(effect),
+            e => e,
+        }
+    }
+
+    fn opened(fx: &[HostEffect]) -> Option<&str> {
+        fx.iter().find_map(|e| if let HostEffect::Open(u) = bare(e) { Some(u.as_str()) } else { None })
+    }
+
+    fn copied(fx: &[HostEffect]) -> Option<&str> {
+        fx.iter().find_map(|e| if let HostEffect::Copy(t) = bare(e) { Some(t.as_str()) } else { None })
+    }
+
+    fn part(h: &Headless, id: &str) -> usize {
+        h.host().plugins.iter().position(|p| p.id() == id).unwrap()
+    }
+
+    /// An unlisted id opens, copies, asks and types nothing.
+    fn unlisted_does_nothing(h: &mut Headless, id: &str) {
+        let p = part(h, id.split('.').next().unwrap());
+        let fx = h.send(Intent::Invoke { action: id.into() });
+        assert!(opened(&fx).is_none() && copied(&fx).is_none(), "{id}: {fx:?}");
+        assert!(h.menu().is_none() && !h.host().plugins[p].capturing(), "{id}");
+    }
+
+    #[test]
+    fn gitlabs_step_opens_the_token_page_and_follows_groups_by_id() {
+        let mut h = at_step("gitlab");
+        unlisted_does_nothing(&mut h, "gitlab.connection.unlisted");
+        assert!(listed(&h, "gitlab.connection.token_page"));
+        let fx = h.send(Intent::Invoke { action: "gitlab.connection.token_page".into() });
+        assert!(opened(&fx).is_some_and(|u| u.contains("/-/user_settings/personal_access_tokens?name=radar")), "{fx:?}");
+        let fx = h.send(Intent::Invoke { action: "gitlab.connection.copy_token_link".into() });
+        assert!(copied(&fx).is_some_and(|u| u.contains("personal_access_tokens")), "{fx:?}");
+        select(&mut h, "add a group or repository");
+        assert!(listed(&h, "gitlab.connection.follow"));
+        h.send(Intent::Invoke { action: "gitlab.connection.follow".into() });
+        let p = part(&h, "gitlab");
+        assert!(h.host().plugins[p].capturing(), "typing the group to follow");
+        h.send(Intent::Key { chord: radar_core::view::Chord::parse("esc").unwrap() });
+        select(&mut h, "team-a");
+        h.send(Intent::Invoke { action: "gitlab.connection.unfollow".into() });
+        assert!(h.menu().is_some_and(|m| m.question && m.title.starts_with("stop tracking")), "{:?}", h.menu());
+        h.send(Intent::Key { chord: radar_core::view::Chord::parse("esc").unwrap() });
+        // The token's access: read and write asks the new-token page for api.
+        select(&mut h, "read and write");
+        assert!(listed(&h, "gitlab.connection.choose"));
+        h.send(Intent::Invoke { action: "gitlab.connection.choose".into() });
+        assert_eq!(h.host().plugins[p].config().unwrap()["access"].as_str(), Some("write"));
+        let fx = h.send(Intent::Invoke { action: "gitlab.connection.token_page".into() });
+        assert!(opened(&fx).is_some_and(|u| u.ends_with("scopes=api")), "{fx:?}");
+    }
+
+    #[test]
+    fn githubs_step_signs_in_with_gh_by_id() {
+        let mut h = at_step("github");
+        unlisted_does_nothing(&mut h, "github.connection.unlisted");
+        select(&mut h, "gh's sign-in");
+        assert!(listed(&h, "github.connection.choose"));
+        h.send(Intent::Invoke { action: "github.connection.choose".into() });
+        let p = part(&h, "github");
+        assert_eq!(h.host().plugins[p].config().unwrap()["token"].as_str(), Some("gh"));
+        let fx = h.send(Intent::Invoke { action: "github.connection.token_page".into() });
+        assert!(opened(&fx).is_some_and(|u| u.contains("/settings/personal-access-tokens/new?name=radar")), "{fx:?}");
+        let fx = h.send(Intent::Invoke { action: "github.connection.copy_token_link".into() });
+        assert!(copied(&fx).is_some(), "{fx:?}");
+        select(&mut h, "add a repository or group");
+        h.send(Intent::Invoke { action: "github.connection.follow".into() });
+        assert!(h.host().plugins[p].capturing(), "typing the repository to follow");
+    }
+
+    #[test]
+    fn jiras_step_opens_the_token_page_and_watches_projects_by_id() {
+        let mut h = at_step("jira");
+        unlisted_does_nothing(&mut h, "jira.connection.unlisted");
+        select(&mut h, "account");
+        let fx = h.send(Intent::Invoke { action: "jira.connection.token_page".into() });
+        assert!(opened(&fx).is_some_and(|u| u.contains("id.atlassian.com/manage-profile/security/api-tokens")), "{fx:?}");
+        let fx = h.send(Intent::Invoke { action: "jira.connection.copy_token_link".into() });
+        assert!(copied(&fx).is_some(), "{fx:?}");
+        select(&mut h, "projects ");
+        assert!(listed(&h, "jira.connection.watch"));
+        h.send(Intent::Invoke { action: "jira.connection.watch".into() });
+        let p = part(&h, "jira");
+        assert!(h.host().plugins[p].capturing(), "typing the project to watch");
+    }
+
+    #[test]
+    fn slacks_step_copies_the_manifest_and_adds_channels_by_id() {
+        let mut h = at_step("slack");
+        unlisted_does_nothing(&mut h, "slack.connection.unlisted");
+        let fx = h.send(Intent::Invoke { action: "slack.connection.copy_manifest".into() });
+        assert!(copied(&fx).is_some_and(|m| m.contains("\"oauth_config\"") && m.contains("channels:history")), "{fx:?}");
+        let fx = h.send(Intent::Invoke { action: "slack.connection.new_app".into() });
+        assert!(opened(&fx).is_some_and(|u| u.contains("manifest_json=")), "{fx:?}");
+        select(&mut h, "add a channel");
+        assert!(listed(&h, "slack.connection.add_channel"));
+        h.send(Intent::Invoke { action: "slack.connection.add_channel".into() });
+        let p = part(&h, "slack");
+        assert!(h.host().plugins[p].capturing(), "typing the channel to add");
+    }
+
+    #[test]
+    fn local_codes_step_looks_in_a_found_place_by_id() {
+        let mut h = all_parts(160, 40);
+        let at = part(&h, "git");
+        let mut git = radar_git::GitPlugin::new();
+        git.demo();
+        git.offer_places(vec![("~/ankh-morpork".into(), 3)]);
+        h.host_mut().plugins[at] = Box::new(git);
+        h.host_mut().open_setup(Some("local")).unwrap();
+        unlisted_does_nothing(&mut h, "git.checkouts.unlisted");
+        select(&mut h, "~/ankh-morpork");
+        assert!(listed(&h, "git.checkouts.follow"));
+        h.send(Intent::Invoke { action: "git.checkouts.follow".into() });
+        let roots = h.host().plugins[at].config().unwrap()["roots"].clone();
+        assert!(roots.as_array().unwrap().iter().any(|r| r.as_str() == Some("~/ankh-morpork")), "{roots:?}");
+    }
+
+    /// Look down is a number typed in place: ⏎ on its row opens the field,
+    /// a digit replaces it, ⏎ keeps it; no menu between.
+    #[test]
+    fn local_codes_look_down_takes_a_digit_in_place() {
+        let mut h = at_step("local");
+        let at = part(&h, "git");
+        select(&mut h, "look down");
+        let row = rows(&h).into_iter().find(|r| r.text.words().contains("look down")).unwrap();
+        h.send(Intent::Activate { target: row.target });
+        assert!(h.menu().is_none() && h.host().plugins[at].capturing());
+        h.send(Intent::Key { chord: radar_core::view::Chord::char('2') });
+        h.send(Intent::Key { chord: radar_core::view::Chord::new(radar_core::view::Key::Enter) });
+        assert!(!h.host().plugins[at].capturing());
+        assert_eq!(h.host().plugins[at].config().unwrap()["depth"].as_integer(), Some(2));
+    }
+
+    /// The terminal is its own settings section: its actions run by id.
+    #[test]
+    fn the_terminal_section_types_a_command_by_id() {
+        let mut h = all_parts(160, 40);
+        let at = part(&h, "git");
+        let section = h.host().sections.iter().position(|(p, s)| *p == radar_core::host::Owner::Plugin(at) && s.id == "terminal").expect("git's terminal section");
+        h.host_mut().view = View::Settings;
+        h.host_mut().section = section;
+        unlisted_does_nothing(&mut h, "git.terminal.unlisted");
+        assert!(listed(&h, "git.terminal.edit"));
+        h.send(Intent::Invoke { action: "git.terminal.edit".into() });
+        assert!(h.host().plugins[at].capturing(), "typing a command");
+    }
+}

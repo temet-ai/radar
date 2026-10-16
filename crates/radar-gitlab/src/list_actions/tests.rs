@@ -138,6 +138,7 @@ fn select(p: &mut GitlabPlugin, iid: u64) {
         height: 40,
         parts: radar_core::Parts::none(),
         icon_lead: 0,
+        setup: false,
     };
     let view = Plugin::view(p, "repos", &vcx).expect("the screen has a view");
     let pane = view.pane(radar_core::view::PaneId::Middle).expect("the middle pane");

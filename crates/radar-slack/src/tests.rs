@@ -19,7 +19,7 @@ fn tree_context_selection_requires_a_drawn_row() {
 
     let mut p = sample();
     let cx = ViewCx { now: NOW, focus: PaneId::Middle, width: 160, height: 40,
-        parts: radar_core::compose::Parts::none(), icon_lead: 2 };
+        parts: radar_core::compose::Parts::none(), icon_lead: 2, setup: false };
     let view = p.view(crate::SCREEN.id, &cx).expect("Slack feed view");
     let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("feed tree").body else { panic!("feed tree") };
     let target = tree.visible().get(1).expect("drawn row").0.clone();
@@ -606,7 +606,8 @@ fn the_workspace_shows_who_and_what_the_token_may_do() {
     ]
     .map(at);
     assert!(order.windows(2).all(|w| w[0] < w[1]), "{text}");
-    assert!(text.contains("└─ reacting        needs reactions:write"), "{text}");
+    assert!(text.contains("├─ reacting        needs reactions:write"), "{text}");
+    assert!(text.contains("└─ pictures"), "{text}");
     assert!(!text.contains("typed-in-token"), "{text}");
 }
 
@@ -1853,4 +1854,20 @@ fn a_thread_page_with_icons_unicode() {
     on_team(&mut host, 4);
     press(&mut host, KeyCode::Enter);
     insta::assert_snapshot!("thread_page_icons_unicode_160x40", to_text(&host, 160, 40));
+}
+
+/// The host asks every part whether it is set up on every frame, and with
+/// no token that asks for the token offers: the process's environment is
+/// read once and only names that could hold a Slack token are kept (read
+/// and upper-cased whole on each frame, it was nearly half of a frame's
+/// work).
+#[test]
+fn the_environment_is_read_once_for_the_token_offers() {
+    let p = SlackPlugin::default();
+    let first = p.vars();
+    assert!(first.iter().all(|(name, _)| {
+        let up = name.to_uppercase();
+        up.contains("SLACK") && up.contains("TOKEN")
+    }));
+    assert!(std::ptr::eq(first, p.vars()), "the second read is the first one kept");
 }

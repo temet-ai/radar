@@ -17,6 +17,7 @@ pub fn section_view(host: &Host, tier: crate::design::theme::Tier) -> Option<Sec
     match host.current_section()? {
         (Owner::Parts, s) => Some(parts(host, s.id)),
         (Owner::Mode, s) => Some(mode(host, s.id)),
+        (Owner::Look, _) => Some(host.look_settings_view()),
         (Owner::Host, s) if host.on_icons() => Some(icons(host, s.id)),
         (Owner::Host, s) => Some(colours(host, s.id, tier)),
         _ => None,

@@ -147,17 +147,82 @@ fn the_settings_are_saved_in_the_table_and_applied_to_a_new_session() {
     assert_eq!(d.permitted_roots, ["/srv/shared"]);
 }
 
+fn menu_of(fx: Vec<Effect>) -> radar_core::Menu {
+    fx.into_iter().find_map(|e| if let Effect::Menu(m) = e { Some(m) } else { None }).expect("a menu")
+}
+
+fn asked(command: &str) -> crate::event::PermissionRequest {
+    use crate::event::*;
+    PermissionRequest {
+        request_id: command.into(),
+        kind: PermissionKind::Shell,
+        target: PermissionTarget::Command { command: command.into(), segments: vec![] },
+        tool_call_id: None,
+        can_offer_session_approval: true,
+    }
+}
+
 #[test]
-fn typing_a_listed_entry_removes_it_and_a_bad_rule_is_refused() {
+fn always_allow_offers_what_the_agents_asked_for_one_key_each() {
     let mut s = AgentsSettings::default();
-    s.on_menu("agents.allow", "read(src/**)").unwrap();
-    assert!(matches!(s.typing("agents.allow", "read(src/**)").verdict, Some(Verdict::Unsure(_))));
-    assert!(matches!(s.typing("agents.allow", "nonsense").verdict, Some(Verdict::Bad(_))));
-    assert!(matches!(s.typing("agents.allow", "shell(ls)").verdict, Some(Verdict::Good(_))));
-    s.on_menu("agents.allow", "read(src/**)").unwrap();
+    let url = crate::event::PermissionRequest {
+        kind: crate::event::PermissionKind::Url,
+        target: crate::event::PermissionTarget::Url { url: "https://gitlab.com/a/b/-/merge_requests/1".into() },
+        ..asked("u")
+    };
+    s.set_asked(&[asked("git status --short && git branch -avv && git remote -v"), asked("git status"), url]);
+    let m = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:allow") })));
+    let offered: Vec<(Option<char>, &str, &str)> = m.items.iter().filter(|i| i.key.is_some_and(|k| k.is_ascii_digit())).map(|i| (i.key, i.label.as_str(), i.hint.as_str())).collect();
+    assert_eq!(
+        offered,
+        [
+            (Some('1'), "command git status", "asked 2 times"),
+            (Some('2'), "command git branch", "asked once"),
+            (Some('3'), "command git remote", "asked once"),
+            (Some('4'), "website gitlab.com", "asked once"),
+        ]
+    );
+    // 1 adds it; the list comes back with it allowed and no longer offered.
+    let back = menu_of(s.on_menu("agents.allow", &m.items.iter().find(|i| i.key == Some('1')).unwrap().value.clone()).unwrap());
+    assert_eq!(s.defaults().allow[0].to_string(), "shell(git status)");
+    assert!(back.items.iter().any(|i| i.label == "command git status" && i.key.is_none()));
+    assert!(!back.items.iter().any(|i| i.label == "command git status" && i.key.is_some()));
+    // Typing a command offers the asked ones that match.
+    let t = s.typing("agents.allow:shell", "git b");
+    assert_eq!(t.offers.iter().map(|o| o.label.as_str()).collect::<Vec<_>>(), ["git branch"]);
+}
+
+#[test]
+fn always_allow_lists_its_rules_in_words_and_adds_one_by_kind_without_any_syntax() {
+    let mut s = AgentsSettings::default();
+    // ⏎ on the row: nothing listed, and one way to add each kind of request.
+    let m = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:allow") })));
+    assert_eq!(m.id, "agents.allow");
+    let labels: Vec<&str> = m.items.iter().map(|i| i.label.as_str()).collect();
+    assert!(labels.contains(&"  nothing yet"), "{labels:?}");
+    for want in ["a command", "reading files", "changing files", "a website", "an MCP tool"] {
+        assert!(labels.contains(&want), "{want} in {labels:?}");
+    }
+    // c: a command. A short title; the example is under the field before anything is typed.
+    let add = m.items.iter().find(|i| i.label == "a command").unwrap();
+    let field = menu_of(s.on_menu("agents.allow", &add.value).unwrap());
+    assert_eq!((field.id.as_str(), field.title.as_str()), ("agents.allow:shell", "Always allow a command"));
+    assert!(matches!(s.typing(&field.id, "").verdict, Some(Verdict::Unsure(w)) if w.contains("git diff")));
+    assert!(matches!(s.typing(&field.id, "cargo test").verdict, Some(Verdict::Good(_))));
+    // ⏎ adds it and goes back to the list, where it is shown in words.
+    let back = menu_of(s.on_menu(&field.id, "cargo test").unwrap());
+    assert_eq!(s.defaults().allow[0].to_string(), "shell(cargo test)");
+    let listed = back.items.iter().find(|i| i.label == "command cargo test").expect("listed in words");
+    assert!(matches!(s.typing(&field.id, "cargo test").verdict, Some(Verdict::Unsure(_))));
+    // Choosing a listed one removes it.
+    s.on_menu("agents.allow", &listed.value.clone()).unwrap();
     assert!(s.defaults().allow.is_empty());
-    s.on_menu("agents.allow", "nonsense").unwrap();
-    assert!(s.defaults().allow.is_empty());
+    // The same for always deny, a website.
+    let d = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:deny") })));
+    let site = d.items.iter().find(|i| i.label == "a website").unwrap();
+    let field = menu_of(s.on_menu("agents.deny", &site.value).unwrap());
+    s.on_menu(&field.id, "example.com").unwrap();
+    assert_eq!(s.defaults().deny[0].to_string(), "url(example.com)");
 }
 
 #[test]
@@ -264,6 +329,7 @@ fn cx_at(width: u16, height: u16) -> ViewCx<'static> {
         height,
         parts: radar_core::Parts::none(),
         icon_lead: 0,
+        setup: false,
     }
 }
 
@@ -318,6 +384,104 @@ impl radar_core::Plugin for Hosted {
     }
     fn intent(&mut self, scope: &str, _pane: radar_core::Pane, intent: &Intent) -> Outcome {
         self.0.intent(scope, intent)
+    }
+    fn typing(&self, menu: &str, text: &str) -> radar_core::plugin::Typing {
+        self.0.typing(menu, text)
+    }
+    fn on_menu(&mut self, menu: &str, value: &str) -> Vec<Effect> {
+        self.0.on_menu(menu, value).unwrap_or_default()
+    }
+}
+
+/// The section on Settings in the real host, the nav focused, driven as a
+/// renderer that lays the section out itself (Ink, Headless) drives it: by
+/// intents.
+fn driven() -> radar_core::headless::Headless {
+    let mut host = radar_core::Host::new(vec![Box::new(Hosted(every_state()))], radar_core::plugin::DEMO_NOW).unwrap();
+    host.view = radar_core::host::View::Settings;
+    host.section = host.sections.iter().position(|(_, x)| x.name == "Tools and defaults").unwrap();
+    host.focus = radar_core::Pane::Nav;
+    radar_core::headless::Headless::new(host, 160, 40)
+}
+
+fn press(h: &mut radar_core::headless::Headless, key: radar_core::view::Key) {
+    h.send(Intent::Key { chord: Chord::new(key) });
+}
+
+fn type_in(h: &mut radar_core::headless::Headless, text: &str) {
+    for c in text.chars() {
+        press(h, radar_core::view::Key::Char(c));
+    }
+}
+
+fn row_text(h: &radar_core::headless::Headless, target: &str) -> String {
+    match h.section().map(|v| v.body) {
+        Some(Node::List { rows, .. }) => rows.iter().find(|r| r.target.as_str() == target).map(|r| text_of(&r.text)).unwrap_or_default(),
+        _ => panic!("a list"),
+    }
+}
+
+fn hints(h: &radar_core::headless::Headless) -> Vec<String> {
+    h.host().chrome_view(160, 40).status.hints.iter().map(|k| format!("{} {}", k.keys, k.label)).collect()
+}
+
+fn saved(h: &radar_core::headless::Headless) -> String {
+    h.host().plugins[0].config().map(|t| t.to_string()).unwrap_or_default()
+}
+
+/// Every row that asks for text, from a press on the row to the saved
+/// value, as a renderer sends it: the field opens with its caret and says
+/// how to finish it, typing shows, ⏎ keeps the text in the row and in the
+/// config, esc leaves it and keeps nothing.
+#[test]
+fn every_typed_row_opens_a_field_that_types_saves_and_cancels_through_the_host() {
+    // (row, a key that chooses "type your own" first, what is typed, what the row then reads, what the config holds)
+    let rows: [(&str, Option<char>, &str, &str, &str); 8] = [
+        ("def:model", None, "gpt-5", "gpt-5", "gpt-5"),
+        ("def:work_dir", None, "/tmp/gg-work", "/tmp/gg-work", "/tmp/gg-work"),
+        ("def:roots", None, "/tmp/gg-root", "/tmp/gg-root", "/tmp/gg-root"),
+        ("def:skills", None, "/tmp/gg-skills", "/tmp/gg-skills", "/tmp/gg-skills"),
+        ("rec:folder", None, "/tmp/gg-recipes", "/tmp/gg-recipes", "/tmp/gg-recipes"),
+        ("rec:reviews", None, "/tmp/gg-reviews", "/tmp/gg-reviews", "/tmp/gg-reviews"),
+        ("def:allow", Some('c'), "ls", "command ls", "ls"),
+        ("def:deny", Some('c'), "rm", "command rm", "rm"),
+    ];
+    use radar_core::view::Key;
+    for (target, choose, typed, shown, config) in rows {
+        let mut h = driven();
+        // A press on the row from the nav selects it and gives the section the keys.
+        h.send(Intent::Select { target: Target::new(target) });
+        for round in ["esc", "⏎"] {
+            press(&mut h, Key::Enter);
+            if let Some(c) = choose {
+                assert!(h.menu().is_some_and(|m| m.typed.is_none()), "{target}: ⏎ offers the ways first");
+                press(&mut h, Key::Char(c));
+            }
+            let menu = h.menu().unwrap_or_else(|| panic!("{target}: ⏎ opened nothing"));
+            assert!(menu.typed.is_some(), "{target}: a field");
+            let hints = hints(&h);
+            assert!(hints.ends_with(&["⏎ save".to_string(), "esc cancel".to_string()]), "{target}: {hints:?}");
+
+            type_in(&mut h, typed);
+            let now = h.menu().and_then(|m| m.typed).unwrap_or_default();
+            assert!(now.ends_with(typed), "{target}: typing shows, {now:?}");
+            if round == "esc" {
+                press(&mut h, Key::Esc);
+                assert!(h.menu().is_none(), "{target}: esc closes it");
+                assert!(!saved(&h).contains(config), "{target}: esc keeps nothing:\n{}", saved(&h));
+                assert!(!row_text(&h, target).contains(shown), "{target}: {}", row_text(&h, target));
+            } else {
+                press(&mut h, Key::Enter);
+                if choose.is_some() {
+                    // The rules come back, the new one listed.
+                    assert!(h.menu().is_some_and(|m| m.typed.is_none()), "{target}: ⏎ is back at the list");
+                    press(&mut h, Key::Esc);
+                }
+                assert!(h.menu().is_none(), "{target}: ⏎ closes it");
+                assert!(row_text(&h, target).contains(shown), "{target}: the row reads it: {}", row_text(&h, target));
+                assert!(saved(&h).contains(config), "{target}: saved:\n{}", saved(&h));
+            }
+        }
     }
 }
 
@@ -405,7 +569,7 @@ fn no_token_shaped_value_is_in_the_saved_config() {
     ];
     let mut s = AgentsSettings::default();
     for t in tokens {
-        for menu in ["agents.model", "agents.roots", "agents.allow", "agents.deny", "agents.provider"] {
+        for menu in ["agents.model", "agents.roots", "agents.allow", "agents.deny", "agents.provider", "agents.allow:shell", "agents.deny:url"] {
             s.on_menu(menu, t);
             s.on_menu(menu, &format!("shell({t})"));
         }
@@ -427,4 +591,21 @@ fn a_provider_with_no_adapter_in_this_build_is_not_left_checking() {
     assert_eq!(s.state("copilot"), status::State::Unread);
     s.set_status("codex", missing());
     assert_eq!(s.state("codex"), status::State::Missing);
+}
+
+#[test]
+fn a_chain_is_allowed_when_every_command_is_and_denied_when_any_is() {
+    let mut s = AgentsSettings::default();
+    s.on_menu("agents.allow", "shell(git status)").unwrap();
+    s.on_menu("agents.allow", "shell(git branch)").unwrap();
+    let decide = |s: &AgentsSettings, c: &str| s.defaults().standing(&asked(c)).map(|(allow, _)| allow);
+    assert_eq!(decide(&s, "git status --short && git branch -avv"), Some(true));
+    assert_eq!(decide(&s, "git status && git remote -v"), None, "git remote is not allowed");
+    assert_eq!(decide(&s, "git status > out.txt"), None, "a redirection is never a chain");
+    s.on_menu("agents.deny", "shell(git branch)").unwrap();
+    assert_eq!(decide(&s, "git status; git branch -D x"), Some(false));
+    // What the dock's always allow adds for a chain: each command by its program and subcommand.
+    let rules: Vec<String> = config::Rule::suggest(&asked("zsh -lc 'git status --short && git branch -avv | head'")).iter().map(ToString::to_string).collect();
+    assert_eq!(rules, ["shell(git status)", "shell(git branch)", "shell(head)"]);
+    assert!(config::Rule::suggest(&asked("cat $(whoami)")).is_empty());
 }

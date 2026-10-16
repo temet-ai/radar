@@ -18,7 +18,8 @@ fn scratch(name: &str) -> PathBuf {
 }
 
 fn plugin(provider: &FakeProvider, config: &str) -> SessionsPlugin {
-    let mut p = SessionsPlugin::new();
+    // The plugin's tasks run on the test's thread, only when a step lets them: nothing races the test.
+    let mut p = SessionsPlugin::on_this_thread();
     p.add_adapter(Box::new(provider.adapter()));
     let table: toml::Value = toml::from_str(config).unwrap();
     p.configure(Some(&table)).unwrap();
@@ -26,26 +27,26 @@ fn plugin(provider: &FakeProvider, config: &str) -> SessionsPlugin {
 }
 
 fn until(p: &mut SessionsPlugin, what: &str, done: impl Fn(&DockView) -> bool) -> DockView {
-    for n in 0..2_000_000u64 {
+    for n in 0..256u64 {
         p.tick(n as i64);
         if let Some(dock) = p.dock()
             && done(&dock)
         {
             return dock;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("never reached: {what}; dock = {:?}", p.dock());
 }
 
 /// The setup of the `n`th session the fake was asked to create or resume.
 fn setup(provider: &FakeProvider, p: &mut SessionsPlugin, n: usize) -> SessionSetup {
-    for t in 0..2_000_000u64 {
+    for t in 0..256u64 {
         if let Some(s) = provider.setups().get(n) {
             return s.clone();
         }
         p.tick(t as i64);
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("no session {n} was created");
 }

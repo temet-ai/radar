@@ -38,7 +38,7 @@ fn cursor(filter: &EventFilter, after: i64, snapshot: &Snapshot) -> EventCursor 
     .unwrap()
 }
 
-fn entry(sequence: i64, outcome: Outcome) -> EventEntry {
+pub(crate) fn entry(sequence: i64, outcome: Outcome) -> EventEntry {
     let action_id = action(if sequence < 4 { 1 } else { 2 });
     let session = SessionId::parse("20000000-0000-4000-8000-000000000001").unwrap();
     EventEntry {
@@ -80,7 +80,7 @@ fn entry(sequence: i64, outcome: Outcome) -> EventEntry {
     }
 }
 
-fn page(filter: EventFilter, events: Vec<EventEntry>, more: bool) -> EventPage {
+pub(crate) fn page(filter: EventFilter, events: Vec<EventEntry>, more: bool) -> EventPage {
     let snapshot = snapshot(100);
     EventPage {
         version: 1,

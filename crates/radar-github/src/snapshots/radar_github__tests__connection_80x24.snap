@@ -1,28 +1,29 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                          ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
-│General               ││  server          https://api.github.com              │
-│  ├─ parts            ││  token           configured token                    │
-│  ├─ mode             ││  check           GitHub connection                   │
-│  ├─ colours          ││  refresh         once on start, then on request      │
-│  └─ icons            ││                                                      │
-│GitHub                ││                                                      │
-│  ├─ connection       ││                                                      │
-│  └─ repositories     ││                                                      │
-│                      ││                                                      │
+│General               ││  SIGN IN  how radar reads GitHub                     █
+│  ├─ parts            ││  [ ] public only     public repositories, no token   █
+│  ├─ mode             ││  [ ] gh's sign-in    asks gh for its token           █
+│  ├─ appearance       ││  [x] a token         env:NAME, or one pasted         █
+│  ├─ colours          ││                                                      █
+│  └─ icons            ││  server          https://api.github.com              ║
+│GitHub                ││  token           env:GITHUB_TOKEN                    ║
+│  ├─ connection       ││  check           not checked yet                     ║
+│  └─ repositories     ││  refresh         once on start, then on request      ║
 │                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ server ──────────────────────────────────────────────╮
+│                      │╭ public only ─────────────────────────────────────────╮
 │                      ││ NOW                                                  █
-│                      ││ https://api.github.com                               █
+│                      ││ env:GITHUB_TOKEN                                     █
 │                      ││                                                      █
-│                      ││ The GitHub API radar talks to: api.github.com for    █
-│                      ││ github.com, or your own GitHub Enterprise Server or  █
-│                      ││ a local server. The token is sent only to this       █
-│                      ││ address.                                             ║
+│                      ││ No token: radar reads public repositories only.      ║
 │                      ││                                                      ║
 │                      ││ ACCEPTS                                              ║
+│                      ││ empty, gh, env:NAME, or a token                      ║
+│                      ││                                                      ║
+│                      ││ config: [github] token                               ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
  SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate           github

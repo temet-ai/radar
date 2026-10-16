@@ -1,8 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 732
 expression: shown
 ---
- radar    Repositories 2   Jira   Slack   Branches   Work (I)   History   Settings (,)                                        not synced yet · every 2m  ✎ edit
+ radar    Repositories 2   Jira   Branches   Work (I)   History   Settings (,)                                                not synced yet · every 2m  ✎ edit
 ╭ views ─────────────────╮╭ Our project ───────────────────────────────────────────────────────────────────────╮╭ acme ────────────────────────────────────────╮
 │ Our project            ││ ASSIGNED TO everyone                TYPE      STATUS          CODE        UPDATED  ││ ▌ acme  acme.atlassian.net                   │
 │                        ││▌ acme  acme.atlassian.net                                                          ││                                              │

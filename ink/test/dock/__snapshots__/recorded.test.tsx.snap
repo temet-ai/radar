@@ -140,6 +140,76 @@ exports[`host-recorded dock states > attention_160x40.json 1`] = `
  WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
 `;
 
+exports[`host-recorded dock states > detached_80x24.json 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ agents · review dock ────────────────────────────────────────────────────────╮
+│ [◙ review dock ⇌ ×]  ◙ claude 2 ⠷ ×                                          │
+│ not attached · a message or alt-r reads it back                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│ ⇌ not attached to copilot · a message or alt-r resumes it                    │
+│>                                                                             │
+│ copilot · claude-sonnet-4.5 · … ⏎ or alt-r resume · alt-f full · alt-w close │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`host-recorded dock states > detached_160x40.json 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ nav                    ││ one                                                                                                                                │
+│                        ││ two                                                                                                                                │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+│                        │╭ agents · review dock ──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                        ││ [◙ review dock ⇌ ×]  ◙ claude 2 ⠷ ×                                                                                                │
+│                        ││ not attached · a message or alt-r reads it back                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││ ⇌ not attached to copilot · a message or alt-r resumes it                                                                          │
+│                        ││>                                                                                                                                   │
+│                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main                                 ⏎ or alt-r resume · alt-f full · alt-w close │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
 exports[`host-recorded dock states > edit-open_80x24.json 1`] = `
 " radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ agents · review ─────────────────────────────────────────────────────────────╮
@@ -766,6 +836,76 @@ exports[`host-recorded dock states > reasoning-live_160x40.json 1`] = `
 │                        ││                                                                                                                                    │
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+`;
+
+exports[`host-recorded dock states > restored_80x24.json 1`] = `
+" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+╭ agents · review dock ────────────────────────────────────────────────────────╮
+│ [◙ review dock ×]  ◙ codex 2 ⇌ ×  ◙ claude 3 ⠷ ×                             │
+│☻ push the branch and ask me which remote                                     │
+│                                                                              │
+│» shell: lapsed · radar closed before this was answered                       │
+│   git push origin agent-dock                                                 │
+│@ Which remote? → lapsed                                                      │
+│ℹ the turn that was waiting was ended when radar closed; send a message to    │
+│  carry on                                                                    │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│>                                                                             │
+│ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+`;
+
+exports[`host-recorded dock states > restored_160x40.json 1`] = `
+" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ nav                    ││ one                                                                                                                                │
+│                        ││ two                                                                                                                                │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        │╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+│                        │╭ agents · review dock ──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                        ││ [◙ review dock ×]  ◙ codex 2 ⇌ ×  ◙ claude 3 ⠷ ×                                                                                   │
+│                        ││☻ push the branch and ask me which remote                                                                                           │
+│                        ││                                                                                                                                    │
+│                        ││» shell: lapsed · radar closed before this was answered                                                                             │
+│                        ││   git push origin agent-dock                                                                                                       │
+│                        ││@ Which remote? → lapsed                                                                                                            │
+│                        ││ℹ the turn that was waiting was ended when radar closed; send a message to carry on                                                 │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││                                                                                                                                    │
+│                        ││>                                                                                                                                   │
+│                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main                                                     alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
 `;

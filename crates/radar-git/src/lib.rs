@@ -5,7 +5,7 @@
 //! and merge requests other parts draw (`join.rs`): the line under their
 //! title saying where they are checked out, and the actions an editor on
 //! it, a terminal in it, the merge request's branch checked out, look
-//! again. Settings sections `checkouts`, `editors`, `links` and `branches` (`settings.rs`); the
+//! again. Settings sections `checkouts`, `terminal`, `editors`, `links` and `branches` (`settings.rs`); the
 //! `[git]` config table; the index in its cache.
 
 mod source_navigation;
@@ -21,6 +21,8 @@ mod review_worktree;
 mod scoped;
 mod screen;
 mod settings;
+mod setup;
+mod terminal;
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{Effect, MenuItem, Msg, Outcome, Pane, ScreenSpec, SectionSpec};
@@ -42,6 +44,14 @@ pub struct GitPlugin {
 impl GitPlugin {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Offer these folders holding checkouts (with how many), as if the
+    /// walk of the home folder had found them (it never runs under
+    /// `RADAR_SANDBOX`): for samples and tests.
+    #[cfg(feature = "demo")]
+    pub fn offer_places(&mut self, places: Vec<(String, usize)>) {
+        local::walked(self, places);
     }
 
     #[cfg(test)]
@@ -133,8 +143,15 @@ impl Plugin for GitPlugin {
     }
 
     fn paste(&mut self, text: &str) -> Vec<Effect> {
-        if let Some((_, input)) = self.local.edit.as_mut() {
-            input.paste(text);
+        match self.local.edit.as_mut() {
+            // Look down holds one digit: a pasted one takes its place.
+            Some((settings::Field::Depth, input)) => {
+                if let Some(c) = text.chars().rev().find(|c| settings::depth_digit(*c)) {
+                    *input = radar_core::input::TextInput::new(&c.to_string());
+                }
+            }
+            Some((_, input)) => input.paste(text),
+            None => {}
         }
         vec![]
     }
@@ -195,11 +212,21 @@ impl Plugin for GitPlugin {
     fn sections(&self) -> Vec<SectionSpec> {
         settings::SECTIONS.to_vec()
     }
+    fn setup_step(&self) -> Option<radar_core::plugin::SetupStep> {
+        Some(setup::step(self))
+    }
+
+    /// The user let setup look: walk the home folder for the folders that
+    /// hold checkouts, in the background, and offer them in the card.
+    fn setup_looked(&mut self) {
+        local::want_home_walk(self);
+    }
 
     fn section_icon(&self, section: &str) -> Option<radar_core::ui::icon::Icon> {
         use radar_core::ui::icon::Icon;
         Some(match section {
             "checkouts" => Icon::Local,
+            "terminal" => Icon::Terminal,
             "editors" => Icon::Editor,
             "links" => Icon::Link,
             "branches" => Icon::Branch,

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-jira/src/settings_polish_tests.rs
+assertion_line: 49
 expression: shown
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
@@ -7,19 +8,19 @@ expression: shown
 │General               ││  ? Found: a Jira site. Use it?                       █
 │  ├─ parts            ││  ? Found: a Jira site (JIRA_OTHER_URL, …). Use it?   █
 │  ├─ mode             ││  + add a site                                        █
-│  ├─ colours          ││ ▌ acme   acme.atlassian.net · 2 projects             █
-│  └─ icons            ││    ├─ site            gamma                          █
-│Jira                  ││    ├─ account         alice@example.com              ║
-│  ├─ connection       ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
-│  ├─ projects         ││    ├─ signed in as    Alice Example                  ║
-│  ├─ views            ││    └─ check           not checked yet                ║
-│  └─ look             │╰──────────────────────────────────────────────────────╯
-│                      │╭ site ────────────────────────────────────────────────╮
+│  ├─ appearance       ││ ▌ acme   acme.atlassian.net · 2 projects             █
+│  ├─ colours          ││    ├─ site            gamma                          ║
+│  └─ icons            ││    ├─ account         alice@example.com              ║
+│Jira                  ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
+│  ├─ connection       ││    ├─ signed in as    Alice Example                  ║
+│  ├─ projects         ││    ├─ check           not checked yet                ║
+│  ├─ views            │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ site ────────────────────────────────────────────────╮
 │                      ││ AS YOU TYPE                                          █
 │                      ││ ✗ not a web address: a host like acme.atlassian.net  █
-│                      ││                                                      █
-│                      ││ CHECKED                                              █
-│                      ││ not checked yet                                      █
+│                      ││                                                      ║
+│                      ││ CHECKED                                              ║
+│                      ││ not checked yet                                      ║
 │                      ││                                                      ║
 │                      ││ NOW                                                  ║
 │                      ││ https://acme.atlassian.net                           ║

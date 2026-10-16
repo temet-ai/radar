@@ -41,10 +41,13 @@ pub(crate) enum Field {
     Token,
     SignedIn,
     Check,
+    /// The projects watched on the site: ⏎ watches another, typed into
+    /// the projects section's own add field.
+    Projects,
 }
 
 impl Field {
-    const ALL: [Self; 5] = [Self::Url, Self::Email, Self::Token, Self::SignedIn, Self::Check];
+    const ALL: [Self; 6] = [Self::Url, Self::Email, Self::Token, Self::SignedIn, Self::Check, Self::Projects];
 
     const fn label(self) -> &'static str {
         match self {
@@ -53,6 +56,7 @@ impl Field {
             Self::Token => connection::TOKEN,
             Self::SignedIn => connection::SIGNED_IN,
             Self::Check => connection::CHECK,
+            Self::Projects => "projects",
         }
     }
 
@@ -68,6 +72,7 @@ impl Field {
                 connection::about_signed_in("Jira")
             ),
             Self::Check => connection::about_check("Jira"),
+            Self::Projects => "The projects whose tickets radar reads on this site. ⏎ watches another.".into(),
         }
     }
 
@@ -76,6 +81,7 @@ impl Field {
             Self::Url => "https://acme.atlassian.net, any link on the site, or env:NAME".into(),
             Self::Email => "an email address, or env:NAME to read it from the environment".into(),
             Self::Token => connection::TOKEN_ACCEPTS.into(),
+            Self::Projects => "a project key like WATCH, or a link to the project".into(),
             Self::SignedIn | Self::Check => return None,
         })
     }
@@ -85,6 +91,7 @@ impl Field {
             Self::Url => "url",
             Self::Email => "email",
             Self::Token => "token",
+            Self::Projects => "projects",
             Self::SignedIn | Self::Check => "",
         }
     }
@@ -162,8 +169,13 @@ pub(crate) fn site_rows(p: &JiraPlugin) -> Vec<SiteRow> {
         rows.push(SiteRow::Site(i));
         rows.extend(Field::ALL.iter().map(|f| SiteRow::Field(i, *f)));
     }
-    rows.push(SiteRow::Refresh);
-    rows.push(SiteRow::OnStart);
+    // As a setup step the card leaves out refresh and on start, which only
+    // Settings needs; the plugin remembers how the card was last drawn, so
+    // keys and clicks walk what is drawn.
+    if !p.setup_card.get() {
+        rows.push(SiteRow::Refresh);
+        rows.push(SiteRow::OnStart);
+    }
     rows
 }
 
@@ -320,6 +332,8 @@ fn field_value(p: &JiraPlugin, i: usize, f: Field) -> String {
             Some((Check::Passed(m), _)) => radar_core::writes::done_line(m),
             Some((Check::Failed(e), _)) => radar_core::writes::failed_line(e),
         },
+        Field::Projects if s.projects.is_empty() => "none yet".into(),
+        Field::Projects => s.projects.iter().map(|pr| pr.key.as_str()).collect::<Vec<_>>().join(", "),
     }
 }
 
@@ -984,13 +998,14 @@ pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
                     Field::Url => Some(Target::SiteUrl(site_i)),
                     Field::Email => Some(Target::SiteEmail(site_i)),
                     Field::Token => Some(Target::SiteToken(site_i)),
+                    Field::Projects => Some(Target::ProjectAdd(site_i)),
                     _ => None,
                 };
                 if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) {
                     editing_at = Some((i, MARGIN + connection::value_x("   ├─ ".chars().count())));
                 }
                 let lead = v::Text::new().push(v::Seg::styled(
-                    if field == Field::Check { "   └─ " } else { "   ├─ " },
+                    if field == Field::Projects { "   └─ " } else { "   ├─ " },
                     p.cfg.style_for("lines"),
                 ));
                 let value = if field == Field::Check {
@@ -1068,9 +1083,15 @@ pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
             let mut d = connection::DetailText::new(field.about());
             d.accepts = field.accepts();
             if field != Field::Check { d.now = Some(field_value(p, site_i, field)); }
-            d.checked = Some(check(p, &CheckTarget::Site(p.cfg.sites[site_i].name.clone()), now).text("not checked yet", "checking with Jira…"));
+            if field != Field::Projects {
+                d.checked = Some(check(p, &CheckTarget::Site(p.cfg.sites[site_i].name.clone()), now).text("not checked yet", "checking with Jira…"));
+            }
             d.typing = typing();
-            if !field.key().is_empty() { d.config = Some(format!("[[jira.site]] {}", field.key())); }
+            d.config = match field {
+                Field::Projects => Some("[[jira.site.project]] key".into()),
+                f if !f.key().is_empty() => Some(format!("[[jira.site]] {}", f.key())),
+                _ => None,
+            };
             d.text()
         }
         SiteRow::Refresh => {
@@ -1089,13 +1110,24 @@ pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
             d.text()
         }
     };
+    // The sheet: the row's detail, then the help that row needs.
+    let help = match site_row(p) {
+        SiteRow::Field(_, Field::Projects) => crate::setup::projects_help(),
+        SiteRow::Refresh | SiteRow::OnStart => vec![],
+        _ => crate::setup::access_help(),
+    };
+    let mut detail_blocks: Vec<v::Block> = detail.iter().cloned().map(v::Block::line).collect();
+    if !help.is_empty() {
+        detail_blocks.push(v::Block::line(v::Text::new()));
+        detail_blocks.extend(help);
+    }
     v::SectionView {
         version: v::VERSION,
         scope: "connection".into(),
         body: v::Node::List { rows, selected: Some(p.section_rows[0]), editing },
         detail_title: detail_title(p, "connection"),
         detail,
-        detail_blocks: vec![],
+        detail_blocks,
         actions: actions(p, "connection"),
     }
 }
@@ -1319,6 +1351,15 @@ fn row_menu(p: &JiraPlugin, section: &str) -> Option<Menu> {
                     MenuItem::new('n', "rename", "the name shown in the tree", "rename"),
                     MenuItem::new('a', "add a site", "paste another site's link", "add"),
                     MenuItem::new('d', "stop using…", "remove this site", "remove"),
+                ],
+            )),
+            // The projects section's own menu for the site.
+            SiteRow::Field(i, Field::Projects) => Some(Menu::new(
+                format!("psite:{i}"),
+                format!("projects on {}", p.cfg.sites[i].name),
+                vec![
+                    MenuItem::new('a', "watch a project", "type its key or paste a link", "add"),
+                    MenuItem::new('p', "pick from Jira…", "the projects you looked at lately", "recent"),
                 ],
             )),
             SiteRow::Field(i, f) => {
@@ -2000,7 +2041,9 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
                 return Outcome::Handled(on_menu(p, &format!("offer:{k}"), "use"));
             }
             ("connection", SiteRow::Field(i, Field::Check), _) => return Outcome::Handled(check_site(p, i)),
-            ("projects", _, Some(ProjRow::Add(i))) => return Outcome::Handled(start_project_add(p, i)),
+            ("connection", SiteRow::Field(i, Field::Projects), _) | ("projects", _, Some(ProjRow::Add(i))) => {
+                return Outcome::Handled(start_project_add(p, i));
+            }
             ("projects", _, Some(ProjRow::Colour(i))) => return Outcome::Handled(vec![site_colour_menu(p, i)]),
             ("views", _, _) if view_index(p).is_none() => {
                 p.edit = Some((Target::ViewAdd, TextInput::new("")));
@@ -2029,6 +2072,12 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
         return Outcome::Handled(on_menu(p, &menu.id, &value));
     }
     match (section, key.code) {
+        // Atlassian's API token page: `o` opens it, `y` copies its link.
+        ("connection", KeyCode::Char('o')) => Outcome::Handled(vec![Effect::Open(crate::setup::TOKEN_PAGE.into())]),
+        ("connection", KeyCode::Char('y')) => Outcome::Handled(vec![
+            Effect::Copy(crate::setup::TOKEN_PAGE.into()),
+            Effect::Notify("copied the API token page's link".into()),
+        ]),
         ("connection", KeyCode::Char('a')) => {
             // The add row, under what was found.
             p.section_rows[0] = p.offers().len();
@@ -2176,7 +2225,19 @@ pub(crate) fn rows(p: &JiraPlugin, section: &str) -> Vec<(String, Binding)> {
             return vec![heading(Binding::heading(found(p, &o).title())), (id("use_offer"), Binding::new("⏎", "use it"))];
         }
         ("connection", SiteRow::Field(_, Field::Check), _) => {
-            return vec![heading(Binding::heading(connection::CHECK)), (id("check"), Binding::new("⏎", "ask Jira now"))];
+            return vec![
+                heading(Binding::heading(connection::CHECK)),
+                (id("check"), Binding::new("⏎", "ask Jira now")),
+                (id("token_page"), Binding::new("o", "open Atlassian's API token page")),
+                (id("copy_token_link"), Binding::new("y", "copy the API token page's link")),
+            ];
+        }
+        ("connection", SiteRow::Field(i, Field::Projects), _) => {
+            return vec![
+                heading(Binding::heading(format!("projects on {}", p.cfg.sites[i].name))),
+                (id("watch"), Binding::new("⏎", "watch a project")),
+                (id("recent"), Binding::new("p", "pick from Jira…")),
+            ];
         }
         ("projects", _, Some(ProjRow::Add(i))) => {
             return vec![
@@ -2195,6 +2256,12 @@ pub(crate) fn rows(p: &JiraPlugin, section: &str) -> Vec<(String, Binding)> {
     };
     let mut b = vec![heading(Binding::heading(menu.title))];
     b.extend(menu.items.iter().filter_map(|i| Some((id(&i.value), Binding::new(key_text(i.key?), &i.label)))));
+    if section == "connection" && matches!(site_row(p), SiteRow::Field(..) | SiteRow::Site(_)) {
+        b.extend([
+            (id("token_page"), Binding::new("o", "open Atlassian's API token page")),
+            (id("copy_token_link"), Binding::new("y", "copy the API token page's link")),
+        ]);
+    }
     b
 }
 

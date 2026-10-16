@@ -240,6 +240,10 @@ pub struct Frontend {
     room: StdCell<(u16, u16)>,
     lead: StdCell<usize>,
     pictures: RefCell<HashMap<String, ui::image::Fetch>>,
+    /// Where a drag can select in the last frame ([`crate::select`]): the
+    /// inside of each pane, a menu, a settings pane. Later ones are drawn
+    /// over earlier ones.
+    selectable: RefCell<Vec<crate::select::Area>>,
 }
 
 /// A fetch for pictures nobody can fetch (none are placed then).
@@ -248,6 +252,24 @@ fn no_pictures() -> ui::image::Fetch {
 }
 
 impl Frontend {
+    /// A new frame: nothing is selectable until it is marked.
+    pub fn begin_selectable(&self) {
+        self.selectable.borrow_mut().clear();
+    }
+
+    /// Mark `inside` (a pane's inside, border and title left out) as a place
+    /// a drag can select in; `text` when it holds text to read.
+    pub fn mark_selectable(&self, inside: Rect, text: bool) {
+        if !inside.is_empty() {
+            self.selectable.borrow_mut().push(crate::select::Area { rect: inside, text });
+        }
+    }
+
+    /// Where a drag can select, as the last frame marked it.
+    pub fn selectable(&self) -> Vec<crate::select::Area> {
+        self.selectable.borrow().clone()
+    }
+
     /// How the pictures a view names under `source` are fetched, from the
     /// part ([`crate::Plugin::pictures`]), for the frames that follow.
     pub fn set_pictures(&self, source: String, fetch: ui::image::Fetch) {
@@ -601,6 +623,7 @@ fn draw_overlay(fe: &Frontend, scope: &str, overlay: &crate::view::PaneView, are
     };
     ratatui::widgets::Clear.render(r, buf);
     let inner = widgets::padded(ui::card::panel(t, r, buf, &ed.title, true));
+    fe.mark_selectable(r.inner(ratatui::layout::Margin::new(1, 1)), true);
     if inner.height == 0 {
         return;
     }
@@ -703,6 +726,8 @@ fn draw_pane(
     let focused = cx.has_focus(legacy);
     let title = pane.title_icon.map_or_else(|| pane.title.clone(), |icon| icon::with(t, icon, &pane.title));
     cx.hit_pane(area, legacy);
+    // Inside the border: the title, the border and its scrollbar are not text.
+    fe.mark_selectable(area.inner(ratatui::layout::Margin::new(1, 1)), pane.body.is_text());
     let plain = pane.notes.is_empty() && pane.footer.is_none() && pane.fields.is_empty() && pane.bottom_field.is_none() && pane.head.is_none();
     if let Node::Document { lines, cut: true } = &pane.body
         && plain
@@ -1736,6 +1761,7 @@ fn view_cx<'a>(cx: &Cx<'a>, width: u16, height: u16) -> crate::view::ViewCx<'a> 
         height,
         parts: cx.parts,
         icon_lead: icon::lead_width(cx.theme),
+        setup: false,
     }
 }
 
@@ -1768,6 +1794,7 @@ fn part_view_cx<'a>(fe: &Frontend, pane: Pane, parts: crate::compose::Parts<'a>,
         height,
         parts,
         icon_lead: fe.lead(),
+        setup: false,
     }
 }
 

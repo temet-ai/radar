@@ -123,6 +123,7 @@ fn samples() -> (Vec<ToHost>, Vec<ToRenderer>) {
             focus: PaneId::Middle,
             splash: None,
             dock: None,
+            trace: None,
         })),
         ToRenderer::Question(Question {
             id: 1,

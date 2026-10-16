@@ -2,7 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { transcriptView, type LayoutOpts } from "../../src/dock/rows.js";
+import { Session, capabilitiesFrom } from "../../src/app/session.js";
+import { FakeConnection } from "../../src/transport/fake.js";
+import { layoutStats, transcriptView, type LayoutOpts } from "../../src/dock/rows.js";
 import { diffCounts, middleFit, shortPaths, toolKind, transcriptUnits } from "../../src/dock/tools.js";
 import { dockClick, dockKey, emptyLocal } from "../../src/dock/composer.js";
 import { applyLook, defaultLook, iconOf, slotStyle } from "../../src/text/look.js";
@@ -224,5 +226,93 @@ describe("with the icon pack off", () => {
     } finally {
       applyLook(defaultLook());
     }
+  });
+});
+
+// The dock's transcript as the host sends it (crates/radar-core/src/ipc/bridge.rs send_snapshot): whole once, then the
+// items after the head Ink already holds. Ink makes it whole again, keeps the items it had (the same objects, so their
+// rows are not laid out again), and asks for it whole when the head it is told to keep is not the one it holds.
+const say = (id: string, text: string): DockItem => ({ item: "assistant", id, text, saved: true });
+const dock = (transcript: DockItem[], revision: number, kept?: { revision: number; items: number }) => ({
+  visible: true,
+  focused: false,
+  active: "s1",
+  transcript,
+  revision,
+  ...(kept ? { kept } : {}),
+  composer: { draft: "", history: [], commands: [], can_send: true, can_stop: false },
+  status: { provider: "fake", model: "", agent: "", cwd: "" },
+});
+const snap = (cursor: number, d: unknown) => ({ type: "snapshot", cursor, chrome: { version: 1 }, screen: { panes: [], dock: d }, section: null, focus: "middle" });
+
+function make() {
+  const conn = new FakeConnection();
+  const session = new Session(conn, capabilitiesFrom({}, { columns: 160, rows: 40 }));
+  session.start();
+  conn.receive({ type: "welcome", protocol: 1, view: 1, cursor: 0 });
+  const shown = () => session.state.snapshot!.screen.dock.transcript as DockItem[];
+  const resyncs = () => conn.sent.filter((m: any) => m.type === "resync").length;
+  return { conn, shown, resyncs };
+}
+
+describe("the dock's transcript over the pipe", () => {
+  it("is made whole from the head Ink holds and the tail it is sent, keeping the items it had", () => {
+    const { conn, shown, resyncs } = make();
+    conn.receive(snap(1, dock([say("a", "one"), say("b", "two")], 1)));
+    const first = shown();
+    expect(first.map((i: any) => i.text)).toEqual(["one", "two"]);
+
+    // A word streamed into the last item: the head (one item) is kept, the item it changed comes.
+    conn.receive(snap(2, dock([say("b", "two more")], 2, { revision: 1, items: 1 })));
+    expect(shown().map((i: any) => i.text)).toEqual(["one", "two more"]);
+    expect(shown()[0]).toBe(first[0]);
+    expect(resyncs()).toBe(0);
+
+    // Nothing changed in it: all of it is kept, nothing is sent.
+    conn.receive(snap(3, { ...dock([], 2, { revision: 2, items: 2 }), transcript: undefined }));
+    expect(shown().map((i: any) => i.text)).toEqual(["one", "two more"]);
+    expect(resyncs()).toBe(0);
+  });
+
+  it("asks for it whole when it is told to keep a head it does not hold", () => {
+    const { conn, shown, resyncs } = make();
+    conn.receive(snap(1, dock([say("a", "one")], 1)));
+    conn.receive(snap(2, dock([say("c", "three")], 9, { revision: 8, items: 1 })));
+    expect(resyncs()).toBe(1);
+    // The ack goes first, so the snapshot after it is the whole one.
+    expect(conn.sent.slice(-2).map((m: any) => m.type)).toEqual(["ack", "resync"]);
+    expect(shown().map((i: any) => i.text)).toEqual(["three"]);
+    conn.receive(snap(3, dock([say("a", "one"), say("c", "three")], 10)));
+    expect(shown().map((i: any) => i.text)).toEqual(["one", "three"]);
+    expect(resyncs()).toBe(1);
+  });
+
+  it("lays out only the items that changed", () => {
+    const items = Array.from({ length: 300 }, (_, i) => say(`m${i}`, `answer ${i}: some words that wrap at forty cells wide, and then some more`));
+    transcriptView(items, 40, 10);
+    const before = layoutStats.made;
+    // A key typed in the composer draws the dock again: nothing is laid out.
+    transcriptView(items, 40, 10);
+    expect(layoutStats.made - before).toBe(0);
+    // A streamed word: the one item it changed.
+    transcriptView([...items.slice(0, -1), say("m299", "answer 299: and a word")], 40, 10);
+    expect(layoutStats.made - before).toBe(1);
+    // Another width lays each out again, once.
+    transcriptView(items, 60, 10);
+    expect(layoutStats.made - before).toBe(301);
+  });
+
+  it("shows the rows at the foot and, scrolled, the ones above, as when every row was laid out", () => {
+    const items = Array.from({ length: 12 }, (_, i) => say(`m${i}`, `line ${i}\nsecond ${i}`));
+    // Prose stands a row apart from the prose before it; that row belongs to the item after it.
+    const all = items.flatMap((_, i) => [...(i ? [""] : []), `line ${i}`, `second ${i}`]);
+    const text = (rows: Array<Array<{ ch: string }>>) => rows.map((r) => r.map((c) => c.ch).join("").trim());
+    const foot = transcriptView(items, 30, 5);
+    expect(text(foot.rows)).toEqual(all.slice(-5));
+    expect(foot.owners.map((o) => o.id)).toEqual(["m10", "m10", "m11", "m11", "m11"]);
+    expect([foot.total, foot.max]).toEqual([35, 30]);
+    expect(text(transcriptView(items, 30, 5, [], 7).rows)).toEqual(all.slice(-12, -7));
+    expect(text(transcriptView(items, 30, 5, [], 99).rows)).toEqual(all.slice(0, 5));
+    expect(transcriptView(items, 30, 5, [], 7).targets).toHaveLength(5);
   });
 });

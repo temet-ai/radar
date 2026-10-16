@@ -112,7 +112,7 @@ async fn a_session_reports_the_slash_commands_claude_code_accepts() {
 async fn the_claude_adapter_passes_every_contract_check() {
     let report = run_all(&mut ClaudeHarness::new()).await;
     assert!(report.skipped.is_empty(), "nothing is skipped: {:?}", report.skipped);
-    assert_eq!(report.ran.len(), 12, "{:?}", report.ran);
+    assert_eq!(report.ran.len(), 13, "{:?}", report.ran);
     assert!(report.ran.contains(&"question"), "{:?}", report.ran);
     assert!(report.ran.contains(&"approve_for_session"), "{:?}", report.ran);
 }

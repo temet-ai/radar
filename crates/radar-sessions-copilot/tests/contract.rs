@@ -49,7 +49,7 @@ impl Harness for CopilotHarness {
             Scenario::Question => &[Plot::Question],
         };
         for name in [
-            "stream", "approve", "approve-session", "deny", "stop", "resume", "dup", "order", "lost", "question",
+            "stream", "approve", "approve-session", "deny", "stop", "resume", "resume-waiting", "dup", "order", "lost", "question",
         ] {
             self.sim
                 .plan(&RadarSessionId::new(format!("contract-{name}")), plots);
@@ -96,7 +96,7 @@ async fn copilot_passes_every_contract_check() {
         report.skipped
     );
     assert_eq!(report.skipped[0].0, "out_of_order");
-    assert_eq!(report.ran.len(), 11, "{:?}", report.ran);
+    assert_eq!(report.ran.len(), 12, "{:?}", report.ran);
     assert!(report.ran.contains(&"question"), "{:?}", report.ran);
     assert!(report.ran.contains(&"approve_for_session"), "{:?}", report.ran);
 }

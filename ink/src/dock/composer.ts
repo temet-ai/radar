@@ -85,7 +85,8 @@ export function pendingAsk(view: DockView): { permission: PermissionItem } | { q
   const items = view.transcript ?? [];
   for (let i = items.length - 1; i >= 0; i--) {
     const it = items[i]!;
-    if (it.item === "permission" && !it.answered) return { permission: it };
+    // A lapsed request waited when radar closed: nothing can answer it now, so no key or button is for it.
+    if (it.item === "permission" && !it.answered && !it.lapsed) return { permission: it };
     if (it.item === "question" && it.state === "waiting") {
       const ask = it.questions.find((q) => !q.answered);
       if (ask) return { question: it, ask };
@@ -129,7 +130,7 @@ export function dockClick(local: DockLocal, view: DockView, target: string): Doc
   if (dock !== "dock" || !what) return undefined;
   const [id = "", question = "", label = ""] = enc.map(decodeURIComponent);
   const items = view.transcript ?? [];
-  const perm = items.find((i): i is PermissionItem => i.item === "permission" && i.id === id && !i.answered);
+  const perm = items.find((i): i is PermissionItem => i.item === "permission" && i.id === id && !i.answered && !i.lapsed);
   const q = items.find((i): i is QuestionItem => i.item === "question" && i.id === id && i.state === "waiting");
   const ask = q?.questions.find((a) => a.id === question);
   switch (what) {
@@ -137,6 +138,8 @@ export function dockClick(local: DockLocal, view: DockView, target: string): Doc
       return perm?.actions.includes("approve_once") ? out(local, [{ dock: "approve", id }]) : undefined;
     case "session":
       return perm?.actions.includes("approve_for_session") ? out(local, [{ dock: "approve_for_session", id }]) : undefined;
+    case "always":
+      return perm?.actions.includes("always_allow") ? out(local, [{ dock: "always_allow", id }]) : undefined;
     case "deny":
       return perm?.actions.includes("deny") ? out(local, [{ dock: "deny", id }]) : undefined;
     case "diff": {
@@ -159,6 +162,17 @@ export function dockClick(local: DockLocal, view: DockView, target: string): Doc
   return undefined;
 }
 
+/** A click on a row of the slash menu (`dock:cmd:<name>`, src/dock/Dock.tsx): that command runs, as ⏎ on its whole
+ * word does; a session that cannot take it says why, the text kept. `undefined` for a command the menu does not show. */
+export function dockCommand(local: DockLocal, view: DockView, target: string): DockKeyResult | undefined {
+  if (!target.startsWith("dock:cmd:")) return undefined;
+  const name = decodeURIComponent(target.slice("dock:cmd:".length));
+  if (view.composer?.disabled || !matchingCommands(local.text, view.composer?.commands).some((c) => c.name === name)) return undefined;
+  const text = `/${name}`;
+  const cmd = Math.max(0, matchingCommands(text, view.composer?.commands).findIndex((c) => c.name === name));
+  return dockKey({ ...put(local, text, chars(text).length), cmd }, view, { key: "enter" });
+}
+
 /** What the status line tells of the keys: leave a terminal tab; esc declines or stops what runs; alt-w closes the tab.
  * After a ⏎ that could send nothing, why, first: the text was kept, never dropped. */
 export function dockHint(view: DockView, refused?: string): string | undefined {
@@ -166,6 +180,8 @@ export function dockHint(view: DockView, refused?: string): string | undefined {
   if (tab?.terminal) return view.focused ? "ctrl-] leave" : undefined;
   if (refused) return `not sent: ${refused}`;
   const parts = [
+    // A restored session: what attaches it (or that it is being read back) leads.
+    tab?.state === "detached" ? "⏎ or alt-r resume" : tab?.state === "resuming" ? "resuming…" : undefined,
     pendingQuestion(view) ? "esc decline" : view.composer?.can_stop ? "esc stop" : undefined,
     // The dock over the whole middle column and back (host state, DockView.full).
     view.focused ? (view.full ? "alt-f split" : "alt-f full") : undefined,
@@ -255,6 +271,9 @@ export function dockKey(local: DockLocal, view: DockView, chord: Chord, metrics:
     return view.attention && view.attention !== view.active ? out(emptyLocal(), [{ dock: "switch_tab", id: view.attention }]) : out(local, [{ dock: "hide" }]);
   // alt-f: the dock takes the whole middle column, and back.
   if (chord.alt && ch === "f") return out(local, [{ dock: "toggle_full" }]);
+  // alt-r: attach a restored session to its provider again without sending anything (an errored one may be a resume
+  // that failed; the host ignores it for a session that is attached).
+  if (chord.alt && !chord.ctrl && ch === "r" && (active?.state === "detached" || active?.state === "error")) return out(local, [{ dock: "resume" }]);
   if (chord.ctrl && ch === "t") return out(local, [{ dock: "new_session" }]);
   // alt-w closes the tab. ctrl-w does too while nothing is written (with text it deletes the word before the caret, as
   // a shell's does, below): a draft is not lost to a habit.
@@ -266,11 +285,12 @@ export function dockKey(local: DockLocal, view: DockView, chord: Chord, metrics:
   if (chord.ctrl && ch === "c") return view.composer?.can_stop ? out(local, [{ dock: "stop" }]) : { local, intents: [], handled: false };
 
   // An approval waits and the composer is empty: its keys are letters inside their words (a̲pprove once, approve for
-  // s̲ession, d̲eny, v̲iew diff).
+  // s̲ession, al̲ways allow, d̲eny, v̲iew diff).
   const ask = pendingPermission(view);
   if (ask && local.text === "" && ch && !chord.ctrl && !chord.alt) {
     if (ch === "a" && ask.actions.includes("approve_once")) return out(local, [{ dock: "approve", id: ask.id }]);
     if (ch === "s" && ask.actions.includes("approve_for_session")) return out(local, [{ dock: "approve_for_session", id: ask.id }]);
+    if (ch === "l" && ask.actions.includes("always_allow")) return out(local, [{ dock: "always_allow", id: ask.id }]);
     if (ch === "d" && ask.actions.includes("deny")) return out(local, [{ dock: "deny", id: ask.id }]);
     if (ch === "v" && ask.actions.includes("view_diff")) {
       const open = local.diffs.includes(ask.id);
@@ -305,7 +325,8 @@ export function dockKey(local: DockLocal, view: DockView, chord: Chord, metrics:
     const chosen = menu[sel];
     if (chosen && !off && chosen.name.toLowerCase() !== local.text.slice(1).toLowerCase()) return complete(chosen.name);
     const text = local.text.trim();
-    if (text === "") return out(local);
+    // ⏎ in an empty composer on a tab restored and not attached reads it back (a message would too, then go).
+    if (text === "") return out(local, active?.state === "detached" ? [{ dock: "resume" }] : []);
     // A turn that runs never refuses a message (the host queues it); only a session that cannot take one does, and
     // then the text stays and the status line says why.
     if (off || !view.composer?.can_send) return out({ ...local, refused: off ?? "the session cannot take a message now" });

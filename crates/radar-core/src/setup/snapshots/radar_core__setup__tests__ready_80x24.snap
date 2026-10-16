@@ -1,0 +1,29 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+assertion_line: 615
+expression: "screen(&host, 80, 24)"
+---
+ radar  setup / ready                                               ◉ read only
+  about this step
+
+   SAVED ──────────────────────────────────────────────────────────────────   █
+     In the config file shown below. A token is saved as the name of the      █
+     variable that holds it.                                                  █
+     radar config path prints where the file is.                              █
+   CHANGE IT LATER ────────────────────────────────────────────────────────   ║
+     Settings (,) has every step's fields. To run setup again:
+
+  ready
+
+   Setup is done.
+   This is what radar has now.
+
+    local code   1 of 1 set up                                               ║
+    mode         read only                                                   █
+                                                                             █
+    SAVED IN  config.toml                                                    █
+    MODE      read only                                                      █
+                                                                             █
+    A QUICK TOUR?                                                            █
+    ● yes, show me around                                                    ║
+ SETUP   ⏎ yes, a tour   ↑↓ move   ← back   y copy   PgUp/PgDn scroll

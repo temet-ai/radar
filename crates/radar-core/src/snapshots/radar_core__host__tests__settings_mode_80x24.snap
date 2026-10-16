@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/host.rs
+assertion_line: 6744
 expression: "crate::shell::to_text(&host, 80, 24)"
 ---
  radar    A   History   Settings (,)                                ◉ read only
@@ -7,11 +8,11 @@ expression: "crate::shell::to_text(&host, 80, 24)"
 │General               ││ WHAT RADAR MAY CHANGE                                │
 │  ├─ parts            ││                                                      │
 │  ├─ mode             ││ mode    read only                                    │
-│  ├─ colours          ││         set by RADAR_MODE                            │
-│  └─ icons            ││                                                      │
-│a                     ││ WHEN IDLE                                            │
-│  └─ a                ││                                                      │
-│                      ││ pause if idle after 30 minutes                       │
+│  ├─ appearance       ││         set by RADAR_MODE                            │
+│  ├─ colours          ││                                                      │
+│  └─ icons            ││ WHEN IDLE                                            │
+│a                     ││                                                      │
+│  └─ a                ││ pause if idle after 30 minutes                       │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ the modes ───────────────────────────────────────────╮

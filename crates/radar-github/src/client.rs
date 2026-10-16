@@ -158,6 +158,14 @@ impl Client {
     /// A public connection checks API availability; a token checks the
     /// authenticated account and returns its GitHub login.
     pub async fn check_connection(&self) -> Result<Option<String>, ApiError> {
+        Ok(self.check_connection_scopes().await?.0)
+    }
+
+    /// [`Client::check_connection`], and the token's OAuth scopes when
+    /// GitHub sends them (`X-OAuth-Scopes`, for a classic token or gh's);
+    /// `None` for a fine-grained token or public access, whose permissions
+    /// GitHub does not tell.
+    pub async fn check_connection_scopes(&self) -> Result<(Option<String>, Option<Vec<String>>), ApiError> {
         if self.token_ref.is_empty() {
             let (value, _) = self.read::<serde_json::Value>("/rate_limit", "").await?;
             if !value
@@ -166,9 +174,9 @@ impl Client {
             {
                 return Err(error(ApiErrorKind::InvalidResponse));
             }
-            return Ok(None);
+            return Ok((None, None));
         }
-        let (account, _) = self.read::<RawAccount>("/user", "").await?;
+        let (account, headers) = self.read::<RawAccount>("/user", "").await?;
         if account.id == 0
             || account.login.is_empty()
             || account.login.len() > 39
@@ -181,7 +189,7 @@ impl Client {
         {
             return Err(error(ApiErrorKind::InvalidResponse));
         }
-        Ok(Some(account.login))
+        Ok((Some(account.login), oauth_scopes(&headers)))
     }
 
     /// Repositories this authenticated token can access, in bounded pages.
@@ -668,7 +676,7 @@ impl Client {
         let request = Request {
             headers,
             url: self.api.graphql().into(),
-            authorization: auth::resolve(&self.token_ref)?,
+            authorization: auth::resolve_at(&self.token_ref, &self.api.gh_host())?,
             graphql: Some(body),
         };
         let response = self.transport.send(request).await?;
@@ -729,7 +737,7 @@ impl Client {
             } else {
                 format!("{}{path}?{query}", self.api.rest())
             },
-            authorization: auth::resolve(&self.token_ref)?,
+            authorization: auth::resolve_at(&self.token_ref, &self.api.gh_host())?,
             graphql: None,
         };
         let response = self.transport.send(request).await?;
@@ -1007,6 +1015,17 @@ fn base_headers() -> HeaderMap {
         HeaderValue::from_static("radar-github-read-only/0.1"),
     );
     headers
+}
+
+/// The scopes a classic or OAuth token has, from `X-OAuth-Scopes`
+/// (`repo, read:org`); empty when it has none. `None` when GitHub sent no
+/// such header, as for a fine-grained token.
+fn oauth_scopes(headers: &HeaderMap) -> Option<Vec<String>> {
+    let value = headers.get("x-oauth-scopes")?.to_str().ok()?;
+    if value.len() > 1024 {
+        return None;
+    }
+    Some(value.split(',').map(str::trim).filter(|s| !s.is_empty()).map(str::to_owned).collect())
 }
 
 /// A validator value GitHub sent: printable ASCII, bounded.

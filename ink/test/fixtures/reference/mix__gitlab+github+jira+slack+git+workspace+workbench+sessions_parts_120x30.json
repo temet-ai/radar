@@ -33,15 +33,21 @@
             },
             {
               "icon": "colours",
+              "id": "appearance",
+              "name": "appearance",
+              "target": "chrome:section:2"
+            },
+            {
+              "icon": "colours",
               "id": "colours",
               "name": "colours",
-              "target": "chrome:section:2"
+              "target": "chrome:section:3"
             },
             {
               "icon": "icons",
               "id": "icons",
               "name": "icons",
-              "target": "chrome:section:3"
+              "target": "chrome:section:4"
             }
           ],
           "target": "chrome:group:general"
@@ -55,25 +61,25 @@
               "icon": "connection",
               "id": "connection",
               "name": "connection",
-              "target": "chrome:section:4"
+              "target": "chrome:section:5"
             },
             {
               "icon": "group",
               "id": "tenancies",
               "name": "tenancies",
-              "target": "chrome:section:5"
+              "target": "chrome:section:6"
             },
             {
               "icon": "views",
               "id": "views",
               "name": "views",
-              "target": "chrome:section:6"
+              "target": "chrome:section:7"
             },
             {
               "icon": "look",
               "id": "look",
               "name": "look",
-              "target": "chrome:section:7"
+              "target": "chrome:section:8"
             }
           ],
           "target": "chrome:group:gitlab"
@@ -86,12 +92,12 @@
             {
               "id": "connection",
               "name": "connection",
-              "target": "chrome:section:8"
+              "target": "chrome:section:9"
             },
             {
               "id": "repositories",
               "name": "repositories",
-              "target": "chrome:section:9"
+              "target": "chrome:section:10"
             }
           ],
           "target": "chrome:group:github"
@@ -105,25 +111,25 @@
               "icon": "connection",
               "id": "connection",
               "name": "connection",
-              "target": "chrome:section:10"
+              "target": "chrome:section:11"
             },
             {
               "icon": "folder",
               "id": "projects",
               "name": "projects",
-              "target": "chrome:section:11"
+              "target": "chrome:section:12"
             },
             {
               "icon": "views",
               "id": "views",
               "name": "views",
-              "target": "chrome:section:12"
+              "target": "chrome:section:13"
             },
             {
               "icon": "look",
               "id": "look",
               "name": "look",
-              "target": "chrome:section:13"
+              "target": "chrome:section:14"
             }
           ],
           "target": "chrome:group:jira"
@@ -137,31 +143,31 @@
               "icon": "connection",
               "id": "connection",
               "name": "connection",
-              "target": "chrome:section:14"
+              "target": "chrome:section:15"
             },
             {
               "icon": "channel",
               "id": "channels",
               "name": "channels",
-              "target": "chrome:section:15"
+              "target": "chrome:section:16"
             },
             {
               "icon": "needs_approval",
               "id": "review",
               "name": "review",
-              "target": "chrome:section:16"
+              "target": "chrome:section:17"
             },
             {
               "icon": "alert",
               "id": "alerts",
               "name": "alerts",
-              "target": "chrome:section:17"
+              "target": "chrome:section:18"
             },
             {
               "icon": "look",
               "id": "look",
               "name": "look",
-              "target": "chrome:section:18"
+              "target": "chrome:section:19"
             }
           ],
           "target": "chrome:group:slack"
@@ -175,25 +181,31 @@
               "icon": "local",
               "id": "checkouts",
               "name": "checkouts",
-              "target": "chrome:section:19"
+              "target": "chrome:section:20"
+            },
+            {
+              "icon": "terminal",
+              "id": "terminal",
+              "name": "terminal",
+              "target": "chrome:section:21"
             },
             {
               "icon": "editor",
               "id": "editors",
               "name": "editors",
-              "target": "chrome:section:20"
+              "target": "chrome:section:22"
             },
             {
               "icon": "link",
               "id": "links",
               "name": "links",
-              "target": "chrome:section:21"
+              "target": "chrome:section:23"
             },
             {
               "icon": "branch",
               "id": "branches",
               "name": "branches",
-              "target": "chrome:section:22"
+              "target": "chrome:section:24"
             }
           ],
           "target": "chrome:group:git"
@@ -207,7 +219,7 @@
               "icon": "local",
               "id": "workspaces",
               "name": "workspaces",
-              "target": "chrome:section:23"
+              "target": "chrome:section:25"
             }
           ],
           "target": "chrome:group:workspace"
@@ -220,7 +232,7 @@
             {
               "id": "agents",
               "name": "Tools and defaults",
-              "target": "chrome:section:24"
+              "target": "chrome:section:26"
             }
           ],
           "target": "chrome:group:sessions"
@@ -335,24 +347,6 @@
         "text": "✎ edit"
       },
       "tabs": [
-        {
-          "icon": "repo",
-          "label": "repositories",
-          "mnemonic": "R",
-          "target": "chrome:tab:0"
-        },
-        {
-          "icon": "issue",
-          "label": "jira",
-          "mnemonic": "J",
-          "target": "chrome:tab:2"
-        },
-        {
-          "icon": "chat",
-          "label": "slack",
-          "mnemonic": "S",
-          "target": "chrome:tab:3"
-        },
         {
           "icon": "branch",
           "label": "branches",

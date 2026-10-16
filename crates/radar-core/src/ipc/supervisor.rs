@@ -445,7 +445,7 @@ impl<W: Write> Supervisor<W> {
 /// Put `line` on the renderer's queue. When the queue is full, wait up to
 /// `stalled_after` for the writer to make room (it may not have had its
 /// turn yet); false when it made none: the renderer stopped reading.
-async fn queue(out: &tokio::sync::mpsc::Sender<Vec<u8>>, line: Vec<u8>, stalled_after: Duration) -> bool {
+pub(super) async fn queue(out: &tokio::sync::mpsc::Sender<Vec<u8>>, line: Vec<u8>, stalled_after: Duration) -> bool {
     use tokio::sync::mpsc::error::TrySendError;
     match out.try_send(line) {
         Ok(()) => true,

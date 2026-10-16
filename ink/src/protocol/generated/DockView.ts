@@ -2,6 +2,7 @@
 import type { DockActivity } from "./DockActivity.js";
 import type { DockComposer } from "./DockComposer.js";
 import type { DockItem } from "./DockItem.js";
+import type { DockKept } from "./DockKept.js";
 import type { DockPicker } from "./DockPicker.js";
 import type { DockStatus } from "./DockStatus.js";
 import type { DockTab } from "./DockTab.js";
@@ -56,4 +57,18 @@ full?: boolean,
  * hidden, or another tab shown): the status line's chip names it and
  * the dock key goes to it. Host state, from the tabs.
  */
-attention?: string | null, };
+attention?: string | null, 
+/**
+ * The transcript's revision as the host's pipe to a renderer sent it
+ * (`ipc::Bridge`); 0 everywhere else. A renderer keeps it with the
+ * transcript it holds, for the next [`DockView::kept`].
+ */
+revision?: number, 
+/**
+ * Over the pipe only: `transcript` is not the whole of it but what
+ * follows the first `kept.items` items of the transcript the renderer
+ * holds at `kept.revision`, so a streamed word sends one item, not the
+ * session's history. A renderer that holds another revision asks for
+ * the whole (`ipc::ToHost::Resync`).
+ */
+kept?: DockKept, };

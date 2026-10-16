@@ -1,9 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 823
 expression: shown
 ---
- radar    Repositories 2   Jira   Slack   Branches   Work (I)   History   Settings (,)                                                                                                               not synced yet  ✎ edit
-  GitLab    GitHub    Local workspaces
+ radar    Repositories 2   Jira   Branches   Work (I)   History   Settings (,)                                                                                                                       not synced yet  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ team-a ──────────────────────────────────────────────────╮
 │ Everything             ││ OPENED BY everyone · 1 repo                            STATE               TICKET             APPROVALS  THREADS UPDATED FOR YOU   ││ a acme/team-a                                            │
 │ Needs my action      2 ││▌ A team-a                                                                                                                          ││                                                          │
@@ -11,6 +11,7 @@ expression: shown
 │ Opened by teammates    ││▌    ├─ !263 ABC-12: Add a stats endpoint for the dashb ◷ needs 1 approval  ABC-12 · In Review 0 of 1     —       16m     review    ││ with MRs    1 repos, in this view                        │
 │ Opened by bots         ││▌    ├─ !265 Unrelated change  Alice E.                 ◷ needs 1 approval  ABC-21 · To Do     0 of 1     —       16m     review    ││ open MRs    3                                            │
 │                        ││▌    └─ !264 Tidy the build  Alice E.                   ◷ needs 1 approval  ABC-20 · To Do     ✓ 1 of 1   —       16m     team      ││                                                          │
+│                        ││                                                                                                                                    ││                                                          │
 │                        ││                                                                                                                                    ││                                                          │
 │                        ││                                                                                                                                    ││                                                          │
 │                        ││                                                                                                                                    ││                                                          │

@@ -1,44 +1,45 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 548
 expression: text
 ---
- radar    Slack   History   Settings (,)                                                                                                                 ✎ edit
+ radar    History   Settings (,)                                                                                                                         ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in your environment ─────────────────────────╮
-│General               ││  ? Found: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?             ││ radar found a Slack user token in your             │
-│  ├─ parts            ││  workspace       — the check finds it                                          ││ environment. Do you want to use it?                │
-│  ├─ mode             ││  api             https://slack.com                                             ││                                                    │
-│  ├─ colours          ││  token           —                                                             ││ FOUND                                              │
-│  └─ icons            ││  signed in as    — the check finds it                                          ││ SLACK_APP_USER_OAUTH_TOKEN  the token (xoxp-…)     │
-│Slack                 ││  check           not checked yet                                               ││                                                    │
-│  ├─ connection       ││  refresh         every 2m                                                      ││ radar stores only the variables' names (env:NAME)  │
-│  ├─ channels         ││  read back       7 days                                                        ││ and reads their values each time it starts. It     │
-│  ├─ review           ││  permissions   ├─ public channels                                  not checked ││ never shows the values or saves them.              │
-│  ├─ alerts           ││                ├─ private channels                                 not checked ││                                                    │
-│  └─ look             ││                ├─ for you                                          not checked ││ IF YOU USE IT                                      │
-│                      ││                ├─ names                                            not checked ││ radar sets the token to                            │
-│                      ││                ├─ user groups                                      not checked ││ env:SLACK_APP_USER_OAUTH_TOKEN and checks it with  │
-│                      ││                ├─ asking and replying                              not checked ││ Slack.                                             │
-│                      ││                └─ reacting                                         not checked ││                                                    │
-│                      ││                                                                                ││ ⏎ uses it                                          │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│General               ││  ? Found: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?             ││ radar found a Slack user token in your             █
+│  ├─ parts            ││  workspace       — the check finds it                                          ││ environment. Do you want to use it?                █
+│  ├─ mode             ││  api             https://slack.com                                             ││                                                    █
+│  ├─ appearance       ││  token           —                                                             ││ FOUND                                              █
+│  ├─ colours          ││  signed in as    — the check finds it                                          ││ SLACK_APP_USER_OAUTH_TOKEN  the token (xoxp-…)     █
+│  └─ icons            ││  check           not checked yet                                               ││                                                    █
+│Slack                 ││  refresh         every 2m                                                      ││ radar stores only the variables' names (env:NAME)  █
+│  ├─ connection       ││  read back       7 days                                                        ││ and reads their values each time it starts. It     █
+│  ├─ channels         ││  permissions   ├─ public channels                                  not checked ││ never shows the values or saves them.              █
+│  ├─ review           ││                ├─ private channels                                 not checked ││                                                    █
+│  ├─ alerts           ││                ├─ for you                                          not checked ││ IF YOU USE IT                                      █
+│  └─ look             ││                ├─ names                                            not checked ││ radar sets the token to                            █
+│                      ││                ├─ user groups                                      not checked ││ env:SLACK_APP_USER_OAUTH_TOKEN and checks it with  █
+│                      ││                ├─ asking and replying                              not checked ││ Slack.                                             █
+│                      ││                ├─ reacting                                         not checked ││                                                    █
+│                      ││                └─ pictures                                         not checked ││ ⏎ uses it                                          █
+│                      ││                                                                                ││                                                    █
+│                      ││  CHANNELS  the registry; watched ones are read                                 ││ MAKE A USER TOKEN  about two minutes, once ─────── █
+│                      ││  + add a channel   paste its link, a message link, or its id                   ││   1 Open Slack's new-app page, radar's manifest    █
+│                      ││                                                                                ││   filled in:                                       █
+│                      ││                                                                                ││   api.slack.com / new app   o opens · m copies the █
+│                      ││                                                                                ││   manifest                                         █
+│                      ││                                                                                ││     user scopes only: 10                           █
+│                      ││                                                                                ││   2 Pick your workspace, Next, Create.             █
+│                      ││                                                                                ││   3 Install to Workspace, then Allow.              █
+│                      ││                                                                                ││   4 OAuth & Permissions shows the User OAuth       █
+│                      ││                                                                                ││   Token, xoxp-…: paste it into token, or:          █
+│                      ││                                                                                ││   $ export SLACK_TOKEN=xoxp-…                      █
+│                      ││                                                                                ││     then the token is env:SLACK_TOKEN              █
+│                      ││                                                                                ││   api.slack.com / your apps                        █
+│                      ││                                                                                ││ NEEDS AN ADMIN? ────────────────────────────────── █
+│                      ││                                                                                ││   If Slack says Request to Install, your admin     █
+│                      ││                                                                                ││   approves it first.                               █
+│                      ││                                                                                ││   A missing scope switches off only its own        █
+│                      ││                                                                                ││   actions.                                         ║
+│                      ││                                                                                ││ MORE ───────────────────────────────────────────── ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate

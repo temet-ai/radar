@@ -13,6 +13,8 @@ pub enum ApiErrorKind {
     InvalidTarget,
     InvalidTokenReference,
     MissingToken,
+    /// The token is `gh`, and gh gave none (not installed, not signed in).
+    NoGhSignIn,
     InvalidToken,
     Authentication,
     Forbidden,
@@ -51,9 +53,10 @@ impl fmt::Display for ApiError {
         f.write_str(match self.kind {
             ApiErrorKind::InvalidTarget => "GitHub target is invalid or not configured",
             ApiErrorKind::InvalidTokenReference => {
-                "GitHub token must be empty, a typed token or an env:NAME reference"
+                "GitHub token must be empty, gh, a typed token or an env:NAME reference"
             }
             ApiErrorKind::MissingToken => "GitHub token environment variable is missing or empty",
+            ApiErrorKind::NoGhSignIn => "gh gave no token; run gh auth login",
             ApiErrorKind::InvalidToken => "GitHub token is invalid",
             ApiErrorKind::Authentication => "GitHub authentication failed; check the token",
             ApiErrorKind::Forbidden => "GitHub access denied; check repository permissions",

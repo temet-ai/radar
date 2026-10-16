@@ -35,7 +35,7 @@ impl Rule {
         if argument.is_empty() {
             return Err(RuleError::Empty);
         }
-        if looks_like_token(argument) {
+        if contains_token(argument) {
             return Err(RuleError::Secret);
         }
         Ok(Rule { kind, argument: argument.to_string() })
@@ -65,7 +65,7 @@ fn glob(pattern: &str, text: &str) -> bool {
 
 /// The command a provider wraps in a login shell: Codex asks to run
 /// `/usr/bin/zsh -lc ls`; a rule is written against `ls`.
-fn unwrap_shell(command: &str) -> &str {
+pub(crate) fn unwrap_shell(command: &str) -> &str {
     let c = command.trim();
     let mut words = c.splitn(3, ' ');
     let (prog, flag, rest) = (words.next().unwrap_or(""), words.next().unwrap_or(""), words.next());
@@ -112,9 +112,78 @@ impl Rule {
     }
 }
 
+impl Rule {
+    /// The rules that would have answered `request`, as the operator would
+    /// write them: each command of a chain by its program (and git's
+    /// subcommand), a file's folder, a website's host, an MCP tool.
+    pub fn suggest(request: &crate::event::PermissionRequest) -> Vec<Rule> {
+        use crate::event::PermissionTarget as T;
+        let rule = |kind: &str, argument: String| Rule::parse(&format!("{kind}({argument})")).ok();
+        let folder = |path: &str| {
+            let dir = std::path::Path::new(path).parent().map(|p| p.display().to_string()).unwrap_or_default();
+            if dir.is_empty() { path.to_string() } else { format!("{dir}/*") }
+        };
+        match &request.target {
+            T::Command { command, .. } => {
+                // A command a rule could never answer (a redirection, a substitution) offers none.
+                let Some(parts) = chain_parts(command) else { return vec![] };
+                let mut out: Vec<Rule> = vec![];
+                for part in &parts {
+                    let words: Vec<&str> = part.split_whitespace().collect();
+                    let Some(program) = words.first() else { continue };
+                    let prefix = match words.get(1) {
+                        Some(sub) if matches!(*program, "git" | "cargo" | "npm" | "pnpm" | "yarn" | "go" | "gh" | "glab" | "docker" | "kubectl" | "make" | "just" | "mvn" | "gradle" | "./gradlew")
+                            && sub.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-') && !sub.starts_with('-') => format!("{program} {sub}"),
+                        _ => (*program).to_string(),
+                    };
+                    if let Some(r) = rule("shell", prefix)
+                        && !out.contains(&r)
+                    {
+                        out.push(r);
+                    }
+                }
+                out
+            }
+            T::Path { path } => rule("read", folder(path)).into_iter().collect(),
+            T::Write { path, .. } => rule("write", folder(path)).into_iter().collect(),
+            T::Url { url } => {
+                let host = url.split("://").last().unwrap_or(url).split('/').next().unwrap_or("");
+                rule("url", host.to_string()).into_iter().collect()
+            }
+            T::Mcp { server, tool, .. } => rule("mcp", format!("{server}/{tool}")).into_iter().collect(),
+            T::Other { .. } => vec![],
+        }
+    }
+}
+
+/// The commands of a chain (`a && b`, `a || b`, `a; b`, `a | b`; `2>/dev/null`
+/// dropped), or `None` when it holds anything else a shell would act on
+/// (redirection, substitution, a background `&`).
+pub(crate) fn chain_parts(command: &str) -> Option<Vec<String>> {
+    let c = unwrap_shell(command).replace("2>/dev/null", " ").replace("&&", ";").replace("||", ";");
+    if c.contains(['&', '>', '<', '`', '$', '\n']) {
+        return None;
+    }
+    Some(c.split([';', '|']).map(str::trim).filter(|p| !p.is_empty()).map(str::to_string).collect())
+}
+
 impl Defaults {
-    /// The standing rule that decides `request`, deny before allow.
+    /// The standing rule that decides `request`, deny before allow. A chain
+    /// of commands is denied when a deny rule matches any of them, allowed
+    /// when an allow rule matches every one.
     pub fn standing(&self, request: &crate::event::PermissionRequest) -> Option<(bool, &Rule)> {
+        use crate::event::PermissionTarget as T;
+        if let T::Command { command, .. } = &request.target
+            && let Some(parts) = chain_parts(command).filter(|p| p.len() > 1)
+        {
+            let part = |c: &str| crate::event::PermissionRequest { target: T::Command { command: c.to_string(), segments: vec![] }, ..request.clone() };
+            let parts: Vec<_> = parts.iter().map(|c| part(c)).collect();
+            if let Some(r) = self.deny.iter().find(|r| parts.iter().any(|p| r.matches(p))) {
+                return Some((false, r));
+            }
+            let each: Option<Vec<&Rule>> = parts.iter().map(|p| self.allow.iter().find(|r| r.matches(p))).collect();
+            return each.and_then(|e| e.first().copied()).map(|r| (true, r));
+        }
         if let Some(r) = self.deny.iter().find(|r| r.matches(request)) {
             return Some((false, r));
         }

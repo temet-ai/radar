@@ -17,6 +17,7 @@ fn view(p: &WorkbenchPlugin, pane: Pane) -> ScreenView {
             height: 40,
             parts: Parts::none(),
             icon_lead: 0,
+            setup: false,
         },
     )
 }
@@ -2338,6 +2339,7 @@ fn optional_source_owner_controls_open_but_preserves_copy_and_context() {
             height: 40,
             parts: Parts::new(&parts, None),
             icon_lead: 0,
+            setup: false,
         },
     );
     assert!(

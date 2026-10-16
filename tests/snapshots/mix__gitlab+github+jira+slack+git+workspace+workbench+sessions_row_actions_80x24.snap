@@ -1,9 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 1195
 expression: "to_text(&host, 80, 24)"
 ---
- radar    R   J   S   B   I   History   Settings (,)     not synced yet  ✎ edit
-  GitLab    GitHub    Local workspaces
+ radar    R   B   I   History   Settings (,)             not synced yet  ✎ edit
 ╭ views ───────────────╮╭ api !263 ────────────────────────────────────────────╮
 │ Everything           ││ a api  !263                                          █
 │ Needs my action      ││ Add a stats endpoint                                 █
@@ -21,8 +21,9 @@ expression: "to_text(&host, 80, 24)"
 │                      ││   open in GitLab                                 [o] █
 │                      ││   copy link                                      [y] █
 │                      ││   look for a checkout · no folders set yet       [s] █
-│                      ││                                                      ║
+│                      ││                                                      █
 │                      ││ PIPELINE  passed ─────────────────────────────────── ║
 │                      ││                                                      ║
+│                      ││ CHANGES ──────────────────────────────────────────── ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
  REPOSITORIES   u rebase   b bulk   q quit   x menu                      gitlab

@@ -53,6 +53,7 @@ fn select(p: &mut SlackPlugin, item: Item) {
         height: 40,
         parts: radar_core::compose::Parts::none(),
         icon_lead: 2,
+        setup: false,
     };
     let _ = radar_core::Plugin::view(p, crate::SCREEN.id, &cx);
     let actual = p

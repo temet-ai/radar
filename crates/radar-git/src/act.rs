@@ -1153,7 +1153,7 @@ pub fn typing(p: &GitPlugin, menu: &str, text: &str) -> radar_core::Typing {
     let offers: Vec<MenuItem> = if typed.is_empty() || found.iter().any(|f| f == typed) {
         // This repo's clones (found by origin or by name), then where to
         // start typing: the folders radar looks in, the usual ones.
-        let places = local::usual_places(&p.cfg.roots)
+        let places = local::usual_places(&p.cfg.roots, &p.local.places)
             .into_iter()
             .map(|r| format!("{}/", r.trim_end_matches('/')));
         found

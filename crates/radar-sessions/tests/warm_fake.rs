@@ -8,31 +8,32 @@ use radar_sessions::fake::FakeProvider;
 use radar_sessions::warm::{CATALOG_FRESH, MODELS_FRESH};
 use radar_sessions::{SessionsPlugin, SlashCommand};
 
+/// The plugin's tasks run on the test's thread, only when a step lets them: nothing races the test.
 fn plugin(providers: &[&FakeProvider]) -> SessionsPlugin {
-    let mut p = SessionsPlugin::new();
+    let mut p = SessionsPlugin::on_this_thread();
     for f in providers {
         p.add_adapter(Box::new(f.adapter()));
     }
     p
 }
 
-/// Tick at host time `now` until `done`; fail after a bounded number of turns.
+/// Tick at host time `now` and run the plugin's tasks until `done`; fail after a bounded number of steps.
 fn until(p: &mut SessionsPlugin, now: i64, what: &str, done: impl Fn(&SessionsPlugin) -> bool) {
-    for _ in 0..2_000_000u64 {
+    for _ in 0..256 {
         p.tick(now);
         if done(p) {
             return;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("never reached: {what}; dock = {:?}", p.dock());
 }
 
-/// Let the background tasks that were going to run do so.
+/// Let the background tasks that were going to run do so: each step runs every task to its end.
 fn quiet(p: &mut SessionsPlugin, now: i64) {
-    for _ in 0..400 {
+    for _ in 0..8 {
         p.tick(now);
-        std::thread::yield_now();
+        p.run_tasks();
     }
 }
 
@@ -92,6 +93,7 @@ fn settings_agents_asks_the_clis_nobody_has_asked() {
         height: 24,
         parts: radar_core::Parts::none(),
         icon_lead: 0,
+        setup: false,
     };
     p.section_view(radar_sessions::settings::SECTION, &cx);
     until(&mut p, 1000, "the other CLI's status", |_| b.calls("status") == 1);

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack 4   History   Settings (,)                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 80, 24)"
 │General               ││ channel          team                                │
 │  ├─ parts            ││ user group       @review-squad                       │
 │  ├─ mode             ││ template         {group} :gitlab: {mrs}              │
-│  ├─ colours          ││ link text        mr                                  │
-│  └─ icons            ││ test channel     try                                 │
-│Slack                 ││ ask again        after 2 working days without a repl │
+│  ├─ appearance       ││ link text        mr                                  │
+│  ├─ colours          ││ test channel     try                                 │
+│  └─ icons            ││ ask again        after 2 working days without a repl │
+│Slack                 ││                                                      │
 │  ├─ connection       ││                                                      │
 │  ├─ channels         ││                                                      │
-│  ├─ review           ││                                                      │
-│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ channel ─────────────────────────────────────────────╮
-│                      ││ Where review asks go. The user group is mentioned    █
+│  ├─ review           │╰──────────────────────────────────────────────────────╯
+│  ├─ alerts           │╭ channel ─────────────────────────────────────────────╮
+│  └─ look             ││ Where review asks go. The user group is mentioned    █
 │                      ││ only here.                                           █
 │                      ││                                                      █
 │                      ││ ACCEPTS                                              █

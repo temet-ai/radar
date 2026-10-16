@@ -73,6 +73,7 @@ export function Compare({
   globals,
   reference,
   missing,
+  paint,
 }: {
   ink: React.ReactElement;
   cols: number;
@@ -80,6 +81,8 @@ export function Compare({
   globals: { tier?: Tier; pack?: Pack };
   reference?: Reference;
   missing?: string;
+  /** What the renderer paints over Ink's finished frame (InkTerminal `paint`). */
+  paint?: (frame: string) => string;
 }) {
   const tier = globals.tier ?? "truecolor";
   const pack = globals.pack ?? "off";
@@ -90,7 +93,7 @@ export function Compare({
         <figcaption>
           Ink: {cols}x{rows}, {tier === "truecolor" ? "truecolour" : tier}, icons {pack}
         </figcaption>
-        <InkTerminal cols={cols} rows={rows} canvas={canvasOf(tier)} version={version} label="Ink">
+        <InkTerminal cols={cols} rows={rows} canvas={canvasOf(tier)} version={version} label="Ink" paint={paint}>
           {ink}
         </InkTerminal>
       </figure>

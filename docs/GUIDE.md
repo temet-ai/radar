@@ -7,19 +7,17 @@ summary: How radar is built (host, plugins, pages), the UX contract distilled fr
 
 # radar — builder's guide
 
-How to add to radar without a round of corrections. Read it before writing a plugin (Jira,
-Slack, environments are next). It has six parts:
+How to add to radar without a round of corrections. Read it before writing a part. It has
+five sections:
 
 1. [How radar is built](#1-how-radar-is-built): the host, the `Plugin` trait, the building blocks.
-2. [The UX contract](#2-the-ux-contract): checkable rules, each with the feedback behind it.
+2. [The UX contract](#2-the-ux-contract): checkable rules, each with the reason behind it.
 3. [Testing](#3-testing): unit tests, snapshots, the actions-menu test, the live check.
-4. [Adding a plugin: a Jira walkthrough](#4-adding-a-plugin-a-jira-walkthrough), and the hand-off checklist.
-5. [Where the design lives](#5-where-the-design-lives).
-6. [Known issues](#6-known-issues).
+4. [Adding a part: a Jira walkthrough](#4-adding-a-part-a-jira-walkthrough), and the hand-off checklist.
+5. [Known issues](#5-known-issues).
 
-Paths are relative to the repo root. Claims here were checked against the code on
-2026-10-06. The repositories tree restyle (2.12) and the item pages (1.12) have both
-landed. Open problems are listed in [section 5](#5-known-issues).
+Paths are relative to the repo root. Claims here were last checked against the code on
+2026-10-16.
 
 ---
 
@@ -28,11 +26,19 @@ landed. Open problems are listed in [section 5](#5-known-issues).
 ### 1.1 Host plus plugins
 
 ```
-crates/radar-core     the host: Plugin trait, reducer, chrome, settings screen, theme, config, runner, CLI,
-                   and compose (subjects, Show, contributions, the parts section)
-crates/radar-gitlab   the first part
-src/lib.rs         the parts compiled in, each behind its cargo feature (`radar::parts()`)
-src/main.rs        radar_core::runner::main(radar::parts())
+crates/radar-core          the host: Plugin trait, reducer, chrome, settings, setup, theme, config,
+                           runner, CLI, and compose (subjects, Show, contributions, the parts section)
+crates/radar-gitlab        GitLab: merge requests, pipelines, the Repositories screen (the reference part)
+crates/radar-github        GitHub: pull requests and checks (read-only for now)
+crates/radar-jira          Jira: tickets across sites
+crates/radar-slack         Slack: mentions, threads, channels
+crates/radar-git           local Git: checkouts, branches, worktrees
+crates/radar-workspace     local workspaces and their clones
+crates/radar-workbench     Work: local work items
+crates/radar-sessions*     agent sessions and the dock; one crate per provider
+src/lib.rs                 the parts compiled in, each behind its cargo feature (`radar::parts()`)
+src/main.rs                runner::main(parts, radar::DEFAULT_RENDERER); also `radar mcp`, the
+                           relay an agent CLI starts as radar's MCP server
 ```
 
 `radar-core` is a clean interface that knows no tool or service; the parts integrate the
@@ -41,10 +47,11 @@ part), implements `radar_core::Plugin`, and is registered in `src/lib.rs` behind
 Parts meet only through radar-core: subjects, `Show` and contributions (1.13) and the bus
 (1.6). `Host::new`
 (`crates/radar-core/src/host.rs`) refuses, at start-up, two plugins with the same id, two
-screens with the same key, a screen key that is not an ASCII capital, two
-settings sections with the same name under one group (the host's `colours` and `parts`
-are under `general`; every part has its own `connection` under its own heading), and
-two theme slots with the same name.
+screens with the same key, a screen key that is not an ASCII capital or is one the host
+keeps (`H`, `,`), an id that is the host's own (`theme`, `terminal`, `setup`, and its
+general sections), two settings sections with the same name under one group (the host's
+`colours`, `parts`, `mode` and `icons` are under `general`; every part has its own
+`connection` under its own heading), and two theme slots with the same name.
 
 Dependencies you are expected to use (declared in the root `Cargo.toml`, all from
 crates.io; never a path outside the repo): `ratatui` 0.30, `opaline` (palettes, mapped onto
@@ -58,16 +65,22 @@ three and ratatui's own widgets reach a part through the kit, `radar_core::ui` (
 Nothing does I/O inside a handler.
 
 - The host's `Host::update(Event) -> Vec<HostEffect>` is pure. `Event` is `Key`, `Tick`,
-  `Msg` (a spawned task's result), `Saved`, `Notice`, `ToClipboard`, `Paste`, `Mouse`.
+  `Wake`, `Msg` (a spawned task's result), `Saved`, `Notice`, `ToClipboard`, `Paste`,
+  `Mouse`, `Intent` (from a frontend), `History` and `Tracked` (the action journal),
+  `TerminalRoute` and `Scanned` (setup's look for keys).
 - A plugin's handlers (`intent`, `on_msg`, `on_bus`, `on_menu`, `tick`, `paste`)
   change the plugin's own state and return `Effect`s: `Spawn(Task)`, `Open(url)`,
   `OpenApp{link,web}`,
   `Copy(text)`, `Notify(msg)`, `Emit{topic,payload}`, `PersistCache`, `Focus(Pane)`,
   `Menu(Menu)`, `Show(Subject)`, `Changed(Changes)` (rows a sync changed, for motion,
   1.17), `Press(char)` (a key pressed where the focus is: a row an owner drew for another
-  part's action does what its key does, 1.13) (`crates/radar-core/src/plugin.rs`).
+  part's action does what its key does, 1.13), `Act` (run another part's action on a
+  subject), `NotifyWith(icon, msg)`; for the agent dock `StartReview`, `SendToAgent`,
+  `ShowDock`, `HideDock`; for the action journal and the work map `Journal`, `Report`,
+  `SpawnAction`, `Observe`, `Work`, `ResolveSources`, `ShowSource`
+  (`crates/radar-core/src/plugin.rs`).
 - `Host::route` turns plugin effects into `HostEffect`s and delivers bus events.
-  `radar_core::runner::perform` (`crates/radar-core/src/runner.rs`) does the real work: spawns the
+  The runner's `perform` (`crates/radar-core/src/runner.rs`, private) does the real work: spawns the
   task on tokio and sends the result back as `Event::Msg`, opens links, copies, writes
   `config.toml`, and queues caches for `plugin_cache`'s writer thread.
 - Nothing a part or the host shows is drawn by it: both describe it as view data
@@ -103,7 +116,7 @@ a part describes its screens and sections as views and gets what the user did as
 | `id() -> &'static str` | Config table name `[<id>]`, cache rows `plugin = <id>`, CLI subcommand `radar <id>`, owner in slot names | always |
 | `configure(Option<&toml::Value>)` | Read your `[<id>]` table; `None` when the file has none. Return `Err` to abort start-up with the file path | `Host::load_config`, once at start |
 | `config() -> Option<toml::Value>` | The table to write | **every frame** and after every event (the host compares it with how the last event left it, and saves a completed change, 1.7). Keep it cheap and deterministic |
-| `first_run() -> Option<String>` | A note for the user when there is **no config file at all** (the host then opens settings) | only with no file; a file without your table gets `configure(None)` and no note |
+| `first_run() -> Option<String>` | Called when there is **no config file at all**; the host then opens setup (`Host::open_setup`) and does not show the note | only with no file; a file without your table gets `configure(None)` |
 | `slots()` | Your domain theme slots and defaults (1.8) | `Host::new` |
 | `demo()` | Replace what you hold with your sample data (the stand-ins your tests use), so `radar shot` can draw your screens with no network or config (3.1a). Default: nothing. Implement behind your `demo` feature | `radar shot` and `scripts/shots`, after `load_config`; never at a normal start |
 | `restore(Value)` / `snapshot()` | Cache read at start, so the first frame is never empty / the value to write | `restore` after `configure`; `snapshot` when you return `Effect::PersistCache` |
@@ -134,6 +147,9 @@ a part describes its screens and sections as views and gets what the user did as
 | `section_icon(section)` | The icon before the section's name in the settings navigation | each frame |
 | `section_hints(section)` | Like `hints`, while capturing in a section | while capturing |
 | `section_keys(section)` | Like `keys`, for the selected row | on `x` in the section |
+| `setup_step() -> Option<SetupStep>` | Its step in setup (`radar setup`, and the first run): `{id, label, icon, section, about, summary, group}`. The card is the named section of its own, so setup and Settings edit the same fields; `summary` is the one-line result on the rail and the ready screen; `group` lists it under this machine, services (the default) or agents | setup's chooser, rail and ready screen, each frame |
+| `setup_finds() -> SetupFinds` | Where setup may look for its keys once the user said yes: variable names (exact, or a prefix ending in `_`) and sign-in files under the home folder. Only names and existence are read (`setup::scan`) | when the user says yes to the look |
+| `start_facts(now) -> Vec<(&str, Value)>` | Facts from your cache for the start line (`radar_core::start_lines`), each by the name a line's `{placeholder}` or `when` uses in the shipped dictionary (`crates/radar-core/assets/start-lines.toml`: `mine.open`, `reviews.count`). Never fetch for a line | once at start, as the splash rolls its line (`Host::start_facts`) |
 | `typing(menu, text)` | What you say of the text typed into a menu's field: a verdict and offers | as the user types |
 | `on_menu(menu, value)` | The user chose `value` in the menu you opened as `menu` | after `Effect::Menu` |
 | `cli()` / `run_cli(&ArgMatches)` | Subcommands under `radar <id>` (1.10) | `radar <id> ...` |
@@ -147,6 +163,14 @@ a part describes its screens and sections as views and gets what the user did as
 | `offers()` / `adds()` | In words, for the parts section: the places it offers others, and what it adds to them | the parts section |
 | `contribute(point, &Subject) -> Option<Contribution>` | Fill another part's place on a subject, from your own cache. Never fetch here | while the owner draws, and on `x` |
 | `act(&Subject, id)` | One of the actions you contributed was chosen | from `x`, or its key on the owner's screen |
+
+The trait has more members with defaults, each documented in `plugin.rs`: folding
+(`folds`, `fold_keys`, `section_folds`), `health`, `on_splash` (what the splash shows for
+the part), `refresh_now`, item-page tabs (`tabs`, `show_tab`, 1.5), `related` and
+`act_with_related` (1.13), the action journal (`journal_subject`, `subject_from_journal`,
+`subject_menu_context`, `run_cli_observed`), and the agent dock (`dock`, `dock_tabs`,
+`dock_visible`, `dock_intent`, `agent_context`, `agent_brief`, `review_*`, `save_note`,
+`resolve_change`, `ensure_worktree`), which only the sessions part fills.
 
 Minimal plugin (compiles against `radar_core`):
 
@@ -195,19 +219,22 @@ Register it in `src/lib.rs` behind its feature (1.14).
    only after a save failed: try saving again and quit, quit without saving, or stay;
    save-and-quit quits only after the save succeeded: `QUIT_MENU`, `quit_after_save` in
    `host.rs`); `x` and `?` the actions menu; `b` the
-   bulk menu; `w` write the config now (harmless; it is saved after each change anyway); `H` read-only activity history; `,` settings (`SETTINGS_KEY`); a Shift+letter that is a screen's key;
+   bulk menu; `w` write the config now (harmless; it is saved after each change anyway); `z`
+   pause or resume every part's refreshing; `` ` `` the agent dock (`dock::KEY`), when a part
+   has one; `H` read-only activity history (`HISTORY_KEY`); `,` settings (`SETTINGS_KEY`); a Shift+letter that is a screen's key;
    `tab`/`shift-tab` next/previous pane; `h`/`l`/`←`/`→` previous/next pane; `1`..`9` the
    pane at that position. Past a screen's outer pane `h l ← →` go to the screen beside;
    past an item page's, to the tab beside (`Plugin::tabs`, 1.5), as `tab` does on a page
    with one pane.
 6. Settings with the nav focused: `j`/`k`/`↑`/`↓` move between sections.
-7. The key goes to the plugin (`key` or `section_key`). If it answers `Ignored`: `⏎` on
+7. The key goes to the plugin as `intent(scope, pane, &Intent::Key { .. })`. If it answers `Ignored`: `⏎` on
    `Nav` focuses the next pane, `esc` focuses the previous, and `↑` (or `k`) past the top
    gives the keys to the top bar on a screen's panes (2.2) or to the page's tab row on an
    item page (1.5).
 
-So a plugin cannot bind `h l q x ? b w S`, the arrows left/right, `tab` or digits, and
-every other plain key is free. `Effect::Focus(pane)` moves focus from a handler.
+So a plugin cannot bind `h l q x ? b w z H ,` or `` ` ``, a screen's capital, the arrows
+left/right, `tab` or digits, and every other plain key is free on its own screen (a
+contributed action has a shorter list, 1.13). `Effect::Focus(pane)` moves focus from a handler.
 
 Capture hints follow the same ready-target boundary as key delivery. An unready
 setup screen shows its normal controls even when its part holds an unfinished editor;
@@ -221,8 +248,8 @@ The universal layout is three panes, `Pane::{Nav, Middle, Detail}`: say **nav**,
 and **detail** in code, comments, docs and on screen, not rail, tree, preview, side panel or
 left/right pane (a *tree* is the widget that may fill the middle pane, a *preview* the card
 that may fill the detail pane). A screen may draw them
-however it likes (`GitlabPlugin` draws nav │ middle │ detail, and at narrow widths shows
-only the focused one: `screen::fit`). `Host.focus` is the focused pane; start-up focus is
+however it likes (GitLab's Repositories is nav │ middle │ detail; at narrow widths the
+frontend shows only the focused one: `fit` in `view_tui.rs`). `Host.focus` is the focused pane; start-up focus is
 `Middle`. Settings is nav │ section │ detail at 120 columns and wider; below that, the
 section and detail stack beside the nav. All three are in `panes()`. Detail takes
 `↑↓ j k Home End`; `PgUp/PgDn` scroll it from any settings pane. Changing the
@@ -242,9 +269,8 @@ side. A click anywhere takes the keys back. A page's own `[`/`]` keep working fr
 body. A page with one tab has no row to move across. For this to work a part reports `↑`
 not handled at the top of a page's list or text (`move_in`, `Scroll::key`, the kit's
 lists and trees do), and nothing a page draws takes `h l ← → tab` (the host never shows
-them a part). *Why:* "what im not seeing is how this is nicely integrated with the
-navigation like we did with the panes for repositories jira slack. i can go from the
-overview pane to the overview tab then changes file threads".
+them a part). *Why:* a page's tabs are reached by the same movement keys as a screen's
+panes.
 
 Mouse: what can be pointed at is a `Target` in the view data, a part's (rows, cells,
 tabs, action lines) and the host's (`chrome:*`: tabs, the mode, source tabs, settings
@@ -306,7 +332,7 @@ stable, because other plugins parse it.
 
 Add every new topic to this table.
 
-### Action history
+### 1.6a Action history
 
 The runner records a local SQLite action journal; the host only collects pure records.
 Plugins never open the database. Use `Effect::Journal` with a stable semantic
@@ -318,20 +344,32 @@ a suppressed duplicate or count-only result; it does not complete the enclosing 
 Do not turn an opaque callback or an error string into assumed remote success/failure.
 Use scoped, validated subject identities; never record input text, payloads, config,
 clipboard contents, tokens or raw errors. Test hosts leave recording off by default.
-The [journal design](plans/action-journal.md) specifies schema/query versioning,
-correlation, privacy, coverage and follow-ups before adding a new event type.
+A new event type keeps the journal's schema and query versions (`crates/radar-core/src/journal.rs`).
 
-The [work-map API](plans/work-map.md) adds explicit durable items, typed item/action
-tags and evidence-backed relations. Use its validated, idempotent storage mutations
-only at the I/O boundary; no reducer or plugin should open SQLite. Subject locators
-are not permanent identities, and tags do not imply causation or permission. This
-foundation has no automatic item registration or tagging UI. Its
-[audited `radar work` CLI](plans/work-map-cli.md) uses acknowledged runner-owned
-commands; even its queries record their invocation and may initialize or migrate
-local journal state. They must not be described as zero-write reads.
+The work map (`work_api.rs`) adds explicit durable items, typed item and action tags,
+and relations backed by evidence. Its storage changes are validated and idempotent and
+run only at the I/O boundary; no reducer or plugin opens SQLite. A subject's locator is
+not a permanent identity, and a tag implies no cause or permission. Nothing registers
+items or tags them on its own. The `radar work` CLI (`work_cli.rs`) runs commands the
+runner owns and acknowledges; even its queries record that they ran and may create or
+migrate the local journal, so none of them is a read that writes nothing.
 `radar work events --stdin` discovers bounded original source evidence by exact
 scoped filters, including unbound history. It preserves the original request
 sequence and explicit outcomes; discovery never creates an identity or binding.
+
+### 1.6b The history overlay
+
+The host owns `H` (recent activity, the last 24 hours) and the History entries in `x`,
+all recorded activity included. Text being typed comes first, so `H` in an editor never
+opens history. Parts give the subject of what is selected through their `subject` and
+`journal_subject` hooks; a menu captures that subject when it opens, and `esc` gives back
+the view and focus under it.
+
+History's reducer and renderer do no I/O: the journal's worker answers each request with
+a query bounded by a snapshot, one page of events at a time, and a refresh starts a new
+snapshot. The reader records nothing about itself and infers no outcome. While it is
+open, tasks still report to their parts. Details show only the journal fields on its
+allowlist.
 
 ### 1.7 Cache, config, settings
 
@@ -355,19 +393,19 @@ sequence and explicit outcomes; discovery never creates an identity or binding.
   the UI thread. An object snapshot is stored one row per top-level member and only changed
   members are rewritten, so put parts that refresh on their own (a site, an account) at the
   top level. An old `<id>.json` is imported once and renamed `<id>.json.imported`; without
-  the database the JSON file is read and written as before. On
-  Linux `XDG_CONFIG_HOME` and `XDG_STATE_HOME` redirect both (use that in live checks);
-  on macOS they do not apply.
+  the database the JSON file is read and written as before. `XDG_CONFIG_HOME` and
+  `XDG_STATE_HOME` redirect both on every platform (`runner::config_home`,
+  `system::state_home`); use that in live checks.
 - **Settings sections**: `sections()` lists `SectionSpec{id, name, group}`; the host shows a
   tree of groups (uppercase headings, no fold markers; `ChromeView::settings`, the
   `SettingsNav` every frontend paints) │ your `section_view`'s body │ its detail. `name` is unique under its group and is the nav row and panel
   title; a name two groups share is titled with the group's name in front ("Jira
   connection", `Host::section_title`). A part's first section is its `connection`
   (2.11a). Keep the selected row of each section in the plugin
-  (`GitlabPlugin::section_rows`). The host adds its own `colours` section under `general`.
+  (`GitlabPlugin::section_rows`). The host adds its own `colours`, `parts`, `mode` and
+  `icons` sections under `general`.
 - Every key of your config table must be editable in a section, and every section row
-  must map to a config key or a visible check (the user's complaint: "the settings page
-  does not show all the settings we need to do").
+  must map to a config key or a visible check, so nothing needs editing by hand.
 - **Diagnostic log** (`crates/radar-core/src/log.rs`): a TUI cannot print to the terminal it
   draws on, so radar writes what it did and why to `<state dir>/radar/radar.log`
   (`~/.local/state/radar/radar.log` on Linux; `XDG_STATE_HOME` moves it). Past 256 KB the file
@@ -453,7 +491,7 @@ table of their own, `[icons]`, edited in `General › icons`.
   it", "keep it", "check it out"), never a sentence; what will happen is a line before
   them (`.saying("it leaves the nav pane")`). Use it before anything destructive on this
   machine and, after a setting the service can confirm, to ask "check ... now?"
-  (`settings::ask_to_check`). A write to a service asks with the write confirms instead
+  (each part has its own small `settings::ask_to_check`). A write to a service asks with the write confirms instead
   (2.23): `Menu::write_confirm(id, question, text, yes, no)` shows the whole text as
   lines (cut at 72 cells, never reworded) and offers `y` (`"yes"`), `e` keep writing
   (`"edit"`) and `n` (`"no"`); `Menu::write_plain(id, question, notes, yes, no)` is the
@@ -510,8 +548,11 @@ table of their own, `[icons]`, edited in `General › icons`.
 
 `cli()` returns a `clap::Command` (the runner renames it to your id); `run_cli(&ArgMatches)`
 returns a `CliTask` resolving to the text to print. Mirror what the TUI shows and offer
-`--json` (TUI-A3): `radar gitlab list [--view NAME] [--filter TEXT] [--json]`. The runner's
-own commands include `radar config path|show` and the audited `radar work` commands above.
+`--json`: `radar gitlab list [--view NAME] [--filter TEXT] [--json]`. The runner's
+own commands are `radar config path|show`, `radar icons list|export|path`, `radar setup
+[STEP]` (the TUI, opened on setup), `radar terminal`, `radar licenses`, `radar shot`
+(3.1a), the audited `radar work` commands (1.6a), and `radar mcp`, the relay an agent CLI
+starts (`src/main.rs`); a part's id may not be one of them.
 `run_cli` takes `&self`: copy what you need out
 of `self` before the `async` block, as `GitlabPlugin::run_cli` does.
 
@@ -519,7 +560,8 @@ of `self` before the `async` block, as `GitlabPlugin::run_cli` does.
 
 `crates/radar-gitlab/src`: `lib.rs` (the plugin, bus, pause, author pick, tests), `config.rs`
 (the `[gitlab]` table: `url`, `token` as `env:`/`glab`/literal, `base`, `refresh_secs`,
-`idle_minutes`, `history_days`, `style`, `source` tenancies, `view`s, `local`), `client.rs`
+`idle_minutes`, `history_days`, `style`, `source` tenancies, `view`s, `side_by_side`,
+`hide_files`), `client.rs`
 (GraphQL: a tenancy's merge requests and projects, a path's check; REST for jobs, logs and
 file diffs; `graphql` and `write` (sent once) for the requests that change something;
 every request goes through a `Transport`, so tests play recorded replies, `client::recorded`), `auth.rs` (a token per request, renewed once from
@@ -551,14 +593,14 @@ Local checkouts are not GitLab's: they are the git part's (`crates/radar-git`, 1
 ### 1.11a The git part
 
 `crates/radar-git/src`: `local.rs` (checkouts: the `[git]` table, the scan, the index,
-`git` checkout), `settings.rs` (sections `checkouts` and `editors` under the group
-`git`) and `join.rs` (what it adds to `repo` and `merge-request` subjects, whoever hosts
+`git` checkout), `settings.rs` (sections `checkouts`, `editors`, `links` and `branches`
+under the group `git`) and `join.rs` (what it adds to `repo` and `merge-request` subjects, whoever hosts
 them: the line under the title, `checkout  ~/code/api · java · on main` or why there is
 none; and the actions `c` check out the merge request's branch (asked first), `e` an
 editor, `t` a terminal, `s` look again). It is registered last, so a key another part
 already gives the same subject stays that part's.
 
-Slices 1 to 4 of that plan are built, and the part gained these (`crates/radar-git/src`):
+It also has (`crates/radar-git/src`):
 
 - **Links** (`[[git.link]]`, `repo`, `dir`, `branch`, `base`): a link wins over a clone
   found by origin. Set from the repo's `link to a local folder…` (an `x` row: a field,
@@ -573,7 +615,7 @@ Slices 1 to 4 of that plan are built, and the part gained these (`crates/radar-g
   refusals of `branch::problem` and `valid_ref`. The base is the link's, else the
   convention's, else origin/HEAD, else `main`. Settings › git › branches shows a live
   sample. Its templates take the variables `{me}`, `{key}`, `{project}`, `{num}`,
-  `{slug}` and `{type}` (see the table in local.md); a template without `{key}` is refused.
+  `{slug}` and `{type}`; a template without `{key}` is refused.
 - **Actions** on a repo and a merge request:
   - `n` new branch…: the name comes from the convention and the ticket key found on the
     page; when `me` is not set, it says so and names nothing;
@@ -614,7 +656,8 @@ Slices 1 to 4 of that plan are built, and the part gained these (`crates/radar-g
 The part owns the `checkout` kind (its folder as the id, with `repo` and `branch`).
 
 `[git]` is `roots` (folders to look in, `~` allowed), `depth` (folders down, default 4),
-`terminal` (empty: found; else a command line with `{dir}` and `{cmd}`) and
+`terminal` (empty: found; else a command line with `{dir}` and `{cmd}`), the branch
+conventions above (`me`, `branch`, `worktree`, `after_worktree`, `[git.types]`) and
 `[[git.type]]` (`name`, `markers`, `editor`): java, python, node, rust and go by
 default; a checkout's type is the first whose marker file is at its top. The index
 (every checkout's folder, `origin`, repo path, branch and top-level names) is in its
@@ -709,6 +752,45 @@ contributions). It imports no other part; it meets the others only through the b
   "start KEY on Jira?" with the lines the change would make, such as `assignee: Bob → you`
   and `status: To Do → In Progress`; `"off"` never asks).
 
+### 1.11c The GitHub part
+
+GitHub is one source of the Repositories tab: with several sources the source row
+switches between GitLab, GitHub and local workspaces (radar-workspace: the configured
+workspaces and the clones under each, `⏎` opens a folder). `R` opens Repositories; `G`
+and `W` go straight to GitHub and local workspaces. Branches and worktrees stay on the
+Branches screen (`B`).
+
+`crates/radar-github` reads only: GitHub.com over HTTPS, the repositories the config
+names, with no token (public reads), a typed token or an `env:NAME` reference.
+
+- **Local first.** What it read (repositories, open pull requests, pull request pages
+  with their checks, each read's ETag and "what moved" marker) is kept in the `github`
+  cache and drawn at start.
+- **Each minute asks only what moved.** With a token, one GraphQL query for every
+  repository's open pull requests, in batches (50 repositories of markers, 25 asked in
+  full, four batches in flight at most), then a conditional REST read for each one that
+  moved (a 304 does not count against the rate limit). A repository with nothing held is
+  asked in full in that query (its description and up to 30 open pull requests); what the
+  query cannot give exactly is read over REST, six repositories at a time. Without a
+  token, one conditional read per repository.
+- **Actions.** The Actions tab asks one page of the newest runs (sized to the view; on a
+  pull request page, of its source branch), conditionally, and keeps them until the
+  repository moves, a run is still going (a minute) or a quarter hour has passed. A run's
+  page pins one run and attempt. A failed Actions read never shows as no activity, and
+  the latest workflow seen is not a claim about the whole repository's health.
+- **Limits.** An open pull request page is asked again only while its checks run. A
+  rate-limit refusal waits for `Retry-After` or the bucket's reset; a bucket under a tenth
+  left waits for its reset; 5xx and network failures back off 1, 2, 4 … 15 minutes.
+- **Settings.** The connection check calls GitHub whatever repositories are configured.
+  With a token, discovery offers up to five pages of the repositories it can reach,
+  grouped by owner, to choose from (200 at most); a saved group may hold repositories of
+  several owners. The token is masked; a typed one is saved in `config.toml`.
+- **Subjects.** `repository`, `pull-request` and `workflow-run` (1.13) carry canonical
+  URLs as ids, so they never collapse with another provider's. It offers `Line`,
+  `Section` and `Actions`; its actions only navigate. The local parts match a clone by
+  `repository_url` (and `source_repository_url` for a pull request), host and path in
+  full; a pull request with no source repository known is not matched to its base.
+
 ### 1.12 Detail pages: the pattern for item views
 
 Use this for any "open this thing" view (a Jira ticket page, an environment, a Slack
@@ -719,7 +801,8 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
   (`pages::open_from_tree`); `space` alone folds. Rows on a page open the next page on `⏎`
   (tenancy → repo → merge request) or a link (a pipeline). Pages form a stack
   (`GitlabPlugin::pages: Vec<Page>`, `Kind::{Tenancy, Repo, Mr}`).
-- **Layout** (`pages::render`): the page takes over the whole body: a breadcrumb line
+- **Layout** (`pages/neutral.rs`, the page as view data; `changes_neutral.rs` for the
+  Changes tab): the page takes over the whole body: a breadcrumb line
   (`Repositories › a › api › !263`), a title line, a tab row, then the tab's
   content. Tabs are clickable.
 - **Keys** (`pages::key`, given the focused pane): `[`/`]` switch tabs (wrapping), as the
@@ -757,8 +840,7 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
   parts `recognise` in the description, in the sections other parts added and in the
   latest comment (a ticket's key, a merge request's or thread's link), and any address
   written out, once each. Choosing one is `Effect::Show`: a ticket's, merge request's or
-  thread's page opens here (`esc` comes back), a plain link opens the radar way. *Why:* "as a
-  general idea the system should try to actually make links work as well".
+  thread's page opens here (`esc` comes back), a plain link opens the radar way (2.34).
 - **The line under the title.** A repo or merge request page draws the first line
   another part puts there (`Point::Line`, `ui::chips::words`): with the git part,
   `checkout  <folder> · <type> · on <branch>` (`✓ on <branch>` when it is the merge
@@ -766,8 +848,8 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
 - **Panes.** While a page is open `panes()` is `[Middle]`, or `[Nav, Middle]` on the
   Changes tab while its files show, so `tab`, `h`/`l` and the digits move within the page
   and, past its edge, across its tabs (1.5). Hook it in `Plugin` by delegation, as
-  `lib.rs` does: `render`, `key`, `click`, `keys`, `panes`, `tabs`, `show_tab`, `folds`,
-  `bulk` and `busy` each check `self.pages.is_empty()` and hand over to the page code.
+  `lib.rs` does: `view`, `intent`, `keys`, `panes`, `tabs`, `show_tab`, `folds`, `bulk`
+  and `busy` each check `self.pages.is_empty()` and hand over to the page code.
   The tree's bulk commands are empty while a page is open.
 - **`x` menu.** `pages::keys` returns the page's own actions, titled with the item
   (`!263`, the repo, the tenancy): open, copy, refresh, scroll only if there is more, `esc`
@@ -782,25 +864,16 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
   `busy()` includes `pages::loading` so the top-bar spinner runs; the old value stays
   while a refresh runs; an error shows in the page. A merge request page's fresh copy also
   replaces the list's (`on_mr_page`).
-  Jira Links and repository Pipelines render a retained refresh error above cached
-  content, including cached empty results. The status is not a selectable row; table
-  hits and failed-job offsets still identify their original targets. A healthy cached
-  refresh adds no loading line, and a successful retry clears the error. At tiny panel
-  heights, no invisible table or diagnosis row registers a hit. These notices describe
-  the detail or runs read, not an independently fetched failed-job diagnosis.
-  MR Changes and Threads also retain a details-refresh failure above cached files or
-  discussions, including empty results. That notice names MR details so independently
-  fetched, head/page-owned diffs keep their own read status. The repository diagnosis
-  panel separately shows its failed-job read error above retained jobs or an empty
-  result, without moving job/run indices. Zero-height Threads content registers no
-  synthetic row. Jira Code shows a source-labelled page failure only on the exact tab
-  where Jira appended rows after deduplication; independent or duplicate-titled Code
-  tabs are not labelled with that failure.
+  A refresh that fails keeps what was held: the error shows as a line above the cached
+  content (even a cached empty result), is not a selectable row, moves no row's index,
+  and goes on the next successful read. Each notice names the read it is about (the
+  merge request's details, a repo's runs, a failed-job diagnosis), so a fetch that did
+  not fail keeps its own status.
 - **Tabs.** Merge request: Overview (how it ended if merged or closed, its labels, the
   description, and a "can it merge?" panel), Changes (the files as a folder tree, GitLab's order:
   folders first, a folder with one folder in it joined to it, `+added −removed` summed on
-  folders, beside the open file's diff, threads under their lines; a file's diff is fetched when it opens, five files a
-  page, and kept until the head commit moves), Threads (a list: comment on the merge
+  folders, beside the open file's diff, threads under their lines; a file's diff is fetched when it opens, 20 files a
+  request (`client::DIFF_PAGE`), and kept until the head commit moves), Threads (a list: comment on the merge
   request, then each thread), Pipeline, Commits.
   Repo (its title line has main's newest commit: sha, author, when): Merge requests,
   Pipelines on main (named after the default branch). Tenancy: a
@@ -824,11 +897,9 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
   `/` searches (matches stand out, `n`/`N` between them, `esc` clears it before it goes
   back), `space` folds the section at the cursor, `g`/`G` start and end; `o` opens the
   job, `p` its pipeline, `y` copies its link, `c` copies the excerpt, `r` loads it again.
-  A successful tail replacement, direct or in a diagnosis, resets old log coordinates
-  on every held page for that job only when the parsed text changes, keeping the search
-  query and rebuilding its matches. The search being typed is untouched. Equal text
-  and failed reads keep the position and folds; earlier chunks still shift them.
-  A changed direct response still opens at its first error.
+  A fresh tail whose text changed resets the position on every page of that job (the
+  search is kept and its matches found again); the same text or a failed read keeps the
+  position and folds.
 - **Testing** (`pages/tests.rs`): open each page kind, every tab, `esc` back to the tree
   cursor, repo → merge request → `esc`, an error in the page, refresh refetches, tab click,
   and snapshots at 160x40 and 80x24. The row check in `lib.rs`
@@ -881,85 +952,34 @@ resolved ticket URL, the words stay plain.
 | `pipeline` | radar-gitlab | `<project>#<id>` | `project`, `id` | no (its link) |
 | `job` | radar-gitlab | `<project>#<id>` (the job's id) | `project`, `id`; `name`, `stage`, `status`, `pipeline` (the pipeline's id) once known | yes (its log) |
 | `ticket` | radar-jira | the key, `ABC-12` | `title` (summary), `status`, `project`, `site` (Jira's site name), `type` (issue type), `assignee` (display name, empty when none), `parent` (the parent's key, empty when none) | yes |
-| `checkout` | radar-git | the clone's folder | `repo` (the repo path, empty when none is linked), `branch` (its current branch) | no (its row in the Branches screen) |
+| `checkout` | radar-git | the clone's folder | `repo` (the repo path, empty when none is linked), `branch` (its current branch) | yes (its row on the Branches screen) |
+| `workspace` | radar-workspace | the workspace's folder | — | no (opened in an editor) |
 | `note` | radar-workspace | the note's path | `ticket`, `type`, `status`, `title`; its link is the `file://` URL | no (opened in an editor) |
+| `work-item` | radar-workbench | the item's id | — | yes |
 | `thread` | radar-slack | `<channel>/<ts>` (the thread's first message) | `channel`, `ts`; optional `team_id` (workspace known when the reference was made) | yes |
 | `review-ask` | radar-slack | `draft`: the review ask being written | — | yes |
 | `link` | radar-core | the URL | — | no |
 
-GitLab repository, merge-request and job Show requests derive their exact project
-and numeric identity from the subject id. Supplied `project`, `iid` and `id` fields
-must agree; Show still requires its documented routing fields. A supplied URL must
-independently identify the same kind and target on the configured HTTP(S) origin,
-effective port and installation-path boundary. Unsafe URL spellings (userinfo,
-backslashes, whitespace/control characters, dot-segment repairs and encoded path
-separators) cannot establish local routing. Existing configured-base credential
-sanitization remains unchanged; credentials in a supplied or generated subject URL
-still prevent local routing and leave that original URL to the normal external fallback.
-Valid no-URL subjects keep current-context
-navigation; pipelines stay external links. A refusal leaves navigation and reads alone,
-so the host can open the original URL normally. Numeric leading zeros and zero retain
-their existing navigation meaning; page-open history still omits zero identities.
+**A link opens a page here only when it is exactly one of yours.** Every owner's `show`
+and `recognise` hold to these rules (GitLab's, Jira's and Slack's tests cover each):
 
-GitLab recognises complete URL candidates, preserves the original URL including
-query/fragment and supported item subroutes, and enriches only display metadata from
-cache. Cached project, number or URL cannot replace the parsed target. Repository
-recognition still requires a known repository. A written or plain external link loses
-its browser fallback only for a full-span recognition, never an embedded substring.
-Journal ownership shares the same consistency check but still requires the existing
-canonical safe URL equality: ID+URL-only subjects remain valid, while `/diffs` does
-not become a canonical journal subject merely because it can navigate. These checks
-prove local routing consistency, not remote existence, fresh account/cache ownership
-or rename/alias equivalence; project spelling is exact.
-
-Jira ticket Show treats a supplied `site` alias or URL as an explicit constraint.
-An unknown, removed or empty alias refuses rather than using another site. A known
-alias needs no watched-project match. A supplied HTTP(S) URL must independently
-match that configured origin (scheme, normalized host and effective port) and the
-exact `/browse/<subject id>` path. Without an alias, a URL selects only one uniquely
-matching configured origin; duplicate-origin aliases require an explicit choice.
-Without either alias or URL, the existing watched-project, held-key, first-site
-precedence remains. Configured Jira Cloud paths/query/fragment are still discarded
-by `site_url`, rather than treated as an installation prefix. Supplied userinfo,
-URL parser repairs, encoded path characters, extra/trailing path segments and key
-mismatches cannot open a local page or start reads. Query/fragment remain original
-fallback context and never establish identity. Refusal leaves pages, caches, pending
-owners, counters and the Host view/back stack unchanged; the exact original URL
-remains available to the normal browser/SSH-clipboard fallback.
-
-Jira journal ownership also checks supplied URL consistency but still requires an
-explicit alias and the existing strict canonical snapshot rules: unique-origin
-navigation does not add inferred owner snapshots. This guard does not change shared
-subject equality, validate `project` display metadata, migrate accounts or prove
-remote existence. Jira recognition first excludes each complete, whitespace-delimited
-URL-like token from bare-key scanning, including unsupported schemes, malformed
-HTTP(S), scheme-relative and `www.` forms. Query/fragment, punctuation and nested
-URLs cannot leak ticket keys from a rejected candidate. A strict configured
-`/browse/KEY` URL resolves without an inferred alias, requires one unique configured
-origin, and then carries that explicit site plus the exact original URL. The URL may
-name an unwatched project; the same unknown bare key stays unrecognised. Bare keys
-outside candidates retain whole-word/case/project and `site_for` behavior.
-
-For positive recognition only, clear trailing prose punctuation and unmatched outer
-wrappers are removed; balanced URL punctuation and IPv6 brackets remain. A URL must
-start at the token boundary or after a clear opening prose wrapper, so a numeric or
-other ambiguous prefix cannot manufacture a valid link. Ranges are byte offsets.
-This deliberately lets Host open complete configured browse links locally; foreign,
-malformed and ambiguous raw links retain their exact external fallback. Host still
-requires a full-span match and does not universally intercept key substrings in raw
-links. Slack separately recognises mrkdwn display labels, so `<foreign-url|ABC-12>`
-can still independently name a bare local key. Shared kind+id equality can still
-collapse same-key subjects across sites; neither contract changes here.
-
-Slack thread references with a URL route internally only when the complete HTTP(S)
-permalink belongs to the exact normalized workspace host currently held in `Me.url`.
-Recognised links retain their original URL and carry the known `team_id` when present.
-Before opening, `channel` and numeric `ts` must agree with the subject id; a supplied
-URL must agree with those fields, and a supplied `team_id` must equal the current team.
-A valid older/direct local reference without URL or team still uses the current context.
-Unknown, foreign or inconsistent references do not open a local page; their original
-URL remains the ordinary browser/SSH-clipboard fallback. This is a local routing
-check against held identity, not a fresh account-ownership or remote-root check.
+- The subject's id is the identity. Its fields (`project`, `iid`, `id`, `site`,
+  `channel`, `ts`, `team_id`) must agree with the id, and a supplied URL must name the
+  same target on a configured origin (scheme, host, effective port, and for GitLab the
+  install path; for Jira the exact `/browse/<KEY>`; for Slack the workspace held in
+  `Me.url`). A Jira `site` given is a constraint: an unknown one refuses rather than
+  trying another site.
+- An unsafe spelling never routes locally: user info or credentials in the URL,
+  backslashes, spaces or control characters, dot segments a parser would repair,
+  encoded path separators, extra path segments.
+- A refusal changes nothing (pages, caches, the back stack) and leaves the original URL,
+  query and fragment included, to the normal fallback (the browser, or the clipboard
+  over SSH).
+- Recognising works on whole URL tokens, as byte ranges: trailing prose punctuation and
+  unmatched wrappers are trimmed, and a ticket key inside a URL that was refused is not
+  picked out as a bare key. Cached data may add display words, never change the target.
+- These checks prove the link is consistent with what radar holds, not that the remote
+  thing exists or that the account owns it.
 
 radar-slack matches the subjects it is asked about by their `url` (a thread that links to it
 or under it) and, for a `ticket`, by its id as a word in the text; it groups its own
@@ -998,6 +1018,7 @@ itself.
 | `Tab` | `Tab { title, rows }` | a tab after the page's own, with its keys; `⏎` on a row shows its `subject` | the merge request page, the repo page |
 | `Actions` | `Actions(vec![Action::new(key, what, id).icon(..)])` | rows in the subject's `x` menu under the part's `name()`; an owner may also list them where it draws the subject (`cx.parts.actions(subject, own_keys)` gives the keys the menu keeps), a click returning `Effect::Press(key)` | merge requests and repos (tree, preview, pages; the tree's preview lists them); jobs (the job page) |
 | `Line` | `Line(vec![Chip::new(words, tone).icon(..)])` | one line under the subject's title, as running words (`ui::chips::words`), the first part's only | the repo and merge request pages |
+| `Mark` | `Mark { icon, words }` | the row's icon in place of the kind's, and the words in place of the owner's detail (a repo cloned here, on its branch) | repo rows |
 
 A badge on the top bar is still `badge()`, by the part's own tab, and hidden while it is
 not set up.
@@ -1012,17 +1033,23 @@ joins it) and `Actions`. It adds a ticket column (a click opens the ticket), a s
 Ticket tab (`⏎` on its row opens the ticket's page) and actions to merge requests; radar-gitlab
 adds a Code tab, a `code` column and a section to tickets (`crates/radar-gitlab/src/tickets.rs`).
 
-radar-git owns nothing yet; it adds to `repo` (its `project`, else its id) and
+radar-git owns `checkout`; it adds to `repo` (its `project`, else its id) and
 `merge-request` (`project`, `branch`) a `Line` (where it is checked out here) and
 `Actions` (`c` check out a merge request's branch, `e` editor, `t` terminal, `s` look
 again), for any host that draws them (1.11a).
 
 **Keys of contributed actions.** The host drops a contributed key that the owner's `x`
-rows use, that the host or moving about uses (`q x ? b w h l j k g G [ ] / : + = -` space,
-digits, capitals), or that an earlier part already took: the row stays, chosen from the
-menu only. A kept key works on the owner's screen too, but only when the owner did not
-use it (`key` returned `Ignored`): no contribution can take a key the owner uses.
+rows use, that the host or moving about uses (`q x ? b w z h l j k g G [ ] / : + = -`
+space, digits, capitals; `host_key` in `host.rs`), or that an earlier part already took:
+the row stays, chosen from the menu only. A kept key works on the owner's screen too, but
+only when the owner did not use it (its `intent` returned `Ignored`): no contribution can take a key the owner uses.
 Choosing one calls `act(subject, id)` on the contributor.
+
+An owner may give its contributed `x` rows a context (`Plugin::subject_menu_context`), as
+`menu_key_context` does for its own keys (1.9): the host keeps the token, the route and
+the subject when the menu opens, and checks them and the contributor's action again
+before it runs one. The token lives in memory only and is never journalled; `None`, the
+default, runs on the subject captured.
 
 **Related subjects for actions.** A part may implement `related(subject)` to return
 associated subjects from its cache, without fetching or blocking. For a ticket, the
@@ -1039,15 +1066,10 @@ walk. A missing provider contributes nothing. Start work uses related repositori
 suggest its initial clone selections; the user can still change every tick before the
 existing start-work confirmation.
 
-The host prepares this input once, then records and dispatches that same input.
-The `plugin.action` journal record retains owner-validated Primary and Context
-snapshots, up to 32 scoped identities total, without changing the delivered list.
-Recording deduplicates by provider, instance, kind and id independently of compose's
-kind/id matching. Only top-level supplied references are captured; their nested
-references are neither expanded nor recorded. Unsupported/invalid identities and
-actual overflow are explicitly counted. Context means a reference was supplied,
-not that the receiver used it, that the remote object exists, or that a relationship
-or permission was established. See the [journal contract](plans/action-journal.md).
+The host gathers this input once and both records and dispatches it: the
+`plugin.action` journal record keeps the subject and its related subjects (top level
+only, at most 32, those it cannot record counted). A related subject recorded says only
+that it was passed, not that the receiver used it.
 
 **Knowing what is there.** `cx.has(kind)` (a set-up part owns it) and `cx.can_show(kind)`
 (and opens a page for it), for choices that are not contributions.
@@ -1114,6 +1136,8 @@ Each part is developed, tested and run on its own; radar-core is the only thing 
   "jira")]` line in each list in `src/lib.rs`. Run a part alone with
   `cargo run --no-default-features --features jira`; no parts at all with
   `--no-default-features` (settings with the parts section saying none are compiled in).
+  A provider feature turns on the part it serves (`sessions-claude = ["sessions", …]`),
+  and `shots` brings `demo` and `png`.
 - **The guard** (`tests/parts.rs`): fails if a part depends on another (from
   `cargo metadata`), if a part's source names another part's crate or `"id"`, if radar-core
   names any part or tool word (gitlab, jira, slack, merge request, ticket, ...), or if a
@@ -1170,9 +1194,9 @@ text and as styles (3.1a). A new element gets a place in the gallery.
 
 The first nine tabs (through Motion) are each element live. After them are the **stories**
 (`ui/stories.rs`): Colours (every slot, and each text colour on each background), Tones
-(tones, marks, checks, verdicts, key hints), Row states, Grid states (table and tree) and
-Waiting (loading, busy, empty, set up, failed), and Long text (cut, wrapped, columns
-dropped, wide characters, markdown at two widths). Each shows an element in each of its
+(tones, marks, checks, verdicts, key hints), Row states, Grid states (table and tree),
+Waiting (loading, busy, empty, set up, failed), Long text (cut, wrapped, columns
+dropped, wide characters, markdown at two widths) and Icons. Each shows an element in each of its
 states, side by side: selected, without focus, empty, loading, failed, too long. They
 scroll (`j`/`k`, `PgUp`/`PgDn`). **To show a new element or state:** add a panel to the
 story that fits, or write `fn my_story(theme, area, buf, frame) -> u16` with the
@@ -1183,41 +1207,8 @@ reading them, and look at it once with `radar shot --place gallery.<page> --size
 Places and the colour snapshots enumerate the tabs (`gallery::tab_names()`), so a new tab
 or story needs no edit to either.
 
-| Element | Use it for | API | Built on |
-|---|---|---|---|
-| Banded tree | a hierarchy (groups → items → sub-items); a row's cells are a span or several (`Node::cell(heading, span | Line | Vec<Span>)`, so a cell's icon keeps its own colour beside the words); a row's `chips`, a `detail` shown whole or not at all, `foldable` when the fold is the part's; a row with no cells (a group's heading) runs across the columns; a text input on a row (`Node::input_at(x)`, `BandedTree::input`) starts `x` cells into the name, past the stripe and tree line | `ui::tree::{BandedTree, Node, TreeLook, TreeState, open_new, key}` | `tui-tree-widget` |
-| Columns | named columns at the right of rows, aligned at every depth, dropped by width | `ui::columns::{Column, Columns}`: `fit`, `with_extra`, `line`, `header`; `line_of`/`cell_lines` for cells of several spans | — |
-| Table | a flat list with headings and a cursor (a page's list of items or runs); values cut with `…`, `Table::lines` for cells of several spans | `ui::table::Table` | ratatui `Table` |
-| Row list | selectable rows with a word at the right (settings sections, nav panes), and a `detail` dropped whole when it does not fit; a heading row (`ListRow::heading`) is never selected or clicked, and `rows::select` moves the cursor over it for `↓ ↑ Home End PgDn PgUp`; `RowList::render_in(inner)` for a panel the host drew, so no part rebuilds the frame for the scrollbar | `ui::rows::{RowList, ListRow, Move, select}`, `ui::scroll::{around, scrollbar_in}` | ratatui `List` |
-| Entries | selectable rows with lines under them (a failure and the lines that say why) and lines before them that are never chosen (a heading); the cursor's lines kept in view | `ui::entries::{Entries, Entry}` | — |
-| Log | a long output: a cursor, sections that fold under their titles (`┌` open, `─ … ⋯ n lines` folded), `/` matches standing out and `n`/`N` between them, lines wrapped; a terminal's colours as inks (`LogLine::ansi`) mapped to slots | `ui::log::{LogText, LogLine, Section, LogState, LogView}` | — |
-| Diff | one file's changes: hunks, both sides' line numbers, a cursor marked `▎`, blocks of lines under any line (threads, a comment being written; the area of each comes back to draw an input in), code highlighted by language, added and removed lines on a tint with the changed words singled out; only rows in view drawn | `ui::diff::{parse, hunks, DiffLine, DiffView, DiffState}` | `similar` |
-| Highlight | code coloured by language: a code string and its language in, spans per line out; the grammars' scopes on theme slots (keywords bold, comments italic, so it reads without colour); plain for an unknown language; grammars loaded on first use | `ui::highlight::{highlight, Highlighter, language_of}` | `syntect` |
-| Rich text | any service's formatted text (markdown, Jira's ADF, Slack's mrkdwn) as one document, laid out to the width: paragraphs, headings, lists that hang, quotes, call-outs, code, tables as columns, rules, details shown open, media; runs with marks, links, mentions (`me` for the reader), emoji, badges; its links collected; images placed (1.16) | `ui::rich::{Doc, Block, Inline, Kind, Marks, Media, Look, layout, plain, emoji, Laid, Placed}` | — |
-| Markdown | text written in markdown (a description, a comment): parsed into rich text (an image alone on its line is a media block), the html descriptions carry (comments dropped, `<details>` shown open) | `ui::markdown::{parse, render, plain, Markdown, Link}` | `pulldown-cmark` |
-| Links | words the terminal opens on a click (OSC 8): a span, a line, a chip that carries its url | `ui::link::{span, line, style}`, `ui::chips::chip` | — |
-| Click targets | a row across its panel, a list's drawn rows, a label with a cell either side (at least 3), a pane's background, a page's tabs and body | `Cx::{hit_row, hit_rows, hit_label, hit_pane, hit}`, `PageAreas::hit`, `plugin::padded` | — |
-| Hover | what a click acts on, lit under the pointer (`bg.hover`; underlined at 16 colours and none); painted by the shell, never by a part | `ui::hover::paint`, `Host::{hover, hover_at, hovered}` | — |
-| Pointer | the mouse pointer's shape (OSC 22): a hand, a text cursor, the terminal's own | `ui::pointer::{Shape, sequence, wanted, detect}` | — |
-| Check | a part's places on its plugin alone: each `x` row's key is the part's and is taken, each target drawn is taken, each contributed action acts (2.5, 3.2) | `check::{Check, Place, Scope, host_keeps}` | — |
-| Images | pictures drawn in the terminal over the rows rich text keeps for them; fetched by the part's `Fetch` as they come into view | `ui::image::{Fetch, fetch, card, scrolled}` | `ratatui-image` |
-| Page frame | an item's page: breadcrumb, title and details, a line under it, tabs | `ui::page::{PageFrame, crumbs, title_line, tab_row}` | ratatui `Tabs` |
-| Card | a titled panel of text that scrolls (the detail pane, a page's text tab); a quiet rule for sections and two-cell inset for their rows; a footer fixed at the foot of a list panel | `ui::card::{card, panel, section, section_body, footer, shows, above}` | below |
-| Scrolled body | any body taller than its panel, text or stacked widgets | `ui::scroll::{Scroll, scrolled, scrolled_with, scrollbar}` | `tui-scrollview`, ratatui `Scrollbar` |
-| Chips | short labels after a name; a title that gives way to them | `ui::chips::{chips, after_name}` | `widgets::chip` |
-| Status strip | counts in a row: `4 open · 1 to review` | `ui::status::{strip, strip_right}` | — |
-| Checks | a setting's check: the row's mark and the detail line; the as-you-type verdict | `ui::status::{Check, as_you_type, as_you_type_unsure}` | — |
-| Stage bar | the steps of a run across the width, bar over mark and name | `ui::meter::{Stage, stages}` | ratatui `Layout` |
-| Ratio | how much of something is done, on one line | `ui::meter::ratio` | ratatui `LineGauge` |
-| Sparkline | numbers over time (durations of runs) as a widget or inside text | `ui::meter::{sparkline, spark}` | ratatui `Sparkline` |
-| Key-value rows | facts beside labels; a heading with its detail | `ui::rows::{kv, labelled}` | `widgets::kv` |
-| Composer | text typed for a write (a comment, a reply, a description): `⏎` a new line, `ctrl-s` review and send, `esc` stop (asking first when there is text, `stop_menu`); backspace at a line's start joins it to the one above; pasted lines stay lines; `one_line` for a title (`⏎` reviews); over the foot of a body (`draw_foot`) or under a row (`block`, `draw_input`) | `ui::composer::{Composer, Typed, stop_menu}` | `input::TextInput` |
-| Connection | a part's connection section: its rows' labels and column, the check row, a token masked, the detail pane in one order, and what was found in the environment as a question (`Found`) | `ui::connection::{field, check_field, masked, Detail, Found}` | `widgets::kv` |
-| Add row | the `+ add …` first row of a list | `ui::rows::add_row` | — |
-| Empty, set-up, loading | a panel with nothing yet; a part not set up; a fetch running or failed | `ui::states::{empty, set_up, loading, failed, fetching}` | — |
-| Spinner | something running: the symbol, or `⠋ asking …` | `ui::states::{spinner, busy}` | `throbber-widgets-tui` |
-| Marks and text | a state as a symbol that reads without colour (`Mark::span`: its icon when icons are on); fit, cell, wrap, durations, short names; display width (`width`, `take`, `pad`) | `ui::{Mark, fit, cell, clip, wrapped, duration, short_name, width, take, pad}` | `unicode-width` |
-| Icons | what a row, state, tab, heading or person is, as an icon from the pack in use (1.18) | `ui::icon::{Icon, lead, span, text, with, or, on, lead_width}`, `Column::icon`, `Plugin::icon`, `Plugin::section_icon`, `Menu::icon`, `MenuItem::icon`, `Binding::icon`, `Chip::icon` + `ui::chips::chip_spans`, `Effect::NotifyWith` | — |
+Every element, its API, file, states, keys and gallery tab is in
+[`docs/components.md`](components.md) section 3; this guide does not repeat the list.
 
 When to use which:
 
@@ -1265,7 +1256,8 @@ reader's), `Emoji` (its glyph, or `:name:`), `Badge { tone }` (a state, drawn as
 `Image { src }` (an image among words: its words), `Break`; `Marks` are bold, italic,
 strike, underline, code. Build with `Inline::text/link/mention/emoji/badge/line_break`,
 `.bold()`, `.code()`, `.with(marks)`, `Block::para`. A `Doc` serialises, so a part can
-keep it in its cache (radar-jira does; read an older shape leniently, as `model::lenient`).
+keep it in its cache (radar-jira does, and reads an older shape leniently: `lenient` in its
+`model.rs`).
 
 **Converting.** Markdown: `ui::markdown::parse(text)`. Jira: `adf::doc(&value)` (statuses
 become badges by colour, panels call-outs by type, dates text, media found among the
@@ -1317,13 +1309,13 @@ keeps its credentials in it:
 let token = self.cfg.resolved_token().ok();
 let fetch = radar_core::ui::image::fetch(move |src: String| {
     let token = token.clone();
-    async move { client::picture(&src, token.as_deref()).await } // bytes, or an error
+    async move { client::picture(&src, token.as_deref()).await } // your client's fetch: bytes, or an error
 });
 radar_core::ui::image::card(t, area, buf, "thread", true, &self.scroll, lines, &media, &fetch);
 ```
 
-Send a token only to your own service's hosts (`client::slack_host`,
-`client::on_site`, `pictures::on_server`), never log it, and refuse a sign-in page as not
+Send a token only to your own service's hosts (Slack's `client::slack_host`, Jira's
+`client::on_site`, GitLab's `pictures::on_server`), never log it, and refuse a sign-in page as not
 a picture. Slack draws a file from its largest thumbnail up to 1024 wide (Bearer token);
 GitLab makes a description's `/uploads/...` whole and asks its API first (Bearer token);
 Jira draws an attachment's content (basic auth, the redirect to its media store followed
@@ -1366,11 +1358,10 @@ only while one runs. Idle, radar draws on events alone, as before.
    (`join::motion_key`), radar-jira per answer for tickets, radar-slack per read for threads
    (`SlackPlugin::threads`: each thread's first message, whose reply count and latest
    reply say when it moved).
-2. While drawing, mark each visible row with `motion::row(key, rect)`. For the kit's tree:
-   after `BandedTree::render`, walk the rows' area with `TreeState::rendered_at` and mark
-   the rows that have a key (`mark_rows` in each part's `screen.rs`). A row not marked in
-   the frame after the cue is let go; a row that moves (the sync re-sorted the list) glows
-   where it is now.
+2. Give each tree row in your view its key: `TreeRow::glow(key)` (`view.rs`). The
+   frontend marks the rows it draws (`motion::row` in `view_tui.rs`); a part marks nothing
+   itself. A row not drawn in the frame after the cue is let go; a row that moves (the
+   sync re-sorted the list) glows where it is now.
 3. Where a panel waits for its first data (`Loading from …`, a page's `loading…`), call
    `motion::loading(inner)` while it waits. Stop when the data is there (do not mark a
    panel that is refreshing what it already shows).
@@ -1391,11 +1382,17 @@ only while one runs. Idle, radar draws on events alone, as before.
   `Engine::drew_in`); the colours section's detail says so.
 - The setting: `[theme] motion = "full" | "subtle" | "off"`, `subtle` by default, chosen
   in Settings › General › colours (`motion` row).
-- **The startup splash** (`radar_core::splash`) follows the level: at `full` the mark's
-  columns light left to right while its ramp slides in, the tagline reads in, each part's
-  name lights as the part is ready, and the first screen fades in by 680 ms (the screen
-  cue); at `subtle` the mark shows at once and hands off at 400 ms; at `off` (or held
-  back) it shows only when the first screen is not ready after 150 ms. Any key, click or
+- **The startup splash** (`radar_core::splash`) is a radar sweep that follows the level. At
+  `full`, a 64 × 24 braille scope opens. One turn of the beam (200–1400 ms) locks a contact on
+  each part at its bearing, and the readout counts them. The mark paints in, then the parts'
+  names. The start line (`radar_core::start_lines`, a new one each start) types in, and the
+  first screen fades in at 2300 ms (the screen cue). At `subtle` there is no beam: everything
+  fades in, and it hands off at 1600 ms. At `off` (or held back) the last frame shows only when
+  the first screen is not ready after 150 ms. A rare echo (1 in 50) or the fire event (motion
+  full, held 1.5 s longer) comes with the start. Too small for the scope, it shows the mark,
+  the names and the line. In a terminal with kitty's graphics the scope is drawn in pixels;
+  braille elsewhere. Skipped before 1.5 s (`splash::EARLY_MS`), its line moves to the status
+  line for 5 s. Any key, click or
   paste ends it and acts on the screen under it. radar-core works out every cell
   (`splash::frame`); the Ratatui runner paints it (`splash::draw`), the bridge sends it as
   `Snapshot.splash` for Ink. `[theme] splash = "auto" | "off"` (Settings › General ›
@@ -1412,8 +1409,7 @@ only while one runs. Idle, radar draws on events alone, as before.
 
 ### 1.18 Icons: `radar_core::ui::icon`
 
-The user asked for icons ("I notice no icons or emoticons"), wherever they make sense:
-on anything that reads faster with one. **The kit hands back icons from one place; a part
+Icons go wherever they make sense: on anything that reads faster with one. **The kit hands back icons from one place; a part
 never writes a glyph.** A part names what it means and the kit draws it from the pack the
 user chose, in the icon's colour.
 
@@ -1519,28 +1515,27 @@ Nerd Fonts first (`visual::FONTS`); the gallery's Icons story shows every pack.
 
 ## 2. The UX contract
 
-A new plugin meets every rule below. Each has the reason, in the maintainer's words where
-they gave them. "Check" says how to tell.
+A new plugin meets every rule below. Each has its reason. "Check" says how to tell.
 
 ### Keys and bars
 
-**2.1 The status line is lazydocker's fixed bar.** `PgUp/PgDn scroll · b bulk · q quit ·
-x menu · ←→↑↓ navigate`, drawn by the host (`shell::hints`). A plugin adds nothing to it
-except while capturing (`hints`, `section_hints`) and, in front of the fixed keys, the
-one or two main actions of the selected row that apply right now (`row_hints`: `u
-rebase`, `m merge`; none when nothing applies). *Why:* "its pgup pgdn for scroll up and
-down. b for bulk commands, q for quit x for menu up, down, left, right to navigate";
-"is that the place for us to pace shortcuts?". Check: no `hints()` output outside
-capturing; `PgUp/PgDn` really scrolls something on your screen (the bar shows it on every
-screen).
+**2.1 The status line is lazydocker's fixed bar.** `PgUp/PgDn scroll · b bulk · +/-
+expand/collapse · q quit · x menu · ←→↑↓ navigate`, drawn by the host
+(`Host::status_hints`): `b bulk` only where there is a bulk list, `+/-` only on a tree
+that folds, `PgUp/PgDn` on every screen (and in settings when the detail scrolls). With
+the top bar or a page's tab row holding the keys it says `←→ screens · ↓ enter` (or
+`←→ tabs`, `←→ sources`) instead. A plugin adds nothing to it except while capturing
+(`hints`, `section_hints`) and, in front of the fixed keys, the one or two main actions
+of the selected row that apply right now (`row_hints`: `u rebase`, `m merge`; none when
+nothing applies). *Why:* one bar with the same keys everywhere is learned once. Check:
+no `hints()` output outside capturing; `PgUp/PgDn` really scrolls something on your
+screen.
 
 **2.2 No shortcut footers or repeated letters.** No key hints inside a panel, no letter in
 front of a row, no "letter after a name". The tab shows the shortcut as an underlined
-letter inside the name (`shell::mnemonic`). *Why:* "the mr panel also still has shortcuts
-in the bottom right"; "letters for shortcuts do not need a repeat after them"; "you just
-moved the shortcut from the back to the front"; "it presents you with... e is change code?
-and says the letters in front of each row. wtf". Check: keys appear only in menus' key
-column and the status line.
+letter inside the name (`shell::mnemonic`). *Why:* a key shown twice, or a letter before
+every row, is noise the reader has to skip. Check: keys appear only in menus' key column
+and the status line.
 
 **The top bar takes the keys too.** `↑` (or `k`) on the first row of any pane of a screen
 (not inside an item page, where `↑` at the top does nothing) gives the keys to the top
@@ -1554,9 +1549,8 @@ handler reports `↑` not handled when it cannot move any further** (the kit's
 `Outcome::Ignored`), and the host takes it up. An item page's tab row takes the keys the
 same way: `↑` past the top of the body, `← →` along the row, `↓` back in; in the body
 `← → h l` past the page's panes and `tab` on a one-pane tab move across the tabs, so no
-movement key is dead on a page (1.5). *Why:* "navigating to and from the top bar
-must work the same on every screen"; "what im not seeing is how this is nicely integrated
-with the navigation like we did with the panes for repositories jira slack".
+movement key is dead on a page (1.5). *Why:* moving to and from the top bar and a page's
+tabs must work the same on every screen and page.
 
 **2.3 Pane movement is the host's.** `tab`, `h l ← →`, `1`..`N`, `⏎` in, `esc` out (1.4).
 Do not rebind them. In a tree, `space` alone folds and `⏎` opens the row's page (1.12);
@@ -1567,23 +1561,16 @@ the part reports the key not handled). `ui::tree::key` does all of it (`tree::ex
 `tree::collapse`), and a log's sections take the same keys. Where the focused panel is
 such a tree (the settings nav, or a part's: `Plugin::folds`, `Plugin::section_folds`)
 the status line shows `+/- expand/collapse` and the `x` menu lists both keys; the host
-adds them, a part only says where its trees are. *Why:* "groups that can expand and
-contract: if I use plus or minus then it expands and contracts; also add it to the bottom
-shortcuts".
-*Why:* "can we use the same
-navigation and menu controls that lazydocker uses, it is intuitive and easy to follow".
+adds them, a part only says where its trees are. *Why:* lazydocker's navigation is
+easy to follow, and folding with `+`/`-` is shown where it works.
 
 **2.4 `↑`/`↓` in a focused detail pane move through it.** `PgUp`/`PgDn` scroll it from
 any pane; a new selection resets it to the top; a scrollbar shows when there is more.
-*Why:* "when i press down in that panel i expect to navigate that mr, but pressing down
-then takes me to the next mr?". Test: `down_in_the_preview_moves_through_it_not_to_the_next_merge_request`.
+*Why:* `↓` in the detail pane is expected to read further, not jump to the next row. Test: `down_in_the_preview_moves_through_it_not_to_the_next_merge_request`.
 
 **2.5 The mouse and the keys both work, everywhere, and every part proves it.** *Why:*
-"there is a fundamental thing here that the mouse and keyboard actions all need to work";
-"the cursor should try to highlight or show a responsive thing where the cursor is";
-"the bounding box for the cursors felt a bit small so it felt a bit hard to click in the
-right place"; earlier "There is also no support for mouse movements. and clicks.",
-"clicking in an out of a pane does not remember where the cursor was last".
+people use both; what the pointer is over should answer, targets must be big enough to
+hit, and clicking in and out of a pane keeps its cursor.
 
 - **Clicks.** Tabs (top bar, page tabs), nav rows, middle-pane rows, list and table rows,
   settings rows, column headings that pick something, other parts' cells, the detail pane's
@@ -1615,8 +1602,9 @@ right place"; earlier "There is also no support for mouse movements. and clicks.
   elements (`RowList`, `Table`, `Entries`, `LogView`, `DiffView`) return full-width rows.
 - **Every target acts, every key shown acts.** Each click target a part marks must do
   something when clicked, each `x` row's key must reach the part and be taken, an `x`
-  row's key must not be one the host keeps (`x`, `q`, `?`, `b`, `w`, `h`, `l`, `tab`,
-  `←` `→`, digits, the settings key, and any screen's capital), a click that opens a menu
+  row's key must not be one the host keeps (`q x ? b w z h l j k g G [ ] / : + = -`,
+  space, `tab`, `←` `→`, digits, the settings key `,`, history's `H` and any screen's
+  capital: `check::host_keeps`), a click that opens a menu
   or a link has a key in that place's `x` menu (or `⏎`), and an action a part adds to
   another's menu returns effects. A key that would do nothing says why on the status line
   instead (`nothing to scroll here`, `nothing to move to here`, `nothing to fold`): report
@@ -1637,10 +1625,8 @@ what is selected, first row a heading naming the selection (`!263`, the repo, th
 No movement keys. Every row works when chosen: the host presses the row's key, and drops
 rows whose `keys` string is not a single key `parse_key` knows (`a`, `space`, `⏎`, `esc`,
 `tab`, arrows, `pgup`, `pgdn`, and explicit ctrl combinations such as `ctrl-r`). Say what the key will do now ("hide
-its repos" vs "show its repos"). *Why:* "The x key should also be relevant to the area that
-we are looking at and not just all the options. the options that are displayed should be
-consistent and relevant and work"; "the actions also do not work. for instance o open the
-pipeline and the like do not actualy open the pipeline". Check: the part's row check (3.2).
+its repos" vs "show its repos"). *Why:* a menu of every option, or of options that do
+nothing, cannot be trusted. Check: the part's row check (3.2).
 
 **2.8 `b` is for bulk.** `bulk(scope)` lists what can be done to everything shown (open
 all, close all, copy every link, refresh). Anything destructive asks first. If you have
@@ -1651,19 +1637,16 @@ what it does. A question (`Menu::confirm`, the write confirms): what will happen
 line, then its choices as raised buttons (a light edge, a filled face, a dark edge) in a row
 against the right, each the key and what it does (`y post it   n drop it`), not `yes` and
 `no` under each other (1.9). Never explain a
-choice in a separate panel when the menu can carry the line. *Why:* "if you have options
-that you want the user to perform, then take inspiration from lazydocker's context menu and
-how it operates"; "yes no below each other is kind of meh and not how they usually look".
+choice in a separate panel when the menu can carry the line. *Why:* lazydocker's context
+menu is the model, and a question reads as a dialog with its answers side by side.
 
 ### Text and settings
 
 **2.10 Editing is normal text editing.** Use `TextInput` for every field: visible cursor
 where you type, readline keys, paste, nothing that eats characters. Implement `capturing()`
 and `paste`. Pasted text is cleaned (links, partial paths) before it is validated. *Why:*
-"you need to make sure that all editing works consistently like any normal edit would
-work with the cursor showing where it is, respecting normal behaviors of editing text";
-"also the editing of it doesnt work". Test by typing through `Host::update`, not by
-setting fields.
+every field must edit like any normal text field, with the cursor where you type. Test by
+typing through `Host::update`, not by setting fields.
 
 **2.11 Settings rows explain themselves, validate as you type, and offer a check.** The
 detail pane shows the live verdict while typing ("as you type": `✓ ...` or
@@ -1675,13 +1658,8 @@ with a reason ("not yet: ..."). After a change the service can confirm (token, s
 group), ask "check ... now?" with `Menu::confirm`; a check runs as `Effect::Spawn` and
 reports ✓/✗ on the row and in the status line. Accept what people paste (a full URL as
 well as a path). An "add" row (`+ add a tenancy`, hint of what it takes) is always the
-first row, so it is visible that more can be added; removing asks first. *Why:* "The
-system has no context anywhere for what does what. or checks and evaluations when you
-enter things. For instance, if i add a token, then i want the system to ask me whether it
-wants to evaluate it, it does a check then and checks whether it is valid. same with
-anything that you configure in the settings."; "we should be able to accept
-https://gitlab.com/... or /platform/tenants/..."; "there is no visual indicator to make
-it clear that you can add another one".
+first row, so it is visible that more can be added; removing asks first. *Why:* a
+setting should say what it does, accept what people paste, and offer to check itself.
 
 **2.11a Every part's first section is `connection`, laid out the same way.** Built with
 `ui::connection`, in this order:
@@ -1705,74 +1683,60 @@ it clear that you can add another one".
 Every field's menu has `e change it` and, where the check confirms it, `c check the
 connection`; `⏎` on a field goes straight to changing it (on a row that only checks, to
 the check), as in Slack's other sections; the detail pane is `connection::Detail` (about, accepts, now, checked, as
-you type, config key). *Why:* "the parts' settings should follow one style, connection
-first"; the environment offers "must read as a question to the user".
+you type, config key). *Why:* every part's settings read in one style, connection first,
+and what radar found is a question, never a change made for you.
 
 ### Look and wording
 
 **2.12 No chevrons, no `[+]`/`[-]`, no useless counts.** Folding is shown by tree lines and
 indentation, not `▸▾` or `[+]`/`[-]`. Things that belong together share a band; colours
-stay configurable. The pattern, in `crates/radar-gitlab/src/screen.rs`: `tree_items()` returns
-the items plus a `RowLook` per row id; each row's own tree line (`├─`/`└─`, merge request
-rows ` ├─ `/` └─ `) is the first span of its text (`prefixed`), with its room taken before
-the name is fitted so columns stay aligned. `draw_guides()` runs after the `Tree` renders
-and paints into the 2-cell indent: the tenancy's colour stripe `▌` (slot
-`tenant.<colour>`) down every row, the `│` line past a repo that is not the last, and
-background bands on tenancy headings and on every other repo block (a repo with its merge
-requests); the selected row keeps the selection background. A folded node shows a dim `⋯`.
-The band, heading and line colours are look words (`band`, `heading`, `lines` in
-`config::default_styles`, group "repositories tree" in Settings, look); `band` and
-`heading` are backgrounds, so only the slot's colour is used and the menu offers colour
-and reset only (`settings::is_background`). Panels are drawn on `bg.surface`, so a band
-must be a different slot. The settings tenancies tree (`settings::draw_sources_tree`)
-follows the same pattern. Test:
-`every_other_repo_is_banded_with_its_merge_requests_and_tree_lines_join_them`. A count
-appears only where it changes a decision. Panels have titles that say what they are, and columns have
-headings. *Why:* "please for the love of all do not use those irritating chevrons to
-denote expand and contract"; "not only the plus minus that doesnt look that good, but also
-visually how the tenant, to repo to mrs look when they expand and contract"; "You also
-have Repositories with a count at the top. that is not useful"; "The panels also do not
-have headers, so 2/2 and 1 or non and require, i dont know what that means".
+stay configurable. A part sends its tree as view data and the kit draws it
+(`ui::tree::BandedTree`, from `view_tui.rs` in Ratatui, the same in Ink): each row's own
+tree line (`├─`/`└─`) comes before its text, with its room taken before the name is
+fitted so columns stay aligned; the group's colour stripe `▌` (a slot such as
+`tenant.<colour>`) runs down every row, a `│` line past a block that is not the last, and
+background bands on group headings and on every other block (a repo with its merge
+requests); the selected row keeps the selection background. A folded node ends in a dim
+`⋯ n`. The band, heading and line colours are look words (GitLab's `band`, `heading`,
+`lines` in `config::default_styles`, group "repositories tree" in Settings, look); `band`
+and `heading` are backgrounds, so only the slot's colour is used and the menu offers
+colour and reset only. Panels are drawn on `bg.surface`, so a band must be a different
+slot. A settings tree (GitLab's tenancies) follows the same pattern. A count appears
+only where it changes a decision. Panels have titles that say what they are, and columns
+have headings. *Why:* tree lines and bands show what belongs together better than
+markers do, and a number nobody can act on is noise.
 
 **2.13 Plain words, not filter jargon; views explained.** Say what a view or filter does
 in a sentence (the SHOWS line at the foot of the list, `filter::describe`). Build conditions from menus; the
 grammar is an advanced "edit as text" option. One word per state everywhere, with a symbol
-plus the word so it reads without colour. *Why:* "team -author:@me -is:bot ... what? that
-is confusing."; "what does the tenancies give us in the repositories view? how does that
-help the user? What does 'Only busy repos' do?"; "these are all very weird 'views' with
-nothing explaining what they do".
+plus the word so it reads without colour. *Why:* a filter written as grammar, or a view
+with only a name, does not say what it shows.
 
 **2.14 Do not show the same thing twice, and do not mix concepts.** No middle panel that
 repeats the right one. Themes (palette and colours, the host) and looks (which slot a
-word uses, the plugin) are separate sections with separate names. *Why:* "You have also a
-panel in the middle that then also repeats somewhat on the right?"; "The styles and themes
-are mixed. are we doing themes or styles?"; "no grouping no logical way of showing it".
+word uses, the plugin) are separate sections with separate names. *Why:* repeated panels
+waste the screen, and two ideas under one name confuse both.
 
 **2.15 Group and keep information.** Hierarchies group and collapse (tenancy → repo → merge
-request); a restyle never drops information the screen had. *Why:* "the first tenancy is
-just showing in a row, without any good grouping or ability to collapse aeras. We also
-seem to have lost the repo information".
+request); a restyle never drops information the screen had. *Why:* a flat list hides
+the structure, and a new look is no reason to lose facts.
 
 **2.16 Say what an action applies to.** The selected row is visibly selected, and menus are
-titled with it. *Why:* "visually if i do an action there it would be for that tenancy or
-repo".
+titled with it. *Why:* before acting you can see what the action is for.
 
 ### Architecture and repo hygiene
 
 **2.17 Plugin-shaped.** Everything service-specific lives in the plugin crate; `radar-core`
-changes only for something every plugin gains. *Why:* "the code should be modular and
-follow a plugin style, so that each new ability for the code is modular and plugs in".
+changes only for something every plugin gains. *Why:* each new ability plugs in without
+touching the others.
 
 **2.18 Nothing visual is hard-coded.** No `Color::`, hex or style literals in plugin code
 except slot defaults in `slots()`; words are styled by config spec; tones go through
 `widgets::tone`. Check: `rg "Color::|Rgb\(|#[0-9a-f]{6}" crates/<plugin>/src` finds only
-the slot table. *Why:* "things like color and styling need to be configurable. were not
-hardcoding things like that".
+the slot table. *Why:* colour and style are the user's to configure.
 
-**2.19 Succession, not reuse.** Do not port code, config keys or file formats from the old
-Python/Textual app ("giterdone"). *Why:* "please make sure that you do not code in the old
-giterdone code into this system. this is a succession of that code, we arent using it
-inside this code".
+**2.19 Succession, not reuse.** Do not port code, config keys or file formats from the
+Python/Textual app radar replaced. *Why:* radar succeeds it; it does not carry it inside.
 
 **2.20 No employer specifics anywhere in the repo**, including docs, tests, snapshots and
 comments: tenancy paths, group names, people, ticket keys. New test data takes its names
@@ -1785,17 +1749,14 @@ that adds a word from the private list kept outside the repository.
 `TextInput` (`ratatui-textarea`), menus `tui-popup` via the host, spinners
 `throbber-widgets-tui`, long panels `tui-scrollview` or ratatui's `Scrollbar`, all through
 the kit (1.15), which wraps them in radar's look once for every part. Do not say a library is
-in use unless it is. *Why:* "are we using the right libraries and tui tools
-since that can be a lot better looking than what weve done"; "you also just said that you
-installed those libs that can help with the way these items are shown and you failed to
-use them"; "we should use what we can from the world and make the tui as good as
-possible".
+in use unless it is. *Why:* the ecosystem's widgets look and behave better than ones
+drawn by hand.
 
 **2.22 Works in every environment.** macOS, Linux (Wayland and X11), Windows, WSL, SSH,
 tmux, no display. Open links and copy only through `Effect::Open`/`Effect::Copy`; never
 assume a browser, a clipboard tool, a mouse or truecolor; say on the status line what
-happened. Run in `NO_COLOR=1` and at 80x24. *Why:* "just a point of clarity. the users
-will use different systems and environments and the tooling should just work".
+happened. Run in `NO_COLOR=1` and at 80x24. *Why:* people run radar on different systems,
+and it should just work on each.
 
 Opening a folder (`system::folder_ways`, tested per environment in `system.rs`). A
 "terminal editor" is one that runs in a terminal (`nvim`, `hx`, `emacs -nw`, …); a
@@ -1867,9 +1828,10 @@ asks, then reports what it said. Writes behave one way in every part, through th
   (`GIT_TERMINAL_PROMPT=0`, `SSH_ASKPASS_REQUIRE=force`): it must never read radar's terminal.
 
 - The same action reached from another place is the same code: the Repositories tree row
-  (`list_actions.rs`) calls `act::ask_rebase`, `ask_merge`, `ask_checkout` and
-  `review::ask_approve`, which the page's `u m c a` call, so the question, the mode's
-  note, the one send and the refresh after cannot differ. On a
+  (`list_actions.rs`) calls `act::ask_rebase`, `ask_merge` and `review::ask_approve`,
+  which the page's `u m a` call (and the git part's `ask_checkout` for `c`, from either
+  place), so the question, the mode's note, the one send and the refresh after cannot
+  differ. On a
   tree row the keys are `u` rebase (when GitLab says it is behind), `m` merge, `e`
   approve, `c` check out; `a` is the middle pane's "show one author's merge requests", and
   `o p y` open, pipeline, copy. A row the detail pane lists is clickable: one click does what
@@ -1877,25 +1839,20 @@ asks, then reports what it said. Writes behave one way in every part, through th
   the focus, so it never costs a focusing click). A STATE cell is clickable only where
   it has an action (`needs rebase`, `ready to merge`, a failed pipeline).
 
-**2.24 The canvas wins.** Build what the canvas shows (5); do not improvise a different
-layout. *Why:* "look at this. this is what we designed. and now you did that".
+**2.24 The agreed design wins.** Build what the agreed design shows; do not improvise a
+different layout.
 
 **2.25 Process.**
-- Never commit or push unless asked (`AGENTS.md` of the workspace).
-- The workspace must build when you hand over, in debug and release. *Why:* "i just checked
-  the cargo build and it fails immediately" (and a half-restructured tree is visible to
-  him as he works).
-- Change files with Edit/Write, not `python`/`sed -i` scripts (the user's
-  `file-changes.md`).
+- Never commit or push unless asked.
+- The workspace must build when you hand over, in debug and release.
 - Rebuild before a live check: `cargo test` and `cargo clippy` do not rebuild
   `target/*/radar`.
-- When you hand over, say where to run it and what to press. *Why:* "i want to look at it.
-  where can i run it".
+- When you hand over, say where to run it and what to press.
 
 **2.26 Keys are context dependent: the same action uses the same key in the same kind of
-place, in every part.** *Why:* "i think it needs to be context dependent". Not one meaning
-per letter: a letter may mean different things in different kinds of place, but never
-two things in one kind of place, and never two letters for one thing.
+place, in every part.** Not one meaning per letter: a letter may mean different things
+in different kinds of place, but never two things in one kind of place, and never two
+letters for one thing.
 - `r` refreshes: a list and an open page, in every part. (`R` is the Repositories
   screen.)
 - Where there is a discussion (a Slack thread or message, a Jira ticket, a merge
@@ -1908,14 +1865,15 @@ two things in one kind of place, and never two letters for one thing.
   of its name. `z` pauses refreshing (host, 2.33). `space` folds and `⏎` goes in, from a
   focused detail pane too.
 - A part's own actions are lower case (Jira: `t` move, `c` comment, `n` new ticket, `i` assign to me);
-  **capitals are screens** (`R`, `J`, `S`): the host takes a screen's capital first, so no
+  **capitals are screens** (`R` Repositories, `G` GitHub, `J` Jira, `S` Slack, `B`
+  Branches, `W` workspaces, `I` Work; the host's `H` history): the host takes a screen's capital first, so no
   part binds one of those (a settings list that reorders moves a row with `<` (up) and
   `>` (down), keys the host never takes, not `J`/`K`). Another capital is free, and a part uses it only as the shifted partner of
   a lower-case key that does a nearby thing (Jira's `Y` copies the ticket key beside `y`,
   which copies the link), handled in the part's own key handler; an action a part
   contributes to another's `x` menu or bulk list is never a capital (`host_key`).
-  Digits and `q x ? b w h l tab`, arrows and the settings key
-  are the host's too (2.5).
+  Digits, `q x ? b w z h l tab`, `` ` ``, arrows and the settings key `,` are the
+  host's too (1.4, 2.5).
 - Move a row up or down with the kit's `Move::from_key` (`j k`, arrows, `g G`, `Home`,
   `End`, in a part's settings and nav pane as in a list).
 - A part that cannot do one of these says why on the status line instead of ignoring
@@ -1929,12 +1887,7 @@ two things in one kind of place, and never two letters for one thing.
   because an action a part adds to another part's menu is never a capital. Prune is in
   the Branches screen's bulk list, not a key.
 
-**2.27 Writes are the same in every part.** 2.23 is the rule; in short: radar is in a mode
-(read only, write, edit; `[general] mode`, `RADAR_MODE`, the old `RADAR_NO_WRITES` and
-`RADAR_{PART}_NO_WRITES` mean read only); every write is the kit's confirm, "{verb} this on
-{item}?", with the whole text shown, `y` sends once, `e` keeps writing, `n` drops it;
-"asking {Service} to {what}…" then "✓ {what}" or "✗ {Service} did not {what}: {why}";
-refused or declined text is kept for the key that wrote it. A part adds no switch or
+**2.27 Writes are the same in every part.** 2.23 is the rule. A part adds no switch or
 wording of its own. Live checks run with `RADAR_MODE=read-only`.
 
 **2.28 Times and people.**
@@ -1996,7 +1949,7 @@ points the owner offers; a part's join text is checked against `offers()` (1.13)
 **2.32 Settings sections are named alike**, with the id equal to the name: `connection`,
 then the part's own groupings (GitLab `tenancies`, Jira `projects`, Slack `channels`,
 `review`, `alerts`), `views` where the part has views (Slack has none), and `look`;
-The git part's `checkouts` and `editors` are under its own group, `git`. An old id is still read from an existing
+The git part's `checkouts`, `editors`, `links` and `branches` are under its own group, `git`. An old id is still read from an existing
 config. Colours live with their grouping (a site's colour with its projects). A look
 section lists its looks under one heading style. "Check … now?" follows every change the
 service can confirm. An ordered list (views, tenancies, alert rules) moves with `<`
@@ -2022,9 +1975,8 @@ link, an address written out. On a text page `⏎` offers them (the merge reques
 1.12 "Links work"); on a list, `⏎` on the row. Following one shows the thing here when a
 part owns it (its page opens, `esc` comes back) and opens the link the radar way when none
 does. A part that draws text other parts know things in gathers them with
-`cx.parts.recognise` while drawing and keeps them for the key. *Why:* "its also not
-linking properly with jira"; "as a general idea the system should try to actually make
-links work as well".
+`cx.parts.recognise` while drawing and keeps them for the key. *Why:* text that names
+something should take you to it.
 
 ---
 
@@ -2045,7 +1997,14 @@ minutes on a day-old project, and the same guarantee holds at unit speed.
 **Budgets, enforced.** Each crate's suite runs in under ~10s wall with `cargo nextest run
 -p <crate>`; `scripts/check-mixes` in under ~3 min warm. `.config/nextest.toml` flags any
 test over 2s as SLOW (and kills one over 20s): make it smaller or move it down the pyramid
-(rebuild nothing per row, draw only the part's area, no real sleeps).
+(rebuild nothing per row, draw only the part's area, no real sleeps). Only the two
+whole-app sweeps in `tests/` get longer (`key_intent_parity`, which presses every key and
+action on every surface, and `ratatui_cells`, which draws every screen at two sizes:
+flagged at 10s, killed at 60s). The rest of `tests/` holds the mix smoke (`mix`), the
+guard (`parts`, `plugin_boundary`, 1.14), renderer parity and recorded views
+(`renderer_parity`, `view_fixtures`, `reference_views`, `motion_cells`, `wrap_goldens`),
+the Ink renderer in a real PTY (`ink_pty`) and CLI tests (`work_cli`,
+`slack_cli_history`, `mcp_relay`).
 
 **A session working on one part tests only that crate** (`cargo nextest run -p radar-<part>`,
 clippy on it). The mix check (`scripts/check-mixes`) runs at merge. Before handing over:
@@ -2123,8 +2082,8 @@ they draw a screen with every cell at its colour.
 ### 3.2 The row check: every `x` row and target, at unit speed
 
 Each part has a table test over its places with `radar_core::check`
-(`every_row_and_target_is_taken` in `crates/radar-gitlab/src/lib.rs`,
-`crates/radar-jira/src/tests.rs`, `crates/radar-slack/src/tests.rs`). It works on the plugin
+(`every_row_and_target_is_taken` in `crates/radar-gitlab/src/lib.rs`, and in the
+`tests.rs` of radar-jira, radar-slack, radar-git and radar-workspace). It works on the plugin
 alone, with no host: for each place it makes a fresh plugin, presses the keys that lead
 there, draws only the part's area, then
 
@@ -2216,16 +2175,16 @@ Do it at **160x40 and 80x24**, with your own tmux server, and kill the session a
 ```bash
 S=$SCRATCH                                   # your scratch directory
 mkdir -p $S/cfg $S/state
-tmux -L ggcheck new-session -d -s radar -x 160 -y 40 \
+tmux -L radarcheck new-session -d -s radar -x 160 -y 40 \
   "XDG_CONFIG_HOME=$S/cfg XDG_STATE_HOME=$S/state COLORTERM=truecolor target/release/radar"
 sleep 4
-tmux -L ggcheck send-keys -t radar Down Down Enter x   # drive it
-tmux -L ggcheck capture-pane -t radar -p               # read the screen
-tmux -L ggcheck resize-window -t radar -x 80 -y 24     # then look again
-tmux -L ggcheck kill-session -t radar                  # always
+tmux -L radarcheck send-keys -t radar Down Down Enter x   # drive it
+tmux -L radarcheck capture-pane -t radar -p               # read the screen
+tmux -L radarcheck resize-window -t radar -x 80 -y 24     # then look again
+tmux -L radarcheck kill-session -t radar                  # always
 ```
 
-- A dedicated socket (`-L ggcheck`) means `kill-session`/`kill-server` cannot touch the
+- A dedicated socket (`-L radarcheck`) means `kill-session`/`kill-server` cannot touch the
   user's tmux. Never run bare `tmux kill-server` or `tmux set -g` in his server.
 - Use a scratch config and state directory so the user's `config.toml` and cache are not
   read or overwritten. Put a real token in the scratch config through `env:`; never print it.
@@ -2234,8 +2193,9 @@ tmux -L ggcheck kill-session -t radar                  # always
   clipboard and the status line must say so; `tmux set-clipboard on` is needed inside that
   server).
 - Press each action in the `x` menu on a real item and see that it did what it says.
-- `tmux send-keys -t radar Escape 1` arrives as Alt-1, not as esc then 1: send `Escape` on
-  its own and wait a moment before the next key.
+- The block above runs whichever renderer is the default (Ink). `scripts/ink-live/ink-live`
+  does the same for Ink and proves Ink drew the screen, not a fallback; run it with
+  `RADAR_RENDERER=ratatui` beside it to compare. `tests/ink_pty.rs` is the automated form.
 - To prove an idle pause without waiting half an hour, set `idle_minutes = 1` under `[general]`
   in the scratch config and wait for `refreshing paused` in the scratch `radar.log`
   (`until grep -q "refreshing paused" $S/state/radar/radar.log; do sleep 2; done`).
@@ -2253,13 +2213,13 @@ tmux -L ggcheck kill-session -t radar                  # always
 mkdir -p $S/bin
 printf '#!/usr/bin/env bash\necho "$@" >> %s/opened.txt\n' "$S" > $S/bin/xdg-open
 chmod +x $S/bin/xdg-open; rm -f $S/opened.txt
-tmux -L ggcheck new-session -d -s radar -x 160 -y 40 "env -u BROWSER PATH=$S/bin:\$PATH target/release/radar"
+tmux -L radarcheck new-session -d -s radar -x 160 -y 40 "env -u BROWSER PATH=$S/bin:\$PATH target/release/radar"
 # ... press the key ...; then:
 cat $S/opened.txt
 ```
 
 - The mouse is driven through tmux with SGR sequences sent as literal text (cells
-  1-based): a move `tmux -L ggcheck send-keys -t radar -l $'\e[<35;X;YM'`, a click the press
+  1-based): a move `tmux -L radarcheck send-keys -t radar -l $'\e[<35;X;YM'`, a click the press
   `$'\e[<0;X;YM'` then the release `$'\e[<0;X;Ym'`. `capture-pane -p -e` shows the colours
   (the hover background on the line under the pointer), and `RADAR_DEBUG=1` logs each press
   and release. tmux keeps OSC 22 to itself: to see the pointer's shapes, set `pointer =
@@ -2273,64 +2233,62 @@ cat $S/opened.txt
 
 ---
 
-## 4. Adding a plugin: a Jira walkthrough
+## 4. Adding a part: a Jira walkthrough
 
-Illustrative: the shape of the work, not a spec. Check each choice against the Jira board
-of the canvas first (5), and keep employer names out of everything you write.
+How `crates/radar-jira` is put together, as the pattern for the next part. Read its code
+beside each step; keep names from real work out of everything you write (2.20).
 
 ### 4.1 Steps and files
 
-1. **Crate.** `crates/radar-jira/` with `Cargo.toml` copied from `crates/radar-gitlab/Cargo.toml`
-   (workspace version fields; `radar-core`, `anyhow`, `clap`, `reqwest`, `serde`,
-   `serde_json`, `toml`, `insta` as dev). Add it to `members` and `[workspace.dependencies]`
-   in the root `Cargo.toml`.
-2. **Register.** Behind a feature (1.14): `jira = ["dep:radar-jira"]` and `default = [...,
-   "jira"]` in the root `Cargo.toml`, `radar-jira = { workspace = true, optional = true }`,
-   and `#[cfg(feature = "jira")]` lines in `src/lib.rs`. Start-up fails with a message if
-   an id, screen key, section name or slot clashes.
-3. **Module layout** (as radar-gitlab): `lib.rs` (struct, `impl Plugin`, sync state,
-   tests), `config.rs`, `client.rs`, `model.rs`, `filter.rs` if it has a grammar,
-   `screen.rs`, `settings.rs`.
-4. **Config table** `[jira]`, versioned by `serde(default)` on every field so an old file
-   still loads: `url`, `account` (email), `token` (`env:NAME` or a literal; masked when
-   shown), `refresh_secs`, `style` (word to slot spec), `[[jira.project]]` tracked projects
-   (`key`, `code`, `color`, `hide`), `[[jira.view]]` (`name`, `filter`). `configure(None)`
-   must give a working empty plugin: the user can have a config file with no `[jira]`
-   table, in which case `first_run` is not called, so the screen's empty state must say
-   what to do ("No projects yet. Press , for settings, then add one under projects.").
-   Name the settings key through `radar_core::host::SETTINGS_KEY` in tests, never a literal.
-5. **Screen.** One screen `{id: "tickets", name: "tickets", key: 'T'}`; the key is unique
-   and capital. Same shape as repositories: nav pane of views │ middle pane (tree or list) │ detail pane, with
-   `fit` for 120/84 columns, `cx.hit` on every row, detail scroll as in 2.4, `x` menu and
-   `bulk` per 2.7/2.8. Every state word (to do, doing, done, blocked) is a word with a
-   symbol and a style spec from `[jira.style]`.
-6. **Settings sections** (group `jira`):
-   - `connection`: server, account, token, refresh, signed-in-as; the check calls Jira's
-     "who am I" endpoint; the token's `validate` is as in `settings::validate`.
-   - `projects`: tracked projects in a tree with an `+ add a project` first row that
-     accepts a pasted board or project link or a key; the check lists the project's name;
-     hide/show per issue type or epic; stop tracking asks first.
-   - `views`: conditions chosen from menus (assigned to me, status category, project,
-     sprint, text); "edit as text" last; a plain-words description of each view.
-   - `look`: which slot each state word and project colour uses, with samples.
-7. **Slots.** `jira.<colour>` per project colour (seven, as `TENANT_SLOTS`), defaults in
-   `slots()`; words use core slots (`status.warning`, ...) through `[jira.style]`.
-8. **Bus.**
-   - Publish `jira.selected` `{key, summary, url, status, project}` when the selection moves
-     onto a ticket (and add it to the table in 1.6).
-   - Consume `gitlab.selected` `{repo, iid, title, branch, url, state}`: find the ticket key
-     in `branch` or `title` and show "linked merge request !263" in the detail pane, with an
-     action to open it.
-   - Optionally the gitlab plugin could consume `jira.selected` to set its `/` filter to the
-     key (its text term matches title, branch and repo). Neither plugin imports the other.
-9. **CLI.** `radar jira list [--view NAME] [--filter TEXT] [--json]`, same data as the screen.
-10. **Cache.** `snapshot()`/`restore()` the issues and the signed-in account so the first
-    frame is full.
-11. **Tests.** Fixtures with `ABC-1` keys and `acme` names; `sample()` and `hosted()`;
-    snapshots at 80x24 and 160x40 for the screen and each section; the row check
-    (`radar_core::check`, 3.2) with your places; typing, validation, mouse and bus tests; then the live check against
-    real Jira in a scratch config (3.4).
-12. **Docs.** Add the topics to 1.6 of this guide, and the part to the user guide.
+1. **Crate.** `crates/radar-<id>/` with its `Cargo.toml` on the workspace's version fields
+   and dependencies (`radar-core`, `anyhow`, `clap`, `reqwest`, `serde`, `serde_json`,
+   `toml`; `insta` for tests). The root `Cargo.toml`'s `members = ["crates/*"]` takes it
+   in; add it to `[workspace.dependencies]`.
+2. **Register.** Behind a feature (1.14): `jira = ["dep:radar-jira"]`, added to `default`
+   and to the root `demo` feature (`"radar-jira?/demo"`), `radar-jira = { workspace = true,
+   optional = true }`, and `#[cfg(feature = "jira")]` lines in `src/lib.rs`. Start-up fails
+   with a message if an id, screen key, section name or slot clashes.
+3. **Module layout.** Jira's: `lib.rs` (the struct, `impl Plugin`, sync state), `config.rs`,
+   `client.rs` (every request through a `Transport`, so tests replay recorded answers),
+   `model.rs`, `screen.rs` and `view.rs` (the screen as view data), `page.rs` (the ticket
+   page), `settings.rs`, `join.rs` (what it offers and adds, 1.13), `write.rs` and
+   `write_dialog.rs` (writes, 2.23), `start.rs` (start work), `demo.rs` (the sample), tests
+   in `tests.rs` and beside each module.
+4. **Config table** `[jira]`, every field with `serde(default)` so an old file still loads:
+   `refresh_secs`, `idle_minutes`, `on_start` (`ask` or `off`), `start_status`, `style`
+   (word to slot spec), `[[jira.site]]` (`name`, `url`, `email`, `token` as `env:NAME` or a
+   literal, masked when shown, `color`, `[[jira.site.project]]` with `key` and `ac_field`,
+   and `from`, the variables a found site came from) and `[[jira.view]]` (`name`, `when`
+   conditions or `jql`, and `site`). `configure(None)` gives a working empty part, and its
+   `set_up()` says what is missing, so the screen shows the host's set-up page. Name the
+   settings key through `radar_core::host::SETTINGS_KEY` in tests, never a literal.
+5. **Screen.** `{id: "tickets", name: "jira", key: 'J'}`; the key is unique and capital.
+   Same shape as Repositories: nav pane of views │ middle pane (a banded tree: site,
+   status group, ticket) │ detail pane, `x` menu and `bulk` per 2.7 and 2.8. Every state
+   word is a word with an icon and a style spec from `[jira.style]`.
+6. **Settings sections** (group `jira`): `connection` (one block per site: url, email,
+   token, signed in as, check, refresh; what was found in the environment as a question,
+   2.11a), `projects` (each site's projects, with their colour), `views` and `look`.
+7. **Slots.** `jira.<colour>` per site colour (seven, `SITE_SLOTS`), defaults in `slots()`;
+   words use core slots (`status.warning`, …) through `[jira.style]`.
+8. **Joining others.** Jira owns `ticket` (1.13) and adds to merge requests and pull
+   requests what it finds by key in their title and branch: a column, a section, a Ticket
+   tab and actions (`join.rs`), and a ticket column on a checkout's branch. It offers
+   chips, a column, a section, a tab and actions on tickets, which GitLab, Slack, Git and
+   the workspace part fill. On the bus it hears
+   `workspace.started` (1.6) and asks once to start the ticket on Jira. No part imports
+   another.
+9. **CLI.** `radar jira list [--view NAME] [--filter TEXT] [--json]` and `radar jira show
+   KEY`, the same data as the screen.
+10. **Cache.** `snapshot()`/`restore()` the tickets, pages read and the signed-in account,
+    so the first frame is full and nothing held is asked for again.
+11. **Tests.** Fixtures with Discworld names (`WATCH-12`, `vimes`; older ones use `ABC-12`
+    and `acme`); `sample()` and `hosted()`; snapshots at 80x24 and 160x40 for the screen and
+    each section; the row check (`radar_core::check`, 3.2) with your places; typing,
+    validation, mouse, writes against recorded replies, and each mode (3.2a); then the live
+    check against the real service in a scratch config (3.4).
+12. **Docs.** Add your topics to 1.6 and your kinds to 1.13 of this guide, the part's
+    keys and settings to the user guide, and any new element to `docs/components.md`.
 
 ### 4.2 Pre-handoff checklist
 
@@ -2371,110 +2329,19 @@ Found by reading the code, not yet fixed. Do not copy these patterns; fix them w
 touch the area.
 
 - The status line shows `PgUp/PgDn scroll` on every screen, whether or not the plugin
-  scrolls anything (`shell::hints`).
+  scrolls anything (`Host::status_hints`).
 - Bulk menus share one id, `bulk`, across screens and sections; `GitlabPlugin::on_menu`
   tells them apart by value strings, so values must never overlap.
 - Images cannot be seen through tmux (radar does not ask there unless `images = "on"`, and a
   live check's own tmux server has no terminal to answer): check them in Ghostty or kitty
   directly, or through herdr. Their protocol output is covered by `ui::image`'s tests.
-- The parts still hand-roll most elements the kit now has (1.15): their trees, columns,
-  page frames, cards, scrollbars and lists. Each moves over in its own change; only the
-  GitLab page's tab row, title line, scrollbar and `fit`/`cell` use the kit so far.
 - Incremental syncs cannot see a merge request that was deleted; `r` catches it.
-- The pause key `z` and go to `:` are the GitLab plugin's; a second plugin with its own
-  refresh would want the pause in the host instead.
+- Go to (`:`) is each part's own; Slack answers it with "not on Slack yet".
 - Counts to review against 2.12: the tree title ("N repos[ with merge requests]"), the
   tenancy rows ("N repos · M MRs") and the nav pane's per-view counts.
 - A plugin cannot give its theme slots a plain-words label (`slot_info` says "declared by a
   plugin").
-- `Plugin::config` runs every frame (`Host::dirty`).
 - A `Binding` whose key `parse_key` cannot parse is dropped from the `x` menu without a
   warning. Reserved `MenuItem` shortcuts are not rejected: `q` is intercepted by dismissal
   and `j`/`k` would shadow movement, although Enter or mouse can still select the row.
   Shipped menu items avoid these keys; future plugin rows need the same check.
-
-
-## Read-only history overlay
-
-The host owns `H` (recent activity, last 24 hours) and the History entries in `x`,
-including all recorded activity. Text capture takes precedence,
-so typing `H` in an editor never opens history. Parts expose selected-context
-history through their existing `subject` and validated `journal_subject` hooks;
-no cross-part imports or label/payload copying is needed. A menu captures the
-exact safe subject when it opens. `esc` restores the underlying view and focus.
-
-History's reducer and renderer do no I/O. Host history requests are answered by
-the existing ordered journal worker using snapshot-bounded event queries. The
-reader does not audit itself, infer success from task completion, or mutate map
-annotations. Navigation uses one bounded event page and cursor history; refresh
-starts a new snapshot and renews the recent window when selected. Background task results still reach their original parts
-while the overlay is open. Only allowlisted journal fields appear in details.
-
-
-## GitHub read-only part
-
-The top bar shows one Repositories tab. With multiple repository sources,
-its source row switches between GitLab, GitHub, and local
-workspaces. The local source lists the configured workspaces and the clones
-found under each one's repositories folder; Enter opens the selected folder.
-`R` opens Repositories, while `G` and `W` go directly to GitHub and local
-workspaces. The separate Branches screen still offers branch and worktree
-actions.
-
-`radar-github` is independently feature-gated and follows the default all-parts policy.
-Its first slice uses explicit repository configuration, GitHub.com HTTPS GETs,
-public reads or a typed token or `env:NAME` credential reference. It is local-first:
-what it read (repositories, open pull requests, pull request pages seen with their
-checks, each read's ETags and "what moved" marker) is kept in the `github` cache and
-drawn at start. Each minute's round asks only what moved: with a token one GraphQL
-query for every repository's open pull requests (one point per 50 repositories), then
-a conditional REST read (a 304 does not count against the rate limit) for each one
-that moved; public reads are one conditional read per repository. The query's
-batches (50 repositories of markers, 25 asked in full) are in flight together, four at
-most. A repository with nothing held (a first start) is asked in full in that query:
-description and up to 30 open pull requests, so 76 repositories cost a few requests, not
-152; what it cannot give exactly is read over REST six repositories at a time. The
-Actions tab asks one page of the newest runs (sized to the view, of the source branch on
-a pull request page), conditionally; the runs are kept with the repository's moved state
-and the cache, and reopen with no request until it moves, a run is still going (a minute)
-or a quarter hour has passed (then a 304). An open pull
-request page is asked again only while its checks run. A rate-limit refusal waits for
-`Retry-After` or the bucket's reset, a bucket under a tenth left waits for its reset,
-and 5xx or network failures back off 1, 2, 4 … 15 minutes. A cache of another layout
-is discarded once. A connection check calls GitHub independently of configured repos;
-an authenticated discovery read offers up to five pages of accessible repos grouped
-by owner, from which the user chooses at most 200. Saved groups can contain selected
-repositories from one owner or several owners. The token is masked in the UI;
-a typed token is saved in config.toml. Its `repository` and `pull-request` subjects carry canonical URLs as IDs,
-so composition cannot collapse them with a different provider. History uses
-`github` + `https://github.com/` + kind + normalized `owner/repo` (repository)
-or `owner/repo/pull/number` (pull request). Native `workflow-run` identities add
-`owner/repo/actions/runs/id/attempts/attempt`; attempt is never a mutable latest alias.
-No provider strings or dependencies were added to the host.
-
-The generic local adapter consumes canonical `repository_url` and, for pull requests,
-`source_repository_url` from the owner's held snapshot. Missing source identity is
-unknown, never a base-repository fallback. Standard remote spellings are matched by
-full host plus repository path; explicit links use canonical URLs and validated local
-folders. Older path-only links remain separate. Local actions only scan/link/select
-and open an editor or terminal on the current branch.
-
-Owners may opt into `Plugin::subject_menu_context` for contributed `x` rows. The
-host captures its opaque token, route and subject kind/id/URL/fields, then rechecks
-those and the contributor's offered action before dispatch. Tokens are ephemeral,
-redacted and never journalled. Default `None` preserves captured-target semantics;
-unchanged background refreshes should not invalidate a stable target.
-
-The part offers Line, Section and Actions for cached composition. Ticket/discussion
-adapters recognize the new pull-request kind without naming its owner; new actions
-are navigation-only, with exact URL matching and ambiguous ticket-site evidence
-omitted. Read/UI boundaries and API limits are in [plans/github.md](plans/github.md).
-
-Actions tabs expose bounded observed workflow runs independently of PR Checks. Run
-pages pin an immutable run/attempt pair and render job/step metadata natively;
-public job links remain browser targets. Actions-read failures do not become empty
-activity. Default-branch summaries use repository metadata and same-repository head
-provenance; individual latest-observed workflows are not aggregate health. PR
-associations and exact-head matches are distinct, bounded evidence, not a claim of
-complete workflow or merge-readiness coverage. No run/job kind is silently treated
-as a repository or PR by local-folder or cached ticket/discussion adapters.

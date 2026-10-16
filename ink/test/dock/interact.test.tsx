@@ -66,6 +66,28 @@ describe("dock input", () => {
     expect(docks()).toEqual([{ intent: "dock", dock: "send", text: "/context" }]);
   });
 
+  it("a click on a row of the slash menu runs that command, as ⏎ on it does", async () => {
+    const commands = [
+      { name: "compact", detail: "summarise the conversation" },
+      { name: "context", detail: "show context usage" },
+      { name: "model", detail: "<model>  choose the model" },
+    ];
+    for (const transcript of [[], STATES.streaming!.transcript ?? []]) {
+      const dock: DockView = { ...STATES.empty!, transcript, composer: { ...STATES.empty!.composer!, commands } };
+      const { m, docks } = await open(dock);
+      m.type("/co");
+      await until(() => plain(m.frame()).join("\n").includes("/context  show context usage"));
+      const rows = plain(m.frame());
+      const y = rows.findIndex((r) => r.includes("/context  show context usage"));
+      const x = rows[y]!.indexOf("show context");
+      // SGR press and release at the 0-based cell
+      m.type(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`);
+      await until(() => docks().some((d: any) => d.dock === "send"));
+      expect(docks().filter((d: any) => d.dock === "send")).toEqual([{ intent: "dock", dock: "send", text: "/context" }]);
+      await until(() => !plain(m.frame()).join("\n").includes("/context  show context usage"));
+    }
+  });
+
   it("takes keys written together in order: text, then enter", async () => {
     const { m, docks } = await open(STATES.empty!);
     m.type("ab\rcd\r");
@@ -108,7 +130,7 @@ describe("dock input", () => {
     const rows = plain(m.frame());
     const y = rows.findIndex((r) => r.includes("agents")) + 1;
     const x = rows[y]!.indexOf("mr-1234") + 1;
-    m.type(`\x1b[<0;${x + 1};${y + 1}M`);
+    m.type(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`);
     await until(() => docks().length > 0);
     expect(docks()[0]).toEqual({ intent: "dock", dock: "switch_tab", id: "s2" });
     // press on the top edge, move up five rows, release
@@ -134,7 +156,7 @@ describe("dock input", () => {
       expect(row.match(/×/g)).toHaveLength(2);
       // the second tab's mark (not the active one's)
       const x = row.lastIndexOf("×");
-      m.type(`\x1b[<0;${x + 1};${y + 1}M`);
+      m.type(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`);
       await until(() => docks().some((d: any) => d.dock === "close_tab"));
       expect(docks().filter((d: any) => d.dock !== "focus")).toEqual([{ intent: "dock", dock: "close_tab", id: "s2" }]);
     });
@@ -192,13 +214,20 @@ describe("dock input", () => {
     });
   });
 
-  it("a click on approve once, approve for session or deny answers the request, as a, s and d do", async () => {
-    for (const [word, dock] of [["approve once", "approve"], ["approve for session", "approve_for_session"], ["deny", "deny"]] as const) {
-      const { m, docks } = await open(STATES.approval!);
+  it("a click on approve once, approve for session, always allow or deny answers the request, as a, s, l and d do", async () => {
+    // As the host sends a shell request now: always allow offered beside the rest.
+    const approval: DockView = {
+      ...STATES.approval!,
+      transcript: STATES.approval!.transcript.map((i) =>
+        i.item === "permission" ? { ...i, actions: ["approve_once", "approve_for_session", "always_allow", "deny", "view_diff"] } : i,
+      ),
+    };
+    for (const [word, dock] of [["approve once", "approve"], ["approve for session", "approve_for_session"], ["always allow", "always_allow"], ["deny", "deny"]] as const) {
+      const { m, docks } = await open(approval);
       const rows = plain(m.frame());
       const y = rows.findIndex((r) => r.includes("approve once") && r.includes("deny"));
       const x = rows[y]!.indexOf(word);
-      m.type(`\x1b[<0;${x + 2};${y + 1}M`);
+      m.type(`\x1b[<0;${x + 2};${y + 1}M\x1b[<0;${x + 2};${y + 1}m`);
       await until(() => docks().length > 0);
       expect(docks()[0]).toEqual({ intent: "dock", dock, id: "p1" });
     }
@@ -208,13 +237,13 @@ describe("dock input", () => {
     const a = await open(STATES.question!);
     let rows = plain(a.m.frame());
     let y = rows.findIndex((r) => r.includes("2 patch"));
-    a.m.type(`\x1b[<0;${rows[y]!.indexOf("patch") + 1};${y + 1}M`);
+    a.m.type(`\x1b[<0;${rows[y]!.indexOf("patch") + 1};${y + 1}M\x1b[<0;${rows[y]!.indexOf("patch") + 1};${y + 1}m`);
     await until(() => a.docks().length > 0);
     expect(a.docks()[0]).toEqual({ intent: "dock", dock: "answer", id: "q1", question: "0", choices: ["patch"] });
     const d = await open(STATES.question!);
     rows = plain(d.m.frame());
     y = rows.findIndex((r) => r.includes("esc decline") && r.includes("choose"));
-    d.m.type(`\x1b[<0;${rows[y]!.indexOf("decline") + 1};${y + 1}M`);
+    d.m.type(`\x1b[<0;${rows[y]!.indexOf("decline") + 1};${y + 1}M\x1b[<0;${rows[y]!.indexOf("decline") + 1};${y + 1}m`);
     await until(() => d.docks().length > 0);
     expect(d.docks()[0]).toEqual({ intent: "dock", dock: "decline", id: "q1" });
   });
@@ -231,7 +260,7 @@ describe("dock input", () => {
     const rows = plain(m.frame());
     const y = rows.findIndex((r) => r.includes("git log -3 --oneline"));
     const x = rows[y]!.indexOf("git log");
-    m.type(`\x1b[<0;${x + 1};${y + 1}M`);
+    m.type(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`);
     await until(() => docks().length > 0);
     expect(docks()[0]).toEqual({ intent: "dock", dock: "fold", item: "t1", open: true });
   });

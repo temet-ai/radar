@@ -10,9 +10,10 @@ import { fitTableColumns } from "../nodes/columns.js";
 import { thumbOf } from "../nodes/index.js";
 import type { ColumnSpec } from "../nodes/view.js";
 import type { HistoryView } from "../protocol/generated/HistoryView.js";
+import { insideOf, type SelectArea } from "../input/selection.js";
 
 /** The history overlay laid out in cells (history.rs `History::paint`): every line is exactly `width` cells. */
-export type HistoryLayout = { lines: Cell[][]; hits: Hit[] };
+export type HistoryLayout = { lines: Cell[][]; hits: Hit[]; selects: SelectArea[] };
 
 const textOf = (t: Text): string => t.map(segWords).join("");
 
@@ -259,14 +260,29 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   };
 
   let panels: Cell[][];
-  if (view.help) panels = help(width, bodyH);
-  else if (view.split) {
+  // Where text is selected with the mouse (history.rs panes, shell.rs): each panel's inside, the events as rows.
+  const y0 = top + shownHead.length;
+  const selects: SelectArea[] = [];
+  const mark = (x: number, w: number, id: string, kind: SelectArea["kind"]) => {
+    if (w >= 3 && bodyH >= 3) selects.push({ ...insideOf({ x, y: y0, w, h: bodyH }), id, kind });
+  };
+  if (view.help) {
+    panels = help(width, bodyH);
+    mark(0, width, "history:help", "text");
+  } else if (view.split) {
     const lw = Math.floor((width * 3) / 5);
     const a = events(lw, bodyH, view.focus === "events");
     const b = detail(lw, width - lw, bodyH, view.focus === "detail");
     panels = a.map((l, i) => [...l, ...(b[i] ?? [])]);
-  } else if (view.focus === "events") panels = events(width, bodyH, true);
-  else panels = detail(0, width, bodyH, true);
+    mark(0, lw, "history:events", "rows");
+    mark(lw, width - lw, "history:detail", "text");
+  } else if (view.focus === "events") {
+    panels = events(width, bodyH, true);
+    mark(0, width, "history:events", "rows");
+  } else {
+    panels = detail(0, width, bodyH, true);
+    mark(0, width, "history:detail", "text");
+  }
   lines.push(...panels.map(full));
 
   // The keys along the bottom (widgets::key_hint), each key clickable.
@@ -292,6 +308,6 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   while (lines.length < height - 1) lines.push(full([]));
   lines.length = Math.min(lines.length, Math.max(0, height - 1));
   lines.push(full(foot));
-  return { lines, hits };
+  return { lines, hits, selects };
 }
 

@@ -515,6 +515,29 @@ fn the_splash_is_sent_frame_by_frame_then_hands_off_with_the_screen_cue() {
     assert_eq!(bridge.next_frame(), None, "no more frame ticks");
 }
 
+/// The splash blocks nothing: what reaches the host while it shows (a
+/// sync's result, a tick) is in the very next snapshot with the splash's
+/// frame, and frames in between reuse the rest of the snapshot rather
+/// than build the screen under the splash again.
+#[test]
+fn the_host_keeps_changing_under_the_splash_and_each_change_is_sent_at_once() {
+    let mut bridge = splash_bridge("full");
+    let out = bridge.outgoing();
+    let before = snapshots(&out)[0].chrome.clone();
+    settle(&mut bridge, &out);
+    // At 80 x 24 the splash has no room for the scope: the mark paints in from 100 ms.
+    bridge.set_clock_ms(200);
+    let frame = bridge.outgoing();
+    assert_eq!(snapshots(&frame)[0].chrome, before, "only the splash moved");
+    settle(&mut bridge, &frame);
+    bridge.update(Event::Saved(Err("the disk is full".into())));
+    bridge.set_clock_ms(300);
+    let after = bridge.outgoing();
+    let snap = snapshots(&after)[0];
+    assert!(snap.splash.is_some(), "still showing");
+    assert_ne!(snap.chrome, before, "the host's change is sent while the splash shows");
+}
+
 /// A key during the splash ends it at once and acts on the screen under
 /// it (here: settings open), with no hand-off fade of its own.
 #[test]
@@ -537,4 +560,27 @@ fn with_motion_off_there_is_no_splash_when_the_screen_is_ready() {
     let out = bridge.outgoing();
     assert!(snapshots(&out)[0].splash.is_none());
     assert_eq!(bridge.next_frame(), None);
+}
+
+/// RADAR_TRACE_LATENCY=1: a snapshot names the intent it answers, by the
+/// renderer's seq, so Ink can time the key to the frame; off, it carries
+/// nothing.
+#[test]
+fn a_traced_snapshot_names_the_intent_it_answers() {
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    bridge.set_trace(true);
+    bridge.receive(hello(PROTOCOL));
+    let out = bridge.outgoing();
+    let first = snapshots(&out).pop().expect("the first snapshot").cursor;
+    bridge.receive(ToHost::Ack { cursor: first });
+    bridge.receive(intent(7, invoke(ASK)));
+    let out = bridge.outgoing();
+    let trace = snapshots(&out).pop().expect("the question's snapshot").trace.clone().expect("traced");
+    assert_eq!((trace.cause.as_str(), trace.seq), ("intent invoke", Some(7)));
+    assert!(trace.bytes > 0 && trace.at_ms > 0.0);
+
+    let mut quiet = Bridge::new(fixture::host(), 80, 24);
+    quiet.set_trace(false);
+    quiet.receive(hello(PROTOCOL));
+    assert!(snapshots(&quiet.outgoing()).iter().all(|s| s.trace.is_none()));
 }

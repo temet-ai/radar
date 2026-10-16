@@ -404,6 +404,7 @@ async fn the_shared_contract_holds() {
         "question",
         "stop",
         "resume",
+        "resume_waiting",
         "lost_connection",
     ] {
         assert!(report.ran.contains(&name), "{name} did not run: {report:?}");

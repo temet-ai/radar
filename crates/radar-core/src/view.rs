@@ -450,6 +450,13 @@ pub enum Intent {
     EditSelect { anchor: usize, extent: usize },
     /// Clear the editor's selection, leaving the caret where it is.
     EditUnselect,
+    /// Copy screen text the user selected (a drag, a double click, ctrl+c on
+    /// a selection): the host puts `text` on the clipboard through the
+    /// ways it knows (a program, else the terminal's OSC 52), as it does
+    /// for a drag in the Ratatui renderer, and says how. The renderer sends
+    /// the text it drew in the selected cells; more than
+    /// [`crate::ipc::MAX_CLIPBOARD`] bytes is refused.
+    Copy { text: String },
     /// The user scrolled a pane to the end of what it shows (more can be
     /// fetched: older comments).
     End { pane: PaneId },
@@ -1043,6 +1050,19 @@ pub struct PaintRun {
 }
 
 impl Node {
+    /// Text to read, not rows to choose from: a double click in it selects a
+    /// word and a triple click a line ([`crate::select`]). In the rows of a
+    /// list, tree, table, entries or diff a double click chooses the row.
+    /// A renderer tells the two apart by the `node` tag of the pane's body:
+    /// `document`, `rich`, `log`, `state` and `extension` (an editor, a
+    /// terminal) are text.
+    pub fn is_text(&self) -> bool {
+        matches!(
+            self,
+            Node::Document { .. } | Node::Rich { .. } | Node::Log { .. } | Node::State { .. } | Node::Extension { .. }
+        )
+    }
+
     /// Fill a [`Node::Diff`]'s `painted` as the Ratatui renderer feeds its
     /// highlighters: context lines to both the old and the new side,
     /// added lines to the new, removed lines to the old.
@@ -1189,6 +1209,9 @@ fn setup_screen(host: &crate::host::Host, p: usize, scope: &str) -> crate::view:
             format!("Press ⏎ to set it up in settings, under {}.", plugin.sections()[0].group),
             Ink::Secondary,
         ));
+    }
+    if plugin.setup_step().is_some() {
+        lines.push(Text::of(crate::setup::RESUME, Ink::Secondary));
     }
     crate::view::ScreenView::new(
         scope,
@@ -1636,6 +1659,15 @@ impl ScreenView {
         }
     }
 
+    /// Whether the agent dock has a place on this screen: under the middle
+    /// pane of a screen of panes. An item's page and the work area (a pane
+    /// that is a `work.*` extension) have none; Ink draws no dock there
+    /// (`dockShown`) and Ratatui no notice.
+    pub fn has_dock_place(&self) -> bool {
+        self.page.is_none()
+            && !self.panes.iter().any(|p| matches!(&p.body, Node::Extension { capability, .. } if capability.starts_with("work.")))
+    }
+
     pub fn pane(&self, pane: PaneId) -> Option<&PaneView> {
         self.panes.iter().find(|p| p.pane == pane)
     }
@@ -1670,6 +1702,9 @@ pub struct ViewCx<'a> {
     pub parts: crate::compose::Parts<'a>,
     /// Whether the frontend draws icons, and how wide their lead is.
     pub icon_lead: usize,
+    /// The section is shown as a setup step: rows only Settings needs
+    /// (refresh rates, read-back windows, session defaults) are left out.
+    pub setup: bool,
 }
 
 impl ViewCx<'_> {

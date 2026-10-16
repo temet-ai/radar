@@ -55,17 +55,155 @@ fn check(p: &GithubPlugin) -> &Check {
     p.connection_check.as_ref().unwrap_or(&Check::NotYet)
 }
 
-/// The connection section's rows, in order: where, the token, the check,
-/// how often.
-pub(crate) const CONNECTION: [&str; 4] =
-    ["server", "token", connection::CHECK, connection::REFRESH];
+/// How radar signs in to GitHub: the connection section's three choices,
+/// each a value of `[github] token`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Access {
+    /// No token: public repositories only.
+    Public,
+    /// `gh`: the gh program's sign-in, asked when radar reads.
+    Gh,
+    /// `env:NAME`, or a token pasted.
+    Token,
+}
+
+impl Access {
+    pub(crate) const ALL: [Self; 3] = [Self::Public, Self::Gh, Self::Token];
+
+    pub(crate) const fn label(self) -> &'static str {
+        match self {
+            Self::Public => "public only",
+            Self::Gh => "gh's sign-in",
+            Self::Token => "a token",
+        }
+    }
+
+    pub(crate) const fn about(self) -> &'static str {
+        match self {
+            Self::Public => "public repositories, no token",
+            Self::Gh => "asks gh for its token",
+            Self::Token => "env:NAME, or one pasted",
+        }
+    }
+
+    /// The choice a token reference is.
+    pub(crate) fn of(token: &str) -> Self {
+        match token {
+            "" => Self::Public,
+            auth::GH => Self::Gh,
+            _ => Self::Token,
+        }
+    }
+}
+
+/// A row of the connection section: how radar signs in, where, the token,
+/// the check, how often; then the repositories followed (the repositories
+/// section's groups, as setup's GitHub step shows them).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ConnRow {
+    /// A gap before a heading: not selectable.
+    Gap(u8),
+    /// `SIGN IN`: not selectable.
+    AccessHeading,
+    Access(Access),
+    Server,
+    Token,
+    Check,
+    Refresh,
+    /// `ACCESS`: not selectable.
+    GrantHeading,
+    /// What a token is made to allow, `[github] access`.
+    Grant(config::TokenAccess),
+    /// `REPOSITORIES`: not selectable.
+    FollowHeading,
+    /// `+ add a repository or group`: the repositories section's add field.
+    FollowAdd,
+    /// A group.
+    Follow(usize),
+}
+
+impl ConnRow {
+    pub(crate) const fn selectable(self) -> bool {
+        !matches!(self, Self::Gap(_) | Self::AccessHeading | Self::GrantHeading | Self::FollowHeading)
+    }
+}
+
+/// What an access choice lets a token do, as its row says it.
+pub(crate) const fn grant_about(access: config::TokenAccess) -> &'static str {
+    match access {
+        config::TokenAccess::Read => "pull requests, checks, runs",
+        config::TokenAccess::Write => "adds comment, approve, merge, re-run",
+    }
+}
+
+/// The access row's detail: the permissions the new-token page fills in;
+/// for write, that each write is still asked and the mode must allow it.
+pub(crate) fn grant_detail(access: config::TokenAccess) -> String {
+    match access {
+        config::TokenAccess::Read => {
+            "The token reads pull requests, their checks and Actions runs. The new-token link fills in contents, pull requests, actions and statuses: read.".into()
+        }
+        config::TokenAccess::Write => format!(
+            "The token may also comment, approve, merge and re-run: the new-token link fills in pull requests, contents and actions: read and write. radar sends no GitHub writes yet. Each write is still asked first, and only while the mode allows writes; the mode is {} now.",
+            radar_core::writes::mode().0.word()
+        ),
+    }
+}
+
+pub(crate) fn conn_rows(p: &GithubPlugin) -> Vec<ConnRow> {
+    let mut rows = vec![ConnRow::AccessHeading];
+    rows.extend(Access::ALL.map(ConnRow::Access));
+    // As a setup step the card leaves out the server and refresh rows, which
+    // only Settings needs; the plugin remembers how the card was last drawn,
+    // so keys and clicks walk what is drawn.
+    let setup = p.setup_card.get();
+    rows.push(ConnRow::Gap(0));
+    if !setup {
+        rows.push(ConnRow::Server);
+    }
+    rows.extend([ConnRow::Token, ConnRow::Check]);
+    if !setup {
+        rows.push(ConnRow::Refresh);
+    }
+    rows.extend([ConnRow::Gap(1), ConnRow::GrantHeading]);
+    rows.extend(config::TokenAccess::ALL.map(ConnRow::Grant));
+    rows.extend([ConnRow::Gap(2), ConnRow::FollowHeading, ConnRow::FollowAdd]);
+    rows.extend((0..p.cfg.groups.len()).map(ConnRow::Follow));
+    rows
+}
+
+/// The connection row the cursor is on: the first that can be selected
+/// at or after `connection_row`.
+pub(crate) fn conn_at(p: &GithubPlugin) -> usize {
+    let rows = conn_rows(p);
+    (p.connection_row.min(rows.len() - 1)..rows.len())
+        .find(|&i| rows[i].selectable())
+        .or_else(|| rows.iter().rposition(|r| r.selectable()))
+        .unwrap_or(0)
+}
+
+pub(crate) fn conn_row(p: &GithubPlugin) -> ConnRow {
+    conn_rows(p)[conn_at(p)]
+}
 
 pub(crate) const API_ABOUT: &str = "The GitHub API radar talks to: api.github.com for github.com, or your own GitHub Enterprise Server or a local server. The token is sent only to this address.";
 pub(crate) const API_ACCEPTS: &str = "https://api.github.com · a GitHub Enterprise Server's https://HOST/api/v3 · http://127.0.0.1:PORT for a local server";
 
 pub(crate) fn title(p: &GithubPlugin, section: &str) -> String {
     if section == "connection" {
-        CONNECTION[p.connection_row.min(3)].into()
+        match conn_row(p) {
+            ConnRow::Access(a) => a.label().into(),
+            ConnRow::Grant(a) => a.label().into(),
+            ConnRow::GrantHeading => "access".into(),
+            ConnRow::Server => "server".into(),
+            ConnRow::Token => connection::TOKEN.into(),
+            ConnRow::Check => connection::CHECK.into(),
+            ConnRow::Refresh => connection::REFRESH.into(),
+            ConnRow::FollowAdd | ConnRow::FollowHeading | ConnRow::Gap(_) | ConnRow::AccessHeading => {
+                "add a repository or group".into()
+            }
+            ConnRow::Follow(g) => p.cfg.groups[g].name.clone(),
+        }
     } else {
         match selected(p) {
             Row::Add => "create a group or add a repository".into(),
@@ -107,7 +245,9 @@ fn validate(field: &Field, value: &str) -> Result<String, String> {
                 if value.trim().is_empty() {
                     "public read access without authentication".into()
                 } else {
-                    if value.trim().starts_with("env:") {
+                    if value.trim() == auth::GH {
+                        "gh's sign-in, asked with gh auth token when radar reads".into()
+                    } else if value.trim().starts_with("env:") {
                         "token read from the named environment variable".into()
                     } else {
                         "typed token; saved in config.toml and hidden on screen".into()
@@ -144,16 +284,17 @@ fn validate(field: &Field, value: &str) -> Result<String, String> {
 
 fn start_edit(p: &mut GithubPlugin, section: &str) -> Outcome {
     let (field, value) = if section == "connection" {
-        match p.connection_row {
-            0 => (Field::Api, p.cfg.api.clone()),
-            1 => (
+        match conn_row(p) {
+            ConnRow::Server => (Field::Api, p.cfg.api.clone()),
+            ConnRow::Token | ConnRow::Access(Access::Token) => (
                 Field::Token,
-                if p.cfg.token.starts_with("env:") {
-                    p.cfg.token.clone()
-                } else {
+                if auth::is_typed(&p.cfg.token) {
                     String::new()
+                } else {
+                    p.cfg.token.clone()
                 },
             ),
+            ConnRow::FollowAdd => (Field::Add, String::new()),
             _ => {
                 return Outcome::Handled(vec![Effect::Notify(
                     "this setting is not typed; the server and the token are editable".into(),
@@ -328,6 +469,27 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
     if key.ctrl || key.alt {
         return Outcome::Ignored;
     }
+    if section == "connection" {
+        match (key.key, conn_row(p)) {
+            (Key::Enter, ConnRow::Access(a)) => return choose(p, a),
+            (Key::Enter, ConnRow::Grant(a)) => return choose_grant(p, a),
+            (Key::Enter, ConnRow::Check) => return run_check(p),
+            (Key::Enter, ConnRow::Follow(g)) => {
+                p.discovery_group = Some(g);
+                let owner = p.cfg.groups[g].owner.clone();
+                return Outcome::Handled(p.discover_repositories(owner));
+            }
+            (Key::Char('d'), ConnRow::Follow(g)) => return Outcome::Handled(vec![remove_group(p, g)]),
+            (Key::Char('o'), _) => return Outcome::Handled(vec![Effect::Open(crate::setup::token_page(p))]),
+            (Key::Char('y'), _) => {
+                return Outcome::Handled(vec![
+                    Effect::Copy(crate::setup::token_page(p)),
+                    Effect::Notify("copied the new-token page's link".into()),
+                ]);
+            }
+            _ => {}
+        }
+    }
     match key.key {
         Key::Char('c') => return run_check(p),
         Key::Char('a') if section == "repositories" => {
@@ -337,7 +499,6 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
                 .and_then(|g| p.cfg.groups[g].owner.clone());
             return Outcome::Handled(p.discover_repositories(owner));
         }
-        Key::Enter if section == "connection" && p.connection_row == 2 => return run_check(p),
         Key::Enter if section == "repositories" && matches!(selected(p), Row::Group(_)) => {
             p.discovery_group = target_group(p);
             let owner = p
@@ -348,15 +509,7 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
         Key::Enter | Key::Char('e') => return start_edit(p, section),
         Key::Char('d') if section == "repositories" && p.repository_row > 0 => {
             return match selected(p) {
-                Row::Group(g) => Outcome::Handled(vec![Effect::Menu(Menu::confirm(
-                    format!("remove-group:{g}"),
-                    format!(
-                        "remove group {} and its repositories?",
-                        p.cfg.groups[g].name
-                    ),
-                    "remove group",
-                    "keep it",
-                ))]),
+                Row::Group(g) => Outcome::Handled(vec![remove_group(p, g)]),
                 Row::Repository(g, r) => {
                     let id = RepositoryId::parse(&p.cfg.groups[g].repositories[r]).unwrap();
                     p.remove_menu = Some((p.generation, id.clone()));
@@ -403,12 +556,13 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
         return Outcome::Ignored;
     };
     let order: Vec<usize> = if section == "connection" {
-        (0..4).collect()
+        let rows = conn_rows(p);
+        (0..rows.len()).filter(|&i| rows[i].selectable()).collect()
     } else {
         (0..order(p).len()).collect()
     };
     let current = if section == "connection" {
-        p.connection_row
+        conn_at(p)
     } else {
         p.repository_row
     };
@@ -430,6 +584,46 @@ fn run_check(p: &mut GithubPlugin) -> Outcome {
     Outcome::Handled(p.check_connection())
 }
 
+/// Asks before a group and its repositories go.
+fn remove_group(p: &GithubPlugin, g: usize) -> Effect {
+    Effect::Menu(Menu::confirm(
+        format!("remove-group:{g}"),
+        format!("remove group {} and its repositories?", p.cfg.groups[g].name),
+        "remove group",
+        "keep it",
+    ))
+}
+
+/// A sign-in choice taken: public and gh's set the token at once (and
+/// check it); a token is typed into the token row.
+fn choose(p: &mut GithubPlugin, access: Access) -> Outcome {
+    let value = match access {
+        Access::Public => "",
+        Access::Gh => auth::GH,
+        Access::Token => {
+            p.connection_row = conn_rows(p).iter().position(|r| *r == ConnRow::Token).unwrap_or(0);
+            return start_edit(p, "connection");
+        }
+    };
+    p.editor = Some(Editor { input: TextInput::new(value), field: Field::Token });
+    keep(p, value.into())
+}
+
+/// An access choice taken: kept in the config (no data depends on it, so
+/// nothing is read again), and a check already made asked again, so the
+/// check row says whether the token allows it.
+fn choose_grant(p: &mut GithubPlugin, access: config::TokenAccess) -> Outcome {
+    if p.cfg.access == access {
+        return Outcome::done();
+    }
+    p.cfg.access = access;
+    let mut fx = vec![Effect::Notify(format!("the token's access: {}", access.label()))];
+    if p.connection_check.is_some() {
+        fx.extend(p.check_connection());
+    }
+    Outcome::Handled(fx)
+}
+
 pub(crate) fn click(p: &mut GithubPlugin, section: &str, id: &str) -> Outcome {
     let Some(index) = id
         .strip_prefix("setting:")
@@ -437,7 +631,7 @@ pub(crate) fn click(p: &mut GithubPlugin, section: &str, id: &str) -> Outcome {
     else {
         return Outcome::Ignored;
     };
-    if section == "connection" && index < 4 {
+    if section == "connection" && conn_rows(p).get(index).is_some_and(|r| r.selectable()) {
         p.connection_row = index;
         Outcome::done()
     } else if section == "repositories" && index < order(p).len() {
@@ -451,32 +645,43 @@ pub(crate) fn click(p: &mut GithubPlugin, section: &str, id: &str) -> Outcome {
 pub(crate) fn keys(p: &GithubPlugin, section: &str) -> Vec<crate::Act> {
     let act = |verb: &str, b: Binding| crate::act(section, verb, b);
     let mut rows = vec![crate::head(Binding::heading(title(p, section)))];
-    if section == "repositories" || p.connection_row <= 1 {
-        rows.push(act("edit", Binding::new("e", "change it")));
-        rows.push(if section == "repositories" {
-            let (verb, what) = match selected(p) {
-                Row::Add => ("activate_add", "create group or add repository"),
-                Row::Group(_) => ("activate_group", "browse repositories for group"),
-                Row::Repository(..) => ("activate_repository", "change repository"),
-            };
-            act(verb, Binding::new("⏎", what))
-        } else {
-            act("activate_setting", Binding::new("⏎", "change it"))
-        });
-    }
-    if section == "connection" || section == "repositories" {
+    if section == "connection" {
+        match conn_row(p) {
+            ConnRow::Access(_) => rows.push(act("choose", Binding::new("⏎", "sign in this way"))),
+            ConnRow::Grant(_) => rows.push(act("choose", Binding::new("⏎", "give the token this access"))),
+            ConnRow::Server | ConnRow::Token => {
+                rows.push(act("edit", Binding::new("e", "change it")));
+                rows.push(act("activate_setting", Binding::new("⏎", "change it")));
+            }
+            ConnRow::Check => rows.push(act("activate_check", Binding::new("⏎", "check GitHub connection"))),
+            ConnRow::FollowAdd | ConnRow::FollowHeading | ConnRow::Gap(_) | ConnRow::AccessHeading | ConnRow::GrantHeading => {
+                rows.push(act("follow", Binding::new("⏎", "add a repository or group")));
+            }
+            ConnRow::Follow(_) => {
+                rows.push(act("activate_group", Binding::new("⏎", "browse repositories for group")));
+                rows.push(act("remove", Binding::new("d", "remove selected group or repository…")));
+            }
+            ConnRow::Refresh => {}
+        }
         rows.push(act("check", Binding::new("c", "check GitHub connection")));
+        rows.push(act("token_page", Binding::new("o", "open GitHub's new-token page")));
+        rows.push(act("copy_token_link", Binding::new("y", "copy the new-token page's link")));
+        return rows;
     }
     if section == "repositories" {
+        rows.push(act("edit", Binding::new("e", "change it")));
+        let (verb, what) = match selected(p) {
+            Row::Add => ("activate_add", "create group or add repository"),
+            Row::Group(_) => ("activate_group", "browse repositories for group"),
+            Row::Repository(..) => ("activate_repository", "change repository"),
+        };
+        rows.push(act(verb, Binding::new("⏎", what)));
+    }
+    if section == "repositories" {
+        rows.push(act("check", Binding::new("c", "check GitHub connection")));
         rows.push(act(
             "browse",
             Binding::new("a", "browse repositories this token can access"),
-        ));
-    }
-    if section == "connection" && p.connection_row == 2 {
-        rows.push(act(
-            "activate_check",
-            Binding::new("⏎", "check GitHub connection"),
         ));
     }
     if section == "repositories" && p.repository_row > 0 {
@@ -492,7 +697,7 @@ pub(crate) fn keys(p: &GithubPlugin, section: &str) -> Vec<crate::Act> {
 }
 
 pub(crate) fn context(p: &GithubPlugin, section: &str, key: Chord) -> Option<String> {
-    if matches!(key.key, Key::Char('e' | 'd' | 'c' | 'a' | 'm') | Key::Enter) {
+    if matches!(key.key, Key::Char('e' | 'd' | 'c' | 'a' | 'm' | 'o' | 'y') | Key::Enter) {
         Some(format!("{}:{section}:{}", p.generation, title(p, section)))
     } else {
         None

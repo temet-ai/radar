@@ -1,0 +1,465 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "screen_keys": [
+      "R",
+      "G",
+      "J",
+      "S",
+      "B",
+      "W",
+      "I",
+      "Y",
+      "A"
+    ],
+    "status": {
+      "counts": [
+        {
+          "ink": "plain",
+          "text": "3 tickets"
+        },
+        {
+          "ink": "info",
+          "text": "1 doing"
+        }
+      ],
+      "health": [
+        {
+          "ink": "muted",
+          "label": "gitlab",
+          "part": "gitlab",
+          "state": "stale",
+          "target": "chrome:health:gitlab"
+        },
+        {
+          "ink": "muted",
+          "label": "jira",
+          "part": "jira",
+          "state": "stale",
+          "target": "chrome:health:jira"
+        }
+      ],
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:3:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:3:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:3:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:3:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "scope": "JIRA"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "busy": true,
+      "mode": {
+        "ink": "secondary",
+        "target": "chrome:mode",
+        "text": "✎ edit"
+      },
+      "tabs": [
+        {
+          "badge": {
+            "ink": "warn",
+            "text": "2"
+          },
+          "icon": "repo",
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "active": true,
+          "icon": "issue",
+          "label": "jira",
+          "mnemonic": "J",
+          "target": "chrome:tab:2"
+        },
+        {
+          "icon": "branch",
+          "label": "branches",
+          "mnemonic": "B",
+          "target": "chrome:tab:4"
+        },
+        {
+          "label": "work",
+          "mnemonic": "I",
+          "target": "chrome:tab:6"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "not synced yet · every 2m"
+      }
+    },
+    "version": 1,
+    "width": 160
+  },
+  "focus": "middle",
+  "height": 40,
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "id": "",
+        "label": "ABC-12"
+      },
+      {
+        "id": "jira.tickets.open",
+        "key": {
+          "key": "enter"
+        },
+        "label": "show api !263"
+      },
+      {
+        "id": "jira.tickets.open_in_jira",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open it in Jira"
+      },
+      {
+        "id": "jira.tickets.copy_link",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy its link"
+      },
+      {
+        "id": "jira.tickets.copy_key",
+        "key": {
+          "key": {
+            "char": "Y"
+          }
+        },
+        "label": "copy ABC-12"
+      },
+      {
+        "id": "jira.tickets.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh this page"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "on Jira"
+      },
+      {
+        "change": "edit",
+        "id": "jira.tickets.move",
+        "key": {
+          "key": {
+            "char": "t"
+          }
+        },
+        "label": "move ABC-12 to another status…"
+      },
+      {
+        "change": "add",
+        "id": "jira.tickets.comment",
+        "key": {
+          "key": {
+            "char": "c"
+          }
+        },
+        "label": "comment on ABC-12…"
+      },
+      {
+        "change": "edit",
+        "id": "jira.tickets.assign_me",
+        "key": {
+          "key": {
+            "char": "i"
+          }
+        },
+        "label": "assign to me · ABC-12 is already yours"
+      },
+      {
+        "change": "add",
+        "id": "jira.tickets.new_ticket",
+        "key": {
+          "key": {
+            "char": "n"
+          }
+        },
+        "label": "new ticket in ABC…"
+      },
+      {
+        "heading": true,
+        "id": "",
+        "label": "page"
+      },
+      {
+        "id": "jira.tickets.next_tab",
+        "key": {
+          "key": {
+            "char": "]"
+          }
+        },
+        "label": "next tab: Overview"
+      },
+      {
+        "id": "jira.tickets.previous_tab",
+        "key": {
+          "key": {
+            "char": "["
+          }
+        },
+        "label": "previous tab: Links"
+      },
+      {
+        "id": "agent.send",
+        "key": {
+          "key": {
+            "char": "A"
+          }
+        },
+        "label": "ask an agent about it…"
+      },
+      {
+        "id": "jira.tickets.back",
+        "key": {
+          "key": "esc"
+        },
+        "label": "back to the middle pane"
+      },
+      {
+        "id": "jira.tickets.kept_text",
+        "key": {
+          "ctrl": true,
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "kept Jira text…"
+      }
+    ],
+    "page": {
+      "crumbs": [
+        {
+          "ink": "secondary",
+          "text": "Jira"
+        },
+        {
+          "look": "jira.blue bold",
+          "text": "acme"
+        },
+        {
+          "ink": "secondary",
+          "text": "ABC"
+        },
+        {
+          "look": "accent.secondary",
+          "text": "ABC-12"
+        }
+      ],
+      "details": [
+        {
+          "icon": "in_progress",
+          "look": "status.info bold",
+          "text": "◐"
+        },
+        {
+          "look": "status.info bold",
+          "text": " In Review"
+        },
+        {
+          "ink": "muted",
+          "text": " · "
+        },
+        {
+          "look": "status.success",
+          "text": "Story"
+        },
+        {
+          "ink": "muted",
+          "text": " · "
+        },
+        {
+          "icon": "you"
+        },
+        {
+          "look": "accent.primary",
+          "text": "you"
+        }
+      ],
+      "panes": [
+        {
+          "body": {
+            "node": "list",
+            "rows": [
+              {
+                "link": "https://gitlab.example/acme/team-a/api/-/merge_requests/263",
+                "target": "row:0",
+                "text": [
+                  {
+                    "text": "api !263         review   pipeline passed    approvals 0 of 1       ABC-12: Add a stats endpoint for the dashboard"
+                  }
+                ]
+              }
+            ],
+            "selected": 0
+          },
+          "inset": true,
+          "pane": "middle",
+          "title": "code"
+        }
+      ],
+      "tab": 3,
+      "tabs": [
+        {
+          "icon": "info",
+          "label": "Overview"
+        },
+        {
+          "icon": "thread",
+          "label": "Comments"
+        },
+        {
+          "icon": "link",
+          "label": "Links"
+        },
+        {
+          "icon": "change",
+          "label": "Code · 1"
+        }
+      ],
+      "title": [
+        {
+          "icon": "story"
+        },
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "Add a stats endpoint for the dashboard"
+        }
+      ],
+      "under": [
+        {
+          "ink": "secondary",
+          "text": "Acme ABC · "
+        },
+        {
+          "icon": "updated"
+        },
+        {
+          "ink": "muted",
+          "text": "updated 1h ago"
+        }
+      ]
+    },
+    "panes": [],
+    "scope": "tickets",
+    "version": 1
+  },
+  "section": null,
+  "width": 160
+}

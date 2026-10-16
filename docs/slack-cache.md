@@ -44,8 +44,8 @@ A review ask from an earlier or unverified session cannot obtain a fresh send
 confirmation under another account. Use `y` on its draft page or in Slack's
 connection settings to copy the authored words, then deliberately start a new
 draft for the intended account. Kept replies remain recoverable through the
-existing kept-replies controls. These editors were not restart-persistent before
-this change; the cache export is not a backup of in-memory editors.
+existing kept-replies controls. These editors are not restart-persistent; the cache
+export is not a backup of in-memory editors.
 
 A write already dispatched can still finish after switching accounts. Its
 original history and outcome are retained; a successful review ask is followed
@@ -53,7 +53,7 @@ only in its original account partition, never the newly selected account.
 Nothing is automatically resent.
 
 Configured channel aliases and review settings remain explicit configuration;
-they are not evidence of cache ownership. This change does not rewrite existing
+they are not evidence of cache ownership. radar does not rewrite existing
 SQLite history or detect a secret changing behind an unchanged environment/token
 reference midway through an authenticated session. Restart or recheck the
 connection after such a change.

@@ -565,11 +565,37 @@ export function restyle(
   rect: { x: number; y: number; w: number; h: number },
   map: (id: number) => number,
 ): string {
+  const rows: Array<{ y: number; from: number; to: number }> = [];
+  for (let y = rect.y; y < rect.y + rect.h; y++) rows.push({ y, from: rect.x, to: rect.x + rect.w - 1 });
+  return restyleRows(output, width, rows, map);
+}
+
+/** The cells of row `y` of a finished frame: a character per cell, "" for the second cell of a wide one. */
+export function frameRow(output: string, width: number, y: number): string[] {
+  let at = 0;
+  for (let i = 0; i < y; i++) {
+    at = output.indexOf("\n", at);
+    if (at < 0) return new Array<string>(width).fill(" ");
+    at++;
+  }
+  const end = output.indexOf("\n", at);
+  return parseRow(output.slice(at, end < 0 ? undefined : end), width).chars;
+}
+
+/** Restyle runs of cells in a finished frame, each `from..to` inclusive on row `y` (a selection's rows): as `restyle`,
+ * each row read and written again once. */
+export function restyleRows(
+  output: string,
+  width: number,
+  rows: ReadonlyArray<{ y: number; from: number; to: number }>,
+  map: (id: number) => number,
+): string {
   const lines = output.split("\n");
-  const x0 = Math.max(0, rect.x);
-  const x1 = Math.min(width, rect.x + rect.w);
-  if (x1 <= x0) return output;
-  for (let y = Math.max(0, rect.y); y < Math.min(lines.length, rect.y + rect.h); y++) {
+  for (const r of rows) {
+    const y = r.y;
+    const x0 = Math.max(0, r.from);
+    const x1 = Math.min(width, r.to + 1);
+    if (x1 <= x0 || y < 0 || y >= lines.length) continue;
     const { chars, sty } = parseRow(lines[y]!, width);
     // A wide character cut by the rectangle's edge keeps one style for both halves.
     let from = x0;
@@ -584,26 +610,28 @@ export function restyle(
 
 type Frame = { output: string; height: number };
 /** A layer over the screen (a menu's box) as the frame marks it, in cells. */
-export type Layer = { x: number; y: number; w: number; h: number };
+export type Layer = { x: number; y: number; w: number; h: number; shadowOnly?: boolean };
 /** What is painted over every finished frame (the scrim and the hover, app/scrim.ts, app/hover.ts), given the layer the
  * frame's own writes mark, if any; the frame string comes back changed or as is. */
-let paintOver: ((output: string, width: number, height: number, layer: Layer | undefined) => string) | undefined;
+let paintOver: ((output: string, width: number, height: number, layers: Layer[]) => string) | undefined;
 export function setFramePaint(fn: typeof paintOver) {
   paintOver = fn;
 }
 
-/** The layer a frame's writes mark (app/scrim.ts layerMark): its size rides on the mark, its place is where the mark was
+/** The layers a frame's writes mark (app/scrim.ts layerMark): its size rides on the mark, its place is where the mark was
  * written (the box's top-left cell). Read from the frame, so two renderers in one process (the tests) never take each
  * other's. */
-function layerOf(ops: Op[]): Layer | undefined {
+function layersOf(ops: Op[]): Layer[] {
+  const out: Layer[] = [];
   for (const op of ops) {
     if (op.type !== "write") continue;
     for (const t of op.transformers) {
-      const l = (t as { radarLayer?: { w: number; h: number } }).radarLayer;
-      if (l) return { x: op.x, y: op.y, w: l.w, h: l.h };
+      const l = (t as { radarLayer?: { w: number; h: number; shadowOnly?: boolean } }).radarLayer;
+      if (l) out.push({ x: op.x, y: op.y, w: l.w, h: l.h, ...(l.shadowOnly ? { shadowOnly: true } : {}) });
     }
   }
-  return undefined;
+  // A shadow alone (the tour's card) is painted before a menu's scrim, as Ratatui draws the card first and the scrim after.
+  return out.sort((a, b) => Number(!!b.shadowOnly) - Number(!!a.shadowOnly));
 }
 
 /** Two frames' operations draw the same when every write has the same place, text and transformer functions (the same
@@ -644,7 +672,7 @@ function get(this: any): Frame {
     frame = base.call(this);
     last = { get: base, width: this.width, height: this.height, ops, frame };
   }
-  return paintOver ? { output: paintOver(frame.output, this.width, this.height, layerOf(ops)), height: frame.height } : frame;
+  return paintOver ? { output: paintOver(frame.output, this.width, this.height, layersOf(ops)), height: frame.height } : frame;
 }
 (Output.prototype as any).get = get;
 

@@ -2,7 +2,8 @@ import React from "react";
 import { Box, Text } from "ink";
 import type { Capabilities } from "../protocol/generated/Capabilities.js";
 import { arrange, columnWidths, NARROW_BELOW } from "./layout.js";
-import { Framed, ScreenPanes } from "../app/Panes.js";
+import { Framed, ScreenPanes, SelectFrame, type SelectSink } from "../app/Panes.js";
+import { selectKindOf } from "../input/selection.js";
 import type { NodeCx, RenderNode as AppRenderNode } from "../app/Body.js";
 import { sectionsOf, type ScreenLike, type ViewNode, type WorkSection } from "./model.js";
 import { plainText, plainLines } from "./plain.js";
@@ -102,6 +103,7 @@ function SectionBox({
 }) {
   const inner = Math.max(1, width - 2);
   return (
+    <SelectFrame registry={registry as SelectSink | undefined} id={section.target} kind={selectKindOf(contentOf(section.body))} width={width} height={height}>
     <Framed title={titleOf(section)} width={width} height={height} focused={focused}>
       {pad(section.pending ? <Text color="yellow">● waiting for you</Text> : null)}
       {pad(section.head.length ? <TextLine text={section.head as Seg[]} /> : null)}
@@ -116,6 +118,7 @@ function SectionBox({
       {section.notes.map((n, i) => pad(<TextLine key={`n${i}`} text={n as Seg[]} />))}
       {pad(section.footer.length ? <TextLine text={section.footer as Seg[]} /> : null)}
     </Framed>
+    </SelectFrame>
   );
 }
 
@@ -164,7 +167,10 @@ export function WorkArea({ screen, capabilities, focus, weights, renderNode, reg
   const panes = (screen.panes ?? []).filter((_, i) => sections[i]!.kind === "other");
   const extras = sections.filter((s) => s.kind !== "other" && (panels === "all" || s.pending));
   const paneFocus = ["nav", "middle", "detail"].includes(String(focus)) ? String(focus) : undefined;
-  const appCx: NodeCx = { width: W, height: H, actions: [], plainText: false, focused: true };
+  // The panes register where text is selected in them (issue #51); their rows' hits come from the nodes themselves.
+  const sink = registry as SelectSink | undefined;
+  const selects = sink?.addSelect ? { add: () => {}, addSelect: (a: Parameters<NonNullable<SelectSink["addSelect"]>>[0]) => sink.addSelect!(a) } : undefined;
+  const appCx: NodeCx = { width: W, height: H, actions: [], plainText: false, focused: true, registry: selects };
   const appRender: AppRenderNode = (node, c) => render(node, { columns: c.width, focused: !!c.focused });
   const panesAt = (h: number) =>
     panes.length ? (

@@ -343,3 +343,30 @@ fn rejected_menu_target_is_blocked_without_confirmed_history_or_private_tokens()
         })
     )));
 }
+
+#[test]
+fn a_row_intent_while_a_field_has_the_keys_waits_for_it_as_a_click_does() {
+    use crate::view::{Chord, Intent, Key, Target};
+    let (mut host, state) = fixture();
+    state.lock().unwrap().typing = true;
+    let row = Target::new("row:b");
+    for intent in [
+        Intent::Select { target: row.clone() },
+        Intent::Context { target: row.clone() },
+        Intent::Activate { target: row.clone() },
+        Intent::Fold { target: row.clone(), open: true },
+    ] {
+        assert!(host.update(Event::Intent(intent.clone())).is_empty(), "{intent:?}");
+        assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_A"), "{intent:?}");
+        assert!(host.menu.is_none(), "{intent:?}");
+        assert!(state.lock().unwrap().typing, "{intent:?} leaves the field open");
+    }
+    assert!(state.lock().unwrap().keys.is_empty());
+    // The field's own keys still reach it, and once it is done the same
+    // press lands on its row.
+    host.update(Event::Intent(Intent::Key { chord: Chord::new(Key::Esc) }));
+    assert!(!state.lock().unwrap().typing);
+    host.update(Event::Intent(Intent::Context { target: row }));
+    assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_B"));
+    assert_eq!(host.menu.as_ref().unwrap().menu.id, KEYS_MENU);
+}

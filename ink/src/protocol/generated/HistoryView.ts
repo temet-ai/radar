@@ -8,8 +8,9 @@ import type { Text } from "./Text.js";
 
 /**
  * The history overlay for one frame, as view data: what it says and what
- * can be pointed at, each by a [`Target`] (`chrome:history:row:<i>`,
- * `chrome:history:key:<k>`) that [`History::target`] resolves. Bounded: one
+ * can be pointed at, each by an opaque `chrome:history:` [`Target`] that
+ * [`History::target`] resolves, and only while the page it was drawn for
+ * is the one shown (a frontend echoes it back, never builds one). Bounded: one
  * page of at most [`RECORDS_PER_PAGE`] rows, a fixed set of detail fields,
  * each text already passed through the overlay's allowlist. Nothing here
  * names a terminal library; the Ratatui overlay paints from it.

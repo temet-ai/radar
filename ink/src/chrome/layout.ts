@@ -3,6 +3,7 @@ import type { ChromeView, Hint, Hit, Ink, MenuView, SettingsNav, Text } from "./
 import { bgOf, currentLook, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
 import { inkStyle } from "../text/theme.js";
 import { wrap } from "./history.js";
+import { cutCells, fieldWindow } from "../editor/InputField.js";
 
 /** A run of text on one row. Rows are laid out in cells so a pointer position maps to a target. `style` is the
  * theme's look for it (colours as the host's slots resolve them); `ink` names a slot, `style` wins over it. */
@@ -165,6 +166,35 @@ export function layoutTopBar(chrome: ChromeView, width: number, y = 0): Laid {
   row.gap(Math.max(0, width - row.x - rightW));
   for (const p of right) row.put(p.text, { style: p.style });
   row.put(modeCell.text, { style: modeCell.style }, bar.mode.target);
+  return row.done(width);
+}
+
+/**
+ * ` radar  setup / look & terminal          step 1 of 5   read-only `, row `y`, drawn as shell/setup.rs top_bar does:
+ * the row on the overlay shade, the brand, `setup / ` and the screen's name; at the right end `step n of m` and the mode in
+ * its ink. No tabs, no words, no terminal chip, no throbber while setup shows. The left is cut to what the right leaves.
+ */
+export function layoutSetupTopBar(chrome: ChromeView, setup: NonNullable<ChromeView["setup"]>, width: number, y = 0): Laid {
+  const bar = chrome.top_bar;
+  const row = new Row(y);
+  row.base = { backgroundColor: bgOf("bg.overlay") };
+  const mode = ` ${bar.mode.text} `;
+  const step = setup.step ? `${setup.step}  ` : "";
+  const rightW = Math.min(cellWidth(step) + cellWidth(mode), width);
+  const left: Array<[string, Style]> = [
+    [` ${bar.brand}`, { ...slotStyle("accent.primary"), bold: true }],
+    ["  setup / ", slotStyle("text.muted")],
+    [setup.title, slotStyle("text.emphasis")],
+  ];
+  let room = Math.max(0, width - rightW);
+  for (const [text, style] of left) {
+    const shown = clip(text, room);
+    room -= cellWidth(shown);
+    row.put(shown, { style });
+  }
+  row.gap(Math.max(0, width - rightW - row.x));
+  if (step) row.put(step, { style: slotStyle("text.muted") });
+  row.put(mode, { style: chromeInk(bar.mode.ink, !!bar.mode.strong) }, bar.mode.target);
   return row.done(width);
 }
 
@@ -421,7 +451,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     menu.typed != null ? 58 : 0,
     ...(question ? [] : items.filter((c) => !c.heading).map(compactW)),
     ...items.filter((c) => c.heading).map((c) => 1 + cellWidth(c.label) + iconW(c)),
-    ...items.filter((c) => c.note).map((c) => 1 + Math.min(cellWidth(c.label), 60)),
+    ...items.filter((c) => c.note).map((c) => 1 + Math.min(cellWidth(c.label), 60) + iconW(c)),
   );
   const innerW = Math.min(maxW, Math.max(natural, buttonsW));
   const w = innerW + 2;
@@ -451,7 +481,9 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
       const isHeading = c.heading && !c.note;
       const text = isHeading ? c.label.toUpperCase() : c.label;
       const style: Style = isHeading ? { ...slotStyle("text.muted"), bold: true } : slotStyle("text.primary");
-      for (const part of text.split("\n")) body.push({ cells: [{ text: " " }, { text: part, style }] });
+      // menu.rs: the item's icon leads its first line, after the cell of air.
+      const ic = lead(c.icon);
+      text.split("\n").forEach((part, k) => body.push({ cells: [{ text: " " }, ...(k === 0 && ic ? [{ text: ic.text, style: ic.style }] : []), { text: part, style }] }));
       return;
     }
     if (question) return;
@@ -474,14 +506,24 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   // A typed field takes the first row of the body.
   const field: Line[] = [];
   if (menu.typed != null) {
-    const chars = [...menu.typed];
-    const at = Math.min(Math.max(menu.caret ?? chars.length, 0), chars.length);
+    // input::render_field in the row one cell in from each edge: the text on bg.overlay in bold emphasis from its scroll
+    // offset, the caret a reversed cell over the character it is before (a space at the end).
+    const room = Math.max(0, innerW - 2);
+    const caret = Math.min(Math.max(menu.caret ?? [...menu.typed].length, 0), [...menu.typed].length);
+    const v = fieldWindow(menu.typed, caret, room);
+    const before = cutCells(v.before, room);
+    const at = cutCells(v.at, room - cellWidth(before));
+    const after = cutCells(v.after, room - cellWidth(before + at));
+    const emphasisField: Style = { ...slotStyle("text.emphasis"), bold: true, backgroundColor: overlay };
+    const used = cellWidth(before + at + after);
     field.push({
       cells: [
         { text: " " },
-        { text: chars.slice(0, at).join(""), ink: "accent" },
-        { text: "▏", ink: "accent" },
-        { text: chars.slice(at).join(""), ink: "accent" },
+        ...(before ? [{ text: before, style: emphasisField }] : []),
+        ...(at ? [{ text: at, style: emphasisField, inverse: true }] : []),
+        ...(after ? [{ text: after, style: emphasisField }] : []),
+        { text: " ".repeat(Math.max(0, room - used)), style: emphasisField },
+        { text: " " },
       ],
     });
   }
@@ -627,6 +669,9 @@ export function layoutNav(nav: SettingsNav, x0: number, y0: number, w: number, m
   const hits = shown.map((r, i) => ({ x: x0, y: y0 + i, w, h: 1, target: r.target }));
   return { rows: shown, hits, total: rows.length, at };
 }
+
+/** The target of an open menu's whole frame (host.rs Hit::MenuBox): pressed, it does nothing. */
+export const MENU_BOX = "chrome:menu:box";
 
 export function hitAt(hits: Hit[], x: number, y: number): Hit | undefined {
   for (let i = hits.length - 1; i >= 0; i--) {

@@ -29,13 +29,17 @@ describe("what one key writes to the terminal", () => {
       live.push(m.stop);
       m.welcome();
       m.snapshot({ screen: screenAt(0) }, 1);
-      await tick(150);
+      // The first paint is counted out by what it wrote, not by a wait: on a busy machine it can take longer than any
+      // fixed wait, and what it wrote after one would be counted as the key's.
+      await until(() => m.out.frames.some((f) => f.includes("number 0 in the pipeline")));
       const base = m.out.frames.join("").length;
       const n = m.out.frames.length;
       m.type("\x1b[B");
       await until(() => m.intents().length >= 1);
       // The host's answer: the selection moved.
       m.snapshot({ screen: screenAt(1) }, 2);
+      await until(() => m.out.frames.length > n);
+      // Then room for a second write that should not come: a slow machine only makes it later, never a false failure.
       await tick(200);
       const written = m.out.frames.join("").length - base;
       expect(written, `${written} bytes in ${m.out.frames.length - n} writes`).toBeLessThan(3000);

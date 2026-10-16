@@ -17,14 +17,17 @@ Exit codes: `0` normal (host sent Shutdown or the user quit), `2` `RADAR_IPC_SOC
 (ink 8's `yoga-layout` ships it as base64 JavaScript, which esbuild bundles). The exact file set
 to ship is therefore `radar-ink.js` alone. `bundle.test.ts` runs a copy of it alone in an empty folder.
 
-The host looks for the bundle, in this order:
+The host starts the renderer in this order (`crates/radar-core/src/ipc/supervisor.rs`):
 
-1. `RADAR_INK_BUNDLE` (a path to the file),
-2. `<directory of the radar executable>/../share/radar/ink/radar-ink.js` (where `scripts/install` copies it),
-3. the checkout's `ink/dist/radar-ink.js` (walk up from the executable to a folder holding `Cargo.toml` and `ink/`),
+1. `RADAR_INK_BUNDLE` names a file: `node <file>`.
+2. Otherwise radar's embedded runtime: `<RADAR_RUNTIME> ink`. `scripts/install` and the release build it with
+   `scripts/build-runtime` (the bundle and the Claude sidecar as one Node single executable) and embed it in
+   the `radar` binary, so an installed radar needs no `node` and no files beside it.
+3. Otherwise the bundle, as `node <file>`, from `<directory of the radar executable>/../share/radar/ink/radar-ink.js`
+   or the checkout's `ink/dist/radar-ink.js` (walk up from the executable to a folder holding `Cargo.toml` and `ink/`).
+   `node` must be on `PATH` (Node 22 or newer).
 
-and runs it as `node <file>`; `node` must be on `PATH` (Node 22 or newer). A missing node or
-bundle makes the host print one line and run the Ratatui renderer.
+A missing runtime, node or bundle makes the host print one line and run the Ratatui renderer.
 
 Two details of the bundle script, both needed to make a single file work:
 
@@ -40,7 +43,7 @@ stop the process first).
 
 ```
 cd ink
-npm ci            # npm install while package-lock.json is not committed
+npm ci            # installs from the committed package-lock.json
 npm run typecheck # tsc --noEmit
 npm test          # vitest run (test/**/*.test.ts and .tsx)
 npm run bundle    # dist/radar-ink.js
@@ -62,10 +65,13 @@ reassembled across chunks (multi-byte characters may be split), invalid JSON clo
 
 ## Folders
 
-| Folder | Owner |
+| Folder | Holds |
 |---|---|
-| `src/transport`, `test/transport`, `test/bundle` | T2 |
-| `src/protocol` (generated from the Rust types) | T3 |
-| `src/app`, `src/chrome`, `src/input`, `src/state` | T10 |
-| `src/nodes`, `src/editor`, `src/text`, `test/fixtures` | T11 |
-| `src/workarea`, `src/media` | T12 |
+| `src/transport`, `test/transport`, `test/bundle` | The socket connection, the fake one for tests, the bundle shims and the bundle test |
+| `src/protocol` | Types generated from the Rust types; never edited by hand |
+| `src/app`, `src/chrome`, `src/input`, `src/state` | The app shell, panes and pages; the top bar, status line, menus and overlays; keys, mouse and selection; UI state |
+| `src/nodes`, `src/editor`, `src/text`, `test/fixtures` | Node drawers (list, tree, table, log, ...); the editor; text, diff and markdown drawing; recorded view data |
+| `src/workarea`, `src/media` | The work area; pictures and media blocks |
+| `src/dock` | The agent dock: tabs, transcript rows, tool calls, the composer |
+| `src/terminal` | The terminal tab: a CLI's own screen, drawn from the host's PTY frames |
+| `src/motion` | Motion effects, easing and colour mixing, the same effects Ratatui draws |

@@ -5,6 +5,7 @@ import type { MotionView } from "./MotionView.js";
 import type { PaneId } from "./PaneId.js";
 import type { ScreenView } from "./ScreenView.js";
 import type { SectionView } from "./SectionView.js";
+import type { SnapshotTrace } from "./SnapshotTrace.js";
 import type { SplashView } from "./SplashView.js";
 
 /**
@@ -47,4 +48,10 @@ motion: MotionView,
  * cell as the Ratatui runner paints it ([`crate::splash`]). Keys and
  * clicks still go to the screen under it.
  */
-splash?: SplashView, };
+splash?: SplashView, 
+/**
+ * With `RADAR_TRACE_LATENCY=1` only: what this snapshot answers and how
+ * long the host took, so the renderer can log the whole way from a key
+ * or an agent's words to the frame painted. Absent otherwise.
+ */
+trace?: SnapshotTrace, };

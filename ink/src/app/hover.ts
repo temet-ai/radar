@@ -6,6 +6,7 @@ import type { Hit } from "../chrome/types.js";
 import { bgOf, monoTier, slotStyle } from "../text/look.js";
 import { bgParams, restyle, setFramePaint, styleId, styleOf, UNDERLINE } from "./fast-output.js";
 import { paintScrim } from "./scrim.js";
+import { selected } from "./selected.js";
 
 export type HoverRect = { x: number; y: number; w: number; h: number };
 
@@ -77,6 +78,6 @@ export class Hover {
 
 /** The renderer's hover: fast-output paints it over every frame, over the scrim (app/scrim.ts). */
 export const hover = new Hover();
-setFramePaint((output, width, height, layer) =>
-  hover.paint(layer ? paintScrim(output, width, height, layer) : output, width),
+setFramePaint((output, width, height, layers) =>
+  selected.paint(output, width, hover.paint(layers.reduce((out, layer) => paintScrim(out, width, height, layer), output), width)),
 );

@@ -250,15 +250,22 @@ pub(crate) fn setup_page(host: &Host, p: usize, t: &Theme, area: Rect, buf: &mut
     let block = widgets::panel(t, &format!("set up {name}"), true);
     let inner = block.inner(area);
     ratatui::widgets::Widget::render(block, area, buf);
+    host.frontend.mark_selectable(inner, true);
     let what = match plugin.set_up() {
         Setup::Needed(what) => what,
         Setup::Ready => String::new(),
     };
-    let how = host.first_section_of(p).is_some().then(|| {
+    let mut how = host.first_section_of(p).is_some().then(|| {
         format!(
             "Press ⏎ to set it up in settings, under {}.",
             plugin.sections()[0].group
         )
     });
+    if plugin.setup_step().is_some() {
+        how = Some(match how {
+            Some(h) => format!("{h}\n{}", crate::setup::RESUME),
+            None => crate::setup::RESUME.into(),
+        });
+    }
     crate::ui::states::set_up(t, inner, buf, name, &what, how.as_deref());
 }

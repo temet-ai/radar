@@ -72,15 +72,17 @@ fn compact_settings_reset_between_two_sites_with_the_same_field_title() {
     assert_eq!(host.section_view(0, "connection").unwrap().detail_title, "site");
     key80(&mut host, KeyCode::Right);
     key80(&mut host, KeyCode::End);
+    // The sheet ends with the help to connect Jira.
     let bottom = text(&host, 80, 24);
-    assert!(bottom.contains("config: [[jira.site]] url"), "{bottom}");
+    assert!(bottom.contains("radar guide: connect Jira"), "{bottom}");
     key80(&mut host, KeyCode::Left);
-    assert!(text(&host, 80, 24).contains("config: [[jira.site]] url"));
+    assert!(text(&host, 80, 24).contains("radar guide: connect Jira"));
     export(&host, "scrolled-site");
-    for _ in 0..6 {
+    // Past the first site's projects row and the second site's own row.
+    for _ in 0..7 {
         key80(&mut host, KeyCode::Down);
     }
-    assert_eq!(jira(&host).section_rows[0], 10);
+    assert_eq!(jira(&host).section_rows[0], 11);
     assert_eq!(host.section_view(0, "connection").unwrap().detail_title, "site");
     key80(&mut host, KeyCode::Right);
     let shown = text(&host, 80, 24);

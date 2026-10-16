@@ -1,0 +1,88 @@
+{
+  "actions": [
+    {
+      "heading": true,
+      "id": "",
+      "label": "terminal"
+    },
+    {
+      "id": "git.terminal.edit",
+      "key": {
+        "key": {
+          "char": "e"
+        }
+      },
+      "label": "type a command…"
+    }
+  ],
+  "body": {
+    "node": "list",
+    "rows": [
+      {
+        "target": "row:0",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "terminal   "
+          },
+          {
+            "ink": "primary",
+            "text": "radar finds one"
+          },
+          {
+            "ink": "muted",
+            "text": " · when it opens"
+          }
+        ]
+      }
+    ],
+    "selected": 0
+  },
+  "detail": [
+    [
+      {
+        "ink": "primary",
+        "text": "What opens a terminal in a checkout (t on a repo or a merge request). Inside tmux it is a new tmux window; on a desktop your terminal app; over ssh without tmux, radar puts `cd <folder>` on your clipboard instead."
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "ACCEPTS"
+      }
+    ],
+    [
+      {
+        "ink": "secondary",
+        "text": "⏎ picks one of the terminals found here, or type a command line: {dir} is the folder, {cmd} the command it runs (else -e is added)"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "strong": true,
+        "text": "NOW"
+      }
+    ],
+    [
+      {
+        "ink": "emphasis",
+        "strong": true,
+        "text": "radar finds one · when it opens"
+      }
+    ],
+    [],
+    [
+      {
+        "ink": "muted",
+        "text": "config: [git] terminal"
+      }
+    ]
+  ],
+  "detail_title": "terminal",
+  "scope": "terminal",
+  "version": 1
+}

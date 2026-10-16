@@ -202,7 +202,7 @@ fn every_row_and_target_is_taken() {
     let make = || Box::new(sample()) as Box<dyn Plugin>;
     let mut check = Check::new(&make);
     let mut places = Vec::new();
-    for id in ["checkouts", "editors"] {
+    for id in ["checkouts", "terminal", "editors"] {
         for row in 0..7 {
             places.push(Place::section(id).down(row));
         }
@@ -229,6 +229,22 @@ fn settings_checkouts_160x40() {
     let mut host = hosted();
     section(&mut host, "checkouts");
     insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+}
+
+/// The terminal section with what was found on a desktop machine.
+#[test]
+fn settings_terminal_80x24() {
+    let mut host = hosted();
+    let mut p = sample();
+    let k = |n: &str| *crate::terminal::by_name(n).unwrap();
+    p.local.terminals = Some(crate::terminal::Terminals {
+        chosen: Some(("ghostty".into(), "from $TERMINAL".into())),
+        found: vec![k("ghostty"), k("alacritty")],
+        current: Some("ghostty"),
+    });
+    host.plugins[0] = Box::new(p);
+    section(&mut host, "terminal");
+    insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
 }
 
 #[test]
@@ -307,23 +323,16 @@ fn input_sits_on_its_value(
 fn every_settings_input_starts_where_its_value_was_drawn() {
     use KeyCode::{Char, Enter};
     let mut host = hosted();
-    // checkouts: a folder, how deep, the terminal; editors: a type.
+    // checkouts: a folder (look down takes digits only: its own test);
+    // terminal: a command of your own; editors: a type.
     input_sits_on_its_value(&mut host, "checkouts", 1, &[Char('e')], "│ folder", "/work");
     input_sits_on_its_value(
         &mut host,
-        "checkouts",
-        2,
-        &[Char('e')],
-        "│ look down",
-        "4 f",
-    );
-    input_sits_on_its_value(
-        &mut host,
-        "checkouts",
-        3,
+        "terminal",
+        0,
         &[Char('e')],
         "│ terminal   ",
-        "found",
+        "radar",
     );
     input_sits_on_its_value(
         &mut host,

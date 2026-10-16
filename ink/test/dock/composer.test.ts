@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dockClick, dockClose, dockCloseKey, dockHint, dockKey, dockPaste, dockScroll, emptyLocal, isCloseChord, matchingCommands, menuWindow, type DockLocal } from "../../src/dock/composer.js";
+import { dockClick, dockCommand, dockClose, dockCloseKey, dockHint, dockKey, dockPaste, dockScroll, emptyLocal, isCloseChord, matchingCommands, menuWindow, type DockLocal } from "../../src/dock/composer.js";
 import { pickKey } from "../../src/dock/rows.js";
 import { STATES } from "./states.js";
 import type { DockView } from "../../src/dock/model.js";
@@ -92,6 +92,12 @@ describe("dock keys", () => {
     expect(dockKey(emptyLocal("x"), s, c("s")).intents).toEqual([]);
     expect(dockClick(emptyLocal(), s, "dock:session:p1")!.intents).toEqual([{ dock: "approve_for_session", id: "p1" }]);
     expect(dockClick(emptyLocal(), v, "dock:session:p1")).toBeUndefined();
+    // al̲ways allow the same way: only where offered, and not while something is typed.
+    expect(dockKey(emptyLocal(), s, c("l")).intents).toEqual([]);
+    const l = view({ transcript: [{ item: "permission", id: "p1", kind: "shell", target: "ls", actions: ["approve_once", "always_allow", "deny"] }] });
+    expect(dockKey(emptyLocal(), l, c("l")).intents).toEqual([{ dock: "always_allow", id: "p1" }]);
+    expect(dockKey(emptyLocal("x"), l, c("l")).intents).toEqual([]);
+    expect(dockClick(emptyLocal(), l, "dock:always:p1")!.intents).toEqual([{ dock: "always_allow", id: "p1" }]);
   });
   it("a click on an approval's buttons does what its keys do", () => {
     const v = view({ transcript: [{ item: "permission", id: "p:1", kind: "write", target: "a", diff: ["+x"], actions: ["approve_once", "deny", "view_diff"] }] });
@@ -289,6 +295,23 @@ describe("dock keys", () => {
       expect(dockKey(emptyLocal("/model"), many, { key: "enter" }).intents).toEqual([{ dock: "send", text: "/model" }]);
       // Text that is no command is sent as written.
       expect(dockKey(emptyLocal("/etc/hosts"), many, { key: "enter" }).intents).toEqual([{ dock: "send", text: "/etc/hosts" }]);
+    });
+    it("a click on a row runs its command, as ⏎ on it does, and nothing the menu does not show", () => {
+      const r = dockCommand(emptyLocal("/co"), many, "dock:cmd:context");
+      expect(r?.intents).toEqual([{ dock: "send", text: "/context" }]);
+      expect(r?.local.text).toBe("");
+      // A name another one starts with runs itself, not the longer one.
+      const both = view({ composer: { can_send: true, can_stop: false, commands: [{ name: "reviews", detail: "" }, { name: "review", detail: "" }] } });
+      expect(dockCommand(emptyLocal("/rev"), both, "dock:cmd:review")?.intents).toEqual([{ dock: "send", text: "/review" }]);
+      // Not shown for what is typed, not a menu row, the composer off: nothing.
+      expect(dockCommand(emptyLocal("/mo"), many, "dock:cmd:context")).toBeUndefined();
+      expect(dockCommand(emptyLocal("/co"), many, "dock:fold:x:1")).toBeUndefined();
+      expect(dockCommand(emptyLocal("/co"), view({ composer: { ...many.composer!, disabled: "starting" } }), "dock:cmd:context")).toBeUndefined();
+      // A session that cannot take a message keeps the command and says why, as ⏎ does.
+      const busy = view({ composer: { ...many.composer!, can_send: false } });
+      const kept = dockCommand(emptyLocal("/co"), busy, "dock:cmd:context");
+      expect(kept?.intents).toEqual([]);
+      expect(kept?.local).toMatchObject({ text: "/context", refused: "the session cannot take a message now" });
     });
     it("is not there while the composer is off", () => {
       const off = view({ composer: { ...many.composer!, disabled: "starting the session" } });

@@ -1,15 +1,16 @@
 ---
 source: tests/mix.rs
+assertion_line: 143
 expression: "to_text(&started(), 160, 40)"
 ---
- radar    Slack   History   Settings (,)                                                                                                                 ✎ edit
+ radar    History   Settings (,)                                                                                                                         ✎ edit
 ╭ set up Slack ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Slack is not set up yet.                                                                                                                                     │
 │                                                                                                                                                              │
 │ Add your workspace token: a user token (xoxp-…), as env:NAME or typed in.                                                                                    │
 │                                                                                                                                                              │
 │ Press ⏎ to set it up in settings, under slack.                                                                                                               │
-│                                                                                                                                                              │
+│ Press s to walk its setup step.                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │

@@ -3,7 +3,7 @@
     "height": 24,
     "keys_at": "body",
     "settings": {
-      "detail_title": "Copilot",
+      "detail_title": "install and sign in",
       "groups": [
         {
           "id": "general",
@@ -24,15 +24,21 @@
             },
             {
               "icon": "colours",
+              "id": "appearance",
+              "name": "appearance",
+              "target": "chrome:section:2"
+            },
+            {
+              "icon": "colours",
               "id": "colours",
               "name": "colours",
-              "target": "chrome:section:2"
+              "target": "chrome:section:3"
             },
             {
               "icon": "icons",
               "id": "icons",
               "name": "icons",
-              "target": "chrome:section:3"
+              "target": "chrome:section:4"
             }
           ],
           "target": "chrome:group:general"
@@ -45,17 +51,38 @@
             {
               "id": "agents",
               "name": "Tools and defaults",
-              "target": "chrome:section:4"
+              "target": "chrome:section:5"
             }
           ],
           "target": "chrome:group:sessions"
         }
       ],
       "section_title": "Tools and defaults",
-      "selected": "chrome:section:4"
+      "selected": "chrome:section:5"
     },
     "status": {
       "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
         {
           "icon": "quit",
           "keys": "q",
@@ -67,7 +94,7 @@
                 }
               },
               "label": "q",
-              "target": "chrome:key:0:0"
+              "target": "chrome:key:1:0"
             }
           ],
           "label": "quit"
@@ -83,7 +110,7 @@
                 }
               },
               "label": "x",
-              "target": "chrome:key:1:0"
+              "target": "chrome:key:2:0"
             }
           ],
           "label": "menu"
@@ -96,38 +123,38 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:2:0"
+              "target": "chrome:key:3:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:2:1"
+              "target": "chrome:key:3:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:2:2"
+              "target": "chrome:key:3:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:2:3"
+              "target": "chrome:key:3:3"
             }
           ],
           "label": "navigate"
         }
       ],
       "least_needed": [
-        "navigate",
-        "scroll",
         "quit",
-        "expand/collapse"
+        "bulk",
+        "expand/collapse",
+        "navigate"
       ],
       "scope": "SETTINGS"
     },
@@ -175,6 +202,33 @@
           }
         },
         "label": "sign in"
+      },
+      {
+        "id": "sessions.agents.copy",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy the install or sign-in command"
+      },
+      {
+        "id": "sessions.agents.open",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open its install page"
+      },
+      {
+        "id": "sessions.agents.add",
+        "key": {
+          "key": {
+            "char": "a"
+          }
+        },
+        "label": "add a command"
       },
       {
         "id": "sessions.agents.refresh",
@@ -271,6 +325,25 @@
             {
               "ink": "secondary",
               "text": "checking"
+            }
+          ]
+        },
+        {
+          "target": "cli:add",
+          "text": [
+            {
+              "ink": "accent",
+              "strong": true,
+              "text": " + "
+            },
+            {
+              "ink": "accent_secondary",
+              "strong": true,
+              "text": "add a command"
+            },
+            {
+              "ink": "muted",
+              "text": "   aider, opencode, …"
             }
           ]
         },
@@ -550,7 +623,268 @@
       ],
       []
     ],
-    "detail_title": "Copilot",
+    "detail_blocks": [
+      {
+        "block": "line",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "Each agent is its own program with its own sign-in. radar finds it on your PATH; r looks again."
+          }
+        ]
+      },
+      {
+        "block": "line",
+        "text": []
+      },
+      {
+        "block": "section",
+        "blocks": [
+          {
+            "block": "line",
+            "target": "copy:install:copilot",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "$ "
+              },
+              {
+                "ink": "primary",
+                "text": "npm i -g @github/copilot"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "key": "y",
+            "target": "copy:login:copilot",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "$ "
+              },
+              {
+                "ink": "primary",
+                "text": "copilot login"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "Needs a Copilot plan on GitHub."
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "key": "o",
+            "text": [
+              {
+                "icon": "link"
+              },
+              {
+                "ink": "accent",
+                "link": "https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli",
+                "text": " GitHub: install Copilot CLI"
+              }
+            ]
+          }
+        ],
+        "detail": "checking",
+        "mark": "bot",
+        "title": "COPILOT"
+      },
+      {
+        "block": "section",
+        "blocks": [
+          {
+            "block": "line",
+            "target": "copy:install:codex",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "$ "
+              },
+              {
+                "ink": "primary",
+                "text": "npm i -g @openai/codex"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "target": "copy:login:codex",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "$ "
+              },
+              {
+                "ink": "primary",
+                "text": "codex login"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "icon": "link"
+              },
+              {
+                "ink": "accent",
+                "link": "https://github.com/openai/codex",
+                "text": " Codex: install and sign in"
+              }
+            ]
+          }
+        ],
+        "detail": "checking",
+        "mark": "bot",
+        "title": "CODEX"
+      },
+      {
+        "block": "section",
+        "blocks": [
+          {
+            "block": "line",
+            "target": "copy:install:claude",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "$ "
+              },
+              {
+                "ink": "primary",
+                "text": "npm i -g @anthropic-ai/claude-code"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "target": "copy:login:claude",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "$ "
+              },
+              {
+                "ink": "primary",
+                "text": "claude auth login"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "radar runs your own claude and offers no sign-in of its own."
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "Anthropic does not allow a claude.ai login in a product: for one it asks for an API key (ANTHROPIC_API_KEY)."
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "icon": "link"
+              },
+              {
+                "ink": "accent",
+                "link": "https://docs.claude.com/en/docs/claude-code/setup",
+                "text": " Claude Code: set up"
+              }
+            ]
+          }
+        ],
+        "detail": "checking",
+        "mark": "bot",
+        "title": "CLAUDE AGENT"
+      },
+      {
+        "block": "section",
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "secondary",
+                "text": "add a command takes what you would type in a terminal; radar runs it in a tab of the dock."
+              }
+            ]
+          }
+        ],
+        "mark": "terminal",
+        "title": "ANY OTHER CLI"
+      },
+      {
+        "block": "section",
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "secondary",
+                "text": "A request waits in the dock for your answer:"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "a approve · s session · d deny · v view diff"
+              }
+            ]
+          },
+          {
+            "block": "line",
+            "text": [
+              {
+                "ink": "muted",
+                "text": "alt-a switches the agent new sessions start as."
+              }
+            ]
+          }
+        ],
+        "mark": "warning",
+        "title": "NOTHING IS APPROVED FOR YOU"
+      },
+      {
+        "block": "section",
+        "blocks": [
+          {
+            "block": "line",
+            "text": [
+              {
+                "icon": "link"
+              },
+              {
+                "ink": "accent",
+                "link": "https://github.com/temet-ai/radar/blob/main/docs/user-guide/agents.md",
+                "text": " radar guide: agents"
+              }
+            ]
+          }
+        ],
+        "mark": "link",
+        "title": "MORE"
+      }
+    ],
+    "detail_title": "install and sign in",
     "scope": "agents",
     "version": 1
   },

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/compose/tests.rs
+assertion_line: 928
 expression: text
 ---
  radar    History   Settings (,)                                                             ✎ edit
@@ -7,9 +8,9 @@ expression: text
 │General               ││ No parts are compiled into this build of radar. Each part is a cargo     │
 │  ├─ parts            ││ feature: build radar with the ones you want (cargo build --features      │
 │  ├─ mode             ││ <part>).                                                                 │
+│  ├─ appearance       ││                                                                          │
 │  ├─ colours          ││                                                                          │
 │  └─ icons            ││                                                                          │
-│                      ││                                                                          │
 │                      ││                                                                          │
 │                      ││                                                                          │
 │                      ││                                                                          │

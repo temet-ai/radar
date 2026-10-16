@@ -2,8 +2,7 @@
 source: tests/mix.rs
 expression: "to_text(&host, w, h)"
 ---
- radar    R 2   J   S   B   I   History   Settings (,)      not synced yet   edit
-  GitLab    GitHub    Local workspaces
+ radar    R 2   J   B   I   History   Settings (,)       not synced yet   edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
 │  Everything         ││ OPENED BY  everyone · 1 repo    STATE              │
 │  Needs my action  2 ││▌  A team-a                                          │
@@ -21,8 +20,9 @@ expression: "to_text(&host, w, h)"
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
+│                      ││                                                      │
 │                      ││─ shows ──────────────────────────────────────────────│
 │                      ││ every open merge request · listing every repo, also  │
 │                      ││ those without                                        │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   b  bulk   +/-  expand/collapse   q  quit   x  menu
+ REPOSITORIES   b  bulk   +/-  expand/collapse   q  quit   x  menu       󰌃

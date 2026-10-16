@@ -1,15 +1,16 @@
 ---
 source: tests/mix.rs
+assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
- radar    Jira   History   Settings (,)                                  ✎ edit
+ radar    History   Settings (,)                                         ✎ edit
 ╭ set up Jira ─────────────────────────────────────────────────────────────────╮
 │ Jira is not set up yet.                                                      │
 │                                                                              │
 │ Add a site: the Jira address, your email and an API token.                   │
 │                                                                              │
 │ Press ⏎ to set it up in settings, under jira.                                │
-│                                                                              │
+│ Press s to walk its setup step.                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │

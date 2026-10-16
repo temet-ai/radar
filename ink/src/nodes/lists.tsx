@@ -48,6 +48,16 @@ function rowLine(
   return selected ? patchCells(base, selectedStyle(focused, plain)) : base;
 }
 
+/** ui::rows::settle: the row the cursor rests on: `cursor` when a row can be selected there, else the next one that can,
+ * else the nearest before it; a list with none to rest on keeps its cursor where it is (so a heading is lit). */
+export function settledCursor(rows: readonly { heading?: boolean }[], cursor: number): number {
+  if (rows.length === 0) return 0;
+  const at = Math.min(Math.max(cursor, 0), rows.length - 1);
+  for (let i = at; i < rows.length; i++) if (!rows[i]!.heading) return i;
+  for (let i = at; i >= 0; i--) if (!rows[i]!.heading) return i;
+  return at;
+}
+
 /** ui::rows::list: one cell of air, the left part cut to leave room for the word at the right edge, that word one cell
  * from the edge; the detail only when it fits whole. */
 export function ListNode({
@@ -62,6 +72,7 @@ export function ListNode({
   ctx: NodeContext;
 }) {
   const width = ctx.width;
+  const cursor = settledCursor(rows, selected ?? 0);
   const win = windowOf(rows, useWindow());
   const cached = useRowCache();
   const listKey = `${width}|${ctx.focused ? 1 : 0}|${ctx.plainText ? 1 : 0}`;
@@ -80,42 +91,43 @@ export function ListNode({
   };
   win.shown.forEach((r, k) => {
     const i = k + win.first;
-    const isSel = !r.heading && i === (selected ?? 0);
+    const isSel = i === cursor;
+    const lineOf = (isSel: boolean): Cell[] => {
+      const right = r.right ? flatCells(r.right, ctx.plainText) : [];
+      const rw = widthOfCells(right);
+      const room = Math.max(0, width - (rw > 0 ? rw + 3 : 2));
+      let left = lineCells(r.text, ctx.plainText);
+      if (r.detail) {
+        const d = flatCells(r.detail, ctx.plainText);
+        if (
+          d.length &&
+          widthOfCells(left) + widthOfCells(d) + (rw > 0 ? 2 : 0) <= room
+        )
+          left = [...left, ...d];
+      }
+      left = clipCells(left, room);
+      let line = [...cellsOf(" "), ...left];
+      if (rw > 0)
+        line = [...padCells(line, Math.max(0, width - rw - 1)), ...right];
+      return rowLine(line, width, isSel, ctx.focused, ctx.plainText);
+    };
     if (editing && editing.row === i) {
+      // view_tui render_section: the row is drawn as it is, then the field over it from `at` cells in, to one cell short
+      // of the row's end (that last cell stays the row's own).
       flush();
+      const row = lineOf(isSel);
+      const at = Math.min(Math.max(0, editing.at), width);
+      const field = Math.max(0, width - at - 1);
       out.push(
         <Box key={r.target + i}>
-          <InkText> </InkText>
-          <InputField
-            text={editing.text}
-            caret={editing.caret}
-            width={Math.max(0, width - 2)}
-          />
+          {at > 0 ? <CellLine cells={padCells(clipCells(row, at), at)} plain={ctx.plainText} /> : null}
+          {field > 0 ? <InputField text={editing.text} caret={editing.caret} width={field} /> : null}
+          {width - at - field > 0 && row.length > 0 ? <CellLine cells={row.slice(-1)} plain={ctx.plainText} /> : null}
         </Box>,
       );
       return;
     }
-    block.push(
-      cached(`${listKey}|${isSel ? 1 : 0}|${JSON.stringify(r)}`, () => {
-        const right = r.right ? flatCells(r.right, ctx.plainText) : [];
-        const rw = widthOfCells(right);
-        const room = Math.max(0, width - (rw > 0 ? rw + 3 : 2));
-        let left = lineCells(r.text, ctx.plainText);
-        if (r.detail) {
-          const d = flatCells(r.detail, ctx.plainText);
-          if (
-            d.length &&
-            widthOfCells(left) + widthOfCells(d) + (rw > 0 ? 2 : 0) <= room
-          )
-            left = [...left, ...d];
-        }
-        left = clipCells(left, room);
-        let line = [...cellsOf(" "), ...left];
-        if (rw > 0)
-          line = [...padCells(line, Math.max(0, width - rw - 1)), ...right];
-        return rowLine(line, width, isSel, ctx.focused, ctx.plainText);
-      }),
-    );
+    block.push(cached(`${listKey}|${isSel ? 1 : 0}|${JSON.stringify(r)}`, () => lineOf(isSel)));
   });
   flush();
   return <Box flexDirection="column">{out}</Box>;

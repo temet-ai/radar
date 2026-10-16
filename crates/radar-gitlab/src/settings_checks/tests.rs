@@ -422,8 +422,9 @@ fn identity_retirement_preserves_terminal_labels_and_unrelated_local_state() {
 fn token_offer_replacement_retires_old_owners_and_starts_new_auth() {
     let mut p = demo::sample();
     p.me.clear();
+    p.cfg.token = "glab".into();
     p.env = Some(vec![(
-        "OTHER_GITLAB_TOKEN".into(),
+        "GITLAB_TOKEN".into(),
         "fake-token-long-enough-for-offer".into(),
     )]);
     let old = launch(&mut p, Target::Auth);

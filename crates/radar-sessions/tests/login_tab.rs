@@ -84,12 +84,13 @@ impl Adapter for Wrap {
 }
 
 fn tick_until(p: &mut SessionsPlugin, what: &str, done: impl Fn() -> bool) {
-    for n in 0..2_000_000i64 {
+    // The plugin's tasks run on this thread, only here: a bound on steps, not on time.
+    for n in 0..256i64 {
         p.tick(n);
         if done() {
             return;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     panic!("never reached: {what}");
 }
@@ -107,20 +108,20 @@ fn signing_in_to_codex_runs_its_login_command_in_a_tab_then_reads_the_status_aga
         exited: exited.clone(),
         status_reads: reads.clone(),
     };
-    let mut p = SessionsPlugin::new();
+    let mut p = SessionsPlugin::on_this_thread();
     p.add_adapter(Box::new(wrap("codex", true)));
     p.add_adapter(Box::new(wrap("pty:codex", false)));
     tick_until(&mut p, "the first status read", || reads.load(Ordering::SeqCst) > 0);
 
     p.intent("agents", Pane::Detail, &Intent::Select { target: Target::new("cli:codex") });
     // The status arrives on a later tick; Activate does nothing until the row reads "signed out".
-    for n in 0..2_000_000i64 {
+    for n in 0..256i64 {
         p.tick(n);
         p.intent("agents", Pane::Detail, &Intent::Activate { target: Target::new("cli:codex") });
         if !opened.lock().unwrap().is_empty() {
             break;
         }
-        std::thread::yield_now();
+        p.run_tasks();
     }
     tick_until(&mut p, "the login command in a tab", || !opened.lock().unwrap().is_empty());
     let argv = opened.lock().unwrap()[0].clone();

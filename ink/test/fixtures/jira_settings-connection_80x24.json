@@ -193,7 +193,7 @@
         "text": [
           {
             "look": "text.muted",
-            "text": "   └─ "
+            "text": "   ├─ "
           },
           {
             "ink": "muted",
@@ -206,13 +206,30 @@
         ]
       },
       {
+        "target": "row:9",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   └─ "
+          },
+          {
+            "ink": "muted",
+            "text": "projects        "
+          },
+          {
+            "ink": "primary",
+            "text": "ABC, DEF"
+          }
+        ]
+      },
+      {
         "detail": [
           {
             "ink": "muted",
             "text": "   beta.atlassian.net · 1 project"
           }
         ],
-        "target": "row:9",
+        "target": "row:10",
         "text": [
           {
             "look": "jira.green",
@@ -225,7 +242,7 @@
         ]
       },
       {
-        "target": "row:10",
+        "target": "row:11",
         "text": [
           {
             "look": "text.muted",
@@ -242,7 +259,7 @@
         ]
       },
       {
-        "target": "row:11",
+        "target": "row:12",
         "text": [
           {
             "look": "text.muted",
@@ -259,7 +276,7 @@
         ]
       },
       {
-        "target": "row:12",
+        "target": "row:13",
         "text": [
           {
             "look": "text.muted",
@@ -276,7 +293,7 @@
         ]
       },
       {
-        "target": "row:13",
+        "target": "row:14",
         "text": [
           {
             "look": "text.muted",
@@ -293,11 +310,11 @@
         ]
       },
       {
-        "target": "row:14",
+        "target": "row:15",
         "text": [
           {
             "look": "text.muted",
-            "text": "   └─ "
+            "text": "   ├─ "
           },
           {
             "ink": "muted",
@@ -310,7 +327,24 @@
         ]
       },
       {
-        "target": "row:15",
+        "target": "row:16",
+        "text": [
+          {
+            "look": "text.muted",
+            "text": "   └─ "
+          },
+          {
+            "ink": "muted",
+            "text": "projects        "
+          },
+          {
+            "ink": "primary",
+            "text": "XYZ"
+          }
+        ]
+      },
+      {
+        "target": "row:17",
         "text": [
           {
             "text": " "
@@ -326,7 +360,7 @@
         ]
       },
       {
-        "target": "row:16",
+        "target": "row:18",
         "text": [
           {
             "text": " "
@@ -416,6 +450,299 @@
         "text": "⏎ uses it"
       }
     ]
+  ],
+  "detail_blocks": [
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "radar found a Jira site in /work/acme/.mcp.json. Do you want to use it?"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "FOUND"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "gamma.atlassian.net  "
+        },
+        {
+          "ink": "secondary",
+          "text": "the site's address, as written"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "JIRA_EMAIL           "
+        },
+        {
+          "ink": "secondary",
+          "text": "the account"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "radar stores only the variables' names (env:NAME) and reads their values each time it starts. It never shows the values or saves them."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "It is the file's \"tools\" entry. It also watches GAM (acceptance criteria in customfield_10044). Its token is typed into the file: radar does not copy it, and asks which variable holds it."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "IF YOU USE IT"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "secondary",
+          "text": "radar adds the site gamma and asks which variable holds its token."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "⏎ uses it"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "The address you use for Jira, like ankh-morpork.atlassian.net."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Paste any Jira link; radar keeps the site part."
+            }
+          ]
+        }
+      ],
+      "mark": "site",
+      "title": "SITE"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "The email you sign in to Atlassian with, on your profile:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://id.atlassian.com/manage-profile/profile-and-visibility",
+              "text": "id.atlassian.com / profile"
+            }
+          ]
+        }
+      ],
+      "mark": "person",
+      "title": "EMAIL"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "1 Open Atlassian's API token page:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://id.atlassian.com/manage-profile/security/api-tokens",
+              "text": "id.atlassian.com / api tokens"
+            },
+            {
+              "ink": "muted",
+              "text": "   o opens · y copies"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "2 Create API token, label it radar, pick an expiry, then Create."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "3 Copy it now: Atlassian shows it once. Paste it into token, or:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "$ "
+            },
+            {
+              "ink": "primary",
+              "text": "export JIRA_TOKEN=…"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "  then the token is env:JIRA_TOKEN"
+            }
+          ]
+        }
+      ],
+      "detail": "about a minute",
+      "mark": "connection",
+      "title": "API TOKEN"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "401: the email and token don't match, or the token expired."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "Company login (SSO)? An API token still works; ask your admin if API tokens are switched off."
+            }
+          ]
+        }
+      ],
+      "mark": "warning",
+      "title": "IF IT IS REFUSED"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/",
+              "text": "Atlassian: manage API tokens"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://github.com/temet-ai/radar/blob/main/docs/user-guide/connect.md#jira",
+              "text": "radar guide: connect Jira"
+            }
+          ]
+        }
+      ],
+      "mark": "link",
+      "title": "MORE"
+    }
   ],
   "detail_title": "found in /work/acme/.mcp.json",
   "scope": "connection",

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-jira/src/tests.rs
+assertion_line: 1825
 expression: "text(&host, 80, 24)"
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
@@ -7,14 +8,14 @@ expression: "text(&host, 80, 24)"
 │General               ││▌ acme  acme.atlassian.net                            │
 │  ├─ parts            ││▌ ├─ + watch a project                                │
 │  ├─ mode             ││▌ ├─ colour          ██ blue                          │
-│  ├─ colours          ││▌ ├─ ABC     Acme ABC                                 │
-│  └─ icons            ││▌ └─ DEF     Acme DEF   acceptance criteria: not set  │
-│Jira                  ││▌ beta  beta.atlassian.net                            │
-│  ├─ connection       ││▌ ├─ + watch a project                                │
-│  ├─ projects         ││▌ ├─ colour          ██ green                         │
-│  ├─ views            ││▌ └─ XYZ     Acme XYZ   acceptance criteria: not set  │
-│  └─ look             │╰──────────────────────────────────────────────────────╯
-│                      │╭ watch a project ─────────────────────────────────────╮
+│  ├─ appearance       ││▌ ├─ ABC     Acme ABC                                 │
+│  ├─ colours          ││▌ └─ DEF     Acme DEF   acceptance criteria: not set  │
+│  └─ icons            ││▌ beta  beta.atlassian.net                            │
+│Jira                  ││▌ ├─ + watch a project                                │
+│  ├─ connection       ││▌ ├─ colour          ██ green                         │
+│  ├─ projects         ││▌ └─ XYZ     Acme XYZ   acceptance criteria: not set  │
+│  ├─ views            │╰──────────────────────────────────────────────────────╯
+│  └─ look             │╭ watch a project ─────────────────────────────────────╮
 │                      ││ Watch another project on acme.                       │
 │                      ││                                                      │
 │                      ││ PASTE OR TYPE ANY OF                                 │

@@ -25,8 +25,9 @@ use crate::{Check, Checked, SlackMsg, SlackPlugin, Target, ask};
 
 // --- what each part of radar-slack needs -----------------------------------------------
 
-/// What radar-slack does, and the permissions (scopes) each needs.
-pub(crate) const NEEDS: [(&str, &[&str], &str); 7] = [
+/// What radar-slack does, and the permissions (scopes) each needs. The app
+/// manifest setup offers (`crate::manifest`) asks for exactly these.
+pub(crate) const NEEDS: [(&str, &[&str], &str); 8] = [
     (
         "public channels",
         &["channels:history", "channels:read"],
@@ -57,6 +58,11 @@ pub(crate) const NEEDS: [(&str, &[&str], &str); 7] = [
         "reacting",
         &["reactions:write"],
         "adding reactions as you, after you say yes",
+    ),
+    (
+        "pictures",
+        &["files:read"],
+        "showing the pictures posted in messages",
     ),
 ];
 
@@ -90,20 +96,40 @@ pub(crate) enum WsRow {
     Refresh,
     Days,
     Need(usize),
+    /// The gap before the channels: not selectable.
+    Gap,
+    /// `CHANNELS`: not selectable.
+    ChannelsHeading,
+    /// `+ add a channel`: the channels section's own add field.
+    ChannelAdd,
+    /// A channel in the registry.
+    Channel(usize),
+}
+
+impl WsRow {
+    /// Whether the cursor stops on it.
+    pub(crate) const fn selectable(self) -> bool {
+        !matches!(self, Self::Gap | Self::ChannelsHeading)
+    }
 }
 
 pub(crate) fn ws_rows(p: &SlackPlugin) -> Vec<WsRow> {
     let mut rows: Vec<WsRow> = (0..p.offers().len()).map(WsRow::Offer).collect();
-    rows.extend([
-        WsRow::Workspace,
-        WsRow::Api,
-        WsRow::Token,
-        WsRow::SignedIn,
-        WsRow::Check,
-        WsRow::Refresh,
-        WsRow::Days,
-    ]);
+    // As a setup step the card leaves out api, refresh and read back, which
+    // only Settings needs; the plugin remembers how the card was last drawn,
+    // so keys and clicks walk what is drawn.
+    let setup = p.setup_card.get();
+    rows.push(WsRow::Workspace);
+    if !setup {
+        rows.push(WsRow::Api);
+    }
+    rows.extend([WsRow::Token, WsRow::SignedIn, WsRow::Check]);
+    if !setup {
+        rows.extend([WsRow::Refresh, WsRow::Days]);
+    }
     rows.extend((0..NEEDS.len()).map(WsRow::Need));
+    rows.extend([WsRow::Gap, WsRow::ChannelsHeading, WsRow::ChannelAdd]);
+    rows.extend((0..p.cfg.channels.len()).map(WsRow::Channel));
     rows
 }
 
@@ -541,6 +567,8 @@ fn ws_label(row: WsRow) -> &'static str {
         WsRow::Refresh => connection::REFRESH,
         WsRow::Days => "read back",
         WsRow::Need(k) => NEEDS[k].0,
+        WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd => "add a channel",
+        WsRow::Channel(_) => "channel",
     }
 }
 
@@ -1294,6 +1322,26 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
         }
         let mut list = match row {
             WsRow::Offer(k) => v::ListRow::new(format!("row:{i}"), found(&offers[k].var).text(width)),
+            WsRow::Gap => v::ListRow::heading(format!("row:{i}"), v::Text::new()),
+            WsRow::ChannelsHeading => v::ListRow::heading(format!("row:{i}"), v::Text::plain(" ")
+                .push(v::Seg::new("CHANNELS", v::Ink::Muted).strong())
+                .push(v::Seg::new("  the registry; watched ones are read", v::Ink::Muted))),
+            WsRow::ChannelAdd => {
+                if matches!(p.edit, Some((Target::ChannelAdd, _))) {
+                    editing_at = Some((i, ADD_AT + 2));
+                }
+                // Set in by a cell, as the card's other rows and GitLab's follow list are.
+                v::ListRow::new(format!("row:{i}"), v::kit::add_line("add a channel", "paste its link, a message link, or its id", width))
+            }
+            WsRow::Channel(k) => {
+                let channel = &p.cfg.channels[k];
+                let mut row = v::ListRow::new(format!("row:{i}"), v::Text::plain("   ")
+                    .push(v::Seg::icon(radar_core::ui::icon::Icon::Channel))
+                    .push(v::Seg::styled(format!("#{}", channel.alias), p.cfg.style_for("channel")))
+                    .push(v::Seg::new(format!("   {} · {}", channel.kind.word(), if channel.watched { "watched" } else { "not watched" }), v::Ink::Muted)));
+                row.right = check_mark_text(p, &format!("channel:{}", channel.id));
+                row
+            }
             WsRow::Workspace | WsRow::SignedIn => {
                 let label = if row == WsRow::Workspace { "workspace" } else { connection::SIGNED_IN };
                 let value = match (row, &p.data.me) {
@@ -1319,9 +1367,11 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                 let mut list = v::ListRow::new(format!("row:{i}"), value);
                 match missing(p, need) {
                     None => list.right = Some(v::Text::of("not checked", v::Ink::Muted)),
-                    Some(missing) if missing.is_empty() => list.right = Some(v::Text::of("✓", v::Ink::Good)),
+                    Some(missing) if missing.is_empty() => {
+                        list.right = Some(v::Text::new().push(v::Seg::icon_or(radar_core::ui::icon::Icon::Done, "has it", v::Ink::Good)));
+                    }
                     Some(missing) => {
-                        list.right = Some(v::Text::of("✗", v::Ink::Warn));
+                        list.right = Some(v::Text::new().push(v::Seg::icon_or(radar_core::ui::icon::Icon::Error, "missing", v::Ink::Warn)));
                         list.detail = Some(v::Text::of(format!("needs {}", missing.join(", ")), v::Ink::Warn));
                     }
                 }
@@ -1346,11 +1396,26 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
             detail.push(v::kit::heading("the token has"));
             detail.push(match missing(p, need) {
                 None => v::Text::of("not known until the token is checked", v::Ink::Muted),
-                Some(missing) if missing.is_empty() => v::Text::of("✓ all of them", v::Ink::Good),
-                Some(missing) => v::Text::of(format!("✗ not {}: the Slack app the token comes from needs it as a user scope", missing.join(", ")), v::Ink::Warn),
+                Some(missing) if missing.is_empty() => v::Text::new()
+                    .push(v::Seg::icon_or_lead(radar_core::ui::icon::Icon::Done, "", v::Ink::Good))
+                    .push(v::Seg::new("all of them", v::Ink::Good)),
+                Some(missing) => v::Text::new()
+                    .push(v::Seg::icon_or_lead(radar_core::ui::icon::Icon::Error, "", v::Ink::Warn))
+                    .push(v::Seg::new(format!("not {}: the Slack app the token comes from needs it as a user scope; radar's manifest asks for it", missing.join(", ")), v::Ink::Warn)),
             });
             detail.extend([v::Text::new(), v::Text::plain(format!("{what}: {about}.")), v::Text::new(),
                 v::kit::heading("needs"), v::Text::of(need.join(", "), v::Ink::Secondary)]);
+        }
+        WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd => {
+            typing_text(p, &mut detail);
+            detail.push(v::Text::plain("Watch another channel: Slack is asked which it is, and it is added as a team channel, watched."));
+        }
+        WsRow::Channel(k) => {
+            let channel = &p.cfg.channels[k];
+            detail.extend([v::kit::heading("checked"), check_text(p, &format!("channel:{}", channel.id), now), v::Text::new(),
+                v::Text::plain(format!("#{}: {}.", channel.alias, channel.kind.about())), v::Text::new(),
+                v::kit::labelled("in Slack", 10, v::Text::plain(if channel.name.is_empty() { "—".into() } else { format!("#{}", channel.name) })),
+                v::kit::labelled("id", 10, v::Text::plain(channel.id.clone()))]);
         }
         row => {
             let mut d = match row {
@@ -1378,11 +1443,22 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
             detail.extend(d.text());
         }
     }
+    // The sheet: the row's detail, then the help that row needs.
+    let help = match ws_row(p) {
+        WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd | WsRow::Channel(_) => crate::setup::channels_help(),
+        WsRow::Api | WsRow::Refresh | WsRow::Days => vec![],
+        _ => crate::setup::token_help(),
+    };
+    let mut detail_blocks: Vec<v::Block> = detail.iter().cloned().map(v::Block::line).collect();
+    if !help.is_empty() {
+        detail_blocks.push(v::Block::line(v::Text::new()));
+        detail_blocks.extend(help);
+    }
     v::SectionView {
         version: v::VERSION, scope: "connection".into(),
         body: v::Node::List { rows, selected: Some(p.section_rows[0]), editing },
         detail_title: detail_title(p, "connection"), detail,
-        detail_blocks: vec![],
+        detail_blocks,
         actions: action_specs(p, "connection"),
     }
 }
@@ -1624,6 +1700,7 @@ pub fn detail_title(p: &SlackPlugin, section: &str) -> String {
                 .offers()
                 .get(k)
                 .map_or_else(|| "found".into(), |o| found(&o.var).title()),
+            WsRow::Channel(i) => format!("#{}", p.cfg.channels[i].alias),
             row => ws_label(row).into(),
         },
         "channels" => match ch_row(p) {
@@ -1656,9 +1733,33 @@ fn on_density(p: &SlackPlugin) -> bool {
 
 // --- menus -----------------------------------------------------------------------------
 
+/// A channel's options, in the channels section and in the connection's
+/// list of them.
+fn channel_menu(p: &SlackPlugin, i: usize) -> Menu {
+    let c = &p.cfg.channels[i];
+    Menu::new(
+        format!("channel:{i}"),
+        format!("#{}", c.alias),
+        vec![
+            MenuItem::new('c', "check it", "ask Slack for its name and whether you are in it", "check"),
+            // Not w: the host keeps it (it writes config.toml).
+            MenuItem::new(
+                'v',
+                if c.watched { "stop watching" } else { "watch it" },
+                if c.watched { "kept in the registry, not read" } else { "read on every refresh" },
+                "watch",
+            ),
+            MenuItem::new('a', "add a channel", "paste a link to it, or type #name", "add"),
+            MenuItem::new('d', "remove…", "take it out of the registry", "remove"),
+        ],
+    )
+}
+
 fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
     match section {
         "connection" => match ws_row(p) {
+            WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd => None,
+            WsRow::Channel(i) => Some(channel_menu(p, i)),
             WsRow::Offer(k) => {
                 let q = found(&p.offers().get(k)?.var);
                 Some(Menu::new(
@@ -1723,43 +1824,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
         },
         "channels" => match ch_row(p) {
             ChRow::Add => None,
-            ChRow::Channel(i) => {
-                let c = &p.cfg.channels[i];
-                Some(Menu::new(
-                    format!("channel:{i}"),
-                    format!("#{}", c.alias),
-                    vec![
-                        MenuItem::new(
-                            'c',
-                            "check it",
-                            "ask Slack for its name and whether you are in it",
-                            "check",
-                        ),
-                        // Not w: the host keeps it (it writes config.toml).
-                        MenuItem::new(
-                            'v',
-                            if c.watched {
-                                "stop watching"
-                            } else {
-                                "watch it"
-                            },
-                            if c.watched {
-                                "kept in the registry, not read"
-                            } else {
-                                "read on every refresh"
-                            },
-                            "watch",
-                        ),
-                        MenuItem::new(
-                            'a',
-                            "add a channel",
-                            "paste a link to it, or type #name",
-                            "add",
-                        ),
-                        MenuItem::new('d', "remove…", "take it out of the registry", "remove"),
-                    ],
-                ))
-            }
+            ChRow::Channel(i) => Some(channel_menu(p, i)),
             ChRow::Field(i, f) => {
                 let items = match f {
                     ChField::Alias | ChField::Purpose => {
@@ -2542,9 +2607,12 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
     }
     let at = index(section);
     if let Some(mv) = Move::from_key(&key, p.section_scroll.height()) {
-        // In look, headings are not selectable.
-        let can = |row: usize| {
-            section != "look" || !matches!(look_rows().get(row), Some(LookRow::Header(_)))
+        // Headings are not selectable, in look and in connection.
+        let ws = ws_rows(p);
+        let can = |row: usize| match section {
+            "look" => !matches!(look_rows().get(row), Some(LookRow::Header(_))),
+            "connection" => ws.get(row).is_none_or(|r| r.selectable()),
+            _ => true,
         };
         p.section_rows[at] = select(row_count(p, section), p.section_rows[at], mv, can);
         return Outcome::done();
@@ -2553,7 +2621,9 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
         // A found token's question: ⏎ uses it. The check row: ⏎ asks.
         // (Every other row's menu has one thing, or starts with change it,
         // so ⏎ does that straight away, below.)
-        if let ("channels", ChRow::Add) = (section, ch_row(p)) {
+        if matches!((section, ch_row(p)), ("channels", ChRow::Add))
+            || (section == "connection" && ws_row(p) == WsRow::ChannelAdd)
+        {
             p.edit = Some((Target::ChannelAdd, TextInput::new("")));
             return Outcome::done();
         }
@@ -2583,6 +2653,13 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
         return Outcome::Handled(on_menu(p, &menu.id, &value));
     }
     match (section, key.code) {
+        // radar's app manifest: `m` copies it, `o` opens Slack's new-app
+        // page with it filled in.
+        ("connection", KeyCode::Char('m')) => Outcome::Handled(vec![
+            Effect::Copy(crate::manifest::text()),
+            Effect::Notify(format!("copied radar's Slack app manifest: {} user scopes", crate::manifest::scopes().len())),
+        ]),
+        ("connection", KeyCode::Char('o')) => Outcome::Handled(vec![Effect::Open(crate::manifest::new_app_url())]),
         ("channels", KeyCode::Char('a')) => {
             p.section_rows[1] = 0;
             p.edit = Some((Target::ChannelAdd, TextInput::new("")));
@@ -2755,6 +2832,12 @@ fn key_rows(p: &SlackPlugin, section: &str) -> Vec<(String, Binding)> {
             Binding::new("y", "copy the retained review ask text"),
         ));
     }
+    if section == "connection" {
+        rows.extend([
+            ("slack.connection.copy_manifest".into(), Binding::new("m", "copy radar's Slack app manifest")),
+            ("slack.connection.new_app".into(), Binding::new("o", "open Slack's new-app page, the manifest filled in")),
+        ]);
+    }
     rows
 }
 
@@ -2780,6 +2863,12 @@ fn row_keys(p: &SlackPlugin, section: &str) -> Vec<(String, Binding)> {
             return vec![
                 (String::new(), Binding::heading("add a channel")),
                 (id("add"), Binding::new("⏎", "paste a link to it, or type #name")),
+            ];
+        }
+        ("connection", WsRow::Gap | WsRow::ChannelsHeading | WsRow::ChannelAdd, _) => {
+            return vec![
+                (String::new(), Binding::heading("add a channel")),
+                (id("add_channel"), Binding::new("⏎", "paste a link to it, or type #name")),
             ];
         }
         ("alerts", _, _) if al_row(p) == AlRow::Add => {

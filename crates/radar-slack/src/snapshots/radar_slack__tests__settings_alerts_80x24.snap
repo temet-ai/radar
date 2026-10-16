@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack 4   History   Settings (,)                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 80, 24)"
 │General               ││ + add a mapping                                      │
 │  ├─ parts            ││ keep resolved    24 hours                            │
 │  ├─ mode             ││                                                      │
+│  ├─ appearance       ││                                                      │
 │  ├─ colours          ││                                                      │
 │  └─ icons            ││                                                      │
 │Slack                 ││                                                      │
 │  ├─ connection       ││                                                      │
 │  ├─ channels         ││                                                      │
-│  ├─ review           ││                                                      │
-│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ add a mapping ───────────────────────────────────────╮
-│                      ││ Say where a kind of alert belongs.                   │
+│  ├─ review           │╰──────────────────────────────────────────────────────╯
+│  ├─ alerts           │╭ add a mapping ───────────────────────────────────────╮
+│  └─ look             ││ Say where a kind of alert belongs.                   │
 │                      ││                                                      │
 │                      ││ Type the start of its name; the repo it belongs to   │
 │                      ││ is asked next. The service, a label to match and an  │

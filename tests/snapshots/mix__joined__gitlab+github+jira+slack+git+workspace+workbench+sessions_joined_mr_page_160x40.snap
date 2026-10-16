@@ -1,9 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 866
 expression: shown
 ---
- radar    Repositories 2   Jira   Slack   Branches   Work (I)   History   Settings (,)                                                 ⠷ not synced yet  ✎ edit
-  GitLab    GitHub    Local workspaces
+ radar    Repositories 2   Jira   Branches   Work (I)   History   Settings (,)                                                         ⠷ not synced yet  ✎ edit
  Repositories › a › api › !263
  ABC-12: Add a stats endpoint for the dashboard                                                                     Alice Example · feature/abc-12-stats → main
  checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
@@ -19,6 +19,7 @@ expression: shown
 │                                                                                                                          ││ for you: waiting for your review │
 │ LATEST ACTIVITY                                                                                                          ││                                  │
 │ No comments yet.                                                                                                         ││                                  │
+│                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │

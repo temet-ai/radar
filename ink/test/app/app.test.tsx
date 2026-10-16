@@ -120,6 +120,23 @@ describe("a menu closed by a click on its row", () => {
     expect(m.session.state.questions).toEqual([]);
   });
 
+  it("drops an input request once a snapshot shows its typed menu closed (⏎ or esc in the host)", async () => {
+    const m = open(80, 24);
+    m.welcome();
+    m.snapshot({}, 7);
+    m.conn.receive({ type: "input_request", id: 1, cursor: 8, title: "Always allow, as kind(argument)", value: "" });
+    const typed = { ...confirm, id: "agents.allow", items: [], typed: "shell(ls)", caret: 9 };
+    withMenu(typed, 8, m);
+    m.snapshot({}, 7);
+    expect(m.session.state.inputRequest).toBeDefined();
+    withMenu(typed, 9, m);
+    expect(m.session.state.inputRequest).toBeDefined();
+    m.snapshot({}, 10);
+    await tick();
+    expect(m.session.state.inputRequest).toBeUndefined();
+    expect(m.frame()).not.toContain("Always allow");
+  });
+
   it("keeps a question the snapshot has not reached yet", async () => {
     const m = open(80, 24);
     m.welcome();
@@ -440,6 +457,17 @@ describe("the history overlay", () => {
     m.type(`\x1b[<0;${lines[footY]!.indexOf("esc") + 2};${footY + 1}M`);
     await until(() => m.intents().length >= 1);
     expect(m.intents()[0].intent).toEqual({ intent: "activate", target: "chrome:history:key:esc" });
+  });
+  it("a menu the overlay covers does not take its keys", async () => {
+    const m = open(80, 24);
+    m.welcome();
+    const { booksChrome } = await import("../chrome/fixture.js");
+    const menu = { id: "m", title: "under", items: [{ key: "a", label: "first", hint: "", value: "a" }] };
+    m.snapshot({ chrome: { ...booksChrome({ width: 80, height: 24 }), menu, history: history(false) }, screen: { id: "l", title: "l", panes: [{ pane: "middle", title: "x", body: { node: "list", selected: 0, rows: [] } }], actions: [] } }, 1);
+    await tick(80);
+    m.type("j");
+    await until(() => m.intents().length >= 1);
+    expect(m.intents()[0].intent).toEqual({ intent: "key", chord: { key: { char: "j" } } });
   });
   it("keys go to the host as Intent::Key (it owns history navigation)", async () => {
     const m = open(80, 24);

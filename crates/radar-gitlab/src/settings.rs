@@ -63,7 +63,7 @@ impl Field {
         match self {
             Self::Url => "The GitLab server radar talks to.".into(),
             Self::Token => {
-                "How radar proves who you are to GitLab. It needs the read_api scope. A token from glab is renewed once if GitLab turns it down.".into()
+                "How radar proves who you are to GitLab. It needs the scope access asks for: read_api, or api for read and write. A token from glab is renewed once if GitLab turns it down.".into()
             }
             Self::Base => "The group your tenancies sit under. Tenancy paths are relative to it.".into(),
             Self::Refresh => format!(
@@ -121,17 +121,74 @@ impl Field {
 }
 
 /// A row of the connection section: a token found in the environment,
-/// asked about first, then the fields.
+/// asked about first, then the fields, then the groups followed (the
+/// tenancies, as setup's GitLab step shows them).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConnRow {
     Offer(usize),
     Field(Field),
+    /// The gap before the access choices and before the follow list: not
+    /// selectable.
+    Gap,
+    /// `ACCESS`: not selectable.
+    AccessHeading,
+    /// What the token is made to allow, `[gitlab] access`.
+    Access(config::TokenAccess),
+    /// `FOLLOW`: not selectable.
+    FollowHeading,
+    /// `+ add a group or repository`: types into the same field as the
+    /// tenancies section's add row.
+    FollowAdd,
+    /// A tenancy.
+    Follow(usize),
+}
+
+impl ConnRow {
+    /// Whether the cursor stops on it.
+    const fn selectable(self) -> bool {
+        !matches!(self, Self::Gap | Self::AccessHeading | Self::FollowHeading)
+    }
 }
 
 pub fn conn_rows(p: &GitlabPlugin) -> Vec<ConnRow> {
     let mut rows: Vec<ConnRow> = (0..p.offers().len()).map(ConnRow::Offer).collect();
-    rows.extend(Field::ALL.map(ConnRow::Field));
+    // As a setup step the card leaves out what only Settings needs; the
+    // plugin remembers how the card was last drawn, so keys walk what is drawn.
+    let setup = p.setup_card.get();
+    rows.extend(
+        Field::ALL
+            .into_iter()
+            .filter(|f| !(setup && matches!(f, Field::Base | Field::Refresh | Field::History)))
+            .map(ConnRow::Field),
+    );
+    rows.extend([ConnRow::Gap, ConnRow::AccessHeading]);
+    rows.extend(config::TokenAccess::ALL.map(ConnRow::Access));
+    rows.extend([ConnRow::Gap, ConnRow::FollowHeading, ConnRow::FollowAdd]);
+    rows.extend((0..p.cfg.sources.len()).map(ConnRow::Follow));
     rows
+}
+
+/// A tenancy as the follow list shows it: its mark and label in its
+/// colour, its path, and how many repos and open merge requests it has.
+fn follow_row(p: &GitlabPlugin, i: usize, now: i64) -> v::ListRow {
+    let source = &p.cfg.sources[i];
+    let look = format!("tenant.{} {}", source.color, p.cfg.style_for("tenant"));
+    let mut text = v::Text::plain("   ")
+        .push(v::Seg::icon(ui::icon::Icon::Group))
+        .push(v::Seg::styled(ui::pad(&source.code, CODE_W + 1), look))
+        .push(v::Seg::new(p.cfg.group_path(source), v::Ink::Emphasis).strong());
+    let open = p.tenancy_counts().get(i).copied().unwrap_or(0);
+    let mrs = format!("{open} open MR{}", if open == 1 { "" } else { "s" });
+    let counts = if kind_of(p, source) == "a single repo" {
+        format!("a single repo · {mrs}")
+    } else {
+        let repos = repos_of(p, i).len();
+        format!("{repos} repo{} · {mrs}", if repos == 1 { "" } else { "s" })
+    };
+    text.add(v::Seg::new(format!("   {counts}"), v::Ink::Muted));
+    let mut row = v::ListRow::new("", text);
+    row.right = check_of(p, &format!("group:{}", p.cfg.group_path(source)), now).mark_text();
+    row
 }
 
 /// A token variable found, as the question the connection asks.
@@ -353,7 +410,7 @@ impl StableSelection {
         Self {
             field: match conn_row(p) {
                 ConnRow::Field(f) => Some(f),
-                ConnRow::Offer(_) => None,
+                _ => None,
             },
             tenancy: match source_rows(p).get(p.section_rows[1]) {
                 Some(SourceRow::Tenancy(i)) => Some(*i),
@@ -396,6 +453,43 @@ fn use_offer(p: &mut GitlabPlugin, k: usize) -> Vec<Effect> {
     let mut fx = vec![Effect::Notify(format!("the token reads env:{var}"))];
     fx.extend(check(p, CheckTarget::Auth));
     fx.extend(p.refresh());
+    fx
+}
+
+/// What an access choice lets the token do, as its row says it: what it
+/// reads or adds, then the scope a new token asks for.
+fn access_about(access: config::TokenAccess) -> &'static str {
+    match access {
+        config::TokenAccess::Read => "merge requests, pipelines, diffs",
+        config::TokenAccess::Write => "adds comment, approve, merge, rebase",
+    }
+}
+
+/// The access row's detail: what the token may do, the scope it asks for,
+/// and for write, that each write is still asked and the mode must allow it.
+fn access_detail(access: config::TokenAccess) -> String {
+    match access {
+        config::TokenAccess::Read => {
+            "The token reads merge requests, pipelines, threads and diffs. The new-token link asks for read_api.".into()
+        }
+        config::TokenAccess::Write => format!(
+            "The token may also comment, reply, approve, merge and rebase. The new-token link asks for api. Each write is still asked first, and only while the mode allows writes; the mode is {} now.",
+            radar_core::writes::mode().0.word()
+        ),
+    }
+}
+
+/// An access choice taken: kept in the config, and a check already made
+/// asked again, so the check row says whether the token allows it.
+fn choose_access(p: &mut GitlabPlugin, access: config::TokenAccess) -> Vec<Effect> {
+    if p.cfg.access == access {
+        return vec![];
+    }
+    p.cfg.access = access;
+    let mut fx = vec![Effect::Notify(format!("the token's access: {}", access.label()))];
+    if p.checks.contains_key("auth") {
+        fx.extend(check(p, CheckTarget::Auth));
+    }
     fx
 }
 
@@ -469,7 +563,7 @@ fn check(p: &mut GitlabPlugin, target: CheckTarget) -> Vec<Effect> {
     let request = settings_checks::begin(p, &target);
     let key = target.key();
     p.checks.insert(key.clone(), (Check::Running, p.now));
-    let (url, token) = (p.cfg.url.clone(), p.cfg.token.clone());
+    let (url, token, access) = (p.cfg.url.clone(), p.cfg.token.clone(), p.cfg.access);
     let kind = target.kind();
     let path = match &target {
         CheckTarget::Auth => String::new(),
@@ -489,7 +583,18 @@ fn check(p: &mut GitlabPlugin, target: CheckTarget) -> Vec<Effect> {
                 let path = path.clone();
                 async move {
                     match kind {
-                        crate::settings_history::Kind::Auth => client.check_user_observed().await,
+                        crate::settings_history::Kind::Auth => {
+                            let mut got = client.check_user_observed().await?;
+                            // Reading is proven by the answer; writing needs
+                            // the token's scopes, asked only when chosen.
+                            if access == config::TokenAccess::Write {
+                                let scopes = client.token_scopes().await;
+                                if let Some(note) = crate::setup::scope_note(access, scopes.as_deref()) {
+                                    got.value.push_str(&note);
+                                }
+                            }
+                            Ok(got)
+                        }
                         _ => client.check_path_observed(&path).await,
                     }
                 }
@@ -901,6 +1006,39 @@ pub fn connection_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView
     let mut editing_at = None;
     let rows = conn_rows(p).into_iter().enumerate().map(|(i, row)| match row {
         ConnRow::Offer(k) => v::ListRow::new(format!("row:{i}"), found(&offers[k]).text(width)),
+        ConnRow::Gap => v::ListRow::heading(format!("row:{i}"), v::Text::new()),
+        ConnRow::AccessHeading => v::ListRow::heading(format!("row:{i}"), v::Text::plain(" ")
+            .push(v::Seg::new("ACCESS", v::Ink::Muted).strong())
+            .push(v::Seg::new("  what radar may do in GitLab", v::Ink::Muted))),
+        ConnRow::Access(a) => {
+            use radar_core::ui::icon::Icon;
+            let mark = if a == p.cfg.access {
+                v::Seg::icon_or_lead(Icon::Done, "[x] ", v::Ink::Good)
+            } else {
+                v::Seg::icon_or_lead(Icon::Todo, "[ ] ", v::Ink::Muted)
+            };
+            v::ListRow::new(format!("row:{i}"), v::Text::plain(" ")
+                .push(mark)
+                .push(v::Seg::new(radar_core::ui::pad(a.label(), 16), v::Ink::Primary))
+                .push(v::Seg::new(radar_core::ui::pad(access_about(a), 38), v::Ink::Muted))
+                .push(v::Seg::new(a.scope(), v::Ink::Secondary)))
+        }
+        ConnRow::FollowHeading => v::ListRow::heading(format!("row:{i}"), v::Text::plain(" ")
+            .push(v::Seg::new("FOLLOW", v::Ink::Muted).strong())
+            .push(v::Seg::new("  groups and repositories", v::Ink::Muted))),
+        ConnRow::FollowAdd => {
+            if matches!(p.edit, Some((Target::SourceAdd, _))) {
+                editing_at = Some((i, ADD_AT));
+            }
+            v::ListRow::new(format!("row:{i}"), v::kit::add_line(
+                "add a group or repository", "paste a link or a path", width,
+            ))
+        }
+        ConnRow::Follow(t) => {
+            let mut row = follow_row(p, t, now);
+            row.target = v::Target::new(format!("row:{i}"));
+            row
+        }
         ConnRow::Field(field) => {
             if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::Conn(field)) {
                 editing_at = Some((i, 1 + connection::value_x(1)));
@@ -924,23 +1062,67 @@ pub fn connection_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView
     let editing = editing_at.and_then(|(row, at)| p.edit.as_ref().map(|(_, input)| v::Editing {
         row, at, text: input.value(), caret: input.cursor(),
     }));
-    let detail = match conn_row(p) {
+    let typing = || p.edit.as_ref().map(|(target, input)| validate(p, target, &input.value()));
+    let row = conn_row(p);
+    let detail = match row {
         ConnRow::Offer(k) => offers.get(k).map_or_else(Vec::new, |offer| found(offer).detail_text()),
         ConnRow::Field(field) => {
             let mut d = connection::DetailText::new(field.about());
             d.accepts = field.accepts();
             if field != Field::Check { d.now = Some(field_value(p, field)); }
             d.checked = field.check().map(|key| check_of(p, key, now).text("not checked yet", "checking with GitLab…"));
-            d.typing = p.edit.as_ref().map(|(target, input)| validate(p, target, &input.value()));
+            d.typing = typing();
             if !field.key().is_empty() { d.config = Some(format!("[gitlab] {}", field.key())); }
             d.text()
         }
+        ConnRow::Access(a) => {
+            let mut d = connection::DetailText::new(access_detail(a));
+            d.accepts = Some("read or write".into());
+            d.now = Some(p.cfg.access.label().into());
+            d.checked = Some(check_of(p, "auth", now).text("not checked yet", "checking with GitLab…"));
+            d.config = Some("[gitlab] access".into());
+            d.text()
+        }
+        ConnRow::Gap | ConnRow::AccessHeading | ConnRow::FollowHeading | ConnRow::FollowAdd => {
+            let mut d = Vec::new();
+            if let Some(verdict) = typing() {
+                d.extend([v::kit::heading("as you type"), v::kit::as_you_type(verdict.as_deref().map_err(String::as_str)),
+                    v::Text::of("⏎ keeps it · esc cancels", v::Ink::Muted), v::Text::new()]);
+            }
+            d.push(v::Text::plain("Follow a GitLab group (every repo in it), or one repo on its own."));
+            d
+        }
+        ConnRow::Follow(t) => {
+            let source = &p.cfg.sources[t];
+            let full = p.cfg.group_path(source);
+            vec![
+                check_of(p, &format!("group:{full}"), now).text("not checked yet", "checking with GitLab…"),
+                v::Text::new(),
+                v::kit::labelled("path", 10, v::Text::of(full, v::Ink::Emphasis)),
+                v::kit::labelled("is", 10, v::Text::of(kind_of(p, source), v::Ink::Secondary)),
+                v::kit::labelled("open MRs", 10, v::Text::of(p.tenancy_counts().get(t).copied().unwrap_or(0).to_string(), v::Ink::Number)),
+            ]
+        }
     };
+    // The sheet: the row's detail, then the help that row needs.
+    let help = match row {
+        ConnRow::Offer(_) | ConnRow::Access(_) | ConnRow::AccessHeading
+        | ConnRow::Field(Field::Url | Field::Token | Field::SignedIn | Field::Check) => crate::setup::token_help(p),
+        ConnRow::Field(Field::Base) | ConnRow::Gap | ConnRow::FollowHeading | ConnRow::FollowAdd | ConnRow::Follow(_) => {
+            crate::setup::follow_help(p)
+        }
+        ConnRow::Field(Field::Refresh | Field::History) => vec![],
+    };
+    let mut detail_blocks: Vec<v::Block> = detail.iter().cloned().map(v::Block::line).collect();
+    if !help.is_empty() {
+        detail_blocks.push(v::Block::line(v::Text::new()));
+        detail_blocks.extend(help);
+    }
     v::SectionView {
         version: v::VERSION, scope: "connection".into(),
         body: v::Node::List { rows, selected: Some(p.section_rows[0]), editing },
         detail_title: detail_title(p, "connection"), detail,
-        detail_blocks: vec![],
+        detail_blocks,
         actions: action_specs(p, "connection"),
     }
 }
@@ -1091,6 +1273,10 @@ pub fn detail_title(p: &GitlabPlugin, section: &str) -> String {
                 .get(k)
                 .map_or_else(|| "found".into(), |v| found(v).title()),
             ConnRow::Field(f) => f.label().into(),
+            ConnRow::Access(a) => a.label().into(),
+            ConnRow::AccessHeading => "access".into(),
+            ConnRow::Gap | ConnRow::FollowHeading | ConnRow::FollowAdd => "follow a group".into(),
+            ConnRow::Follow(i) => p.cfg.sources[i].code.clone(),
         },
         "tenancies" => match source_rows(p).get(p.section_rows[1]) {
             Some(SourceRow::Add) | None => "add a tenancy".into(),
@@ -1119,6 +1305,23 @@ fn row_menu(p: &GitlabPlugin, section: &str) -> Option<Menu> {
                     ));
                 }
                 ConnRow::Field(f) => f,
+                ConnRow::Gap | ConnRow::AccessHeading | ConnRow::Access(_) | ConnRow::FollowHeading | ConnRow::FollowAdd => {
+                    return None;
+                }
+                // The tenancy's own menu, for what setup needs: check it,
+                // stop following it.
+                ConnRow::Follow(i) => {
+                    let source = p.cfg.sources.get(i)?;
+                    return Some(Menu::new(format!("tenancy:{i}"), source.group.clone(), vec![
+                        MenuItem::new(
+                            'c',
+                            "check it",
+                            "ask GitLab whether it exists, and if it is a group or a repo",
+                            format!("check:{}", CheckTarget::Source(p.cfg.group_path(source)).payload()),
+                        ),
+                        MenuItem::new('d', "stop tracking…", "remove this tenancy", "remove"),
+                    ]));
+                }
             };
             let mut items = Vec::new();
             if f.editable() {
@@ -1770,9 +1973,12 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
     }
     let at = index(section);
     if let Some(mv) = Move::from_key(&key, p.section_scroll[at].height()) {
-        // In look, headings are not selectable.
-        let can = |row: usize| {
-            section != "look" || !matches!(look_rows().get(row), Some(LookRow::Header(_)))
+        // Headings are not selectable, in look and in connection.
+        let conn = conn_rows(p);
+        let can = |row: usize| match section {
+            "look" => !matches!(look_rows().get(row), Some(LookRow::Header(_))),
+            "connection" => conn.get(row).is_none_or(|r| r.selectable()),
+            _ => true,
         };
         p.section_rows[at] = select(row_count(p, section), p.section_rows[at], mv, can);
         return Outcome::done();
@@ -1836,6 +2042,15 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
         match conn_row(p) {
             ConnRow::Offer(k) => return Outcome::Handled(use_offer(p, k)),
             ConnRow::Field(Field::Check) => return Outcome::Handled(check_connection(p)),
+            ConnRow::Access(a) => return Outcome::Handled(choose_access(p, a)),
+            ConnRow::AccessHeading => return Outcome::done(),
+            // The follow list's add row types into the tenancies' add field.
+            ConnRow::FollowAdd => {
+                p.edit = Some((Target::SourceAdd, TextInput::new("")));
+                return Outcome::done();
+            }
+            ConnRow::Gap | ConnRow::FollowHeading => return Outcome::done(),
+            ConnRow::Follow(_) => {}
             // As in every part's connection: ⏎ goes straight to changing
             // the field (or checking, on one that only checks).
             ConnRow::Field(_) => {
@@ -1870,6 +2085,14 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
     }
     // Adding works from anywhere in the section, even when it is empty.
     match (section, key.code) {
+        // The server's new-token page: `o` opens it, `y` copies its link.
+        ("connection", KeyCode::Char('o')) => {
+            Outcome::Handled(vec![Effect::Open(crate::setup::token_page(p))])
+        }
+        ("connection", KeyCode::Char('y')) => Outcome::Handled(vec![
+            Effect::Copy(crate::setup::token_page(p)),
+            Effect::Notify("copied the new-token page's link".into()),
+        ]),
         // From anywhere in the section: jump to the add row and type there.
         ("tenancies", KeyCode::Char('a')) => {
             p.section_rows[1] = 0;
@@ -2054,23 +2277,65 @@ fn key_rows(p: &GitlabPlugin, section: &str) -> Vec<crate::Row> {
         _ => false,
     };
     if section == "connection" {
+        // The new-token page, from every row but a found token's (its `y`
+        // is yes).
+        let page = |offer: bool| {
+            let mut rows = vec![act("gitlab.connection.token_page", Binding::new("o", "open GitLab's new-token page"))];
+            if !offer {
+                rows.push(act("gitlab.connection.copy_token_link", Binding::new("y", "copy the new-token page's link")));
+            }
+            rows
+        };
         match conn_row(p) {
             ConnRow::Offer(k) => {
                 let Some(var) = p.offers().get(k).cloned() else {
                     return vec![];
                 };
-                return vec![
+                let mut rows = vec![
                     head(Binding::heading(found(&var).title())),
                     act("gitlab.connection.use_offer", Binding::new("⏎", "use it")),
                 ];
+                rows.extend(page(true));
+                return rows;
             }
             ConnRow::Field(Field::Check) => {
-                return vec![
+                let mut rows = vec![
                     head(Binding::heading(connection::CHECK)),
                     act("gitlab.connection.check", Binding::new("⏎", "ask GitLab now")),
                 ];
+                rows.extend(page(false));
+                return rows;
             }
-            ConnRow::Field(_) => {}
+            ConnRow::Access(a) => {
+                let mut rows = vec![
+                    head(Binding::heading(a.label())),
+                    act("gitlab.connection.choose", Binding::new("⏎", "give the token this access")),
+                ];
+                rows.extend(page(false));
+                return rows;
+            }
+            ConnRow::Gap | ConnRow::AccessHeading | ConnRow::FollowHeading | ConnRow::FollowAdd => {
+                let mut rows = vec![
+                    head(Binding::heading("follow a group")),
+                    act("gitlab.connection.follow", Binding::new("⏎", "type or paste the group's link or path")),
+                ];
+                rows.extend(page(false));
+                return rows;
+            }
+            ConnRow::Follow(i) => {
+                let mut rows = vec![
+                    head(Binding::heading(p.cfg.sources[i].group.clone())),
+                    act("gitlab.connection.follow_check", Binding::new("c", "check it")),
+                    act("gitlab.connection.unfollow", Binding::new("d", "stop tracking…")),
+                ];
+                rows.extend(page(false));
+                return rows;
+            }
+            ConnRow::Field(_) => {
+                let mut rows = key_rows_of_menu(p, section);
+                rows.extend(page(false));
+                return rows;
+            }
         }
     }
     if on_add_row {
@@ -2081,6 +2346,12 @@ fn key_rows(p: &GitlabPlugin, section: &str) -> Vec<crate::Row> {
         };
         return vec![head(Binding::heading(title)), act(id, Binding::new("⏎", what))];
     }
+    key_rows_of_menu(p, section)
+}
+
+/// The rows of the selected row's options menu, named after the row.
+fn key_rows_of_menu(p: &GitlabPlugin, section: &str) -> Vec<crate::Row> {
+    use crate::{act, head};
     let Some(menu) = row_menu(p, section) else {
         return vec![];
     };
@@ -2443,8 +2714,10 @@ mod tests {
     #[test]
     fn a_token_in_the_environment_is_asked_about_first_and_used_by_name() {
         let mut p = sample();
+        // A token typed in by hand, and GITLAB_TOKEN set: offered.
+        p.cfg.token = "glab".into();
         p.env = Some(vec![(
-            "MY_GITLAB_TOKEN".into(),
+            "GITLAB_TOKEN".into(),
             "glpat-not.a.real.token.1234".into(),
         )]);
         // Signed in, the token works: nothing is offered.
@@ -2452,14 +2725,14 @@ mod tests {
         p.me.clear();
         assert_eq!(conn_rows(&p)[0], ConnRow::Offer(0));
         let theme = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-        let row = found("MY_GITLAB_TOKEN").row(&theme, 120).to_string();
+        let row = found("GITLAB_TOKEN").row(&theme, 120).to_string();
         assert_eq!(
             row,
-            " ? Found in your environment: a GitLab token (MY_GITLAB_TOKEN). Use it?"
+            " ? Found in your environment: a GitLab token (GITLAB_TOKEN). Use it?"
         );
         let out = press(&mut p, "connection", KeyCode::Enter);
         assert_eq!(
-            p.cfg.token, "env:MY_GITLAB_TOKEN",
+            p.cfg.token, "env:GITLAB_TOKEN",
             "the name, never the value"
         );
         assert!(
@@ -2471,6 +2744,83 @@ mod tests {
             conn_rows(&p)[p.section_rows[0]],
             ConnRow::Field(Field::Token)
         );
+    }
+
+    /// Setup's GitLab step is this section: groups are followed from it with
+    /// the tenancies' own add field, the cursor steps over the follow list's
+    /// heading, and the sheet carries the help to get a token.
+    #[test]
+    fn the_connection_follows_groups_with_the_tenancies_own_field() {
+        let mut p = sample();
+        let before = p.cfg.sources.len();
+        let rows = conn_rows(&p);
+        let add = rows.iter().position(|r| *r == ConnRow::FollowAdd).unwrap();
+        p.section_rows[0] = add - 3;
+        press(&mut p, "connection", KeyCode::Down);
+        assert_eq!(conn_rows(&p)[p.section_rows[0]], ConnRow::FollowAdd, "past the gap and the heading");
+        press(&mut p, "connection", KeyCode::Enter);
+        assert!(matches!(p.edit, Some((Target::SourceAdd, _))));
+        let out = typed(&mut p, "connection", "ankh-morpork/watch");
+        assert_eq!(p.cfg.sources.len(), before + 1);
+        assert!(p.cfg.sources.last().unwrap().group.ends_with("ankh-morpork/watch"));
+        assert!(menu_of(&out).is_some_and(|m| m.id.starts_with("ask-check:")), "offers to check it");
+        assert!(conn_rows(&p).contains(&ConnRow::Follow(before)));
+
+        p.section_rows[0] = conn_rows(&p).iter().position(|r| *r == ConnRow::Follow(before)).unwrap();
+        let out = press(&mut p, "connection", KeyCode::Char('d'));
+        assert!(menu_of(&out).is_some_and(|m| m.id == format!("tenancy-remove:{before}")), "asked first");
+        let ids: Vec<String> = action_specs(&p, "connection").into_iter().map(|a| a.id).collect();
+        assert!(ids.contains(&"gitlab.connection.unfollow".to_string()));
+
+        p.section_rows[0] = 0;
+        let view = connection_view(&p, 80, 0);
+        let sheet = format!("{:?}", view.detail_blocks);
+        assert!(sheet.contains("GET A GITLAB TOKEN") && sheet.contains("personal_access_tokens?name=radar"));
+        let out = press(&mut p, "connection", KeyCode::Char('o'));
+        assert!(matches!(&out, Outcome::Handled(fx) if matches!(fx.as_slice(), [Effect::Open(url)] if url.contains("/-/user_settings/personal_access_tokens"))));
+    }
+
+    #[test]
+    fn the_access_choice_sets_the_scope_the_token_link_asks_for() {
+        use config::TokenAccess;
+        use radar_core::plugin::Plugin;
+        let mut p = sample();
+        let at = |p: &GitlabPlugin, row| conn_rows(p).iter().position(|r| *r == row).unwrap();
+        let rows = conn_rows(&p);
+        let heading = at(&p, ConnRow::AccessHeading);
+        assert_eq!(rows[heading - 1], ConnRow::Gap);
+        assert_eq!(&rows[heading + 1..heading + 3], [ConnRow::Access(TokenAccess::Read), ConnRow::Access(TokenAccess::Write)]);
+        // Up from the follow list's add row: over the gap and the heading.
+        p.section_rows[0] = at(&p, ConnRow::FollowAdd);
+        press(&mut p, "connection", KeyCode::Up);
+        assert_eq!(conn_row(&p), ConnRow::Access(TokenAccess::Write));
+        let ids: Vec<String> = action_specs(&p, "connection").into_iter().map(|a| a.id).collect();
+        assert!(ids.contains(&"gitlab.connection.choose".to_string()), "{ids:?}");
+
+        let view = connection_view(&p, 120, 0);
+        let sheet = format!("{:?}", view.detail_blocks);
+        assert!(sheet.contains("scopes=read_api") && sheet.contains("scope from access: read_api"), "{sheet}");
+        // Nothing checked yet: choosing asks nothing of GitLab.
+        let out = press(&mut p, "connection", KeyCode::Enter);
+        assert_eq!(p.cfg.access, TokenAccess::Write);
+        assert!(matches!(&out, Outcome::Handled(fx) if !fx.iter().any(|e| matches!(e, Effect::SpawnAction { .. }))));
+        assert!(p.config().is_some_and(|c| c["access"].as_str() == Some("write")), "saved");
+        let view = connection_view(&p, 120, 0);
+        let sheet = format!("{:?}", view.detail_blocks);
+        assert!(sheet.contains("scopes=api\"") && sheet.contains("scope from access: api"), "{sheet}");
+        assert!(format!("{:?}", view.detail).contains("[gitlab] access"));
+        let out = press(&mut p, "connection", KeyCode::Char('o'));
+        assert!(matches!(&out, Outcome::Handled(fx) if matches!(fx.as_slice(), [Effect::Open(url)] if url.ends_with("scopes=api"))));
+
+        // Once checked, a new choice asks again, so the check row says
+        // whether the token allows it.
+        p.checks.insert("auth".into(), (Check::Passed("signed in as vimes (Sam Vimes)".into()), 0));
+        p.section_rows[0] = at(&p, ConnRow::Access(TokenAccess::Read));
+        let out = press(&mut p, "connection", KeyCode::Enter);
+        assert_eq!(p.cfg.access, TokenAccess::Read);
+        assert!(matches!(&out, Outcome::Handled(fx) if fx.iter().any(|e| matches!(e, Effect::SpawnAction { .. }))));
+        assert_eq!(p.checks.get("auth").map(|(c, _)| c.clone()), Some(Check::Running));
+        assert!(p.config().is_some_and(|c| c.get("access").is_none()), "read is the default, left out");
     }
 
     #[test]

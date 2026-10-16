@@ -253,6 +253,9 @@ export interface NodeContext {
   plainText?: boolean;
   /** A Document scrolls in its pane (the settings detail: ui::scroll::paragraph); elsewhere it is cut (widgets::paragraph). */
   scrolls?: boolean;
+  /** The sheet of settings or setup (shell.rs section_detail_lines): a section's heading is laid one cell wider than the
+   * text it is wrapped in, so its rule drops to a row of its own. */
+  sheet?: boolean;
   /** Capabilities named by Extension nodes this shell draws itself (`editor`). */
   capabilities?: readonly string[];
   /** The actions of the view the node sits in (ScreenView.actions): a node drawn as a fallback lists them. */
@@ -262,6 +265,8 @@ export interface NodeContext {
     add(hit: { x: number; y: number; w: number; h: number; target: string }): void;
     /** Where a pane is drawn (HitRegistry.addPane): the wheel and a press on its empty space act on it. */
     addPane?(area: { x: number; y: number; w: number; h: number; pane: string }): void;
+    /** Where text can be selected with the mouse (HitRegistry.addSelect): a pane's inside, the dock's transcript. */
+    addSelect?(area: import("../input/selection.js").SelectArea): void;
   };
   /** Sends an intent for a target the user chose (T10 wires it to the transport). */
   onIntent?: (intent: { intent: string; [k: string]: unknown }) => void;

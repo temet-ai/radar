@@ -60,6 +60,49 @@ pub struct SessionMeta {
     /// The agent the session runs as, when not the CLI's own: it is resumed as the same agent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub agent: Option<String>,
+    /// A review session (the review journey's): it is resumed with radar's
+    /// strict review policy, never the operator's own approvals.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub review: bool,
+}
+
+/// Whether radar is attached to the provider's session: a session restored
+/// from the last run is not, until it is resumed (its provider's process,
+/// and whatever that process was asking, ended with the last run).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Attach {
+    #[default]
+    Attached,
+    /// Restored, or its resume failed: a message or the resume key resumes it.
+    Detached,
+    /// radar reads it back from the provider; what arrives meanwhile is history.
+    Resuming,
+}
+
+/// What [`Session::lapse`] found waiting when the history ended.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Lapsed {
+    pub requests: usize,
+    pub questions: usize,
+    /// The history ended inside a turn (waiting or still running).
+    pub turn: bool,
+}
+
+impl Lapsed {
+    pub fn any(&self) -> bool {
+        self.requests + self.questions > 0 || self.turn
+    }
+
+    /// What the transcript says of it, if anything.
+    pub fn words(&self) -> Option<&'static str> {
+        if self.requests + self.questions > 0 {
+            Some("the turn that was waiting was ended when radar closed; send a message to carry on")
+        } else if self.turn {
+            Some("the turn that was running was ended when radar closed; send a message to carry on")
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -74,6 +117,9 @@ pub enum PermissionState {
     Pending,
     Approved,
     Denied,
+    /// It waited when radar closed: the process that asked is gone, so nothing
+    /// can answer it now.
+    Lapsed,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -83,6 +129,8 @@ pub enum QuestionState {
     /// Declined by the operator, or cancelled (the turn stopped, the
     /// provider went away).
     Declined,
+    /// It waited when radar closed, as [`PermissionState::Lapsed`].
+    Lapsed,
 }
 
 /// One row of the transcript.
@@ -213,9 +261,91 @@ pub struct Session {
     /// starts again asks again, as the provider's own session approval does.
     for_session: BTreeSet<String>,
     approved_for_session: BTreeSet<String>,
+    /// Attached to the provider's session, or not yet (restored), or being read back.
+    pub attach: Attach,
+    /// When the plugin last began to resume it, at the plugin's clock.
+    pub attach_at: i64,
+    /// Requests and questions that lapsed, by request id, and the newest
+    /// sequence applied when they did: a rebuild keeps them lapsed, and the
+    /// provider asking one again after that is a request that waits.
+    lapsed: BTreeSet<String>,
+    lapsed_through: u64,
+    /// The turn the history ended inside ([`TurnMark::seq`]): a rebuild keeps it ended.
+    cut: Option<u64>,
+    /// The tool calls that were running when it ended: they never finish.
+    cut_calls: BTreeSet<String>,
 }
 
 impl Session {
+    /// The history read back on resume has ended: whatever still waits was
+    /// asked by a process that ended with the last run, so nothing can
+    /// answer it. Each such request and question lapses (shown without
+    /// buttons, never "needs you"), and a turn the history ends inside is
+    /// over. Says what it found.
+    pub fn lapse(&mut self) -> Lapsed {
+        let mut found = Lapsed { turn: self.turn.open, ..Lapsed::default() };
+        // A provider's own turn end (soft) at the end of the history is the turn's end: nothing more follows.
+        if self.turn.soft {
+            self.turn.end(false);
+        }
+        for item in &mut self.items {
+            match item {
+                Item::Permission { request, state } if *state == PermissionState::Pending => {
+                    *state = PermissionState::Lapsed;
+                    self.lapsed.insert(request.request_id.clone());
+                    found.requests += 1;
+                }
+                Item::Question { request, state, .. } if *state == QuestionState::Pending => {
+                    *state = QuestionState::Lapsed;
+                    self.lapsed.insert(request.request_id.clone());
+                    found.questions += 1;
+                }
+                Item::Tool { call_id, state: ToolState::Running, .. } => {
+                    self.cut_calls.insert(call_id.clone());
+                }
+                _ => {}
+            }
+        }
+        self.lapsed_through = self.applied.keys().next_back().copied().unwrap_or(0);
+        if found.any() {
+            self.cut = Some(self.turn.seq);
+            self.end_cut_turn();
+        } else {
+            self.cut_calls.clear();
+        }
+        found
+    }
+
+    /// The turn the history ended inside stays over, and the calls it was running never finish; what was asked
+    /// again after it still waits.
+    fn end_cut_turn(&mut self) {
+        for item in &mut self.items {
+            if let Item::Tool { call_id, state, result, .. } = item
+                && *state == ToolState::Running
+                && self.cut_calls.contains(call_id)
+            {
+                *state = ToolState::Failed;
+                *result = Some("radar closed before it finished".into());
+            }
+        }
+        if self.cut.is_some() && self.cut == Some(self.turn.seq) {
+            self.turn.end(false);
+            if matches!(self.state, SessionState::Running | SessionState::WaitingApproval) {
+                self.state = self.derived_state();
+            }
+        }
+    }
+
+    /// The request event `request_id` at `sequence` is one that lapsed (or a rebuild's replay of it).
+    fn lapsed_ask(&self, request_id: &str, sequence: u64) -> bool {
+        self.lapsed.contains(request_id) && sequence <= self.lapsed_through
+    }
+
+    /// Attached to the provider's session: what it asks can be answered.
+    pub fn attached(&self) -> bool {
+        self.attach == Attach::Attached
+    }
+
     /// The operator approved `request` for the rest of this session.
     pub fn approve_for_session(&mut self, request: &PermissionRequest) {
         self.for_session.insert(request.session_key());
@@ -255,6 +385,12 @@ impl Session {
             drafts: BTreeMap::new(),
             for_session: BTreeSet::new(),
             approved_for_session: BTreeSet::new(),
+            attach: Attach::Attached,
+            attach_at: 0,
+            lapsed: BTreeSet::new(),
+            lapsed_through: 0,
+            cut: None,
+            cut_calls: BTreeSet::new(),
         }
     }
 
@@ -353,7 +489,7 @@ impl Session {
     /// free (connected, started, no turn). It stays shown, now the
     /// provider's, until the provider shows it; radar is sending it.
     pub fn due(&mut self) -> Option<String> {
-        if self.busy() || !self.connected || self.meta.provider_session_id.as_str().is_empty() {
+        if self.busy() || !self.connected || !self.attached() || self.meta.provider_session_id.as_str().is_empty() {
             return None;
         }
         let q = self.queued.iter_mut().find(|q| q.holder == Holder::Radar)?;
@@ -452,6 +588,7 @@ impl Session {
         for e in &events {
             self.apply(e);
         }
+        self.end_cut_turn();
     }
 
     fn apply(&mut self, event: &Event) {
@@ -515,12 +652,23 @@ impl Session {
                 }
             }
             EventKind::PermissionRequested { request } => {
-                let known = self.items.iter().any(|i| {
-                    matches!(i, Item::Permission { request: r, .. } if r.request_id == request.request_id)
+                let old = self.lapsed_ask(&request.request_id, event.sequence);
+                let known = self.items.iter_mut().find_map(|i| match i {
+                    Item::Permission { request: r, state } if r.request_id == request.request_id => Some(state),
+                    _ => None,
                 });
-                if !known {
-                    self.push(Item::Permission { request: request.clone(), state: PermissionState::Pending });
-                    self.state = SessionState::WaitingApproval;
+                match known {
+                    None if old => self.push(Item::Permission { request: request.clone(), state: PermissionState::Lapsed }),
+                    None => {
+                        self.push(Item::Permission { request: request.clone(), state: PermissionState::Pending });
+                        self.state = SessionState::WaitingApproval;
+                    }
+                    // Asked again after the resume, under the same id: it waits now, and can be answered.
+                    Some(state) if !old && *state == PermissionState::Lapsed => {
+                        *state = PermissionState::Pending;
+                        self.state = SessionState::WaitingApproval;
+                    }
+                    Some(_) => {}
                 }
             }
             EventKind::PermissionResolved { request_id, approved } => {
@@ -536,12 +684,24 @@ impl Session {
                 }
             }
             EventKind::QuestionAsked { request } => {
-                let known = self.items.iter().any(|i| {
-                    matches!(i, Item::Question { request: r, .. } if r.request_id == request.request_id)
+                let old = self.lapsed_ask(&request.request_id, event.sequence);
+                let known = self.items.iter_mut().find_map(|i| match i {
+                    Item::Question { request: r, state, .. } if r.request_id == request.request_id => Some(state),
+                    _ => None,
                 });
-                if !known {
-                    self.push(Item::Question { request: request.clone(), state: QuestionState::Pending, replies: Vec::new() });
-                    self.state = SessionState::WaitingApproval;
+                match known {
+                    None if old => {
+                        self.push(Item::Question { request: request.clone(), state: QuestionState::Lapsed, replies: Vec::new() })
+                    }
+                    None => {
+                        self.push(Item::Question { request: request.clone(), state: QuestionState::Pending, replies: Vec::new() });
+                        self.state = SessionState::WaitingApproval;
+                    }
+                    Some(state) if !old && *state == QuestionState::Lapsed => {
+                        *state = QuestionState::Pending;
+                        self.state = SessionState::WaitingApproval;
+                    }
+                    Some(_) => {}
                 }
             }
             EventKind::QuestionResolved { request_id, replies } => {
@@ -686,12 +846,13 @@ impl Store {
     }
 
     /// Load persisted metadata. The cursor is cleared: the timeline is
-    /// gone, so the next resume replays the provider's whole history.
+    /// gone, so the next resume replays the provider's whole history. Each
+    /// session is detached: the provider's process ended with the last run.
     pub fn restore(&mut self, value: serde_json::Value) {
         let metas: Vec<SessionMeta> = serde_json::from_value(value).unwrap_or_default();
         for mut meta in metas {
             meta.cursor = None;
-            self.insert(meta);
+            self.insert(meta).attach = Attach::Detached;
         }
     }
 }
@@ -712,6 +873,7 @@ mod tests {
             created_at: 1,
             cursor: None,
             agent: None,
+            review: false,
         }
     }
 
@@ -723,6 +885,85 @@ mod tests {
         let mut store = Store::default();
         store.restore(saved);
         assert_eq!(store.snapshot()[0]["radar_session_id"], "s1");
+    }
+
+    fn shell(id: &str) -> PermissionRequest {
+        PermissionRequest {
+            request_id: id.into(),
+            kind: PermissionKind::Shell,
+            target: PermissionTarget::Command { command: "ls".into(), segments: vec!["ls".into()] },
+            tool_call_id: None,
+            can_offer_session_approval: false,
+        }
+    }
+
+    #[test]
+    fn what_waits_when_the_history_ends_lapses_and_stays_lapsed_through_a_rebuild() {
+        let mut s = Session::new(meta());
+        s.ingest(user(1, "e1", "run it"));
+        s.ingest(ev(2, Some("e2"), Durability::Persisted, EventKind::TurnStarted));
+        let call = EventKind::ToolStarted { call_id: "c1".into(), name: "shell".into(), summary: "ls".into(), diff: None };
+        s.ingest(ev(3, Some("e3c"), Durability::Persisted, call));
+        s.ingest(ev(4, Some("e4"), Durability::Persisted, EventKind::PermissionRequested { request: shell("r1") }));
+        assert_eq!(s.pending().len(), 1);
+        let found = s.lapse();
+        let ended = |s: &Session| {
+            s.items.iter().any(|i| matches!(i, Item::Tool { state: ToolState::Failed, result: Some(r), .. } if r == "radar closed before it finished"))
+        };
+        assert!(ended(&s), "the call it waited to run never finishes: {:?}", s.items);
+        assert_eq!(found, Lapsed { requests: 1, questions: 0, turn: true });
+        assert!(found.words().unwrap().starts_with("the turn that was waiting was ended when radar closed"));
+        assert!(s.pending().is_empty() && !s.busy() && !s.turn.open, "{:?} {:?}", s.state, s.turn);
+        assert!(matches!(s.items.last(), Some(Item::Permission { state: PermissionState::Lapsed, .. })));
+        // A late event rebuilds the timeline: the request stays lapsed and the turn over.
+        s.ingest(ev(0, Some("e0"), Durability::Persisted, EventKind::Notice { text: "late".into() }));
+        assert!(s.pending().is_empty() && !s.busy(), "{:?}", s.items);
+        assert!(ended(&s), "a rebuild keeps it ended: {:?}", s.items);
+        assert!(s.items.iter().any(|i| matches!(i, Item::Permission { state: PermissionState::Lapsed, .. })));
+        // Nothing waits a second time round.
+        assert_eq!(s.lapse(), Lapsed::default());
+        // A history that ended between turns has nothing to lapse.
+        let mut quiet = Session::new(meta());
+        quiet.ingest(user(1, "e1", "hi"));
+        quiet.ingest(ev(2, Some("e2"), Durability::Persisted, EventKind::TurnEnded));
+        assert!(!quiet.lapse().any());
+        assert_eq!(quiet.lapse().words(), None);
+    }
+
+    #[test]
+    fn a_request_the_provider_asks_again_after_the_resume_waits_even_under_the_same_id() {
+        let mut s = Session::new(meta());
+        s.ingest(user(1, "e1", "run it"));
+        s.ingest(ev(2, Some("e2"), Durability::Persisted, EventKind::PermissionRequested { request: shell("r1") }));
+        s.lapse();
+        assert!(s.pending().is_empty());
+        // The resumed provider asks again: a new event, the same request id.
+        s.ingest(ev(3, Some("e3"), Durability::Persisted, EventKind::PermissionRequested { request: shell("r1") }));
+        assert_eq!(s.pending().len(), 1, "{:?}", s.items);
+        assert_eq!(s.state, SessionState::WaitingApproval);
+        assert_eq!(s.items.iter().filter(|i| matches!(i, Item::Permission { .. })).count(), 1, "one row for it");
+        // A rebuild keeps it waiting (the first ask stays the lapsed one, the second revives it).
+        s.ingest(ev(0, Some("e0"), Durability::Persisted, EventKind::Notice { text: "late".into() }));
+        assert_eq!(s.pending().len(), 1, "{:?}", s.items);
+        assert_eq!(s.state, SessionState::WaitingApproval);
+        // A new id asked after the resume is simply a request that waits.
+        s.ingest(ev(4, Some("e4"), Durability::Persisted, EventKind::PermissionRequested { request: shell("r2") }));
+        assert_eq!(s.pending().len(), 2);
+    }
+
+    #[test]
+    fn a_restored_session_is_not_attached_until_resumed() {
+        let mut store = Store::new();
+        store.insert(meta());
+        assert!(store.get(&RadarSessionId::new("s1")).unwrap().attached());
+        let mut back = Store::new();
+        back.restore(store.snapshot());
+        let s = back.get_mut(&RadarSessionId::new("s1")).unwrap();
+        assert_eq!(s.attach, Attach::Detached);
+        s.queue("later".into(), Holder::Radar);
+        assert_eq!(s.due(), None, "nothing goes to a provider radar is not attached to");
+        s.attach = Attach::Attached;
+        assert_eq!(s.due().as_deref(), Some("later"));
     }
 
     fn ev(seq: u64, id: Option<&str>, durability: Durability, kind: EventKind) -> Event {

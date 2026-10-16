@@ -81,12 +81,11 @@ impl Colours {
 
     pub fn rows(&self) -> Vec<Row> {
         let mut rows = vec![
+            // The palette, motion and icon pack are the look section's
+            // (Settings / general / appearance), as in setup.
             Row::Header("theme"),
-            Row::Palette,
             Row::Depth,
-            Row::Motion,
             Row::Splash,
-            Row::Icons,
         ];
         let names = self.slot_names();
         for group in SLOT_GROUPS {
@@ -112,7 +111,7 @@ impl Colours {
         let rows = self.rows();
         let at = self.row.min(rows.len() - 1);
         match &rows[at] {
-            Row::Header(_) => rows.into_iter().nth(at + 1).unwrap_or(Row::Palette),
+            Row::Header(_) => rows.into_iter().nth(at + 1).unwrap_or(Row::Depth),
             r => r.clone(),
         }
     }
@@ -887,15 +886,12 @@ mod tests {
     fn rows_are_grouped_and_movement_skips_headings() {
         let mut c = Colours::default();
         c.first_row();
-        assert_eq!(c.selected(), Row::Palette);
-        press(&mut c, KeyCode::Char('j'));
-        assert_eq!(c.selected(), Row::Depth);
-        press(&mut c, KeyCode::Char('j'));
-        assert_eq!(c.selected(), Row::Motion);
+        assert_eq!(c.selected(), Row::Depth, "the palette, motion and icons are the look section's");
+        for gone in [Row::Palette, Row::Motion, Row::Icons] {
+            assert!(!c.rows().contains(&gone), "{gone:?} is not a colours row");
+        }
         press(&mut c, KeyCode::Char('j'));
         assert_eq!(c.selected(), Row::Splash);
-        press(&mut c, KeyCode::Char('j'));
-        assert_eq!(c.selected(), Row::Icons);
         press(&mut c, KeyCode::Char('j'));
         assert_eq!(
             c.selected(),
@@ -909,7 +905,6 @@ mod tests {
     fn enter_opens_a_menu_and_the_choice_applies() {
         let mut c = Colours::default();
         c.first_row();
-        press(&mut c, KeyCode::Char('j'));
         assert!(
             matches!(press(&mut c, KeyCode::Enter), Reply::Menu(m) if m.id == "depth" && m.items.len() == 5)
         );
@@ -980,19 +975,11 @@ mod tests {
     }
 
     #[test]
-    fn motion_is_chosen_from_a_menu_saying_what_each_shows() {
+    fn motion_is_chosen_by_word_and_saved_under_theme() {
+        // The levels and what each shows are checked through the look
+        // section (setup tests); here the menu's choice and the file.
         let mut c = Colours::default();
-        c.first_row();
         assert_eq!(c.cfg.motion, "subtle", "subtle by default");
-        press(&mut c, KeyCode::Char('j'));
-        press(&mut c, KeyCode::Char('j'));
-        let Reply::Menu(m) = press(&mut c, KeyCode::Enter) else {
-            panic!("a menu")
-        };
-        assert_eq!(m.id, "motion");
-        let words: Vec<_> = m.items.iter().map(|i| i.value.as_str()).collect();
-        assert_eq!(words, ["full", "subtle", "off"]);
-        assert!(m.items[1].hint.starts_with("in use"));
         assert_eq!(c.on_menu("motion", "off").as_deref(), Some("motion: off"));
         assert_eq!(c.cfg.motion, "off");
         let back: ThemeConfig = toml::from_str(&toml::to_string(&c.cfg).unwrap()).unwrap();
@@ -1005,11 +992,8 @@ mod tests {
     fn a_slot_colour_is_typed_checked_and_reset() {
         let mut c = Colours::default();
         c.first_row();
-        press(&mut c, KeyCode::Char('j'));
-        press(&mut c, KeyCode::Char('j'));
-        press(&mut c, KeyCode::Char('j'));
-        press(&mut c, KeyCode::Char('j'));
-        press(&mut c, KeyCode::Char('j'));
+        press(&mut c, KeyCode::Char('j')); // splash
+        press(&mut c, KeyCode::Char('j')); // the first slot
         c.on_menu("slot:bg.base", "edit");
         for ch in "12zz".chars() {
             press(&mut c, KeyCode::Char(ch));

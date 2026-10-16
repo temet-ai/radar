@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/alert_tests.rs
+assertion_line: 376
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack 5   History   Settings (,)                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 80, 24)"
 │General               ││ + add a mapping                                      █
 │  ├─ parts            ││ keep resolved    24 hours                            █
 │  ├─ mode             ││ ▌ api-… → repo acme/team-a/api · service api         █
-│  ├─ colours          ││   ├─ name starts     api-                            █
-│  └─ icons            ││   ├─ carries label   —                               █
-│Slack                 ││   ├─ repo            acme/team-a/api                 █
-│  ├─ connection       ││   ├─ service         api                             █
-│  ├─ channels         ││   └─ environment     —                               █
-│  ├─ review           ││ no rule places  DiskFull                             ║
-│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ add a mapping ───────────────────────────────────────╮
-│                      ││ Say where a kind of alert belongs.                   │
+│  ├─ appearance       ││   ├─ name starts     api-                            █
+│  ├─ colours          ││   ├─ carries label   —                               █
+│  └─ icons            ││   ├─ repo            acme/team-a/api                 █
+│Slack                 ││   ├─ service         api                             █
+│  ├─ connection       ││   └─ environment     —                               █
+│  ├─ channels         ││ no rule places  DiskFull                             ║
+│  ├─ review           │╰──────────────────────────────────────────────────────╯
+│  ├─ alerts           │╭ add a mapping ───────────────────────────────────────╮
+│  └─ look             ││ Say where a kind of alert belongs.                   │
 │                      ││                                                      │
 │                      ││ Type the start of its name; the repo it belongs to   │
 │                      ││ is asked next. The service, a label to match and an  │

@@ -9,6 +9,7 @@
 //! read a status again or to start a sign-in; the plugin owns the adapters.
 
 pub mod config;
+pub(crate) mod setup;
 pub mod status;
 mod view;
 
@@ -42,6 +43,8 @@ pub enum Request {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Row {
     Cli(String),
+    /// `+ add a command`: a terminal CLI of your own.
+    AddCli,
     Provider,
     Model,
     WorkDir,
@@ -63,6 +66,7 @@ impl Row {
     pub(crate) fn target(&self) -> String {
         match self {
             Row::Cli(id) => format!("cli:{id}"),
+            Row::AddCli => "cli:add".into(),
             Row::Provider => "def:provider".into(),
             Row::Model => "def:model".into(),
             Row::WorkDir => "def:work_dir".into(),
@@ -82,7 +86,7 @@ impl Row {
 
     /// The defaults rows, under "new sessions".
     pub(crate) fn is_default(&self) -> bool {
-        !matches!(self, Row::Cli(_) | Row::RecipesDir | Row::Recipe(_) | Row::ReviewsDir | Row::Notify)
+        !matches!(self, Row::Cli(_) | Row::AddCli | Row::RecipesDir | Row::Recipe(_) | Row::ReviewsDir | Row::Notify)
     }
 }
 
@@ -123,6 +127,11 @@ fn open_in_editor(dir: std::path::PathBuf) -> Effect {
     }))
 }
 
+/// A command put on the clipboard, and said so.
+fn copied(cmd: String) -> Vec<Effect> {
+    vec![Effect::Notify(format!("copied: {cmd}")), Effect::Copy(cmd)]
+}
+
 #[derive(Default)]
 pub struct AgentsSettings {
     pub cfg: AgentsConfig,
@@ -137,6 +146,13 @@ pub struct AgentsSettings {
     available: Option<Vec<String>>,
     /// The agents and skills each provider offers, as last read.
     catalogs: BTreeMap<String, crate::adapter::Catalog>,
+    /// What the agents asked permission for, as rules, most asked first,
+    /// with how often: what always allow and always deny offer.
+    asked: Vec<(Rule, usize)>,
+    /// The last section view was drawn as a setup step: the rows only
+    /// Settings needs (the defaults, recipes, away notices) are not in the
+    /// list, so keys and clicks walk what is drawn.
+    setup_card: std::cell::Cell<bool>,
 }
 
 pub fn sections() -> Vec<SectionSpec> {
@@ -203,6 +219,20 @@ impl AgentsSettings {
 
     pub fn catalog(&self, provider: &str) -> Option<&crate::adapter::Catalog> {
         self.catalogs.get(provider)
+    }
+
+    /// The permission requests the agents made, newest last: always allow
+    /// and always deny offer them as rules, one key each.
+    pub fn set_asked<'a>(&mut self, requests: impl IntoIterator<Item = &'a crate::event::PermissionRequest>) {
+        let mut asked: Vec<(Rule, usize)> = vec![];
+        for r in requests.into_iter().flat_map(Rule::suggest) {
+            match asked.iter_mut().find(|(have, _)| *have == r) {
+                Some((_, n)) => *n += 1,
+                None => asked.push((r, 1)),
+            }
+        }
+        asked.sort_by_key(|a| std::cmp::Reverse(a.1));
+        self.asked = asked;
     }
 
     /// Where reviews are saved when set; else radar's state folder.
@@ -306,6 +336,10 @@ impl AgentsSettings {
     pub(crate) fn rows(&self) -> Vec<Row> {
         let mut rows: Vec<Row> = NATIVE.iter().map(|(id, _)| Row::Cli((*id).into())).collect();
         rows.extend(self.cfg.pty.iter().map(|c| Row::Cli(c.id.clone())));
+        rows.push(Row::AddCli);
+        if self.setup_card.get() {
+            return rows;
+        }
         rows.extend([
             Row::Provider,
             Row::Model,
@@ -348,6 +382,7 @@ impl AgentsSettings {
     // --- sections ---------------------------------------------------------
 
     pub fn section_view(&self, section: &str, cx: &ViewCx<'_>) -> Option<SectionView> {
+        self.setup_card.set(cx.setup);
         (section == SECTION).then(|| view::section(self, cx))
     }
 
@@ -360,6 +395,10 @@ impl AgentsSettings {
                 self.select(target.as_str());
                 Outcome::done()
             }
+            // A command line of the sheet: a click copies it.
+            Intent::Activate { target } if setup::copy_of(target.as_str()).is_some() => {
+                Outcome::Handled(setup::copy_of(target.as_str()).map(copied).unwrap_or_default())
+            }
             Intent::Activate { target } => {
                 self.select(target.as_str());
                 Outcome::Handled(self.activate())
@@ -368,6 +407,9 @@ impl AgentsSettings {
                 "sessions.agents.sign_in" => Outcome::Handled(self.sign_in()),
                 "sessions.agents.cancel" => Outcome::Handled(self.cancel()),
                 "sessions.agents.refresh" => Outcome::Handled(self.refresh()),
+                "sessions.agents.copy" => Outcome::Handled(self.copy_command()),
+                "sessions.agents.open" => Outcome::Handled(self.open_page()),
+                "sessions.agents.add" => Outcome::Handled(self.activate_add()),
                 "sessions.agents.edit" => Outcome::Handled(self.activate()),
                 "sessions.agents.paths" => Outcome::Handled(self.cli_menu()),
                 "sessions.agents.recipe.edit" => Outcome::Handled(self.edit_recipes()),
@@ -388,9 +430,66 @@ impl AgentsSettings {
             Key::Char('i') => Outcome::Handled(self.sign_in()),
             Key::Char('r') => Outcome::Handled(self.refresh()),
             Key::Char('p') if matches!(self.selected(), Row::Cli(_)) => Outcome::Handled(self.cli_menu()),
+            // The command still needed, for the terminal: its install while it is missing, else its sign-in.
+            Key::Char('y') if matches!(self.selected(), Row::Cli(_)) => Outcome::Handled(self.copy_command()),
+            Key::Char('o') if matches!(self.selected(), Row::Cli(_)) => Outcome::Handled(self.open_page()),
+            Key::Char('a') if matches!(self.selected(), Row::Cli(_) | Row::AddCli) => Outcome::Handled(self.activate_add()),
             Key::Char('e') if matches!(self.selected(), Row::Recipe(_) | Row::RecipesDir) => Outcome::Handled(self.edit_recipes()),
             _ => Outcome::Ignored,
         }
+    }
+
+    /// `y` on a CLI: copy the command it still needs.
+    fn copy_command(&mut self) -> Vec<Effect> {
+        let Row::Cli(id) = self.selected() else { return vec![] };
+        match setup::command_for(self, &id) {
+            Some(cmd) => copied(cmd),
+            None => vec![Effect::Notify(format!("{} has no command to copy", self.name_of(&id)))],
+        }
+    }
+
+    /// `o` on a CLI: open its own page about installing it.
+    fn open_page(&mut self) -> Vec<Effect> {
+        let Row::Cli(id) = self.selected() else { return vec![] };
+        match setup::help(&id) {
+            Some(h) => vec![Effect::Open(h.page.into())],
+            None => vec![Effect::Notify(format!("{} has no page to open", self.name_of(&id)))],
+        }
+    }
+
+    /// `a`: type a command of your own to add.
+    fn activate_add(&mut self) -> Vec<Effect> {
+        vec![Effect::Menu(Menu::typed(
+            "agents.pty_add",
+            "Add a command: what you would type in a terminal (aider, opencode --yes)",
+            "",
+        ))]
+    }
+
+    /// The terminal CLI a typed command makes: its id is the program's name.
+    /// `Err` says why it cannot be added.
+    fn pty_from(&self, text: &str) -> Result<PtyCli, String> {
+        let text = text.trim();
+        if looks_like_token(text) || text.split_whitespace().any(looks_like_token) {
+            return Err("that looks like a token; radar never stores one".into());
+        }
+        let mut words = text.split_whitespace();
+        let Some(command) = words.next() else { return Err("type the command".into()) };
+        let id: String = command
+            .rsplit('/')
+            .next()
+            .unwrap_or(command)
+            .to_lowercase()
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_'))
+            .collect();
+        if id.is_empty() {
+            return Err("type the command".into());
+        }
+        if NATIVE.iter().any(|(i, _)| *i == id) || self.cfg.pty.iter().any(|c| c.id == id) {
+            return Err(format!("{id} is listed already"));
+        }
+        Ok(PtyCli { id: id.clone(), name: id, command: command.to_string(), args: words.map(str::to_string).collect(), login: None })
     }
 
     fn select(&mut self, target: &str) {
@@ -461,6 +560,7 @@ impl AgentsSettings {
                 status::State::Missing => vec![Effect::Notify(self.state(&id).advice())],
                 _ => self.refresh(),
             },
+            Row::AddCli => self.activate_add(),
             Row::Provider => {
                 let mut ids: Vec<(String, String)> = NATIVE.iter().map(|(i, n)| ((*i).into(), (*n).into())).collect();
                 ids.extend(self.cfg.pty.iter().map(|c| (c.id.clone(), c.name.clone())));
@@ -512,16 +612,8 @@ impl AgentsSettings {
                 self.cfg.reviews_dir.clone().unwrap_or_default(),
             ))],
             Row::Recipe(name) => self.recipe_menu(&name),
-            Row::Allow => vec![Effect::Menu(Menu::typed(
-                "agents.allow",
-                "Always allow, as kind(argument) (type one that is listed to remove it)",
-                "",
-            ))],
-            Row::Deny => vec![Effect::Menu(Menu::typed(
-                "agents.deny",
-                "Always deny, as kind(argument) (type one that is listed to remove it)",
-                "",
-            ))],
+            Row::Allow => self.rules_menu("agents.allow"),
+            Row::Deny => self.rules_menu("agents.deny"),
             Row::LocalOnly => {
                 let d = self.editing();
                 d.local_only = !d.local_only;
@@ -541,6 +633,31 @@ impl AgentsSettings {
                 )]
             }
         }
+    }
+
+    /// ⏎ on always allow or always deny: what your agents asked for, one key
+    /// each to add it; what is on the list now (⏎ takes one off); typing one
+    /// of your own last.
+    fn rules_menu(&self, menu: &str) -> Vec<Effect> {
+        let allow = menu == "agents.allow";
+        let rules = self.rules(menu);
+        let other = self.rules(if allow { "agents.deny" } else { "agents.allow" });
+        let mut items = vec![];
+        let offered: Vec<&(Rule, usize)> = self.asked.iter().filter(|(r, _)| !rules.contains(r) && !other.contains(r)).take(9).collect();
+        if !offered.is_empty() {
+            items.push(MenuItem::heading(if allow { "your agents asked for · press its number to always allow it" } else { "your agents asked for · press its number to always deny it" }));
+            items.extend(offered.iter().zip('1'..='9').map(|((r, n), k)| {
+                MenuItem::new(k, rule_words(r), if *n > 1 { format!("asked {n} times") } else { "asked once".into() }, format!("add\t{r}"))
+            }));
+        }
+        items.push(MenuItem::heading(if allow { "allowed now · ⏎ on one takes it off" } else { "denied now · ⏎ on one takes it off" }));
+        if rules.is_empty() {
+            items.push(MenuItem::note("  nothing yet"));
+        }
+        items.extend(rules.iter().map(|r| MenuItem::pick(rule_words(r), "take off", format!("remove\t{r}"))));
+        items.push(MenuItem::heading("or type one of your own"));
+        items.extend(RULE_WAYS.iter().map(|(k, kind, what, _)| MenuItem::new(*k, *what, "", format!("type\t{kind}"))));
+        vec![Effect::Menu(Menu::new(menu, if allow { "Always allow" } else { "Always deny" }, items))]
     }
 
     // --- a provider's own fields and the recipes --------------------------
@@ -695,6 +812,18 @@ impl AgentsSettings {
             return Typing { verdict: folder_verdict(text, menu == "agents.skills" && self.defaults().skill_dirs.iter().any(|r| r == text.trim())), offers: vec![] };
         }
         let verdict = match menu {
+            "agents.pty_add" if text.trim().is_empty() => Some(Verdict::Unsure("a program and its arguments: aider, opencode --yes".into())),
+            "agents.pty_add" => Some(match self.pty_from(text) {
+                Err(why) => Verdict::Bad(why),
+                Ok(cli) => {
+                    let path = self.path.clone().or_else(|| std::env::var("PATH").ok()).unwrap_or_default();
+                    if find_on_path(&cli.command, &path) {
+                        Verdict::Good(format!("found on PATH · ⏎ adds {}", cli.id))
+                    } else {
+                        Verdict::Unsure(format!("not found on PATH yet · ⏎ adds {}", cli.id))
+                    }
+                }
+            }),
             "agents.model" if looks_like_token(text) => Some(Verdict::Bad("that looks like a token; radar never stores one".into())),
             "agents.model" => None,
             "agents.roots" => {
@@ -713,12 +842,29 @@ impl AgentsSettings {
                     Some(Verdict::Unsure("no such folder yet".into()))
                 }
             }
-            "agents.allow" | "agents.deny" if text.trim().is_empty() => None,
-            "agents.allow" | "agents.deny" => Some(match Rule::parse(text) {
-                Ok(r) if self.rules(menu).contains(&r) => Verdict::Unsure("listed: ⏎ removes it".into()),
-                Ok(_) => Verdict::Good("added".into()),
-                Err(e) => Verdict::Bad(e.words()),
-            }),
+            m if let Some((list, kind)) = rule_menu(m) => {
+                let t = text.trim();
+                // What the agents asked for of this kind, matching what is typed: ↑↓ puts one in the field.
+                let offers = self
+                    .asked
+                    .iter()
+                    .filter(|(r, _)| r.kind == kind && r.argument.contains(t) && !self.rules(list).contains(r))
+                    .take(9)
+                    .map(|(r, _)| MenuItem::pick(r.argument.clone(), "asked by an agent", r.argument.clone()))
+                    .collect();
+                let example = RULE_WAYS.iter().find(|w| w.1 == kind).map_or("", |w| w.3);
+                let verdict = if t.is_empty() {
+                    Verdict::Unsure(example.into())
+                } else {
+                    match Rule::parse(&format!("{kind}({t})")) {
+                        Ok(r) if self.rules(list).contains(&r) => Verdict::Unsure("on the list already: ⏎ takes it off".into()),
+                        Ok(_) => Verdict::Good("⏎ adds it".into()),
+                        Err(config::RuleError::Secret) => Verdict::Bad("that looks like a token; radar never stores one".into()),
+                        Err(_) => Verdict::Bad(example.into()),
+                    }
+                };
+                return Typing { verdict: Some(verdict), offers };
+            }
             _ => None,
         };
         Typing { verdict, offers: vec![] }
@@ -764,7 +910,31 @@ impl AgentsSettings {
 
     fn rules(&self, menu: &str) -> &[Rule] {
         let d = self.defaults();
-        if menu == "agents.allow" { &d.allow } else { &d.deny }
+        if menu.starts_with("agents.allow") { &d.allow } else { &d.deny }
+    }
+
+    /// "always allow" from the dock: each rule goes on the allow list (of
+    /// the workspace being edited) unless it is there already.
+    pub fn always_allow(&mut self, rules: &[Rule]) {
+        let d = self.editing();
+        for r in rules {
+            if !d.allow.contains(r) {
+                d.allow.push(r.clone());
+            }
+        }
+    }
+
+    /// Add `rule` to the allow or deny list, or remove it when it is listed.
+    fn toggle_rule(&mut self, menu: &str, rule: Rule) -> &'static str {
+        let d = self.editing();
+        let list = if menu.starts_with("agents.allow") { &mut d.allow } else { &mut d.deny };
+        if let Some(i) = list.iter().position(|r| *r == rule) {
+            list.remove(i);
+            "removed"
+        } else {
+            list.push(rule);
+            "added"
+        }
     }
 
     /// The user chose or typed `value` in a menu this section opened.
@@ -841,6 +1011,20 @@ impl AgentsSettings {
             _ => {}
         }
         match menu {
+            "agents.pty_add" => {
+                if value.trim().is_empty() {
+                    return Some(vec![]);
+                }
+                Some(match self.pty_from(value) {
+                    Err(why) => vec![Effect::Notify(format!("{why}; not saved"))],
+                    Ok(cli) => {
+                        let (id, found) = (cli.id.clone(), cli.command.clone());
+                        self.add_pty(cli);
+                        let installed = self.state(&id) == status::State::Installed;
+                        vec![Effect::Notify(if installed { format!("added {id}") } else { format!("added {id}: {found} is not on PATH yet") })]
+                    }
+                })
+            }
             "agents.provider" => {
                 let known = NATIVE.iter().any(|(i, _)| *i == value) || self.cfg.pty.iter().any(|c| c.id == value);
                 if !known {
@@ -871,19 +1055,36 @@ impl AgentsSettings {
                 Some(vec![Effect::Notify(said.into())])
             }
             "agents.allow" | "agents.deny" => {
-                let Ok(rule) = Rule::parse(value) else {
-                    return Some(vec![Effect::Notify("not a rule: write kind(argument)".into())]);
+                // From the menu: add a rule of a kind (asks what to match), or remove a listed one.
+                if let Some(kind) = value.strip_prefix("type\t") {
+                    let (_, _, what, _) = RULE_WAYS.iter().find(|w| w.1 == kind)?;
+                    let verb = if menu == "agents.allow" { "Always allow" } else { "Always deny" };
+                    return Some(vec![Effect::Menu(Menu::typed(format!("{menu}:{kind}"), format!("{verb} {what}"), ""))]);
+                }
+                let text = value.strip_prefix("remove\t").or_else(|| value.strip_prefix("add\t")).unwrap_or(value);
+                let Ok(rule) = Rule::parse(text) else {
+                    return Some(vec![Effect::Notify("not a rule; not saved".into())]);
                 };
-                let d = self.editing();
-                let list = if menu == "agents.allow" { &mut d.allow } else { &mut d.deny };
-                let said = if let Some(i) = list.iter().position(|r| *r == rule) {
-                    list.remove(i);
-                    "removed"
-                } else {
-                    list.push(rule);
-                    "added"
+                let words = rule_words(&rule);
+                let said = self.toggle_rule(menu, rule);
+                // Back to the list, so the change is in view.
+                let mut fx = vec![Effect::Notify(format!("{said}: {words}"))];
+                fx.extend(self.rules_menu(menu));
+                Some(fx)
+            }
+            m if let Some((list, kind)) = rule_menu(m) => {
+                if value.is_empty() {
+                    return Some(self.rules_menu(list));
+                }
+                let Ok(rule) = Rule::parse(&format!("{kind}({value})")) else {
+                    return Some(vec![Effect::Notify("that looks like a token; not saved".into())]);
                 };
-                Some(vec![Effect::Notify(said.into())])
+                let words = rule_words(&rule);
+                let said = self.toggle_rule(list, rule);
+                // Back to the list, so what was added (or removed) is in view.
+                let mut fx = vec![Effect::Notify(format!("{said}: {words}"))];
+                fx.extend(self.rules_menu(list));
+                Some(fx)
             }
             _ => None,
         }
@@ -895,12 +1096,14 @@ impl AgentsSettings {
             cfg: self.cfg.clone(),
             statuses: self.statuses.clone(),
             catalogs: self.catalogs.clone(),
+            asked: self.asked.clone(),
             login: self.login.clone(),
             row: self.row,
             workspace: self.workspace.clone(),
             requests: self.requests.clone(),
             path: self.path.clone(),
             available: self.available.clone(),
+            setup_card: self.setup_card.clone(),
         }
     }
 
@@ -910,6 +1113,44 @@ impl AgentsSettings {
         self.cfg.pty.push(cli);
         self.refresh_pty();
     }
+}
+
+/// The kinds of request a standing rule can match: the menu key, the rule's
+/// kind, what it is in words, and what to type for it.
+pub(crate) const RULE_WAYS: [(char, &str, &str, &str); 5] = [
+    ('c', "shell", "a command", "type the command's start: git diff, cargo test, npm run *"),
+    ('r', "read", "reading files", "type a file or folder: src/*, /home/me/notes/*"),
+    ('w', "write", "changing files", "type a file or folder: docs/*, CHANGELOG.md"),
+    ('u', "url", "a website", "type a site: github.com, docs.rs"),
+    ('m', "mcp", "an MCP tool", "type a server, or server/tool: github, github/get_issue"),
+];
+
+/// `agents.allow:shell` → (`agents.allow`, `shell`): the field that asks what a new rule matches.
+fn rule_menu(menu: &str) -> Option<(&str, &str)> {
+    let (list, kind) = menu.split_once(':')?;
+    (matches!(list, "agents.allow" | "agents.deny") && RULE_WAYS.iter().any(|w| w.1 == kind)).then_some((list, kind))
+}
+
+/// A rule in words: `command git diff`, `website github.com`.
+pub(crate) fn rule_words(rule: &Rule) -> String {
+    let what = match rule.kind.as_str() {
+        "shell" => "command",
+        "read" => "read files in",
+        "write" => "change files in",
+        "url" => "website",
+        "mcp" => "MCP tool",
+        k => k,
+    };
+    let mut arg = rule.argument.clone();
+    if matches!(rule.kind.as_str(), "read" | "write") {
+        arg = arg.trim_end_matches("/*").to_string();
+        if let Some(h) = std::env::var("HOME").ok().filter(|h| !h.is_empty())
+            && let Some(rest) = arg.strip_prefix(&h)
+        {
+            arg = format!("~{rest}");
+        }
+    }
+    format!("{what} {arg}")
 }
 
 /// What a typed folder says as it is typed: listed (⏎ removes it), not a

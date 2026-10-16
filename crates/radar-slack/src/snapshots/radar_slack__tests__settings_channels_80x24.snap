@@ -1,5 +1,6 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack 4   History   Settings (,)                               ✎ edit
@@ -7,15 +8,15 @@ expression: "to_text(&host, 80, 24)"
 │General               ││ + add a channel   paste a link to it, or type #name  █
 │  ├─ parts            ││ ▌ #team   #acme-team · team · watched                █
 │  ├─ mode             ││   ├─ alias           team                            █
-│  ├─ colours          ││   ├─ purpose         where the team talks            █
-│  └─ icons            ││   ├─ kind            team                            ║
-│Slack                 ││   ├─ colour          ██ cyan                         ║
-│  ├─ connection       ││   └─ watched         yes                             ║
-│  ├─ channels         ││ ▌ #svc   #acme-svc · service · watched               ║
-│  ├─ review           ││   ├─ alias           svc                             ║
-│  ├─ alerts           │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ add a channel ───────────────────────────────────────╮
-│                      ││ Read another channel.                                █
+│  ├─ appearance       ││   ├─ purpose         where the team talks            █
+│  ├─ colours          ││   ├─ kind            team                            ║
+│  └─ icons            ││   ├─ colour          ██ cyan                         ║
+│Slack                 ││   └─ watched         yes                             ║
+│  ├─ connection       ││ ▌ #svc   #acme-svc · service · watched               ║
+│  ├─ channels         ││   ├─ alias           svc                             ║
+│  ├─ review           │╰──────────────────────────────────────────────────────╯
+│  ├─ alerts           │╭ add a channel ───────────────────────────────────────╮
+│  └─ look             ││ Read another channel.                                █
 │                      ││                                                      █
 │                      ││ PASTE OR TYPE ANY OF                                 █
 │                      ││   a link to the channel or to a message in it        █

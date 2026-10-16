@@ -1,5 +1,6 @@
 ---
 source: crates/radar-git/src/tests.rs
+assertion_line: 231
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Branches   History   Settings (,)                                                                                                              ✎ edit
@@ -7,32 +8,32 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │General               ││  + add a folder to look in   paste or type a folder                            ││ Another folder to look for git checkouts in. radar │
 │  ├─ parts            ││ folder     /work                                                       1 found ││ matches each checkout to its repo by its origin    │
 │  ├─ mode             ││ look down  4 folders                                                           ││ remote.                                            │
-│  ├─ colours          ││ terminal   found for you                                                       ││                                                    │
-│  └─ icons            ││ last look  2m ago                                                      1 found ││ ACCEPTS                                            │
-│Git                   ││                                                                                ││ a full path, or one starting with ~/ (pasted links │
-│  ├─ checkouts        ││                                                                                ││ to files work too)                                 │
-│  ├─ editors          ││                                                                                ││                                                    │
-│  ├─ links            ││                                                                                ││ NOW                                                │
-│  └─ branches         ││                                                                                ││ 1 folder                                           │
+│  ├─ appearance       ││ last look  2m ago                                                      1 found ││                                                    │
+│  ├─ colours          ││                                                                                ││ ACCEPTS                                            │
+│  └─ icons            ││                                                                                ││ a full path, or one starting with ~/ (pasted links │
+│Git                   ││                                                                                ││ to files work too)                                 │
+│  ├─ checkouts        ││                                                                                ││                                                    │
+│  ├─ terminal         ││                                                                                ││ NOW                                                │
+│  ├─ editors          ││                                                                                ││ 1 folder                                           │
+│  ├─ links            ││                                                                                ││                                                    │
+│  └─ branches         ││                                                                                ││ config: [git] roots                                │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ config: [git] roots                                │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││ WHAT IT READS ──────────────────────────────────── │
+│                      ││                                                                                ││   The git checkouts under these folders, as far    │
+│                      ││                                                                                ││   down as look down.                               │
+│                      ││                                                                                ││   New clones inside them show up at the next look. │
+│                      ││                                                                                ││   With git on this machine: branches, changes,     │
+│                      ││                                                                                ││   ahead, behind.                                   │
+│                      ││                                                                                ││ WHERE IT SHOWS ─────────────────────────────────── │
+│                      ││                                                                                ││   Branches (B): every branch in these checkouts.   │
+│                      ││                                                                                ││   A repo or merge request: where it is checked     │
+│                      ││                                                                                ││   out, e and t.                                    │
+│                      ││                                                                                ││   Agents start in the checkout you pick.           │
+│                      ││                                                                                ││ CHANGE IT LATER ────────────────────────────────── │
+│                      ││                                                                                ││   Settings / git / checkouts                       │
+│                      ││                                                                                ││ SKIP IT? ───────────────────────────────────────── │
+│                      ││                                                                                ││   Branches stay empty until a folder is set.       │
+│                      ││                                                                                ││   The services work without it.                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

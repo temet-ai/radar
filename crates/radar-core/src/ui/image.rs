@@ -139,6 +139,22 @@ pub fn detect(setting: &str, var: &dyn Fn(&str) -> Option<String>) -> Option<Pic
     graphic(&picker).then_some(picker)
 }
 
+/// A cell's size in pixels while pictures go by kitty's graphics: what the
+/// splash's picture is drawn at ([`crate::splash::picture`]). Sixel and
+/// iTerm2's cannot replace a picture in place, so a moving one is kitty's
+/// alone.
+pub fn kitty_cell() -> Option<(u16, u16)> {
+    if !on() {
+        return None;
+    }
+    let s = store();
+    let picker = s.picker.as_ref()?;
+    (picker.protocol_type() == ProtocolType::Kitty).then(|| {
+        let f = picker.font_size();
+        (f.width, f.height)
+    })
+}
+
 /// Whether `picker` draws pictures (not letters standing in for them).
 fn graphic(picker: &Picker) -> bool {
     matches!(
@@ -577,7 +593,12 @@ mod tests {
         stop();
     }
 
-    #[tokio::test(flavor = "multi_thread")]
+    /// On tokio's paused clock: the fetches' sleeps and the waits below are
+    /// virtual, and the clock moves only while no task can run (a decode on
+    /// the blocking pool holds it), so the waits end on what the tasks did,
+    /// not on how fast the machine is. On real threads and a real clock the
+    /// waits were 4 s and 2 s, which a loaded machine could outlast.
+    #[tokio::test(start_paused = true)]
     async fn images_are_fetched_a_few_at_a_time_kept_on_disk_and_had_again_from_there() {
         kitty();
         let dir = std::env::temp_dir().join(format!("radar-images-{}", std::process::id()));

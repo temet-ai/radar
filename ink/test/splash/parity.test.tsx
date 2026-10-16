@@ -75,13 +75,13 @@ describe("the startup splash", () => {
     m.welcome();
     m.snapshot({ splash: fx.view }, 1);
     await tick(40);
-    expect(m.frame()).toContain("█");
+    expect(m.frame()).toContain("▀");
     m.type(",");
     await until(() => m.intents().length > 0);
     expect(m.intents().map((i: any) => i.intent)).toEqual([{ intent: "key", chord: { key: { char: "," } } }]);
     // The host's next snapshot has no splash: the screen draws.
     m.snapshot({}, 2);
     await tick(40);
-    expect(m.frame()).not.toContain("one screen, one set of keys");
+    expect(m.frame()).not.toContain("Sweeping the horizon for anything new.");
   });
 });

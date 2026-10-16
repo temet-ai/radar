@@ -1,44 +1,45 @@
 ---
 source: crates/radar-gitlab/src/lib.rs
+assertion_line: 2451
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories 1   History   Settings (,)                                                                                                        ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in your environment ─────────────────────────╮
-│General               ││  ? Found in your environment: a GitLab token (MY_GITLAB_TOKEN). Use it?        ││ radar found a GitLab token in your environment. Do │
-│  ├─ parts            ││  server          https://gitlab.com                                            ││ you want to use it?                                │
-│  ├─ mode             ││  base group      acme                                                          ││                                                    │
-│  ├─ colours          ││  token           env:GITLAB_TOKEN                                              ││ FOUND                                              │
-│  └─ icons            ││  signed in as    —                                                             ││ MY_GITLAB_TOKEN  the token                         │
-│GitLab                ││  check           not checked yet                                               ││                                                    │
-│  ├─ connection       ││  refresh         every 1m                                                      ││ radar stores only the variables' names (env:NAME)  │
-│  ├─ tenancies        ││  merged, closed  the last 14 days                                              ││ and reads their values each time it starts. It     │
-│  ├─ views            ││                                                                                ││ never shows the values or saves them.              │
-│  └─ look             ││                                                                                ││                                                    │
-│                      ││                                                                                ││ IF YOU USE IT                                      │
-│                      ││                                                                                ││ radar sets the token to env:MY_GITLAB_TOKEN and    │
-│                      ││                                                                                ││ checks it with GitLab.                             │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ⏎ uses it                                          │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│General               ││  ? Found in your environment: a GitLab token (GITLAB_TOKEN). Use it?           ││ radar found a GitLab token in your environment. Do █
+│  ├─ parts            ││  server          https://gitlab.com                                            ││ you want to use it?                                █
+│  ├─ mode             ││  base group      acme                                                          ││                                                    █
+│  ├─ appearance       ││  token           glab                                                          ││ FOUND                                              █
+│  ├─ colours          ││  signed in as    —                                                             ││ GITLAB_TOKEN  the token                            █
+│  └─ icons            ││  check           not checked yet                                               ││                                                    █
+│GitLab                ││  refresh         every 1m                                                      ││ radar stores only the variables' names (env:NAME)  █
+│  ├─ connection       ││  merged, closed  the last 14 days                                              ││ and reads their values each time it starts. It     █
+│  ├─ tenancies        ││                                                                                ││ never shows the values or saves them.              █
+│  ├─ views            ││  ACCESS  what radar may do in GitLab                                           ││                                                    █
+│  └─ look             ││  [x] read only       merge requests, pipelines, diffs      read_api            ││ IF YOU USE IT                                      █
+│                      ││  [ ] read and write  adds comment, approve, merge, rebase  api                 ││ radar sets the token to env:GITLAB_TOKEN and       █
+│                      ││                                                                                ││ checks it with GitLab.                             █
+│                      ││  FOLLOW  groups and repositories                                               ││                                                    █
+│                      ││  + add a group or repository   paste a link or a path                          ││ ⏎ uses it                                          █
+│                      ││    b     acme/team-b   0 repos · 1 open MR                                     ││                                                    █
+│                      ││    a     acme/team-a   4 repos · 3 open MRs                                    ││ GET A GITLAB TOKEN ─────────────────────────────── █
+│                      ││                                                                                ││   1 Open GitLab's new-token page:                  █
+│                      ││                                                                                ││   gitlab.com / new token   o opens · y copies      █
+│                      ││                                                                                ││     name radar · scope from access: read_api       █
+│                      ││                                                                                ││   2 Pick an expiry date, then Create personal      █
+│                      ││                                                                                ││   access token.                                    █
+│                      ││                                                                                ││   3 Copy the glpat-… value into token, or keep it  █
+│                      ││                                                                                ││   out of radar's config:                           █
+│                      ││                                                                                ││   $ export GITLAB_TOKEN=glpat-…                    █
+│                      ││                                                                                ││     then the token is env:GITLAB_TOKEN             █
+│                      ││                                                                                ││ ALREADY USE GLAB? ──────────────────────────────── █
+│                      ││                                                                                ││   Type glab as the token. Not signed in?           █
+│                      ││                                                                                ││   $ glab auth login                                █
+│                      ││                                                                                ││ YOUR OWN GITLAB ────────────────────────────────── █
+│                      ││                                                                                ││   Set server first; the link above then points at  █
+│                      ││                                                                                ││   your server's page.                              █
+│                      ││                                                                                ││ IF IT IS REFUSED ───────────────────────────────── █
+│                      ││                                                                                ││   Expired, or without read_api: make a new one     ║
+│                      ││                                                                                ││   with the link.                                   ║
+│                      ││                                                                                ││   radar shows GitLab's own reason.                 ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                     gitlab
+ SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                  gitlab

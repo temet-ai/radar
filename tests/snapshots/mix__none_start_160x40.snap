@@ -1,5 +1,6 @@
 ---
 source: tests/mix.rs
+assertion_line: 143
 expression: "to_text(&started(), 160, 40)"
 ---
  radar    History   Settings (,)                                                                                                                         ✎ edit
@@ -7,9 +8,9 @@ expression: "to_text(&started(), 160, 40)"
 │General               ││ No parts are compiled into this build of radar. Each part is a cargo feature:  ││ A part is one ability of radar, usually one tool   │
 │  ├─ parts            ││ build radar with the ones you want (cargo build --features <part>).            ││ it works with, compiled in as a cargo feature.     │
 │  ├─ mode             ││                                                                                ││ Parts never depend on each other: each works       │
-│  ├─ colours          ││                                                                                ││ alone, and each one present adds to the others.    │
+│  ├─ appearance       ││                                                                                ││ alone, and each one present adds to the others.    │
+│  ├─ colours          ││                                                                                ││                                                    │
 │  └─ icons            ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

@@ -1,9 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 1190
 expression: shown
 ---
- radar    Repositories   Jira   Slack   Branches   Work (I)   History   Settings (,)                                                     not synced yet  ✎ edit
-  GitLab    GitHub    Local workspaces
+ radar    Repositories   Branches   Work (I)   History   Settings (,)                                                                    not synced yet  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ api !263 ────────────────────────────────────╮
 │ Everything             ││ OPENED BY everyone · 2 repos         STATE               THREADS UPDATED FOR YOU   ││ a api  !263                                  │
 │ Needs my action        ││▌ A team-a                                                                          ││ Add a stats endpoint                         │
@@ -28,6 +28,7 @@ expression: shown
 │                        ││                                                                                    ││   1 file  +10 −2                             │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││ THREADS  none ────────────────────────────── │
+│                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │

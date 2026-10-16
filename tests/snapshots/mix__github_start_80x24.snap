@@ -1,8 +1,9 @@
 ---
 source: tests/mix.rs
+assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
- radar    Repositories   History   Settings (,)                          ✎ edit
+ radar    History   Settings (,)                                         ✎ edit
 ╭ set up GitHub ───────────────────────────────────────────────────────────────╮
 │ GitHub is not set up yet.                                                    │
 │                                                                              │
@@ -10,7 +11,7 @@ expression: "to_text(&started(), 80, 24)"
 │ need no token.                                                               │
 │                                                                              │
 │ Press ⏎ to set it up in settings, under github.                              │
-│                                                                              │
+│ Press s to walk its setup step.                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │

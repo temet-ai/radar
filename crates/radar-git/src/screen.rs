@@ -1604,7 +1604,7 @@ pub fn intent(p: &mut GitPlugin, pane: Pane, intent: &Intent) -> Outcome {
             handled(use_it(p))
         }
         // The host turns a chosen cell into a selection and a show.
-        Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) => Outcome::Ignored,
+        Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
         Intent::Invoke { .. } | Intent::Key { .. } => match intent.chord().map(|c| c.key) {
             Some(Key::Char('r')) => Outcome::Handled(refresh_now(p)),
             Some(Key::Char('d')) => Outcome::Handled(delete(p)),

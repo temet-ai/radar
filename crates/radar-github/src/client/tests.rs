@@ -103,6 +103,26 @@ async fn token_check_and_accessible_repo_picker_need_no_configured_repository() 
     );
 }
 
+/// A classic or gh token's scopes come with the check's own answer; a
+/// fine-grained token's do not, and none are made up.
+#[tokio::test]
+async fn the_token_check_reads_oauth_scopes_only_when_github_sends_them() {
+    let mut classic = response(200, json!({"id": 42, "login": "vimes"}));
+    classic.headers.insert("x-oauth-scopes", HeaderValue::from_static("read:org, public_repo"));
+    let mut none = response(200, json!({"id": 42, "login": "vimes"}));
+    none.headers.insert("x-oauth-scopes", HeaderValue::from_static(""));
+    let fine_grained = response(200, json!({"id": 42, "login": "vimes"}));
+    let fixture = FixtureTransport::with_auth(vec![classic, none, fine_grained], true);
+    let client = Client::with_transport(&[], "github_pat_synthetic_token_123", fixture.clone()).unwrap();
+    assert_eq!(
+        client.check_connection_scopes().await.unwrap(),
+        (Some("vimes".into()), Some(vec!["read:org".into(), "public_repo".into()]))
+    );
+    assert_eq!(client.check_connection_scopes().await.unwrap(), (Some("vimes".into()), Some(vec![])));
+    assert_eq!(client.check_connection_scopes().await.unwrap(), (Some("vimes".into()), None));
+    assert_eq!(fixture.paths(), ["https://api.github.com/user"; 3], "one request each, as before");
+}
+
 #[tokio::test]
 async fn public_connection_check_works_without_repositories() {
     let (client, fixture) = client(vec![response(

@@ -29,6 +29,7 @@
 //! | composer | text typed for a write: `⏎` a new line, `ctrl-s` review, `esc` stop | [`composer`] |
 //! | connection | a part's connection section: its rows, words, detail panels, and what was found in the environment as a question | [`connection`] |
 //! | empty, set-up, loading, spinner | what a panel shows when it has nothing yet | [`states`] |
+//! | step rail | a run's steps along a line: done, skipped, current, ahead, and how each went | [`rail`] |
 //!
 //! See every element live with `cargo run -p radar-core --example gallery`.
 //! Parts use these instead of drawing their own (docs/GUIDE.md 1.15).
@@ -52,6 +53,7 @@ pub mod meter;
 pub mod motion_demo;
 pub mod page;
 pub mod pointer;
+pub mod rail;
 pub mod rich;
 pub mod rows;
 pub mod scrim;

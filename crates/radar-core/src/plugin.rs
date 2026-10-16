@@ -630,6 +630,117 @@ pub struct SectionSpec {
     pub group: &'static str,
 }
 
+/// Where a part's step is listed in setup's chooser.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SetupGroup {
+    /// This machine: what radar reads here (checkouts, the terminal).
+    Machine,
+    /// A service the part syncs with.
+    #[default]
+    Service,
+    /// An agent the part runs.
+    Agent,
+}
+
+/// A part's step in setup ([`Plugin::setup_step`]): one stop on the rail,
+/// one row in the chooser, and one of its settings sections as the card.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SetupStep {
+    /// What `radar setup <id>` names it by; unique among the steps.
+    pub id: &'static str,
+    /// The rail's and the chooser's word for it.
+    pub label: &'static str,
+    pub icon: Option<crate::ui::icon::Icon>,
+    /// Which of its settings sections ([`Plugin::sections`]) is the card.
+    pub section: &'static str,
+    /// The chooser's muted words after the label (`rows, checks`).
+    pub about: &'static str,
+    /// What it holds now, in one line, for the rail and the ready screen
+    /// (`@vimes · 2 groups`); `None` while there is nothing to say.
+    pub summary: Option<String>,
+    pub group: SetupGroup,
+    /// The card's first line (`Connect Shelves.`) and the muted line under it.
+    pub heading: &'static str,
+    pub lead: &'static str,
+    /// Rows of its own in setup's chooser, one per thing it sets up (an
+    /// agent's provider), instead of one row for the step: ticking any of
+    /// them takes the step.
+    pub options: Vec<SetupOption>,
+}
+
+/// One of a step's rows in setup's chooser ([`SetupStep::options`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SetupOption {
+    pub id: String,
+    pub label: String,
+    pub icon: Option<crate::ui::icon::Icon>,
+    /// Its state at the right (`signed in`, `not installed`).
+    pub note: Option<String>,
+    /// Ready to use: the look for keys ticks it.
+    pub ready: bool,
+}
+
+impl SetupStep {
+    pub fn new(id: &'static str, label: &'static str, section: &'static str) -> Self {
+        Self {
+            id,
+            label,
+            icon: None,
+            section,
+            about: "",
+            summary: None,
+            group: SetupGroup::default(),
+            heading: "",
+            lead: "",
+            options: vec![],
+        }
+    }
+
+    pub fn option(mut self, option: SetupOption) -> Self {
+        self.options.push(option);
+        self
+    }
+
+    pub fn heading(mut self, heading: &'static str, lead: &'static str) -> Self {
+        self.heading = heading;
+        self.lead = lead;
+        self
+    }
+
+    pub fn icon(mut self, icon: crate::ui::icon::Icon) -> Self {
+        self.icon = Some(icon);
+        self
+    }
+
+    pub fn about(mut self, about: &'static str) -> Self {
+        self.about = about;
+        self
+    }
+
+    pub fn summary(mut self, summary: impl Into<String>) -> Self {
+        self.summary = Some(summary.into());
+        self
+    }
+
+    pub fn group(mut self, group: SetupGroup) -> Self {
+        self.group = group;
+        self
+    }
+}
+
+/// Where setup may look for a part's keys, once the user said yes
+/// ([`Plugin::setup_finds`]). Only names are ever read or kept: a
+/// variable's name, whether a file exists.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SetupFinds {
+    /// Environment variable names: exact (`SHELF_TOKEN`), or a prefix
+    /// ending in `_` (`SHELF_` matches `SHELF_URL`).
+    pub env: Vec<&'static str>,
+    /// A program's sign-in: the program, and its file's path under the
+    /// home folder (`.config/shelf/hosts.yml`). Only its existence counts.
+    pub files: Vec<(&'static str, &'static str)>,
+}
+
 /// One row of the keys menu (`x` or `?`, after lazydocker's): what to press
 /// and what it does. Choosing the row presses the key for you.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1193,6 +1304,29 @@ pub trait Plugin: Send {
     }
     /// As [`Plugin::keys`], for the selected row of a settings section.
     fn section_keys(&self, _section: &str) -> Vec<Binding> {
+        vec![]
+    }
+
+    // --- setup ----------------------------------------------------------
+
+    /// Its step in setup, if it has one: the card is one of its sections.
+    fn setup_step(&self) -> Option<SetupStep> {
+        None
+    }
+    /// Where setup may look for its keys after asking (names only).
+    fn setup_finds(&self) -> SetupFinds {
+        SetupFinds::default()
+    }
+    /// The user said yes to setup's look for keys: it may now look on this
+    /// machine for what it sets up (checkouts under the home folder), off
+    /// the screen thread, and offer what it finds in its step.
+    fn setup_looked(&mut self) {}
+
+    /// What it already holds, for the splash's start line
+    /// (`crates/radar-core/assets/start-lines.toml`, FACTS): each fact by
+    /// its name (`mine.open`, `reviews.count`), from its cache only; never
+    /// fetched for a line.
+    fn start_facts(&self, _now: i64) -> Vec<(&'static str, crate::start_lines::Value)> {
         vec![]
     }
     // --- menus ----------------------------------------------------------

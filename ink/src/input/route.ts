@@ -188,6 +188,18 @@ export function scrollKey(screen: ScreenLike, focus: string | undefined, chord: 
   return "done";
 }
 
+/**
+ * host.rs on_key, `View::Settings`: PgUp/PgDn scroll the section's detail (the sheet of settings and of setup) whichever
+ * pane has the focus, and never page the rows. "done": the sheet scrolled, nothing is sent. The plain key when it did
+ * not (the host says there is nothing to scroll). undefined: not a page key.
+ */
+export function sheetKey(section: { detail_blocks?: unknown[] | null }, chord: Chord, scrollers: ScrollerLike[]): Intent | "done" | undefined {
+  if (!plain(chord) || !(keyIs(chord, "page_up") || keyIs(chord, "page_down"))) return undefined;
+  const kind = section.detail_blocks?.length ? "rich" : "document";
+  const s = [...scrollers].reverse().find((x) => x.kind === kind);
+  return s?.page(keyIs(chord, "page_down")) ? "done" : { intent: "key", chord };
+}
+
 /** view_tui::section_key for a settings section. */
 export function sectionKey(section: { body?: any }, chord: Chord): Intent {
   const body = section.body;

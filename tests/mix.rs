@@ -297,6 +297,10 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
             .chain([("Settings".to_string(), radar_core::host::SETTINGS_KEY)])
             .collect();
         for (i, (tab, key)) in views.iter().enumerate() {
+            // A part not set up has no tab: nothing to click.
+            if i < source.screens.len() && !source.screen_shown(i) {
+                continue;
+            }
             // From another view: a click on its tab in the top bar.
             let away = |host: &mut Host| {
                 if i == 0 {
@@ -319,11 +323,14 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
                     })
                     .expect("source tab")
             } else {
-                let x = bar
-                    .to_lowercase()
-                    .find(&tab.to_lowercase())
-                    .unwrap_or_else(|| panic!("{name}: {tab} in the bar: {bar}"));
-                radar_core::ratatui::layout::Rect::new(bar[..x].chars().count() as u16 + 1, 0, 1, 1)
+                // By where the bar put the tab, not by its name: on a narrow bar the names
+                // give way to their keys.
+                let view = if i + 1 == views.len() { View::Settings } else { View::Screen(i) };
+                host.hits
+                    .borrow()
+                    .iter()
+                    .find_map(|(rect, hit)| (*hit == radar_core::host::Hit::Tab(view)).then_some(*rect))
+                    .unwrap_or_else(|| panic!("{name}: {tab} in the bar: {bar}"))
             };
             host.update(Event::Mouse {
                 kind: radar_core::host::MouseKind::Press,
@@ -662,7 +669,15 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Up);
         assert!(host.bar, "from the nav pane's first row, the bar");
         key(&mut host, KeyCode::Right);
-        assert_eq!((screen(&host).as_str(), host.bar), ("Slack", true));
+        // The tab after Jira: Slack where it is set up; a part that is not
+        // has no tab, so the bar goes on to the next one.
+        let after = host
+            .top_screens()
+            .into_iter()
+            .skip_while(|&i| !host.screens[i].1.name.eq_ignore_ascii_case("jira"))
+            .nth(1);
+        let want = after.map(|i| host.screens[i].1.name.to_lowercase()).expect("a tab after Jira");
+        assert_eq!((screen(&host).to_lowercase(), host.bar), (want, true));
         key(&mut host, KeyCode::Down);
         assert!(!host.bar);
         // Back to Jira through the bar: the pane it had, the nav pane.

@@ -24,9 +24,10 @@ links radar could not open, and crashes with where they happened.
 | You see | Try |
 |---|---|
 | "could not sync: ... is not set" | the variable named by `env:NAME` is not exported in the shell that started radar. Export it and restart |
-| a part says "not set up" | open Settings (`,`) and fill in its connection |
+| a part says "not set up" | press `s` on its screen to walk its setup step, or open Settings (`,`) and fill in its connection |
 | a write says "radar is read only" | change the [mode](README.md#mode-what-radar-may-change) |
 | right-click does nothing | your terminal does not pass right-clicks through; use `x` |
+| the screen looks wrong or garbled | start with the other renderer to compare: `RADAR_RENDERER=ratatui radar`. If it looks right there, report the difference |
 | empty boxes instead of icons | set the icon pack to `unicode`, or use a Nerd Font |
 | Slack says it needs a user token | use an `xoxp-` token, not a bot token |
 | nothing refreshes | radar paused after idle time; press any key, or `z` |
@@ -41,6 +42,10 @@ links radar could not open, and crashes with where they happened.
 | what the services returned (cache) | `~/.local/state/radar/cache.sqlite3` |
 | action history | `~/.local/state/radar/journal/actions.sqlite3` |
 | pictures | `~/.cache/radar/images` (up to 200 MB; on macOS `~/Library/Caches/radar/images`) |
+| the Claude Agent SDK | `~/.cache/radar/claude-agent-sdk/<version>` (on macOS `~/Library/Caches/radar/claude-agent-sdk/<version>`) |
+| local reviews (`[sessions] reviews_dir` moves it) | `~/.local/state/radar/reviews` |
+| the sockets of terminal tabs | `~/.local/state/radar/terminals` |
+| the start lines shown lately | `~/.local/state/radar/start-lines.toml` |
 
 `XDG_CONFIG_HOME`, `XDG_STATE_HOME` and `XDG_CACHE_HOME` move these folders when set. If you delete
 the cache, radar rebuilds it on its next sync. Keep the history file private.

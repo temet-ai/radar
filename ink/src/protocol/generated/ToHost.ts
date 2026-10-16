@@ -18,4 +18,4 @@ seq: number,
 /**
  * The cursor of the snapshot showing when the user acted.
  */
-cursor: number, intent: Intent, } | { "type": "pointer", column: number, row: number, } | { "type": "ack", cursor: number, } | { "type": "log", level: LogLevel, text: string, } | { "type": "bye" };
+cursor: number, intent: Intent, } | { "type": "pointer", column: number, row: number, } | { "type": "ack", cursor: number, } | { "type": "log", level: LogLevel, text: string, } | { "type": "bye" } | { "type": "resync" };

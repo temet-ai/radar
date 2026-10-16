@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "scope": "main",
+  "panes": [
+    {
+      "pane": "nav",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "nav",
+            "text": [
+              {
+                "text": "nav"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "pane": "middle",
+      "title": "rows",
+      "body": {
+        "node": "list",
+        "rows": [
+          {
+            "target": "one",
+            "text": [
+              {
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "target": "two",
+            "text": [
+              {
+                "text": "two"
+              }
+            ]
+          }
+        ],
+        "selected": 0
+      }
+    }
+  ],
+  "dock": {
+    "visible": true,
+    "focused": true,
+    "tabs": [
+      {
+        "id": "s1",
+        "provider": "copilot",
+        "icon": "bot",
+        "title": "review dock",
+        "state": "idle"
+      },
+      {
+        "id": "s2",
+        "provider": "codex",
+        "icon": "bot",
+        "title": "codex 2",
+        "state": "detached"
+      },
+      {
+        "id": "s3",
+        "provider": "claude",
+        "icon": "bot",
+        "title": "claude 3",
+        "state": "resuming"
+      }
+    ],
+    "active": "s1",
+    "transcript": [
+      {
+        "item": "user",
+        "id": "u1",
+        "text": "push the branch and ask me which remote"
+      },
+      {
+        "item": "permission",
+        "id": "perm-1",
+        "kind": "shell",
+        "target": "git push origin agent-dock",
+        "actions": [],
+        "lapsed": true
+      },
+      {
+        "item": "question",
+        "id": "ask-1",
+        "questions": [
+          {
+            "id": "0",
+            "text": "Which remote?",
+            "choices": [
+              {
+                "label": "origin"
+              }
+            ],
+            "free_text": true,
+            "multiple": false,
+            "answered": true
+          }
+        ],
+        "state": "lapsed"
+      },
+      {
+        "item": "notice",
+        "id": "n1",
+        "text": "the turn that was waiting was ended when radar closed; send a message to carry on"
+      }
+    ],
+    "composer": {
+      "history": [
+        "what does the host own?"
+      ],
+      "commands": [
+        {
+          "name": "model",
+          "detail": "pick a model"
+        },
+        {
+          "name": "new",
+          "detail": "start a new session"
+        }
+      ],
+      "can_send": true,
+      "can_stop": false
+    },
+    "status": {
+      "provider": "copilot",
+      "model": "claude-sonnet-4.5",
+      "cwd": "~/projects/radar",
+      "branch": "main"
+    }
+  }
+}

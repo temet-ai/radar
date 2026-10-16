@@ -17,15 +17,32 @@ fn truecolour() -> Theme {
     theme("truecolor", Tier::TrueColor)
 }
 
-fn parts() -> Vec<Part> {
-    [("Shelf", Some(0)), ("Ledger", Some(0)), ("Board", None), ("Chat", Some(100)), ("Code", Some(0))]
-        .into_iter()
-        .map(|(name, ready_at)| Part { name: name.into(), ready_at })
-        .collect()
+fn contact(name: &str, mark: char, tail: &str, count: u32) -> Contact {
+    Contact { name: name.into(), mark: mark.to_string(), tail: Some(tail.into()), count, live: true }
+}
+
+/// The board's contacts at an ordinary start.
+fn contacts() -> Vec<Contact> {
+    vec![
+        contact("Ledger", '\u{e7eb}', "3 to review", 3),
+        contact("Desk", '\u{e75c}', "4 yours", 4),
+        contact("Chats", '\u{f198}', "5 mentions", 5),
+        contact("Forges", '\u{f408}', "2 failing", 2),
+        contact("cog", '\u{e702}', "2 dirty", 2),
+        contact("agents", '\u{f51b}', "1 waiting", 1),
+    ]
+}
+
+fn words(text: &str) -> Vec<LineSpan> {
+    vec![LineSpan { text: text.into(), key: false }]
+}
+
+fn start(echo: Echo, event: Option<Event>, line: &str) -> Start {
+    Start { echo, event, line: words(line) }
 }
 
 fn scene(style: Style, at: u32) -> Scene {
-    Scene { style, at, parts: parts() }
+    Scene { style, at, contacts: contacts(), start: start(Echo::Plane, None, "Sweeping the horizon for anything new.") }
 }
 
 fn ms(n: u64) -> Duration {
@@ -37,14 +54,9 @@ fn text(frame: &Frame) -> Vec<String> {
     frame.rows.iter().map(|runs| runs.iter().map(|r| r.text.as_str()).collect()).collect()
 }
 
-/// Columns `a..b` of a row (every character here is one cell).
-fn cols(row: &str, a: usize, b: usize) -> String {
-    row.chars().skip(a).take(b - a).collect()
-}
-
 /// The column `needle` starts at in a row.
 fn col(row: &str, needle: &str) -> usize {
-    row[..row.find(needle).unwrap_or_else(|| panic!("{needle:?} in {row:?}"))].chars().count()
+    crate::ui::width(&row[..row.find(needle).unwrap_or_else(|| panic!("{needle:?} in {row:?}"))])
 }
 
 /// The run holding column `x` of row `y`.
@@ -64,166 +76,253 @@ fn fg(theme: &Theme, slot: Slot) -> Option<Color> {
     theme.s(slot).fg
 }
 
+/// The rows of the scope in a frame laid out at 64 wide.
+fn scope_rows(f: &Frame) -> Vec<String> {
+    text(f)[..SCOPE_H as usize].to_vec()
+}
+
 #[test]
-fn the_bitmap_is_four_rows_of_half_blocks_with_the_cursor_its_own() {
-    let cells = mark_cells();
-    let rows: Vec<String> = cells
-        .iter()
-        .map(|r| {
-            r.iter()
-                .map(|c| match c {
-                    MarkCell::Blank => ' ',
-                    MarkCell::Letter(g) | MarkCell::Cursor(g) => *g,
-                })
-                .collect()
-        })
-        .collect();
+fn the_mark_is_four_rows_of_half_blocks() {
+    let rows: Vec<String> =
+        mark_pixels().iter().map(|r| r.iter().map(|&(t, b)| half_block(t, b)).collect()).collect();
     assert_eq!(
         rows,
-        ["▄█▀▀█▄█ ▄█▀▀█▄█  ██", "██  ▄██ ██  ▄██  ██", " ▀▀▀ ██  ▀▀▀ ██  ▀▀", "▀█▄▄█▀  ▀█▄▄█▀     "]
+        [
+            "                █            ",
+            "█▄▀▀▀  ▀▀▀▄ ▄▀▀▀█  ▀▀▀▄ █▄▀▀▀",
+            "█     ▄▀▀▀█ █   █ ▄▀▀▀█ █    ",
+            "▀      ▀▀▀▀  ▀▀▀▀  ▀▀▀▀ ▀    ",
+        ]
     );
-    assert_eq!((cells.len(), cells[0].len()), (MARK_H as usize, MARK_W as usize));
-    // The cursor is 2 wide and 5 pixels tall: two full rows and a top half.
-    assert_eq!(cells[0][17], MarkCell::Cursor('█'));
-    assert_eq!(cells[2][18], MarkCell::Cursor('▀'));
-    assert_eq!(cells[3][17], MarkCell::Blank);
-    assert_eq!(cells[1][0], MarkCell::Letter('█'));
-    assert_eq!(half_block(false, true), '▄');
+    assert_eq!((rows.len(), crate::ui::width(&rows[0])), (MARK_H as usize, MARK_W as usize));
 }
 
+/// The board's own frames ([`frame`] ported from the canvas's sweep board), character for character: the
+/// scope's braille, the labels, the readout, the mark and the line. Colours come from theme slots here, so only
+/// the characters are compared; a few braille cells may differ where the board's noise rounds the other way.
 #[test]
-fn the_screen_is_the_mark_a_blank_row_the_parts_and_the_tagline_centred_on_the_base() {
+fn the_scope_draws_the_boards_frames() {
+    let doc: Value = serde_json::from_str(include_str!("board-frames.json")).unwrap();
     let t = truecolour();
-    let f = frame(&t, &scene(Style::Subtle, 700), 80, 24).unwrap();
-    let rows = text(&f);
-    assert_eq!(rows.len(), 24);
-    assert!(rows.iter().all(|r| crate::ui::width(r) == 80), "every row runs the full width");
-    // 7 rows used, (24 - 7) / 2 = 8 above.
-    assert_eq!(cols(&rows[8], 30, 49), "▄█▀▀█▄█ ▄█▀▀█▄█    ", "the cursor is off at 700 ms (second half of its blink)");
-    assert_eq!(rows[12].trim(), "");
-    assert_eq!(rows[13].trim(), "Shelf · Ledger · Board · Chat · Code");
-    assert_eq!(rows[14].trim(), TAGLINE);
-    let names = &rows[13];
-    assert_eq!(col(names, "Shelf"), (80 - crate::ui::width(rows[13].trim())) / 2);
-    let base = fg(&t, Slot::BgBase);
-    assert!(f.rows.iter().flatten().all(|r| r.bg == base), "everything on bg.base");
-    assert_eq!(run_at(&f, 2, 14).fg, None, "a blank cell has no ink");
-    let tag_x = col(&rows[14], "one");
-    assert_eq!(run_at(&f, tag_x, 14).fg, fg(&t, Slot::TextSecondary));
-    let sep = col(names, "·");
-    assert_eq!(run_at(&f, sep, 13).fg, fg(&t, Slot::TextMuted));
-}
-
-#[test]
-fn on_truecolour_the_letters_ramp_purple_to_tertiary_to_cyan_from_the_theme_slots() {
-    let t = truecolour();
-    let f = frame(&t, &scene(Style::Subtle, 0), 80, 24).unwrap();
-    // The mark starts at column 30, 8 rows down. The ramp runs over the letters, mark columns 0 to 14.
-    assert_eq!(run_at(&f, 30, 9).fg, fg(&t, Slot::GlowPurple), "the first letter column");
-    assert_eq!(run_at(&f, 44, 8).fg, fg(&t, Slot::GlowCyan), "the last letter column");
-    assert_eq!(
-        run_at(&f, 39, 9).fg,
-        mix(fg(&t, Slot::AccentTertiary), fg(&t, Slot::GlowCyan), (9.0 / 14.0) * 2.0 - 1.0),
-        "between, through accent.tertiary"
-    );
-    assert_eq!(run_at(&f, 47, 8).fg, fg(&t, Slot::TextPrimary), "the cursor in text.primary, on at 0 ms");
-}
-
-#[test]
-fn below_truecolour_the_mark_is_accent_primary_and_with_no_colour_it_is_bold() {
-    let t = theme("256", Tier::Ansi256);
-    let f = frame(&t, &scene(Style::Static, 0), 80, 24).unwrap();
-    let primary = fg(&t, Slot::AccentPrimary);
-    for x in [30, 39, 44] {
-        assert_eq!(run_at(&f, x, 9).fg, primary, "column {x}");
+    for f in doc["frames"].as_array().unwrap() {
+        let style = match f["motion"].as_str().unwrap() {
+            "full" => Style::Full,
+            "subtle" => Style::Subtle,
+            _ => Style::Static,
+        };
+        let echo = match f["echo"].as_str().unwrap() {
+            "starship" => Echo::Starship,
+            "battlestar" => Echo::Battlestar,
+            "mech" => Echo::Mech,
+            _ => Echo::Plane,
+        };
+        let fire = f["fire"].as_bool().unwrap();
+        let at = (f["t"].as_f64().unwrap() * 1000.0).round() as u32;
+        let line = f["line"].as_str().unwrap();
+        let said = if fire {
+            "This is fine."
+        } else if echo.rare() {
+            "That wasn’t a plane."
+        } else {
+            "Sweeping the horizon for anything new."
+        };
+        let scene = Scene { style, at, contacts: contacts(), start: start(echo, fire.then_some(Event::Fire), said) };
+        let name = format!("{} {:?} fire={fire} t={at}", f["motion"], echo);
+        let frame = frame(&t, &scene, SCOPE_W, FULL_HEIGHT).unwrap();
+        let got = text(&frame);
+        let want: Vec<&str> = f["scope"].as_array().unwrap().iter().map(|r| r.as_str().unwrap()).collect();
+        let mut off = 0;
+        for (y, (g, w)) in scope_rows(&frame).iter().zip(&want).enumerate() {
+            let (g, w): (Vec<char>, Vec<char>) = (g.chars().collect(), w.chars().collect());
+            assert_eq!(g.len(), w.len(), "{name}: row {y} is as wide");
+            off += g.iter().zip(&w).filter(|(a, b)| a != b).count();
+        }
+        assert!(off <= 6, "{name}: {off} scope cells differ from the board");
+        // The board's fixture drops the blank run between the bearing and the count.
+        assert_eq!(got[SCOPE_H as usize].trim().replace("°   ", "°"), f["readout"].as_str().unwrap(), "{name}: the readout");
+        assert_eq!(got[FULL_HEIGHT as usize - 1].trim(), line.trim(), "{name}: the line as typed so far");
+        if !fire {
+            let mark: Vec<String> = got[26..30].iter().map(|r| r.trim_end().to_string()).collect();
+            let want: Vec<String> = f["mark"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| format!("{:>w$}", r.as_str().unwrap(), w = 17 + 29).trim_end().to_string())
+                .collect();
+            assert_eq!(mark.iter().map(|r| r.trim()).collect::<Vec<_>>(), want.iter().map(|r| r.trim()).collect::<Vec<_>>(), "{name}: the mark");
+        }
     }
-    let t = theme("none", Tier::Mono);
-    let f = frame(&t, &scene(Style::Static, 0), 80, 24).unwrap();
-    let r = run_at(&f, 30, 9);
-    assert_eq!((r.fg, r.bold), (None, true));
-    // Lit names are bold too; one not ready is not.
-    let names = text(&f)[13].clone();
-    assert!(run_at(&f, col(&names, "Shelf"), 13).bold);
-    assert!(!run_at(&f, col(&names, "Board"), 13).bold);
 }
 
 #[test]
-fn the_assemble_lights_columns_left_to_right_then_the_tagline_reads_in() {
+fn the_screen_is_the_scope_the_mark_the_names_and_the_line_centred_on_the_base() {
     let t = truecolour();
+    let f = frame(&t, &scene(Style::Static, 0), 160, 40).unwrap();
+    let rows = text(&f);
+    assert_eq!(rows.len(), 40);
+    assert!(rows.iter().all(|r| crate::ui::width(r) == 160), "every row runs the full width");
+    // 34 rows used, (40 - 34) / 2 = 3 above; the scope is 64 wide from (160 - 64) / 2 = 48.
+    assert!(rows[..3].iter().all(|r| r.trim().is_empty()));
+    assert!(rows[3..27].iter().any(|r| r.chars().any(|c| ('\u{2801}'..='\u{28ff}').contains(&c))), "braille");
+    assert_eq!(rows[27].trim(), "6 contacts · 17 for you");
+    assert!(rows[29].contains('▀') && rows[32].contains('▀'), "the mark, four rows");
+    assert_eq!(rows[34].trim(), "Ledger · Desk · Chats · Forges · cog · agents");
+    assert_eq!(rows[36].trim(), "Sweeping the horizon for anything new.");
+    let line = &rows[36];
+    assert_eq!(col(line, "Sweeping"), (160 - crate::ui::width(line.trim())) / 2);
     let base = fg(&t, Slot::BgBase);
-    let at = |ms| frame(&t, &scene(Style::Full, ms), 80, 24).unwrap();
-    let start = at(0);
-    assert!(text(&start).iter().all(|r| r.trim().is_empty()), "nothing lit at 0 ms");
-    let mid = at(120);
-    let row = &text(&mid)[9];
-    assert_eq!(cols(row, 30, 32), "██", "the left columns are lit");
-    assert_eq!(cols(row, 44, 80).trim(), "", "the right ones not yet");
-    // The leading edge is soft: the last lit column is nearer the base than the first.
-    let lit: Vec<usize> = (30..49).filter(|&x| run_at(&mid, x, 9).fg.is_some()).collect();
-    let edge = run_at(&mid, *lit.last().unwrap(), 9).fg;
-    assert_ne!(edge, fg(&t, Slot::GlowPurple));
-    assert_ne!(edge, base);
-    assert_eq!(text(&mid)[13].trim(), "", "the tagline waits for the mark");
-    let done = at(ASSEMBLE_MS);
-    assert_eq!(cols(&text(&done)[8], 30, 49), "▄█▀▀█▄█ ▄█▀▀█▄█  ██");
-    let reading = at(ASSEMBLE_MS + TAGLINE_MS / 2);
-    let names = text(&reading)[13].clone();
-    assert!(names.contains("Shelf") && !names.contains("Code "), "half read in: {names:?}");
-    let read = at(ASSEMBLE_MS + TAGLINE_MS);
-    assert_eq!(text(&read)[14].trim(), TAGLINE);
+    assert!(f.rows.iter().flatten().filter(|r| !r.text.contains('▀')).all(|r| r.bg == base), "on bg.base");
+    assert_eq!(run_at(&f, col(line, "Sweeping"), 36).fg, fg(&t, Slot::TextSecondary));
+    let names = &rows[34];
+    assert_eq!(run_at(&f, col(names, "Ledger"), 34).fg, fg(&t, Slot::AccentPrimary));
+    assert_eq!(run_at(&f, col(names, "·"), 34).fg, fg(&t, Slot::TextMuted));
 }
 
 #[test]
-fn each_name_lights_to_its_colour_when_its_part_is_ready_and_its_turn_comes() {
+fn each_contact_is_labelled_with_its_mark_name_and_tail_and_a_lost_one_says_no_signal() {
     let t = truecolour();
-    let muted = fg(&t, Slot::TextMuted);
-    let ink = |f: &Frame, name: &str| run_at(f, col(&text(f)[13], name), 13).fg;
-    let early = frame(&t, &scene(Style::Subtle, 0), 80, 24).unwrap();
-    assert_eq!(ink(&early, "Shelf"), mix(muted, fg(&t, Slot::GlowPurple), 0.0), "lighting starts at 0 ms");
-    assert_eq!(ink(&early, "Ledger"), muted, "its turn has not come");
-    let late = frame(&t, &scene(Style::Subtle, 1000), 80, 24).unwrap();
-    assert_eq!(ink(&late, "Shelf"), fg(&t, Slot::GlowPurple), "the first name takes the ramp's start");
-    assert_eq!(ink(&late, "Code "), fg(&t, Slot::GlowCyan), "the last its end");
-    assert_eq!(ink(&late, "Board"), muted, "not ready: stays muted");
-    let mid = frame(&t, &scene(Style::Subtle, 140), 80, 24).unwrap();
-    assert_eq!(ink(&mid, "Chat"), muted, "its turn is at 150 ms");
+    let mut s = scene(Style::Static, 0);
+    s.contacts[2].live = false;
+    let f = frame(&t, &s, 64, 34).unwrap();
+    let all = text(&f).join("\n");
+    assert!(all.contains("\u{e7eb} Ledger  3 to review"), "{all}");
+    assert!(all.contains("\u{f198} Chats  no signal"));
+    assert!(all.contains("2 failing  Forges \u{f408}") || all.contains("\u{f408} Forges  2 failing"));
+    let readout = &text(&f)[SCOPE_H as usize];
+    assert_eq!(readout.trim(), "5 contacts · 12 for you · Chats no signal");
+    let lost = &text(&f).iter().position(|r| r.contains("Chats  no signal")).unwrap();
+    let row = &text(&f)[*lost];
+    assert_eq!(run_at(&f, col(row, "Chats"), *lost).fg, fg(&t, Slot::TextMuted), "a lost contact is muted");
+    let row_g = text(&f).iter().position(|r| r.contains("Ledger  3")).unwrap();
+    let r = &text(&f)[row_g];
+    assert_eq!(run_at(&f, col(r, "3 to"), row_g).fg, fg(&t, Slot::DataNumber), "the tail is a number");
 }
 
 #[test]
-fn full_holds_until_the_assemble_is_done_then_hands_off_once() {
+fn the_beam_turns_once_and_the_readout_tracks_its_bearing() {
+    let t = truecolour();
+    let at = |ms| frame(&t, &scene(Style::Full, ms), 64, 34).unwrap();
+    assert!(text(&at(0)).iter().all(|r| r.trim().is_empty() || r.chars().all(|c| c == ' ' || ('\u{2800}'..='\u{28ff}').contains(&c))));
+    assert_eq!(text(&at(100))[SCOPE_H as usize].trim(), "", "no readout before the beam");
+    assert_eq!(text(&at(800))[SCOPE_H as usize].trim(), "brg 180°   3 contacts");
+    assert_eq!(text(&at(1500))[SCOPE_H as usize].trim(), "6 contacts · 17 for you");
+    // The name paints in from 1300 ms; before it the mark's rows are empty.
+    assert!(text(&at(1200))[27].trim().is_empty());
+    assert!(text(&at(1800))[27].contains('▀'));
+    let hot = run_at(&at(1320), (64 - 29) / 2, 27).fg;
+    assert_eq!(hot, at(1320).rows.iter().flatten().find(|r| r.text.contains('▀')).unwrap().fg, "the scan line is hot");
+}
+
+#[test]
+fn the_line_types_from_1800_ms_and_keys_are_in_the_key_colour() {
+    let t = truecolour();
+    let mut s = scene(Style::Full, 1799);
+    s.start.line = vec![
+        LineSpan { text: "Press ".into(), key: false },
+        LineSpan { text: "x".into(), key: true },
+        LineSpan { text: " for every key here.".into(), key: false },
+    ];
+    let line = |s: &Scene| text(&frame(&t, s, 64, 34).unwrap())[33].trim().to_string();
+    assert_eq!(line(&s), "");
+    s.at = 1800;
+    assert_eq!(line(&s), "P");
+    s.at = 1800 + 12 * 6;
+    assert_eq!(line(&s), "Press x");
+    s.at = 2300;
+    assert_eq!(line(&s), "Press x for every key here.");
+    let f = frame(&t, &s, 64, 34).unwrap();
+    let x = col(&text(&f)[33], "x ");
+    let key = run_at(&f, x, 33);
+    assert_eq!((key.fg, key.bold), (fg(&t, Slot::AccentPrimary), true));
+}
+
+#[test]
+fn a_rare_echo_says_one_unidentified() {
+    let t = truecolour();
+    let mut s = scene(Style::Static, 0);
+    s.start.echo = Echo::Mech;
+    let f = frame(&t, &s, 64, 34).unwrap();
+    assert!(text(&f)[SCOPE_H as usize].ends_with("· 1 unidentified") || text(&f)[SCOPE_H as usize].trim().ends_with("1 unidentified"));
+    assert_eq!(Echo::roll(0.01), Echo::Starship);
+    assert_eq!(Echo::roll(0.03), Echo::Battlestar);
+    assert_eq!(Echo::roll(0.05), Echo::Mech);
+    assert_eq!(Echo::roll(0.06), Echo::Plane);
+    assert!(!Echo::Plane.rare());
+}
+
+#[test]
+fn the_fire_takes_the_marks_and_names_place_at_full_only_and_holds_longer() {
+    let t = truecolour();
+    let mut s = scene(Style::Full, 2000);
+    s.start = start(Echo::Plane, Some(Event::Fire), "This is fine.");
+    let f = frame(&t, &s, 64, 34).unwrap();
+    let rows = text(&f);
+    assert!(rows[25..32].iter().any(|r| r.contains('▀')), "it burns");
+    assert!(!rows[31].contains("Ledger"), "no names");
+    assert_eq!(rows[33].trim(), "This is fine.");
+    let warm = f.rows[25..32].iter().flatten().filter(|r| r.text.contains('▀')).count();
+    assert!(warm > 10, "many fire cells: {warm}");
+    // At subtle it is the ordinary splash.
+    s.style = Style::Subtle;
+    let f = frame(&t, &s, 64, 34).unwrap();
+    assert_eq!(text(&f)[31].trim(), "Ledger · Desk · Chats · Forges · cog · agents");
+    let mut sp = Splash::new(Setting::Auto, Level::Full);
+    sp.set_start(start(Echo::Plane, Some(Event::Fire), "This is fine."));
+    assert_eq!(sp.hold(), HOLD_FULL_MS + EVENT_HOLD_MS);
+}
+
+#[test]
+fn below_truecolour_it_draws_from_the_slots_and_with_no_colour_the_mark_is_bold() {
+    let t = theme("256", Tier::Ansi256);
+    let f = frame(&t, &scene(Style::Static, 0), 64, 34).unwrap();
+    let x = (64 - 29) / 2;
+    assert_eq!(run_at(&f, x, 27).fg, fg(&t, Slot::AccentPrimary));
+    let t = theme("none", Tier::Mono);
+    let f = frame(&t, &scene(Style::Static, 0), 64, 34).unwrap();
+    let r = run_at(&f, x, 27);
+    assert_eq!((r.fg, r.bold), (None, true));
+}
+
+#[test]
+fn full_holds_until_the_line_is_typed_then_hands_off_once() {
     let mut s = Splash::new(Setting::Auto, Level::Full);
-    let parts = vec![("Shelf".to_string(), true)];
-    assert!(matches!(s.step(ms(1000), true, &parts), Step::Show(Scene { at: 0, .. })));
-    assert!(matches!(s.step(ms(1300), true, &parts), Step::Show(Scene { at: 300, .. })));
+    let c = contacts();
+    assert!(matches!(s.step(ms(1000), true, &c), Step::Show(Scene { at: 0, .. })));
+    assert!(matches!(s.step(ms(1300), true, &c), Step::Show(Scene { at: 300, .. })));
     assert_eq!(s.next_frame(), Some(FRAME));
-    assert_eq!(s.step(ms(1000 + HOLD_FULL_MS as u64), true, &parts), Step::HandOff);
-    assert_eq!(s.step(ms(2000), true, &parts), Step::Hidden);
+    assert!(matches!(s.step(ms(1000 + HOLD_FULL_MS as u64 - 1), true, &c), Step::Show(_)));
+    assert_eq!(s.step(ms(1000 + HOLD_FULL_MS as u64), true, &c), Step::HandOff);
+    assert_eq!(s.step(ms(5000), true, &c), Step::Hidden);
     assert_eq!(s.next_frame(), None, "no frame tick once it is gone");
 }
 
-const _: () = assert!(HOLD_FULL_MS <= 700, "the splash hands off within ~700 ms");
+const _: () = assert!(HOLD_FULL_MS >= LINE_FROM_MS + TYPE_MS, "the line is typed before it hands off");
 
 #[test]
 fn a_slow_start_keeps_the_splash_until_the_first_screen_is_ready() {
     let mut s = Splash::new(Setting::Auto, Level::Full);
     assert!(matches!(s.step(ms(0), false, &[]), Step::Show(_)));
-    assert!(matches!(s.step(ms(2000), false, &[]), Step::Show(_)));
-    assert_eq!(s.step(ms(2030), true, &[]), Step::HandOff);
+    assert!(matches!(s.step(ms(4000), false, &[]), Step::Show(_)));
+    assert_eq!(s.step(ms(4030), true, &[]), Step::HandOff);
 }
 
 #[test]
-fn subtle_shows_the_mark_at_once_and_hands_off_sooner() {
+fn subtle_fades_in_with_no_beam_and_hands_off_sooner() {
     let mut s = Splash::new(Setting::Auto, Level::Subtle);
-    let Step::Show(scene) = s.step(ms(0), true, &[]) else { panic!("shown") };
+    s.set_start(start(Echo::Plane, None, "Sweeping the horizon for anything new."));
+    let Step::Show(scene) = s.step(ms(0), true, &contacts()) else { panic!("shown") };
     assert_eq!(scene.style, Style::Subtle);
-    let f = frame(&truecolour(), &scene, 80, 24).unwrap();
-    assert_eq!(cols(&text(&f)[8], 30, 49), "▄█▀▀█▄█ ▄█▀▀█▄█  ██", "no sweep: whole at once");
     assert!(matches!(s.step(ms(HOLD_SUBTLE_MS as u64 - 1), true, &[]), Step::Show(_)));
     assert_eq!(s.step(ms(HOLD_SUBTLE_MS as u64), true, &[]), Step::HandOff);
+    let t = truecolour();
+    let early = frame(&t, &Scene { style: Style::Subtle, ..scene.clone() }, 64, 34).unwrap();
+    assert!(text(&early)[33].trim().is_empty(), "the line waits");
+    let late = frame(&t, &Scene { style: Style::Subtle, at: 1400, ..scene }, 64, 34).unwrap();
+    assert_eq!(text(&late)[33].trim(), "Sweeping the horizon for anything new.", "then shows whole");
 }
 
 #[test]
-fn with_motion_off_it_shows_only_a_static_mark_when_startup_is_slow() {
+fn with_motion_off_it_shows_only_the_last_frame_when_startup_is_slow() {
     let mut fast = Splash::new(Setting::Auto, Level::Off);
     assert_eq!(fast.step(ms(0), true, &[]), Step::Hidden, "ready at once: skipped, no fade");
     assert!(!fast.active());
@@ -254,40 +353,34 @@ fn off_never_shows_and_a_key_skips_it_at_once() {
 }
 
 #[test]
-fn a_part_ready_later_is_lit_from_when_it_became_ready() {
-    let mut s = Splash::new(Setting::Auto, Level::Subtle);
-    let not = vec![("Board".to_string(), false)];
-    let yes = vec![("Board".to_string(), true)];
-    s.step(ms(0), true, &not);
-    let Step::Show(scene) = s.step(ms(90), true, &yes) else { panic!() };
-    assert_eq!(scene.parts[0].ready_at, Some(90));
-    let Step::Show(scene) = s.step(ms(200), true, &yes) else { panic!() };
-    assert_eq!(scene.parts[0].ready_at, Some(90), "kept from the first time");
-}
-
-#[test]
-fn narrow_terminals_show_only_the_text_and_below_twenty_columns_nothing() {
+fn small_terminals_drop_the_scope_then_the_mark_and_below_twenty_columns_show_nothing() {
     let t = truecolour();
     assert!(frame(&t, &scene(Style::Subtle, 1000), MIN_WIDTH - 1, 24).is_none());
     assert!(frame(&t, &scene(Style::Subtle, 1000), 80, 1).is_none());
-    let short = frame(&t, &scene(Style::Subtle, 1000), 80, 6).unwrap();
+    // 80 x 24 has no room for the scope: the mark, the names and the line.
+    let f = frame(&t, &scene(Style::Full, 1100), 80, 24).unwrap();
+    let rows = text(&f);
+    assert!(!rows.iter().any(|r| r.chars().any(|c| ('\u{2801}'..='\u{28ff}').contains(&c))), "no scope");
+    assert!(rows[8].contains('▀'), "the mark from row (24 - 8) / 2");
+    assert_eq!(rows[13].trim(), "Ledger · Desk · Chats · Forges · cog · agents");
+    assert_eq!(rows[15].trim(), "Sweeping the horizon for anything new.", "already typed: the beam is skipped");
+    let short = frame(&t, &scene(Style::Static, 0), 80, 6).unwrap();
     let rows = text(&short);
-    assert!(!rows.iter().any(|r| r.contains('█')), "no room for the mark: text only");
-    assert_eq!(rows[2].trim(), "Shelf · Ledger · Board · Chat · Code");
-    assert_eq!(rows[3].trim(), TAGLINE);
-    let narrow = frame(&t, &scene(Style::Subtle, 1000), 20, 7).unwrap();
-    assert!(text(&narrow)[0].contains("▄█▀▀█▄█"), "19 columns of mark fit in 20");
-    assert!(text(&narrow).iter().all(|r| crate::ui::width(r) == 20), "the names are cut at the edge");
+    assert!(!rows.iter().any(|r| r.contains('▀')), "no room for the mark: text only");
+    assert_eq!(rows[2].trim(), "Ledger · Desk · Chats · Forges · cog · agents");
+    assert_eq!(rows[3].trim(), "Sweeping the horizon for anything new.");
+    let narrow = frame(&t, &scene(Style::Static, 0), 20, 10).unwrap();
+    assert!(text(&narrow).iter().all(|r| crate::ui::width(r) == 20), "cut at the edge");
 }
 
 #[test]
 fn ratatui_paints_the_frame_and_ink_is_sent_the_same_cells() {
     let t = truecolour();
-    let f = frame(&t, &scene(Style::Full, 300), 80, 24).unwrap();
-    let mut buf = Buffer::empty(Rect::new(0, 0, 80, 24));
+    let f = frame(&t, &scene(Style::Full, 1500), 80, 40).unwrap();
+    let mut buf = Buffer::empty(Rect::new(0, 0, 80, 40));
     draw(&f, &mut buf);
     let v = view(&f);
-    assert_eq!((v.width, v.height, v.rows.len()), (80, 24, 24));
+    assert_eq!((v.width, v.height, v.rows.len()), (80, 40, 40));
     let painted = cells(&buf);
     let sent = view_cells(&v);
     assert_eq!(painted, sent);
@@ -329,13 +422,15 @@ fn the_cells_ink_compares_against_are_the_committed_fixtures() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ink/test/fixtures/splash");
     let write = std::env::var_os("RADAR_SPLASH_CELLS_DIR").map(std::path::PathBuf::from);
     let t = truecolour();
-    for (name, style, at, w, h) in [
-        ("full-200-80x24", Style::Full, 200, 80, 24),
-        ("full-530-160x40", Style::Full, 530, 160, 40),
-        ("subtle-300-80x24", Style::Subtle, 300, 80, 24),
-        ("subtle-300-160x40", Style::Subtle, 300, 160, 40),
+    let fire = |at| Scene { start: start(Echo::Plane, Some(Event::Fire), "This is fine."), ..scene(Style::Full, at) };
+    for (name, s, w, h) in [
+        ("full-600-80x24", scene(Style::Full, 600), 80, 24),
+        ("full-1500-160x40", scene(Style::Full, 1500), 160, 40),
+        ("subtle-1400-80x24", scene(Style::Subtle, 1400), 80, 24),
+        ("subtle-1400-160x40", scene(Style::Subtle, 1400), 160, 40),
+        ("fire-2600-160x40", fire(2600), 160, 40),
     ] {
-        let f = frame(&t, &scene(style, at), w, h).unwrap();
+        let f = frame(&t, &s, w, h).unwrap();
         let mut buf = Buffer::empty(Rect::new(0, 0, w, h));
         draw(&f, &mut buf);
         let doc = json!({ "format": 1, "name": name, "width": w, "height": h, "view": view(&f), "cells": cells(&buf) });
@@ -350,4 +445,50 @@ fn the_cells_ink_compares_against_are_the_committed_fixtures() {
             assert!(have == text, "{file} differs from the splash Ratatui paints: regenerate with RADAR_SPLASH_CELLS_DIR");
         }
     }
+}
+
+#[test]
+fn a_splash_skipped_early_hands_its_line_on_once_and_a_late_one_does_not() {
+    let line = vec![LineSpan { text: "Sweeping the horizon for anything new.".into(), key: false }];
+    let start = Start { line, ..Start::default() };
+    let mut early = Splash::new(Setting::Auto, Level::Full);
+    early.set_start(start.clone());
+    let _ = early.step(Duration::from_millis(0), true, &[]);
+    let _ = early.step(Duration::from_millis(400), true, &[]);
+    early.input();
+    assert_eq!(early.take_early_line().as_deref(), Some("Sweeping the horizon for anything new."));
+    assert_eq!(early.take_early_line(), None, "once");
+    let mut late = Splash::new(Setting::Auto, Level::Full);
+    late.set_start(start);
+    let _ = late.step(Duration::from_millis(0), true, &[]);
+    let _ = late.step(Duration::from_millis(1600), true, &[]);
+    late.input();
+    assert_eq!(late.take_early_line(), None);
+}
+
+#[test]
+fn the_pixel_tier_paints_the_scope_as_a_png_over_its_cells_and_kitty_replaces_it() {
+    let theme = Theme::build(&ThemeConfig::default(), crate::design::theme::Tier::TrueColor, &[]);
+    let scene = Scene { style: Style::Full, at: 900, contacts: vec![], start: Start::default() };
+    let frame = frame(&theme, &scene, 160, 40).unwrap();
+    let pic = picture(&frame, (10, 20)).expect("a scope in true colour");
+    assert_eq!((pic.cols, pic.rows), (SCOPE_W, SCOPE_H));
+    assert_eq!((pic.x, pic.y), ((160 - SCOPE_W) / 2, (40 - FULL_HEIGHT) / 2));
+    // RADAR_SPLASH_PNG_DIR=<dir> keeps the picture, to look at.
+    if let Ok(dir) = std::env::var("RADAR_SPLASH_PNG_DIR") {
+        std::fs::write(std::path::Path::new(&dir).join("scope-900.png"), &pic.png).unwrap();
+    }
+    let img = image::load_from_memory(&pic.png).unwrap();
+    assert_eq!((img.width(), img.height()), (640, 480));
+    let shown = kitty_at(&pic);
+    assert!(shown.contains(&format!("i={PICTURE_ID},p=1")), "one picture, replaced each frame");
+    assert!(kitty_hide().contains(&format!("a=d,d=I,i={PICTURE_ID}")));
+    // Too small for the scope, or without true colour: no picture.
+    assert!(picture(&frame_of(&theme, &scene, 80, 24), (10, 20)).is_none());
+    let mono = Theme::build(&ThemeConfig::default(), crate::design::theme::Tier::Ansi256, &[]);
+    assert!(picture(&frame_of(&mono, &scene, 160, 40), (10, 20)).is_none());
+}
+
+fn frame_of(theme: &Theme, scene: &Scene, w: u16, h: u16) -> Frame {
+    frame(theme, scene, w, h).unwrap()
 }

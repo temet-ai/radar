@@ -15,6 +15,24 @@
       "label": "check the connection"
     },
     {
+      "id": "slack.connection.copy_manifest",
+      "key": {
+        "key": {
+          "char": "m"
+        }
+      },
+      "label": "copy radar's Slack app manifest"
+    },
+    {
+      "id": "slack.connection.new_app",
+      "key": {
+        "key": {
+          "char": "o"
+        }
+      },
+      "label": "open Slack's new-app page, the manifest filled in"
+    },
+    {
       "id": "slack.connection.kept_replies",
       "key": {
         "ctrl": true,
@@ -147,8 +165,9 @@
       {
         "right": [
           {
+            "icon": "done",
             "ink": "good",
-            "text": "✓"
+            "text": "has it"
           }
         ],
         "target": "row:7",
@@ -170,8 +189,9 @@
       {
         "right": [
           {
+            "icon": "done",
             "ink": "good",
-            "text": "✓"
+            "text": "has it"
           }
         ],
         "target": "row:8",
@@ -193,8 +213,9 @@
       {
         "right": [
           {
+            "icon": "done",
             "ink": "good",
-            "text": "✓"
+            "text": "has it"
           }
         ],
         "target": "row:9",
@@ -216,8 +237,9 @@
       {
         "right": [
           {
+            "icon": "done",
             "ink": "good",
-            "text": "✓"
+            "text": "has it"
           }
         ],
         "target": "row:10",
@@ -239,8 +261,9 @@
       {
         "right": [
           {
+            "icon": "done",
             "ink": "good",
-            "text": "✓"
+            "text": "has it"
           }
         ],
         "target": "row:11",
@@ -262,8 +285,9 @@
       {
         "right": [
           {
+            "icon": "done",
             "ink": "good",
-            "text": "✓"
+            "text": "has it"
           }
         ],
         "target": "row:12",
@@ -291,11 +315,36 @@
         ],
         "right": [
           {
+            "icon": "error",
             "ink": "warn",
-            "text": "✗"
+            "text": "missing"
           }
         ],
         "target": "row:13",
+        "text": [
+          {
+            "ink": "muted",
+            "text": "               "
+          },
+          {
+            "look": "text.muted",
+            "text": "├─ "
+          },
+          {
+            "ink": "muted",
+            "text": "reacting        "
+          }
+        ]
+      },
+      {
+        "right": [
+          {
+            "icon": "done",
+            "ink": "good",
+            "text": "has it"
+          }
+        ],
+        "target": "row:14",
         "text": [
           {
             "ink": "muted",
@@ -307,7 +356,106 @@
           },
           {
             "ink": "muted",
-            "text": "reacting        "
+            "text": "pictures        "
+          }
+        ]
+      },
+      {
+        "heading": true,
+        "target": "row:15",
+        "text": []
+      },
+      {
+        "heading": true,
+        "target": "row:16",
+        "text": [
+          {
+            "text": " "
+          },
+          {
+            "ink": "muted",
+            "strong": true,
+            "text": "CHANNELS"
+          },
+          {
+            "ink": "muted",
+            "text": "  the registry; watched ones are read"
+          }
+        ]
+      },
+      {
+        "target": "row:17",
+        "text": [
+          {
+            "ink": "accent",
+            "strong": true,
+            "text": " + "
+          },
+          {
+            "ink": "accent_secondary",
+            "strong": true,
+            "text": "add a channel"
+          },
+          {
+            "ink": "muted",
+            "text": "   paste its link, a message link, or its id"
+          }
+        ]
+      },
+      {
+        "target": "row:18",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "icon": "channel"
+          },
+          {
+            "look": "text.primary bold",
+            "text": "#team"
+          },
+          {
+            "ink": "muted",
+            "text": "   team · watched"
+          }
+        ]
+      },
+      {
+        "target": "row:19",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "icon": "channel"
+          },
+          {
+            "look": "text.primary bold",
+            "text": "#svc"
+          },
+          {
+            "ink": "muted",
+            "text": "   service · watched"
+          }
+        ]
+      },
+      {
+        "target": "row:20",
+        "text": [
+          {
+            "text": "   "
+          },
+          {
+            "icon": "channel"
+          },
+          {
+            "look": "text.primary bold",
+            "text": "#try"
+          },
+          {
+            "ink": "muted",
+            "text": "   test · not watched"
           }
         ]
       }
@@ -350,6 +498,219 @@
         "text": "The Slack workspace the token is for: a user token belongs to one. The check finds it."
       }
     ]
+  ],
+  "detail_blocks": [
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "CHECKED"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "text": "not checked yet"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "muted",
+          "strong": true,
+          "text": "NOW"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "emphasis",
+          "strong": true,
+          "text": "Acme · https://acme.slack.com"
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "line",
+      "text": [
+        {
+          "ink": "primary",
+          "text": "The Slack workspace the token is for: a user token belongs to one. The check finds it."
+        }
+      ]
+    },
+    {
+      "block": "line",
+      "text": []
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "1 Open Slack's new-app page, radar's manifest filled in:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://api.slack.com/apps?new_app=1&manifest_json=%7B%22_metadata%22%3A%7B%22major_version%22%3A1%2C%22minor_version%22%3A1%7D%2C%22display_information%22%3A%7B%22description%22%3A%22radar%20reads%20Slack%20as%20you%2C%20with%20a%20user%20token.%22%2C%22name%22%3A%22radar%22%7D%2C%22oauth_config%22%3A%7B%22scopes%22%3A%7B%22user%22%3A%5B%22channels%3Ahistory%22%2C%22channels%3Aread%22%2C%22groups%3Ahistory%22%2C%22groups%3Aread%22%2C%22search%3Aread%22%2C%22users%3Aread%22%2C%22usergroups%3Aread%22%2C%22chat%3Awrite%22%2C%22reactions%3Awrite%22%2C%22files%3Aread%22%5D%7D%7D%2C%22settings%22%3A%7B%22org_deploy_enabled%22%3Afalse%2C%22socket_mode_enabled%22%3Afalse%2C%22token_rotation_enabled%22%3Afalse%7D%7D",
+              "text": "api.slack.com / new app"
+            },
+            {
+              "ink": "muted",
+              "text": "   o opens · m copies the manifest"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "  user scopes only: 10"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "2 Pick your workspace, Next, Create."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "3 Install to Workspace, then Allow."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "4 OAuth & Permissions shows the User OAuth Token, xoxp-…: paste it into token, or:"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "muted",
+              "text": "$ "
+            },
+            {
+              "ink": "primary",
+              "text": "export SLACK_TOKEN=xoxp-…"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "  then the token is env:SLACK_TOKEN"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://api.slack.com/apps",
+              "text": "api.slack.com / your apps"
+            }
+          ]
+        }
+      ],
+      "detail": "about two minutes, once",
+      "mark": "connection",
+      "title": "MAKE A USER TOKEN"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "If Slack says Request to Install, your admin approves it first."
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "secondary",
+              "text": "A missing scope switches off only its own actions."
+            }
+          ]
+        }
+      ],
+      "mark": "team",
+      "title": "NEEDS AN ADMIN?"
+    },
+    {
+      "block": "section",
+      "blocks": [
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://api.slack.com/scopes",
+              "text": "Slack: what each scope allows"
+            }
+          ]
+        },
+        {
+          "block": "line",
+          "text": [
+            {
+              "ink": "accent",
+              "link": "https://github.com/temet-ai/radar/blob/main/docs/user-guide/connect.md#slack",
+              "text": "radar guide: connect Slack"
+            }
+          ]
+        }
+      ],
+      "mark": "link",
+      "title": "MORE"
+    }
   ],
   "detail_title": "workspace",
   "scope": "connection",

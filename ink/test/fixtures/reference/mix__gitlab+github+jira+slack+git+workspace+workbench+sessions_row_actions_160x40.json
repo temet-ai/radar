@@ -12,21 +12,6 @@
       "I",
       "A"
     ],
-    "sources": [
-      {
-        "active": true,
-        "label": "GitLab",
-        "target": "chrome:source:0"
-      },
-      {
-        "label": "GitHub",
-        "target": "chrome:source:1"
-      },
-      {
-        "label": "Local workspaces",
-        "target": "chrome:source:5"
-      }
-    ],
     "status": {
       "counts": [
         {
@@ -212,18 +197,6 @@
           "target": "chrome:tab:0"
         },
         {
-          "icon": "issue",
-          "label": "jira",
-          "mnemonic": "J",
-          "target": "chrome:tab:2"
-        },
-        {
-          "icon": "chat",
-          "label": "slack",
-          "mnemonic": "S",
-          "target": "chrome:tab:3"
-        },
-        {
           "icon": "branch",
           "label": "branches",
           "mnemonic": "B",
@@ -405,16 +378,6 @@
         "label": "kept comments…"
       }
     ],
-    "dock": {
-      "composer": {
-        "can_send": false,
-        "can_stop": false,
-        "disabled": "no session: start one with a new session"
-      },
-      "focused": false,
-      "status": {},
-      "visible": false
-    },
     "medium_from": 70,
     "panes": [
       {

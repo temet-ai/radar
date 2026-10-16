@@ -1,5 +1,6 @@
 ---
 source: crates/radar-git/src/settings.rs
+assertion_line: 2810
 expression: "shot(\"links\", 80, 24)"
 ---
  radar    Branches   History   Settings (,)                              ✎ edit
@@ -7,15 +8,15 @@ expression: "shot(\"links\", 80, 24)"
 │General               ││  + link a repo to your clone                         │
 │  ├─ parts            ││ acme/team-a/api → /work/acme/api              ✓ main │
 │  ├─ mode             ││ acme/team-b/web → /radar/no/suc…    ✗ no such folder │
-│  ├─ colours          ││ …yments-gateway → /work/acme/pa…    ⚠ origin: acme/… │
+│  ├─ appearance       ││ …yments-gateway → /work/acme/pa…    ⚠ origin: acme/… │
+│  ├─ colours          ││                                                      │
 │  └─ icons            ││                                                      │
 │Git                   ││                                                      │
 │  ├─ checkouts        ││                                                      │
-│  ├─ editors          ││                                                      │
-│  ├─ links            ││                                                      │
-│  └─ branches         │╰──────────────────────────────────────────────────────╯
-│                      │╭ acme/team-b/web ─────────────────────────────────────╮
-│                      ││ CHECKED                                              █
+│  ├─ terminal         ││                                                      │
+│  ├─ editors          │╰──────────────────────────────────────────────────────╯
+│  ├─ links            │╭ acme/team-b/web ─────────────────────────────────────╮
+│  └─ branches         ││ CHECKED                                              █
 │                      ││ ⚠ no such folder                                     █
 │                      ││                                                      █
 │                      ││ acme/team-b/web is worked on in /radar/no/such/web.  █

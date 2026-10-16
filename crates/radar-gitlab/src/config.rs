@@ -18,6 +18,10 @@ pub struct Settings {
     /// `env:VAR`, `glab`, or a literal token.
     #[serde(default = "default_token")]
     pub token: String,
+    /// What the token may do: `read` (the default, left out of the file)
+    /// or `write`. The new-token page asks for its scope.
+    #[serde(default, skip_serializing_if = "TokenAccess::is_read")]
+    pub access: TokenAccess,
     /// Group path prefix that every source's `group` is relative to.
     #[serde(default)]
     pub base: String,
@@ -71,6 +75,40 @@ pub struct View {
     /// Show every repo, or only repos with a merge request in the view.
     #[serde(default, skip_serializing_if = "RepoScope::is_all")]
     pub repos: RepoScope,
+}
+
+/// `[gitlab] access`: what the token is made to allow.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenAccess {
+    /// Merge requests, pipelines, threads and diffs: scope `read_api`.
+    #[default]
+    Read,
+    /// Also comment, approve, merge and rebase: scope `api`.
+    Write,
+}
+
+impl TokenAccess {
+    pub const ALL: [Self; 2] = [Self::Read, Self::Write];
+
+    pub fn is_read(&self) -> bool {
+        *self == Self::Read
+    }
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Read => "read only",
+            Self::Write => "read and write",
+        }
+    }
+
+    /// The scope a new token asks for.
+    pub const fn scope(self) -> &'static str {
+        match self {
+            Self::Read => "read_api",
+            Self::Write => "api",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -177,6 +215,7 @@ impl Default for Settings {
         Self {
             url: default_url(),
             token: default_token(),
+            access: TokenAccess::Read,
             base: String::new(),
             refresh_secs: default_refresh(),
             idle_minutes: default_idle(),
@@ -340,17 +379,15 @@ pub fn resolve_token(spec: &str, url: &str) -> Result<String> {
 }
 
 /// Variables in `vars` (name, value) that hold a GitLab token, by name:
-/// names with GITLAB and TOKEN in them whose value looks like a token, a
-/// personal access token (`glpat-`) first; not the one in use (`have`).
-/// Values are read only to tell; never shown or saved.
+/// `GITLAB_TOKEN` alone (glab's and GitLab's own name), when its value
+/// looks like a token; not the one in use (`have`). Values are read only
+/// to tell; never shown or saved.
 pub fn token_offers(vars: &[(String, String)], have: &str) -> Vec<String> {
     let mut found: Vec<(bool, &String)> = vars
         .iter()
         .filter(|(name, value)| {
-            let up = name.to_uppercase();
             let v = value.trim();
-            up.contains("GITLAB")
-                && up.contains("TOKEN")
+            name == "GITLAB_TOKEN"
                 && v.len() >= 20
                 && !v.contains(char::is_whitespace)
                 && have.trim() != format!("env:{name}")
@@ -367,7 +404,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_token_in_the_environment_is_offered_by_name_and_not_once_in_use() {
+    fn only_gitlab_token_is_offered_and_not_once_in_use() {
         let vars: Vec<(String, String)> = [
             ("GITLAB_HOST", "https://gitlab.example"),
             ("MY_GITLAB_TOKEN", "abcdefghijklmnopqrstuvwxyz"),
@@ -378,8 +415,9 @@ mod tests {
         .iter()
         .map(|(n, v)| (n.to_string(), v.to_string()))
         .collect();
-        assert_eq!(token_offers(&vars, ""), vec!["GITLAB_TOKEN", "MY_GITLAB_TOKEN"]);
-        assert_eq!(token_offers(&vars, "env:GITLAB_TOKEN"), vec!["MY_GITLAB_TOKEN"]);
+        // Only GITLAB_TOKEN: another variable that names GitLab is not offered.
+        assert_eq!(token_offers(&vars, ""), vec!["GITLAB_TOKEN"]);
+        assert!(token_offers(&vars, "env:GITLAB_TOKEN").is_empty());
     }
 
     fn sample() -> Settings {
@@ -496,5 +534,21 @@ mod tests {
         assert_eq!(cfg.views, default_views());
         assert_eq!(cfg.style_for("review"), "accent.primary");
         assert_eq!(cfg.style_for("failed"), "status.error bold");
+        assert_eq!(cfg.access, TokenAccess::Read, "read unless the file says write");
+    }
+
+    /// `access` is read from the file and saved only once it is write.
+    #[test]
+    fn the_access_is_loaded_and_saved_only_when_it_is_write() {
+        let cfg: Settings = toml::from_str("access = \"write\"").unwrap();
+        assert_eq!(cfg.access, TokenAccess::Write);
+        let saved = toml::to_string(&cfg).unwrap();
+        assert!(saved.contains("access = \"write\""), "{saved}");
+        let back: Settings = toml::from_str(&saved).unwrap();
+        assert_eq!(back.access, TokenAccess::Write);
+        let read = toml::to_string(&Settings::default()).unwrap();
+        assert!(!read.contains("access"), "{read}");
+        assert!(toml::from_str::<Settings>("access = \"admin\"").is_err());
+        assert_eq!((TokenAccess::Read.scope(), TokenAccess::Write.scope()), ("read_api", "api"));
     }
 }

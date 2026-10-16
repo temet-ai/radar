@@ -21,6 +21,8 @@
 # `[sessions] provider = "fake"` and RADAR_FAKE_AGENT=1 for the agent dock).
 # The run is sandboxed (RADAR_SANDBOX=1: no browser, clipboard, notification, editor or
 # terminal window, no real Copilot CLI); RADAR_SANDBOX= ink-live start ... for a run that may.
+# RADAR_ARGS='setup tour' passes words after `radar`; RADAR_LIVE_FRESH=1 starts with no config
+# file and no data (a first run).
 # RADAR_BIN overrides the binary. Unset, the script uses the default-features release build in the
 # repo's own target/ (built here when older than HEAD); never target/fleet/debug/radar, which is
 # whatever feature mix the gate built last. The binary is copied first, so a rebuild by someone
@@ -102,13 +104,22 @@ start() {
   elif [ -n "${RADAR_LIVE_CONFIG:-}" ]; then
     cp "$RADAR_LIVE_CONFIG" "$d/cfg/radar/config.toml"
     home=$HOME
-  else
+  elif [ "${RADAR_LIVE_FRESH:-}" != 1 ]; then
     cp "$here/assets/offline/config.toml" "$d/cfg/radar/config.toml"
     cp "$here/assets/offline/gitlab.json" "$here/assets/offline/jira.json" "$d/state/radar/"
   fi
+  # RADAR_ARGS: words after `radar` (`setup gitlab`, `setup tour`), split on spaces.
+  local args=""
+  if [ -n "${RADAR_ARGS:-}" ]; then
+    local a
+    for a in $RADAR_ARGS; do
+      case "$a" in *[!A-Za-z0-9_.-]*) die "RADAR_ARGS takes plain words, not $a" ;; esac
+      args="$args '$a'"
+    done
+  fi
 
   t "$name" -f /dev/null new-session -d -s radar -x "$w" -y "$h" -c "$d/home" \
-    "env -u HERDR_ENV -u HERDR_PANE_ID -u HERDR_TAB_ID -u HERDR_WORKSPACE_ID -u HERDR_SOCKET_PATH HOME='$home' XDG_CONFIG_HOME='$d/cfg' XDG_STATE_HOME='$d/state' XDG_CACHE_HOME='$d/cache' XDG_DATA_HOME='$d/data' COLORTERM=truecolor LANG=C.UTF-8 RADAR_SANDBOX='${RADAR_SANDBOX-1}' RADAR_MODE=read-only RADAR_NO_WRITES=1 RADAR_RENDERER=$renderer RADAR_INK_BUNDLE='$bundle' '$d/bin/radar' 2>'$d/stderr'"
+    "env -u HERDR_ENV -u HERDR_PANE_ID -u HERDR_TAB_ID -u HERDR_WORKSPACE_ID -u HERDR_SOCKET_PATH HOME='$home' XDG_CONFIG_HOME='$d/cfg' XDG_STATE_HOME='$d/state' XDG_CACHE_HOME='$d/cache' XDG_DATA_HOME='$d/data' COLORTERM=truecolor LANG=C.UTF-8 RADAR_SANDBOX='${RADAR_SANDBOX-1}' RADAR_MODE=read-only RADAR_NO_WRITES=1 RADAR_RENDERER=$renderer RADAR_INK_BUNDLE='$bundle' '$d/bin/radar'$args 2>'$d/stderr'"
   t "$name" set-option -t radar remain-on-exit on >/dev/null
 
   local log="$d/state/radar/radar.log" i

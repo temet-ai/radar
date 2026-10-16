@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hitAt, layoutMenu, layoutSources, layoutStatus, layoutTopBar, type Cell } from "../../src/chrome/layout.js";
 import { withNotice } from "../../src/chrome/Chrome.js";
-import { slotStyle } from "../../src/text/look.js";
+import { applyLook, currentLook, defaultLook, slotStyle } from "../../src/text/look.js";
 import { actionsMenu, booksChrome, confirm } from "./fixture.js";
 import { cellWidth } from "../../src/chrome/width.js";
 
@@ -95,7 +95,10 @@ describe("sources and menus", () => {
     expect(text(scrolled)).toContain("merge");
     expect(text(scrolled)).not.toContain("│ !263");
     const typed = layoutMenu({ id: "t", title: "name", question: false, items: [], typed: "abcd", caret: 2 }, 80, 1, 22);
-    expect(typed.lines[1]!.map((c) => c.text).join("")).toContain(" ab▏cd");
+    expect(typed.lines[1]!.map((c) => c.text).join("")).toContain(" abcd");
+    // The caret is one reversed cell over the character it is before, on the overlay shade (input::render_field).
+    const caret = typed.lines[1]!.filter((c) => c.inverse);
+    expect(caret.map((c) => c.text)).toEqual(["c"]);
   });
 });
 
@@ -152,5 +155,20 @@ describe("status line keeps the keys Ratatui keeps (shell.rs status_line)", () =
     const chrome = base();
     chrome.status.message = { text: "configured repositories are readable" };
     expect(line(layoutStatus(chrome, 80, 0).cells)).toContain("1 broken");
+  });
+});
+
+describe("a note or heading of a menu with an icon (shell/menu.rs: the icon leads its first line)", () => {
+  it("draws the glyph and its gap after the cell of air, before the words, and makes room for it", () => {
+    const before = currentLook();
+    applyLook(defaultLook("nerd"));
+    try {
+      const items = [{ value: "n", label: "a program and its arguments", hint: "", note: true, heading: true, icon: "warning" }] as never;
+      const m = layoutMenu({ id: "t", title: "add", question: false, items, typed: "", caret: 0 }, 80, 1, 22);
+      const note = m.lines.map((l) => l.map((c) => c.text).join("")).find((l) => l.includes("a program"))!;
+      expect(note).toMatch(/^│ \S{1,2} a program and its arguments/);
+    } finally {
+      applyLook(before);
+    }
   });
 });

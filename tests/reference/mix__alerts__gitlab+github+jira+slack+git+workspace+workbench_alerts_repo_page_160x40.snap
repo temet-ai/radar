@@ -1,10 +1,8 @@
 ---
 source: tests/mix.rs
-assertion_line: 1365
 expression: shown
 ---
- radar    Repositories 1   Jira   Slack   Branches   Work (I)   History   Settings (,)                                                    ⠷ not synced yet  ✎ edit
-  GitLab    GitHub    Local workspaces
+ radar    Repositories 1   Slack   Branches   Work (I)   History   Settings (,)                                                        ⠷ not synced yet  ✎ edit
  Repositories › a › api
  acme/team-a/api                                                                                                                       firing · 1   main — none
  checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
@@ -41,5 +39,6 @@ expression: shown
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
+│                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                         1 open · 1 to review
+ REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                           1 open · 1 to review  gitlab slack

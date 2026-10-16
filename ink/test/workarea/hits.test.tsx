@@ -31,7 +31,8 @@ const FIXTURES = ["work_view.json"]; // the pending fixture has no map items and
 
 async function press(m: Mounted, x: number, y: number) {
   const before = m.intents().length;
-  m.type(`\x1b[<0;${x + 1};${y + 1}M`);
+  // a press and its release, as a terminal sends them: a click in a section's text acts when let go (runner.rs)
+  m.type(`\x1b[<0;${x + 1};${y + 1}M\x1b[<0;${x + 1};${y + 1}m`);
   await until(() => m.intents().length > before, 150);
   await tick(10);
   return m.intents().slice(before);

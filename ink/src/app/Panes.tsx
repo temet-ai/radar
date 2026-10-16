@@ -12,6 +12,7 @@ import { TabRow } from "./TabRow.js";
 import { bottomFieldRow, fieldRows, FIELD_ROWS } from "../chrome/filter.js";
 import { splitDock } from "../dock/layout.js";
 import { BgBox, CellLine, cellsOf, clipCells, lineCells, padCells, widthOfCells, wrapCells, type Cell } from "../text/cells.js";
+import { insideOf, selectKindOf, type SelectArea, type SelectKind } from "../input/selection.js";
 
 /**
  * The body of a screen, drawn like the Ratatui adapter (crates/radar-core/src/view_tui.rs): panes framed
@@ -58,11 +59,13 @@ export function share(total: number, parts: Array<{ length?: number; fill?: numb
 
 /** Marks `width` x `height` cells as pane `pane` (HitRegistry.addPane): the wheel over it scrolls it, a press on its empty
  * space focuses it (host.rs on_mouse, Hit::Pane). Draws only its children. */
-export function PaneArea({ pane, registry, width, height, children }: { pane?: string; registry?: NodeCx["registry"]; width: number; height: number; children?: React.ReactNode }) {
+export function PaneArea({ pane, registry, width, height, select, selectRight = 0, children }: { pane?: string; registry?: NodeCx["registry"]; width: number; height: number; select?: SelectKind; selectRight?: number; children?: React.ReactNode }) {
   const ref = useRef<DOMElement>(null);
   useLayoutEffect(() => {
-    const at = pane && registry?.addPane ? screenAt(ref.current) : null;
-    if (at) registry!.addPane!({ x: at.x, y: at.y, w: width, h: height, pane: pane! });
+    const at = pane && (registry?.addPane || (select && registry?.addSelect)) ? screenAt(ref.current) : null;
+    if (at && registry?.addPane) registry.addPane({ x: at.x, y: at.y, w: width, h: height, pane: pane! });
+    // Text is selected inside the frame: not its border, its title row or a scrollbar column (`selectRight`).
+    if (at && select && registry?.addSelect) registry.addSelect({ ...insideOf({ x: at.x, y: at.y, w: width, h: height }, selectRight), id: `pane:${pane}`, kind: select });
   });
   return (
     <Box ref={ref} flexDirection="column" width={width} height={height} flexShrink={0}>
@@ -71,13 +74,31 @@ export function PaneArea({ pane, registry, width, height, children }: { pane?: s
   );
 }
 
-export function Framed({ title, width, height, focused, plain, pane, registry, children }: { title: string; width: number; height: number; focused?: boolean; plain?: boolean; pane?: string; registry?: NodeCx["registry"]; children?: React.ReactNode }) {
+/** Where a selection area is registered (HitRegistry.addSelect). */
+export type SelectSink = { addSelect?(area: SelectArea): void };
+
+/** A framed box `width` x `height` whose inside text is selected with the mouse (a work area's section). Draws only its
+ * children. */
+export function SelectFrame({ registry, id, kind, width, height, children }: { registry?: SelectSink; id: string; kind: SelectKind; width: number; height: number; children?: React.ReactNode }) {
+  const ref = useRef<DOMElement>(null);
+  useLayoutEffect(() => {
+    const at = registry?.addSelect ? screenAt(ref.current) : null;
+    if (at) registry!.addSelect!({ ...insideOf({ x: at.x, y: at.y, w: width, h: height }), id, kind });
+  });
+  return (
+    <Box ref={ref} flexDirection="column" width={width} height={height} flexShrink={0}>
+      {children}
+    </Box>
+  );
+}
+
+export function Framed({ title, width, height, focused, plain, pane, registry, select, children }: { title: string; width: number; height: number; focused?: boolean; plain?: boolean; pane?: string; registry?: NodeCx["registry"]; select?: SelectKind; children?: React.ReactNode }) {
   const [bar, setBar] = useState<ScrollReport>(null);
   const report = useCallback((r: ScrollReport) => setBar((p) => (p === r || (p && r && p.max === r.max && p.at === r.at) ? p : r)), []);
   if (width < 4 || height < 2) return null;
   if (pane && registry) {
     return (
-      <PaneArea pane={pane} registry={registry} width={width} height={height}>
+      <PaneArea pane={pane} registry={registry} width={width} height={height} select={select}>
         <Framed title={title} width={width} height={height} focused={focused} plain={plain}>
           {children}
         </Framed>
@@ -187,7 +208,7 @@ export const paneTitle = (pane: { title: string; title_icon?: string | null }) =
 
 export function PaneFrame({ pane, width, height, focused, cx, renderNode }: { pane: Pane; width: number; height: number; focused: boolean; cx: NodeCx; renderNode: RenderNode }) {
   return (
-    <Framed title={paneTitle(pane)} width={width} height={height} focused={focused} plain={cx.plainText} pane={pane.pane} registry={cx.registry}>
+    <Framed title={paneTitle(pane)} width={width} height={height} focused={focused} plain={cx.plainText} pane={pane.pane} registry={cx.registry} select={selectKindOf(pane.body)}>
       <PaneContent pane={pane} width={width} height={height} cx={{ ...cx, focused }} renderNode={renderNode} />
     </Framed>
   );

@@ -470,3 +470,76 @@ fn rapid_repeat_tab_clicks_do_not_open_a_link_before_redraw() {
         ));
     }
 }
+
+/// A watch merge request for a review draft.
+fn ask_item(iid: &str, words: &str) -> crate::ask::Item {
+    crate::ask::Item {
+        id: format!("watch!{iid}"),
+        url: format!("https://git.example/ankh-morpork/watch/-/merge_requests/{iid}"),
+        label: format!("watch !{iid}"),
+        words: words.into(),
+        tickets: vec![],
+    }
+}
+
+#[test]
+fn a_press_on_another_item_leaves_the_open_edit_in_its_own_item() {
+    use radar_core::headless::Headless;
+    use radar_core::view::{Chord, Intent, Key, PaneId, Target};
+    let mut p = sample();
+    p.begin_ask_draft(crate::ask::Draft::new(&p.cfg, ask_item("12", "first")));
+    assert!(p.draft.as_mut().unwrap().add(ask_item("13", "second")));
+    p.pages = vec![Page::Draft];
+    let mut headless = Headless::new(host(p), 160, 40);
+    headless.focus(PaneId::Middle);
+    headless.send(Intent::Key { chord: Chord::char('e') });
+    headless.send(Intent::Key { chord: Chord::char('x') });
+    let draft = |h: &Headless| {
+        let d = slack(h.host()).draft.as_ref().expect("the draft");
+        (d.row, d.edit.as_ref().map(|e| e.value()), d.items[0].words.clone(), d.items[1].words.clone())
+    };
+    let editing = (0, Some("firstx".to_string()), "first".to_string(), "second".to_string());
+    assert_eq!(draft(&headless), editing);
+    let other = Target::new("item:1");
+    for intent in [
+        Intent::Select { target: other.clone() },
+        Intent::Context { target: other.clone() },
+        Intent::Activate { target: other.clone() },
+    ] {
+        headless.send(intent.clone());
+        assert_eq!(draft(&headless), editing, "{intent:?} waits for the edit");
+        assert!(headless.host().menu.is_none(), "{intent:?} opens no menu over the edit");
+    }
+    // ⏎ commits the edit into the item it was opened on.
+    headless.send(Intent::Key { chord: Chord::new(Key::Enter) });
+    assert_eq!(draft(&headless), (0, None, "firstx".to_string(), "second".to_string()));
+}
+
+#[test]
+fn a_press_on_a_feed_row_leaves_the_selection_while_the_filter_is_typed() {
+    use radar_core::headless::Headless;
+    use radar_core::view::{Intent, PaneId, TreeRow};
+    let mut headless = Headless::new(host(sample()), 160, 40);
+    headless.focus(PaneId::Middle);
+    headless.send(Intent::Invoke { action: "slack.feed.filter".into() });
+    assert!(slack(headless.host()).filter_input.is_some());
+    let before = slack(headless.host()).tree.borrow().selected().to_vec();
+    let other = slack(headless.host())
+        .shown
+        .borrow()
+        .keys()
+        .find(|path| **path != before)
+        .cloned()
+        .expect("a row other than the selected one");
+    let target = TreeRow::target_of(&other);
+    for intent in [
+        Intent::Select { target: target.clone() },
+        Intent::Context { target: target.clone() },
+        Intent::Activate { target: target.clone() },
+    ] {
+        headless.send(intent.clone());
+        assert_eq!(slack(headless.host()).tree.borrow().selected(), before, "{intent:?}");
+        assert!(slack(headless.host()).filter_input.is_some(), "{intent:?} leaves the filter open");
+        assert!(headless.host().menu.is_none());
+    }
+}

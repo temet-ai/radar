@@ -885,7 +885,7 @@ pub fn intent(p: &mut WorkspacePlugin, section: &str, intent: &v::Intent) -> Out
             click(p, section, target.as_str());
             press(p, v::Chord::new(v::Key::Enter))
         }
-        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) => Outcome::Ignored,
+        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
             Some(chord) => press(p, chord),
             None => Outcome::Ignored,

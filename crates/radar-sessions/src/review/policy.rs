@@ -58,22 +58,41 @@ pub fn decide(request: &PermissionRequest, cwd: &Path) -> Verdict {
     }
 }
 
-/// `path` is `cwd` or below it, with no `..` going out.
+/// `path` is `cwd` or below it, with no `..` going out. A worktree reached
+/// through a symlink (`~/projects` → `/data/projects`) is the same folder.
 fn inside(cwd: &Path, path: &str) -> bool {
     // A range (`main...HEAD`) has `..` inside a word, not as a path part.
     if path.split('/').any(|part| part == "..") {
         return false;
     }
     let p = Path::new(path);
-    p.is_relative() || p.starts_with(cwd)
+    let real = |q: &Path| std::fs::canonicalize(q).unwrap_or_else(|_| q.to_path_buf());
+    p.is_relative() || p.starts_with(cwd) || real(p).starts_with(real(cwd))
 }
 
-/// One simple command that only reads. Anything with a shell operator,
-/// substitution or redirection is not simple and goes to the operator.
+/// A command that only reads: one simple command, or a chain of them
+/// (`a && b`, `a || b`, `a; b`, `a | head`) where every part reads. Any other
+/// shell operator, substitution or redirection goes to the operator; only
+/// `2>/dev/null` is let through, as it writes nothing.
 fn read_only_command(command: &str, cwd: &Path) -> bool {
-    if command.contains(['|', '&', ';', '>', '<', '`', '$', '\n', '(', ')', '{', '}', '\\', '*', '?', '~', '!']) {
+    let command = crate::settings::config::unwrap_shell(command);
+    if command.contains('\n') {
         return false;
     }
+    let chain = command.replace("2>/dev/null", " ").replace("&&", ";").replace("||", ";");
+    if chain.contains(['&', '>', '<', '`', '$', '(', ')', '{', '}', '\\', '*', '?', '~', '!']) {
+        return false;
+    }
+    chain.split([';', '|']).all(|part| simple_read(part.trim(), cwd))
+}
+
+/// `git` subcommands that only list when given flags alone (`git branch -avv`,
+/// `git remote -v`), and the flags that make them change something.
+const GIT_LIST: &[&str] = &["branch", "remote", "tag", "stash"];
+const GIT_LIST_CHANGES: &[&str] =
+    &["-d", "-D", "-m", "-M", "-c", "-C", "-f", "-u", "--delete", "--move", "--copy", "--force", "--set-upstream-to", "--unset-upstream", "--edit-description"];
+
+fn simple_read(command: &str, cwd: &Path) -> bool {
     let mut words = command.split_whitespace();
     let Some(program) = words.next() else { return false };
     let args: Vec<&str> = words.collect();
@@ -84,7 +103,13 @@ fn read_only_command(command: &str, cwd: &Path) -> bool {
         return false;
     }
     match program {
-        "git" => args.first().is_some_and(|sub| GIT_READ.contains(sub)),
+        "git" => match args.split_first() {
+            Some((sub, _)) if GIT_READ.contains(sub) => true,
+            // `git stash list`, `git remote -v`, `git branch -avv`: listing only.
+            Some((&"stash", rest)) => rest == ["list"],
+            Some((sub, rest)) if GIT_LIST.contains(sub) => rest.iter().all(|a| a.starts_with('-') && !GIT_LIST_CHANGES.contains(a)),
+            _ => false,
+        },
         p => READ_PROGRAMS.contains(&p),
     }
 }

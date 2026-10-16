@@ -32,12 +32,15 @@ pub mod runner;
 pub mod runtime;
 pub mod select;
 pub mod settings_view;
+pub mod setup;
 pub mod shell;
 pub mod shot;
 pub mod source_context;
 pub mod splash;
+pub mod start_lines;
 pub mod system;
 mod terminal_host;
+pub mod tour;
 pub mod theme;
 pub mod time;
 pub mod ui;
@@ -61,7 +64,7 @@ pub use host::Host;
 pub use plugin::{
     Binding, CliExecution, CliObservation, CliObservations, CliTask, Effect, MAX_CLI_OBSERVATIONS,
     Menu, MenuItem, Msg, ObservedCliTask, Outcome, Pane, Plugin, ScreenGroup, ScreenSpec,
-    SectionSpec, Task, Tone, Typing, Verdict,
+    SectionSpec, SetupFinds, SetupGroup, SetupStep, Task, Tone, Typing, Verdict,
 };
 pub use theme::Theme;
 

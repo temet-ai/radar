@@ -134,7 +134,8 @@ const STATES: Record<string, (md: Model, W: number, H: number) => { chrome: any;
   // The host's snapshot carries the menu it asked (bridge.rs ask_and_tell); one without it says the question is closed.
   "a question": (md, W, H) => ({ chrome: chromeOf(W, H, { menu: structuredClone({ ...questionMenu, selected: md.menuSel }) }), screen: withSelected(shortList(4), md.sel) }),
   "a text field": (_md, W, H) => ({ chrome: chromeOf(W, H, structuredClone({ menu: { ...menu, typed: "ab", caret: 2 } })), screen: shortList(4) }),
-  "an input request": (_md, W, H) => ({ chrome: chromeOf(W, H), screen: shortList(4) }),
+  // The host's snapshots carry the typed menu while its input request is open; one without it says it is closed.
+  "an input request": (_md, W, H) => ({ chrome: chromeOf(W, H, structuredClone({ menu: { ...menu, id: "input", title: "branch name", items: [], typed: "", caret: 0 } })), screen: shortList(4) }),
 };
 /** Messages the host sends alongside the snapshot (a notice, a question, an input request) when the run begins. */
 const EXTRA: Record<string, () => any[]> = {

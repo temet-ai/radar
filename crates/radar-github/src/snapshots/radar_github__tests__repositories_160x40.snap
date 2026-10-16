@@ -1,5 +1,6 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
@@ -7,12 +8,12 @@ expression: text
 │General               ││ create a group or add a repository                                             ││ Create groups and choose repositories. Press a to  │
 │  ├─ parts            ││ ◆  github.com/acme                                                             ││ browse, e to edit, d to remove, or m to move a     │
 │  ├─ mode             ││   ├─ api                                                                       ││ repository.                                        │
-│  ├─ colours          ││   └─ docs                                                                      ││                                                    │
+│  ├─ appearance       ││   └─ docs                                                                      ││                                                    │
+│  ├─ colours          ││                                                                                ││                                                    │
 │  └─ icons            ││                                                                                ││                                                    │
 │GitHub                ││                                                                                ││                                                    │
 │  ├─ connection       ││                                                                                ││                                                    │
 │  └─ repositories     ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

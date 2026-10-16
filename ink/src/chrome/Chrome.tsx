@@ -4,23 +4,29 @@ import { layerMark } from "../app/scrim.js";
 import { inkStyle } from "../text/theme.js";
 import { textProps } from "../text/TextLine.js";
 import { Rows, useBg } from "../text/cells.js";
-import { bgOf, type Style } from "../text/look.js";
+import { bgOf, slotStyle, type Style } from "../text/look.js";
 import { selectedStyle } from "../nodes/tree.js";
 import { ScrollBar } from "../nodes/index.js";
 import {
   layoutMenu,
   layoutNav,
+  layoutSetupTopBar,
   layoutSources,
   layoutStatus,
   layoutTopBar,
+  MENU_BOX,
   type Cell,
   type Laid,
   type MenuLayout,
 } from "./layout.js";
 import { cellWidth, clipSegments } from "./width.js";
 import type { HistoryLayout } from "./history.js";
+import type { RailLaid } from "./rail.js";
+import { layoutTour } from "./tour.js";
+import { TextLine } from "../text/TextLine.js";
 import { Framed } from "../app/Panes.js";
 import type { ChromeView, Hit, MenuView } from "./types.js";
+import type { TourCard } from "../protocol/generated/TourCard.js";
 
 export const styleOf = (c: Cell): Style => ({
   ...inkStyle(c.ink),
@@ -97,7 +103,7 @@ export function frameOf(
   height: number,
 ): ChromeFrame {
   // What the pointer is over is lit over the finished frame (app/hover.ts), not here.
-  const top = layoutTopBar(chrome, width, 0);
+  const top = chrome.setup ? layoutSetupTopBar(chrome, chrome.setup, width, 0) : layoutTopBar(chrome, width, 0);
   const sources = layoutSources(chrome, width, 1);
   const bodyTop = sources ? 2 : 1;
   const statusY = Math.max(bodyTop, height - 1);
@@ -126,8 +132,14 @@ export function frameOf(
   const laidMenu = menu ? layoutMenu(menu, width, bodyTop, bodyHeight) : null;
   // A menu is over everything: its hits win and the status line stays live (a click on `q quit`
   // presses it with a menu open); the body below is not a target while a menu is open.
+  // The menu's whole frame is a hit too, under its rows (host.rs Hit::MenuBox): a press on its field or its border
+  // keeps it open, a press anywhere else closes it.
   const finalHits = laidMenu
-    ? [...hits.filter((h) => h.y === 0 || h.y === statusY), ...laidMenu.hits]
+    ? [
+        ...hits.filter((h) => h.y === 0 || h.y === statusY),
+        { x: laidMenu.x, y: laidMenu.y, w: laidMenu.w, h: laidMenu.h, target: MENU_BOX },
+        ...laidMenu.hits,
+      ]
     : hits;
   return {
     width,
@@ -152,6 +164,18 @@ export function TopBarRow({ frame }: { frame: ChromeFrame }) {
 
 export function StatusRow({ frame }: { frame: ChromeFrame }) {
   return <CellRow cells={frame.status.cells} />;
+}
+
+/** Setup's step rail (chrome/rail.ts): its two rows, `inset` cells of ground on each side (setup's body keeps one). */
+export function RailRows({ rail, inset = 0 }: { rail: RailLaid; inset?: number }) {
+  const ground: Cell = { text: " ".repeat(inset), style: { backgroundColor: bgOf("bg.base") } };
+  return (
+    <Box flexDirection="column" flexShrink={0}>
+      {rail.rows.map((cells, i) => (
+        <CellRow key={i} cells={inset > 0 ? [ground, ...cells, ground] : cells} />
+      ))}
+    </Box>
+  );
 }
 
 export function SourcesRow({ frame }: { frame: ChromeFrame }) {
@@ -255,6 +279,42 @@ export function MenuBox({
           <CellRow cells={cells} />
         </Box>
       ))}
+    </Box>
+  );
+}
+
+/** The tour's card (shell/tour.rs): a panel on bg.surface at the body's lower right, thrown a shadow and nothing else
+ * dims (the layer's mark is shadow-only, app/scrim.ts). A menu draws after it and over it. */
+export function TourCardBox({ card, width, height }: { card: TourCard; width: number; height: number }) {
+  const t = layoutTour(card, width, height);
+  if (!t) return null;
+  const inner = Math.max(0, t.w - 4);
+  const emphasis = { ...slotStyle("text.emphasis"), bold: true, backgroundColor: bgOf("bg.surface") };
+  const muted = { ...slotStyle("text.muted"), backgroundColor: bgOf("bg.surface") };
+  return (
+    <Box position="absolute" marginLeft={t.x} marginTop={t.y} width={t.w} height={t.h} flexDirection="column">
+      <Box position="absolute" width={1} height={1}>
+        <Transform transform={layerMark(t.w, t.h, true)}>
+          <Text> </Text>
+        </Transform>
+      </Box>
+      <Framed title={t.title} width={t.w} height={t.h} focused>
+        <Box flexDirection="column" paddingLeft={1} width={t.w - 2} height={t.h - 2} overflow="hidden">
+          {t.lines.map((l, i) => (
+            <Box key={i} width={inner} height={1} flexShrink={0}>
+              {l.kind === "title" || l.kind === "try" ? (
+                <Text wrap="truncate" {...textProps(l.kind === "title" ? emphasis : muted)}>
+                  {l.words}
+                </Text>
+              ) : l.text ? (
+                <TextLine text={l.text} />
+              ) : (
+                <Text> </Text>
+              )}
+            </Box>
+          ))}
+        </Box>
+      </Framed>
     </Box>
   );
 }

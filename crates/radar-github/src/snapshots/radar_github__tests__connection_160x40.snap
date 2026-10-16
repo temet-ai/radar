@@ -1,42 +1,43 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ server ────────────────────────────────────────────╮
-│General               ││  server          https://api.github.com                                        ││ NOW                                                │
-│  ├─ parts            ││  token           configured token                                              ││ https://api.github.com                             │
-│  ├─ mode             ││  check           GitHub connection                                             ││                                                    │
-│  ├─ colours          ││  refresh         once on start, then on request                                ││ The GitHub API radar talks to: api.github.com for  │
-│  └─ icons            ││                                                                                ││ github.com, or your own GitHub Enterprise Server   │
-│GitHub                ││                                                                                ││ or a local server. The token is sent only to this  │
-│  ├─ connection       ││                                                                                ││ address.                                           │
-│  └─ repositories     ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ACCEPTS                                            │
-│                      ││                                                                                ││ https://api.github.com · a GitHub Enterprise       │
-│                      ││                                                                                ││ Server's https://HOST/api/v3 ·                     │
-│                      ││                                                                                ││ http://127.0.0.1:PORT for a local server           │
+╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ public only ───────────────────────────────────────╮
+│General               ││  SIGN IN  how radar reads GitHub                                               ││ NOW                                                │
+│  ├─ parts            ││  [ ] public only     public repositories, no token                             ││ env:GITHUB_TOKEN                                   │
+│  ├─ mode             ││  [ ] gh's sign-in    asks gh for its token                                     ││                                                    │
+│  ├─ appearance       ││  [x] a token         env:NAME, or one pasted                                   ││ No token: radar reads public repositories only.    │
+│  ├─ colours          ││                                                                                ││                                                    │
+│  └─ icons            ││  server          https://api.github.com                                        ││ ACCEPTS                                            │
+│GitHub                ││  token           env:GITHUB_TOKEN                                              ││ empty, gh, env:NAME, or a token                    │
+│  ├─ connection       ││  check           not checked yet                                               ││                                                    │
+│  └─ repositories     ││  refresh         once on start, then on request                                ││ config: [github] token                             │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ config: [github] api                               │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││  ACCESS  what radar may do on GitHub                                           ││ EASIEST: THE GH PROGRAM ────────────────────────── │
+│                      ││  [x] read only       pull requests, checks, runs                               ││   Choose gh's sign-in. Not signed in yet?          │
+│                      ││  [ ] read and write  adds comment, approve, merge, re-run                      ││   $ gh auth login                                  │
+│                      ││                                                                                ││   cli.github.com: install gh                       │
+│                      ││  REPOSITORIES  github.com/owner, owner/repo or a group name                    ││ OR A TOKEN ─────────────────────────────────────── │
+│                      ││  + add a repository or group   paste or type it                                ││   Public repositories need none. For private ones: │
+│                      ││    github.com/acme   2 repositories                                            ││   1 Open the fine-grained token page:              │
+│                      ││                                                                                ││   github.com / new token   o opens · y copies      │
+│                      ││                                                                                ││   2 Repository access: the repositories to follow. │
+│                      ││                                                                                ││   3 Permissions come filled in from access:        │
+│                      ││                                                                                ││   contents, pull requests, actions, statuses:      │
+│                      ││                                                                                ││   read.                                            │
+│                      ││                                                                                ││   4 Generate token, copy the github_pat_… value    │
+│                      ││                                                                                ││   into token, or:                                  │
+│                      ││                                                                                ││   $ export GITHUB_TOKEN=…                          │
+│                      ││                                                                                ││     then the token is env:GITHUB_TOKEN             │
+│                      ││                                                                                ││ AN ORGANISATION'S REPOSITORIES ─────────────────── │
+│                      ││                                                                                ││   Choose the organisation as the token's resource  │
+│                      ││                                                                                ││   owner.                                           │
+│                      ││                                                                                ││   Some need an owner to approve the token.         │
+│                      ││                                                                                ││ MORE ───────────────────────────────────────────── │
+│                      ││                                                                                ││   GitHub docs: access tokens                       │
+│                      ││                                                                                ││   radar guide: connect GitHub                      │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │

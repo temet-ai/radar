@@ -5,11 +5,7 @@ Jira and Slack. It shows your merge requests, pull requests, tickets and the Sla
 about them on one screen, joined to each other and to the code checked out on your machine,
 and it runs coding agents (Claude, Codex, GitHub Copilot) beside that work.
 
-> radar is an alpha: screens, keys and the config file can still change ([status](#status)).
-
 ![radar starting, then moving through merge requests, a merge request's page, Jira, Slack and an agent session](docs/user-guide/images/demo.gif)
-
-The same demo as a video, which you can pause: [demo.mp4](docs/user-guide/images/demo.mp4).
 
 ## What it does
 
@@ -66,7 +62,7 @@ settings. Press `x` anywhere to see every key that works there.
 
 ## Status
 
-radar is an alpha (0.1.0-alpha.6). It is used every day by its maintainers, but screens,
+radar is in alpha (0.1.0-alpha.6). It is used every day by its maintainers, but screens,
 keys and the config file can still change between releases, and some parts are newer than
 others: GitHub is read-only for now, and the agent dock is the newest part.
 

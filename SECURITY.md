@@ -12,7 +12,7 @@ open the **Security** tab and choose **Report a vulnerability**. Please do not o
 issue for it.
 
 Say what you found, how to reproduce it, and which version (`radar --version`) and platform
-you used. We aim to reply within a week. radar is an alpha maintained by a small team, so
+you used. We aim to reply within a week. radar is in alpha and maintained by a small team, so
 fixes ship in the next alpha release rather than as patches to older ones.
 
 ## Supported versions

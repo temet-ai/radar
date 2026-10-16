@@ -1,6 +1,6 @@
 # Contributing to radar
 
-Thank you for helping. radar is an alpha, so the most useful contributions right now are
+Thank you for helping. radar is in alpha, so the most useful contributions right now are
 bug reports from real use, and small fixes. For anything larger, open an issue first and
 say what you have in mind, so we can agree on the shape before you spend time on it.
 

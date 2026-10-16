@@ -12,7 +12,7 @@ it changes nothing at all.
 
 ![radar on the Repositories screen](images/repositories.png)
 
-radar is an alpha. Expect rough edges, and expect it to change between releases.
+radar is in alpha. Expect rough edges, and expect it to change between releases.
 
 **On this page**
 

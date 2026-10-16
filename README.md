@@ -67,12 +67,10 @@ releases. GitHub is read-only for now, and the agent dock is the newest part.
 
 ## Privacy
 
-radar keeps your config, caches and local history on your machine. Tokens go only to the
-service they belong to, at the address you configured, and are never logged. radar sends no
-telemetry. The first time you start a Claude session radar downloads Anthropic's Claude
-Agent SDK (1.6 MB) from the npm registry itself, checks it against a pinned checksum and
-keeps it in its cache; you do not need Node or npm for this.
-[What radar stores and sends](docs/user-guide/privacy.md) has the full list, and
+radar's config, cache and history are files under your home folder. It talks to the
+services you connect, and to the npm registry once, to fetch Anthropic's Claude Agent SDK
+(1.6 MB) the first time you start a Claude session.
+[What radar stores and sends](docs/user-guide/privacy.md) lists each file and request, and
 [SECURITY.md](SECURITY.md) says how to report a security problem.
 
 ## Contributing

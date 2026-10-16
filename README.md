@@ -62,9 +62,8 @@ settings. Press `x` anywhere to see every key that works there.
 
 ## Status
 
-radar is in alpha (0.1.0-alpha.6). It is used every day by its maintainers, but screens,
-keys and the config file can still change between releases, and some parts are newer than
-others: GitHub is read-only for now, and the agent dock is the newest part.
+Version 0.1.0-alpha.6. Screens, keys and the config file can still change between
+releases. GitHub is read-only for now, and the agent dock is the newest part.
 
 ## Privacy
 

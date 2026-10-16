@@ -7,26 +7,77 @@ and it runs coding agents (Claude, Codex, GitHub Copilot) beside that work.
 
 ![radar starting, then moving through merge requests, a merge request's page, Jira, Slack and an agent session](docs/user-guide/images/demo.gif)
 
-## What it does
+## What it is for
 
-- **One list of what needs you.** Merge requests and pull requests across groups and
-  organisations, with pipelines and checks; Jira tickets across sites; Slack mentions,
-  threads and review asks. Each links to the others: a ticket shows its merge requests and
-  the Slack threads that discuss it.
-- **Act without switching tools.** Comment, reply, approve, rebase, merge, move a ticket or
-  check out a branch from the keyboard. Every write is shown to you in full and sent only
-  when you say yes, and in read-only mode (one click on the mode at the top right) radar
-  sends nothing at all.
-- **Your local work in the same place.** radar finds your checkouts of the repositories it
-  shows, opens them in your editor or a terminal, and keeps a private local history of what
-  you did.
-- **Agents next to the work.** An agent dock runs Claude (through your own Claude Code),
-  Codex or Copilot sessions, and you can hand an agent a merge request or ticket with its
-  context already written down. Each agent runs as your own CLI (`claude`, `codex` or
-  `copilot`, installed and signed in as usual) with your own login.
+You open radar in a terminal and keep it open. Each screen is one part of your day, and
+each part works the same way: views on the left, items in the middle, the selected item's
+detail on the right, and a page for each item. The bottom line shows the keys that work
+where you are; `x` lists them all.
 
-radar is one file: there is no Node, Python or other runtime to install, and it works in
-any modern terminal, over SSH and inside tmux.
+### Merge requests (GitLab)
+
+Your groups and repositories as a tree, with their open merge requests: which need your
+review, which are yours and need fixing, which are ready to merge, and whose pipeline
+failed. A merge request's page has its description, changes, threads and pipeline. From
+there you can comment, approve, rebase, merge or check out its branch.
+
+![Merge requests on the Repositories screen](docs/user-guide/images/repositories.png)
+
+### Pull requests (GitHub)
+
+Repositories, open pull requests, the checks on each pull request's head commit, and
+Actions runs. GitHub is read-only for now.
+
+![GitHub](docs/user-guide/images/github.png)
+
+### Tickets (Jira)
+
+Your saved queries as views, tickets grouped by site and status, each with the merge
+request linked to it. You can open, create, move, assign and comment on tickets.
+
+![Jira](docs/user-guide/images/jira.png)
+
+### Chat (Slack)
+
+Threads in the channels you watch, mentions of you and review asks, newest first, one line
+a message. You can reply, react and mark threads read.
+
+![Slack](docs/user-guide/images/slack.png)
+
+### Your local code (Git)
+
+The clones on this machine, their worktrees and branches: which are dirty, ahead or behind
+their remote, and your stashes. On a merge request or repository radar shows where it is
+checked out, and opens it in your editor or a terminal.
+
+![Branches](docs/user-guide/images/branches.png)
+
+### Work and history
+
+Work is a list of your own tasks and of items you add from any screen. History is a record
+on your machine of what radar did: syncs, items opened, and each write you confirmed or
+declined.
+
+![Work](docs/user-guide/images/work.png)
+
+### Agents
+
+A dock under the middle pane runs Claude (through your own Claude Code), Codex or Copilot
+sessions. `A` on a row starts a session with that item already described to the agent, and
+`i` on a merge request asks an agent to review it locally. Each agent runs as your own CLI,
+with your own login, and waits for you before it runs a command or changes a file.
+
+![The agent dock](docs/user-guide/images/agent-dock.png)
+
+### The parts work together
+
+A ticket shows its merge requests and the Slack threads that discuss it; a merge request
+shows its ticket and where it is checked out. Every write (a comment, an approval, a merge)
+is shown in full and sent when you confirm it, and the mode at the top right (read only,
+write or edit) sets which writes radar may send at all.
+
+radar is one file. It needs no Node, Python or other runtime, and it works in any modern
+terminal, over SSH and inside tmux.
 
 ## Install
 

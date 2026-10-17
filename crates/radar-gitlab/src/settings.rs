@@ -563,7 +563,8 @@ fn check(p: &mut GitlabPlugin, target: CheckTarget) -> Vec<Effect> {
     let request = settings_checks::begin(p, &target);
     let key = target.key();
     p.checks.insert(key.clone(), (Check::Running, p.now));
-    let (url, token, access) = (p.cfg.url.clone(), p.cfg.token.clone(), p.cfg.access);
+    let (url, access) = (p.cfg.url.clone(), p.cfg.access);
+    let provider = p.provider();
     let kind = target.kind();
     let path = match &target {
         CheckTarget::Auth => String::new(),
@@ -578,7 +579,7 @@ fn check(p: &mut GitlabPlugin, target: CheckTarget) -> Vec<Effect> {
         request,
         async move {
             let attempt = crate::settings_history::Attempt::default();
-            let result = crate::auth::run(&url, &token, |client: Client| {
+            let result = provider.run(|client: Client| {
                 attempt.enter();
                 let path = path.clone();
                 async move {
@@ -782,6 +783,10 @@ fn validate(p: &GitlabPlugin, target: &Target, text: &str) -> Result<String, Str
             "glab" => Ok("reuses glab's login".into()),
             t if t.starts_with("env:") => {
                 let var = &t[4..];
+                #[cfg(any(test, feature = "test-support"))]
+                if p.scripted_fixture {
+                    return Ok(format!("{var}: scripted fixture uses no credential"));
+                }
                 if std::env::var(var).is_ok() {
                     Ok(format!("{var} is set"))
                 } else {

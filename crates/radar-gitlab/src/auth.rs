@@ -104,6 +104,45 @@ where
     with_token(&tokens, |token| op(Client::new(url, token))).await
 }
 
+/// Captured connection and optional explicitly installed fixture. Reads retain
+/// the production renewal policy; writes deliberately obtain only one client.
+#[derive(Clone)]
+pub(crate) struct Provider {
+    pub url: String,
+    pub spec: String,
+    #[cfg(any(test, feature = "test-support"))]
+    pub scripted: bool,
+    #[cfg(any(test, feature = "test-support"))]
+    pub fixture: Option<crate::test_support::HostedFixture>,
+}
+
+impl Provider {
+    pub fn client(&self) -> Result<Client> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.scripted {
+            return self.fixture.as_ref()
+                .map(|fixture| fixture.client(&self.url))
+                .ok_or_else(|| anyhow!("scripted GitLab fixture has no transport"));
+        }
+        // Single-send mutations do not renew or retry after rejection.
+        let token = config::resolve_token(&self.spec, &self.url)?;
+        Ok(Client::new(&self.url, token))
+    }
+
+    pub async fn run<T, F, Fut>(&self, op: F) -> Result<T>
+    where
+        F: Fn(Client) -> Fut,
+        Fut: Future<Output = Result<T>>,
+    {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.scripted {
+            // Synthetic auth has no renewable credentials or CLI fallback.
+            return op(self.client()?).await;
+        }
+        run(&self.url, &self.spec, op).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

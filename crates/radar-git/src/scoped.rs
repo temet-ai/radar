@@ -339,7 +339,7 @@ pub(crate) fn contribute(p: &GitPlugin, point: Point, s: &Subject) -> Option<Con
         if let Some(c) = chosen(p, &sel.key) {
             // Keep this one-line contribution factual at narrow widths. Folder
             // actions remain in the context menu and never change its branch.
-            words.push(Chip::new(local::tilde(&c.dir), Tone::Plain));
+            words.push(Chip::new(local::display_path(p, &c.dir), Tone::Plain));
             words.push(Chip::new(format!(" · on {}", c.branch), Tone::Muted));
         } else {
             words.push(Chip::new(

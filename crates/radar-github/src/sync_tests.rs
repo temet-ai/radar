@@ -3,6 +3,7 @@
 
 use super::*;
 use crate::model::{ApiErrorKind, Completion, RateLimit};
+use crate::test_support::RepositoryBuilder;
 use radar_core::shell::to_text;
 use serde_json::json;
 
@@ -465,13 +466,7 @@ fn read_of(p: &GithubPlugin, index: usize, reply: sync::Reply) -> Answer {
             &Target::Repository(repo.id.clone()),
         ),
         repository: Some(Ok(Fresh::New(
-            Repository {
-                id: repo.id.clone(),
-                description: None,
-                default_branch: "main".into(),
-                private: false,
-                archived: false,
-            },
+            RepositoryBuilder::default().id(repo.id.clone()).build(),
             None,
         ))),
         pulls: Ok(Fresh::New(
@@ -535,13 +530,10 @@ fn filled(p: &GithubPlugin, index: usize) -> model::Probed {
     model::Probed {
         marker: Some(marker(0, "2026-10-13T09:00:00Z")),
         full: Some(model::Full {
-            repository: Repository {
-                id: id.clone(),
-                description: Some("read in the probe".into()),
-                default_branch: "main".into(),
-                private: false,
-                archived: false,
-            },
+            repository: RepositoryBuilder::default()
+                .id(id.clone())
+                .description("read in the probe")
+                .build(),
             pulls: Collection {
                 items: vec![demo::pull(&id, 5, "Read in the probe")],
                 completion: Completion::complete(1),

@@ -4,6 +4,11 @@
 //! The separate scripted CLI fixture uses the real read parser with an in-memory,
 //! fail-closed transport. Neither fixture is selected by normal startup.
 
+mod hosted;
+pub use hosted::{
+    AcceptedPost, ExpectedRequest, HostedFixture, Reply, Request, RequestRecord, hosted_plugin,
+};
+
 use crate::{Settings, SlackPlugin, cache::AccountOwner, demo, model::Data};
 
 /// Build synthetic account-local rows for an integration test. Never used by
@@ -91,6 +96,7 @@ pub fn cli_plugin(replies: Vec<(String, serde_json::Value)>) -> (SlackPlugin, Cl
         ..Default::default()
     })));
     let mut plugin = SlackPlugin::new();
+    plugin.scripted_fixture = true;
     plugin.via = crate::Via(Some(std::sync::Arc::new(fixture.clone())));
     (plugin, fixture)
 }
@@ -122,6 +128,35 @@ mod tests {
                 .to_string()
                 .contains("fixture exhausted")
         );
+        assert_eq!(fixture.0.lock().unwrap().violations, 1);
+    }
+
+    #[tokio::test]
+    async fn scripted_cli_runner_never_resolves_configured_credentials() {
+        let (mut plugin, fixture) = cli_plugin(vec![(
+            "auth.test".into(), json!({"ok":false,"error":"invalid_auth"}),
+        )]);
+        plugin.configure(Some(&toml::Value::try_from(Settings {
+            token: "env:NEVER_RESOLVE_CLI_TOKEN".into(),
+            api: "env:NEVER_RESOLVE_CLI_API".into(),
+            channels: vec![toml::from_str("alias = 'watch'\nid = 'CWATCH001'\n").unwrap()],
+            ..Default::default()
+        }).unwrap())).unwrap();
+        let command = plugin.cli().unwrap().try_get_matches_from(["slack", "list"]).unwrap();
+        let error = plugin.run_cli(&command).await.unwrap_err();
+        fixture.assert_finished();
+        assert_eq!(fixture.calls(), vec!["auth.test"], "{error:#}");
+        assert_eq!(error.to_string(), "the token was refused (invalid_auth)", "{error:#}");
+    }
+
+    #[tokio::test]
+    async fn cli_fixture_still_refuses_writes_without_consuming_a_read_reply() {
+        let (plugin, fixture) = cli_plugin(vec![("auth.test".into(), json!({"ok":true,"team_id":"TWATCH","user_id":"UVIMES"}))]);
+        let client = plugin.client().unwrap();
+        assert!(client.react("CWATCH", "1791200000.000100", "eyes").await.unwrap_err().to_string().contains("refuses writes"));
+        assert_eq!(fixture.0.lock().unwrap().replies.len(), 1);
+        assert_eq!(fixture.0.lock().unwrap().violations, 1);
+        assert!(client.auth_test().await.is_ok());
         assert_eq!(fixture.0.lock().unwrap().violations, 1);
     }
 

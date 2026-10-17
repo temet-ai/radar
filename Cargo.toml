@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "3"
 
 [workspace.package]
-version = "0.1.0-alpha.7"
+version = "0.1.0-alpha.8"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT"
@@ -103,6 +103,10 @@ shots = ["png", "demo"]
 png = ["radar-core/png"]
 demo = ["radar-core/test-support", "radar-gitlab?/demo", "radar-github?/demo", "radar-jira?/demo", "radar-slack?/demo", "radar-git?/demo", "radar-workspace?/demo", "radar-workbench?/demo", "radar-sessions?/demo"]
 
+# Cross-crate fixtures only for selected parts; weak forwarding never selects one.
+# Demo and shipped builds do not enable owner fixtures; test lanes opt in explicitly.
+test-support = ["radar-core/test-support", "radar-git?/test-support", "radar-github?/test-support", "radar-gitlab?/test-support", "radar-jira?/test-support", "radar-slack?/test-support", "radar-sessions?/test-support"]
+
 [dependencies]
 radar-core.workspace = true
 radar-gitlab = { workspace = true, optional = true }
@@ -122,7 +126,6 @@ tokio.workspace = true
 
 [dev-dependencies]
 radar-core = { workspace = true, features = ["test-support"] }
-radar-slack = { workspace = true, features = ["test-support"] }
 insta.workspace = true
 portable-pty = "0.9.0"
 serde_json.workspace = true
@@ -131,7 +134,43 @@ serde_json.workspace = true
 [[test]]
 name = "slack_cli_history"
 harness = false
-required-features = ["slack"]
+required-features = ["slack", "test-support"]
+
+# Compatibility fixtures opt in explicitly, alongside demo where their lane needs it.
+[[test]]
+name = "mix"
+required-features = ["test-support"]
+
+[[test]]
+name = "reference_views"
+required-features = ["test-support"]
+
+[[test]]
+name = "github_links"
+required-features = ["github", "git", "jira", "slack", "demo", "test-support"]
+
+# Heavy root fixture binaries opt in explicitly, so a targeted invocation with
+# missing support reports Cargo's required-feature error instead of zero tests.
+# Provider modules select their own part; Cargo has no any-of required-features.
+[[test]]
+name = "provider_scenarios"
+required-features = ["test-support"]
+
+[[test]]
+name = "slack_scenarios"
+required-features = ["slack", "test-support"]
+
+[[test]]
+name = "local_scenarios"
+required-features = ["git", "workbench", "test-support"]
+
+[[test]]
+name = "agent_scenarios"
+required-features = ["sessions", "test-support"]
+
+[[test]]
+name = "review_scenarios"
+required-features = ["gitlab", "sessions", "test-support"]
 
 # The libraries are built optimised in dev and test builds too: tests draw
 # frames through ratatui, which unoptimised is ten times slower. radar's own

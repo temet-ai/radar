@@ -55,6 +55,8 @@ pub struct Client {
     /// never a mutation and never a URL from a response.
     api: Endpoint,
     transport: Arc<dyn Transport>,
+    #[cfg(any(test, feature = "test-support"))]
+    synthetic_auth: bool,
     // Only one detail target is active per client. A clone preserves this proof.
     verified_head: Arc<Mutex<Option<HeadProof>>>,
     verified_run: Arc<Mutex<Option<actions::RunProof>>>,
@@ -121,10 +123,20 @@ impl Client {
             token_ref: token_ref.into(),
             api,
             transport,
+            #[cfg(any(test, feature = "test-support"))]
+            synthetic_auth: false,
             verified_head: Arc::new(Mutex::new(None)),
             verified_run: Arc::new(Mutex::new(None)),
             traffic: Arc::new(Mutex::new(Traffic::default())),
         })
+    }
+
+    fn authorization(&self) -> Result<Option<HeaderValue>, ApiError> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.synthetic_auth {
+            return Ok(None);
+        }
+        auth::resolve_at(&self.token_ref, &self.api.gh_host())
     }
 
     /// What this client has sent so far, and GitHub's last rate-limit reports.
@@ -676,7 +688,7 @@ impl Client {
         let request = Request {
             headers,
             url: self.api.graphql().into(),
-            authorization: auth::resolve_at(&self.token_ref, &self.api.gh_host())?,
+            authorization: self.authorization()?,
             graphql: Some(body),
         };
         let response = self.transport.send(request).await?;
@@ -737,7 +749,7 @@ impl Client {
             } else {
                 format!("{}{path}?{query}", self.api.rest())
             },
-            authorization: auth::resolve_at(&self.token_ref, &self.api.gh_host())?,
+            authorization: self.authorization()?,
             graphql: None,
         };
         let response = self.transport.send(request).await?;
@@ -1315,20 +1327,29 @@ fn next_page(api: &Endpoint, headers: &HeaderMap, path: &str, page: u32) -> Resu
     Ok(found)
 }
 
-/// A GET, or with `graphql` a POST of that query to [`Endpoint::graphql`] only.
-struct Request {
-    url: String,
-    headers: HeaderMap,
-    authorization: Option<HeaderValue>,
-    graphql: Option<Vec<u8>>,
+pub(crate) mod wire {
+    use super::*;
+
+    /// A GET, or with `graphql` a POST of that query to [`Endpoint::graphql`] only.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[doc(hidden)]
+    pub struct Request {
+        pub url: String,
+        pub headers: HeaderMap,
+        pub authorization: Option<HeaderValue>,
+        pub graphql: Option<Vec<u8>>,
+    }
+    #[derive(Clone, Debug)]
+    #[doc(hidden)]
+    pub struct Response {
+        pub status: u16,
+        pub headers: HeaderMap,
+        pub body: Result<Vec<u8>, ApiError>,
+    }
 }
-struct Response {
-    status: u16,
-    headers: HeaderMap,
-    body: Result<Vec<u8>, ApiError>,
-}
-type ResponseFuture<'a> = Pin<Box<dyn Future<Output = Result<Response, ApiError>> + Send + 'a>>;
-trait Transport: Send + Sync {
+pub(crate) use wire::{Request, Response};
+pub(crate) type ResponseFuture<'a> = Pin<Box<dyn Future<Output = Result<Response, ApiError>> + Send + 'a>>;
+pub(crate) trait Transport: Send + Sync {
     fn send(&self, request: Request) -> ResponseFuture<'_>;
 }
 
@@ -1600,6 +1621,63 @@ struct RawStatus {
     context: String,
     state: String,
     description: Option<String>,
+}
+
+
+/// Captured by every plugin task, so a fixture cannot be lost at an async boundary.
+#[derive(Clone, Default)]
+pub(crate) struct Via {
+    #[cfg(any(test, feature = "test-support"))]
+    pub(crate) fixture: Option<crate::test_support::HostedFixture>,
+}
+
+impl Via {
+    pub(crate) fn client(
+        &self,
+        repositories: &[RepositoryId],
+        token: &str,
+        api: &str,
+    ) -> Result<Client, ApiError> {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture {
+            // Preserve public/authenticated request-path selection without
+            // retaining or resolving the user's reference. authorization() omits
+            // the header in both fixture modes; real auth has separate tests.
+            let token = if token.is_empty() {
+                ""
+            } else {
+                "env:RADAR_GITHUB_SYNTHETIC"
+            };
+            let endpoint = Endpoint::parse(api).map_err(|_| error(ApiErrorKind::InvalidTarget))?;
+            let mut client = Client::with_endpoint(
+                repositories, token, endpoint, Arc::new(fixture.clone()),
+            )?;
+            client.synthetic_auth = true;
+            return Ok(client);
+        }
+        Client::new(repositories, token, api)
+    }
+}
+
+#[cfg(any(test, feature = "test-support"))]
+impl Request {
+    /// Exact GET expectation, including the production headers; no credential.
+    pub fn get(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            headers: base_headers(),
+            authorization: None,
+            graphql: None,
+        }
+    }
+
+    /// Exact read-only GraphQL POST expectation. Bodies match byte for byte.
+    pub fn graphql(url: impl Into<String>, body: Vec<u8>) -> Self {
+        let mut request = Self::get(url);
+        request.headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        request.graphql = Some(body);
+        request
+    }
 }
 
 #[cfg(test)]

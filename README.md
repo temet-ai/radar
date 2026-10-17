@@ -132,7 +132,7 @@ screens, keys, agents and settings.
 
 ## Status
 
-Version 0.1.0-alpha.7. Screens, keys and the config file can still change between
+Version 0.1.0-alpha.8. Screens, keys and the config file can still change between
 releases. The agent dock is the newest part.
 
 ## Privacy

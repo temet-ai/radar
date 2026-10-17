@@ -597,6 +597,14 @@ fn read_task(
 
 fn request_read(p: &mut GitPlugin, dir: String) -> Effect {
     if p.branches.loading.insert(dir.clone()) {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = p.fixture.clone() {
+            let pending = fixture.pending();
+            return read_task(dir, move |dir| {
+                let _pending = pending;
+                read_with(dir, |path, args| fixture.git(path, args))
+            });
+        }
         read_task(dir, |dir| read_with(dir, git))
     } else {
         let mut action = read_action(&dir);
@@ -1407,7 +1415,7 @@ fn detail_blocks(p: &GitPlugin, now: i64) -> Vec<v::Block> {
         }
         Some(Sel::Clone(d)) => {
             let top = d.trees.first();
-            let mut rows = vec![("folder", text(local::tilde(&d.dir)))];
+            let mut rows = vec![("folder", text(local::display_path(p, &d.dir)))];
             if let Some(c) = checkout_of(p, &d.dir) {
                 if !c.remote.is_empty() {
                     rows.push(("origin", text(c.remote.clone())));
@@ -1444,7 +1452,7 @@ fn detail_blocks(p: &GitPlugin, now: i64) -> Vec<v::Block> {
                 let mut trees = Vec::new();
                 for w in d.trees.iter().skip(1) {
                     let mut line = Text::new().push(Seg::icon(Icon::Folder));
-                    line.extend(text(local::tilde(&w.dir)));
+                    line.extend(text(local::display_path(p, &w.dir)));
                     if !w.branch.is_empty() {
                         line.add(Seg::new(format!("  {}", w.branch), Ink::Muted));
                     }
@@ -1472,8 +1480,8 @@ fn detail_blocks(p: &GitPlugin, now: i64) -> Vec<v::Block> {
             }
         }
         Some(Sel::Tree(d, w)) => {
-            let mut rows = vec![("folder", text(local::tilde(&w.dir)))];
-            rows.push(("clone", text(local::tilde(&d.dir))));
+            let mut rows = vec![("folder", text(local::display_path(p, &w.dir)))];
+            rows.push(("clone", text(local::display_path(p, &d.dir))));
             rows.push((
                 "on",
                 text(if w.branch.is_empty() {
@@ -1495,7 +1503,7 @@ fn detail_blocks(p: &GitPlugin, now: i64) -> Vec<v::Block> {
             lines.push(plain("⏎ makes it the one radar acts on for this repo"));
         }
         Some(Sel::Branch(d, b)) => {
-            let mut rows = vec![("clone", text(local::tilde(&d.dir)))];
+            let mut rows = vec![("clone", text(local::display_path(p, &d.dir)))];
             rows.push((
                 "upstream",
                 if b.gone {
@@ -1525,7 +1533,7 @@ fn detail_blocks(p: &GitPlugin, now: i64) -> Vec<v::Block> {
                     }),
                 ));
             }
-            let here: Vec<String> = d.on(&b.name).iter().map(|w| local::tilde(&w.dir)).collect();
+            let here: Vec<String> = d.on(&b.name).iter().map(|w| local::display_path(p, &w.dir)).collect();
             if !here.is_empty() {
                 rows.push(("checked out", text(here.join(", "))));
             }
@@ -1742,7 +1750,7 @@ fn use_it(p: &mut GitPlugin) -> Option<Vec<Effect>> {
     }
     Some(vec![
         Effect::PersistCache,
-        Effect::Notify(format!("{project}: acting on {}", local::tilde(&dir))),
+        Effect::Notify(format!("{project}: acting on {}", local::display_path(p, &dir))),
     ])
 }
 

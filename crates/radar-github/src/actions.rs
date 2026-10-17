@@ -404,6 +404,7 @@ pub(crate) fn refresh(p: &mut GithubPlugin) -> Vec<Effect> {
     let ids = p.cfg.ids();
     let token = p.cfg.token.clone();
     let api = p.cfg.api.clone();
+    let via = p.via.clone();
     let kind = if matches!(target, Target::Run(..)) {
         "github.actions.run.read"
     } else {
@@ -423,7 +424,7 @@ pub(crate) fn refresh(p: &mut GithubPlugin) -> Vec<Effect> {
                 task: Box::pin(async move {
                     let result = async {
                         let c =
-                            client::Client::new(&ids, &token, &api).map_err(|e| e.to_string())?;
+                            via.client(&ids, &token, &api).map_err(|e| e.to_string())?;
                         let latest = c.workflow_run(&repo, id).await.map_err(|e| e.to_string())?;
                         if attempt == 0 || attempt > latest.run_attempt {
                             return Err("requested attempt is not in the observed run".into());
@@ -480,7 +481,7 @@ pub(crate) fn refresh(p: &mut GithubPlugin) -> Vec<Effect> {
             vec![Effect::SpawnAction {
                 action,
                 task: Box::pin(async move {
-                    let (read, reply) = match client::Client::new(&ids, &token, &api) {
+                    let (read, reply) = match via.client(&ids, &token, &api) {
                         Ok(c) => {
                             let read =
                                 read_runs(&c, &target, per_page, known_pull, held, marker).await;

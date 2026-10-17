@@ -562,6 +562,10 @@ pub struct Host {
     pub save_failed: Option<String>,
     /// Advances every tick; drives spinners.
     pub frame: usize,
+    /// Lifetime shell-render invocations on this host, independent of ticks.
+    /// Kept on the owned host so parallel or interleaved fixtures cannot mix.
+    #[cfg(feature = "test-support")]
+    pub(crate) scenario_shell_frames: Cell<u64>,
     /// Clickable areas of the last frame, in drawing order (later on top).
     pub hits: std::cell::RefCell<Vec<(ratatui::layout::Rect, Hit)>>,
     /// Where the mouse pointer is, while it is over the window.
@@ -746,6 +750,8 @@ impl Host {
             saving: Default::default(),
             save_failed: None,
             frame: 0,
+            #[cfg(feature = "test-support")]
+            scenario_shell_frames: Cell::new(0),
             hits: std::cell::RefCell::new(Vec::new()),
             pointer: None,
             hovered: std::cell::RefCell::new(None),
@@ -1753,6 +1759,13 @@ impl Host {
     /// Enable pure action collection. Only the runner opens a journal.
     pub fn enable_journal(&mut self) {
         self.trace.seed = Some(ActionId::new());
+        self.trace.enabled = true;
+    }
+
+    /// Isolated fixture namespace; each scenario owns its own journal.
+    #[cfg(feature = "test-support")]
+    pub(crate) fn enable_scenario_journal(&mut self) {
+        self.trace.seed = Some(ActionId::parse("10000000-0000-4000-8000-000000000000").expect("fixture action namespace"));
         self.trace.enabled = true;
     }
 

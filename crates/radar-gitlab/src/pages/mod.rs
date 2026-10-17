@@ -297,7 +297,8 @@ pub(crate) fn push(p: &mut GitlabPlugin, kind: Kind) -> Vec<Effect> {
 pub(crate) fn fetch(p: &mut GitlabPlugin, kind: &Kind, force: bool) -> Vec<Effect> {
     let (now, every) = (p.now, p.cfg.refresh_secs as i64);
     let fresh = |at: i64, loading: bool, has: bool| loading || (has && now - at < every);
-    let (url, token) = (p.cfg.url.clone(), p.cfg.token.clone());
+    let url = p.cfg.url.clone();
+    let provider = p.provider();
     match kind {
         Kind::Tenancy(_) => vec![],
         Kind::Job { project, id } => why::open_log(p, project, *id, force),
@@ -331,7 +332,7 @@ pub(crate) fn fetch(p: &mut GitlabPlugin, kind: &Kind, force: bool) -> Vec<Effec
             p.mr_page_reads.insert(key.clone(), read);
             fx.push(crate::page_history::spawn(
                 action, key, read, requested, async move {
-                    crate::auth::run(&url, &token, |c| {
+                    provider.run(|c| {
                         let project = project.clone();
                         async move { c.mr_detail_observed(&project, iid).await }
                     })
@@ -357,7 +358,7 @@ pub(crate) fn fetch(p: &mut GitlabPlugin, kind: &Kind, force: bool) -> Vec<Effec
             let path = path.clone();
             let action = crate::runs_history::action(&url, &path, &branch);
             fx.push(crate::runs_history::spawn(action, request, async move {
-                crate::auth::run(&url, &token, |c| {
+                provider.run(|c| {
                     let (path, branch) = (path.clone(), branch.clone());
                     async move { c.runs_observed(&path, &branch).await }
                 })

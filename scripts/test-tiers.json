@@ -1,0 +1,1588 @@
+{
+  "version": 1,
+  "scopes": [
+    {
+      "id": "github-models",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "test_support::tests::",
+      "cases": [
+        {
+          "name": "test_support::tests::defaults_are_minimal_and_repeatable",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned repository model defaults and override isolation."
+        },
+        {
+          "name": "test_support::tests::named_overrides_preserve_the_other_defaults_and_last_value_wins",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned repository model defaults and override isolation."
+        },
+        {
+          "name": "test_support::tests::cloned_builders_and_built_values_are_isolated",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned repository model defaults and override isolation."
+        }
+      ]
+    },
+    {
+      "id": "core-completion",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "task_completion::tests::",
+      "cases": [
+        {
+          "name": "task_completion::tests::untracked_result_preserves_plugin_and_typed_message",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Typed task completion, cancellation, panic and causal envelope mapping."
+        },
+        {
+          "name": "task_completion::tests::tracked_result_preserves_action_and_semantic_without_claiming_success",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Typed task completion, cancellation, panic and causal envelope mapping."
+        },
+        {
+          "name": "task_completion::tests::semantic_without_action_does_not_introduce_a_tracking_envelope",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Typed task completion, cancellation, panic and causal envelope mapping."
+        },
+        {
+          "name": "task_completion::tests::panicked_task_marks_each_context_unknown_and_discards_payload",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Typed task completion, cancellation, panic and causal envelope mapping."
+        },
+        {
+          "name": "task_completion::tests::cancelling_waiter_drops_nested_future",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Typed task completion, cancellation, panic and causal envelope mapping."
+        },
+        {
+          "name": "task_completion::tests::reverse_completion_keeps_each_tasks_own_causality",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Typed task completion, cancellation, panic and causal envelope mapping."
+        },
+        {
+          "name": "task_completion::tests::disabled_journal_completions_preserve_real_error_and_request_ids",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Absent journal handles produce production Disabled replies with original Work/History request identifiers; no database or host is constructed."
+        }
+      ]
+    },
+    {
+      "id": "core-scenarios",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "scenario::tests::",
+      "cases": [
+        {
+          "name": "scenario::tests::interleaved_hosts_scope_permissions_for_dispatch_and_inspection",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::credential_scanning_is_refused",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::work_and_history_are_not_fabricated",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::unsupported_effect_failure_cannot_be_hidden_by_a_true_predicate",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::stopped_completion_worker_is_a_sticky_failure",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::held_task_exhausts_budget_without_blocking_ready_task",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::storage_and_desktop_effects_are_captured_per_driver",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host reducer dispatch and bounded completion scheduling.",
+          "why_not_unit": "Needs host state, production completion workers and effect capture together."
+        },
+        {
+          "name": "scenario::tests::scratch_work_apply_and_read_use_real_writer_and_reply_ids",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Disposable real SQLite writer and Work replies preserve request identities and committed state.",
+          "why_not_unit": "Requires the real host scenario scheduler and disposable storage/journal lifecycle; pure completion mapping does not establish these effects or persistence guarantees."
+        },
+        {
+          "name": "scenario::tests::scratch_work_captures_request_mode_before_later_poll",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real Work writer respects request-time permissions across later asynchronous polling.",
+          "why_not_unit": "Requires the real host scenario scheduler and disposable storage/journal lifecycle; pure completion mapping does not establish these effects or persistence guarantees."
+        },
+        {
+          "name": "scenario::tests::scratch_history_reads_queued_records_without_audit_writes",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "History reads observe queued production journal records without manufacturing audit writes.",
+          "why_not_unit": "Requires the real host scenario scheduler and disposable storage/journal lifecycle; pure completion mapping does not establish these effects or persistence guarantees."
+        },
+        {
+          "name": "scenario::tests::scratch_journal_rejects_existing_database",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Scenario journal creation refuses an existing database rather than touching prior state.",
+          "why_not_unit": "Requires the real host scenario scheduler and disposable storage/journal lifecycle; pure completion mapping does not establish these effects or persistence guarantees."
+        },
+        {
+          "name": "scenario::tests::io_settle_timeout_keeps_pending_work_and_can_resume",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Bounded real-storage settling preserves pending work after a timeout for explicit resume.",
+          "why_not_unit": "Requires the real host scenario scheduler and disposable storage/journal lifecycle; pure completion mapping does not establish these effects or persistence guarantees."
+        },
+        {
+          "name": "scenario::tests::io_settle_step_budget_is_enforced",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Storage-aware scenario scheduling enforces the configured step budget.",
+          "why_not_unit": "Requires the real host scenario scheduler and disposable storage/journal lifecycle; pure completion mapping does not establish these effects or persistence guarantees."
+        },
+        {
+          "name": "scenario::tests::scratch_journal_reservation_preserves_existing_files_and_symlinks",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Atomic journal reservation preserves existing files, their permissions and symlink targets on Unix.",
+          "why_not_unit": "Exercises production journal opening with disposable real filesystem objects; pure model checks cannot establish atomic reservation or path preservation."
+        },
+        {
+          "name": "scenario::tests::scratch_journal_requires_an_existing_scratch_parent",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Journal creation refuses a missing scratch parent rather than creating directories implicitly.",
+          "why_not_unit": "Exercises production journal opening with disposable real filesystem objects; pure model checks cannot establish atomic reservation or path preservation."
+        },
+        {
+          "name": "scenario::tests::cost_counts_are_owned_and_include_settled_tracked_tasks",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Per-driver event, effect-envelope and completion-task counts remain isolated and cumulative through real tracked completion and settling.",
+          "why_not_unit": "Requires actual hosts, reducer dispatch and asynchronous completion scheduling to establish counter ownership and lifetime; isolated arithmetic cannot prove those wiring points."
+        },
+        {
+          "name": "scenario::tests::shell_frame_counts_cover_raw_helpers_and_ignore_neutral_views",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Every full shell render helper increments the owned host lifetime frame count while neutral views and other hosts do not.",
+          "why_not_unit": "Must invoke real full-frame shell helpers, including direct render and raw host access, to protect instrumentation coverage; pure views or mocked renderer calls cannot detect an uncounted render path."
+        }
+      ]
+    },
+    {
+      "id": "slack-cli-fixtures",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "test_support::tests::",
+      "cases": [
+        {
+          "name": "test_support::tests::scripted_cli_transport_survives_config_and_demo_without_network_fallback",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Read-only CLI replay injection survives configuration without credential fallback.",
+          "why_not_unit": "Exercises real plugin configuration and transport lifecycle; model-only tests cannot prove injection is retained."
+        },
+        {
+          "name": "test_support::tests::scripted_cli_runner_never_resolves_configured_credentials",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Read-only CLI replay injection survives configuration without credential fallback.",
+          "why_not_unit": "Exercises real plugin configuration and transport lifecycle; model-only tests cannot prove injection is retained."
+        },
+        {
+          "name": "test_support::tests::cli_fixture_still_refuses_writes_without_consuming_a_read_reply",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Read-only CLI replay injection survives configuration without credential fallback.",
+          "why_not_unit": "Exercises real plugin configuration and transport lifecycle; model-only tests cannot prove injection is retained."
+        },
+        {
+          "name": "test_support::tests::fixture_ignores_supplied_identity_and_never_uses_a_configured_credential",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Read-only CLI replay injection survives configuration without credential fallback.",
+          "why_not_unit": "Exercises real plugin configuration and transport lifecycle; model-only tests cannot prove injection is retained."
+        }
+      ]
+    },
+    {
+      "id": "slack-hosted-fixtures",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "test_support::hosted::tests::",
+      "cases": [
+        {
+          "name": "test_support::hosted::tests::exact_write_is_gated_and_ledger_keeps_completion",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::unexpected_request_is_sticky_even_when_optional_profile_failure_is_swallowed",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::full_payload_mismatch_does_not_consume_expectation_or_enable_fallback",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::injection_survives_config_token_reset_restore_and_demo_without_credentials",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::blocked_picture_fetch_is_a_sticky_violation",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::opening_slack_never_inspects_or_launches_local_processes",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::unused_and_duplicate_keys_are_rejected",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Exact keyed requests, gated responses and sticky violations across plugin lifecycle.",
+          "why_not_unit": "Requires real plugin client/request paths and injected transport lifecycle."
+        },
+        {
+          "name": "test_support::hosted::tests::accepted_post_receipt_precedes_lost_response_and_remains_independent",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Matched post acceptance is observed independently before release, while the client receives only a response-loss error.",
+          "why_not_unit": "Uses production client calls and gated fake transport to distinguish server acceptance, client knowledge and completion; pure request construction cannot establish those behaviors."
+        },
+        {
+          "name": "test_support::hosted::tests::mismatched_post_has_no_acceptance_and_does_not_consume_the_script",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "A mismatched post creates no acceptance, does not consume its expectation and leaves a sticky violation.",
+          "why_not_unit": "Uses production client calls and gated fake transport to distinguish server acceptance, client knowledge and completion; pure request construction cannot establish those behaviors."
+        },
+        {
+          "name": "test_support::hosted::tests::cancelled_accepted_post_remains_incomplete_and_release_failure_is_sticky",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Cancellation after synthetic acceptance leaves transport completion pending and release failures sticky.",
+          "why_not_unit": "Uses production client calls and gated fake transport to distinguish server acceptance, client knowledge and completion; pure request construction cannot establish those behaviors."
+        },
+        {
+          "name": "test_support::hosted::tests::accepted_post_fault_rejects_reads_reactions_and_malformed_posts_up_front",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Pure fault/request construction rejects reads, reactions, malformed post fields and timestamps before creating a plugin, client or transport."
+        }
+      ]
+    },
+    {
+      "id": "slack-journeys",
+      "package": "radar",
+      "binary": "slack_scenarios",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "confirmed_reply_waits_for_provider_then_refreshes_and_persists_success",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "Refresh, confirmation, provider response and persisted journal outcome.",
+          "why_not_unit": "Needs production host and Slack reducers plus disposable real SQLite to establish causal persisted outcome."
+        },
+        {
+          "name": "read_only_confirmation_refuses_all_writes_and_keeps_the_reply",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "Refresh, confirmation, provider response and persisted journal outcome.",
+          "why_not_unit": "Needs production host and Slack reducers plus disposable real SQLite to establish causal persisted outcome."
+        },
+        {
+          "name": "uncertain_provider_failure_is_not_retried_and_retains_the_draft",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "Refresh, confirmation, provider response and persisted journal outcome.",
+          "why_not_unit": "Needs production host and Slack reducers plus disposable real SQLite to establish causal persisted outcome."
+        },
+        {
+          "name": "accepted_post_with_lost_response_stays_unknown_and_is_not_resent_after_restart",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "An accepted post with a lost response stays Unknown in the original journal; a fresh host restores the serialized cache snapshot without resending and reads the accepted message.",
+          "why_not_unit": "Requires production host/Slack reducers, independent acceptance receipts, real serialized snapshot restore and disposable SQLite assertions. The second in-process host uses a separate journal: this is not process restart, cache-database recovery, same-database recovery or durable draft restoration. No full frame is needed."
+        }
+      ]
+    },
+    {
+      "id": "key-parity",
+      "package": "radar",
+      "binary": "key_intent_parity",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "every_key_on_every_surface_does_the_same_as_a_terminal_key_or_an_intent",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab",
+            "github",
+            "jira",
+            "slack",
+            "git",
+            "workspace",
+            "workbench",
+            "sessions"
+          ],
+          "boundary": "Whole-app key/action intent parity across configured surfaces.",
+          "why_not_unit": "Cross-renderer host navigation and contributed actions cannot be established by one part alone; existing exhaustive sweep retained."
+        },
+        {
+          "name": "every_action_invoked_by_its_id_does_what_its_key_does",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab",
+            "github",
+            "jira",
+            "slack",
+            "git",
+            "workspace",
+            "workbench",
+            "sessions"
+          ],
+          "boundary": "Whole-app key/action intent parity across configured surfaces.",
+          "why_not_unit": "Cross-renderer host navigation and contributed actions cannot be established by one part alone; existing exhaustive sweep retained."
+        }
+      ]
+    },
+    {
+      "id": "ratatui-cells",
+      "package": "radar",
+      "binary": "ratatui_cells",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "the_cells_match_the_files_or_are_written",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab",
+            "github",
+            "jira",
+            "slack",
+            "git",
+            "workspace",
+            "workbench",
+            "sessions"
+          ],
+          "boundary": "Recorded cell layout/style parity and rendered selection across screens.",
+          "why_not_unit": "Needs real full-frame rendered cells and existing exhaustive screen recordings; model assertions cannot protect renderer output."
+        },
+        {
+          "name": "each_highlight_shows_in_the_cells",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab",
+            "github",
+            "jira",
+            "slack",
+            "git",
+            "workspace",
+            "workbench",
+            "sessions"
+          ],
+          "boundary": "Recorded cell layout/style parity and rendered selection across screens.",
+          "why_not_unit": "Needs real full-frame rendered cells and existing exhaustive screen recordings; model assertions cannot protect renderer output."
+        }
+      ]
+    },
+    {
+      "id": "github-hosted-fixtures",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "test_support::hosted::tests::",
+      "cases": [
+        {
+          "name": "test_support::hosted::tests::exact_read_is_gated_and_records_completion",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "exact read is gated and records completion.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::auth_is_synthetic_before_reference_validation_or_resolution",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "auth is synthetic before reference validation or resolution.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::injection_survives_configuration_reset_restore_and_demo",
+          "tier": "integration",
+          "parts": [
+            "github"
+          ],
+          "boundary": "injection survives configuration reset restore and demo.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::setup_check_uses_real_parser_and_reducer",
+          "tier": "integration",
+          "parts": [
+            "github"
+          ],
+          "boundary": "setup check uses real parser and reducer.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::public_refresh_uses_production_requests_parsers_and_reducer",
+          "tier": "integration",
+          "parts": [
+            "github"
+          ],
+          "boundary": "public refresh uses production requests parsers and reducer.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::cli_reads_use_the_same_injection_and_production_parsers",
+          "tier": "integration",
+          "parts": [
+            "github"
+          ],
+          "boundary": "cli reads use the same injection and production parsers.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::unexpected_optional_read_is_sticky_even_when_returned_as_incomplete_data",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "unexpected optional read is sticky even when returned as incomplete data.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::graphql_probe_uses_real_query_and_response_parser",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "graphql probe uses real query and response parser.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::exact_headers_and_body_mismatches_do_not_consume_expectations",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "exact headers and body mismatches do not consume expectations.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::declared_failures_still_complete_but_unexpected_and_unused_calls_fail",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "declared failures still complete but unexpected and unused calls fail.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::hosted::tests::cancelled_and_premature_release_are_sticky",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "cancelled and premature release are sticky.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-fixtures",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "test_support::tests::",
+      "cases": [
+        {
+          "name": "test_support::tests::builder_is_owned_stable_and_identity_replacement_is_complete",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "builder is owned stable and identity replacement is complete."
+        },
+        {
+          "name": "test_support::tests::injection_survives_config_restore_connection_retirement_and_demo",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "injection survives config restore connection retirement and demo.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::full_refresh_uses_real_parsing_and_reducer_without_credentials",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "full refresh uses real parsing and reducer without credentials.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::exact_write_is_gated_until_explicit_release",
+          "tier": "contract",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "exact write is gated until explicit release.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::exact_matching_includes_server_body_method_path_and_range",
+          "tier": "contract",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "exact matching includes server body method path and range.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::separate_fixtures_do_not_share_scripts_or_violations",
+          "tier": "contract",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "separate fixtures do not share scripts or violations.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::unexpected_optional_read_is_sticky_even_when_parser_swallows_error",
+          "tier": "contract",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "unexpected optional read is sticky even when parser swallows error.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::rejection_never_renews_glab_or_retries_a_mutation",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "rejection never renews glab or retries a mutation.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::unsupported_pictures_are_fail_closed_and_sticky",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "unsupported pictures are fail closed and sticky.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::explicit_marker_with_missing_transport_cannot_fall_back",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "explicit marker with missing transport cannot fall back.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::cancelled_held_request_and_invalid_release_remain_failures",
+          "tier": "contract",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "cancelled held request and invalid release remain failures.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::keys_must_be_nonempty_and_unique_and_unused_expectations_fail",
+          "tier": "contract",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "keys must be nonempty and unique and unused expectations fail.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::cli_uses_captured_injection_before_any_credentials",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "cli uses captured injection before any credentials.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::real_rebase_dispatch_keeps_permission_and_single_send_semantics",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "real rebase dispatch keeps permission and single send semantics.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        }
+      ]
+    },
+    {
+      "id": "jira-fixtures",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "test_support::tests::",
+      "cases": [
+        {
+          "name": "test_support::tests::builder_is_minimal_owned_and_deterministic",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "builder is minimal owned and deterministic."
+        },
+        {
+          "name": "test_support::tests::gated_exact_request_preserves_production_parser",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "gated exact request preserves production parser.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::unexpected_calls_are_sticky_and_do_not_consume_other_sites",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "unexpected calls are sticky and do not consume other sites.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::same_alias_on_changed_origin_cannot_consume_an_old_expectation",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "same alias on changed origin cannot consume an old expectation.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::configuration_restore_and_reset_keep_injection_before_auth",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "configuration restore and reset keep injection before auth.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::demo_cannot_remove_provider_or_enable_discovery",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "demo cannot remove provider or enable discovery.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::unsupported_cli_and_pictures_fail_closed_and_sticky",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "unsupported cli and pictures fail closed and sticky.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::environment_backed_site_origins_fail_before_configuration_is_installed",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "environment backed site origins fail before configuration is installed.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::invalid_scripts_unused_expectations_and_bad_releases_fail",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "invalid scripts unused expectations and bad releases fail.",
+          "why_not_unit": "Exercises the production client/request/parser contract against an exact gated fake transport; pure model assertions cannot establish transport consumption or fail-closed behavior."
+        },
+        {
+          "name": "test_support::tests::refresh_executes_real_requests_and_reducer_without_credentials",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "refresh executes real requests and reducer without credentials.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        },
+        {
+          "name": "test_support::tests::write_permission_is_checked_before_spawn_and_reply_uses_real_reducer",
+          "tier": "integration",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "write permission is checked before spawn and reply uses real reducer.",
+          "why_not_unit": "Exercises real plugin lifecycle, configuration, dispatch or result reduction with injected clients; a model-only assertion cannot prove the integration remains offline and preserves production behavior."
+        }
+      ]
+    },
+    {
+      "id": "github-journeys",
+      "package": "radar",
+      "binary": "provider_scenarios",
+      "prefix": "github::",
+      "cases": [
+        {
+          "name": "github::held_refresh_then_denied_detail_preserves_rows_and_persists_failure",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "github"
+          ],
+          "boundary": "Held repository refresh and denied detail preserve visible rows and journal failure; one real Ratatui frame and scenario-derived JSON/text checkpoint preserve the renderer contract.",
+          "why_not_unit": "Requires one GitHub plugin, the real host/reducers and disposable SQLite, then exactly one full-frame Ratatui render to compare the scenario-derived visible checkpoint; neither pure model checks nor reducer-only views establish rendered output. Ink parity is a separate external contract."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-journeys",
+      "package": "radar",
+      "binary": "provider_scenarios",
+      "prefix": "gitlab::",
+      "cases": [
+        {
+          "name": "gitlab::held_full_refresh_populates_real_view_and_persists_counts",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "gitlab"
+          ],
+          "boundary": "Held group refresh populates the real host view and journal counts.",
+          "why_not_unit": "Requires the real host, owner plugin request parsing and reducers, and disposable real SQLite to assert visible and persisted causal outcomes."
+        }
+      ]
+    },
+    {
+      "id": "jira-journeys",
+      "package": "radar",
+      "binary": "provider_scenarios",
+      "prefix": "jira::",
+      "cases": [
+        {
+          "name": "jira::held_partial_refresh_shows_valid_ticket_and_persists_omission",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "jira"
+          ],
+          "boundary": "Held partial refresh preserves valid ticket views and journal omission evidence.",
+          "why_not_unit": "Requires the real host, owner plugin request parsing and reducers, and disposable real SQLite to assert visible and persisted causal outcomes."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-filter-builder-parity",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "filter::tests::builder_parity::",
+      "cases": [
+        {
+          "name": "filter::tests::builder_parity::minimal_models_preserve_legacy_filter_inputs",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Minimal owner-local models preserve legacy in-memory filter inputs."
+        }
+      ]
+    },
+    {
+      "id": "jira-start-builder-parity",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "start::tests::builder_parity::",
+      "cases": [
+        {
+          "name": "start::tests::builder_parity::minimal_ticket_preserves_legacy_start_plans",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Minimal ticket start plans match the legacy demo plugin model across statuses and assignees.",
+          "why_not_unit": "Compatibility comparison still constructs the legacy demo plugin, whose constructor reads the real clock; this is not a pure-builder test until the legacy side uses owner-local pure models."
+        }
+      ]
+    },
+    {
+      "id": "jira-dispatch-builder-parity",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "write_context::tests::builder_parity::",
+      "cases": [
+        {
+          "name": "write_context::tests::builder_parity::minimal_ticket_preserves_legacy_start_dispatch_plan",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Minimal ticket dispatch plans match legacy demo plugin model plans.",
+          "why_not_unit": "Compatibility comparison still constructs the legacy demo plugin, whose constructor reads the real clock; this is not a pure-builder test until the legacy side uses owner-local pure models."
+        }
+      ]
+    },
+    {
+      "id": "jira-filter-unit",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "tests::filter::unit::",
+      "cases": [
+        {
+          "name": "tests::filter::unit::slash_filters_by_words_and_esc_clears",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Filter words and Escape clearing preserve visible ticket semantics."
+        },
+        {
+          "name": "tests::filter::unit::down_from_the_filter_goes_to_the_first_result",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Down from a filter returns focus intent and selects the first matching ticket."
+        },
+        {
+          "name": "tests::filter::unit::enter_from_the_filter_goes_to_the_results_keeping_the_selection_if_shown",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Enter preserves a visible selected ticket and replaces a hidden selection with the first match."
+        }
+      ]
+    },
+    {
+      "id": "jira-filter-host-contract",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "tests::filter::integration::",
+      "cases": [
+        {
+          "name": "tests::filter::integration::captured_filter_typing_routes_enter_down_and_escape_through_the_host",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "jira"
+          ],
+          "boundary": "One real host routes captured typing, Enter, Down and Escape and one full Ratatui frame preserves visible filter wording.",
+          "why_not_unit": "Owner-local reducer tests cannot establish host key capture/focus routing or rendered wording; this narrow contract retains one host and one full-frame checkpoint with no provider requests."
+        }
+      ]
+    },
+    {
+      "id": "local-work-journey",
+      "package": "radar",
+      "binary": "local_scenarios",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "real_checkout_links_to_reviewed_work_and_reopens_exact_source",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "git",
+            "workbench"
+          ],
+          "boundary": "A real disposable Git checkout links through reviewed Work state and durable SQLite, then reopens the exact source.",
+          "why_not_unit": "Needs two production plugins, real local Git subprocess semantics, host dispatch and SQLite persistence to establish the linked outcome; synthetic tool events or isolated model checks cannot prove filesystem and durable state. No full-frame renderer is needed."
+        }
+      ]
+    },
+    {
+      "id": "git-checkout-fixtures",
+      "package": "radar-git",
+      "binary": "radar_git",
+      "prefix": "test_support::tests::",
+      "cases": [
+        {
+          "name": "test_support::tests::actual_scanner_and_branches_read_the_dirty_local_clone_without_changes",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "actual scanner and branches read the dirty local clone without changes.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::configuration_cache_and_demo_keep_the_explicit_fixture_attached",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "configuration cache and demo keep the explicit fixture attached.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::foreign_config_cache_actions_discovery_and_cli_are_sticky_refusals",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "foreign config cache actions discovery and cli are sticky refusals.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::unknown_commands_refs_and_roots_never_launch_a_child",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "unknown commands refs and roots never launch a child.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::edited_config_external_gitdir_and_alternates_are_rejected_before_git",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "edited config external gitdir and alternates are rejected before git.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::symlinks_and_hard_links_are_refused_without_following_them",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "symlinks and hard links are refused without following them.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::child_environment_and_protocol_are_explicit_and_scratch_scoped",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "child environment and protocol are explicit and scratch scoped.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::cleanup_owns_only_its_fresh_subtree_and_waits_for_queued_tasks",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "cleanup owns only its fresh subtree and waits for queued tasks.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        },
+        {
+          "name": "test_support::tests::bounded_child_reader_kills_a_stalled_installed_git_and_caps_output",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "bounded child reader kills a stalled installed git and caps output.",
+          "why_not_unit": "Creates a real disposable local Git fixture with trusted installed Git subprocesses and owned scratch paths, including negative lifecycle and containment checks; pure model tests cannot establish subprocess, repository or filesystem behavior. This is not an operating-system sandbox."
+        }
+      ]
+    },
+    {
+      "id": "sessions-fake-inspection",
+      "package": "radar-sessions",
+      "binary": "radar_sessions",
+      "prefix": "fake::inspection_tests::",
+      "cases": [
+        {
+          "name": "fake::inspection_tests::strict_unexpected_send_is_sticky_and_consumes_no_script",
+          "tier": "contract",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "strict unexpected send is sticky and consumes no script.",
+          "why_not_unit": "Protects the asynchronous provider adapter lifecycle, permission and event-stream contract using the existing in-memory fake; model defaults alone cannot establish adapter sequencing and subscription behavior."
+        },
+        {
+          "name": "fake::inspection_tests::default_fake_still_auto_scripts_without_a_queued_turn",
+          "tier": "contract",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "default fake still auto scripts without a queued turn.",
+          "why_not_unit": "Protects the asynchronous provider adapter lifecycle, permission and event-stream contract using the existing in-memory fake; model defaults alone cannot establish adapter sequencing and subscription behavior."
+        },
+        {
+          "name": "fake::inspection_tests::release_cannot_answer_permission_and_duplicate_answer_does_not_complete_twice",
+          "tier": "contract",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "release cannot answer permission and duplicate answer does not complete twice.",
+          "why_not_unit": "Protects the asynchronous provider adapter lifecycle, permission and event-stream contract using the existing in-memory fake; model defaults alone cannot establish adapter sequencing and subscription behavior."
+        },
+        {
+          "name": "fake::inspection_tests::observations_track_subscription_resume_stop_and_receiver_closure",
+          "tier": "contract",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "observations track subscription resume stop and receiver closure.",
+          "why_not_unit": "Protects the asynchronous provider adapter lifecycle, permission and event-stream contract using the existing in-memory fake; model defaults alone cannot establish adapter sequencing and subscription behavior."
+        }
+      ]
+    },
+    {
+      "id": "agent-permission-journey",
+      "package": "radar",
+      "binary": "agent_scenarios",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "hosted_fake_turn_waits_for_denial_then_fresh_approval",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "sessions"
+          ],
+          "boundary": "Real host permission routing waits for denial and a fresh approval, with durable journal evidence and the existing fake provider.",
+          "why_not_unit": "Requires the host, Sessions reducer, dedicated runtime and disposable SQLite together. Fake shell steps establish permission semantics only, not actual tool execution or repository changes; production setup retains read-only PATH/current-directory lookups."
+        }
+      ]
+    },
+    {
+      "id": "jira-selected-checkpoint",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "test_support::selected_ticket_tests::",
+      "cases": [
+        {
+          "name": "test_support::selected_ticket_tests::selected_summary_and_key_drive_the_real_subject_and_copy_action",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "selected summary and key drive the real subject and copy action."
+        },
+        {
+          "name": "test_support::selected_ticket_tests::selected_status_and_assignee_drive_the_real_domain_rules",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "selected status and assignee drive the real domain rules."
+        },
+        {
+          "name": "test_support::selected_ticket_tests::overrides_replace_stable_keys_without_sharing_or_reselecting",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "overrides replace stable keys without sharing or reselecting."
+        },
+        {
+          "name": "test_support::selected_ticket_tests::explicit_selection_uses_the_exact_identity_and_rejects_missing_targets",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "explicit selection uses the exact identity and rejects missing targets."
+        },
+        {
+          "name": "test_support::selected_ticket_tests::selected_checkpoint_keeps_strict_injection_across_configure_restore_and_reset",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "selected checkpoint keeps strict injection across configure restore and reset.",
+          "why_not_unit": "Exercises provider injection retention across configuration, restoration and reset with real client parsing and sticky unexpected-request accounting; model-only construction cannot protect that lifecycle boundary."
+        },
+        {
+          "name": "test_support::selected_ticket_tests::selected_checkpoint_matches_executed_host_refresh_and_selection_without_faking_history",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "jira"
+          ],
+          "boundary": "selected checkpoint matches executed host refresh and selection without faking history.",
+          "why_not_unit": "Compares direct selected-state initialization with actual host refresh, real response parsing, completion and selection intents; only the executed path may establish request and journal history. Neutral view equality does not render a full frame."
+        }
+      ]
+    },
+    {
+      "id": "scenario-probes",
+      "package": "radar",
+      "binary": "scenario_probes",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "tests::empty_and_duplicate_probe_sets_cannot_report_success",
+          "tier": "unit",
+          "parts": [
+            "test-support"
+          ],
+          "boundary": "Empty or duplicate captured-snapshot probe sets fail rather than report vacuous success."
+        },
+        {
+          "name": "tests::independent_failures_keep_checkpoint_and_each_probe_label",
+          "tier": "unit",
+          "parts": [
+            "test-support"
+          ],
+          "boundary": "Independent snapshot probe failures retain checkpoint and individual probe labels."
+        }
+      ]
+    },
+    {
+      "id": "review-refusal-journey",
+      "package": "radar",
+      "binary": "review_scenarios",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "selected_gitlab_mr_review_refuses_missing_worktree_provider",
+          "tier": "integration",
+          "parts": [
+            "core",
+            "gitlab",
+            "sessions"
+          ],
+          "boundary": "A selected GitLab MR review consumes real parsed detail before the host refuses the absent worktree provider, with SQLite journal evidence and named immutable probes.",
+          "why_not_unit": "Requires GitLab and Sessions integration through the real host, asynchronous result handling and durable SQLite to establish causal refusal without starting an agent or fabricating a worktree. No full-frame rendering or successful local review is claimed; production setup retains read-only PATH/current-directory inspection."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-confirmation-unit",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "confirmation_tests::unit::",
+      "cases": [
+        {
+          "name": "confirmation_tests::unit::rebase_question_and_decline_do_not_start_provider_work",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "rebase question and decline do not start provider work."
+        },
+        {
+          "name": "confirmation_tests::unit::blocked_merge_explains_the_missing_approval_without_a_question_or_task",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "blocked merge explains the missing approval without a question or task."
+        },
+        {
+          "name": "confirmation_tests::unit::approved_merge_question_warns_that_it_cannot_be_undone",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "approved merge question warns that it cannot be undone."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-confirmation-contract",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "confirmation_tests::integration::",
+      "cases": [
+        {
+          "name": "confirmation_tests::integration::page_keys_confirm_rebase_and_merge_then_ingest_real_refreshes",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab"
+          ],
+          "boundary": "One host routes page keys and confirmation through real rebase/merge request parsing and refreshed reducers, preserving pending wording in one full Ratatui frame.",
+          "why_not_unit": "Owner-local question/effect assertions cannot establish host menu key routing, held write completion and subsequent production refresh ingestion or rendered wording. This narrow contract uses one GitLab plugin and no SQLite."
+        }
+      ]
+    },
+    {
+      "id": "parts-architecture",
+      "package": "radar",
+      "binary": "parts",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "no_part_depends_on_another_and_core_depends_on_none",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual Cargo metadata enforces owner/core dependency declarations.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        },
+        {
+          "name": "forbidden_dependencies_are_checked_for_every_declaration_shape",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "forbidden dependencies are checked for every declaration shape."
+        },
+        {
+          "name": "only_named_sessions_adapters_may_depend_on_their_owner",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "only named sessions adapters may depend on their owner."
+        },
+        {
+          "name": "legitimate_host_external_and_binary_dependencies_are_allowed",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "legitimate host external and binary dependencies are allowed."
+        },
+        {
+          "name": "all_violations_are_reported_in_declaration_order",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "all violations are reported in declaration order."
+        },
+        {
+          "name": "malformed_dependencies_are_not_silently_ignored",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "malformed dependencies are not silently ignored."
+        },
+        {
+          "name": "missing_dependency_lists_are_not_treated_as_empty",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "missing dependency lists are not treated as empty."
+        },
+        {
+          "name": "a_name_is_named_only_whole",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "a name is named only whole."
+        },
+        {
+          "name": "no_part_names_another_and_core_names_none",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual part sources obey the supplementary no-sibling vocabulary rule.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        },
+        {
+          "name": "core_names_no_tool_in_code_comments_or_tests",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual core sources obey the supplementary no-provider vocabulary rule.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        },
+        {
+          "name": "the_binary_registers_each_part_behind_its_feature",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual metadata, manifest and registration source preserve feature gating.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        },
+        {
+          "name": "root_fixture_features_targets_and_shipped_declaration_closures_are_isolated",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual no-deps metadata preserves optional owners, weak forwarding, target gates and root default/demo declaration closure; this is not the resolved full default dependency graph.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        },
+        {
+          "name": "root_fixture_guard_rejects_strong_forwarding_and_unconditional_owners",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "root fixture guard rejects strong forwarding and unconditional owners."
+        },
+        {
+          "name": "shipped_declaration_closure_rejects_direct_transitive_strong_and_weak_fixture_paths",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "shipped declaration closure rejects direct transitive strong and weak fixture paths."
+        },
+        {
+          "name": "root_fixture_guard_rejects_missing_target_flags_and_gated_pure_probes",
+          "tier": "unit",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "root fixture guard rejects missing target flags and gated pure probes."
+        },
+        {
+          "name": "root_fixture_cargo_graph_selects_no_unrelated_parts",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual offline Cargo tree preserves exact owner and support feature sets for no-owner and each individual-owner selection with support off/on.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        },
+        {
+          "name": "demo_cargo_graphs_do_not_enable_owner_fixtures",
+          "tier": "contract",
+          "parts": [
+            "workspace-architecture"
+          ],
+          "boundary": "Actual offline demo and slack,demo Cargo graphs preserve exact absent/Slack owner sets without owner fixtures.",
+          "why_not_unit": "Synthetic guard tests cannot establish the actual repository declarations, sources or Cargo graph. This contract reads repository data and may launch offline Cargo discovery; it constructs no runtime plugins."
+        }
+      ]
+    },
+    {
+      "id": "slack-reply-host-contract",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "tests::reply_confirmation::",
+      "cases": [
+        {
+          "name": "tests::reply_confirmation::snapshots_and_edit_decline_recovery_share_one_host",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "One real host preserves reply typing/confirmation goldens and edit/decline recovery with exactly two real shell frames and no provider requests.",
+          "why_not_unit": "Pure plugin assertions cannot establish real host key/menu routing and both unchanged Ratatui goldens. This bounded contract keeps one demo-backed host and a runtime two-frame assertion; it forbids ordinary and tracked provider spawns."
+        }
+      ]
+    },
+    {
+      "id": "slack-reply-acceptance-contract",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "reply_context_tests::acceptance_contract::",
+      "cases": [
+        {
+          "name": "reply_context_tests::acceptance_contract::accepted_reply_sends_exact_preview_once_and_refreshes_the_current_thread",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "A fixed owner-local fixture sends the exact preview once, ingests its real completion and refreshes the current thread through Recorded transport.",
+          "why_not_unit": "Requires actual production reply tasks, request construction and reducers against complete recorded responses. It uses no host, demo, clock read or frame, but is a transport contract rather than a pure model test; bootstrap/authentication/persistence are not exercised."
+        }
+      ]
+    },
+    {
+      "id": "slack-review-draft-contract",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "tests::review_draft::",
+      "cases": [
+        {
+          "name": "tests::review_draft::snapshots_and_edit_drop_share_one_host",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "One real host preserves review-draft routing, edit/drop behavior, six unchanged golden snapshots and the existing escaped-text frame within seven actual shell frames.",
+          "why_not_unit": "Real host events and Ratatui goldens establish routing and visible escaping that isolated model assertions cannot. Local Code/Tracker contract stubs are not sibling-part crate composition. The Recorded transport remains empty and every dispatch forbids provider work; no successful external review is claimed."
+        }
+      ]
+    },
+    {
+      "id": "slack-review-post-contract",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "tests::review_post::",
+      "cases": [
+        {
+          "name": "tests::review_post::success_and_refusal_share_one_host_and_real_tasks",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "slack"
+          ],
+          "boundary": "One real host executes success and refusal post tasks through Scenario and production reducers, preserves the followed row and unchanged refusal golden in exactly two shell frames.",
+          "why_not_unit": "Host confirmation routing, real task completion and rendered output require a protected contract. Ordered Recorded responses are checked using complete literal post-execution ledgers and queue exhaustion, not strict pre-response request matching. Local Code/Tracker stubs are not sibling-part crates; bootstrap and persistent journal verification are not claimed."
+        }
+      ]
+    }
+  ]
+}

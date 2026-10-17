@@ -20,6 +20,7 @@ use crate::motion;
 use crate::plugin::{CliExecution, Plugin};
 use crate::select;
 use crate::system::{self, Done, Env};
+use crate::task_completion::{complete_task, tracked_event};
 use crate::terminal_host;
 
 use crate::time;
@@ -1280,19 +1281,6 @@ fn now_ms() -> u64 {
         .map_or(0, |d| d.as_millis() as u64)
 }
 
-/// Open `url` in the browser (or put it on the clipboard where none can be
-/// reached), and say how it went. Blocks: call it off the event loop.
-fn tracked_event(event: Event, action: Option<ActionId>, semantic: Option<ActionId>) -> Event {
-    match action {
-        Some(action) => Event::Tracked {
-            action,
-            semantic,
-            event: Box::new(event),
-        },
-        None => event,
-    }
-}
-
 fn record_outcome(
     journal: Option<&Sink>,
     action: Option<&ActionId>,
@@ -1429,28 +1417,19 @@ fn perform_in(
             let tx = tx.clone();
             let journal = journal.cloned();
             tokio::spawn(async move {
-                let result = match journal {
-                    Some(journal) => journal.work(*request, mode).await,
-                    None => Err(crate::work_api::Error::Disabled),
-                };
-                let _ = tx.send(Event::Msg {
-                    plugin,
-                    msg: Box::new(crate::source_context::WorkReply { id, result }),
-                });
+                let completion = crate::task_completion::complete_work(
+                    journal, plugin, id, *request, mode,
+                )
+                .await;
+                let _ = tx.send(completion.event);
             });
         }
         HostEffect::History(request) => {
             let tx = tx.clone();
             let journal = journal.cloned();
             tokio::spawn(async move {
-                let result = match journal {
-                    Some(journal) => journal.history(request.filter, request.cursor, request.snapshot).await,
-                    None => Err(crate::history::ReadError::Disabled),
-                };
-                let _ = tx.send(Event::History {
-                    id: request.id,
-                    result: result.map(Box::new),
-                });
+                let completion = crate::task_completion::complete_history(journal, *request).await;
+                let _ = tx.send(completion.event);
             });
         }
         HostEffect::Journal(record) => {
@@ -1470,33 +1449,13 @@ fn perform_in(
             let tx = tx.clone();
             let journal = journal.cloned();
             tokio::spawn(async move {
-                match tokio::spawn(task).await {
-                    Ok(msg) => {
-                        // The host interprets any typed Report before recording
-                        // Unknown for an otherwise opaque completed task.
-                        let _ =
-                            tx.send(tracked_event(Event::Msg { plugin, msg }, action, semantic));
-                    }
-                    Err(_) => {
-                        // A panic/cancelled task has no trustworthy domain
-                        // result. Never persist its panic text or payload.
-                        record_outcome(
-                            journal.as_ref(),
-                            action.as_ref(),
-                            JournalOutcome::Unknown,
-                            Some(Reason::Interrupted),
-                        );
-                        record_outcome(
-                            journal.as_ref(),
-                            semantic.as_ref(),
-                            JournalOutcome::Unknown,
-                            Some(Reason::Interrupted),
-                        );
-                        let _ = tx.send(Event::Notice(
-                            "background action stopped; its outcome is unknown".into(),
-                        ));
+                let completion = complete_task(plugin, task, action, semantic).await;
+                if let Some(journal) = journal {
+                    for record in completion.records {
+                        journal.submit(record);
                     }
                 }
+                let _ = tx.send(completion.event);
             });
         }
         HostEffect::Open(url) => {

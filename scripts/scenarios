@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""Replay the small, allowlisted headless host scenarios. Python stdlib only."""
+
+import argparse
+from dataclasses import dataclass
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+import tempfile
+
+ROOT = Path(__file__).resolve().parent.parent
+DIAGNOSTIC_BYTES = 16 * 1024
+
+
+@dataclass(frozen=True)
+class Scenario:
+    name: str
+    test: str
+    description: str
+    feature: str = "slack"
+    binary: str = "slack_scenarios"
+
+
+SCENARIOS = (
+    Scenario(
+        "slack-success",
+        "confirmed_reply_waits_for_provider_then_refreshes_and_persists_success",
+        "Confirm a reply, release the held success, refresh the thread and verify SQLite success.",
+    ),
+    Scenario(
+        "slack-refusal",
+        "read_only_confirmation_refuses_all_writes_and_keeps_the_reply",
+        "Refuse a read-only write, recover the draft and verify SQLite blocked outcome.",
+    ),
+    Scenario(
+        "slack-uncertain",
+        "uncertain_provider_failure_is_not_retried_and_retains_the_draft",
+        "Release a scripted HTTP 429, retain the draft, forbid retry and verify unknown outcome.",
+    ),
+    Scenario(
+        "slack-lost-response",
+        "accepted_post_with_lost_response_stays_unknown_and_is_not_resent_after_restart",
+        "Lose the response to an accepted post, retain unknown outcome and restore a fresh host without resending.",
+    ),
+    Scenario(
+        "github-denied-detail",
+        "github::held_refresh_then_denied_detail_preserves_rows_and_persists_failure",
+        "Refresh pull requests, deny held detail with HTTP 403 and persist success/failure evidence.",
+        "github", "provider_scenarios",
+    ),
+    Scenario(
+        "gitlab-refresh",
+        "gitlab::held_full_refresh_populates_real_view_and_persists_counts",
+        "Release a held full refresh, populate the merge request view and persist item counts.",
+        "gitlab", "provider_scenarios",
+    ),
+    Scenario(
+        "jira-partial-refresh",
+        "jira::held_partial_refresh_shows_valid_ticket_and_persists_omission",
+        "Release a partial refresh, retain the valid ticket and persist the omitted ticket count.",
+        "jira", "provider_scenarios",
+    ),
+    Scenario(
+        "git-work-link",
+        "real_checkout_links_to_reviewed_work_and_reopens_exact_source",
+        "Read an isolated real checkout, confirm its Work link and verify durable source/history evidence.",
+        "git,workbench", "local_scenarios",
+    ),
+    Scenario(
+        "agent-permissions",
+        "hosted_fake_turn_waits_for_denial_then_fresh_approval",
+        "Drive fake-agent permission denial then approval through the real dock and persist dispatch evidence.",
+        "sessions", "agent_scenarios",
+    ),
+    Scenario(
+        "review-no-worktree",
+        "selected_gitlab_mr_review_refuses_missing_worktree_provider",
+        "Accept a held review request, refuse the missing worktree provider and verify no agent or review artifact.",
+        "gitlab,sessions", "review_scenarios",
+    ),
+)
+
+
+def select(name):
+    for scenario in SCENARIOS:
+        if scenario.name == name:
+            return scenario
+    raise ValueError(f"Unknown scenario: {name!r}. Use --list for supported names.")
+
+
+def command(scenario, cargo="cargo"):
+    # Resolve relative executable paths before moving Cargo into the repository.
+    if "/" in cargo or "\\" in cargo:
+        cargo = str(Path(cargo).resolve())
+    return [
+        cargo, "test", "--locked", "--offline", "--color", "never",
+        "--target-dir", str(ROOT / "target"),
+        "-p", "radar", "--no-default-features", "--features", f"{scenario.feature},test-support",
+        "--test", scenario.binary, "--", "--exact", scenario.test,
+        "--nocapture", "--test-threads=1",
+    ]
+
+
+def print_list():
+    for index, scenario in enumerate(SCENARIOS, 1):
+        print(f"{index}. {scenario.name}: {scenario.description}")
+
+
+def interactive_selection(value, previous=None):
+    """None quits; a scenario selects a fresh run; invalid input never launches."""
+    value = value.strip()
+    if value in ("q", "quit"):
+        return None
+    if value in ("r", "replay", ""):
+        if previous is None:
+            raise ValueError("Select a scenario before replaying.")
+        return previous
+    if value.isascii() and value.isdecimal():
+        index = int(value)
+        if 1 <= index <= len(SCENARIOS):
+            return SCENARIOS[index - 1]
+    return select(value)
+
+
+def run_scenario(scenario, cargo="cargo", dry_run=False):
+    argv = command(scenario, cargo)
+    print(f"\n{scenario.name}: {scenario.description}", flush=True)
+    print(f"$ {shlex.join(argv)}", flush=True)
+    if dry_run:
+        return 0
+    print("Running headless; each run creates a new host, fixture and scratch journal.", flush=True)
+    # Keep only a bounded tail in memory/on screen, including Cargo failures.
+    # The temporary full log is removed after the command finishes.
+    try:
+        with tempfile.TemporaryFile() as log:
+            result = subprocess.run(argv, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
+                                    check=False)
+            size = log.tell()
+            log.seek(max(0, size - DIAGNOSTIC_BYTES))
+            output = log.read().decode("utf-8", errors="replace")
+        if size > DIAGNOSTIC_BYTES:
+            print(f"[Showing last {DIAGNOSTIC_BYTES} bytes of command output]")
+        print(output, end="" if output.endswith("\n") else "\n")
+        if result.returncode:
+            print(f"Scenario failed (Cargo exit {result.returncode}).", file=sys.stderr)
+            return result.returncode if result.returncode > 0 else 1
+        # libtest otherwise exits successfully when an exact name no longer exists.
+        if not re.search(r"test result: ok\. 1 passed; 0 failed; 0 ignored;", output):
+            print("Scenario unverified: expected exactly one passing, non-ignored test. "
+                  f"Check the launcher mapping against tests/{scenario.binary}.rs.", file=sys.stderr)
+            return 1
+        return 0
+    except OSError as error:
+        print(f"Could not run Cargo: {error}. Supply --cargo /path/to/cargo if needed.",
+              file=sys.stderr)
+        return 1
+
+
+def parser():
+    result = argparse.ArgumentParser(description=__doc__)
+    mode = result.add_mutually_exclusive_group()
+    mode.add_argument("--list", action="store_true", help="list supported scripted scenarios")
+    mode.add_argument("--interactive", action="store_true", help="choose/replay in a text menu")
+    result.add_argument("scenario", nargs="?", help="exact scenario name (see --list)")
+    result.add_argument("--cargo", default="cargo", help="Cargo executable path, not shell arguments")
+    result.add_argument("--dry-run", action="store_true", help="print the command without running it")
+    return result
+
+
+def main(argv=None):
+    cli = parser()
+    args = cli.parse_args(argv)
+    if args.scenario and (args.list or args.interactive):
+        cli.error("a scenario name cannot be combined with --list or --interactive")
+    if args.list:
+        print_list()
+        return 0
+    if args.interactive:
+        previous = None
+        status = 0
+        print_list()
+        print("Choose a name or number; r/Enter replays with fresh state; q quits.")
+        while True:
+            try:
+                value = input("scenario> ")
+            except EOFError:
+                return status
+            try:
+                chosen = interactive_selection(value, previous)
+            except ValueError as error:
+                print(error, file=sys.stderr)
+                continue
+            if chosen is None:
+                return status
+            previous = chosen
+            status = max(status, run_scenario(chosen, args.cargo, args.dry_run))
+    if args.scenario is None:
+        cli.error("choose a scenario, --list or --interactive")
+    try:
+        chosen = select(args.scenario)
+    except ValueError as error:
+        cli.error(str(error))
+    return run_scenario(chosen, args.cargo, args.dry_run)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print("\nReplay interrupted.", file=sys.stderr)
+        sys.exit(130)

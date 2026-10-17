@@ -10,6 +10,9 @@
 //! config table; the `jira.*` colour slots; a cache; `radar jira list` and
 //! `radar jira show`.
 
+#[cfg(any(test, feature = "test-support"))]
+pub mod test_support;
+
 mod source_navigation;
 mod adf;
 mod agent_context;
@@ -424,6 +427,7 @@ pub(crate) struct Goto {
 
 #[derive(Debug, Default)]
 pub struct JiraPlugin {
+    pub(crate) provider: client::Provider,
     pub(crate) cfg: Settings,
     pub(crate) data: BTreeMap<String, SiteData>,
     pub(crate) sync: Sync,
@@ -522,6 +526,10 @@ impl JiraPlugin {
 
     /// The environment, as names and values (never shown).
     pub(crate) fn vars(&self) -> Vec<(String, String)> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.provider.fixture.is_some() {
+            return Vec::new();
+        }
         match &self.env {
             Some(vars) => vars.clone(),
             None => std::env::vars().collect(),
@@ -531,6 +539,10 @@ impl JiraPlugin {
     /// Sites radar can add for you, from `.mcp.json` files and the
     /// environment, that no site uses yet.
     pub(crate) fn offers(&self) -> Vec<config::Offer> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.provider.fixture.is_some() {
+            return Vec::new();
+        }
         let mcp = self.mcp.get_or_init(|| {
             std::env::current_dir()
                 .map(|d| config::mcp_found(&d))
@@ -717,7 +729,7 @@ impl JiraPlugin {
             let held = data
                 .map(|d| d.tickets.iter().map(|(k, t)| (k.clone(), t.updated.clone())).collect())
                 .unwrap_or_default();
-            fx.push(load(site, jql, ask_me, ask, held, self.limits.clone()));
+            fx.push(load(site, jql, ask_me, ask, held, self.limits.clone(), self.provider.clone()));
         }
         fx
     }
@@ -824,7 +836,7 @@ impl JiraPlugin {
             let id = detail_key(&site.name, &t.key);
             self.sync.code_in_flight.insert(id.clone());
             self.sync.code_tried.insert(id, self.now);
-            fx.push(load_code(site, t, self.limits.clone()));
+            fx.push(load_code(site, t, self.limits.clone(), self.provider.clone()));
         }
         fx
     }
@@ -1105,10 +1117,10 @@ impl JiraPlugin {
 
 /// The task that reads one ticket's development panel. Reads are retried
 /// by the client; a failure is only logged, the ticket just has no chip.
-fn load_code(site: Site, t: Ticket, limits: rate::Limits) -> Effect {
+fn load_code(site: Site, t: Ticket, limits: rate::Limits, provider: client::Provider) -> Effect {
     let action = code_history::action(&site, &t.key);
     code_history::spawn(action, site.name.clone(), t.key, t.updated, async move {
-        async { Client::tracked(&site, &limits)?.code_observed(&t.id).await }
+        async { provider.tracked(&site, &limits)?.code_observed(&t.id).await }
             .await
             .map_err(|e| format!("{e:#}"))
     })
@@ -1116,7 +1128,7 @@ fn load_code(site: Site, t: Ticket, limits: rate::Limits) -> Effect {
 
 /// The task that fetches one site's tickets for one query, as `ask` says;
 /// `held` is each held ticket's `updated`, for a sweep to compare.
-fn load(site: Site, jql: String, ask_me: bool, ask: client::Ask, held: BTreeMap<String, String>, limits: rate::Limits) -> Effect {
+fn load(site: Site, jql: String, ask_me: bool, ask: client::Ask, held: BTreeMap<String, String>, limits: rate::Limits, provider: client::Provider) -> Effect {
     let action = sync_history::action(&site);
     sync_history::spawn(action, site.name.clone(), jql.clone(), async move {
         let started = std::time::Instant::now();
@@ -1128,7 +1140,7 @@ fn load(site: Site, jql: String, ask_me: bool, ask: client::Ask, held: BTreeMap<
         };
         log::info(format!("jira {} ({how}): {jql}", site.name));
         let result = async {
-            let c = Client::tracked(&site, &limits)?;
+            let c = provider.tracked(&site, &limits)?;
             let me = if ask_me { Some(c.myself().await?) } else { None };
             let ac = |p: &str| site.ac_field(p).map(str::to_string);
             let read = c.view_list(&jql, &ask, &held, &ac, &ac_fields(&site)).await?;
@@ -1160,7 +1172,9 @@ impl Plugin for JiraPlugin {
     }
     #[cfg(feature = "demo")]
     fn demo(&mut self) {
+        let provider = self.provider.clone();
         *self = demo::sample();
+        self.provider = provider;
     }
     fn name(&self) -> &'static str {
         "Jira"
@@ -1255,10 +1269,21 @@ impl Plugin for JiraPlugin {
     }
 
     fn configure(&mut self, table: Option<&toml::Value>) -> anyhow::Result<()> {
-        self.cfg = match table {
+        let cfg: Settings = match table {
             Some(v) => v.clone().try_into()?,
             None => Settings::default(),
         };
+        // URL-derived navigation and journal scope also resolve environment
+        // references. Hosted scenarios require literal synthetic origins so
+        // those pure-looking paths cannot accidentally read the real process.
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.provider.fixture
+            && cfg.sites.iter().any(|site| site.url.trim().starts_with("env:"))
+        {
+            fixture.blocked("environment-backed site URL");
+            anyhow::bail!("Jira hosted fixture requires literal site URLs");
+        }
+        self.cfg = cfg;
         write_context::reconcile(self);
         self.clamp();
         Ok(())
@@ -1698,6 +1723,11 @@ impl Plugin for JiraPlugin {
     }
 
     fn run_cli(&self, matches: &clap::ArgMatches) -> CliTask {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.provider.fixture {
+            fixture.blocked("CLI");
+            return Box::pin(async { anyhow::bail!("Jira hosted fixture does not support CLI") });
+        }
         let cfg = self.cfg.clone();
         let m = matches.clone();
         Box::pin(async move {

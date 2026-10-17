@@ -3,6 +3,7 @@
 //! token/email reference.
 
 use super::*;
+use crate::test_support::TicketBuilder;
 use crate::{JiraMsg, Target, config, demo, detail_key, model, page, start, tests, write};
 use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::input::TextInput;
@@ -31,10 +32,15 @@ fn moves() -> Vec<model::Transition> {
 }
 
 fn start_plan(key: &str) -> start::Start {
-    let mut ticket = demo::sample().data["acme"].tickets["ABC-12"].clone();
-    ticket.key = key.into();
-    ticket.category = model::Category::Todo;
-    ticket.assignee_id = "SECRET_OLD_ACCOUNT".into();
+    // Keep the deliberately mismatched status/category from the legacy case:
+    // the plan uses the category to decide whether a move is needed.
+    let ticket = TicketBuilder::new()
+        .key(key)
+        .id("")
+        .summary("Add a stats endpoint for the dashboard")
+        .status("In Progress", model::Category::Todo)
+        .assignee("SECRET_OLD_ACCOUNT", "Alice Example")
+        .build();
     start::plan(
         "acme",
         &ticket,
@@ -45,6 +51,34 @@ fn start_plan(key: &str) -> start::Start {
         Some(&moves()),
         "",
     )
+}
+
+mod builder_parity {
+    use super::*;
+
+    #[test]
+    fn minimal_ticket_preserves_legacy_start_dispatch_plan() {
+        let original = demo::sample().data["acme"].tickets["ABC-12"].clone();
+        for key in ["ABC-12", "ABC-13"] {
+            let mut legacy = original.clone();
+            legacy.key = key.into();
+            legacy.category = model::Category::Todo;
+            legacy.assignee_id = "SECRET_OLD_ACCOUNT".into();
+            assert_eq!(
+                start_plan(key),
+                start::plan(
+                    "acme",
+                    &legacy,
+                    Some(&model::Me {
+                        account_id: "SECRET_ACCOUNT".into(),
+                        name: "SECRET_PERSON".into(),
+                    }),
+                    Some(&moves()),
+                    "",
+                ),
+            );
+        }
+    }
 }
 
 fn sent(p: &mut JiraPlugin, change: &write::Change) -> Dispatch {

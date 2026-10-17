@@ -19,6 +19,7 @@ toml.workspace = true
 url.workspace = true
 
 [features]
+test-support = []
 demo = []
 
 [dev-dependencies]

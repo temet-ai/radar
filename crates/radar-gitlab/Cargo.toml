@@ -22,7 +22,10 @@ toml.workspace = true
 # Sample data for `radar shot` (Plugin::demo); the tests always have it.
 [features]
 demo = []
+# Explicit offline model and provider fixtures for root integration tests.
+test-support = []
 
 [dev-dependencies]
+radar-core = { workspace = true, features = ["test-support"] }
 insta.workspace = true
 tokio.workspace = true

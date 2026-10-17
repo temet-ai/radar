@@ -372,6 +372,10 @@ pub struct SlackPlugin {
     pub(crate) pace: std::sync::Arc<client::Pace>,
     #[cfg(feature = "test-support")]
     pub(crate) offline_fixture: bool,
+    /// Explicit public fixture constructors only; ordinary recorded unit-test
+    /// transports retain their normal config/cache behavior.
+    #[cfg(feature = "test-support")]
+    pub(crate) scripted_fixture: bool,
     /// What each held thread links to and says (see `join::index`).
     pub(crate) index: RefCell<Option<Vec<join::Indexed>>>,
     /// What the alerts channels' held messages make (see `alerts::collect`),
@@ -459,12 +463,24 @@ impl SlackPlugin {
             .map_err(|e| format!("{e:#}"))
     }
 
+    /// Injected fixture clients never inspect real credentials, including the
+    /// cache-preview and keyboard paths which do not construct a client.
+    pub(crate) fn session_credential(&self) -> anyhow::Result<String> {
+        #[cfg(feature = "test-support")]
+        if self.scripted_fixture || self.offline_fixture {
+            return Ok("xoxp-offline-synthetic-fixture".into());
+        }
+        self.cfg.resolved_token()
+    }
+
     /// The environment, as names and values (values never shown): this
     /// process's is read once, and only the names that could hold a Slack
     /// token are kept. The host asks whether the part is set up on every
     /// frame, and that asks here: reading and upper-casing the whole
     /// environment each time was nearly half of what a frame cost.
     pub(crate) fn vars(&self) -> &[(String, String)] {
+        #[cfg(feature = "test-support")]
+        if self.scripted_fixture || self.offline_fixture { return &[]; }
         match &self.env {
             Some(vars) => vars,
             None => self.own_env.get_or_init(|| {
@@ -496,8 +512,15 @@ impl SlackPlugin {
     /// goes only to Slack's own hosts. Resolved as asked, never logged.
     pub(crate) fn pictures(&self) -> radar_core::ui::image::Fetch {
         #[cfg(feature = "test-support")]
-        if self.offline_fixture {
-            return radar_core::ui::image::fetch(|_| async { anyhow::bail!("offline test fixture cannot fetch pictures") });
+        if self.offline_fixture || self.scripted_fixture {
+            let via = self.via.clone();
+            return radar_core::ui::image::fetch(move |_| {
+                let via = via.clone();
+                async move {
+                    if let Some(transport) = via.0 { transport.blocked_external_io("picture fetch"); }
+                    anyhow::bail!("offline test fixture cannot fetch pictures")
+                }
+            });
         }
         let token = self.cfg.resolved_token().ok();
         let api = self.cfg.resolved_api().unwrap_or_else(|_| SLACK_API.into());
@@ -522,6 +545,11 @@ impl SlackPlugin {
             return vec![Effect::Open(web)];
         }
         let link = app_link(&team, channel, ts, thread);
+        #[cfg(feature = "test-support")]
+        if self.offline_fixture || self.scripted_fixture {
+            // Produce the normal host-owned effect without process discovery.
+            return self.opened_in(link, web, self.app_running.unwrap_or(false));
+        }
         match self.app_running {
             Some(running) => self.opened_in(link, web, running),
             None => vec![Effect::Spawn(Box::pin(async move {
@@ -803,7 +831,7 @@ impl SlackPlugin {
     fn shared_keys(&self) -> Vec<Row> {
         let surface = surface(self);
         let mut b = vec![(format!("slack.{surface}.kept_replies"), Binding::new("ctrl-r", "kept replies…"))];
-        if self.cfg.resolved_token().is_ok() {
+        if self.session_credential().is_ok() {
             b.push((format!("slack.{surface}.refresh"), Binding::new(
                 FETCH_KEY.to_string(),
                 if self.pages.is_empty() { "refresh" } else { "refresh this page" },
@@ -816,7 +844,7 @@ impl SlackPlugin {
     }
 
     fn shared_key(&mut self, key: KeyEvent) -> Option<Outcome> {
-        if key.modifiers != KeyModifiers::NONE || self.cfg.resolved_token().is_err() {
+        if key.modifiers != KeyModifiers::NONE || self.session_credential().is_err() {
             return None;
         }
         match key.code {
@@ -998,10 +1026,10 @@ impl Plugin for SlackPlugin {
     #[cfg(feature = "demo")]
     fn demo(&mut self) {
         #[cfg(feature = "test-support")]
-        let (offline, via) = (self.offline_fixture, self.via.clone());
+        let (offline, scripted, via) = (self.offline_fixture, self.scripted_fixture, self.via.clone());
         *self = demo::sample();
         #[cfg(feature = "test-support")]
-        { self.offline_fixture = offline; self.via = via; }
+        { self.offline_fixture = offline; self.scripted_fixture = scripted; self.via = via; }
     }
     fn name(&self) -> &'static str {
         "Slack"

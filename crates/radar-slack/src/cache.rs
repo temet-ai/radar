@@ -190,7 +190,7 @@ impl SlackPlugin {
         if self.session_owner.is_some() || self.previewing || self.data != Data::default() {
             return;
         }
-        let Ok(token) = self.cfg.resolved_token() else {
+        let Ok(token) = self.session_credential() else {
             return;
         };
         if let Some(data) = self.account_cache.drawn_for(&token_print(&token)) {
@@ -251,8 +251,7 @@ impl SlackPlugin {
             self.data = self.account_cache.take(&owner);
         }
         self.session_token = self
-            .cfg
-            .resolved_token()
+            .session_credential()
             .ok()
             .map(|t| token_print(&t));
         self.session_owner = Some(owner);

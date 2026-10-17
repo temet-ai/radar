@@ -24,5 +24,6 @@ demo = []
 test-support = []
 
 [dev-dependencies]
+radar-core = { workspace = true, features = ["test-support"] }
 insta.workspace = true
 tokio.workspace = true

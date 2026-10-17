@@ -20,7 +20,6 @@ use radar_core::ui::status;
 use radar_core::view as v;
 use radar_core::{log, time, widgets};
 
-use crate::client::Client;
 use crate::config::{self, Offer, Project, SITE_COLORS, Site, View, default_styles};
 use crate::model::Me;
 use crate::settings_checks::{self, Target as CheckTarget};
@@ -362,8 +361,9 @@ pub(crate) fn check_site(p: &mut JiraPlugin, i: usize) -> Vec<Effect> {
     let request = settings_checks::begin(p, &target);
     let action = settings_history::action(Kind::Site, Some(&site), "");
     p.checks.insert(target.clone(), (Check::Running, p.now));
+    let provider = p.provider.clone();
     vec![settings_history::spawn(target, request, action, async move {
-        let result = settings_history::read_site(Client::for_site(&site)).await;
+        let result = settings_history::read_site(provider.client(&site)).await;
         match &result {
             Ok(got) => log::info(format!("jira check site:{}: signed in as {}", site.name, got.value)),
             Err(e) => log::warn(format!("jira check site:{} failed: {:#}", site.name, e.error())),
@@ -382,8 +382,9 @@ pub(crate) fn check_project(p: &mut JiraPlugin, i: usize, project: &str) -> Vec<
     let action = settings_history::action(Kind::Project, Some(&site), project);
     p.checks.insert(target.clone(), (Check::Running, p.now));
     let project = project.to_string();
+    let provider = p.provider.clone();
     vec![settings_history::spawn(target, request, action, async move {
-        settings_history::read_project(Client::for_site(&site), &project).await
+        settings_history::read_project(provider.client(&site), &project).await
     })]
 }
 
@@ -464,8 +465,9 @@ fn ask_jira_about(p: &mut JiraPlugin, text: String) -> Vec<Effect> {
         return vec![];
     };
     p.jql_checks.insert(text.clone(), Check::Running);
+    let provider = p.provider.clone();
     vec![Effect::Spawn(Box::pin(async move {
-        let result = async { Client::for_site(&site)?.check_jql(&text).await }
+        let result = async { provider.client(&site)?.check_jql(&text).await }
             .await
             .map_err(|e| format!("{e:#}"));
         Box::new(JiraMsg::Jql { text, result }) as Msg
@@ -479,11 +481,12 @@ fn ask_ac_fields(p: &mut JiraPlugin, i: usize, project: &str) -> Vec<Effect> {
         return vec![];
     };
     let project = project.to_string();
+    let provider = p.provider.clone();
     vec![
         Effect::Notify(format!("asking {} which fields could hold acceptance criteria…", site.name)),
         Effect::Spawn(Box::pin(async move {
             let result = async {
-                let c = Client::for_site(&site)?;
+                let c = provider.client(&site)?;
                 // Each field's count is asked at once, not one after another.
                 let mut counts = tokio::task::JoinSet::new();
                 for (id, name) in c.fields().await? {
@@ -568,8 +571,9 @@ fn ask_recent(p: &mut JiraPlugin, i: usize) -> Vec<Effect> {
     let Some(site) = p.cfg.sites.get(i).cloned() else {
         return vec![];
     };
+    let provider = p.provider.clone();
     vec![Effect::Spawn(Box::pin(async move {
-        let result = async { Client::for_site(&site)?.recent_projects().await }
+        let result = async { provider.client(&site)?.recent_projects().await }
             .await
             .map_err(|e| format!("{e:#}"));
         Box::new(JiraMsg::Recent {
@@ -682,6 +686,14 @@ fn env_ok(spec: &str) -> Option<Result<String, String>> {
 
 fn validate(p: &JiraPlugin, target: &Target, text: &str) -> Result<String, String> {
     let text = text.trim();
+    #[cfg(any(test, feature = "test-support"))]
+    if let Some(fixture) = &p.provider.fixture
+        && text.starts_with("env:")
+        && matches!(target, Target::SiteAdd | Target::SiteUrl(_) | Target::SiteEmail(_) | Target::SiteToken(_))
+    {
+        fixture.blocked("credential environment validation");
+        return Err("Jira hosted fixture does not resolve environment references".into());
+    }
     match target {
         Target::SiteAdd | Target::SiteUrl(_) => match config::url_problem(text) {
             Some(why) => Err(why),

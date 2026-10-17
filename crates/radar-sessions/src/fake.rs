@@ -48,6 +48,29 @@ pub enum Step {
 /// The steps of one turn.
 pub type Script = Vec<Step>;
 
+/// Exact adapter invocations, in order. Available to owner and hosted tests;
+/// these are requests, not claims that a provider turn or command succeeded.
+#[cfg(any(test, feature = "test-support"))]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum FakeCall {
+    Subscribe,
+    Create(CreateSession),
+    Send { session_id: RadarSessionId, input: SendInput },
+    Permission { session_id: RadarSessionId, answer: PermissionAnswer },
+    Resume(ResumeSession),
+    Stop { session_id: RadarSessionId },
+    Release,
+}
+
+#[cfg(any(test, feature = "test-support"))]
+#[derive(Default)]
+struct Inspection {
+    calls: Vec<FakeCall>,
+    strict_scripts: bool,
+    consumed_scripts: usize,
+    failure: Option<String>,
+}
+
 /// What `fill` and `stream` say: a paragraph long enough to wrap.
 const PARAGRAPH: &str = "The change moves the transcript out of the snapshot's hot path, so a streamed word costs the same \
     whether the session holds ten messages or five hundred; the renderer keeps what it already wrapped and draws only \
@@ -228,6 +251,8 @@ struct State {
     discarded: Vec<RadarSessionId>,
     /// Where the sessions' persisted history is kept between radar's runs, when anywhere.
     file: Option<std::path::PathBuf>,
+    #[cfg(any(test, feature = "test-support"))]
+    inspection: Inspection,
 }
 
 impl State {
@@ -305,6 +330,8 @@ impl FakeProvider {
                 calls: BTreeMap::new(),
                 discarded: vec![],
                 file: None,
+                #[cfg(any(test, feature = "test-support"))]
+                inspection: Inspection::default(),
             })),
         }
     }
@@ -404,7 +431,7 @@ impl FakeProvider {
     }
 
     /// The next turn (one per `send`) acts out `script`; with none queued a
-    /// turn says "ok".
+    /// turn uses [`auto_script`], unless strict scripting was enabled.
     pub fn script(&self, script: Script) {
         self.lock().scripts.push_back(script);
     }
@@ -413,6 +440,47 @@ impl FakeProvider {
     /// turn's events are lost, as a real CLI's are to nobody listening).
     pub fn listening(&self) -> bool {
         self.lock().tx.is_some()
+    }
+
+    /// Require a queued script for every send. An unexpected send fails closed
+    /// and poisons later sends, so queueing a script cannot hide the mismatch.
+    /// The interactive fake's default auto-script behaviour is unchanged.
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn strict_scripts(&self) {
+        self.lock().inspection.strict_scripts = true;
+    }
+
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn observations(&self) -> Vec<FakeCall> {
+        self.lock().inspection.calls.clone()
+    }
+
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn remaining_scripts(&self) -> usize {
+        self.lock().scripts.len()
+    }
+
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn consumed_scripts(&self) -> usize {
+        self.lock().inspection.consumed_scripts
+    }
+
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn script_failure(&self) -> Option<String> {
+        self.lock().inspection.failure.clone()
+    }
+
+    /// A stored sender alone does not prove that its receiver survived teardown.
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn has_live_subscriber(&self) -> bool {
+        self.lock().tx.as_ref().is_some_and(|tx| !tx.is_closed())
+    }
+
+    /// Provider-persisted events for this radar session. Ephemeral deltas and
+    /// radar's metadata-only cache are deliberately not part of this evidence.
+    #[cfg(any(test, feature = "test-support"))]
+    pub fn persisted_events(&self, radar: &RadarSessionId) -> Vec<Event> {
+        self.lock().sessions.values().filter(|s| &s.radar == radar).flat_map(|s| s.history.clone()).collect()
     }
 
     /// A CLI slow to listen: `subscribe` answers only after [`FakeProvider::let_subscribe`], and
@@ -469,6 +537,8 @@ impl FakeProvider {
     /// Let a hanging turn finish by itself.
     pub fn release(&self) {
         let mut st = self.lock();
+        #[cfg(any(test, feature = "test-support"))]
+        st.inspection.calls.push(FakeCall::Release);
         let ids: Vec<ProviderSessionId> = st
             .sessions
             .iter()
@@ -821,6 +891,8 @@ impl Adapter for FakeAdapter {
 
     fn subscribe(&self) -> BoxFuture<'_, anyhow::Result<Updates>> {
         Box::pin(async move {
+            #[cfg(any(test, feature = "test-support"))]
+            self.provider.lock().inspection.calls.push(FakeCall::Subscribe);
             {
                 let mut done = self.subscribed.lock().expect("flag");
                 if *done {
@@ -867,6 +939,8 @@ impl Adapter for FakeAdapter {
     fn create(&self, req: CreateSession) -> BoxFuture<'_, anyhow::Result<ProviderSessionId>> {
         Box::pin(async move {
             let mut st = self.provider.lock();
+            #[cfg(any(test, feature = "test-support"))]
+            st.inspection.calls.push(FakeCall::Create(req.clone()));
             if !st.installed {
                 anyhow::bail!("the fake CLI is not installed");
             }
@@ -889,6 +963,13 @@ impl Adapter for FakeAdapter {
         let session_id = session_id.clone();
         Box::pin(async move {
             let mut st = self.provider.lock();
+            #[cfg(any(test, feature = "test-support"))]
+            {
+                st.inspection.calls.push(FakeCall::Send { session_id: session_id.clone(), input: input.clone() });
+                if let Some(failure) = &st.inspection.failure {
+                    anyhow::bail!("{failure}");
+                }
+            }
             if !st.connected {
                 anyhow::bail!("not connected to the provider");
             }
@@ -896,7 +977,20 @@ impl Adapter for FakeAdapter {
             if session(&mut st, &id).turn.is_some() {
                 anyhow::bail!("a turn is running; the fake cannot take text mid-turn");
             }
-            let script = st.scripts.pop_front().unwrap_or_else(|| auto_script(&input.text));
+            #[cfg(any(test, feature = "test-support"))]
+            if st.inspection.strict_scripts && st.scripts.is_empty() {
+                let failure = format!("unexpected send for {session_id}: no queued fake script");
+                st.inspection.failure = Some(failure.clone());
+                anyhow::bail!("{failure}");
+            }
+            let script = match st.scripts.pop_front() {
+                Some(script) => {
+                    #[cfg(any(test, feature = "test-support"))]
+                    { st.inspection.consumed_scripts += 1; }
+                    script
+                }
+                None => auto_script(&input.text),
+            };
             emit(&mut st, &id, EventKind::UserMessage { text: input.text }, Durability::Persisted);
             emit(&mut st, &id, EventKind::TurnStarted, Durability::Persisted);
             session(&mut st, &id).turn = Some(Turn { steps: script.into(), blocked: None });
@@ -909,6 +1003,8 @@ impl Adapter for FakeAdapter {
         let session_id = session_id.clone();
         Box::pin(async move {
             let mut st = self.provider.lock();
+            #[cfg(any(test, feature = "test-support"))]
+            st.inspection.calls.push(FakeCall::Stop { session_id: session_id.clone() });
             let id = Self::find(&st, &session_id)?;
             let Some(turn) = session(&mut st, &id).turn.take() else { return Ok(()) };
             match turn.blocked {
@@ -933,6 +1029,8 @@ impl Adapter for FakeAdapter {
     fn resume(&self, req: ResumeSession) -> BoxFuture<'_, anyhow::Result<()>> {
         Box::pin(async move {
             let mut st = self.provider.lock();
+            #[cfg(any(test, feature = "test-support"))]
+            st.inspection.calls.push(FakeCall::Resume(req.clone()));
             st.setups.push(req.setup.clone());
             let Some(s) = st.sessions.get_mut(&req.provider_session_id) else {
                 anyhow::bail!("the provider no longer has session {}", req.provider_session_id);
@@ -993,6 +1091,8 @@ impl Adapter for FakeAdapter {
         let session_id = session_id.clone();
         Box::pin(async move {
             let mut st = self.provider.lock();
+            #[cfg(any(test, feature = "test-support"))]
+            st.inspection.calls.push(FakeCall::Permission { session_id: session_id.clone(), answer: answer.clone() });
             let id = Self::find(&st, &session_id)?;
             if session(&mut st, &id).answered.contains(&answer.request_id) {
                 return Ok(());
@@ -1144,5 +1244,132 @@ mod long_tests {
         let [Step::Say(text)] = stream.as_slice() else { panic!("one streamed answer: {stream:?}") };
         assert_eq!(text.split(' ').count(), 40);
         assert_eq!(auto_script("hello"), vec![Step::Say("You said: hello".into())]);
+    }
+}
+
+#[cfg(test)]
+mod inspection_tests {
+    use super::*;
+
+    async fn created(fake: &FakeProvider) -> (FakeAdapter, CreateSession, ProviderSessionId) {
+        let adapter = fake.adapter();
+        let request = CreateSession {
+            radar_session_id: RadarSessionId::new("watch-patrol"),
+            cwd: std::path::PathBuf::from("/ankh-morpork/watch"),
+            model: None,
+            setup: SessionSetup { local_only: true, ..Default::default() },
+        };
+        let provider_session = adapter.create(request.clone()).await.unwrap();
+        (adapter, request, provider_session)
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn strict_unexpected_send_is_sticky_and_consumes_no_script() {
+        let fake = FakeProvider::new();
+        fake.strict_scripts();
+        let (adapter, request, _) = created(&fake).await;
+        let input = SendInput { text: "Check the patrol notes".into() };
+        let first = adapter.send(&request.radar_session_id, input.clone()).await.unwrap_err().to_string();
+        assert!(first.contains("no queued fake script"));
+        // Adding a reply after the mismatch must not turn a failed fixture green.
+        let observer = fake.clone();
+        observer.script(vec![Step::Say("Too late".into())]);
+        let again = adapter.send(&request.radar_session_id, input.clone()).await.unwrap_err().to_string();
+        assert_eq!(again, first);
+        assert_eq!(observer.script_failure(), Some(first));
+        assert_eq!(fake.remaining_scripts(), 1);
+        assert_eq!(fake.consumed_scripts(), 0);
+        assert_eq!(fake.running(), 0);
+        assert!(fake.persisted_events(&request.radar_session_id).is_empty());
+        assert_eq!(fake.observations(), vec![
+            FakeCall::Create(request.clone()),
+            FakeCall::Send { session_id: request.radar_session_id.clone(), input: input.clone() },
+            FakeCall::Send { session_id: request.radar_session_id, input },
+        ]);
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn default_fake_still_auto_scripts_without_a_queued_turn() {
+        let fake = FakeProvider::new();
+        let (adapter, request, _) = created(&fake).await;
+        adapter.send(&request.radar_session_id, SendInput { text: "Hello Watch".into() }).await.unwrap();
+        assert!(fake.persisted_events(&request.radar_session_id).iter().any(|event| matches!(&event.kind,
+            EventKind::AssistantMessage { text, .. } if text == "You said: Hello Watch")));
+        assert_eq!(fake.script_failure(), None);
+        assert_eq!(fake.consumed_scripts(), 0);
+        assert_eq!(fake.running(), 0);
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn release_cannot_answer_permission_and_duplicate_answer_does_not_complete_twice() {
+        let fake = FakeProvider::new();
+        fake.strict_scripts();
+        fake.script(vec![Step::Shell("cargo test".into()), Step::Say("The fake continued".into())]);
+        let (adapter, request, _) = created(&fake).await;
+        let radar = &request.radar_session_id;
+        adapter.send(radar, SendInput { text: "Check the patrol notes".into() }).await.unwrap();
+        let waiting = fake.persisted_events(radar);
+        let permission = waiting.iter().find_map(|event| match &event.kind {
+            EventKind::PermissionRequested { request } => Some(request.clone()),
+            _ => None,
+        }).unwrap();
+        fake.release();
+        assert_eq!(fake.persisted_events(radar), waiting, "release only releases Hang, never a permission");
+        assert_eq!(fake.running(), 1);
+        let wrong = PermissionAnswer { request_id: "another-request".into(), decision: PermissionDecision::ApproveOnce };
+        assert!(adapter.answer_permission(radar, wrong).await.is_err());
+        assert_eq!(fake.persisted_events(radar), waiting);
+        let answer = PermissionAnswer { request_id: permission.request_id, decision: PermissionDecision::Deny { reason: Some("not now".into()) } };
+        adapter.answer_permission(radar, answer.clone()).await.unwrap();
+        let completed = fake.persisted_events(radar);
+        adapter.answer_permission(radar, answer.clone()).await.unwrap();
+        assert_eq!(fake.persisted_events(radar), completed, "duplicate answers are idempotent");
+        assert_eq!(completed.iter().filter(|event| matches!(event.kind, EventKind::PermissionResolved { .. })).count(), 1);
+        assert_eq!(completed.iter().filter(|event| matches!(event.kind, EventKind::ToolCompleted { ok: false, .. })).count(), 1);
+        assert_eq!(completed.iter().filter(|event| matches!(event.kind, EventKind::TurnEnded)).count(), 1);
+        assert_eq!(fake.observations().iter().filter(|call| matches!(call,
+            FakeCall::Permission { session_id, answer: actual } if session_id == radar && actual == &answer)).count(), 2);
+        assert_eq!(fake.running(), 0);
+        assert_eq!(fake.remaining_scripts(), 0);
+        assert_eq!(fake.consumed_scripts(), 1);
+        assert_eq!(fake.script_failure(), None);
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn observations_track_subscription_resume_stop_and_receiver_closure() {
+        let fake = FakeProvider::new();
+        fake.strict_scripts();
+        fake.script(vec![Step::Hang, Step::Say("Never reached".into())]);
+        let (adapter, create, provider_session_id) = created(&fake).await;
+        assert!(!fake.has_live_subscriber());
+        let receiver = adapter.subscribe().await.unwrap();
+        assert!(fake.has_live_subscriber());
+        assert!(adapter.subscribe().await.is_err(), "the same handle cannot subscribe twice");
+        assert!(fake.has_live_subscriber(), "rejected duplicate leaves the original stream open");
+        let radar = &create.radar_session_id;
+        let input = SendInput { text: "Keep checking".into() };
+        adapter.send(radar, input.clone()).await.unwrap();
+        assert_eq!(fake.running(), 1);
+        adapter.stop(radar).await.unwrap();
+        assert_eq!(fake.running(), 0);
+        let stopped = fake.persisted_events(radar);
+        fake.release();
+        assert_eq!(fake.persisted_events(radar), stopped, "release cannot revive a stopped turn");
+        let resume = ResumeSession {
+            radar_session_id: radar.clone(), provider_session_id,
+            cwd: create.cwd.clone(), cursor: None, setup: create.setup.clone(),
+        };
+        adapter.resume(resume.clone()).await.unwrap();
+        assert_eq!(fake.persisted_events(radar), stopped, "resume replays rather than regenerating history");
+        assert_eq!(fake.observations(), vec![
+            FakeCall::Create(create.clone()), FakeCall::Subscribe, FakeCall::Subscribe,
+            FakeCall::Send { session_id: radar.clone(), input },
+            FakeCall::Stop { session_id: radar.clone() }, FakeCall::Release, FakeCall::Resume(resume),
+        ]);
+        drop(receiver);
+        assert!(fake.listening(), "legacy listening reports a stored sender");
+        assert!(!fake.has_live_subscriber(), "the lifecycle check observes receiver closure");
+        assert_eq!(fake.remaining_scripts(), 0);
+        assert_eq!(fake.script_failure(), None);
     }
 }

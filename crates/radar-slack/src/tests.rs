@@ -1252,237 +1252,601 @@ fn a_slack_link_in_another_part_opens_its_thread() {
     assert!(matches!(shown, radar_core::Showing::Page { screen: "feed", .. }));
 }
 
-#[test]
-fn ask_for_review_drafts_the_teams_message_and_shows_it_exactly() {
-    let mut host = hosted_with_parts();
-    press(&mut host, KeyCode::Char('x'));
-    let labels = menu_labels(&host);
-    assert!(labels.iter().any(|l| l == " Slack"), "under Slack's name: {labels:?}");
-    assert!(labels.iter().any(|l| l.ends_with("ask for review in Slack…")), "{labels:?}");
-    assert!(labels.iter().any(|l| l.ends_with("open its review ask's thread")), "{labels:?}");
-    insta::assert_snapshot!("code_keys_with_slack_100x40", to_text(&host, 100, 40));
-    press(&mut host, KeyCode::Esc);
-    // a: the draft, on the Slack screen.
-    press(&mut host, KeyCode::Char('a'));
-    assert_eq!(host.screen().unwrap().1.name, "slack");
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("Ask for review in #team"), "{text}");
-    assert!(text.contains("@review-squad :gitlab: mr Add a stats endpoint for the dashboard"), "{text}");
-    assert!(text.contains(&format!("<!subteam^{GROUP}> :gitlab: <{MR_263}|mr> Add a stats endpoint for the dashboard")), "the text sent: {text}");
-    insta::assert_snapshot!("draft_one_160x40", text);
-    insta::assert_snapshot!("draft_one_80x24", to_text(&host, 80, 24));
-    press(&mut host, KeyCode::Char('x'));
-    insta::assert_snapshot!("draft_keys_100x40", to_text(&host, 100, 40));
-    press(&mut host, KeyCode::Esc);
-    // esc keeps it; the next merge request is added to it.
-    press(&mut host, KeyCode::Esc);
-    assert_eq!(host.screen().unwrap().1.name, "code");
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char('x'));
-    assert!(menu_labels(&host).iter().any(|l| l.ends_with("add to the review ask (1 in it)…")), "{:?}", menu_labels(&host));
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Char('a'));
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("• api !263 Add a stats endpoint for the dashboard"), "{text}");
-    assert!(text.contains("• api !270 Tidy the README"), "{text}");
-    insta::assert_snapshot!("draft_two_160x40", text);
-    // In the test channel no one is mentioned.
-    press(&mut host, KeyCode::Char('c'));
-    let at = host.menu.as_ref().unwrap().menu.items.iter().position(|i| i.value == "try").unwrap();
-    host.menu.as_mut().unwrap().row = at;
-    press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("Ask for review in #try"), "{text}");
-    assert!(!text.contains("subteam"), "{text}");
-    assert!(text.contains("not the review channel: the user group is not mentioned here"), "{text}");
-    insta::assert_snapshot!("draft_test_channel_160x40", text);
+mod review_draft {
+    use super::*;
+
+    #[test]
+    fn snapshots_and_edit_drop_share_one_host() {
+        use radar_core::view::{Intent, Node, PaneId};
+
+        // Preserve the six existing golden targets under this narrow scope.
+        let mut snapshots = insta::Settings::clone_current();
+        snapshots.set_prepend_module_to_snapshot(false);
+        let _snapshots = snapshots.bind_to_scope();
+
+        fn spawns(effect: &HostEffect) -> bool {
+            match effect {
+                HostEffect::Spawn { .. } => true,
+                HostEffect::Tracked { effect, .. } => spawns(effect),
+                _ => false,
+            }
+        }
+        fn dispatch(host: &mut Host, event: Event) {
+            let effects = host.update(event);
+            assert!(
+                !effects.iter().any(spawns),
+                "review-ask drafting, editing and dropping must not spawn"
+            );
+        }
+        fn key(host: &mut Host, code: KeyCode) {
+            dispatch(host, Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        }
+        fn select_mr(host: &mut Host, iid: &str) {
+            assert_eq!(host.screen().unwrap().1.name, "code");
+            let view = host.screen_view_in(0, "code", 160, 40).expect("Code view");
+            let Node::List { rows, .. } = &view.pane(PaneId::Middle).expect("merge requests").body
+            else {
+                panic!("merge request rows");
+            };
+            let target = rows
+                .iter()
+                .find(|row| row.target.as_str() == iid)
+                .expect("emitted merge request target")
+                .target
+                .clone();
+            dispatch(host, Event::Intent(Intent::Select { target }));
+        }
+        fn drop_draft(host: &mut Host) {
+            key(host, KeyCode::Char('n'));
+            assert_eq!(
+                host.menu.as_ref().expect("drop confirmation").menu.title,
+                "drop this review ask?"
+            );
+            key(host, KeyCode::Char('y'));
+            assert!(host.menu.is_none());
+            assert!(!host.plugins[2].capturing());
+            assert_eq!(host.message.as_deref(), Some("review ask draft dropped"));
+        }
+
+        // Configuration starts with an empty placeholder. Only the installed
+        // sample loads a demo world; its recorded transport never reaches Slack.
+        let rec = crate::client::Recorded::new(vec![]);
+        let mut host = Host::new(
+            vec![
+                Box::new(stand_in::Code::default()),
+                Box::new(stand_in::Tracker::default()),
+                Box::new(SlackPlugin::default()),
+            ],
+            NOW,
+        )
+        .unwrap();
+        host.load_config(Some("")).unwrap();
+        let mut p = sample();
+        p.via = crate::Via(Some(rec.clone()));
+        host.plugins[2] = Box::new(p);
+
+        key(&mut host, KeyCode::Char('x'));
+        let labels = menu_labels(&host);
+        assert!(
+            labels.iter().any(|l| l == " Slack"),
+            "under Slack's name: {labels:?}"
+        );
+        assert!(
+            labels
+                .iter()
+                .any(|l| l.ends_with("ask for review in Slack…")),
+            "{labels:?}"
+        );
+        assert!(
+            labels
+                .iter()
+                .any(|l| l.ends_with("open its review ask's thread")),
+            "{labels:?}"
+        );
+        insta::assert_snapshot!(
+            "radar_slack__tests__code_keys_with_slack_100x40",
+            to_text(&host, 100, 40)
+        );
+        key(&mut host, KeyCode::Esc);
+        // The contributed action opens the real Slack draft page.
+        key(&mut host, KeyCode::Char('a'));
+        assert_eq!(host.screen().unwrap().1.name, "slack");
+        let text = to_text(&host, 160, 40);
+        assert!(text.contains("Ask for review in #team"), "{text}");
+        assert!(
+            text.contains("@review-squad :gitlab: mr Add a stats endpoint for the dashboard"),
+            "{text}"
+        );
+        assert!(
+            text.contains(&format!(
+                "<!subteam^{GROUP}> :gitlab: <{MR_263}|mr> Add a stats endpoint for the dashboard"
+            )),
+            "the text sent: {text}"
+        );
+        insta::assert_snapshot!("radar_slack__tests__draft_one_160x40", text);
+        insta::assert_snapshot!(
+            "radar_slack__tests__draft_one_80x24",
+            to_text(&host, 80, 24)
+        );
+        key(&mut host, KeyCode::Char('x'));
+        insta::assert_snapshot!(
+            "radar_slack__tests__draft_keys_100x40",
+            to_text(&host, 100, 40)
+        );
+        key(&mut host, KeyCode::Esc);
+        // Esc keeps the first item; the next contributed action adds another.
+        key(&mut host, KeyCode::Esc);
+        assert_eq!(host.screen().unwrap().1.name, "code");
+        select_mr(&mut host, "270");
+        key(&mut host, KeyCode::Char('x'));
+        assert!(
+            menu_labels(&host)
+                .iter()
+                .any(|l| l.ends_with("add to the review ask (1 in it)…")),
+            "{:?}",
+            menu_labels(&host)
+        );
+        key(&mut host, KeyCode::Esc);
+        key(&mut host, KeyCode::Char('a'));
+        let text = to_text(&host, 160, 40);
+        assert!(
+            text.contains("• api !263 Add a stats endpoint for the dashboard"),
+            "{text}"
+        );
+        assert!(text.contains("• api !270 Tidy the README"), "{text}");
+        insta::assert_snapshot!("radar_slack__tests__draft_two_160x40", text);
+
+        // Choose the emitted test channel through the actual menu and Enter.
+        key(&mut host, KeyCode::Char('c'));
+        let at = host
+            .menu
+            .as_ref()
+            .unwrap()
+            .menu
+            .items
+            .iter()
+            .position(|i| i.value == "try")
+            .unwrap();
+        host.menu.as_mut().unwrap().row = at;
+        key(&mut host, KeyCode::Enter);
+        let text = to_text(&host, 160, 40);
+        assert!(text.contains("Ask for review in #try"), "{text}");
+        assert!(!text.contains("subteam"), "{text}");
+        assert!(
+            text.contains("not the review channel: the user group is not mentioned here"),
+            "{text}"
+        );
+        insta::assert_snapshot!("radar_slack__tests__draft_test_channel_160x40", text);
+
+        // Finish the visual journey, then recreate the original single-item
+        // edit/drop case through real navigation rather than private state.
+        drop_draft(&mut host);
+        key(&mut host, KeyCode::Char('C'));
+        select_mr(&mut host, "263");
+        key(&mut host, KeyCode::Char('a'));
+        key(&mut host, KeyCode::Char('e'));
+        assert!(host.plugins[2].capturing());
+        for _ in 0..60 {
+            key(&mut host, KeyCode::Backspace);
+        }
+        for c in "stats for the dashboard <3 & more".chars() {
+            key(&mut host, KeyCode::Char(c));
+        }
+        key(&mut host, KeyCode::Enter);
+        assert!(!host.plugins[2].capturing());
+        let text = to_text(&host, 160, 40);
+        assert!(
+            text.contains(&format!(
+                "<{MR_263}|mr> stats for the dashboard &lt;3 &amp; more"
+            )),
+            "{text}"
+        );
+        drop_draft(&mut host);
+        assert!(
+            rec.requests().is_empty(),
+            "no provider request in this draft contract"
+        );
+        assert_eq!(
+            radar_core::scenario::Scenario::new(host)
+                .costs()
+                .shell_frames,
+            7,
+            "only six goldens and the original edited-text checkpoint render"
+        );
+    }
 }
 
-#[test]
-fn the_words_can_be_edited_and_the_draft_dropped_without_sending() {
-    let mut host = hosted_with_parts();
-    press(&mut host, KeyCode::Char('a'));
-    press(&mut host, KeyCode::Char('e'));
-    keys(&mut host, &[KeyCode::Backspace; 60]);
-    chars(&mut host, "stats for the dashboard <3 & more");
-    press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains(&format!("<{MR_263}|mr> stats for the dashboard &lt;3 &amp; more")), "{text}");
-    press(&mut host, KeyCode::Char('n'));
-    let fx = press(&mut host, KeyCode::Char('y'));
-    assert_eq!(spawned(&fx), 0);
-    assert_eq!(host.message.as_deref(), Some("review ask draft dropped"));
+mod review_post {
+    use super::*;
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn success_and_refusal_share_one_host_and_real_tasks() {
+        use radar_core::scenario::Scenario;
+        use radar_core::view::{Intent, Node, PaneId};
+
+        const BUDGET: usize = 256;
+        let mut snapshots = insta::Settings::clone_current();
+        snapshots.set_prepend_module_to_snapshot(false);
+        let _snapshots = snapshots.bind_to_scope();
+
+        fn dispatch_without_task(s: &mut Scenario, event: Event) {
+            let before = s.costs().spawned_completion_tasks;
+            s.dispatch(event).unwrap();
+            assert_eq!(
+                s.costs().spawned_completion_tasks,
+                before,
+                "navigation, preview and decline must not spawn"
+            );
+        }
+        fn key(s: &mut Scenario, code: KeyCode) {
+            dispatch_without_task(s, Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        }
+        fn accept(s: &mut Scenario) {
+            let before = s.costs().spawned_completion_tasks;
+            s.dispatch(Event::Key(KeyEvent::new(
+                KeyCode::Char('y'),
+                KeyModifiers::NONE,
+            )))
+            .unwrap();
+            assert_eq!(
+                s.costs().spawned_completion_tasks,
+                before + 1,
+                "one real task for one accepted review ask"
+            );
+        }
+        fn select_mr(s: &mut Scenario, iid: &str) {
+            let target = s.inspect(|host| {
+                assert_eq!(host.screen().unwrap().1.name, "code");
+                let view = host.screen_view_in(0, "code", 160, 40).expect("Code view");
+                let Node::List { rows, .. } =
+                    &view.pane(PaneId::Middle).expect("merge requests").body
+                else {
+                    panic!("merge request rows");
+                };
+                rows.iter()
+                    .find(|row| row.target.as_str() == iid)
+                    .expect("emitted merge request target")
+                    .target
+                    .clone()
+            });
+            dispatch_without_task(s, Event::Intent(Intent::Select { target }));
+        }
+
+        // Literal wire contracts are independent of the production request builder.
+        // Recorded supplies replies in order; exact matching is asserted afterward.
+        let expected = [
+            crate::client::Request {
+                method: "chat.postMessage",
+                params: vec![],
+                write: true,
+                body: Some(serde_json::json!({
+                    "channel": TEAM,
+                    "text": format!("<!subteam^{GROUP}> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/270|mr> Tidy the README"),
+                    "unfurl_links": false,
+                    "unfurl_media": false,
+                })),
+            },
+            crate::client::Request {
+                method: "chat.postMessage",
+                params: vec![],
+                write: true,
+                body: Some(serde_json::json!({
+                    "channel": TEAM,
+                    "text": format!("<!subteam^{GROUP}> :gitlab: <{MR_263}|mr> Add a stats endpoint for the dashboard"),
+                    "unfurl_links": false,
+                    "unfurl_media": false,
+                })),
+            },
+        ];
+        let rec = crate::client::Recorded::new(vec![
+            ok(serde_json::json!({"ok": true, "channel": TEAM, "ts": "1791271000.000500"})),
+            Ok(crate::client::Reply {
+                status: 429,
+                retry_after: Some(30),
+                ..Default::default()
+            }),
+        ]);
+        let mut host = Host::new(
+            vec![
+                Box::new(stand_in::Code::default()),
+                Box::new(stand_in::Tracker::default()),
+                Box::new(SlackPlugin::default()),
+            ],
+            NOW,
+        )
+        .unwrap();
+        host.load_config(Some("")).unwrap();
+        let mut p = sample();
+        p.via = crate::Via(Some(rec.clone()));
+        host.plugins[2] = Box::new(p);
+        let mut s = Scenario::new(host);
+
+        // The first request has no previous review ask. Keep the exact real
+        // confirmation rows, including the payload's 72-cell line break.
+        select_mr(&mut s, "270");
+        key(&mut s, KeyCode::Char('a'));
+        key(&mut s, KeyCode::Char('p'));
+        assert_eq!(
+            s.host().menu.as_ref().unwrap().menu.title,
+            "post this in #team?"
+        );
+        assert_eq!(
+            menu_labels(s.host()),
+            [
+                format!(" <!subteam^{GROUP}> :gitlab: <https://git.example/acme/team-a/api/-/me"),
+                " rge_requests/270|mr> Tidy the README".into(),
+                "y yes".into(),
+                "e edit".into(),
+                "n no".into(),
+            ],
+            "exactly the text that is posted"
+        );
+        assert!(rec.requests().is_empty(), "preview cannot send");
+        key(&mut s, KeyCode::Char('n'));
+        assert_eq!(s.costs().spawned_completion_tasks, 0);
+        assert!(rec.requests().is_empty());
+        assert_eq!(
+            s.host().message.as_deref(),
+            Some("nothing sent · p has your text")
+        );
+        key(&mut s, KeyCode::Char('p'));
+        assert!(rec.requests().is_empty(), "reopening cannot send");
+        accept(&mut s);
+        s.settle(BUDGET).await.unwrap();
+        assert_eq!(s.costs().spawned_completion_tasks, 1);
+        assert_eq!(
+            rec.requests().as_slice(),
+            &expected[..1],
+            "sent exactly once"
+        );
+        assert_eq!(rec.replies.lock().unwrap().len(), 1);
+        assert_eq!(
+            s.host().message.as_deref(),
+            Some("✓ review asked · its thread is followed on the merge request")
+        );
+        key(&mut s, KeyCode::Char('C'));
+        let text = s.inspect(|host| to_text(host, 160, 40));
+        assert!(
+            text.contains("api !270 Tidy the README [asked 0s · no reply]"),
+            "{text}"
+        );
+
+        // Success closed the first draft. Start the original refusal subject
+        // through the contributed action, preserving the existing golden state.
+        select_mr(&mut s, "263");
+        key(&mut s, KeyCode::Char('a'));
+        key(&mut s, KeyCode::Char('p'));
+        assert_eq!(
+            rec.requests().as_slice(),
+            &expected[..1],
+            "second preview cannot send"
+        );
+        accept(&mut s);
+        s.settle(BUDGET).await.unwrap();
+        assert_eq!(s.costs().spawned_completion_tasks, 2);
+        assert_eq!(
+            rec.requests(),
+            expected,
+            "one request per accepted ask, never retried"
+        );
+        let text = s.inspect(|host| to_text(host, 160, 40));
+        assert!(text.contains("✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent"), "{text}");
+        insta::assert_snapshot!("radar_slack__tests__draft_refused_160x40", text);
+
+        s.settle(BUDGET).await.unwrap();
+        assert!(s.is_idle());
+        assert_eq!(s.costs().spawned_completion_tasks, 2);
+        assert_eq!(
+            rec.requests(),
+            expected,
+            "settling does not retry the refused ask"
+        );
+        assert!(
+            rec.replies.lock().unwrap().is_empty(),
+            "both responses were consumed"
+        );
+        assert!(s.desktop_effects().is_empty());
+        assert_eq!(
+            s.costs().shell_frames,
+            2,
+            "only the followed row and refusal golden render"
+        );
+        s.finish_journal().unwrap();
+    }
 }
 
-/// The draft posted against a recorded reply: the request is exactly the
-/// message shown, sent once; the ask is then followed on the row.
-#[test]
-fn posting_the_ask_sends_exactly_what_was_shown_once_and_follows_its_thread() {
-    let rec = crate::client::Recorded::new(vec![ok(serde_json::json!({"ok": true, "channel": TEAM, "ts": "1791271000.000500"}))]);
-    let mut host = hosted_with_parts();
-    let mut p = sample();
-    p.via = crate::Via(Some(rec.clone()));
-    // A merge request nobody has asked about yet.
-    host.plugins[2] = Box::new(p);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char('a'));
-    press(&mut host, KeyCode::Char('p'));
-    let menu = &host.menu.as_ref().unwrap().menu;
-    assert_eq!(menu.title, "post this in #team?");
-    assert_eq!(
-        menu_labels(&host),
-        [
-            // Cut at 72 cells, never wrapped at a space: exactly as sent.
-            format!(" <!subteam^{GROUP}> :gitlab: <https://git.example/acme/team-a/api/-/me"),
-            " rge_requests/270|mr> Tidy the README".into(),
-            "y yes".into(),
-            "e edit".into(),
-            "n no".into(),
-        ],
-        "exactly the text that is posted"
-    );
-    // n: nothing sent, and the draft is kept.
-    let fx = press(&mut host, KeyCode::Char('n'));
-    assert_eq!(spawned(&fx), 0);
-    assert!(rec.requests().is_empty());
-    assert_eq!(host.message.as_deref(), Some("nothing sent · p has your text"));
-    press(&mut host, KeyCode::Char('p'));
-    let fx = press(&mut host, KeyCode::Char('y'));
-    assert_eq!(spawned(&fx), 1);
-    settle(&mut host, fx);
-    let reqs = rec.requests();
-    assert_eq!(reqs.len(), 1, "sent once");
-    assert_eq!(reqs[0].method, "chat.postMessage");
-    assert!(reqs[0].write);
-    let body = reqs[0].body.clone().unwrap();
-    assert_eq!(body["channel"], TEAM);
-    assert_eq!(
-        body["text"],
-        format!("<!subteam^{GROUP}> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/270|mr> Tidy the README")
-    );
-    assert!(body.get("thread_ts").is_none());
-    assert!(host.message.as_deref().unwrap_or("").contains("review asked"), "{:?}", host.message);
-    // Back on the code screen, its row says so.
-    press(&mut host, KeyCode::Char('C'));
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("api !270 Tidy the README [asked 0s · no reply]"), "{text}");
-}
+mod reply_confirmation {
+    use super::*;
 
-#[test]
-fn a_refused_ask_is_shown_on_the_draft_and_not_sent_again() {
-    let rec = crate::client::Recorded::new(vec![Ok(crate::client::Reply {
-        status: 429,
-        retry_after: Some(30),
-        ..Default::default()
-    })]);
-    let mut host = hosted_with_parts();
-    let mut p = sample();
-    p.via = crate::Via(Some(rec.clone()));
-    host.plugins[2] = Box::new(p);
-    press(&mut host, KeyCode::Char('a'));
-    press(&mut host, KeyCode::Char('p'));
-    let fx = press(&mut host, KeyCode::Char('y'));
-    settle(&mut host, fx);
-    assert_eq!(rec.requests().len(), 1, "never retried");
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent"), "{text}");
-    insta::assert_snapshot!("draft_refused_160x40", text);
-}
+    #[test]
+    fn snapshots_and_edit_decline_recovery_share_one_host() {
+        use radar_core::view::{Editor, Intent, Node, PaneId, TreeRow};
 
-#[test]
-fn a_reply_is_written_shown_and_sent_only_after_yes() {
-    let rec = crate::client::Recorded::new(vec![
-        ok(serde_json::json!({"ok": true, "channel": TEAM, "ts": "1791271000.000900"})),
-        ok(serde_json::json!({"ok": true, "messages": []})),
-    ]);
-    let (mut p, _) = recorded(vec![]);
-    p.via = crate::Via(Some(rec.clone()));
-    let mut host = hosted_via(p);
-    on_team(&mut host, 4);
-    press(&mut host, KeyCode::Char('c'));
-    assert!(host.plugins[0].capturing());
-    // The kit's composer: ⏎ a new line, ctrl-s review, esc stop.
-    assert_eq!(
-        host.plugins[0].hints("slack", radar_core::Pane::Middle).iter().map(|h| h.keys).collect::<Vec<_>>(),
-        ["⏎", "ctrl-s", "esc", "ctrl-r"]
-    );
-    chars(&mut host, "looking now, <@U00000BOB1>");
-    press(&mut host, KeyCode::Enter);
-    chars(&mut host, "second line");
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("✎ reply in #team, in Bob Builder's thread"), "{text}");
-    assert!(text.contains("looking now, <@U00000BOB1>"), "{text}");
-    insta::assert_snapshot!("reply_typing_160x40", text);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)));
-    let menu = &host.menu.as_ref().unwrap().menu;
-    assert_eq!(menu.title, "post this in #team, in Bob Builder's thread?");
-    assert_eq!(
-        menu.items.iter().map(|i| format!("{} {} · {}", i.keys, i.label, i.hint)).collect::<Vec<_>>(),
-        [
-            " looking now, <@U00000BOB1> · ",
-            " second line · ",
-            "y yes · post it",
-            "e edit · keep writing",
-            "n no · drop it",
-        ]
-    );
-    insta::assert_snapshot!("reply_confirm_100x30", to_text(&host, 100, 30));
-    // e: back to the text, as it was.
-    press(&mut host, KeyCode::Char('e'));
-    assert!(host.plugins[0].capturing() && rec.requests().is_empty());
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)));
-    let fx = press(&mut host, KeyCode::Char('y'));
-    settle(&mut host, fx);
-    let reqs = rec.requests();
-    assert_eq!(reqs.len(), 2, "sent once, then the thread read again");
-    assert_eq!(reqs[0].method, "chat.postMessage");
-    let body = reqs[0].body.clone().unwrap();
-    assert_eq!(body["text"], "looking now, <@U00000BOB1>\nsecond line");
-    assert_eq!(body["thread_ts"], ago(2 * 86_400 + 3600));
-    assert_eq!(reqs[1].method, "conversations.replies", "the thread is read again");
-    assert_eq!(host.message.as_deref(), Some("✓ reply posted in #team, in Bob Builder's thread"));
-    assert!(!host.plugins[0].capturing());
-}
+        // Keep checking the original files despite the smaller classification scope.
+        let mut snapshots = insta::Settings::clone_current();
+        snapshots.set_prepend_module_to_snapshot(false);
+        let _snapshots = snapshots.bind_to_scope();
 
-#[test]
-fn a_declined_or_refused_reply_is_kept_for_r() {
-    let rec = crate::client::Recorded::new(vec![Ok(crate::client::Reply {
-        status: 429,
-        retry_after: Some(30),
-        ..Default::default()
-    })]);
-    let (mut p, _) = recorded(vec![]);
-    p.via = crate::Via(Some(rec.clone()));
-    let mut host = hosted_via(p);
-    on_team(&mut host, 4);
-    press(&mut host, KeyCode::Char('c'));
-    chars(&mut host, "on it");
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)));
-    // n: nothing sent, the composer closes, c has the text back.
-    let fx = press(&mut host, KeyCode::Char('n'));
-    assert_eq!(spawned(&fx), 0);
-    assert_eq!(host.message.as_deref(), Some("nothing sent · c has your text"));
-    assert!(!host.plugins[0].capturing());
-    press(&mut host, KeyCode::Char('c'));
-    press(&mut host, KeyCode::Enter); // choose the retained occurrence
-    assert!(to_text(&host, 160, 40).contains("on it"), "kept");
-    press(&mut host, KeyCode::Char('e')); // explicitly recover; no send
-    // Refused by Slack: said, never sent again, and kept for r.
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)));
-    let fx = press(&mut host, KeyCode::Char('y'));
-    settle(&mut host, fx);
-    assert_eq!(rec.requests().len(), 1, "never retried");
-    assert_eq!(
-        host.message.as_deref(),
-        Some("✗ reply outcome uncertain; a post may already exist · c has your text · ctrl-r lists kept replies")
-    );
-    press(&mut host, KeyCode::Char('c'));
-    press(&mut host, KeyCode::Enter); // choose the retained occurrence
-    assert!(to_text(&host, 160, 40).contains("on it"), "kept");
-    press(&mut host, KeyCode::Char('e')); // explicitly recover; no send
-    // esc with text asks first.
-    press(&mut host, KeyCode::Esc);
-    assert_eq!(host.menu.as_ref().unwrap().menu.title, "drop this reply draft?");
+        // Only the two golden checkpoints render. Every interaction still reaches
+        // the real host; even a tracked spawn before a send is a contract failure.
+        fn spawns(effect: &HostEffect) -> bool {
+            match effect {
+                HostEffect::Spawn { .. } => true,
+                HostEffect::Tracked { effect, .. } => spawns(effect),
+                _ => false,
+            }
+        }
+        fn dispatch(host: &mut Host, event: Event) {
+            let effects = host.update(event);
+            assert!(
+                !effects.iter().any(spawns),
+                "editing or retaining a reply must not spawn"
+            );
+        }
+        fn key(host: &mut Host, code: KeyCode) {
+            dispatch(host, Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        }
+        fn preview(host: &mut Host) {
+            dispatch(
+                host,
+                Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)),
+            );
+        }
+        fn composer_text(host: &Host) -> String {
+            let view = host.screen_view_in(0, "feed", 160, 40).expect("Slack feed");
+            let editor =
+                Editor::of(&view.overlay.expect("reply overlay").body).expect("reply editor");
+            editor
+                .lines
+                .into_iter()
+                .chain(std::iter::once(editor.line))
+                .collect::<Vec<_>>()
+                .join("\n")
+        }
+
+        let (p, rec) = recorded(vec![]);
+        let mut host = hosted_via(p);
+        // Select actual emitted targets, rather than drawing once per arrow key.
+        key(&mut host, KeyCode::Char('1'));
+        let view = host.screen_view_in(0, "feed", 160, 40).expect("Slack feed");
+        let Node::List { rows, .. } = &view.pane(PaneId::Nav).expect("Slack navigation").body
+        else {
+            panic!("Slack navigation rows");
+        };
+        let channel = rows
+            .iter()
+            .find(|row| row.text.to_string().contains("#team"))
+            .expect("team channel")
+            .target
+            .clone();
+        dispatch(&mut host, Event::Intent(Intent::Select { target: channel }));
+        key(&mut host, KeyCode::Char('2'));
+        let view = host.screen_view_in(0, "feed", 160, 40).expect("team feed");
+        let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("channel messages").body else {
+            panic!("channel message tree");
+        };
+        let root = ago(2 * 86_400 + 3600);
+        let path = tree
+            .visible()
+            .into_iter()
+            .find(|(path, _)| path.last().is_some_and(|id| id.contains(&root)))
+            .expect("review ask root")
+            .0;
+        dispatch(
+            &mut host,
+            Event::Intent(Intent::Select {
+                target: TreeRow::target_of(&path),
+            }),
+        );
+        key(&mut host, KeyCode::Char('c'));
+        assert!(host.plugins[0].capturing());
+        // The kit's composer: ⏎ a new line, ctrl-s review, esc stop.
+        assert_eq!(
+            host.plugins[0]
+                .hints("slack", radar_core::Pane::Middle)
+                .iter()
+                .map(|h| h.keys)
+                .collect::<Vec<_>>(),
+            ["⏎", "ctrl-s", "esc", "ctrl-r"]
+        );
+        for c in "looking now, <@U00000BOB1>".chars() {
+            key(&mut host, KeyCode::Char(c));
+        }
+        key(&mut host, KeyCode::Enter);
+        for c in "second line".chars() {
+            key(&mut host, KeyCode::Char(c));
+        }
+        let body = "looking now, <@U00000BOB1>\nsecond line";
+        assert_eq!(composer_text(&host), body);
+        assert!(rec.requests().is_empty(), "typing cannot send");
+        let text = to_text(&host, 160, 40);
+        assert!(
+            text.contains("✎ reply in #team, in Bob Builder's thread"),
+            "{text}"
+        );
+        assert!(text.contains("looking now, <@U00000BOB1>"), "{text}");
+        insta::assert_snapshot!("radar_slack__tests__reply_typing_160x40", text);
+        preview(&mut host);
+        let menu = &host.menu.as_ref().unwrap().menu;
+        assert_eq!(menu.title, "post this in #team, in Bob Builder's thread?");
+        assert_eq!(
+            menu.items
+                .iter()
+                .map(|i| format!("{} {} · {}", i.keys, i.label, i.hint))
+                .collect::<Vec<_>>(),
+            [
+                " looking now, <@U00000BOB1> · ",
+                " second line · ",
+                "y yes · post it",
+                "e edit · keep writing",
+                "n no · drop it",
+            ]
+        );
+        assert!(rec.requests().is_empty(), "preview cannot send");
+        insta::assert_snapshot!(
+            "radar_slack__tests__reply_confirm_100x30",
+            to_text(&host, 100, 30)
+        );
+        // e: back to the text, as it was.
+        key(&mut host, KeyCode::Char('e'));
+        assert!(host.plugins[0].capturing() && rec.requests().is_empty());
+        assert_eq!(composer_text(&host), body, "edit preserves every line");
+        preview(&mut host);
+        // n: nothing sent, the composer closes, c has the text back.
+        key(&mut host, KeyCode::Char('n'));
+        assert_eq!(
+            host.message.as_deref(),
+            Some("nothing sent · c has your text")
+        );
+        assert!(!host.plugins[0].capturing());
+        assert!(rec.requests().is_empty(), "declining cannot send");
+        key(&mut host, KeyCode::Char('c'));
+        key(&mut host, KeyCode::Enter); // choose the retained occurrence
+        let details = &host.menu.as_ref().expect("retained reply details").menu;
+        for line in body.lines() {
+            assert!(
+                details.items.iter().any(|item| item.label.contains(line)),
+                "retained line: {line}"
+            );
+        }
+        key(&mut host, KeyCode::Char('e')); // explicitly recover; no send
+        assert!(host.plugins[0].capturing());
+        assert_eq!(composer_text(&host), body, "recovery preserves every line");
+        // esc with text asks first.
+        key(&mut host, KeyCode::Esc);
+        assert_eq!(
+            host.menu.as_ref().unwrap().menu.title,
+            "drop this reply draft?"
+        );
+        assert_eq!(composer_text(&host), body, "asking to drop keeps the draft");
+        key(&mut host, KeyCode::Char('n'));
+        assert!(host.plugins[0].capturing());
+        assert_eq!(
+            composer_text(&host),
+            body,
+            "declining to drop keeps the draft"
+        );
+        key(&mut host, KeyCode::Esc);
+        key(&mut host, KeyCode::Char('y')); // this yes drops the local draft only
+        assert!(!host.plugins[0].capturing());
+        assert!(
+            host.screen_view_in(0, "feed", 160, 40)
+                .unwrap()
+                .overlay
+                .is_none()
+        );
+        assert!(
+            rec.requests().is_empty(),
+            "no provider request in this composer contract"
+        );
+        assert_eq!(
+            radar_core::scenario::Scenario::new(host)
+                .costs()
+                .shell_frames,
+            2,
+            "only the two golden checkpoints render"
+        );
+    }
 }
 
 #[test]

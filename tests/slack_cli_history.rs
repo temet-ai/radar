@@ -2,7 +2,7 @@
 //! writer. This target has no libtest harness so its child processes can pass
 //! ordinary `radar slack ...` arguments to `runner::main` unchanged.
 //!
-//! Run: cargo test -p radar --test slack_cli_history --no-default-features --features slack
+//! Run: cargo test -p radar --test slack_cli_history --no-default-features --features slack,test-support
 //! Every provider reply is synthetic; the fixture has no HTTP fallback. The
 //! same target runs on the PR24 baseline with only the fixture transport seam.
 

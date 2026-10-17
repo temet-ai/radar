@@ -8,6 +8,9 @@
 //! again. Settings sections `checkouts`, `terminal`, `editors`, `links` and `branches` (`settings.rs`); the
 //! `[git]` config table; the index in its cache.
 
+#[cfg(any(test, feature = "test-support"))]
+pub mod test_support;
+
 mod source_navigation;
 mod act;
 mod agent_context;
@@ -39,6 +42,8 @@ pub struct GitPlugin {
     pub(crate) branches: screen::Screen,
     pub(crate) now: i64,
     pub(crate) scoped: scoped::State,
+    #[cfg(any(test, feature = "test-support"))]
+    pub(crate) fixture: Option<test_support::LocalCheckoutFixture>,
 }
 
 impl GitPlugin {
@@ -51,6 +56,10 @@ impl GitPlugin {
     /// `RADAR_SANDBOX`): for samples and tests.
     #[cfg(feature = "demo")]
     pub fn offer_places(&mut self, places: Vec<(String, usize)>) {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("offered discovery locations") {
+            return;
+        }
         local::walked(self, places);
     }
 
@@ -72,6 +81,11 @@ impl Plugin for GitPlugin {
     }
 
     fn configure(&mut self, table: Option<&toml::Value>) -> anyhow::Result<()> {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture {
+            fixture.configure(table)?;
+            return Ok(());
+        }
         if self.scoped.invalidate() {
             self.local.scanning = false;
         }
@@ -92,10 +106,20 @@ impl Plugin for GitPlugin {
 
     #[cfg(feature = "demo")]
     fn demo(&mut self) {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture.is_some() {
+            return;
+        }
         *self = demo::branches();
     }
 
     fn restore(&mut self, cache: Value) {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture
+            && !fixture.accept_cache(&cache)
+        {
+            return;
+        }
         if let Ok(index) = serde_json::from_value(cache["index"].clone()) {
             self.local.index = Some(index);
         }
@@ -116,6 +140,12 @@ impl Plugin for GitPlugin {
     }
 
     fn on_msg(&mut self, msg: Msg) -> Vec<Effect> {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture
+            && !fixture.accept_message(msg.as_ref())
+        {
+            return vec![];
+        }
         let msg = match msg.downcast::<scoped::Message>() {
             Ok(m) => return scoped::on_msg(self, *m),
             Err(m) => m,
@@ -135,6 +165,10 @@ impl Plugin for GitPlugin {
     }
 
     fn on_bus(&mut self, topic: &str, payload: &Value) -> Vec<Effect> {
+        #[cfg(any(test, feature = "test-support"))]
+        if topic == act::START && self.fixture_denied("workspace start") {
+            return vec![];
+        }
         act::on_bus(self, topic, payload)
     }
 
@@ -143,6 +177,10 @@ impl Plugin for GitPlugin {
     }
 
     fn paste(&mut self, text: &str) -> Vec<Effect> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("settings paste") {
+            return vec![];
+        }
         match self.local.edit.as_mut() {
             // Look down holds one digit: a pasted one takes its place.
             Some((settings::Field::Depth, input)) => {
@@ -169,6 +207,10 @@ impl Plugin for GitPlugin {
     }
 
     fn act(&mut self, subject: &Subject, action: &str) -> Vec<Effect> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied(action) {
+            return vec![];
+        }
         scoped::act(self, subject, action).unwrap_or_else(|| join::act(self, subject, action))
     }
 
@@ -176,6 +218,10 @@ impl Plugin for GitPlugin {
         &mut self,
         request: &radar_core::agent_context::AgentContextRequest,
     ) -> Option<radar_core::agent_context::AgentContext> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("agent context / diff") {
+            return None;
+        }
         agent_context::agent_context(self, request)
     }
 
@@ -186,14 +232,28 @@ impl Plugin for GitPlugin {
         Result<radar_core::agent_context::WorktreeReady, radar_core::agent_context::WorktreeError>,
         Vec<Effect>,
     )> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("ensure worktree") {
+            return Some((Err(radar_core::agent_context::WorktreeError::Failed(
+                "local fixture only permits checkout and Branches reads".into(),
+            )), vec![]));
+        }
         Some(agent_context::ensure_worktree(self, request))
     }
 
     fn typing(&self, menu: &str, text: &str) -> radar_core::Typing {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("folder / editor discovery") {
+            return radar_core::Typing::default();
+        }
         scoped::typing(self, menu, text).unwrap_or_else(|| act::typing(self, menu, text))
     }
 
     fn on_menu(&mut self, menu: &str, value: &str) -> Vec<Effect> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("Git menu action") {
+            return vec![];
+        }
         if menu == "bulk" {
             return screen::on_bulk(self, value)
                 .or_else(|| settings::on_bulk(self, value))
@@ -219,6 +279,10 @@ impl Plugin for GitPlugin {
     /// The user let setup look: walk the home folder for the folders that
     /// hold checkouts, in the background, and offer them in the card.
     fn setup_looked(&mut self) {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("home discovery") {
+            return;
+        }
         local::want_home_walk(self);
     }
 
@@ -272,6 +336,13 @@ impl Plugin for GitPlugin {
         if !subject.is("checkout") {
             return None;
         }
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture
+            && subject.id != fixture.root().to_string_lossy()
+        {
+            fixture.blocked("checkout identity outside exact fixture root");
+            return None;
+        }
         let dir = local::journal_path(&subject.id)?.display().to_string();
         let key = radar_core::journal::SubjectKey::new("local", &dir, "checkout", &dir).ok()?;
         Some(radar_core::journal::SubjectSnapshot::new(
@@ -319,10 +390,20 @@ impl Plugin for GitPlugin {
         section: &str,
         cx: &radar_core::view::ViewCx<'_>,
     ) -> Option<radar_core::view::SectionView> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.fixture_denied("Git settings discovery") {
+            return None;
+        }
         settings::section_view(self, section, cx)
     }
 
     fn intent(&mut self, scope: &str, pane: Pane, intent: &radar_core::view::Intent) -> Outcome {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture
+            && !fixture.accept_intent(scope, intent)
+        {
+            return Outcome::done();
+        }
         if scope == screen::SCREEN.id {
             screen::intent(self, pane, intent)
         } else {
@@ -340,6 +421,15 @@ impl Plugin for GitPlugin {
 
     fn row_hints(&self, _: &str, pane: Pane) -> Vec<KeyHint<'static>> {
         screen::row_hints(self, pane)
+    }
+
+    #[cfg(any(test, feature = "test-support"))]
+    fn run_cli(&self, _: &clap::ArgMatches) -> radar_core::plugin::CliTask {
+        let blocked = self.fixture_denied("Git CLI");
+        Box::pin(async move {
+            anyhow::ensure!(!blocked, "local fixture does not permit CLI execution");
+            Ok(String::new())
+        })
     }
 }
 

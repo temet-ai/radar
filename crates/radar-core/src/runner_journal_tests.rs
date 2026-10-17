@@ -1046,7 +1046,19 @@ async fn panicked_task_records_unknown_without_panic_payload() {
             ..Default::default()
         })
         .unwrap();
+    let started = events
+        .iter()
+        .filter(|event| event.action_id == action && event.outcome == JournalOutcome::Started)
+        .collect::<Vec<_>>();
+    assert_eq!(started.len(), 1);
     for id in [&action, &semantic] {
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| &event.action_id == id && event.outcome.is_terminal())
+                .count(),
+            1,
+        );
         assert!(events.iter().any(|event| &event.action_id == id
             && event.outcome == JournalOutcome::Unknown
             && event.metadata.reason == Some(Reason::Interrupted)));

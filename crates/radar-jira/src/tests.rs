@@ -16,6 +16,9 @@ mod page_stored;
 #[path = "code_reread_tests.rs"]
 mod code_reread;
 
+#[path = "filter_tests.rs"]
+mod filter;
+
 
 use super::*;
 use crate::model::fixtures::ticket;
@@ -388,19 +391,6 @@ fn a_view_that_needs_watched_projects_skips_a_site_without_and_says_so() {
 }
 
 #[test]
-fn slash_filters_by_words_and_esc_clears() {
-    let mut host = hosted();
-    press(&mut host, KeyCode::Char('/'));
-    typed(&mut host, "export");
-    press(&mut host, KeyCode::Enter);
-    let keys: Vec<String> = jira(&host).visible().iter().map(|it| it.t.key.clone()).collect();
-    assert_eq!(keys, ["DEF-3"]);
-    assert!(text(&host, 160, 40).contains("tickets mentioning \"export\""));
-    press(&mut host, KeyCode::Esc);
-    assert_eq!(jira(&host).visible().len(), 6);
-}
-
-#[test]
 fn typed_words_and_the_picked_assignee_leave_out_sites_with_nothing_found() {
     let mut p = sample();
     let sites = |p: &JiraPlugin| screen::nodes(p).len();
@@ -414,45 +404,6 @@ fn typed_words_and_the_picked_assignee_leave_out_sites_with_nothing_found() {
     assert_eq!(sites(&p), 1, "the assignee narrows the same way");
     p.assignee = None;
     assert_eq!(sites(&p), 2);
-}
-
-#[test]
-fn down_from_the_filter_goes_to_the_first_result() {
-    let mut host = hosted();
-    host.focus = Pane::Nav;
-    press(&mut host, KeyCode::Char('/'));
-    typed(&mut host, "export");
-    press(&mut host, KeyCode::Down);
-    let p = jira(&host);
-    assert!(p.filter_input.is_none(), "↓ closes the field");
-    assert_eq!(p.filter, "export", "↓ keeps the words");
-    assert_eq!(host.focus, Pane::Middle);
-    assert!(matches!(screen::selected(p), Some(screen::Selected::Ticket(it)) if it.t.key == "DEF-3"));
-}
-
-#[test]
-fn enter_from_the_filter_goes_to_the_results_keeping_the_selection_if_shown() {
-    let mut host = hosted();
-    host.focus = Pane::Nav;
-    // ABC-12 is under its epic, ABC-1, in the same status.
-    let abc12: Vec<String> = ["s:acme", "g:acme:In Progress", "t:acme:ABC-1", "t:acme:ABC-12"]
-        .map(String::from)
-        .to_vec();
-    jira_mut(&mut host).tree.borrow_mut().select(abc12.clone());
-    press(&mut host, KeyCode::Char('/'));
-    typed(&mut host, "endpoint");
-    press(&mut host, KeyCode::Enter);
-    assert_eq!(host.focus, Pane::Middle);
-    assert!(jira(&host).filter_input.is_none());
-    assert_eq!(jira(&host).tree.borrow().selected(), abc12.as_slice(), "still shown: it stays");
-    // Words that no longer show it: the first result.
-    press(&mut host, KeyCode::Char('/'));
-    for _ in 0..8 {
-        press(&mut host, KeyCode::Backspace);
-    }
-    typed(&mut host, "export");
-    press(&mut host, KeyCode::Enter);
-    assert!(matches!(screen::selected(jira(&host)), Some(screen::Selected::Ticket(it)) if it.t.key == "DEF-3"));
 }
 
 #[test]

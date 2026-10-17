@@ -182,10 +182,10 @@ fn home() -> Option<PathBuf> {
 /// `~/code` → your home folder's `code`; anything else as it is.
 pub fn expand(root: &str) -> PathBuf {
     let root = root.trim();
-    match (
-        root.strip_prefix("~/").or((root == "~").then_some("")),
-        home(),
-    ) {
+    let Some(relative) = root.strip_prefix("~/").or((root == "~").then_some("")) else {
+        return PathBuf::from(root);
+    };
+    match (Some(relative), home()) {
         (Some(""), Some(h)) => h,
         (Some(rest), Some(h)) => h.join(rest),
         _ => PathBuf::from(root),
@@ -215,6 +215,17 @@ pub fn tilde(path: &str) -> String {
         }
         None => path.to_string(),
     }
+}
+
+/// Owner-local display policy. Explicit fixtures never discover an ambient
+/// home directory merely to abbreviate a path in a view or contribution.
+pub(crate) fn display_path(p: &GitPlugin, path: &str) -> String {
+    #[cfg(any(test, feature = "test-support"))]
+    if p.fixture.is_some() {
+        return path.to_string();
+    }
+    let _ = p;
+    tilde(path)
 }
 
 /// Clean what someone pastes as a folder: quotes, `file://`, spaces.
@@ -889,14 +900,28 @@ pub fn scan_now(p: &mut GitPlugin, say: bool) -> Vec<Effect> {
     p.local.scanning = true;
     p.local.say_scan = say;
     let (roots, depth) = (p.cfg.roots.clone(), p.cfg.depth);
+    #[cfg(any(test, feature = "test-support"))]
+    let fixture = p.fixture.clone();
+    #[cfg(any(test, feature = "test-support"))]
+    let pending = fixture.as_ref().map(|f| f.pending());
     let mut fx = vec![
         Effect::Journal(ActionDescriptor::new(
             "git.checkouts.scan",
             Origin::Plugin("git".into()),
         )),
-        blocking(move || LocalMsg::Scanned {
-            index: scan(&roots, depth),
-            installed: system::installed_editors(&Env::detect()),
+        blocking(move || {
+            #[cfg(any(test, feature = "test-support"))]
+            if let Some(fixture) = fixture {
+                let _pending = pending;
+                return match fixture.scan(&roots, depth) {
+                    Ok(index) => LocalMsg::Scanned { index, installed: vec![] },
+                    Err(why) => LocalMsg::Failed(why),
+                };
+            }
+            LocalMsg::Scanned {
+                index: scan(&roots, depth),
+                installed: system::installed_editors(&Env::detect()),
+            }
         }),
     ];
     if say {
@@ -907,6 +932,13 @@ pub fn scan_now(p: &mut GitPlugin, say: bool) -> Vec<Effect> {
 
 /// Once at start-up: look for checkouts in the background.
 pub fn tick(p: &mut GitPlugin) -> Vec<Effect> {
+    #[cfg(any(test, feature = "test-support"))]
+    if p.fixture.is_some() {
+        // The fixture's only discovery is the explicit checkout scan below.
+        // Never consult the ambient terminal, editor installation or home.
+        p.local.terminals = Some(crate::terminal::Terminals::default());
+        p.local.home = HomeWalk::Off;
+    }
     if !p.local.linked_read {
         refresh_links(p);
     }

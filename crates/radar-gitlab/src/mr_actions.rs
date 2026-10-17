@@ -13,7 +13,7 @@ use radar_core::journal::{ActionDescriptor, Origin, Outcome as JournalOutcome, S
 use serde_json::{Value, json};
 
 use crate::model::{MergeSettings, Mr, MrState};
-use crate::{Client, GitlabPlugin, config};
+use crate::GitlabPlugin;
 
 /// What GitLab says about a merge request right before a merge.
 pub const FRESH_QUERY: &str = r#"
@@ -256,13 +256,13 @@ pub fn start(p: &mut GitlabPlugin, project: &str, iid: u64, what: &'static str) 
             at: p.now,
         },
     );
-    let (url, token, project) = (p.cfg.url.clone(), p.cfg.token.clone(), project.to_string());
+    let project = project.to_string();
+    let provider = p.provider();
     let task = Effect::Spawn(Box::pin(async move {
         // Before a mutation starts, a failed prerequisite cannot have changed GitLab.
         let mut outcome = JournalOutcome::Failed;
         let result = async {
-            let token = config::resolve_token(&token, &url).map_err(|e| format!("{e:#}"))?;
-            let client = Client::new(&url, token);
+            let client = provider.client().map_err(|e| format!("{e:#}"))?;
             if what == "rebase" {
                 outcome = JournalOutcome::Unknown;
                 let (status, body) = client

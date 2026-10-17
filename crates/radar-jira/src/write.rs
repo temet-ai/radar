@@ -27,7 +27,7 @@ use radar_core::writes::{self, Service};
 use radar_core::log;
 use serde_json::Value;
 
-use crate::client::{self, Client};
+use crate::client;
 use crate::model::{Category, IssueType, Me, Transition};
 use crate::screen::{self, Selected};
 use crate::write_context::Dispatch;
@@ -462,12 +462,13 @@ pub(crate) fn start_move(p: &mut JiraPlugin, site: &str, key: &str) -> Vec<Effec
     let read = p.dialogs.read(action.clone());
     p.asking.insert(format!("{id}{}", read.id));
     let key = key.to_string();
+    let provider = p.provider.clone();
     vec![
         Effect::Notify(format!("asking Jira where {key} can go…")),
         Effect::SpawnAction {
             action,
             task: Box::pin(async move {
-                let result = async { Client::for_site(&s)?.transitions(&key).await }
+                let result = async { provider.client(&s)?.transitions(&key).await }
                     .await
                     .map_err(|e| format!("{e:#}"));
                 Box::new(JiraMsg::Moves {
@@ -906,12 +907,13 @@ pub(crate) fn ask_types(p: &mut JiraPlugin, site: &str, project: &str) -> Vec<Ef
     let read = p.dialogs.read(action.clone());
     p.asking.insert(format!("{id}{}", read.id));
     let project = project.to_string();
+    let provider = p.provider.clone();
     vec![
         Effect::Notify(format!("asking Jira what tickets {project} takes…")),
         Effect::SpawnAction {
             action,
             task: Box::pin(async move {
-                let result = async { Client::for_site(&s)?.issue_types(&project).await }
+                let result = async { provider.client(&s)?.issue_types(&project).await }
                     .await
                     .map_err(|e| format!("{e:#}"));
                 Box::new(JiraMsg::Types {
@@ -1030,10 +1032,11 @@ pub(crate) fn assign_me(p: &mut JiraPlugin, site: &str, key: &str) -> Vec<Effect
             let read = p.dialogs.read(action.clone());
             p.asking.insert(format!("{id}{}", read.id));
             let key = key.to_string();
+            let provider = p.provider.clone();
             vec![Effect::SpawnAction {
                 action,
                 task: Box::pin(async move {
-                    let result = async { Client::for_site(&s)?.myself().await }
+                    let result = async { provider.client(&s)?.myself().await }
                         .await
                         .map_err(|e| format!("{e:#}"));
                     Box::new(JiraMsg::Who {
@@ -1189,13 +1192,14 @@ pub(crate) fn dispatch(
     );
     log::info(format!("jira {}: {words}", site.name));
     let sent = dispatch.clone();
+    let provider = p.provider.clone();
     fx.extend([
         Effect::Report(JournalOutcome::Started),
         Effect::Notify(SERVICE.asking(&words)),
         Effect::Spawn(Box::pin(async move {
             let result = async {
                 let req = change.request()?;
-                Client::for_site(&site)?
+                provider.client(&site)?
                     .write(req, &format!("ticket {}", change.about()))
                     .await
             }

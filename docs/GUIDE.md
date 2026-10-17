@@ -1982,6 +1982,9 @@ something should take you to it.
 
 ## 3. Testing
 
+The classified test inventory and replayable journeys are documented in
+[`test-tiers.md`](test-tiers.md) and [`scenarios.md`](scenarios.md).
+
 **Respect the testing pyramid.** Most tests are unit tests: fast, many, on one function or
 one plugin. A few integration tests per part go through the host for the important paths.
 A very small end-to-end smoke runs per mix. Never write a loop that rebuilds a host and

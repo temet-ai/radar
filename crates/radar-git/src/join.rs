@@ -86,7 +86,7 @@ pub(crate) fn no_checkout(p: &GitPlugin) -> String {
         "no local checkout known: add the folders you keep code in, in settings, git › checkouts"
             .into()
     } else {
-        let roots: Vec<String> = p.cfg.roots.iter().map(|r| local::tilde(r)).collect();
+        let roots: Vec<String> = p.cfg.roots.iter().map(|r| local::display_path(p, r)).collect();
         format!("no checkout of this repo in {}", roots.join(", "))
     }
 }
@@ -105,7 +105,7 @@ fn line(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Chip> {
     out.push(Chip::new("  ", Tone::Muted));
     out.push(Chip::new("editor", Tone::Accent).icon(Icon::Editor).acts("editor"));
     out.push(Chip::new("  ", Tone::Muted));
-    out.push(Chip::new(local::tilde(&c.dir), Tone::Plain));
+    out.push(Chip::new(local::display_path(p, &c.dir), Tone::Plain));
     if let Some(k) = p.cfg.type_of(c) {
         out.push(Chip::new(format!(" · {}", k.name), Tone::Muted));
     }

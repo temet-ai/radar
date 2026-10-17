@@ -160,6 +160,28 @@ pub struct Client {
     limits: Option<(String, Limits)>,
 }
 
+/// The plugin's provider selection, captured before spawning tasks. Production
+/// credentials are still resolved lazily, inside the task, as before.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Provider {
+    #[cfg(any(test, feature = "test-support"))]
+    pub(crate) fixture: Option<crate::test_support::HostedFixture>,
+}
+
+impl Provider {
+    pub(crate) fn client(&self, site: &crate::config::Site) -> Result<Client> {
+        #[cfg(any(test, feature = "test-support"))]
+        if let Some(fixture) = &self.fixture {
+            return Ok(Client::over(Arc::new(fixture.for_site(site)?)));
+        }
+        Client::for_site(site)
+    }
+
+    pub(crate) fn tracked(&self, site: &crate::config::Site, limits: &Limits) -> Result<Client> {
+        Ok(self.client(site)?.limited(&site.name, limits))
+    }
+}
+
 /// How many times a read is tried.
 const TRIES: usize = 3;
 /// The longest radar waits between tries, whatever Jira asks.
@@ -394,7 +416,7 @@ impl Client {
 
     /// A client over another transport (recorded replies), not waiting
     /// between tries.
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test-support"))]
     pub fn over(t: Arc<dyn Transport>) -> Self {
         Self {
             t,
@@ -407,11 +429,6 @@ impl Client {
     pub(crate) fn limited(mut self, site: &str, limits: &Limits) -> Self {
         self.limits = Some((site.to_string(), limits.clone()));
         self
-    }
-
-    /// For a configured site, noting its rate limits in `limits`.
-    pub(crate) fn tracked(site: &crate::config::Site, limits: &Limits) -> Result<Self> {
-        Ok(Self::for_site(site)?.limited(&site.name, limits))
     }
 
     /// For a configured site: its address, email and token resolved.

@@ -29,7 +29,7 @@ use crate::comment_recovery::{self, Destination, Review, Status};
 use crate::model::DiffRefs;
 use crate::mr_actions::{Act, Acting};
 use crate::pages::mr_key;
-use crate::{GitlabPlugin, config};
+use crate::GitlabPlugin;
 
 /// GitLab, as writes name it.
 pub(crate) const SERVICE: Service = Service::new("GitLab");
@@ -685,14 +685,14 @@ fn send(p: &mut GitlabPlugin) -> Vec<Effect> {
         },
     );
     log::info(format!("gitlab {} on {}", change.what(), change.key()));
-    let (url, token) = (p.cfg.url.clone(), p.cfg.token.clone());
+    let provider = p.provider();
     fx.extend([
         Effect::Report(JournalOutcome::Started),
         Effect::Notify(SERVICE.asking(&change.doing())),
         Effect::Spawn(Box::pin(async move {
             let result = async {
-                let token = config::resolve_token(&token, &url).map_err(|e| format!("{e:#}"))?;
-                send_with(&Client::new(&url, token), &change).await
+                let client = provider.client().map_err(|e| format!("{e:#}"))?;
+                send_with(&client, &change).await
             }
             .await;
             Box::new(WroteMsg {

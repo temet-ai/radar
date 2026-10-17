@@ -1016,8 +1016,13 @@ fn ask_to_check(key: &str, what: &str) -> Effect {
 
 // --- validation as you type ---------------------------------------------------------
 
-fn env_ok(spec: &str) -> Option<Result<String, String>> {
+fn env_ok(p: &SlackPlugin, spec: &str) -> Option<Result<String, String>> {
     let var = spec.strip_prefix("env:")?;
+    #[cfg(feature = "test-support")]
+    if p.scripted_fixture || p.offline_fixture {
+        return Some(Ok(format!("{var} uses an offline fixture: a user token")));
+    }
+    let _ = p;
     Some(match std::env::var(var) {
         Ok(v) if !v.trim().is_empty() => {
             Ok(format!("{var} is set: {}", config::token_kind(v.trim())))
@@ -1029,7 +1034,7 @@ fn env_ok(spec: &str) -> Option<Result<String, String>> {
 fn validate(p: &SlackPlugin, target: &Target, text: &str) -> Result<String, String> {
     let text = text.trim();
     match target {
-        Target::Token => match env_ok(text) {
+        Target::Token => match env_ok(p, text) {
             Some(Ok(m)) if m.contains("a user token") => Ok(m),
             Some(Ok(m)) => Err(format!(
                 "{m}; radar reads and asks as you, so it needs a user token (xoxp-…)"

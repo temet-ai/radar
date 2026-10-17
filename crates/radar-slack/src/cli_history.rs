@@ -28,6 +28,10 @@ pub(crate) fn run(plugin: &SlackPlugin, matches: &clap::ArgMatches) -> ObservedC
         });
     }
     let cfg = plugin.cfg.clone();
+    #[cfg(feature = "test-support")]
+    let scripted = plugin.scripted_fixture;
+    #[cfg(not(feature = "test-support"))]
+    let scripted = false;
     let data = plugin.cache_snapshot();
     let m = matches.clone();
     let now = time::now_secs();
@@ -39,23 +43,37 @@ pub(crate) fn run(plugin: &SlackPlugin, matches: &clap::ArgMatches) -> ObservedC
             match m.subcommand() {
                 Some(("cache-recovery", _)) => data.recovery(),
                 Some((command @ ("list" | "catchup"), m)) => {
-                    let api = cfg.resolved_api().inspect_err(|_| {
+                    // Explicit fixture constructors bypass credential sourcing.
+                    // Keep the local missing-token refusal in the CLI fixture.
+                    // Ordinary recorded unit tests retain production validation.
+                    if scripted && cfg.token.trim().is_empty() {
                         evidence.refused(Reason::Unavailable);
-                    })?;
-                    let token = cfg.resolved_token().map_err(|e| {
-                        evidence.refused(Reason::Unavailable);
-                        anyhow::anyhow!("{e:#}: run radar, press , for settings, then set it under Slack, connection")
-                    })?;
+                        anyhow::bail!("Slack token is not set: run radar, press , for settings, then set it under Slack, connection");
+                    }
+                    let credentials = if scripted { None } else {
+                        let api = cfg.resolved_api().inspect_err(|_| {
+                            evidence.refused(Reason::Unavailable);
+                        })?;
+                        let token = cfg.resolved_token().map_err(|e| {
+                            evidence.refused(Reason::Unavailable);
+                            anyhow::anyhow!("{e:#}: run radar, press , for settings, then set it under Slack, connection")
+                        })?;
+                        Some((api, token))
+                    };
+                    let live_client = || -> anyhow::Result<Client> {
+                        let (api, token) = credentials.as_ref().ok_or_else(|| anyhow::anyhow!("scripted fixture transport is missing"))?;
+                        Client::http(api, token)
+                    };
                     #[cfg(any(test, feature = "test-support"))]
                     let client = match via.0 {
                         Some(transport) => {
                             let wait: crate::client::Wait = std::sync::Arc::new(|_| Box::pin(async {}));
                             Ok(Client::new(transport).with_wait(wait))
                         }
-                        None => Client::http(&api, &token),
+                        None => live_client(),
                     };
                     #[cfg(not(any(test, feature = "test-support")))]
-                    let client = Client::http(&api, &token);
+                    let client = live_client();
                     let c = client.inspect_err(|_| {
                         evidence.refused(Reason::Unavailable);
                     })?;

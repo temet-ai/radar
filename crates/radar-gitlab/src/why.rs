@@ -178,11 +178,12 @@ pub(crate) fn diagnose(
     f.loading = true;
     p.watch.seen.insert(k, sig);
     let request = log_ownership::pipeline(p, project, pipeline);
-    let (url, token, project) = (p.cfg.url.clone(), p.cfg.token.clone(), project.to_string());
+    let (url, project) = (p.cfg.url.clone(), project.to_string());
+    let provider = p.provider();
     let action = crate::failure_history::action(&url, &project, pipeline);
     vec![crate::failure_history::spawn(action, request, async move {
         let list = async {
-            crate::auth::run(&url, &token, |c| {
+            provider.run(|c| {
                 let project = project.clone();
                 async move { c.failed_jobs_observed(&project, pipeline).await }
             })
@@ -190,11 +191,10 @@ pub(crate) fn diagnose(
             .map_err(|e| format!("{e:#}"))
         };
         read(logs, list, |id| {
-            let url = url.clone();
-            let token = token.clone();
+            let provider = provider.clone();
             let project = project.clone();
             async move {
-                crate::auth::run(&url, &token, |c| {
+                provider.run(|c| {
                     let project = project.clone();
                     async move { c.trace(&project, id, None).await }
                 })
@@ -287,9 +287,10 @@ pub(crate) fn open_log(p: &mut GitlabPlugin, project: &str, id: u64, force: bool
     }
     f.loading = true;
     let request = log_ownership::direct(p, key);
-    let (url, token, project) = (p.cfg.url.clone(), p.cfg.token.clone(), project.to_string());
+    let project = project.to_string();
+    let provider = p.provider();
     vec![crate::log_history::spawn(request, async move {
-        crate::auth::run(&url, &token, |c| {
+        provider.run(|c| {
             let project = project.clone();
             async move { crate::log_history::read(&c, &project, id).await }
         })
@@ -305,9 +306,10 @@ pub(crate) fn earlier(p: &mut GitlabPlugin, project: &str, id: u64) -> Vec<Effec
         return vec![];
     };
     let before = request.earlier.expect("earlier request").before;
-    let (url, token, project) = (p.cfg.url.clone(), p.cfg.token.clone(), project.to_string());
+    let project = project.to_string();
+    let provider = p.provider();
     vec![crate::log_history::earlier_spawn(request, async move {
-        crate::auth::run(&url, &token, |c| {
+        provider.run(|c| {
             let project = project.clone();
             async move { c.trace_observed(&project, id, Some(before)).await }
         })

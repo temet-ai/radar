@@ -33,6 +33,9 @@ mod tour;
 mod setup_hints_tests;
 
 pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
+    #[cfg(feature = "test-support")]
+    host.scenario_shell_frames
+        .set(host.scenario_shell_frames.get() + 1);
     let area = f.area();
     let cursor = std::cell::Cell::new(None);
     host.hits.borrow_mut().clear();

@@ -8,9 +8,13 @@
 mod source_navigation;
 mod agent_context;
 mod auth;
+#[cfg(any(test, feature = "test-support"))]
+pub mod test_support;
 mod backoff;
 #[cfg(test)]
 mod sync_backoff_tests;
+#[cfg(test)]
+mod confirmation_tests;
 mod client;
 mod comment_recovery;
 mod config;
@@ -239,6 +243,10 @@ pub(crate) enum Target {
 
 #[derive(Debug, Default)]
 pub struct GitlabPlugin {
+    #[cfg(any(test, feature = "test-support"))]
+    pub(crate) scripted_fixture: bool,
+    #[cfg(any(test, feature = "test-support"))]
+    pub(crate) fixture: Option<test_support::HostedFixture>,
     pub(crate) cfg: Settings,
     /// Session-local connection identity; never persisted or put in the journal.
     pub(crate) connection: write_context::ConnectionStamp,
@@ -344,6 +352,17 @@ impl Item<'_> {
 }
 
 impl GitlabPlugin {
+    pub(crate) fn provider(&self) -> auth::Provider {
+        auth::Provider {
+            url: self.cfg.url.clone(),
+            spec: self.cfg.token.clone(),
+            #[cfg(any(test, feature = "test-support"))]
+            scripted: self.scripted_fixture,
+            #[cfg(any(test, feature = "test-support"))]
+            fixture: self.fixture.clone(),
+        }
+    }
+
     pub fn new() -> Self {
         // GitLab's token formats never reach the log; `token = "glab"`
         // names the CLI that holds one, and stays.
@@ -627,7 +646,8 @@ impl GitlabPlugin {
         plans
             .into_iter()
             .map(|(group, want)| {
-                let (url, token) = (self.cfg.url.clone(), self.cfg.token.clone());
+                let url = self.cfg.url.clone();
+                let provider = self.provider();
                 let instance = url.clone();
                 sync_history::spawn(&instance, group.clone(), want.clone(), async move {
                     let how = if want.changed_since.is_some() {
@@ -637,7 +657,7 @@ impl GitlabPlugin {
                     };
                     log::info(format!("gitlab {group}: {how}"));
                     let started = std::time::Instant::now();
-                    let result = auth::run(&url, &token, |c| {
+                    let result = provider.run(|c| {
                         let (group, want) = (group.clone(), want.clone());
                         async move {
                             let synced = c.sync(&group, &want).await?;
@@ -932,7 +952,15 @@ impl Plugin for GitlabPlugin {
     fn demo(&mut self) {
         // With !263's page data and diffs held, so a demo run reaches its
         // Changes tab and can write a comment on it.
+        #[cfg(any(test, feature = "test-support"))]
+        let fixture = (self.scripted_fixture, self.fixture.clone());
         *self = demo::sample_reviewed(false);
+        #[cfg(any(test, feature = "test-support"))]
+        {
+            self.scripted_fixture = fixture.0;
+            self.fixture = fixture.1;
+            if self.scripted_fixture { self.env = Some(vec![]); }
+        }
     }
     fn name(&self) -> &'static str {
         "GitLab"
@@ -1455,6 +1483,17 @@ impl Plugin for GitlabPlugin {
         out
     }
     fn pictures(&self, _source: &str) -> Option<radar_core::ui::image::Fetch> {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.scripted_fixture {
+            let fixture = self.fixture.clone();
+            return Some(radar_core::ui::image::fetch(move |_src: String| {
+                let fixture = fixture.clone();
+                async move {
+                    if let Some(fixture) = fixture { fixture.blocked("picture fetch"); }
+                    anyhow::bail!("scripted GitLab fixture does not support pictures")
+                }
+            }));
+        }
         Some(pictures::fetch(self.cfg.url.clone(), self.cfg.token.clone()))
     }
     // An open page takes the whole body, its keys, clicks and actions.
@@ -1618,6 +1657,7 @@ impl Plugin for GitlabPlugin {
 
     fn run_cli(&self, matches: &clap::ArgMatches) -> CliTask {
         let cfg = self.cfg.clone();
+        let provider = self.provider();
         let m = matches
             .subcommand()
             .map(|(name, m)| (name.to_string(), m.clone()));
@@ -1643,7 +1683,7 @@ impl Plugin for GitlabPlugin {
                 p.filter = m.get_one::<String>("filter").cloned().unwrap_or_default();
             }
             for (group, want) in sync::plan(&p, true) {
-                let got = auth::run(&p.cfg.url, &p.cfg.token, |c| {
+                let got = provider.run(|c| {
                     let (group, want) = (group.clone(), want.clone());
                     async move { c.sync(&group, &want).await }
                 })
@@ -2764,92 +2804,6 @@ pub(crate) mod tests {
         let gaps = check.places(&places);
         assert!(gaps.is_empty(), "{} gaps:\n{}", gaps.len(), gaps.join("\n"));
         assert!(check.checked > 35, "only {} checked", check.checked);
-    }
-
-    /// The merge request page's own actions, each chosen from `x`: what it
-    /// asks, and that nothing reaches GitLab or git before a yes.
-    #[test]
-    fn the_merge_request_pages_actions_ask_first_and_say_why_not() {
-        use radar_core::host::{Event, HostEffect};
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-        let press = |host: &mut radar_core::Host, c| {
-            let _ = radar_core::shell::to_text(host, 160, 40);
-            host.update(Event::Key(KeyEvent::new(c, KeyModifiers::NONE)))
-        };
-        // !263 in api: the tree is b, worker, !342, a, api, !263.
-        let open = || {
-            let mut host = hosted();
-            for _ in 0..5 {
-                press(&mut host, KeyCode::Down);
-            }
-            press(&mut host, KeyCode::Enter);
-            host
-        };
-        // Choose a row of x by its key; the menu or message it leaves.
-        let choose = |key: char| {
-            let mut host = open();
-            press(&mut host, KeyCode::Char('x'));
-            let fx = press(&mut host, KeyCode::Char(key));
-            let spawned = fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. }));
-            (host.menu.map(|m| m.menu.title), host.message, spawned)
-        };
-        let (menu, _, spawned) = choose('u');
-        assert_eq!(menu.as_deref(), Some("rebase feature/ABC-263 onto main?"));
-        assert!(!spawned, "nothing is sent before yes");
-        let (menu, said, spawned) = choose('m');
-        assert_eq!(menu, None);
-        assert_eq!(
-            said.as_deref(),
-            Some("cannot merge !263 yet: needs 1 approval")
-        );
-        assert!(!spawned);
-        // No is no.
-        let mut host = open();
-        press(&mut host, KeyCode::Char('u'));
-        let fx = press(&mut host, KeyCode::Char('n'));
-        assert!(fx.is_empty() && host.menu.is_none());
-        // A yes sends it, and the page shows it running.
-        let mut host = open();
-        press(&mut host, KeyCode::Char('u'));
-        let fx = press(&mut host, KeyCode::Char('y'));
-        assert!(fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
-        assert!(radar_core::shell::to_text(&host, 160, 40).contains("● rebase asked of GitLab…"));
-    }
-
-    #[test]
-    fn a_mergeable_merge_request_offers_the_merge_behind_a_confirm() {
-        use radar_core::host::{Event, HostEffect};
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-        let mut host = hosted();
-        let press = |host: &mut radar_core::Host, c| {
-            let _ = radar_core::shell::to_text(host, 160, 40);
-            host.update(Event::Key(KeyEvent::new(c, KeyModifiers::NONE)))
-        };
-        // !187 in web is approved and mergeable: down the tree to its page.
-        for _ in 0..20 {
-            press(&mut host, KeyCode::Enter);
-            if radar_core::shell::to_text(&host, 160, 40).contains("› web › !187") {
-                break;
-            }
-            press(&mut host, KeyCode::Esc);
-            press(&mut host, KeyCode::Down);
-        }
-        let text = radar_core::shell::to_text(&host, 160, 40);
-        assert!(text.contains("› web › !187"), "{text}");
-        press(&mut host, KeyCode::Char('x'));
-        let menu = radar_core::shell::to_text(&host, 160, 40);
-        if !menu.contains("merge into main…") {
-            panic!("{menu}");
-        }
-        press(&mut host, KeyCode::Esc);
-        press(&mut host, KeyCode::Char('m'));
-        let title = host.menu.as_ref().map(|m| m.menu.title.clone());
-        assert_eq!(
-            title.as_deref(),
-            Some("merge !187 into main? It cannot be undone.")
-        );
-        let fx = press(&mut host, KeyCode::Char('y'));
-        assert!(fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
     }
 
     #[test]

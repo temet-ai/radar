@@ -50,6 +50,9 @@ pub struct Reply {
 pub type Fut<'a, T> = std::pin::Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
 
 pub trait Transport: Send + Sync {
+    /// Fixture-only audit hook for non-API I/O deliberately blocked at the edge.
+    #[cfg(feature = "test-support")]
+    fn blocked_external_io(&self, _operation: &str) {}
     fn send<'a>(&'a self, req: &'a Request) -> Fut<'a, Result<Reply>>;
 }
 

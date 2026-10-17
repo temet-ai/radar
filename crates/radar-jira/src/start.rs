@@ -15,6 +15,7 @@ use radar_core::journal::{ActionDescriptor, Outcome as JournalOutcome};
 use radar_core::ui::icon::Icon;
 use serde_json::Value;
 
+#[cfg(test)]
 use crate::client::Client;
 use crate::config::OnStart;
 use crate::model::{Category, Me, Ticket, Transition};
@@ -143,10 +144,11 @@ pub(crate) fn on_bus(p: &mut JiraPlugin, topic: &str, payload: &Value) -> Vec<Ef
         return vec![];
     };
     let k = key.clone();
+    let provider = p.provider.clone();
     vec![
         Effect::Notify(format!("asking Jira how to start {key}…")),
         Effect::Spawn(Box::pin(async move {
-            let client = Client::for_site(&s);
+            let client = provider.client(&s);
             let ask = |e: anyhow::Error| format!("{e:#}");
             let me = if need_me {
                 Some(match &client {
@@ -333,6 +335,7 @@ mod tests {
     use super::*;
     use radar_core::writes;
     use crate::client::recorded::{Replay, block};
+    use crate::test_support::TicketBuilder;
     use serde_json::json;
 
     fn tr(id: &str, to: &str, c: Category) -> Transition {
@@ -361,12 +364,47 @@ mod tests {
     }
 
     fn ticket(status: &str, c: Category, assignee: (&str, &str)) -> Ticket {
-        let mut t = crate::demo::sample().data["acme"].tickets["ABC-12"].clone();
-        t.status = status.into();
-        t.category = c;
-        t.assignee = assignee.0.into();
-        t.assignee_id = assignee.1.into();
-        t
+        // Planning reads only the key, status and assignment. Retain their
+        // legacy values without constructing the sample plugin and its views.
+        TicketBuilder::new()
+            .key("ABC-12")
+            .id("")
+            .summary("Add a stats endpoint for the dashboard")
+            .status(status, c)
+            .assignee(assignee.1, assignee.0)
+            .build()
+    }
+
+    mod builder_parity {
+        use super::*;
+
+        #[test]
+        fn minimal_ticket_preserves_legacy_start_plans() {
+            let original = crate::demo::sample().data["acme"].tickets["ABC-12"].clone();
+            let me = alice();
+            let ms = moves();
+            for (status, category, assignee) in [
+                ("To Do", Category::Todo, ("Bob Example", "acc-bob")),
+                ("To Do", Category::Todo, ("", "")),
+                ("In Progress", Category::Doing, ("Bob Example", "acc-bob")),
+                ("To Do", Category::Todo, ("Alice Example", "acc-alice")),
+                ("In Progress", Category::Doing, ("Alice Example", "acc-alice")),
+            ] {
+                let mut legacy = original.clone();
+                legacy.status = status.into();
+                legacy.category = category;
+                legacy.assignee = assignee.0.into();
+                legacy.assignee_id = assignee.1.into();
+                let minimal = ticket(status, category, assignee);
+                assert_eq!((&minimal.id, &minimal.summary), (&legacy.id, &legacy.summary));
+                for wanted in ["", "In Review"] {
+                    assert_eq!(
+                        plan("acme", &minimal, Some(&me), Some(&ms), wanted),
+                        plan("acme", &legacy, Some(&me), Some(&ms), wanted),
+                    );
+                }
+            }
+        }
     }
 
     #[test]

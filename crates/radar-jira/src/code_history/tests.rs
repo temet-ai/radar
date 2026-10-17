@@ -259,7 +259,7 @@ fn client_construction_still_precedes_the_invalid_id_guard() {
     requested.email.clear();
     let mut ticket = demo::sample().data["acme"].tickets["ABC-12"].clone();
     ticket.id = "SECRET_INVALID_ID".into();
-    let Effect::SpawnAction { action, task } = crate::load_code(requested, ticket, Default::default()) else {
+    let Effect::SpawnAction { action, task } = crate::load_code(requested, ticket, Default::default(), Default::default()) else {
         panic!("development reads require a task-scoped action");
     };
     let message = block(task)

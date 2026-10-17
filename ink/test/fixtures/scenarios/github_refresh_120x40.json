@@ -1,0 +1,431 @@
+{
+  "chrome": {
+    "height": 40,
+    "keys_at": "body",
+    "screen_keys": [
+      "G"
+    ],
+    "status": {
+      "health": [
+        {
+          "ink": "good",
+          "label": "github",
+          "part": "github",
+          "state": "ok",
+          "target": "chrome:health:github"
+        }
+      ],
+      "hints": [
+        {
+          "icon": "scroll",
+          "keys": "PgUp/PgDn",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "page_up"
+              },
+              "label": "PgUp",
+              "target": "chrome:key:0:0"
+            },
+            {
+              "chord": {
+                "key": "page_down"
+              },
+              "label": "PgDn",
+              "target": "chrome:key:0:1"
+            }
+          ],
+          "label": "scroll"
+        },
+        {
+          "icon": "quit",
+          "keys": "q",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "q"
+                }
+              },
+              "label": "q",
+              "target": "chrome:key:1:0"
+            }
+          ],
+          "label": "quit"
+        },
+        {
+          "icon": "menu",
+          "keys": "x",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "x",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "menu"
+        },
+        {
+          "keys": "←→↑↓",
+          "keys_of": [
+            {
+              "chord": {
+                "key": "left"
+              },
+              "label": "←",
+              "target": "chrome:key:3:0"
+            },
+            {
+              "chord": {
+                "key": "right"
+              },
+              "label": "→",
+              "target": "chrome:key:3:1"
+            },
+            {
+              "chord": {
+                "key": "up"
+              },
+              "label": "↑",
+              "target": "chrome:key:3:2"
+            },
+            {
+              "chord": {
+                "key": "down"
+              },
+              "label": "↓",
+              "target": "chrome:key:3:3"
+            }
+          ],
+          "label": "navigate"
+        }
+      ],
+      "least_needed": [
+        "navigate",
+        "scroll",
+        "quit",
+        "expand/collapse"
+      ],
+      "message": {
+        "icon": "run_passed",
+        "ink": "info",
+        "text": "configured repositories are readable"
+      },
+      "scope": "GITHUB"
+    },
+    "top_bar": {
+      "brand": "radar",
+      "mode": {
+        "ink": "info",
+        "strong": true,
+        "target": "chrome:mode",
+        "text": "◉ read only"
+      },
+      "tabs": [
+        {
+          "active": true,
+          "label": "repositories",
+          "mnemonic": "R",
+          "target": "chrome:tab:0"
+        },
+        {
+          "icon": "log",
+          "label": "history",
+          "mnemonic": "H",
+          "target": "chrome:history"
+        },
+        {
+          "icon": "settings",
+          "label": "settings",
+          "mnemonic": ",",
+          "target": "chrome:settings"
+        }
+      ],
+      "words": {
+        "ink": "muted",
+        "text": "synced 0s ago"
+      }
+    },
+    "version": 1,
+    "width": 120
+  },
+  "focus": "middle",
+  "height": 40,
+  "screen": {
+    "actions": [
+      {
+        "heading": true,
+        "id": "",
+        "label": "ankh-morpork/watch #12"
+      },
+      {
+        "id": "github.browse.browse",
+        "label": "browse repositories and pull requests"
+      },
+      {
+        "id": "github.browse.open_page",
+        "key": {
+          "key": "enter"
+        },
+        "label": "open its page"
+      },
+      {
+        "id": "github.browse.open_on_github",
+        "key": {
+          "key": {
+            "char": "o"
+          }
+        },
+        "label": "open on GitHub"
+      },
+      {
+        "id": "github.browse.copy_link",
+        "key": {
+          "key": {
+            "char": "y"
+          }
+        },
+        "label": "copy the link"
+      },
+      {
+        "id": "github.browse.refresh",
+        "key": {
+          "key": {
+            "char": "r"
+          }
+        },
+        "label": "refresh configured repositories"
+      }
+    ],
+    "medium_from": 70,
+    "panes": [
+      {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "right": [
+                {
+                  "ink": "muted",
+                  "text": "1 repos"
+                }
+              ],
+              "target": "view:0",
+              "text": [
+                {
+                  "text": "Everything"
+                }
+              ]
+            },
+            {
+              "right": [
+                {
+                  "ink": "muted",
+                  "text": "1 repos"
+                }
+              ],
+              "target": "view:1",
+              "text": [
+                {
+                  "icon": "group"
+                },
+                {
+                  "ink": "primary",
+                  "text": "The Watch"
+                }
+              ]
+            }
+          ],
+          "selected": 0
+        },
+        "pane": "nav",
+        "title": "views",
+        "width": 26
+      },
+      {
+        "body": {
+          "node": "list",
+          "rows": [
+            {
+              "heading": true,
+              "right": [
+                {
+                  "ink": "muted",
+                  "text": "1 repos"
+                }
+              ],
+              "target": "tree:0",
+              "text": [
+                {
+                  "icon": "group"
+                },
+                {
+                  "ink": "emphasis",
+                  "text": "The Watch"
+                }
+              ]
+            },
+            {
+              "right": [
+                {
+                  "ink": "muted",
+                  "text": "1 PRs"
+                }
+              ],
+              "target": "tree:1",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "  "
+                },
+                {
+                  "icon": "repo"
+                },
+                {
+                  "ink": "primary",
+                  "text": "ankh-morpork/watch"
+                }
+              ]
+            },
+            {
+              "right": [
+                {
+                  "ink": "secondary",
+                  "text": "open"
+                }
+              ],
+              "target": "tree:2",
+              "text": [
+                {
+                  "text": "    #12  Patrol the Brass Bridge"
+                }
+              ]
+            }
+          ],
+          "selected": 2
+        },
+        "pane": "middle",
+        "title": "repositories"
+      },
+      {
+        "body": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "emphasis",
+                  "text": "Patrol the Brass Bridge"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "state  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "open"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "author  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "vimes"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "from  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "ankh-morpork/watch:patrol"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "into  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "ankh-morpork/watch:main"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "head commit  "
+                },
+                {
+                  "ink": "primary",
+                  "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": []
+            },
+            {
+              "block": "section",
+              "blocks": [
+                {
+                  "block": "doc",
+                  "doc": [
+                    {
+                      "t": "para",
+                      "text": [
+                        {
+                          "text": "Vimes needs the bridge report"
+                        }
+                      ]
+                    }
+                  ],
+                  "urls": false
+                }
+              ],
+              "title": "DESCRIPTION"
+            }
+          ],
+          "node": "rich"
+        },
+        "pane": "detail",
+        "title": "ankh-morpork/watch #12"
+      }
+    ],
+    "scope": "github",
+    "version": 1
+  },
+  "section": null,
+  "width": 120
+}

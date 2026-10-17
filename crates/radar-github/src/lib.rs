@@ -19,6 +19,8 @@ mod setup;
 mod sync;
 #[cfg(test)]
 mod sync_tests;
+#[cfg(any(test, feature = "test-support"))]
+pub mod test_support;
 #[cfg(test)]
 mod tests;
 
@@ -41,6 +43,7 @@ use model::{
 
 #[derive(Default)]
 pub struct GithubPlugin {
+    via: client::Via,
     pub(crate) cfg: Settings,
     actions: actions::State,
     repos: Vec<RepoState>,
@@ -541,12 +544,13 @@ impl GithubPlugin {
         let ids = self.cfg.ids();
         let token = self.cfg.token.clone();
         let api = self.cfg.api.clone();
+        let via = self.via.clone();
         let action = history::action("github.repository.read", &Target::Repository(id.clone()));
         let scope = action.clone();
         vec![Effect::SpawnAction {
             action,
             task: Box::pin(async move {
-                let (repository, pulls, reply) = match client::Client::new(&ids, &token, &api) {
+                let (repository, pulls, reply) = match via.client(&ids, &token, &api) {
                     Ok(client) => {
                         let repository = if meta {
                             Some(client.repository_if(&id, repository_tag.as_ref()).await)
@@ -657,12 +661,13 @@ impl GithubPlugin {
         let (generation, request) = (self.generation, self.connection_request);
         let token = self.cfg.token.clone();
         let api = self.cfg.api.clone();
+        let via = self.via.clone();
         let action = history::connection_action();
         let scope = action.clone();
         vec![Effect::SpawnAction {
             action,
             task: Box::pin(async move {
-                let result = match client::Client::new(&[], &token, &api) {
+                let result = match via.client(&[], &token, &api) {
                     Ok(client) => client.check_connection_scopes().await.map_err(|e| e.to_string()),
                     Err(error) => Err(error.to_string()),
                 };
@@ -689,12 +694,13 @@ impl GithubPlugin {
         let (generation, request) = (self.generation, self.discovery_request);
         let token = self.cfg.token.clone();
         let api = self.cfg.api.clone();
+        let via = self.via.clone();
         let action = history::discovery_action();
         let scope = action.clone();
         vec![Effect::SpawnAction {
             action,
             task: Box::pin(async move {
-                let result = match client::Client::new(&[], &token, &api) {
+                let result = match via.client(&[], &token, &api) {
                     Ok(client) => client
                         .accessible_repositories()
                         .await
@@ -745,6 +751,7 @@ impl GithubPlugin {
         let ids = self.cfg.ids();
         let token = self.cfg.token.clone();
         let api = self.cfg.api.clone();
+        let via = self.via.clone();
         let action = history::action("github.pull-request.read", &target);
         let scope = action.clone();
         vec![Effect::SpawnAction {
@@ -753,7 +760,7 @@ impl GithubPlugin {
                 let held = known
                     .as_ref()
                     .and_then(|seen| Some((&seen.pull, seen.tag.as_ref()?)));
-                let (pull, checks, reply) = match client::Client::new(&ids, &token, &api) {
+                let (pull, checks, reply) = match via.client(&ids, &token, &api) {
                     Ok(client) => match client.pull_if(&id, number, held).await {
                         Ok(fresh) => {
                             // A 304 answers the held copy, which is the one to check.
@@ -1388,6 +1395,10 @@ impl Plugin for GithubPlugin {
         Some(setup::step(self))
     }
     fn setup_finds(&self) -> radar_core::plugin::SetupFinds {
+        #[cfg(any(test, feature = "test-support"))]
+        if self.via.fixture.is_some() {
+            return Default::default();
+        }
         setup::finds()
     }
     fn capturing(&self) -> bool {
@@ -1414,13 +1425,15 @@ impl Plugin for GithubPlugin {
     fn demo(&mut self) {
         #[cfg(any(test, feature = "demo"))]
         {
+            let via = self.via.clone();
             *self = demo::sample();
+            self.via = via;
         }
     }
     fn cli(&self) -> Option<clap::Command> {
         Some(cli::command())
     }
     fn run_cli(&self, matches: &clap::ArgMatches) -> radar_core::plugin::CliTask {
-        cli::run(&self.cfg, matches)
+        cli::run(&self.cfg, matches, self.via.clone())
     }
 }

@@ -546,13 +546,14 @@ impl Client {
     }
 
     /// A client over another transport (recorded replies).
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test-support"))]
     pub fn over(t: Arc<dyn Transport>) -> Self {
-        Self {
-            t,
-            base: "https://gitlab.example.com".into(),
-            pacing: Arc::default(),
-        }
+        Self::over_at(t, "https://gitlab.example.com")
+    }
+
+    #[cfg(any(test, feature = "test-support"))]
+    pub(crate) fn over_at(t: Arc<dyn Transport>, server: &str) -> Self {
+        Self { t, base: server.trim_end_matches('/').into(), pacing: Arc::default() }
     }
 
     /// What the latest answer said about how fast GitLab wants to be asked.
@@ -2673,4 +2674,15 @@ mod tests {
             );
         }
     }
+}
+
+/// Exact first-page requests for a new group, with open MRs and projects.
+/// This fixture recipe uses the real query definitions, not response shortcuts.
+#[cfg(any(test, feature = "test-support"))]
+pub(crate) fn initial_group_requests(path: &str) -> Vec<Req> {
+    [
+        (PATH_QUERY.to_owned(), json!({"path": path})),
+        (mrs_query(false, PAGE), json!({"path": path, "state": "opened", "after": null, "updatedAfter": null, "iids": null})),
+        (PROJECTS_QUERY.to_owned(), json!({"path": path, "after": null})),
+    ].into_iter().map(|(query, variables)| Req::new(Method::Post, "/api/graphql", Some(json!({"query": query, "variables": variables})))).collect()
 }

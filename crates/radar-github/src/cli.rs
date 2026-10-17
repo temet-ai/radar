@@ -1,5 +1,5 @@
 //! The same configured, bounded open-PR read in the command line.
-use crate::client::Client;
+use crate::client::Via;
 use crate::config::Settings;
 use crate::model::{ApiErrorKind, Collection, PullRequest, Repository, RepositoryId};
 use clap::{Arg, ArgAction, ArgMatches, Command};
@@ -51,7 +51,7 @@ fn stop_after(kind: ApiErrorKind) -> bool {
     )
 }
 
-pub(crate) fn run(cfg: &Settings, matches: &ArgMatches) -> CliTask {
+pub(crate) fn run(cfg: &Settings, matches: &ArgMatches, via: Via) -> CliTask {
     let cfg = cfg.clone();
     let json = matches
         .subcommand_matches("list")
@@ -67,7 +67,7 @@ pub(crate) fn run(cfg: &Settings, matches: &ArgMatches) -> CliTask {
             !repos.is_empty(),
             "No GitHub repositories configured; add owner/repo in settings, GitHub, repositories"
         );
-        let client = Client::new(&repos, &cfg.token, &cfg.api)?;
+        let client = via.client(&repos, &cfg.token, &cfg.api)?;
         let mut rows = Vec::new();
         let mut stopped = false;
         for id in repos {
@@ -166,6 +166,7 @@ fn render(rows: &[Row]) -> String {
 mod tests {
     use super::*;
     use crate::model::Completion;
+    use crate::test_support::RepositoryBuilder;
 
     #[test]
     fn json_flag_and_partial_empty_output_are_explicit() {
@@ -173,13 +174,9 @@ mod tests {
             .try_get_matches_from(["github", "list", "--json"])
             .unwrap();
         assert!(args.subcommand_matches("list").unwrap().get_flag("json"));
-        let repo = Repository {
-            id: RepositoryId::parse("acme/api").unwrap(),
-            description: None,
-            default_branch: "main".into(),
-            private: false,
-            archived: false,
-        };
+        let repo = RepositoryBuilder::default()
+            .id(RepositoryId::parse("acme/api").unwrap())
+            .build();
         let rows = vec![Row {
             id: repo.id.clone(),
             repository: Some(repo),

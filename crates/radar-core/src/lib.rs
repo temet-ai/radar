@@ -30,6 +30,8 @@ pub mod plugin;
 mod plugin_cache;
 pub mod runner;
 pub mod runtime;
+#[cfg(feature = "test-support")]
+pub mod scenario;
 pub mod select;
 pub mod settings_view;
 pub mod setup;
@@ -39,6 +41,7 @@ pub mod source_context;
 pub mod splash;
 pub mod start_lines;
 pub mod system;
+mod task_completion;
 mod terminal_host;
 pub mod tour;
 pub mod theme;

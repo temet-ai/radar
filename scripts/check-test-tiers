@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Check explicit test classifications against compiled discovery, never source grep.
+
+No compilation or test execution is performed. See docs/test-tiers.md.
+"""
+import argparse
+import collections
+import json
+from pathlib import Path
+import re
+import sys
+
+
+TIERS = {"unit", "integration", "contract", "e2e", "live"}
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def validate_policy(policy):
+    require(policy.get("version") == 1, "unsupported policy version")
+    scopes = policy.get("scopes", [])
+    require(scopes, "policy has no strict scopes")
+    ids = set()
+    for scope in scopes:
+        ident = scope["id"]
+        require(ident not in ids, f"duplicate scope: {ident}")
+        ids.add(ident)
+        require(scope["package"] and scope["binary"], f"{ident}: missing owner/binary")
+        require(scope["prefix"] == "" or scope["prefix"].endswith("::"),
+                f"{ident}: prefix must end at a Rust module boundary")
+        cases = scope["cases"]
+        require(cases, f"{ident}: empty case inventory")
+        names = set()
+        for case in cases:
+            name = case["name"]
+            require(name and name not in names, f"{ident}: empty/duplicate case {name}")
+            names.add(name)
+            require(name.startswith(scope["prefix"]), f"{ident}: case outside scope: {name}")
+            require(case["tier"] in TIERS, f"{ident}: invalid tier for {name}")
+            require(isinstance(case.get("ignored", False), bool), f"{ident}: ignored must be boolean")
+            require(bool(case.get("boundary", "").strip()), f"{ident}: missing protected boundary for {name}")
+            require(case.get("parts") and all(isinstance(p, str) and p for p in case["parts"]),
+                    f"{ident}: missing minimal parts for {name}")
+            if case["tier"] != "unit":
+                require(bool(case.get("why_not_unit", "").strip()),
+                        f"{ident}: missing lower-tier justification for {name}")
+    for i, left in enumerate(scopes):
+        for right in scopes[i + 1:]:
+            if (left["package"], left["binary"]) == (right["package"], right["binary"]):
+                require(not (left["prefix"].startswith(right["prefix"]) or
+                             right["prefix"].startswith(left["prefix"])),
+                        f"overlapping strict scopes: {left['id']}, {right['id']}")
+    return scopes
+
+
+def read_nextest(document):
+    """Parse nextest TestListSummary; binaries-only/filtered suites fail closed."""
+    require(isinstance(document.get("rust-suites"), dict), "expected nextest test list, not binaries-only metadata")
+    suites = {}
+    for suite in document["rust-suites"].values():
+        require(suite.get("status") == "listed", "nextest suite was not listed; do not filter discovery")
+        key = (suite["package-name"], suite["binary-name"])
+        tests = suite["testcases"]
+        for name, info in tests.items():
+            require(isinstance(info.get("ignored"), bool), f"missing ignored state: {name}")
+            match = info.get("filter-match", {})
+            # nextest's default listing marks ignored tests as mismatches even
+            # without a user filter; keep them for ignored-state validation.
+            require(match.get("status") == "matches" or
+                    (info["ignored"] and match == {"status": "mismatch", "reason": "ignored"}),
+                    f"filtered test: {name}; provide unfiltered discovery")
+        # A package can have an empty lib and bin with the same display name.
+        # A duplicate containing tests is still ambiguous for manifest scopes.
+        if key in suites:
+            require(not tests and not suites[key], f"duplicate discovered binary: {key}")
+            continue
+        suites[key] = {name: info["ignored"] for name, info in tests.items()}
+    require(suites, "empty discovered inventory")
+    return suites
+
+
+def read_libtest(text):
+    """Stable libtest --list --format terse, one binary only; ignored is unknown."""
+    tests = {}
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        match = re.fullmatch(r"(.+): (test|benchmark)", line)
+        require(match is not None, f"unexpected libtest listing line: {line!r}")
+        name, kind = match.groups()
+        require(kind == "test", f"benchmark needs a separate inventory: {name}")
+        require(name not in tests, f"duplicate discovered test: {name}")
+        tests[name] = None
+    require(tests, "empty libtest listing; did the binary/filter match?")
+    return tests
+
+
+def check(scopes, suites, selected=None, reject_backlog=False):
+    if selected is not None:
+        unknown = set(selected) - {s["id"] for s in scopes}
+        require(not unknown, f"unknown scopes: {sorted(unknown)}")
+        scopes = [s for s in scopes if s["id"] in selected]
+    errors = []
+    classified = {}
+    for scope in scopes:
+        key = (scope["package"], scope["binary"])
+        if key not in suites:
+            errors.append(f"{scope['id']}: missing binary {key}; use required features or explicit --scope")
+            continue
+        found = {n: ignored for n, ignored in suites[key].items() if n.startswith(scope["prefix"])}
+        expected = {c["name"]: c for c in scope["cases"]}
+        for name in sorted(found.keys() - expected.keys()):
+            errors.append(f"{scope['id']}: unclassified addition: {name}")
+        for name in sorted(expected.keys() - found.keys()):
+            errors.append(f"{scope['id']}: missing declared test: {name} (stale inventory, disabled feature or filtered discovery)")
+        for name in found.keys() & expected.keys():
+            case = expected[name]
+            if found[name] is not None and found[name] != case.get("ignored", False):
+                errors.append(f"{scope['id']}: ignored state changed: {name}")
+            classified[(*key, name)] = case["tier"]
+    backlog = sorted((*key, name) for key, tests in suites.items() for name in tests
+                     if (*key, name) not in classified)
+    if reject_backlog and backlog:
+        errors.append(f"{len(backlog)} unclassified tests remain outside checked strict scopes")
+    return errors, classified, backlog
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--policy", type=Path, default=Path(__file__).with_name("test-tiers.json"))
+    parser.add_argument("--nextest", type=Path, help="unfiltered cargo nextest list --message-format json output")
+    parser.add_argument("--libtest", type=Path, help="one built test binary's --list --format terse output")
+    parser.add_argument("--package", help="explicit package for --libtest")
+    parser.add_argument("--binary", help="explicit binary-name for --libtest")
+    parser.add_argument("--scope", action="append", help="check only this strict scope; repeatable")
+    parser.add_argument("--reject-backlog", action="store_true", help="fail on all remaining unclassified discovered tests")
+    parser.add_argument("--validate-policy", action="store_true", help="validate policy structure only, not test coverage")
+    parser.add_argument("--report", type=Path, help="write full classified/backlog/error JSON report")
+    args = parser.parse_args()
+    try:
+        scopes = validate_policy(json.loads(args.policy.read_text()))
+        if args.validate_policy:
+            require(not (args.nextest or args.libtest), "policy-only mode cannot check discovery")
+            print(f"Policy structure valid: {len(scopes)} strict scopes. No discovery, purity or runtime verified.")
+            return 0
+        require(bool(args.nextest) != bool(args.libtest), "provide exactly one of --nextest or --libtest")
+        if args.nextest:
+            suites = read_nextest(json.loads(args.nextest.read_text()))
+        else:
+            require(args.package and args.binary, "--libtest requires --package and --binary")
+            suites = {(args.package, args.binary): read_libtest(args.libtest.read_text())}
+        errors, classified, backlog = check(scopes, suites, args.scope, args.reject_backlog)
+        counts = collections.Counter(classified.values())
+        print("Classified: " + ", ".join(f"{tier}={counts[tier]}" for tier in sorted(TIERS)))
+        print(f"Unclassified discovered backlog: {len(backlog)} (never assumed unit)")
+        print("This checks names/classifications only; no purity, runtime or full-workspace coverage guarantee.")
+        if args.libtest:
+            print("Libtest text does not report ignored state; that check requires nextest JSON.")
+        if args.report:
+            args.report.write_text(json.dumps({"classified": [{"package": k[0], "binary": k[1], "test": k[2], "tier": v}
+                                                              for k, v in sorted(classified.items())],
+                                              "unclassified": [{"package": k[0], "binary": k[1], "test": k[2]} for k in backlog],
+                                              "errors": errors}, indent=2) + "\n")
+        for error in errors:
+            print(error, file=sys.stderr)
+        return int(bool(errors))
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        print(f"test-tier check failed: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

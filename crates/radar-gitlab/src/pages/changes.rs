@@ -107,7 +107,8 @@ pub(crate) fn want(p: &mut GitlabPlugin) -> Vec<Effect> {
     ds.asked.insert(want);
     ds.loading.insert(want);
     ds.error = None;
-    let (url, token) = (p.cfg.url.clone(), p.cfg.token.clone());
+    let url = p.cfg.url.clone();
+    let provider = p.provider();
     let action = crate::diff_history::action(&url, &project, iid, want);
     let read = crate::page_ownership::next(p);
     p.diffs.get_mut(&key).expect("dispatch cache").requests.insert(want, read);
@@ -118,7 +119,7 @@ pub(crate) fn want(p: &mut GitlabPlugin) -> Vec<Effect> {
         head,
         want,
         async move {
-            crate::auth::run(&url, &token, |c| {
+            provider.run(|c| {
                 let project = project.clone();
                 async move { c.diffs_observed(&project, iid, want).await }
             })

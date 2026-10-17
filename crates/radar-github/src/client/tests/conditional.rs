@@ -1,6 +1,7 @@
 //! Conditional reads, the GraphQL "what moved" probe and rate-limit reports.
 
 use super::*;
+use crate::test_support::RepositoryBuilder;
 
 fn tagged(mut response: Response, etag: &str) -> Response {
     response
@@ -507,13 +508,10 @@ async fn a_repository_asked_in_full_comes_back_as_its_rest_reads_would() {
     assert!(full.pulls.completion.complete);
     assert_eq!(
         full.repository,
-        Repository {
-            id: id("org/repo"),
-            description: Some("sample".into()),
-            default_branch: "main".into(),
-            private: false,
-            archived: false,
-        }
+        RepositoryBuilder::default()
+            .id(id("org/repo"))
+            .description("sample")
+            .build()
     );
     assert!(
         probed[1].full.is_none(),

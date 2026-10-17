@@ -21,7 +21,7 @@ use serde_json::json;
 
 use radar_core::ui::rich::{self, Doc};
 
-use crate::client::{COMMENTS_PAGE, Client, DetailRead};
+use crate::client::{COMMENTS_PAGE, DetailRead};
 use crate::config::Site;
 use crate::model::{Detail, Target, Ticket};
 use crate::screen::{self, Selected, ago, status_text};
@@ -215,6 +215,7 @@ pub(crate) fn fetch(p: &mut JiraPlugin, site_name: &str, key: &str, force: bool)
     let project = key.split('-').next().unwrap_or_default().to_string();
     let limits = p.limits.clone();
     let action = crate::page_history::action(&site, &key);
+    let provider = p.provider.clone();
     vec![crate::page_history::spawn(
         action,
         site.name.clone(),
@@ -222,7 +223,7 @@ pub(crate) fn fetch(p: &mut JiraPlugin, site_name: &str, key: &str, force: bool)
         read,
         async move {
             let result = async {
-                let c = Client::tracked(&site, &limits)?;
+                let c = provider.tracked(&site, &limits)?;
                 c.detail_observed(&key, site.ac_field(&project).map(str::to_string))
                     .await
             }
@@ -244,8 +245,9 @@ fn check(p: &mut JiraPlugin, site: Site, key: &str) -> Vec<Effect> {
     };
     f.checking = true;
     let (limits, key) = (p.limits.clone(), key.to_string());
+    let provider = p.provider.clone();
     vec![Effect::Spawn(Box::pin(async move {
-        let result = async { Client::tracked(&site, &limits)?.updated_of(&key).await }
+        let result = async { provider.tracked(&site, &limits)?.updated_of(&key).await }
             .await
             .map_err(|e| format!("{e:#}"));
         Box::new(crate::JiraMsg::Stamp { site: site.name, key, result }) as Msg
@@ -324,6 +326,7 @@ pub(crate) fn fetch_more(p: &mut JiraPlugin, site_name: &str, key: &str) -> Vec<
     p.details.get_mut(&id).expect("held detail").more = Some(read);
     let key = key.to_string();
     let action = crate::comments_history::action(&site, &key, start);
+    let provider = p.provider.clone();
     vec![crate::comments_history::spawn(
         action,
         site.name.clone(),
@@ -331,7 +334,7 @@ pub(crate) fn fetch_more(p: &mut JiraPlugin, site_name: &str, key: &str) -> Vec<
         read,
         async move {
             async {
-                Client::for_site(&site)?
+                provider.client(&site)?
                     .comments_observed(&key, start, COMMENTS_PAGE)
                     .await
             }
@@ -553,6 +556,17 @@ pub(crate) fn rich(t: &Theme, doc: &Doc, width: u16) -> Vec<radar_core::ratatui:
 /// How the kit fetches a ticket's picture: with the site's account and
 /// token, sent only to the site itself.
 pub(crate) fn pictures(p: &JiraPlugin, site: &str) -> ui::image::Fetch {
+    #[cfg(any(test, feature = "test-support"))]
+    if let Some(fixture) = &p.provider.fixture {
+        let fixture = fixture.clone();
+        return ui::image::fetch(move |_src: String| {
+            let fixture = fixture.clone();
+            async move {
+                fixture.blocked("pictures");
+                anyhow::bail!("Jira hosted fixture does not support pictures")
+            }
+        });
+    }
     let creds = p.cfg.site(site).and_then(|s| {
         Some((
             s.base_url().ok()?,

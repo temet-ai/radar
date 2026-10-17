@@ -2,7 +2,7 @@
 //! All completed reads below use recorded transport or explicit local failures.
 use super::*;
 use crate::client::{
-    CheckError, CheckRead,
+    CheckError, CheckRead, Client,
     recorded::{Replay, block},
 };
 use crate::settings_checks::Request;

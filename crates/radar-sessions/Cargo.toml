@@ -18,6 +18,7 @@ tokio = { workspace = true, features = ["net", "io-util", "io-std"] }
 
 [features]
 demo = []
+test-support = []
 
 [dev-dependencies]
 radar-core = { workspace = true, features = ["test-support"] }

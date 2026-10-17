@@ -13,13 +13,13 @@
 //! A recording is made by the build of one mix (`radar::mix()`): the first
 //! screen of no parts, of each part alone and of all parts; everything else
 //! by all parts. Rewrite the files with one build per mix, each a different
-//! feature set (a build is `--no-default-features --features <parts>,demo`):
+//! feature set (a build is `--no-default-features --features <parts>,demo,test-support`):
 //!
 //! ```bash
 //! export RADAR_REFERENCE_VIEWS_DIR=$PWD/ink/test/fixtures/reference CARGO_TARGET_DIR=target/fleet
 //! for parts in "" gitlab github jira slack git workspace workbench \
 //!     gitlab,github,jira,slack,git,workspace,workbench; do
-//!   cargo nextest run -p radar --no-default-features --features "${parts:+$parts,}demo" \
+//!   cargo nextest run -p radar --no-default-features --features "${parts:+$parts,}demo,test-support" \
 //!     --test reference_views
 //! done
 //! ```

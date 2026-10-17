@@ -287,6 +287,20 @@ pub fn remove(text: &str, index: usize) -> String {
 mod tests {
     use super::*;
     use crate::model::fixtures::mr;
+    use crate::test_support::MrBuilder;
+
+    // Filtering needs identity, author and search text, not a demo pipeline or
+    // discussion. Keep the legacy values of every field the filter reads.
+    fn filter_mr(iid: u64, author: &str, project: &str) -> Mr {
+        let mut m = MrBuilder::default()
+            .identity("https://gitlab.com", project, iid)
+            .title(format!("change {iid}"))
+            .build();
+        m.author.username = author.into();
+        m.author.name = author.into();
+        m.source_branch = format!("feature/ABC-{iid}");
+        m
+    }
 
     fn cx<'a>(role: Role) -> Context<'a> {
         Context {
@@ -298,7 +312,7 @@ mod tests {
 
     #[test]
     fn is_matches_any_listed_role() {
-        let m = mr(1, "alice", "g/api");
+        let m = filter_mr(1, "alice", "g/api");
         let f = Filter::parse("is:review,fix");
         assert!(f.matches(&m, &cx(Role::Review)));
         assert!(f.matches(&m, &cx(Role::Fix)));
@@ -307,8 +321,8 @@ mod tests {
 
     #[test]
     fn negation_author_me_and_free_text_combine() {
-        let mine = mr(2, "me", "g/web");
-        let theirs = mr(3, "alice", "g/api");
+        let mine = filter_mr(2, "me", "g/web");
+        let theirs = filter_mr(3, "alice", "g/api");
         let team = Filter::parse("-author:@me -is:bot");
         assert!(!team.matches(&mine, &cx(Role::Waiting)));
         assert!(team.matches(&theirs, &cx(Role::Team)));
@@ -317,6 +331,31 @@ mod tests {
         assert!(text.matches(&mine, &cx(Role::Waiting)));
         assert!(!text.matches(&theirs, &cx(Role::Team)));
         assert!(Filter::parse("!3").matches(&theirs, &cx(Role::Team)));
+    }
+
+    mod builder_parity {
+        use super::*;
+
+        #[test]
+        fn minimal_models_preserve_legacy_filter_inputs() {
+            for (iid, author, project) in [
+                (1, "alice", "g/api"),
+                (2, "me", "g/web"),
+                (3, "alice", "g/api"),
+            ] {
+                let minimal = filter_mr(iid, author, project);
+                let legacy = mr(iid, author, project);
+                assert_eq!(minimal.iid, legacy.iid);
+                assert_eq!(minimal.author, legacy.author);
+                assert_eq!(minimal.title, legacy.title);
+                assert_eq!(minimal.source_branch, legacy.source_branch);
+                assert_eq!(minimal.project_name, legacy.project_name);
+                assert_eq!(minimal.project_path, legacy.project_path);
+                assert_eq!(minimal.web_url, legacy.web_url);
+                assert_eq!(minimal.state, legacy.state);
+                assert_eq!(minimal.labels, legacy.labels);
+            }
+        }
     }
 
     #[test]

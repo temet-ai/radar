@@ -253,13 +253,14 @@ pub(crate) fn start(p: &mut GithubPlugin, manual: bool) -> Vec<Effect> {
     let ids = p.cfg.ids();
     let token = p.cfg.token.clone();
     let api = p.cfg.api.clone();
+    let via = p.via.clone();
     let asks = asks(p);
     let action = history::probe_action();
     let scope = action.clone();
     vec![Effect::SpawnAction {
         action,
         task: Box::pin(async move {
-            let (result, traffic) = match client::Client::new(&ids, &token, &api) {
+            let (result, traffic) = match via.client(&ids, &token, &api) {
                 Ok(client) => (client.probe(&asks).await, client.traffic()),
                 Err(err) => (Err(err), Traffic::default()),
             };

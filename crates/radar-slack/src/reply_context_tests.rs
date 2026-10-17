@@ -218,31 +218,116 @@ fn pending_choice(effects: Vec<Effect>) -> (String, String) {
         .expect("pending operation listed")
 }
 
-#[test]
-fn accepted_reply_sends_exact_preview_once_and_refreshes_the_current_thread() {
-    let (mut p, recorded, _mode) = sample(false);
-    let menu = preview(&mut p);
-    let message = send(&mut p, &menu);
-    assert!(p.replying.is_none());
-    let requests = recorded.requests();
-    assert_eq!(requests.len(), 1);
-    assert_eq!(requests[0].method, "chat.postMessage");
-    assert!(requests[0].write);
-    assert_eq!(requests[0].body.as_ref().unwrap()["channel"], demo::TEAM);
-    assert_eq!(requests[0].body.as_ref().unwrap()["thread_ts"], ROOT);
-    assert_eq!(requests[0].body.as_ref().unwrap()["text"], TEXT.trim_end());
+mod acceptance_contract {
+    use super::*;
 
-    let effects = p.on_msg(Box::new(message));
-    assert!(matches!(
-        effects.first(),
-        Some(Effect::Report(JournalOutcome::Succeeded))
-    ));
-    let mut refresh = tasks(effects);
-    assert_eq!(refresh.len(), 1);
-    let result = run(refresh.remove(0));
-    p.on_msg(Box::new(result));
-    assert_eq!(recorded.requests().len(), 2);
-    assert_eq!(recorded.requests()[1].method, "conversations.replies");
+    #[test]
+    fn accepted_reply_sends_exact_preview_once_and_refreshes_the_current_thread() {
+        // A direct owner fixture: no demo world, wall clock, host or frame. Seed
+        // only the identity, named root and authored text this request contract uses.
+        const CHANNEL: &str = "CWATCH001";
+        const AUTHOR: &str = "UVIMES001";
+        const BODY: &str = "looking now, <@UVIMES001>\nsecond line  \n";
+        let _mode = ModeGuard::edit();
+        let recorded = Recorded::new(vec![
+            ok(json!({"ok": true, "channel": CHANNEL, "ts": POSTED})),
+            ok(json!({"ok": true, "messages": []})),
+        ]);
+        let mut p = SlackPlugin {
+            now: 1_791_271_000,
+            cfg: crate::config::Settings {
+                token: "xoxp-offline-watch-reply-fixture".into(),
+                channels: vec![crate::config::Channel {
+                    alias: "watch".into(),
+                    id: CHANNEL.into(),
+                    name: "watch".into(),
+                    purpose: String::new(),
+                    kind: crate::config::Kind::Team,
+                    color: "cyan".into(),
+                    watched: true,
+                    reader: None,
+                }],
+                ..Default::default()
+            },
+            via: Via(Some(recorded.clone())),
+            env: Some(vec![]),
+            app_running: Some(false),
+            ..Default::default()
+        };
+        assert!(p.install_me(crate::client::Me {
+            user_id: "UCARROT001".into(),
+            user: "carrot".into(),
+            team_id: "TWATCH001".into(),
+            team: "Ankh-Morpork Watch".into(),
+            scopes: vec!["chat:write".into(), "channels:history".into()],
+            ..Default::default()
+        }));
+        p.data.users.insert(AUTHOR.into(), "Sam Vimes".into());
+        p.data.channels.insert(
+            CHANNEL.into(),
+            crate::model::ChannelData {
+                messages: vec![crate::client::Message {
+                    ts: ROOT.into(),
+                    user: Some(AUTHOR.into()),
+                    text: "The Watch needs a gate report".into(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+        );
+        assert!(p.begin_reply(CHANNEL, ROOT, Some(BODY)).is_empty());
+        assert_eq!(p.replying.as_ref().unwrap().composer.text(), BODY);
+        let menu = preview(&mut p);
+        assert!(recorded.requests().is_empty(), "preview must not send");
+        let message = send(&mut p, &menu);
+        assert!(p.replying.is_none());
+        assert!(!p.capturing());
+        let requests = recorded.requests();
+        assert_eq!(requests.len(), 1);
+        assert_eq!(requests[0].method, "chat.postMessage");
+        assert!(requests[0].write);
+        assert!(requests[0].params.is_empty());
+        assert_eq!(
+            requests[0].body,
+            Some(json!({
+                "channel": CHANNEL,
+                "thread_ts": ROOT,
+                "text": BODY.trim_end(),
+                "unfurl_links": false,
+                "unfurl_media": false,
+            })),
+            "raw mention and newline reach Slack unchanged; only trailing space is trimmed"
+        );
+
+        let effects = p.on_msg(Box::new(message));
+        assert!(matches!(
+            effects.first(),
+            Some(Effect::Report(JournalOutcome::Succeeded))
+        ));
+        assert!(
+            effects.iter().any(|effect| matches!(effect,
+                Effect::Notify(text) if text == "✓ reply posted in #watch, in Sam Vimes's thread"
+            )),
+            "the success notice names the original thread author"
+        );
+        let mut refresh = tasks(effects);
+        assert_eq!(refresh.len(), 1);
+        let result = run(refresh.remove(0));
+        p.on_msg(Box::new(result));
+        assert_eq!(recorded.requests().len(), 2);
+        assert_eq!(recorded.requests()[1].method, "conversations.replies");
+        assert_eq!(
+            recorded.requests()[1].params,
+            [
+                ("channel".into(), CHANNEL.into()),
+                ("ts".into(), ROOT.into()),
+                ("limit".into(), "200".into()),
+            ]
+        );
+        assert!(!recorded.requests()[1].write);
+        assert!(recorded.requests()[1].body.is_none());
+        assert!(recorded.replies.lock().unwrap().is_empty());
+    }
 }
 
 #[test]

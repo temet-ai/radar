@@ -48,7 +48,7 @@ case "$mode" in
 esac
 
 # The parts: the features in the root Cargo.toml that name a part crate
-# (`dep:radar-<name>`), not `default` nor the tooling ones (`shots`, `png`, `demo`).
+# (`dep:radar-<name>`), not `default` nor the tooling ones (`shots`, `png`, `demo`, `test-support`).
 parts=()
 while IFS= read -r name; do
     [ -n "$name" ] && parts+=("$name")
@@ -129,7 +129,7 @@ while [ "$mask" -lt "$total" ]; do
             close) run cargo build --no-default-features --features "$set_" ;;
         esac
         # shellcheck disable=SC2086
-        run $test_cmd -p radar --no-default-features --features "${set_:+$set_,}demo" --test mix $mix_args
+        run $test_cmd -p radar --no-default-features --features "${set_:+$set_,}demo,test-support" --test mix $mix_args
     fi
     mask=$((mask + 1))
 done
@@ -142,7 +142,7 @@ mix() {
         close) run cargo build --no-default-features --features "$1" ;;
     esac
     # shellcheck disable=SC2086
-    run $test_cmd -p radar --no-default-features --features "$1,demo" --test mix $mix_args
+    run $test_cmd -p radar --no-default-features --features "$1,demo,test-support" --test mix $mix_args
 }
 if [ "${#adapters[@]}" -gt 0 ]; then
     for a in "${adapters[@]}"; do

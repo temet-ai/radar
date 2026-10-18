@@ -10,7 +10,7 @@ checks `radar --version` and `radar config path`, and publishes a GitHub prerele
 with SHA-256 checksums. Never move a released tag or replace its assets; publish
 the next alpha instead. `radar --version` includes the Cargo version and commit.
 
-The first matrix covers macOS Apple Silicon and Intel, Linux arm64 and x64
+The first matrix covers macOS Apple Silicon, Linux arm64 and x64
 (glibc, built on Ubuntu 22.04). The archives contain `radar`, LICENSE and
 THIRD-PARTY-NOTICES.md; users need no
 Rust toolchain, source checkout or Node, as that one file carries radar's runtime
@@ -105,7 +105,7 @@ still theirs to install, only for the agent they want.
 1. On the private `main`: bump the version, run `scripts/notices`, `cargo nextest run --workspace --all-features`, `cargo clippy --workspace --all-targets --all-features -- -D warnings`, `cargo deny check`, and the Ink and sidecar tests. Commit and push.
 2. `scripts/export-public <new folder> --push git@github.com:temet-ai/radar.git`.
 3. In a clone of `temet-ai/radar`, create and push an annotated tag `v<version>` on that commit.
-4. Wait for the four build jobs and the prerelease publication to succeed.
+4. Wait for the three build jobs and the prerelease publication to succeed.
 5. With the `HOMEBREW_TAP_TOKEN` secret set on `temet-ai/radar` (a token that can write to `temet-ai/homebrew-radar`), the publish job also commits the rendered formula to the tap. Without it the job warns: download `checksums.txt` from the release, run `scripts/render-homebrew-formula <version> temet-ai/radar checksums.txt > Formula/radar.rb` in a clone of the tap, commit and push.
 6. `brew upgrade temet-ai/radar/radar` on Linux and the Mac, and run radar with no `node` on `PATH`: Ink draws it, and Settings → Agents lists the CLIs.
 

@@ -39,9 +39,6 @@ jobs:
           - runner: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
             os: unix
-          - runner: macos-15-intel
-            target: x86_64-apple-darwin
-            os: unix
           - runner: macos-15
             target: aarch64-apple-darwin
             os: unix
@@ -116,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           cd dist
-          test "$(find . -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 4
+          test "$(find . -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 3
           sha256sum ./*.tar.gz > checksums.txt
           version="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" ./*.tar.gz checksums.txt \

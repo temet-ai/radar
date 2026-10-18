@@ -59,7 +59,7 @@ const s160 = page160Cells as RatatuiScene;
  * notice under the tabs, responsive panes (side by side when wide, stacked when narrow).
  *
  * **Rules:** breadcrumbs join with a muted ` / ` and the last is bold (both renderers still draw ` › `, #46). Tabs
- * show names, not counts (`Changes · 1 file` and `Threads · 1 open` are still sent, #33). The first crumb is the part
+ * show names, not counts, with one warning-colored dot when the host marks attention. The first crumb is the part
  * name. Keys: `[` `]` or `← →` between tabs, `esc` back.
  */
 const meta = {

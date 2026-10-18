@@ -849,9 +849,10 @@ impl History {
             area.height.saturating_sub(header_height + 1),
         );
         if view.help {
-            let block = widgets::panel(theme, &view.help_title, true);
-            let inner = widgets::padded(block.inner(body));
-            block.render(body, buf);
+            let inner = widgets::padded(crate::ui::card::panel_owned(
+                theme, body, buf, &view.help_title,
+                crate::ui::frame::Focus { focused: true, owns_keys: true },
+            ));
             let lines = view
                 .help_lines
                 .iter()
@@ -985,13 +986,11 @@ impl History {
             return;
         }
         self.list_area.set(area);
-        let block = widgets::panel(
-            theme,
-            &view.events_title,
-            view.focus == HistoryFocus::Events,
-        );
-        let mut inner = block.inner(area);
-        block.render(area, buf);
+        let focused = view.focus == HistoryFocus::Events;
+        let mut inner = crate::motion::frames::with_frame(crate::view::PaneId::Middle, "history_events", || crate::ui::card::panel_owned(
+            theme, area, buf, &view.events_title,
+            crate::ui::frame::Focus { focused, owns_keys: focused },
+        ));
         if view.rows.is_empty() {
             widgets::empty(buf, inner, theme, &view.state);
             return;
@@ -1050,13 +1049,11 @@ impl History {
             return;
         }
         self.detail_area.set(area);
-        let block = widgets::panel(
-            theme,
-            &view.detail_title,
-            view.focus == HistoryFocus::Detail,
-        );
-        let inner = widgets::padded(block.inner(area));
-        block.render(area, buf);
+        let focused = view.focus == HistoryFocus::Detail;
+        let inner = widgets::padded(crate::motion::frames::with_frame(crate::view::PaneId::Detail, "history_detail", || crate::ui::card::panel_owned(
+            theme, area, buf, &view.detail_title,
+            crate::ui::frame::Focus { focused, owns_keys: focused },
+        )));
         let lines: Vec<_> = view.detail.iter().map(|text| line(theme, text)).collect();
         let keys_line = view.detail_keys_line.filter(|n| *n < lines.len());
         let hint_offset = keys_line.map(|n| {

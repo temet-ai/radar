@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/tests.rs
 expression: text
 ---
- radar    Code   Tickets   Slack 4   History   Settings (,)                                                                                              ✎ edit
+ radar    Code   Tickets   Slack ●   History   Settings (,)                                                                                              ✎ edit
 ╭ code ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ merge request page api !263                                                                                                                                  │
 │ == Discussed in Slack                                                                                                                                        │

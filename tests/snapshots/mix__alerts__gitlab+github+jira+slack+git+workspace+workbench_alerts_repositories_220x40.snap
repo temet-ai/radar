@@ -3,7 +3,7 @@ source: tests/mix.rs
 assertion_line: 1526
 expression: aged(&shown)
 ---
- radar    Repositories 1   Slack   Branches   Work (I)   History   Settings (,)                                                                                                                      not synced yet  ✎ edit
+ radar    Repositories ●   Slack   Branches   Work (I)   History   Settings (,)                                                                                                                      not synced yet  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ team-a ──────────────────────────────────────────────────╮
 │ Everything             ││ OPENED BY everyone · 2 repos                                              STATE               APPROVALS  THREADS UPDATED FOR YOU   ││ a acme/team-a                                            │
 │ Needs my action      1 ││▌ A team-a                                                                                                                          ││                                                          │

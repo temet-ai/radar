@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { layoutHistory } from "../../src/chrome/history.js";
 import { hitAt, type Cell } from "../../src/chrome/layout.js";
 import { cellWidth } from "../../src/chrome/width.js";
-import { bgOf, slotStyle } from "../../src/text/look.js";
+import { applyLook, bgOf, currentLook, defaultLook, slotStyle } from "../../src/text/look.js";
 import type { HistoryView } from "../../src/protocol/generated/HistoryView.js";
 
 const view = (w: number, h: number, over: Partial<HistoryView> = {}): HistoryView =>
@@ -186,5 +186,63 @@ describe("history detail and help scrollbars (history.rs: scroll::paragraph puts
     expect(help).toContain("║");
     const short = borderOf(layoutHistory(view(80, 23, { help: true, help_lines: long.slice(0, 3) } as never), 80, 23, 1));
     expect(short.join("")).not.toMatch(/[█║]/);
+  });
+});
+
+describe("history's focused perimeter is foreground-only and leaves its scrollbar last", () => {
+  const many = Array.from({ length: 60 }, (_, i) => ({ observed: "2026-10-12 10:00", action: "read", subject: `WATCH-${i}`, outcome: "ok", outcome_ink: "plain", target: `chrome:history:row:${i}` }));
+  const expanded = (lines: Cell[][]) => lines.map((line) => line.flatMap((c) => [...c.text].map((ch) => ({ ch, ...c.style }))));
+  it.each([80, 160])("preserves every non-foreground property and hit at width %i", (w) => {
+    const original = currentLook();
+    const base = defaultLook("off");
+    const slots = { ...base.slots, "glow.purple": "#004488" };
+    try {
+      applyLook({ ...base, tier: "256", slots });
+      const flat = layoutHistory(view(w, 23, { rows: many } as never), w, 23, 1);
+      applyLook({ ...base, tier: "truecolor", slots });
+      const ramp = layoutHistory(view(w, 23, { rows: many } as never), w, 23, 1);
+      const clean = (lines: Cell[][]) => expanded(lines).map((r) => r.map(({ color: _, ...c }) => c));
+      expect(clean(ramp.lines)).toEqual(clean(flat.lines));
+      expect(ramp.hits).toEqual(flat.hits);
+      expect(ramp.selects).toEqual(flat.selects);
+      const top = ramp.lines.find((l) => text(l).startsWith("╭"))!;
+      expect(top[0]!.style?.color).toBe("#004488");
+      expect(top.find((c) => c.text.includes("events"))!.style).toEqual(flat.lines.find((l) => text(l).startsWith("╭"))!.find((c) => c.text.includes("events"))!.style);
+      const a = expanded(ramp.lines).flat().filter((c) => c.ch === "█" || c.ch === "║");
+      const b = expanded(flat.lines).flat().filter((c) => c.ch === "█" || c.ch === "║");
+      expect(a.length).toBeGreaterThan(0);
+      expect(a).toEqual(b);
+    } finally { applyLook(original); }
+  });
+
+  it.each(["256", "16", "mono"] as const)("retains its existing focused and unfocused border style at %s", (tier) => {
+    const original = currentLook();
+    const base = defaultLook("off");
+    try {
+      applyLook({ ...base, tier, slots: { ...base.slots, "glow.purple": "#004488" } });
+      const top = layoutHistory(view(160, 23), 160, 23, 1).lines.find((l) => text(l).startsWith("╭"))!;
+      expect(top.filter((c) => c.text.startsWith("╭")).map((c) => c.style?.color)).toEqual(["#e135ff", "#9580ff"]);
+    } finally { applyLook(original); }
+  });
+});
+
+
+describe("history motion frame markers", () => {
+  it("matches the split panels, wide title cells and actual scrollbar columns, with no marks under help", () => {
+    const v = view(160, 39, { events_title: "Watch 界", detail_title: "Case é", focus: "detail",
+      rows: Array.from({ length: 100 }, (_, i) => ({ observed: "2026-10-12T10:00:00Z", action: "watch", subject: `case ${i}`, outcome: "ok", target: `case:${i}` })) as any,
+      detail: Array.from({ length: 100 }, (_, i) => [{ text: `Watch case ${i}` }]),
+    });
+    const laid = layoutHistory(v, 160, 39, 1);
+    const y = 1 + laid.lines.findIndex((line) => text(line).includes("╭"));
+    expect(laid.panes).toHaveLength(2);
+    expect(laid.panes.map((p) => [p.pane, p.owns])).toEqual([["events", false], ["detail", true]]);
+    for (const [i, p] of laid.panes.entries()) {
+      const x = i === 0 ? 0 : 96, w = i === 0 ? 96 : 64;
+      expect(p.area).toEqual({ x, y, w, h: 39 - y });
+      expect(p.title).toEqual({ x: x + 1, y, w: cellWidth(` ${i === 0 ? "Watch 界" : "Case é"} `), h: 1 });
+      expect(p.keep).toEqual([{ x: x + w - 1, y: y + 1, w: 1, h: p.area.h - 2 }]);
+    }
+    expect(layoutHistory({ ...v, help: true }, 160, 39, 1).panes).toEqual([]);
   });
 });

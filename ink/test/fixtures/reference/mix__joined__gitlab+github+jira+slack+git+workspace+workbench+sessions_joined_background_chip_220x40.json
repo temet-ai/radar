@@ -186,10 +186,7 @@
       "tabs": [
         {
           "active": true,
-          "badge": {
-            "ink": "warn",
-            "text": "2"
-          },
+          "attention": true,
           "icon": "repo",
           "label": "repositories",
           "mnemonic": "R",

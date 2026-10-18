@@ -92,9 +92,11 @@ export function parseFrame(
   output: string,
   width: number,
   height: number,
+  clipToViewport = false,
 ): Grid {
   const lines = output.split("\n");
-  const grid = new Grid(width, Math.max(height, lines.length));
+  if (clipToViewport && lines.length > height) lines.length = height;
+  const grid = new Grid(width, clipToViewport ? height : Math.max(height, lines.length));
   for (let y = 0; y < lines.length; y++) {
     const line = lines[y]!;
     const pen = newPen();

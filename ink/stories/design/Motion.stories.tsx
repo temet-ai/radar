@@ -2,7 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { card } from "./Board";
 import { Row, ShippedLabel, Target } from "./parts";
-import { MotionReference, MotionReplay } from "./MotionReplay";
+import { MotionReference, MotionReplay, InteractionReplay } from "./MotionReplay";
 import type { Cue } from "../../src/motion/engine";
 
 type Args = { name: string; speed: "real" | "slow" };
@@ -29,8 +29,8 @@ function Shipped({ args, base, cue, what }: { args: Args; base: string; cue?: Cu
  * (ink/test/fixtures/motion, written by tests/motion_cells.rs), frame by frame every 30 ms, then pauses and runs again;
  * Ratatui's cells at the start, middle and end of the same effect sit beside it.
  *
- * **Next effects** are the canvas's own CSS animations: fold unroll and the rainbow focus lap (#32), assemble and
- * loading outlines (#42), the notice drain (#41). Each says "Target · not built yet".
+ * Fold open/reverse close and focus lap/drain run the production integer cell compositor against Rust fixtures.
+ * Assemble/loading outlines (#42) and notice drain (#41) remain canvas targets.
  *
  * `speed`: real time, or four times slower to watch an effect. Motion never delays a key; any key cancels it; it is
  * off over SSH and on slow terminals.
@@ -77,11 +77,11 @@ export const Shimmer: Story = { render: (args) => <Shipped args={args} base="loa
 const boardSpeed = (a: Args) => ({ speed: a.speed === "slow" ? "slow" : "real" });
 
 /** Fold unroll: a folded group's rows unroll from its line. */
-export const FoldUnroll: Story = { render: (args) => <Target board="Motion" picks={[card("Fold")]} issues={[32]} props={boardSpeed(args)} width={720} /> };
+export const FoldUnroll: Story = { render: (args) => <Row><InteractionReplay kind="fold" open speed={args.speed} /><InteractionReplay kind="fold" open={false} speed={args.speed} /></Row> };
 
 /** A rainbow lap: the ramp runs once around the panel that takes the keys. */
 export const RainbowFocusLap: Story = {
-  render: (args) => <Target board="Motion" picks={[card("Focus · a rainbow lap")]} issues={[32]} props={boardSpeed(args)} width={900} />,
+  render: (args) => <Row><InteractionReplay kind="focus_lap" speed={args.speed} /><InteractionReplay kind="focus_drain" speed={args.speed} /></Row>,
 };
 
 /** Assemble: a screen builds from its parts in layout order (replaces the screen fade at full). */

@@ -248,18 +248,85 @@
       },
       {
         "body": {
-          "node": "list",
+          "columns": [
+            {
+              "heading": "status",
+              "keep": 1,
+              "width": 8
+            }
+          ],
+          "name_width": 0,
+          "node": "tree",
+          "open": [
+            [
+              "group:The Watch"
+            ],
+            [
+              "group:The Watch",
+              "repo:ankh-morpork/watch"
+            ]
+          ],
           "rows": [
             {
-              "heading": true,
-              "right": [
+              "cells": [
                 {
-                  "ink": "muted",
-                  "text": "1 repos"
+                  "heading": "status",
+                  "text": [
+                    {
+                      "ink": "muted",
+                      "text": "1 repos"
+                    }
+                  ]
                 }
               ],
-              "target": "tree:0",
-              "text": [
+              "children": [
+                {
+                  "cells": [
+                    {
+                      "heading": "status",
+                      "text": [
+                        {
+                          "ink": "muted",
+                          "text": "1 PRs"
+                        }
+                      ]
+                    }
+                  ],
+                  "children": [
+                    {
+                      "cells": [
+                        {
+                          "heading": "status",
+                          "text": [
+                            {
+                              "ink": "secondary",
+                              "text": "open"
+                            }
+                          ]
+                        }
+                      ],
+                      "id": "pull:12",
+                      "name": [
+                        {
+                          "text": "#12  Patrol the Brass Bridge"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": "repo:ankh-morpork/watch",
+                  "name": [
+                    {
+                      "icon": "repo"
+                    },
+                    {
+                      "ink": "primary",
+                      "text": "ankh-morpork/watch"
+                    }
+                  ]
+                }
+              ],
+              "id": "group:The Watch",
+              "name": [
                 {
                   "icon": "group"
                 },
@@ -268,45 +335,13 @@
                   "text": "The Watch"
                 }
               ]
-            },
-            {
-              "right": [
-                {
-                  "ink": "muted",
-                  "text": "1 PRs"
-                }
-              ],
-              "target": "tree:1",
-              "text": [
-                {
-                  "ink": "muted",
-                  "text": "  "
-                },
-                {
-                  "icon": "repo"
-                },
-                {
-                  "ink": "primary",
-                  "text": "ankh-morpork/watch"
-                }
-              ]
-            },
-            {
-              "right": [
-                {
-                  "ink": "secondary",
-                  "text": "open"
-                }
-              ],
-              "target": "tree:2",
-              "text": [
-                {
-                  "text": "    #12  Patrol the Brass Bridge"
-                }
-              ]
             }
           ],
-          "selected": 2
+          "selected": [
+            "group:The Watch",
+            "repo:ankh-morpork/watch",
+            "pull:12"
+          ]
         },
         "pane": "middle",
         "title": "repositories"

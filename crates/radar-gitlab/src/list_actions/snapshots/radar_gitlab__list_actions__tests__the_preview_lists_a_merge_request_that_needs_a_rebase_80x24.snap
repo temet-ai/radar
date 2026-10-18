@@ -2,7 +2,7 @@
 source: crates/radar-gitlab/src/list_actions/tests.rs
 expression: "shown_preview(p, 80, 24)"
 ---
- radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+ radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
 ╭ views ───────────────╮╭ api !410 ────────────────────────────────────────────╮
 │ Everything           ││ a api  !410                                          █
 │ Needs my action    4 ││ ABC-410: Page the stats                              █

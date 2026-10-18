@@ -3,11 +3,11 @@ source: tests/mix.rs
 assertion_line: 1543
 expression: shown
 ---
- radar    Repositories 1   Slack   Branches   Work (I)   History   Settings (,)                                                        ⠷ not synced yet  ✎ edit
+ radar    Repositories ●   Slack   Branches   Work (I)   History   Settings (,)                                                        ⠷ not synced yet  ✎ edit
  Repositories › a › api
  acme/team-a/api                                                                                                                       firing · 1   main — none
  checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
- Merge requests · 1  Pipelines on main  [Alerts]
+ Merge requests  Pipelines on main  [Alerts]
 ╭ alerts ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ▲ api-HighErrorRate · prod · P1 · firing #h ##m · #team-alerts                                                                                               │
 │                                                                                                                                                              │

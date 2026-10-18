@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/tests.rs
 expression: text
 ---
- radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
 ╭ feed ──────────────────╮╭ #team ─────────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
 │ For you              4 ││ 6 new                                                          REPLIES  WHEN       ││ ── #team · today ──                          │
 │ Discussions            ││▌ today                                                                             ││ ● 06:46  Bob Builder                         │

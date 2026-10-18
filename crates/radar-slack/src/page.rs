@@ -36,6 +36,80 @@ pub(crate) enum Page {
     Draft,
 }
 
+impl Page {
+    /// A thread's root or the existing lifetime of a review draft. Draft
+    /// revisions, selected items and retained/blocked state are not identity.
+    pub(crate) fn identity(&self, draft: Option<&Draft>) -> Option<String> {
+        match self {
+            Self::Thread { channel, ts, .. } => {
+                Some(serde_json::json!(["thread", channel, ts]).to_string())
+            }
+            Self::Draft => {
+                let incarnation = draft?.stamp.incarnation;
+                // Older unstamped drafts have no established lifetime yet.
+                (incarnation != 0)
+                    .then(|| serde_json::json!(["review-draft", incarnation]).to_string())
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod page_identity_tests {
+    use super::*;
+
+    #[test]
+    fn page_identity_uses_thread_root_not_tab_or_child() {
+        let mut page = Page::Thread {
+            channel: "CWATCH".into(), ts: "12.000001".into(), tab: 0, row: 0,
+        };
+        let identity = page.identity(None);
+        assert_eq!(identity.as_deref(), Some(r#"["thread","CWATCH","12.000001"]"#));
+        if let Page::Thread { tab, row, .. } = &mut page {
+            *tab = 1;
+            *row = 3;
+        }
+        assert_eq!(page.identity(None), identity);
+        for other in [
+            Page::Thread { channel: "CLANCRE".into(), ts: "12.000001".into(), tab: 1, row: 3 },
+            Page::Thread { channel: "CWATCH".into(), ts: "13.000001".into(), tab: 1, row: 3 },
+        ] {
+            assert_ne!(other.identity(None), identity);
+        }
+    }
+
+    #[test]
+    fn page_identity_keeps_draft_incarnation_across_edits_and_retention() {
+        let page = Page::Draft;
+        let mut draft = Draft {
+            stamp: crate::ask_context::DraftStamp { incarnation: 12, revision: 0 },
+            ..Draft::default()
+        };
+        let identity = page.identity(Some(&draft));
+        assert_eq!(identity.as_deref(), Some(r#"["review-draft",12]"#));
+        draft.items.push(ask::Item {
+            id: "ankh-morpork/watch!12".into(),
+            url: "https://gitlab.example/ankh-morpork/watch/-/merge_requests/12".into(),
+            label: "Watch patrol".into(), words: "Please review".into(), tickets: vec![],
+        });
+        draft.items[0].label = "Night watch patrol".into();
+        draft.items[0].words = "Please review the patrol".into();
+        draft.row = 2;
+        draft.channel = "watch-review".into();
+        draft.error = Some("retained after a connection change".into());
+        draft.changed();
+        assert_eq!(page.identity(Some(&draft)), identity);
+        draft.stamp.incarnation = 13;
+        assert_ne!(page.identity(Some(&draft)), identity);
+    }
+
+    #[test]
+    fn page_identity_does_not_guess_for_missing_or_unstamped_drafts() {
+        assert_eq!(Page::Draft.identity(None), None);
+        assert_eq!(Page::Draft.identity(Some(&Draft::default())), None);
+    }
+}
+
 const THREAD_TABS: [&str; 2] = ["Thread", "Links"];
 
 /// Rendered links are only meaningful for this connection and thread.
@@ -424,14 +498,8 @@ pub(crate) fn page_tabs(p: &SlackPlugin) -> Option<radar_core::plugin::PageTabs>
     let Some(Page::Thread { tab, .. }) = p.pages.last() else {
         return None;
     };
-    let n = page_links(p).len();
-    let links = if n == 0 {
-        THREAD_TABS[1].to_string()
-    } else {
-        format!("{} · {n}", THREAD_TABS[1])
-    };
     Some(radar_core::plugin::PageTabs {
-        names: vec![THREAD_TABS[0].into(), links],
+        names: THREAD_TABS.iter().map(|name| (*name).to_string()).collect(),
         on: (*tab).min(THREAD_TABS.len() - 1),
     })
 }

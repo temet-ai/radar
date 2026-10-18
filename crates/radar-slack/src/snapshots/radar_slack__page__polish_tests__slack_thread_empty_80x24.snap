@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/page_polish_tests.rs
 expression: empty
 ---
- radar    Slack 4   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
  Slack › #team › thread
  thread
  [Thread]  Links

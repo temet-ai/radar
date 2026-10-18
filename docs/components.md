@@ -199,6 +199,7 @@ effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and
 | `Rich`, `Markdown` | ui/rich.rs, ui/markdown.rs | Document layout and markdown | | | Markdown |
 | `Image` | ui/image.rs | Inline pictures via ratatui-image (kitty, sixel, iTerm2). Ink port: #38 | on, off, detect | | **missing** |
 | `PageFrame`, `crumbs`, `title_line`, `tab_row` | ui/page.rs | Item page head: crumbs, title, details, under line, tabs | focused tab row, tab window when narrow | `← → h l [ ]`, `esc` back | all tabs |
+| `frame::{focus_border, wordmark}` | ui/frame.rs / text/frame.ts | Theme-resolved truecolor ramp from glow.purple through accent.tertiary to glow.cyan; clockwise frame perimeter and left-to-right wordmark | only the keyboard-owning pane; titles and scrollbars retain their styles; lower tiers unchanged | | Card |
 | `card::{card, panel, section, footer, shows}` | ui/card.rs | Titled scrolling panel, section rule, "shows" footer | footer only with 3 rows to spare | `Scroll::key` | Card |
 | `scroll::{Scroll, scrollbar}` | ui/scroll.rs | Scroll state and bar | no bar when nothing to scroll | PgUp/PgDn | Card |
 | `chips::{chip, chips, after_name, words}` | ui/chips.rs | Contributed chips; chips after a name that gives way | | | Card |
@@ -215,12 +216,13 @@ effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and
 
 | Element | Where (Ratatui / Ink) | Does | Notes |
 |---|---|---|---|
-| Top bar and tabs | `shell::top_bar`, `tabs` / `chrome/layout.ts` `layoutTopBar` | Brand, part tabs with an underlined key, badge, spinner, words, mode | counts go, attention dot planned (#33); ramp on the brand (#31) |
+| Top bar and tabs | `shell::top_bar`, `tabs` / `chrome/layout.ts` `layoutTopBar` | Brand, names-only part tabs with an underlined key and one warning-coloured attention dot when needed, spinner, words, mode | Truecolor brand ramp uses resolved glow.purple → accent.tertiary → glow.cyan; padding, hit geometry and lower tiers unchanged (#31) |
+| Tab attention | `BarTab.attention`, `TabView.attention` | One dot after the name in `status.warning`; no count. The host derives top-bar attention from ready parts' warn/bad badges and unsaved settings. Item-page owners set attention from actionable state. Counts remain in their page/status content. | |
 | Source tabs | `shell::source_tabs` / `chrome/layout.ts` | Second row: a part's sources | |
 | Status line | `shell::status_line`, `key_hits` / `layoutStatus` | Mode chip, key hints or a message, counts at the right | notices planned (#41) |
-| Menu and question | `shell/menu.rs` / `layoutMenu`, `MenuBox` | Menus with key, label, line; questions as dialogs with buttons | over a scrim with a one-cell shadow (`ui::scrim`, #29); nothing behind is lit; palette (#35) |
+| Menu and question | `shell/menu.rs` / `layoutMenu`, `MenuBox` | Menus with key, label, line; questions as dialogs with buttons | over a scrim with a one-cell shadow (`ui::scrim`, #29); nothing behind is lit; Ctrl-P palette with scalar-indexed match highlights, right-side keys and match/total count (`MenuView.palette`); cached targets, no query-time requests |
 | Field bar | `view_tui::draw_field_bar` / `chrome/filter.tsx` | Filter (`/`) and go-to (`:`) at the top of a pane | |
-| Panes and frames | `shell`, `view_tui::draw_pane` / `app/Panes.tsx` | Nav, middle, detail; focused frame | jump numbers and detail skeleton (#46); focus ramp and lap (#31, #32) |
+| Panes and frames | `shell`, `view_tui::draw_pane` / `app/Panes.tsx` | Nav, middle, detail; focused frame | Truecolor ramp on the keyboard-owning pane, including active inline fields; background panes stay flat under menus, overlays and visible focused docks (#31). Jump numbers/detail skeleton (#46) and animated lap (#32) remain planned |
 | Settings | `shell::settings` / `layoutNav`, `SectionBody` | Settings nav and sections | |
 | Setup | `shell/setup.rs` / `app/SetupBody.tsx` | `radar  setup / <step>` with `step n of m` and the mode; at most 140×40, centred; the sheet ("about this step", the step's help) on top as high as its text, then the card (heading, lead, then the step's settings section or a host step's rows) under it, each a filled panel under its tab; no rail; the key bar is the status line scoped `SETUP` | from `ChromeView.setup` (`SetupChrome`) and `Snapshot.section`; no tabs, no settings nav |
 | History | `history.rs` / `chrome/history.ts` | Action history overlay | |
@@ -244,7 +246,7 @@ the "today" column lists what has to change. Paths are under `crates/`.
 | State chips | `widgets::chip` by tone, tinted ground (the kit draws it since #30) | GitHub uses a bare word in Secondary; Slack builds its own | |
 | People | person or `you` icon + short name; avatar when pictures work | GitLab `person_icon`, Jira `assignee_segs`, Slack `who()`, GitHub none | #38 |
 | Ages | `time::ago` (`5m`, `3d`) in cells; `N ago` in details | local wrappers (Jira `ago`, Slack `age`, Slack `demo::ago`) beside core's `time::ago_str` (`crates/radar-core/src/time.rs`); only Jira tints by age | |
-| Counts | `data.number` in cells; none on tabs | bare numbers, `"{n} NEW"`, `"{n} repos"`, `"{n} PRs"`, `"{n} MR(s)"`, `↑n`, `"Comments · 3"` in tabs | #33 |
+| Counts | `data.number` in cells; none on tabs | bare numbers, `"{n} NEW"`, `"{n} repos"`, `"{n} PRs"`, `"{n} MR(s)"`, `↑n` outside tabs | |
 | Section headings | `widgets::heading` (muted bold capitals) | a detail pane's sections are `view::Block::section` (drawn as `ui::card::section`, muted bold capitals and a rule) in GitLab, Jira, GitHub, Slack and Git; Workbench uses Emphasis | #46 |
 | Tree header strip | `widgets::heading` | Plain in GitLab and Jira, Muted bold in Git, Secondary in Slack | |
 | Label/value facts | `rows::labelled` with label width = longest label + 2 | widths 14 (Jira), 10 (GitLab settings), computed (Git's local `kv`) | #46 |

@@ -634,11 +634,11 @@ exports[`recorded view fixtures > github_github at 80x24 1`] = `
  ◆ acme                                                                 2 repos
 
 ── repositories ──
- ◆ github.com/acme                                                      2 repos
-   ▤ acme/api                                                             2 PRs
-     #42  Keep background refreshes tied to their request                  open
-     #43  Document the public endpoints                                   draft
-   ▤ acme/docs                                                            0 PRs
+◆ github.com/acme                                                      2 repos
+  ├─ ▤ acme/api                                                        2 PRs
+  │  ├─ #42  Keep background refreshes tied to their request           open
+  │  └─ #43  Document the public endpoints                             draft
+  └─ ▤ acme/docs                                                       0 PRs
 
 ── acme/api #42 ──
   ⌂ local folder    no matching origin; link a folder or scan configured
@@ -674,11 +674,11 @@ exports[`recorded view fixtures > github_github at 160x40 1`] = `
  ◆ acme                                                                                                                                                 2 repos
 
 ── repositories ──
- ◆ github.com/acme                                                                                                                                      2 repos
-   ▤ acme/api                                                                                                                                             2 PRs
-     #42  Keep background refreshes tied to their request                                                                                                  open
-     #43  Document the public endpoints                                                                                                                   draft
-   ▤ acme/docs                                                                                                                                            0 PRs
+◆ github.com/acme                                                                                                                                      2 repos
+  ├─ ▤ acme/api                                                                                                                                        2 PRs
+  │  ├─ #42  Keep background refreshes tied to their request                                                                                           open
+  │  └─ #43  Document the public endpoints                                                                                                             draft
+  └─ ▤ acme/docs                                                                                                                                       0 PRs
 
 ── acme/api #42 ──
   ⌂ local folder    no matching origin; link a folder or scan configured folders

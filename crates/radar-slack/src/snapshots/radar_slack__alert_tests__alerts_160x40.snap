@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/alert_tests.rs
 expression: text
 ---
- radar    Slack 5   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
 ╭ feed ──────────────────╮╭ Alerts ────────────────────────────────────────────────────────────────────────────╮╭ alert ───────────────────────────────────────╮
 │ For you              5 ││ firing first, then what resolved                        PRIORITY NOTIFIED FOR      ││ api-HighErrorRate                            │
 │ Discussions            ││firing                                                                              ││ ▲ firing for 3h 07m · since 04:09            │

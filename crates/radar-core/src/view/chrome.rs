@@ -147,15 +147,15 @@ pub struct BarTab {
     #[serde(default, skip_serializing_if = "Option::is_none", with = "icon_name")]
     #[ts(as = "Option<String>")]
     pub icon: Option<Icon>,
-    /// A count or a state after the label, in its tone.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub badge: Option<Badge>,
+    /// Something here needs attention: one warning dot, never a count.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub attention: bool,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub active: bool,
     pub target: Target,
 }
 
-/// A count or state after a tab's label (`3`, `unsaved`).
+/// A count or state in chrome outside tab labels.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct Badge {
     pub text: String,
@@ -374,6 +374,9 @@ pub struct MenuView {
     /// Why the part refuses the typed text now, if it does.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub refused: Option<String>,
+    // Command search metadata; absent for ordinary menus and questions.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub palette: Option<Box<PaletteView>>,
 }
 
 impl MenuView {
@@ -396,8 +399,23 @@ impl MenuView {
             shown: 0,
             usable: true,
             refused: None,
+            palette: None,
         }
     }
+}
+
+/// The host's command search result, in exactly the same order as `MenuView.items`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct PaletteView {
+    // Matches before any view-size bound, and commands available before filtering.
+    pub matched: usize,
+    pub total: usize,
+    // Unicode scalar positions in each item's label, never byte or display-cell offsets.
+    // Renderers keep a matched combining or emoji sequence together as one grapheme.
+    pub highlights: Vec<Vec<usize>>,
+    // Unicode scalar positions in each item's visible hint.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hint_highlights: Vec<Vec<usize>>,
 }
 
 fn is_zero(n: &usize) -> bool {
@@ -596,4 +614,34 @@ pub enum StopState {
     Current,
     Done,
     Skipped,
+}
+
+#[cfg(test)]
+mod palette_tests {
+    use super::*;
+
+    #[test]
+    fn palette_metadata_is_optional_and_round_trips_without_changing_old_menus() {
+        let mut menu = MenuView::new("palette", "commands", vec![]);
+        let old = serde_json::to_value(&menu).unwrap();
+        assert!(old.get("palette").is_none());
+        assert_eq!(
+            serde_json::from_value::<MenuView>(old).unwrap().palette,
+            None
+        );
+        menu.palette = Some(Box::new(PaletteView {
+            matched: 0,
+            total: 12,
+            highlights: vec![],
+            hint_highlights: vec![],
+        }));
+        let json = serde_json::to_value(&menu).unwrap();
+        assert_eq!(json["palette"]["matched"], 0);
+        assert!(json["palette"].get("hint_highlights").is_none());
+        assert_eq!(serde_json::from_value::<MenuView>(json).unwrap(), menu);
+        menu.palette.as_mut().unwrap().hint_highlights = vec![vec![0, 2]];
+        let json = serde_json::to_value(&menu).unwrap();
+        assert_eq!(json["palette"]["hint_highlights"][0], serde_json::json!([0, 2]));
+        assert_eq!(serde_json::from_value::<MenuView>(json).unwrap(), menu);
+    }
 }

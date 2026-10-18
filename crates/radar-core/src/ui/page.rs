@@ -1,6 +1,6 @@
 //! The page frame: what an item's own page has above its body. A breadcrumb
 //! (`Shelves › a › api › #12`), the title with its details at the right, an
-//! optional line under it, and the tabs, drawn by ratatui's `Tabs`. The body
+//! optional line under it, and the names-only tabs. The body
 //! is the caller's; scroll it with [`super::scroll`] or a
 //! [`super::table::Table`].
 
@@ -8,7 +8,6 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Tabs, Widget};
 
 use crate::design::theme::Slot;
 use crate::theme::Theme;
@@ -24,12 +23,31 @@ pub struct PageFrame {
     pub details: Vec<Span<'static>>,
     /// A line under the title (where it is on this machine, its parent).
     pub under: Option<Line<'static>>,
-    pub tabs: Vec<String>,
+    pub tabs: Vec<Tab>,
     /// The tab showing.
     pub tab: usize,
     /// The tab row has the keys (`Cx::tabs`): the tab showing stands out
     /// as a focused row does, and `← →` move across the row.
     pub focused: bool,
+}
+
+/// A page tab's name, including its optional leading icon, and attention state.
+#[derive(Debug, Clone, Default)]
+pub struct Tab {
+    pub label: String,
+    pub attention: bool,
+}
+
+impl From<String> for Tab {
+    fn from(label: String) -> Self {
+        Self { label, attention: false }
+    }
+}
+
+impl From<&str> for Tab {
+    fn from(label: &str) -> Self {
+        label.to_string().into()
+    }
 }
 
 /// Where the frame put things.
@@ -147,7 +165,7 @@ pub fn title_line(
     }
 }
 
-/// `[Overview]  Changes · 2  Threads`: the tab showing in brackets and the
+/// `[Overview]  Changes  Threads ●`: the tab showing in brackets and the
 /// accent, two spaces between; with the row `focused` (it has the keys)
 /// the tab showing stands out as the top bar's does. Returns each tab's
 /// area in its original position (an empty rectangle for a hidden tab).
@@ -156,7 +174,7 @@ pub fn tab_row(
     theme: &Theme,
     area: Rect,
     buf: &mut Buffer,
-    labels: &[String],
+    labels: &[Tab],
     on: usize,
     focused: bool,
 ) -> Vec<Rect> {
@@ -164,19 +182,28 @@ pub fn tab_row(
     if area.is_empty() || labels.is_empty() {
         return rects;
     }
-    let mut titles: Vec<String> = labels
+    buf.set_style(area, theme.s(Slot::TextSecondary));
+    let showing = if focused {
+        theme
+            .bold(Slot::BgBase)
+            .patch(Style::new().bg(theme.s(Slot::AccentPrimary).fg.unwrap_or_default()))
+    } else {
+        theme.bold(Slot::AccentPrimary)
+    };
+    let base = |i| if i == on { showing } else { theme.s(Slot::TextSecondary) };
+    let mut titles = labels
         .iter()
         .enumerate()
-        .map(|(i, l)| if i == on { format!("[{l}]") } else { l.clone() })
-        .collect();
+        .map(|(i, tab)| tab_title(theme, tab, i == on, base(i), None))
+        .collect::<Vec<_>>();
 
     // Keep as many preceding tabs as fit without cutting the selection.
     // When all labels fit this starts at zero, preserving the usual row.
     let width = usize::from(area.width);
     let mut first = if on < labels.len() { on } else { 0 };
-    let mut used = super::width(&titles[first]).min(width);
+    let mut used = titles[first].width().min(width);
     while first > 0 {
-        let before = super::width(&titles[first - 1]) + 2;
+        let before = titles[first - 1].width() + 2;
         if before > width - used {
             break;
         }
@@ -184,14 +211,9 @@ pub fn tab_row(
         first -= 1;
     }
     if let Some(title) = titles.get_mut(on)
-        && super::width(title) > width
+        && title.width() > width
     {
-        // A single long label still looks selected, even on a tiny row.
-        *title = if width >= 3 {
-            format!("[{}]", super::fit(&labels[on], width - 2))
-        } else {
-            "…".into()
-        };
+        *title = tab_title(theme, &labels[on], true, showing, Some(width));
     }
     let end = area.right();
     let mut x = area.x;
@@ -199,7 +221,14 @@ pub fn tab_row(
         if x >= end {
             break;
         }
-        let w = super::width(t).min(usize::from(end - x)) as u16;
+        let remaining = usize::from(end - x);
+        let title = if t.width() > remaining {
+            tab_title(theme, &labels[i], i == on, base(i), Some(remaining))
+        } else {
+            t.clone()
+        };
+        let w = title.width().min(remaining) as u16;
+        buf.set_line(x, area.y, &title, w);
         // A cell either side: the two between tabs are shared, so there
         // is no dead cell from the first tab to the last.
         if w > 0 {
@@ -214,21 +243,41 @@ pub fn tab_row(
         }
         x = x.saturating_add(w).saturating_add(2);
     }
-    let showing = if focused {
-        theme
-            .bold(Slot::BgBase)
-            .patch(Style::new().bg(theme.s(Slot::AccentPrimary).fg.unwrap_or_default()))
-    } else {
-        theme.bold(Slot::AccentPrimary)
-    };
-    Tabs::new(titles.into_iter().skip(first))
-        .select(on.checked_sub(first).filter(|_| on < labels.len()))
-        .padding("", "")
-        .divider("  ")
-        .style(theme.s(Slot::TextSecondary))
-        .highlight_style(showing)
-        .render(area, buf);
     rects
+}
+
+/// Fit selected labels inside their brackets, preserving attention when it fits.
+fn tab_title(theme: &Theme, tab: &Tab, selected: bool, base: Style, width: Option<usize>) -> Line<'static> {
+    let suffix = if tab.attention { format!(" {}", super::icon::ATTENTION_DOT) } else { String::new() };
+    let text = format!("{}{suffix}", tab.label);
+    if let Some(width) = width {
+        if selected && width < 3 {
+            return Line::from(Span::styled("…", base));
+        }
+        if !selected || (tab.attention && width < 5) {
+            let text = super::fit(&text, width.saturating_sub(usize::from(selected) * 2));
+            return Line::from(Span::styled(if selected { format!("[{text}]") } else { text }, base));
+        }
+    }
+    let label = match width {
+        Some(width) => super::fit(&tab.label, width.saturating_sub(2 + super::width(&suffix))),
+        None => tab.label.clone(),
+    };
+    let mut spans = Vec::new();
+    if selected {
+        spans.push(Span::styled("[", base));
+    }
+    spans.push(Span::styled(label, base));
+    if tab.attention {
+        spans.push(Span::styled(" ", base));
+        let mut dot = super::icon::attention(theme);
+        dot.style = base.patch(dot.style);
+        spans.push(dot);
+    }
+    if selected {
+        spans.push(Span::styled("]", base));
+    }
+    Line::from(spans)
 }
 
 #[cfg(test)]
@@ -238,23 +287,23 @@ mod tests {
     use super::*;
     use crate::design::theme::Tier;
     use crate::plugin::{Pane, Plugin};
-use crate::view_tui::Cx;
+    use crate::view_tui::Cx;
 
     fn row(labels: &[&str], on: usize, width: u16) -> (String, Vec<Rect>) {
         let area = Rect::new(2, 1, width, 1);
         let mut buf = Buffer::empty(Rect::new(0, 0, width + 4, 3));
-        let labels = labels.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let labels = labels.iter().map(|s| Tab::from(*s)).collect::<Vec<_>>();
         let rects = tab_row(&Theme::new(Tier::Mono), area, &mut buf, &labels, on, false);
         (crate::shell::row_text(&buf, 1), rects)
     }
 
     #[test]
     fn fitting_tabs_keep_their_labels_spacing_and_hit_indices() {
-        let (text, rects) = row(&["Overview", "Changes · 2", "Threads", "Checks"], 1, 60);
-        assert_eq!(text.trim(), "Overview  [Changes · 2]  Threads  Checks");
+        let (text, rects) = row(&["Overview", "Changes", "Threads", "Checks"], 1, 60);
+        assert_eq!(text.trim(), "Overview  [Changes]  Threads  Checks");
         assert_eq!(
             rects.iter().map(|r| r.x).collect::<Vec<_>>(),
-            [1, 11, 26, 35]
+            [1, 11, 22, 31]
         );
         assert!(rects.iter().all(|r| !r.is_empty()));
     }
@@ -316,6 +365,51 @@ use crate::view_tui::Cx;
         assert_eq!(super::super::width(text.trim()), 10);
         let (text, _) = row(&["Overview", "🧪 done"], 1, 9);
         assert_eq!(text.trim(), "[🧪 done]");
+    }
+
+    #[test]
+    fn attention_dot_is_warning_coloured_and_part_of_hit_width() {
+        let theme = Theme::new(Tier::TrueColor);
+        let area = Rect::new(2, 1, 40, 1);
+        let mut buf = Buffer::empty(Rect::new(0, 0, 44, 3));
+        let tabs = [Tab::from("Overview"), Tab { label: "日本Notes".into(), attention: true }];
+        let rects = tab_row(&theme, area, &mut buf, &tabs, 0, false);
+        let text = crate::shell::row_text(&buf, 1);
+        assert_eq!(text.trim(), format!("[Overview]  日本Notes {}", super::super::icon::ATTENTION_DOT));
+        let dot = text.find(super::super::icon::ATTENTION_DOT).unwrap();
+        let x = super::super::width(&text[..dot]) as u16;
+        assert_eq!(Some(buf[(x, 1)].fg), theme.s(Slot::StatusWarning).fg);
+        assert!(rects[1].contains(ratatui::layout::Position::new(x, 1)));
+        assert_eq!(rects[1].right(), x + 2, "the dot and one padding cell are clickable");
+        assert_eq!(text.matches(super::super::icon::ATTENTION_DOT).count(), 1);
+        for x in [12, 13, area.right() - 1] {
+            assert_eq!(buf[(x, 1)].symbol(), " ");
+            assert_eq!(Some(buf[(x, 1)].fg), theme.s(Slot::TextSecondary).fg,
+                "gaps and trailing cells retain the row's base style");
+        }
+    }
+
+    #[test]
+    fn selected_attention_survives_narrow_unicode_windows() {
+        let theme = Theme::new(Tier::TrueColor);
+        let tabs = [Tab::from("Overview"), Tab { label: "日本語の検査".into(), attention: true }];
+        for width in [0, 1, 2, 3, 4, 5, 8, 10] {
+            let area = Rect::new(2, 1, width, 1);
+            let mut buf = Buffer::empty(Rect::new(0, 0, width + 4, 3));
+            let rects = tab_row(&theme, area, &mut buf, &tabs, 1, true);
+            assert!(rects[0].is_empty());
+            assert_eq!(rects[1].is_empty(), width == 0);
+            let text = crate::shell::row_text(&buf, 1);
+            assert!(super::super::width(text.trim()) <= usize::from(width));
+            if width >= 5 {
+                let dot = text.find(super::super::icon::ATTENTION_DOT).unwrap();
+                let x = super::super::width(&text[..dot]) as u16;
+                assert_eq!(Some(buf[(x, 1)].fg), theme.s(Slot::StatusWarning).fg);
+                assert_eq!(Some(buf[(x, 1)].bg), theme.s(Slot::AccentPrimary).fg);
+                assert!(text.trim().ends_with(&format!("{}]", super::super::icon::ATTENTION_DOT)));
+                assert!(rects[1].contains(ratatui::layout::Position::new(x, 1)));
+            }
+        }
     }
 
     #[test]

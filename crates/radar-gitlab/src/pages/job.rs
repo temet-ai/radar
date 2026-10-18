@@ -20,16 +20,9 @@ pub(super) fn name(p: &GitlabPlugin, project: &str, id: u64) -> String {
     info(p, project, id).map_or_else(|| format!("job #{id}"), |j| j.name.clone())
 }
 
-/// `Log`, or `Log · last 256 KB of 1.2 MB` while earlier parts are not here.
-pub(super) fn tabs(p: &GitlabPlugin, project: &str, id: u64) -> Vec<String> {
-    match p.logs.get(&JobKey::new(project, id)).and_then(|f| f.value.as_ref()) {
-        Some(l) if l.earlier() => vec![format!(
-            "Log · last {} of {}",
-            size(l.total - l.start),
-            size(l.total)
-        )],
-        _ => vec!["Log".into()],
-    }
+/// The log's name. Partial-range information belongs in the log body.
+pub(super) fn tabs() -> Vec<String> {
+    vec!["Log".into()]
 }
 
 pub(super) fn size(bytes: u64) -> String {

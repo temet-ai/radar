@@ -154,7 +154,9 @@ export const SCREEN_CASES: Record<string, Case> = {
   "ScreenView.panes": (on) => sceneOf(screenOf(on ? [paneOf(doc("ZZPANE"))] : [])),
   "ScreenView.medium_from": (on) => sceneOf(screenOf([paneOf(doc("NAVPANE"), { pane: "nav", title: "NAV" }), paneOf(doc("MIDPANE"))], { medium_from: on ? 60 : 150 }), [100, 30]),
   "ScreenView.page": (on) => sceneOf(screenOf([paneOf(doc("UNDERPAGE"))], { page: on ? pageBase() : null })),
-  "ScreenView.overlay": (on) => sceneOf(screenOf([paneOf(doc("BODYUNDER"))], { overlay: on ? paneOf(doc("OVERLAYTEXT"), { title: "OVERLAY" }) : null })),
+  // Presence now suppresses the background focus ramp; the generic overlay's
+  // content is still missing. Test its text so the style change cannot hide that gap.
+  "ScreenView.overlay": (on) => ({ ...sceneOf(screenOf([paneOf(doc("BODYUNDER"))], { overlay: on ? paneOf(doc("OVERLAYTEXT"), { title: "OVERLAY" }) : null })), needle: "OVERLAYTEXT" }),
 
   // SectionView
   "SectionView.scope": (on) => ({ chrome: chromeOf(W, H), section: sectionOf({ scope: pick(on, "connection", "ZZSCOPE") }) }),
@@ -201,6 +203,7 @@ export const SCREEN_CASES: Record<string, Case> = {
   "PageView.layout": layoutPage((on) => (on ? { kind: "split", axis: "vertical", parts: [{ size: { kind: "fill", value: 1 }, layout: { kind: "pane", index: 0 } }, { size: { kind: "fill", value: 1 }, layout: { kind: "pane", index: 1 } }] } : null)),
   "TabView.label": page((p, on) => (p.tabs = [{ label: pick(on, "TABONE", "ZZTAB") }])),
   "TabView.icon": page((p, on) => (p.tabs = [{ label: "TABONE", icon: on ? "settings" : null }])),
+  "TabView.attention": page((p, on) => (p.tabs = [{ label: "TABONE", attention: on }])),
   // PageLayout / LayoutPart / Size
   "PageLayout.pane.index": layoutPage((on) => ({ kind: "pane", index: on ? 1 : 0 })),
   "PageLayout.split.axis": layoutPage((on) => ({ kind: "split", axis: pick(on, "horizontal", "vertical"), parts: [{ size: { kind: "fill", value: 1 }, layout: { kind: "pane", index: 0 } }, { size: { kind: "fill", value: 1 }, layout: { kind: "pane", index: 1 } }] })),
@@ -521,7 +524,7 @@ export const SCREEN_KNOWN_UNDRAWN: Record<string, string> = {
   "Chips.text": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
   "PaneView.from": "T11: a pane's `from` (the width it shows from) is not applied (app/Panes.tsx)",
   "TreeEditing.at": "T11: an inline edit's start column is not applied (nodes/tree.tsx)",
-  "ScreenView.overlay": "T11: an editor overlay over the foot of the body is never drawn (App.tsx does not read screen.overlay)",
+  "ScreenView.overlay": "T11: generic overlay content is not drawn; overlay presence does suppress the background focus ramp (recognized editor overlays are supported)",
   "ListRow.link": "T11: a list row's link is not drawn (nodes/lists.tsx)",
   "TreeLook.lines": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",
   "TreeLook.band": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",

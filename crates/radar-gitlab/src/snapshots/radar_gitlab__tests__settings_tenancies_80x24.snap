@@ -3,7 +3,7 @@ source: crates/radar-gitlab/src/lib.rs
 assertion_line: 2426
 expression: "radar_core::shell::to_text(&host, 80, 24)"
 ---
- radar    Repositories 1   History   Settings (,)                        ✎ edit
+ radar    Repositories ●   History   Settings (,)                        ✎ edit
 ╭ settings ────────────╮╭ tenancies ───────────────────────────────────────────╮
 │General               ││ + add a tenancy                                      │
 │  ├─ parts            ││▌ ● b    team-b   0 repos · 0 hidden                  │

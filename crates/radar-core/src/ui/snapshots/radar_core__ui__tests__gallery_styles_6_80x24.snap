@@ -4,7 +4,7 @@ expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Markdown" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Table  Card  Meters  Rows & states  Entr…" fg:text.secondary | "[Markdown]" fg:accent.primary/glow.purple bold | "  Diff  Motion  C" fg:text.secondary
+02 _1 | "Table  Card  Meters  Rows & states  Entr…" fg:text.secondary | "[Markdown]" fg:accent.primary/glow.purple bold | "  Diff  Motion  …" fg:text.secondary
 03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " a note, written in markdown, and what o…" fg:text.emphasis bg:bg.surface bold | "─────────────────────╮" fg:accent.primary/glow.purple bg:bg.surface
 04 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "Sorting the atlas box                   …" fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
 05 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "─────────────────────" fg:text.muted bg:bg.surface bold | _55 fg:text.emphasis bg:bg.surface bold | _1 bg:bg.surface | "█" fg:accent.muted bg:bg.surface

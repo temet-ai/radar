@@ -56,7 +56,7 @@ function gridOf(rows: Run[][]): Grid {
   const g = new Grid(80, 24);
   rows.forEach((runs, y) => {
     let x = 0;
-    for (const [text, fg, bg] of runs) {
+    for (const [text, fg, bg, mods] of runs) {
       for (const ch of text) {
         const w = Math.max(1, charWidth(ch.codePointAt(0)!));
         for (let k = 0; k < w; k++)
@@ -64,6 +64,7 @@ function gridOf(rows: Run[][]): Grid {
             ch: k === 0 ? ch : "",
             fg: colour(fg),
             bg: colour(bg),
+            attr: [mods.includes("bold") ? "1" : "", mods.includes("dim") ? "2" : "", mods.includes("italic") ? "3" : "", mods.includes("underline") ? "4" : "", mods.includes("reversed") ? "7" : "", mods.includes("crossed") ? "9" : ""].filter(Boolean).join(";"),
           });
         x += w;
       }
@@ -99,6 +100,7 @@ function same(got: Grid, want: Grid, where: string) {
   got.cells.forEach((c, i) => {
     const w = want.cells[i]!;
     const at = `${i % 80},${Math.floor(i / 80)}`;
+    if (c.attr !== w.attr) bad.push(`${at} modifiers ${c.attr} vs ${w.attr}`);
     if (c.ch !== w.ch) bad.push(`${at} symbol ${c.ch} vs ${w.ch}`);
     for (const k of ["fg", "bg"] as const) {
       const off =

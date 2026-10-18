@@ -93,28 +93,26 @@ export function attachMotion(
 ): () => void {
   installMotionOutput(m);
   let seen: unknown;
+  let seenLook = session.state.look;
   const take = () => {
-    const snap = session.state.snapshot;
+    const state = session.state;
+    if (state.look !== seenLook || state.phase === "closed" || state.phase === "refused" || (!state.snapshot?.chrome.history && (state.inputRequest || state.questions.length))) {
+      m.invalidate();
+      seenLook = state.look;
+    }
+    const snap = state.snapshot;
     if (!snap || snap === seen) return;
     seen = snap;
     const mv = (snap as { motion?: MotionView }).motion;
-    if (!mv) return;
+    if (!mv) { m.setLevel("off"); return; }
     m.setSlots(mv.slots);
     m.setLevel(mv.level);
     for (const c of mv.cues ?? []) m.cue(cueOf(c));
   };
   const offSession = session.subscribe(take);
-  const offInput = mouse.onInput((events) => {
-    if (
-      events.some(
-        (e) =>
-          e.kind === "key" ||
-          e.kind === "paste" ||
-          (e.kind === "mouse" && isInput(e.data)),
-      )
-    )
-      m.input();
-  });
+  const offInput = session.onInput(() => m.input());
+  const offIntent = session.onIntent((seq, cursor) => m.intent(seq, cursor));
+  const offRaw = mouse.onRawInput((text) => { if (isInput(text)) m.input(); });
   m.marksFrom(() =>
     shellMarks(session, stdout.columns ?? 80, stdout.rows ?? 24),
   );
@@ -126,6 +124,9 @@ export function attachMotion(
   return () => {
     offSession();
     offInput();
+    offIntent();
+    offRaw();
     offTick();
+    m.reset();
   };
 }

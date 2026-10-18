@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/alert_tests.rs
 expression: "to_text(&host, 80, 24)"
 ---
- radar    Slack 5   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
 ╭ Alerts ──────────────────────────────────────────────────────────────────────╮
 │ firing first, then what resolved                  PRIORITY NOTIFIED FOR      │
 │firing                                                                        │

@@ -23,6 +23,10 @@
 //!   what radar draws without motion, and so does the frame after an effect.
 //! - The runner redraws on a frame tick only while [`Engine::running`].
 
+pub mod transition;
+pub mod frames;
+mod interaction;
+
 use std::cell::{Cell as StdCell, RefCell};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
@@ -183,6 +187,10 @@ pub enum Region {
 /// Where things were drawn in the frame being drawn.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Marks {
+    pub context: Option<transition::MotionContext>,
+    pub fold: Option<transition::MotionFold>,
+    pub frames: Vec<frames::FrameMark>,
+    pub trees: Vec<frames::TreeMark>,
     pub body: Option<Rect>,
     pub popup: Option<Rect>,
     pub message: Option<Rect>,
@@ -348,6 +356,7 @@ struct Running {
 
 /// Runs the effects: cues start them, each frame applies them.
 pub struct Engine {
+    frames: frames::FrameMotion,
     level: Level,
     clock: Box<dyn Clock>,
     /// When the last frame with effects was drawn.
@@ -367,6 +376,7 @@ pub struct Engine {
 impl Engine {
     pub fn new(level: Level, clock: Box<dyn Clock>) -> Self {
         Self {
+            frames: frames::FrameMotion::default(),
             level,
             clock,
             last: None,
@@ -384,6 +394,7 @@ impl Engine {
 
     /// A new setting. Off drops everything at once.
     pub fn set_level(&mut self, level: Level) {
+        self.frames.clear();
         self.level = if self.too_slow { Level::Off } else { level };
         if self.level == Level::Off {
             self.running.clear();
@@ -395,7 +406,7 @@ impl Engine {
     /// Whether the runner should draw again soon: an effect runs, or the
     /// plain frame after one is still to come.
     pub fn running(&self) -> bool {
-        !self.running.is_empty() || self.settle
+        !self.running.is_empty() || self.settle || self.frames.running()
     }
 
     /// The runner's frame tick: `Some` only while [`Engine::running`].
@@ -407,12 +418,16 @@ impl Engine {
     /// the next frame is plain, so nothing stands in the way. A loading
     /// shimmer goes on (it says the panel still waits).
     pub fn input(&mut self) {
+        self.frames.input();
         let before = self.running.len();
         self.running.retain(|r| r.shimmer);
         if self.running.len() != before {
             self.settle = true;
         }
     }
+
+    /// Background work cannot borrow a locally consumed input's pending start.
+    pub fn background(&mut self) { self.frames.background(); }
 
     /// Start what `cue` shows at this level.
     pub fn cue(&mut self, cue: Cue, theme: &Theme) {
@@ -483,6 +498,7 @@ impl Engine {
             return;
         }
         if self.level == Level::Full {
+            self.frames.draw(buf, theme, &marks, self.clock.now().as_millis());
             self.running.retain(|r| {
                 !r.shimmer || matches!(r.target, Target::Area(a) if marks.loading.contains(&a))
             });

@@ -4,7 +4,7 @@ expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Row states" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Markdown  Diff  Motion  Colours  Tones  " fg:text.secondary | "[Row states]" fg:accent.primary/glow.purple bold | "  Grid states  Waiting  Lo" fg:text.secondary
+02 _1 | "Markdown  Diff  Motion  Colours  Tones  " fg:text.secondary | "[Row states]" fg:accent.primary/glow.purple bold | "  Grid states  Waiting  L…" fg:text.secondary
 03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " list, focused (cursor on the fourth row…" fg:text.emphasis bg:bg.surface bold | "───────────────────────────────────╮" fg:accent.primary/glow.purple bg:bg.surface
 04 "│" fg:accent.primary/glow.purple bg:bg.surface | " A HEADING: THE CURSOR SKIPS IT         …" fg:text.muted bg:bg.surface bold | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.primary/glow.purple bg:bg.surface | "  a plain row                           …" bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted

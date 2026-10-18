@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`recorded view fixtures through the whole App > _hand_work_list_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ Items ───────────────────────────────────────────────────────────────────────╮
 │radar                                                                         │
 │  └─ Fix the diff view                                               open     │
@@ -28,7 +28,7 @@ exports[`recorded view fixtures through the whole App > _hand_work_list_80x24.js
 `;
 
 exports[`recorded view fixtures through the whole App > _hand_work_list_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ Views ─────────────────╮╭ Items ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ▤ My work            4 ││radar                                                                                                                               │
 │ To review            2 ││  └─ Fix the diff view                                                                                         open    Ada          │
@@ -71,7 +71,7 @@ exports[`recorded view fixtures through the whole App > _hand_work_list_160x40.j
 `;
 
 exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ all ─────────────────────────────────────────────────────────────────────────╮
 │ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  │
 │▤ api  on ⎇ alice/ABC-…  ● in use   ↑2     —       ⚠ 3 change 1      3h       │
@@ -98,7 +98,7 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.
 `;
 
 exports[`recorded view fixtures through the whole App > git_branch-screen_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api ─────────────────────────────────────────╮
 │ ▽ all                  ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  ││ folder   /work/acme/api                      │
 │ ⚠ dirty              1 ││▤ api  on ⎇ alice/ABC-12  ● in use        ↑2     —       ⚠ 3 change 1      3h       ││ origin   git@example.com:acme/team-a/api.git │
@@ -141,7 +141,7 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_160x40
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-branches_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ branches ────────────────────────────────────────────╮
 │GitLab                ││  + add a convention for a repo   a repo path, a temp │
 │  ├─ connection       ││ me         not set                                   │
@@ -168,7 +168,7 @@ exports[`recorded view fixtures through the whole App > git_settings-branches_80
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-branches_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ branches ──────────────────────────────────────────────────────────────────────╮╭ add a convention ──────────────────────────────────╮
 │GitLab                ││  + add a convention for a repo   a repo path, a template, a base               ││ A branch name template and base branch for the     │
 │  ├─ connection       ││ me         not set                                                             ││ repos under a path. The longest matching path      │
@@ -211,7 +211,7 @@ exports[`recorded view fixtures through the whole App > git_settings-branches_16
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-checkouts_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ checkouts ───────────────────────────────────────────╮
 │GitLab                ││  + add a folder to look in   paste or type a folder  │
 │  ├─ connection       ││ folder     /work                             3 found │
@@ -238,7 +238,7 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_8
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-checkouts_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ checkouts ─────────────────────────────────────────────────────────────────────╮╭ add a folder ──────────────────────────────────────╮
 │GitLab                ││  + add a folder to look in   paste or type a folder                            ││ Another folder to look for git checkouts in. radar │
 │  ├─ connection       ││ folder     /work                                                       3 found ││ matches each checkout to its repo by its origin    │
@@ -281,7 +281,7 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_1
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-editors_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ editors ─────────────────────────────────────────────╮
 │GitLab                ││  + add a project type   a name, then its marker file │
 │  ├─ connection       ││ java      build.gradle build.gradle.kts pom.xml asks │
@@ -308,7 +308,7 @@ exports[`recorded view fixtures through the whole App > git_settings-editors_80x
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-editors_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ editors ───────────────────────────────────────────────────────────────────────╮╭ add a project type ────────────────────────────────╮
 │GitLab                ││  + add a project type   a name, then its marker files                          ││ Another kind of project, told apart by a file at   │
 │  ├─ connection       ││ java      build.gradle build.gradle.kts pom.xml                           asks ││ the top of its checkout, with the editor it opens  │
@@ -351,7 +351,7 @@ exports[`recorded view fixtures through the whole App > git_settings-editors_160
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-links_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ links ───────────────────────────────────────────────╮
 │GitLab                ││  + link a repo to your clone   the repo's path, then │
 │  ├─ connection       ││                                                      │
@@ -378,7 +378,7 @@ exports[`recorded view fixtures through the whole App > git_settings-links_80x24
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-links_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ links ─────────────────────────────────────────────────────────────────────────╮╭ link to a local folder ────────────────────────────╮
 │GitLab                ││  + link a repo to your clone   the repo's path, then the folder                ││ Tie a repo to the clone you work in. A link wins   │
 │  ├─ connection       ││                                                                                ││ over the clone radar finds by its origin, and the  │
@@ -421,7 +421,7 @@ exports[`recorded view fixtures through the whole App > git_settings-links_160x4
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-terminal_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ terminal ────────────────────────────────────────────╮
 │GitLab                ││ terminal   radar finds one · when it opens           │
 │  ├─ connection       ││                                                      │
@@ -448,7 +448,7 @@ exports[`recorded view fixtures through the whole App > git_settings-terminal_80
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-terminal_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ terminal ──────────────────────────────────────────────────────────────────────╮╭ terminal ──────────────────────────────────────────╮
 │GitLab                ││ terminal   radar finds one · when it opens                                     ││ What opens a terminal in a checkout (t on a repo   │
 │  ├─ connection       ││                                                                                ││ or a merge request). Inside tmux it is a new tmux  │
@@ -491,13 +491,13 @@ exports[`recorded view fixtures through the whole App > git_settings-terminal_16
 `;
 
 exports[`recorded view fixtures through the whole App > github_github_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ views ───────────────╮╭ repositories ────────────────────────────────────────╮
-│ Everything   2 repos ││ ◆ github.com/acme                            2 repos │
-│ ◆ acme       2 repos ││   ▤ acme/api                                   2 PRs │
-│                      ││     #42  Keep background refreshes tied to thei open │
-│                      ││     #43  Document the public endpoints         draft │
-│                      ││   ▤ acme/docs                                  0 PRs │
+│ Everything   2 repos ││◆ github.com/acme                            2 repos  │
+│ ◆ acme       2 repos ││  ├─ ▤ acme/api                              2 PRs    │
+│                      ││  │  ├─ #42  Keep background refreshes tied  open     │
+│                      ││  │  └─ #43  Document the public endpoints   draft    │
+│                      ││  └─ ▤ acme/docs                             0 PRs    │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -518,13 +518,13 @@ exports[`recorded view fixtures through the whole App > github_github_80x24.json
 `;
 
 exports[`recorded view fixtures through the whole App > github_github_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
-│ Everything     2 repos ││ ◆ github.com/acme                                                          2 repos ││  ⌂ local folder    no matching origin; link  │
-│ ◆ acme         2 repos ││   ▤ acme/api                                                                 2 PRs ││ a folder or scan configured folders          │
-│                        ││     #42  Keep background refreshes tied to their request                      open ││ Keep background refreshes tied to their      │
-│                        ││     #43  Document the public endpoints                                       draft ││ request                                      │
-│                        ││   ▤ acme/docs                                                                0 PRs ││                                              │
+│ Everything     2 repos ││◆ github.com/acme                                                          2 repos  ││  ⌂ local folder    no matching origin; link  │
+│ ◆ acme         2 repos ││  ├─ ▤ acme/api                                                            2 PRs    ││ a folder or scan configured folders          │
+│                        ││  │  ├─ #42  Keep background refreshes tied to their request               open     ││ Keep background refreshes tied to their      │
+│                        ││  │  └─ #43  Document the public endpoints                                 draft    ││ request                                      │
+│                        ││  └─ ▤ acme/docs                                                           0 PRs    ││                                              │
 │                        ││                                                                                    ││ state  open                                  │
 │                        ││                                                                                    ││ author  alice                                │
 │                        ││                                                                                    ││ from  alice/api:refresh-ownership            │
@@ -561,7 +561,7 @@ exports[`recorded view fixtures through the whole App > github_github_160x40.jso
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-checks-actions_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  GitHub › acme/api › #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be match
@@ -588,7 +588,7 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-checks-actions_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  GitHub › acme/api › #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be matched
@@ -631,7 +631,7 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-pull-requests-actions_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  GitHub › acme/api
  acme/api
   ⌂ local folder    no matching origin; link a folder or scan configured folder
@@ -658,7 +658,7 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-pull-requests-actions_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  GitHub › acme/api
  acme/api
   ⌂ local folder    no matching origin; link a folder or scan configured folders
@@ -701,7 +701,7 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-checks-actions_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  GitHub › acme/api › #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be match
@@ -728,7 +728,7 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-checks-actions_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  GitHub › acme/api › #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be matched
@@ -771,7 +771,7 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-jobs_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  GitHub › acme/api › run 501 · attempt 2
  Build and test · run 501 · attempt 2
  [Overview]  Jobs
@@ -798,7 +798,7 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-jobs_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  GitHub › acme/api › run 501 · attempt 2
  Build and test · run 501 · attempt 2
  [Overview]  Jobs
@@ -841,7 +841,7 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-connection_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
 │GitLab                ││  SIGN IN  how radar reads GitHub                     █
 │  ├─ connection       ││  ○ public only     public repositories, no token     █
@@ -868,7 +868,7 @@ exports[`recorded view fixtures through the whole App > github_settings-connecti
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ public only ───────────────────────────────────────╮
 │GitLab                ││  SIGN IN  how radar reads GitHub                                               ││ NOW                                                │
 │  ├─ connection       ││  ○ public only     public repositories, no token                               ││ env:GITHUB_TOKEN                                   │
@@ -911,7 +911,7 @@ exports[`recorded view fixtures through the whole App > github_settings-connecti
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-repositories_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ repositories ────────────────────────────────────────╮
 │GitLab                ││ create a group or add a repository                   │
 │  ├─ connection       ││ ◆  github.com/acme                                   │
@@ -938,7 +938,7 @@ exports[`recorded view fixtures through the whole App > github_settings-reposito
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-repositories_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ repositories ──────────────────────────────────────────────────────────────────╮╭ create a group or add a repository ────────────────╮
 │GitLab                ││ create a group or add a repository                                             ││ Create groups and choose repositories. Press a to  │
 │  ├─ connection       ││ ◆  github.com/acme                                                             ││ browse, e to edit, d to remove, or m to move a     │
@@ -981,7 +981,7 @@ exports[`recorded view fixtures through the whole App > github_settings-reposito
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
 │ ⇄ Everything         ││ OPENED BY ⚇ everyone · 4 repos  ⋮ STATE              │
 │ ◎ Needs my action  2 ││▌ ◆ B team-b                                          │
@@ -1008,7 +1008,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos_80x24.json 
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
 │ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
@@ -1051,11 +1051,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos_160x40.json
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge-requests-pipelines-on-main_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Repositories › a › web
  ▤ acme/team-a/web                              ⎇ main ✗ failed · active 4d ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
- ⇄ Merge requests · 2  [⋮ Pipelines on main]
+ ⇄ Merge requests  [⋮ Pipelines on main]
 ╭ why main is red ─────────────────────────────────────────────────────────────╮
 │ ✗ unit-test               test · 1m 14s · it ran out of time                 │
 │   │ no error recognised; its last lines:                                     │
@@ -1078,11 +1078,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge-requests-pipelines-on-main_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Repositories › a › web
  ▤ acme/team-a/web                                                                                                              ⎇ main ✗ failed · active 4d ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
- ⇄ Merge requests · 2  [⋮ Pipelines on main]
+ ⇄ Merge requests  [⋮ Pipelines on main]
 ╭ why main is red ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ✗ unit-test               test · 1m 14s · it ran out of time                                                                                                 │
 │   │ no error recognised; its last lines:                                                                                                                     │
@@ -1121,11 +1121,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Repositories › a › web › !198
  ⇄ change 198                                          ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
- [ℹ Overview]  ▫ Changes · 1 file  ❝ Threads · 1 open  ⋮ Pipeline  ◦ Commits  …
+ [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
 ╭ can it merge? ───────────────────────────────────────────────────────────────╮
 │ ◎ needs 1 approval                                                           │
 │ ✓ pipeline passed                                                            │
@@ -1148,11 +1148,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Repositories › a › web › !198
  ⇄ change 198                                                                                                      ◙ group_1_bot_abc · ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
- [ℹ Overview]  ▫ Changes · 1 file  ❝ Threads · 1 open  ⋮ Pipeline  ◦ Commits  Ticket
+ [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
 ╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ can it merge? ───────────────────╮
 │ loading…                                                                                                                 ││ ◎ needs 1 approval               │
 │                                                                                                                          ││ ✓ pipeline passed                │
@@ -1191,10 +1191,10 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Repositories › b
  ◆ acme/team-b                                       0 repos · 0 merge requests
- [▤ Repos · 0]
+ [▤ Repos]
 ╭ repos ───────────────────────────────────────────────────────────────────────╮
 │ ∅ Nothing here.                                                              │
 │                                                                              │
@@ -1218,10 +1218,10 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Repositories › b
  ◆ acme/team-b                                                                                                                       0 repos · 0 merge requests
- [▤ Repos · 0]
+ [▤ Repos]
 ╭ repos ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ∅ Nothing here.                                                                                                                                              │
 │                                                                                                                                                              │
@@ -1261,10 +1261,10 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Repositories › a › web › unit-test
  ▸ unit-test                                 test · 1m 14s · it ran out of time
- [≣ Log · last 153 B of 879 KB]
+ [≣ Log]
 ╭ log ─────────────────────────────────────────────────────────────────────────╮
 │ waiting for the stack to settle                                              │
 │ still waiting (19m)                                                          │
@@ -1288,10 +1288,10 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_8
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Repositories › a › web › unit-test
  ▸ unit-test                                                                                                ✗ failed · stage test · 1m 14s · it ran out of time
- [≣ Log · last 153 B of 879 KB]
+ [≣ Log]
 ╭ log ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ waiting for the stack to settle                                                                                                                              │
 │ still waiting (19m)                                                                                                                                          │
@@ -1331,11 +1331,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_1
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge-requests-pipelines-on-main_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Repositories › a › api
  ▤ acme/team-a/api                          ◦ a22afd6f ☺ Alice Example · 2h ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/api · java · ⎇ on alice/ABC-12 ·
- [⇄ Merge requests · 1]  ⋮ Pipelines on main
+ [⇄ Merge requests]  ⋮ Pipelines on main
 ╭ merge requests ──────────────────────────────────────────────────────────────╮
 │        ☻ FOR Y TITLE   ☺ AUTHOR    ⋮ STATE          TICKET           ↺ UPDAT │
 │ ⇄ !263 review          ☺ alice     ◎ needs 1 approv ▣ ABC-12 · In Pr 16m     │
@@ -1358,11 +1358,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge-requests-pipelines-on-main_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Repositories › a › api
  ▤ acme/team-a/api                                                                            ⎇ main ✓ passed · last commit ◦ a22afd6f ☺ Alice Example · 2h ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/api · java · ⎇ on alice/ABC-12 · 1 more
- [⇄ Merge requests · 1]  ⋮ Pipelines on main
+ [⇄ Merge requests]  ⋮ Pipelines on main
 ╭ merge requests ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │        ☻ FOR YO TITLE                                                                          ☺ AUTHOR    ⋮ STATE            TICKET                 ↺ UPDAT │
 │ ⇄ !263 review   ABC-12: Add a stats endpoint for the dashboard                                 ☺ alice     ◎ needs 1 approval ▣ ABC-12 · In Progres… 16m     │
@@ -1401,11 +1401,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Repositories › a › web › !198
  ⇄ change 198                                          ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
- [ℹ Overview]  ▫ Changes · 1 file  ❝ Threads · 1 open  ⋮ Pipeline  ◦ Commits  …
+ [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
 ╭ can it merge? ───────────────────────────────────────────────────────────────╮
 │ ◎ needs 1 approval                                                           │
 │ ✓ pipeline passed                                                            │
@@ -1428,11 +1428,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Repositories › a › web › !198
  ⇄ change 198                                                                                                      ◙ group_1_bot_abc · ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
- [ℹ Overview]  ▫ Changes · 1 file  ❝ Threads · 1 open  ⋮ Pipeline  ◦ Commits  Ticket
+ [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
 ╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ can it merge? ───────────────────╮
 │ loading…                                                                                                                 ││ ◎ needs 1 approval               │
 │                                                                                                                          ││ ✓ pipeline passed                │
@@ -1471,7 +1471,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-connection_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
 │GitLab                ││  server          https://gitlab.com                  █
 │  ├─ connection       ││  base group      acme                                █
@@ -1498,7 +1498,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-connecti
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ server ────────────────────────────────────────────╮
 │GitLab                ││  server          https://gitlab.com                                            ││ CHECKED                                            │
 │  ├─ connection       ││  base group      acme                                                          ││ not checked yet                                    │
@@ -1541,7 +1541,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-connecti
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-look_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ look ────────────────────────────────────────────────╮
 │GitLab                ││ MERGE REQUEST STATES                                 █
 │  ├─ connection       ││    review                             warning · bold █
@@ -1568,7 +1568,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-look_80x
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-look_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ review ────────────────────────────────────────────╮
 │GitLab                ││ MERGE REQUEST STATES                                                           ││ How a merge request open for your review is drawn. │
 │  ├─ connection       ││    review   a merge request open for your review                warning · bold ││                                                    │
@@ -1611,7 +1611,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-look_160
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-tenancies_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ tenancies ───────────────────────────────────────────╮
 │GitLab                ││ + add a tenancy   paste a GitLab group or repo link  │
 │  ├─ connection       ││▌ ● b    team-b   0 repos · 0 hidden                  │
@@ -1638,7 +1638,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-tenancie
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-tenancies_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ tenancies ─────────────────────────────────────────────────────────────────────╮╭ add a tenancy ─────────────────────────────────────╮
 │GitLab                ││ + add a tenancy   paste a GitLab group or repo link, or its path               ││ Track another GitLab group (every repo in it), or  │
 │  ├─ connection       ││▌ ● b    team-b   0 repos · 0 hidden                                            ││ one repo on its own.                               │
@@ -1681,7 +1681,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-tenancie
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-views_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ views ───────────────────────────────────────────────╮
 │GitLab                ││  + new view   starts from everything; add conditions │
 │  ├─ connection       ││  Everything    everything                          4 │
@@ -1708,7 +1708,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-views_80
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-views_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ views ─────────────────────────────────────────────────────────────────────────╮╭ new view ──────────────────────────────────────────╮
 │GitLab                ││  + new view   starts from everything; add conditions after                     ││ Make another view for the merge requests nav pane. │
 │  ├─ connection       ││  Everything    everything                                                    4 ││                                                    │
@@ -1751,7 +1751,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-views_16
 `;
 
 exports[`recorded view fixtures through the whole App > host_chrome_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 
 
 
@@ -1778,7 +1778,7 @@ exports[`recorded view fixtures through the whole App > host_chrome_80x24.json a
 `;
 
 exports[`recorded view fixtures through the whole App > host_chrome_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 
 
 
@@ -1821,7 +1821,7 @@ exports[`recorded view fixtures through the whole App > host_chrome_160x40.json 
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-connection_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
 │GitLab                ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMA █
 │  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHE █
@@ -1848,7 +1848,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
 │GitLab                ││  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL ││ radar found a Jira site in /work/acme/.mcp.json.   █
 │  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, J ││ Do you want to use it?                             █
@@ -1891,7 +1891,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-look_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ look ────────────────────────────────────────────────╮
 │GitLab                ││ STATUSES                                             █
 │  ├─ connection       ││    to do    a ticket not started      secondary text █
@@ -1918,7 +1918,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-look_80x24
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-look_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ to do ─────────────────────────────────────────────╮
 │GitLab                ││ STATUSES                                                                       ││ How a ticket not started is drawn.                 │
 │  ├─ connection       ││    to do    a ticket not started                                secondary text ││                                                    │
@@ -1961,7 +1961,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-look_160x4
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-projects_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ projects ────────────────────────────────────────────╮
 │GitLab                ││▌ ⊕ acme  acme.atlassian.net                          │
 │  ├─ connection       ││▌ ├─ + watch a project   its key, or a link to it or  │
@@ -1988,7 +1988,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-projects_8
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-projects_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ projects ──────────────────────────────────────────────────────────────────────╮╭ watch a project ───────────────────────────────────╮
 │GitLab                ││▌ ⊕ acme  acme.atlassian.net                                                    ││ Watch another project on acme.                     │
 │  ├─ connection       ││▌ ├─ + watch a project   its key, or a link to it or a ticket                   ││                                                    │
@@ -2031,7 +2031,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-projects_1
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-views_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ views ───────────────────────────────────────────────╮
 │GitLab                ││  + new view   starts from your tickets; add conditio │
 │  ├─ connection       ││  My tickets        assigned to you, not done         │
@@ -2058,7 +2058,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-views_80x2
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-views_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ views ─────────────────────────────────────────────────────────────────────────╮╭ new view ──────────────────────────────────────────╮
 │GitLab                ││  + new view   starts from your tickets; add conditions after                   ││ Make another view for the Jira nav pane.           │
 │  ├─ connection       ││  My tickets        assigned to you, not done                                   ││                                                    │
@@ -2101,7 +2101,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-views_160x
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ My tickets ──────────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO ⚇ everyone        TYPE      STATUS          CODE        ↺ UPDAT  │
 │▌ ⊕ acme  acme.atlassian.net                                                  │
@@ -2128,7 +2128,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json 
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ My tickets ────────────────────────────────────────────────────────────────────────╮╭ acme ────────────────────────────────────────╮
 │ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone              TYPE      STATUS          CODE        ↺ UPDAT  ││ ▌ ⊕ acme  acme.atlassian.net                 │
 │ ⊟ This sprint          ││▌ ⊕ acme  acme.atlassian.net                                                        ││                                              │
@@ -2171,7 +2171,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets_160x40.json
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Jira › acme › ABC › ABC-1
  ✦ Dashboard for the stats                         ◐ In Progress · Epic · ☻ you
  Acme ABC · ↺ updated 2w ago
@@ -2198,7 +2198,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Jira › acme › ABC › ABC-1
  ✦ Dashboard for the stats                                                                                                         ◐ In Progress · Epic · ☻ you
  Acme ABC · ↺ updated 2w ago
@@ -2241,11 +2241,11 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links-code-slack-notes_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Jira › acme › ABC › ABC-12
  ▣ Add a stats endpoint for the dashboard         ◐ In Progress · Story · ☻ you
  parent ABC-1 Dashboard for the stats · Acme ABC · ↺ updated 1h ago
- [ℹ Overview]  ❝ Comments  ↗ Links  ⇄ Code · 1  Slack · 1  Notes · 3
+ [ℹ Overview]  ❝ Comments  ↗ Links  ⇄ Code  Slack  Notes
 ╭ overview ────────────────────────────────────────────────────────────────────╮
 │ loading…                                                                     █
 │                                                                              █
@@ -2268,11 +2268,11 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links-code-slack-notes_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Jira › acme › ABC › ABC-12
  ▣ Add a stats endpoint for the dashboard                                                                                         ◐ In Progress · Story · ☻ you
  parent ABC-1 Dashboard for the stats · Acme ABC · ↺ updated 1h ago
- [ℹ Overview]  ❝ Comments  ↗ Links  ⇄ Code · 1  Slack · 1  Notes · 3
+ [ℹ Overview]  ❝ Comments  ↗ Links  ⇄ Code  Slack  Notes
 ╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────╮
 │ loading…                                                                                                             ││ status        ◐ In Progress          │
 │                                                                                                                      ││ type          Story                  │
@@ -2311,7 +2311,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 `;
 
 exports[`recorded view fixtures through the whole App > sessions_settings-agents_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ agents ──────────────────────────────────────────────╮
 │GitLab                ││ COMMAND LINE TOOLS                                   █
 │  ├─ connection       ││                                                      █
@@ -2338,7 +2338,7 @@ exports[`recorded view fixtures through the whole App > sessions_settings-agents
 `;
 
 exports[`recorded view fixtures through the whole App > sessions_settings-agents_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ agents ────────────────────────────────────────────────────────────────────────╮╭ install and sign in ───────────────────────────────╮
 │GitLab                ││ COMMAND LINE TOOLS                                                             ││ Each agent is its own program with its own         │
 │  ├─ connection       ││                                                                                ││ sign-in. radar finds it on your PATH; r looks      │
@@ -2381,7 +2381,7 @@ exports[`recorded view fixtures through the whole App > sessions_settings-agents
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ For you ─────────────────────────────────────────────────────────────────────╮
 │ last 7 days                                              ↩ REPLIE ◷ WHEN     │
 │@ mentions you                                                                │
@@ -2408,7 +2408,7 @@ exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
 │ @ For you            4 ││ last 7 days                                                    ↩ REPLIE ◷ WHEN     ││ ── #team · yesterday ──                      │
 │ ❝ Discussions          ││@ mentions you                                                                      ││ ● 09:11  Bob Builder                         │
@@ -2451,7 +2451,7 @@ exports[`recorded view fixtures through the whole App > slack_feed_160x40.json a
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-links_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
  Slack › #svc › Carol Coder: The service is being upg…
  The service is being upgraded at noon    ☺ Carol Coder · 5h ago · ↩ no replies
  [❝ Thread]  ↗ Links
@@ -2478,7 +2478,7 @@ exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-links_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
  Slack › #svc › Carol Coder: The service is being upg…
  The service is being upgraded at noon                                                                                    ☺ Carol Coder · 5h ago · ↩ no replies
  [❝ Thread]  ↗ Links
@@ -2521,7 +2521,7 @@ exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-alerts_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ alerts ──────────────────────────────────────────────╮
 │GitLab                ││ + add a mapping   the start of an alert's name, then │
 │  ├─ connection       ││ keep resolved    24 hours                            │
@@ -2548,7 +2548,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-alerts_80
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-alerts_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
 │GitLab                ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
 │  ├─ connection       ││ keep resolved    24 hours                                                      ││                                                    │
@@ -2591,7 +2591,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-alerts_16
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-channels_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ channels ────────────────────────────────────────────╮
 │GitLab                ││ + add a channel   paste a link to it, or type #name  █
 │  ├─ connection       ││ ▌ #team   #acme-team · team · watched                █
@@ -2618,7 +2618,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-channels_
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-channels_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ channels ──────────────────────────────────────────────────────────────────────╮╭ add a channel ─────────────────────────────────────╮
 │GitLab                ││ + add a channel   paste a link to it, or type #name                            ││ Read another channel.                              │
 │  ├─ connection       ││ ▌ #team   #acme-team · team · watched                                          ││                                                    │
@@ -2661,7 +2661,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-channels_
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-connection_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
 │GitLab                ││  workspace       Acme · https://acme.slack.com       █
 │  ├─ connection       ││  api             https://slack.com                   █
@@ -2688,7 +2688,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ workspace ─────────────────────────────────────────╮
 │GitLab                ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
 │  ├─ connection       ││  api             https://slack.com                                             ││ not checked yet                                    │
@@ -2731,7 +2731,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-look_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ look ────────────────────────────────────────────────╮
 │GitLab                ││ MESSAGES                                             █
 │  ├─ connection       ││   density                                    compact █
@@ -2758,7 +2758,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-look_80x2
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-look_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ density ───────────────────────────────────────────╮
 │GitLab                ││ MESSAGES                                                                       ││ How the messages of a thread, the detail pane and  │
 │  ├─ connection       ││   density  how a thread's messages are laid out                        compact ││ a direct message are laid out.                     │
@@ -2801,7 +2801,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-look_160x
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-review_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ review ──────────────────────────────────────────────╮
 │GitLab                ││ channel          team                                │
 │  ├─ connection       ││ user group       @review-squad                       │
@@ -2828,7 +2828,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_80
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-review_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ channel ───────────────────────────────────────────╮
 │GitLab                ││ channel          team                                                          ││ Where review asks go. The user group is mentioned  │
 │  ├─ connection       ││ user group       @review-squad                                                 ││ only here.                                         │
@@ -2871,7 +2871,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_16
 `;
 
 exports[`recorded view fixtures through the whole App > workbench_work_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ work items · page 1 ─────────────────────────────────────────────────────────╮
 │ Ship explicit work-item navigation                                      task │
 │ pull-request · acme/api/7                                       pull-request │
@@ -2898,7 +2898,7 @@ exports[`recorded view fixtures through the whole App > workbench_work_80x24.jso
 `;
 
 exports[`recorded view fixtures through the whole App > workbench_work_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
 │ All items             ││ Ship explicit work-item navigation                                             task ││ Exact sources · j/k select · x actions       │
 │ release candidate     ││ pull-request · acme/api/7                                              pull-request ││ pull-request · acme/api/7                    │
@@ -2941,7 +2941,7 @@ exports[`recorded view fixtures through the whole App > workbench_work_160x40.js
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_local-repositories_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ local repositories ──────────────────────────────────────────────────────────╮
 │ acme                                                                         │
 │                                                                              │
@@ -2968,7 +2968,7 @@ exports[`recorded view fixtures through the whole App > workspace_local-reposito
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_local-repositories_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ local repositories ──────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────────────╮
 │ acme                                                                                                         ││ /work/acme                                   │
 │                                                                                                              ││                                              │
@@ -3011,7 +3011,7 @@ exports[`recorded view fixtures through the whole App > workspace_local-reposito
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_settings-workspaces_80x24.json at 80x24 1`] = `
-" radar    R 1   J   S 4   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
+" radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ workspaces ──────────────────────────────────────────╮
 │GitLab                ││  ? Found in /work/other: a workspace with 3 clones.  │
 │  ├─ connection       ││  + add a workspace   a folder of clones              │
@@ -3038,7 +3038,7 @@ exports[`recorded view fixtures through the whole App > workspace_settings-works
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_settings-workspaces_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories 1   ◇ Jira   ✉ Slack 4   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ workspaces ────────────────────────────────────────────────────────────────────╮╭ found in /work/other ──────────────────────────────╮
 │GitLab                ││  ? Found in /work/other: a workspace with 3 clones. Use it?                    ││ radar found a workspace at /work/other. Do you     │
 │  ├─ connection       ││  + add a workspace   a folder of clones                                        ││ want to use it?                                    │

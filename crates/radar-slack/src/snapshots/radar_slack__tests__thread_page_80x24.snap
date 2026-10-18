@@ -2,10 +2,10 @@
 source: crates/radar-slack/src/tests.rs
 expression: "to_text(&host, 80, 24)"
 ---
- radar    Slack 3   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
  Slack › #team › Bob Builder: @review-squad :gitlab: m…
  @review-squad :gitlab: mr Add a stats endpo…  Bob Builder · 2d ago · 2 replies
- [Thread]  Links · 1
+ [Thread]  Links
 ╭ thread ──────────────────────────────────────────────────────────────────────╮
 │ ── Sun 4 Oct ──                                                              │
 │ 06:16  Bob Builder    @review-squad :gitlab: mr Add a stats endpoint for the │

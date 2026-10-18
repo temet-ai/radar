@@ -429,11 +429,12 @@
       },
       {
         "icon": "file",
-        "label": "Changes · 1 file"
+        "label": "Changes"
       },
       {
+        "attention": true,
         "icon": "thread",
-        "label": "Threads · 1 open"
+        "label": "Threads"
       },
       {
         "icon": "pipeline",

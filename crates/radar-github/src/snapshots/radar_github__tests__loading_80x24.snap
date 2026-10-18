@@ -4,9 +4,9 @@ expression: text
 ---
  radar    Repositories   History   Settings (,)        ⠷ syncing GitHub  ✎ edit
 ╭ views ───────────────╮╭ repositories ────────────────────────────────────────╮
-│ Everything   2 repos ││ github.com/acme                              2 repos │
-│ acme         2 repos ││   acme/api                                   loading │
-│                      ││   acme/docs                                    0 PRs │
+│ Everything   2 repos ││github.com/acme                              2 repos  │
+│ acme         2 repos ││  ├─ acme/api                                loading  │
+│                      ││  └─ acme/docs                               0 PRs    │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │

@@ -33,7 +33,7 @@ export function EditorOverlay({ data, width, areaHeight, registry }: { data: Edi
   });
   return (
     <Box ref={ref} width={width} height={height} flexShrink={0}>
-    <Framed title={data.title} width={width} height={height} focused>
+    <Framed title={data.title} width={width} height={height} focused rampOwner={false}>
       {/* widgets::padded: one column of air each side inside the border (Framed itself no longer pads) */}
       <Box flexDirection="column" paddingX={1} width={Math.max(0, width - 2)}>
       {shown.map((l, i) => (

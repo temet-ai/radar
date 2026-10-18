@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useLayoutEffect, useRef, useState, useId } from "react";
 import { Box, Text, type DOMElement } from "ink";
 import { ScrollBar, ScrollSink, screenAt, type ScrollReport } from "../nodes/index.js";
 import { TextLine, SegRun } from "../text/TextLine.js";
@@ -6,9 +6,13 @@ import { textWords, segWords } from "../text/TextLine.js";
 import { cellWidth, fit } from "../chrome/width.js";
 import type { NodeCx, RenderNode } from "./Body.js";
 import { PageTitleLine } from "../nodes/pagetitle.js";
-import { bgOf, iconOf, slotStyle } from "../text/look.js";
+import { bgOf, currentLook, iconOf, slotStyle } from "../text/look.js";
+import { focusRamp, frameRuns } from "../text/frame.js";
+import { motion } from "../motion/motion.js";
+import { MotionSceneContext, MotionPaneContext } from "../motion/scene.js";
 import { textProps } from "../text/TextLine.js";
 import { TabRow } from "./TabRow.js";
+import type { TabView } from "../protocol/generated/TabView.js";
 import { bottomFieldRow, fieldRows, FIELD_ROWS } from "../chrome/filter.js";
 import { splitDock } from "../dock/layout.js";
 import { BgBox, CellLine, cellsOf, clipCells, lineCells, padCells, widthOfCells, wrapCells, type Cell } from "../text/cells.js";
@@ -92,14 +96,37 @@ export function SelectFrame({ registry, id, kind, width, height, children }: { r
   );
 }
 
-export function Framed({ title, width, height, focused, plain, pane, registry, select, children }: { title: string; width: number; height: number; focused?: boolean; plain?: boolean; pane?: string; registry?: NodeCx["registry"]; select?: SelectKind; children?: React.ReactNode }) {
+/** Eligibility for the decorative ramp only. Legacy focus/title/selection styling is unchanged. */
+export const FrameRampOwnership = createContext<{ body: boolean; dock?: boolean; pane?: string }>({ body: true });
+type RampOwner = "body" | "dock" | false;
+
+export function Framed({ title, width, height, focused, plain, pane, motionPane, registry, select, rampOwner = "body", children }: { title: string; width: number; height: number; focused?: boolean; plain?: boolean; pane?: string; motionPane?: string; registry?: NodeCx["registry"]; select?: SelectKind; rampOwner?: RampOwner; children?: React.ReactNode }) {
+  const owners = useContext(FrameRampOwnership);
+  const owned = rampOwner === "dock" ? (owners.dock ?? !!focused) : rampOwner === "body" && owners.body && (owners.pane !== undefined && pane !== undefined ? pane === owners.pane : !!focused);
+  const ramp = owned ? focusRamp() : undefined;
+  const scene = useContext(MotionSceneContext);
+  const markId = useId();
+  const frameRef = useRef<DOMElement>(null);
+  const framePane = rampOwner === "dock" ? "dock" : motionPane ?? pane;
   const [bar, setBar] = useState<ScrollReport>(null);
   const report = useCallback((r: ScrollReport) => setBar((p) => (p === r || (p && r && p.max === r.max && p.at === r.at) ? p : r)), []);
+  useLayoutEffect(() => {
+    if (!scene || registry || !framePane || rampOwner === false || width < 4 || height < 2 || motion.engine.level !== "full") return;
+    const at = screenAt(frameRef.current);
+    if (!at) return;
+    const labelWidth = cellWidth(` ${fit(title, Math.max(0, width - 6))} `);
+    motion.markPane(markId, scene, {
+      pane: framePane, owns: !!owned, area: { x: at.x, y: at.y, w: width, h: height },
+      title: { x: at.x + 1, y: at.y, w: labelWidth, h: 1 },
+      keep: bar && bar.max > 0 ? [{ x: at.x + width - 1, y: at.y + 1, w: 1, h: height - 2 }] : [],
+    });
+  });
+  useLayoutEffect(() => () => { if (scene) motion.markPane(markId, scene); }, [markId, scene]);
   if (width < 4 || height < 2) return null;
   if (pane && registry) {
     return (
       <PaneArea pane={pane} registry={registry} width={width} height={height} select={select}>
-        <Framed title={title} width={width} height={height} focused={focused} plain={plain}>
+        <Framed title={title} width={width} height={height} focused={focused} plain={plain} pane={pane} motionPane={motionPane} rampOwner={rampOwner}>
           {children}
         </Framed>
       </PaneArea>
@@ -107,17 +134,20 @@ export function Framed({ title, width, height, focused, plain, pane, registry, s
   }
   // widgets::panel: a rounded border in accent.primary when focused, else accent.muted; the title in bold
   // text.emphasis when focused, else text.secondary; the inside on bg.surface.
-  const border = slotStyle(focused ? "accent.primary" : "accent.muted").color;
+  const borderFocus = currentLook().tier === "truecolor" && rampOwner !== false ? owned : focused;
+  const border = slotStyle(borderFocus ? "accent.primary" : "accent.muted").color;
   const surface = bgOf("bg.surface");
   const label = ` ${fit(title, Math.max(0, width - 6))} `;
   const rest = `${"─".repeat(Math.max(0, width - 2 - cellWidth(label)))}╮`;
   const titleStyle = focused ? { ...slotStyle("text.emphasis"), bold: true } : slotStyle("text.secondary");
+  const edge = (text: string, x: number, y: number) => frameRuns(text, width, height, x, y, { color: border, backgroundColor: surface }, ramp).map((r, i) => <Text key={i} {...textProps(r.style)}>{r.text}</Text>);
   return (
-    <Box flexDirection="column" width={width} height={height} flexShrink={0}>
+    <MotionPaneContext.Provider value={framePane}>
+    <Box ref={frameRef} flexDirection="column" width={width} height={height} flexShrink={0}>
       <Text wrap="truncate">
-        <Text {...textProps({ color: border, backgroundColor: surface })}>╭</Text>
+        {edge("╭", 0, 0)}
         <Text {...textProps({ ...titleStyle, backgroundColor: surface })}>{label}</Text>
-        <Text {...textProps({ color: border, backgroundColor: surface })}>{rest}</Text>
+        {edge(rest, 1 + cellWidth(label), 0)}
       </Text>
       <BgBox borderStyle="round" borderTop={false} borderColor={border} borderBackgroundColor={surface} backgroundColor={surface} width={width} height={height - 1} overflow="hidden">
         <Box flexDirection="column" width={Math.max(0, width - 2)} height={Math.max(0, height - 2)} overflow="hidden">
@@ -127,6 +157,19 @@ export function Framed({ title, width, height, focused, plain, pane, registry, s
           </Box>
         </Box>
       </BgBox>
+      {/* Repaint only existing border cells. Absolute overlays preserve Yoga content geometry and all hit boxes.
+          The scrollbar is painted afterwards, so its original track/thumb colours remain authoritative. */}
+      {ramp ? <>
+        {Array.from({ length: Math.max(0, height - 2) }, (_, i) => (
+          <React.Fragment key={i}>
+            <Box position="absolute" top={i + 1} left={0} width={1} height={1}><Text>{edge("│", 0, i + 1)}</Text></Box>
+            <Box position="absolute" top={i + 1} left={width - 1} width={1} height={1}><Text>{edge("│", width - 1, i + 1)}</Text></Box>
+          </React.Fragment>
+        ))}
+        <Box position="absolute" top={height - 1} left={0} width={width} height={1}>
+          <Text wrap="truncate">{edge(`╰${"─".repeat(width - 2)}╯`, 0, height - 1)}</Text>
+        </Box>
+      </> : null}
       {/* scroll::scrollbar: on the panel's right border between the corners, where a node scrolls (after the border so it paints over it) */}
       {bar && bar.max > 0 ? (
         // on the border's bg.surface, as Ratatui's bar is
@@ -135,6 +178,7 @@ export function Framed({ title, width, height, focused, plain, pane, registry, s
         </BgBox>
       ) : null}
     </Box>
+    </MotionPaneContext.Provider>
   );
 }
 
@@ -276,7 +320,7 @@ export function PageBody({ page, focus, width, height, cx, renderNode }: { page:
   const crumbs: any[] = page.crumbs ?? [];
   const title: any[] = page.title ?? [];
   const details: any[] = page.details ?? [];
-  const tabs: Array<{ label: string; icon?: string | null }> = page.tabs ?? [];
+  const tabs: TabView[] = page.tabs ?? [];
   const head: React.ReactNode[] = [];
   head.push(
     <Box key="crumbs" width={width} flexShrink={0} backgroundColor={bgOf("bg.base")}>
@@ -295,7 +339,7 @@ export function PageBody({ page, focus, width, height, cx, renderNode }: { page:
   // Ratatui clips this line at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows.
   if (page.under) head.push(<Box key="under" width={Math.max(0, width - 1)} overflow="hidden"><Box width={1000} flexShrink={0}><BgBox flexShrink={0} backgroundColor={bgOf("bg.base")}><Text> </Text><TextLine text={page.under} plain={cx.plainText} /></BgBox></Box></Box>);
   if (tabs.length > 0) {
-    head.push(<TabRow key="tabs" base={bgOf("bg.base")} labels={tabs.map((t) => `${iconOf(t.icon)?.glyph ? `${iconOf(t.icon)!.glyph} ` : ""}${t.label}`)} on={page.tab} focused={!!cx.tabsFocused} width={Math.max(0, width - 2)} registry={cx.registry} />);
+    head.push(<TabRow key="tabs" base={bgOf("bg.base")} tabs={tabs} on={page.tab} focused={!!cx.tabsFocused} width={Math.max(0, width - 2)} registry={cx.registry} />);
   }
   if (page.notice) head.push(<BgBox key="notice" backgroundColor={bgOf("bg.base")}><Text> </Text><TextLine text={page.notice} plain={cx.plainText} /></BgBox>);
   const bodyH = Math.max(0, height - head.length);

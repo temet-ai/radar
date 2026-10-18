@@ -3,7 +3,7 @@ source: tests/mix.rs
 assertion_line: 947
 expression: "to_text(&host, 100, 40)"
 ---
- radar    R 2   J   B   I   History   Settings (,)                           not synced yet  ✎ edit
+ radar    R ●   J   B   I   History   Settings (,)                           not synced yet  ✎ edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────────────────────────╮
 │ Everything           ││ OPENED BY everyone · 1 repo        STATE               UPDATED FOR YOU   │
 │ Needs my action    2 ││▌ A team-a                                                                │

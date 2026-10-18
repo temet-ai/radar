@@ -148,10 +148,7 @@
     },
     "tabs": [
       {
-        "badge": {
-          "ink": "warn",
-          "text": "1"
-        },
+        "attention": true,
         "icon": "repo",
         "label": "repositories",
         "mnemonic": "R",
@@ -164,10 +161,7 @@
         "target": "chrome:tab:2"
       },
       {
-        "badge": {
-          "ink": "warn",
-          "text": "4"
-        },
+        "attention": true,
         "icon": "chat",
         "label": "slack",
         "mnemonic": "S",

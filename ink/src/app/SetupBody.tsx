@@ -5,6 +5,7 @@ import { CellRow } from "../chrome/Chrome.js";
 import { cellWidth } from "../chrome/width.js";
 import { BgBox } from "../text/cells.js";
 import { slotStyle, type Style } from "../text/look.js";
+import { MotionPaneContext } from "../motion/scene.js";
 import { selectKindOf, type SelectKind } from "../input/selection.js";
 import type { NodeCx, RenderNode } from "./Body.js";
 
@@ -94,6 +95,7 @@ function Panel({ area, fill, pane, kind, registry, bar: barAt, children, selectA
   const fillColour = slotStyle(fill).color;
   const edge = bar && bar.max > 0 && barAt.rows > 0;
   return (
+    <MotionPaneContext.Provider value={pane}>
     <Box ref={ref} flexShrink={0} width={area.w} height={area.h}>
     <BgBox flexDirection="column" flexShrink={0} width={area.w} height={area.h} backgroundColor={fillColour}>
       {children(report)}
@@ -104,6 +106,7 @@ function Panel({ area, fill, pane, kind, registry, bar: barAt, children, selectA
       ) : null}
     </BgBox>
     </Box>
+    </MotionPaneContext.Provider>
   );
 }
 

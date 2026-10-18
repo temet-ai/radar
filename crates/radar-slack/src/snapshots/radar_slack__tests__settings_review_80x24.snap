@@ -3,7 +3,7 @@ source: crates/radar-slack/src/tests.rs
 assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
- radar    Slack 4   History   Settings (,)                               ✎ edit
+ radar    Slack ●   History   Settings (,)                               ✎ edit
 ╭ settings ────────────╮╭ review ──────────────────────────────────────────────╮
 │General               ││ channel          team                                │
 │  ├─ parts            ││ user group       @review-squad                       │

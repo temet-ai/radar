@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::view::{ChromeView, Intent, MenuView, PaneId, ScreenView, SectionView};
+pub use crate::motion::transition::{MotionContext, MotionFold, MotionInteraction};
 
 /// The protocol's version. Bumped on any change either side could misread;
 /// a renderer that says another is refused ([`ToRenderer::Refuse`]).
@@ -303,6 +304,9 @@ impl Default for MotionSlots {
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
 pub struct MotionView {
     pub level: MotionLevel,
+    /// Optional full-motion interaction identity and causal acknowledgement.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub interaction: Option<MotionInteraction>,
     /// Why motion is off whatever the setting says (over SSH, not full
     /// colour), when it is.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -447,6 +451,8 @@ pub use look::{ColourTier, Look, LookIcon};
 mod bridge_settings_tests;
 #[cfg(test)]
 mod bridge_tests;
+#[cfg(test)]
+mod interaction_tests;
 #[cfg(test)]
 mod dock_pipe_tests;
 #[cfg(test)]

@@ -25,6 +25,14 @@ use crate::terminal_host;
 
 use crate::time;
 
+fn interaction_input(event: &Event) -> bool {
+    match event {
+        Event::Tracked { event, .. } => interaction_input(event),
+        Event::Key(_) | Event::Mouse { .. } | Event::Paste(_) | Event::Intent(_) => true,
+        _ => false,
+    }
+}
+
 pub fn config_path() -> PathBuf {
     config_home().join("config.toml")
 }
@@ -775,6 +783,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
         motion_level(&theme_cfg, &theme),
         Box::new(motion::SystemClock::default()),
     );
+    host.set_motion_enabled(motion.level() == motion::Level::Full);
     log::info(format!(
         "motion {}{}",
         motion.level().word(),
@@ -1012,6 +1021,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     // What is on screen before the selection is marked: the
                     // text a selection copies.
                     shown = f.buffer_mut().clone();
+                    if over.is_some() { motion::frames::context(None, None); }
                     motion.draw(f.buffer_mut(), &theme);
                     // Over everything: the screen under it keeps its click
                     // targets, so a click acts on it.
@@ -1046,6 +1056,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     gesture.clear();
                 }
                 if let Some(why) = motion.drew_in(started.elapsed()) {
+                    host.set_motion_enabled(false);
                     log::info(why);
                     let _ = tx.send(Event::Notice(why.into()));
                 }
@@ -1080,6 +1091,19 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     },
                 },
             };
+            // Cancel before local selection handlers or clipboard conversion can
+            // consume this input. Pointer motion alone remains decorative.
+            let actionable = match &input {
+                Input::Event(event) => interaction_input(event),
+                Input::Pointer(Pointer::Down(..) | Pointer::Drag(..) | Pointer::Up) => true,
+                _ => false,
+            };
+            if !actionable && matches!(&input, Input::Event(_)) { motion.background(); }
+            if actionable {
+                motion.input();
+                splash.input();
+                if let Some(line) = splash.take_early_line() { host.show_start_line(line); }
+            }
             let mut event = match input {
                 Input::Event(e) => e,
                 Input::Pointer(p) => {
@@ -1179,15 +1203,6 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                 }
                 event = Event::Notice(note);
             }
-            // Input wins over motion: what runs gives way at once.
-            if matches!(event, Event::Key(_) | Event::Mouse { .. } | Event::Paste(_)) {
-                motion.input();
-                // The splash ends at once; the key acts on the screen.
-                splash.input();
-                if let Some(line) = splash.take_early_line() {
-                    host.show_start_line(line);
-                }
-            }
             let event = tracked_event(event, action, semantic);
             for effect in host.update(event) {
                 perform(effect, &tx, journal.as_ref());
@@ -1214,6 +1229,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                 theme_cfg = host.colours.cfg.clone();
                 theme = host.build_theme(detected);
                 motion.set_level(motion_level(&theme_cfg, &theme));
+                host.set_motion_enabled(motion.level() == motion::Level::Full);
                 splash.set_level(motion.level());
                 splash.set_setting(crate::splash::Setting::parse(&theme_cfg.splash));
             }

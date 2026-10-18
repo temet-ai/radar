@@ -3,7 +3,7 @@ source: crates/radar-slack/src/tests.rs
 assertion_line: 790
 expression: text
 ---
- radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
 ╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ template ──────────────────────────────────────────╮
 │General               ││ channel          team                                                          ││ AS YOU TYPE                                        │
 │  ├─ parts            ││ user group       @review-squad                                                 ││ ✓ mentions the group picked under user group (in   │

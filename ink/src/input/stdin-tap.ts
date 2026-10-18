@@ -9,6 +9,7 @@ import { tokenize, type InputEvent } from "./tokens.js";
 export class MouseBus {
   private handlers = new Set<(data: string) => void>();
   private listeners = new Set<(events: InputEvent[]) => void>();
+  private rawListeners = new Set<(text: string) => void>();
   private rawClaim: ((text: string) => void) | undefined;
   /** Raw SGR mouse reports, for a listener that only wants the pointer. */
   on(fn: (data: string) => void): () => void {
@@ -25,6 +26,11 @@ export class MouseBus {
   }
   emitInput(events: InputEvent[]) {
     for (const l of [...this.listeners]) l(events);
+  }
+  /** Observe a claimed read once, before its terminal receives the unchanged bytes. Normal tokenized reads use onInput. */
+  onRawInput(fn: (text: string) => void): () => void {
+    this.rawListeners.add(fn);
+    return () => void this.rawListeners.delete(fn);
   }
   /**
    * Takes every read whole and untokenized, for a surface that passes the terminal's bytes on to a program (the
@@ -43,8 +49,10 @@ export class MouseBus {
   }
   /** The text of a read, to the raw claim if there is one; false when nobody holds it. */
   emitRaw(text: string): boolean {
-    if (!this.rawClaim) return false;
-    this.rawClaim(text);
+    const claim = this.rawClaim;
+    if (!claim) return false;
+    for (const fn of [...this.rawListeners]) fn(text);
+    claim(text);
     return true;
   }
 }

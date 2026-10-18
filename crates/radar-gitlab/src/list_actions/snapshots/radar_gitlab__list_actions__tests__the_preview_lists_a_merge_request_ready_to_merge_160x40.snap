@@ -2,7 +2,7 @@
 source: crates/radar-gitlab/src/list_actions/tests.rs
 expression: "shown(p, 160, 40)"
 ---
- radar    Repositories 1   History   Settings (,)                                                                                        not synced yet  ✎ edit
+ radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ web !187 ────────────────────────────────────╮
 │ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a web  !187                                  │
 │ Needs my action      4 ││▌ B team-b                                                                          ││ change 187                                   │

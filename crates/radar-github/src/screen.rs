@@ -2,7 +2,7 @@
 
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Outcome, Pane};
 use radar_core::ui::{self, rows::Move};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{self as v, Chord, Key};
 
 use crate::{GithubPlugin, join::Target, model::PullRequest};
 
@@ -63,6 +63,90 @@ fn group_repos(p: &GithubPlugin, group: usize) -> Vec<usize> {
         .iter()
         .filter_map(|name| p.repos.iter().position(|repo| repo.id.full_name() == *name))
         .collect()
+}
+
+/// Configuration names, repository identities and PR numbers survive insertion
+/// and refresh reordering. Escape the path separator (and its escape marker)
+/// because group names, unlike GitHub repository names, are free-form text.
+fn group_id(name: &str) -> String {
+    format!("group:{}", name.replace('%', "%25").replace(v::PATH_SEP, "%1F"))
+}
+
+fn repo_id(repo: &crate::model::RepositoryId) -> String {
+    format!("repo:{}", repo.full_name())
+}
+
+fn pull_id(number: u64) -> String {
+    format!("pull:{number}")
+}
+
+fn tree_path(p: &GithubPlugin, item: TreeItem) -> Option<Vec<String>> {
+    if let TreeItem::Group(group) = item {
+        return Some(vec![group_id(&p.cfg.groups.get(group)?.name)]);
+    }
+    let (repo, pull) = match item {
+        TreeItem::Repo(repo) => (repo, None),
+        TreeItem::Pull(repo, pull) => (repo, Some(pull)),
+        TreeItem::Group(_) => unreachable!(),
+    };
+    let repo = p.repos.get(repo)?;
+    let group = p.cfg.groups.iter().find(|group| group.repositories.contains(&repo.id.full_name()))?;
+    let mut path = vec![group_id(&group.name), repo_id(&repo.id)];
+    if let Some(pull) = pull {
+        path.push(pull_id(repo.pulls.as_ref()?.items.get(pull)?.number));
+    }
+    Some(path)
+}
+
+/// Resolve only a currently visible row, under its exact ancestors. An old
+/// target must never select the row now occupying its former numeric position.
+fn tree_item_at(p: &GithubPlugin, path: &[String]) -> Option<TreeItem> {
+    if !p.pages.is_empty() || path.is_empty() || path.len() > 3 {
+        return None;
+    }
+    let group = p.cfg.groups.iter().position(|group| group_id(&group.name) == path[0])?;
+    if p.group_at != 0 && p.group_at != group + 1 {
+        return None;
+    }
+    if path.len() == 1 {
+        return Some(TreeItem::Group(group));
+    }
+    if p.folded_groups.contains(&group) {
+        return None;
+    }
+    let repo = group_repos(p, group).into_iter().find(|&repo| repo_id(&p.repos[repo].id) == path[1])?;
+    if path.len() == 2 {
+        return Some(TreeItem::Repo(repo));
+    }
+    if p.folded_repos.contains(&repo) {
+        return None;
+    }
+    let pull = p.repos[repo].pulls.as_ref()?.items.iter().position(|pull| pull_id(pull.number) == path[2])?;
+    Some(TreeItem::Pull(repo, pull))
+}
+
+fn fold(p: &mut GithubPlugin, target: &v::Target, open: bool) -> Outcome {
+    let path = v::TreeRow::path_of(target);
+    let Some(item) = tree_item_at(p, &path) else { return Outcome::Ignored };
+    // GitHub's legacy keys fold only the selected group/repository. The
+    // shared tree router may propose its parent for '-' on a PR or an
+    // already-closed repository; keep those inputs from folding an ancestor.
+    if selected_item(p) != Some(item) {
+        return Outcome::Ignored;
+    }
+    let folded = match item {
+        TreeItem::Group(index) => (&mut p.folded_groups, index),
+        TreeItem::Repo(index) => (&mut p.folded_repos, index),
+        TreeItem::Pull(..) => return Outcome::Ignored,
+    };
+    if open {
+        folded.0.remove(&folded.1);
+    } else {
+        folded.0.insert(folded.1);
+    }
+    // Match press/point: an accepted input expires previously rendered actions.
+    p.action_epoch = p.action_epoch.wrapping_add(1);
+    Outcome::done()
 }
 
 fn tree_items(p: &GithubPlugin) -> Vec<TreeItem> {
@@ -474,12 +558,7 @@ pub(crate) fn click(p: &mut GithubPlugin, id: &str) -> Outcome {
         select_view(p, index);
         return Outcome::done();
     }
-    if let Some(item) = id
-        .strip_prefix("tree:")
-        .and_then(|v| v.parse::<usize>().ok())
-        .filter(|_| p.pages.is_empty())
-        .and_then(|i| tree_items(p).get(i).copied())
-    {
+    if let Some(item) = tree_item_at(p, &v::TreeRow::path_of(&v::Target::new(id))) {
         select_item(p, item);
         return Outcome::done();
     }

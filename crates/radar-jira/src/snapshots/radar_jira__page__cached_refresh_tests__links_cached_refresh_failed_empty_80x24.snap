@@ -6,7 +6,7 @@ expression: shown
  Jira › acme › ABC › ABC-12
  Add a stats endpoint for the dashboard             ◐ In Progress · Story · you
  parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
- Overview  Comments · 3  [Links]  Code · 1
+ Overview  Comments  [Links]  Code
 ╭ links ───────────────────────────────────────────────────────────────────────╮
 │ ✗ could not load: Jira refresh unavailable                                   │
 │ No parent, children or links.                                                │

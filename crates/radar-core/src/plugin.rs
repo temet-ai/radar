@@ -850,8 +850,7 @@ pub fn key_text(c: char) -> String {
 /// ([`Plugin::tabs`]).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PageTabs {
-    /// Each tab's name as drawn, without its icon (`Changes · 3 files`);
-    /// the host names a tab by the words before ` · `.
+    /// Names only, without icons or counts, shared by tab navigation and menus.
     pub names: Vec<String>,
     /// The tab showing.
     pub on: usize,
@@ -902,6 +901,13 @@ pub trait Plugin: Send {
         None
     }
 
+    /// Cached destinations for the host's cross-part command palette. Pure local
+    /// inspection only: no I/O or credential discovery. Return only subjects this
+    /// part can currently show, with public search words and stable identities.
+    fn palette_targets(&self) -> Vec<crate::palette::PaletteTarget> {
+        Vec::new()
+    }
+
     /// Reconstruct a routable source from this owner's exact persisted locator.
     /// The host validates the roundtrip; returning None never guesses a link.
     fn subject_from_journal(&self, _key: &crate::journal::SubjectKey) -> Option<Subject> {
@@ -927,6 +933,16 @@ pub trait Plugin: Send {
     /// that page returns to where the show came from.
     fn depth(&self, _screen: &str) -> usize {
         0
+    }
+    /// Opaque identity of the actual item page open on `screen`, read from
+    /// the same page state as [`Plugin::view`]. Keep it stable across title,
+    /// tab, selection and refresh changes; distinct items must differ even
+    /// at the same stack depth. The host supplies the plugin/screen/tab scope.
+    /// Never substitute a label, stack depth or a selected child subject.
+    /// `None` means no explicit identity: an open page still draws, but the
+    /// host must not infer its identity for page-scoped motion. Never fetch.
+    fn page_identity(&self, _screen: &str) -> Option<String> {
+        None
     }
     /// The item page open on `screen`, when it has a row of tabs: their
     /// names and the one showing. The host moves across them (GUIDE 1.5):
@@ -1113,7 +1129,8 @@ pub trait Plugin: Send {
     fn icon(&self, _screen: &str) -> Option<crate::ui::icon::Icon> {
         None
     }
-    /// A count on the screen's tab, e.g. how many things need you.
+    /// A summary for the host, including the splash. Warn/Bad also mark the
+    /// screen tab as needing attention; tabs show a dot, never this count.
     fn badge(&self, _screen: &str) -> Option<(String, Tone)> {
         None
     }

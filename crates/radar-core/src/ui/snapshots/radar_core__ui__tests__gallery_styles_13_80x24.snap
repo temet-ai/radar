@@ -1,11 +1,10 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1012
 expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Waiting" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Diff  Motion  Colours  Tones  Row states…" fg:text.secondary | "[Waiting]" fg:accent.primary/glow.purple bold | "  Long text  I" fg:text.secondary
+02 _1 | "Diff  Motion  Colours  Tones  Row states…" fg:text.secondary | "[Waiting]" fg:accent.primary/glow.purple bold | "  Long text  …" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " loading, and what fetching says " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "loading               loading…" fg:text.muted bg:bg.surface | _46 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "busy                  " fg:text.muted bg:bg.surface | "⠷ " fg:status.info bg:bg.surface | "asking the server…                      …" bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted

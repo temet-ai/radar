@@ -5,6 +5,10 @@ import { isEditorData } from "../editor/EditorView.js";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Box, Text, useInput, useStdin, useStdout, type DOMElement } from "ink";
 import { Session } from "./session.js";
+import { dockOf, dockShown, resolveKeyOwner } from "./key-owner.js";
+import { motion, isInput, afterMotionLayout } from "../motion/motion.js";
+import { MotionSceneContext } from "../motion/scene.js";
+import type { MotionScene } from "../motion/interaction.js";
 import { shellRenderNode, type NodeCx, type RenderNode } from "./Body.js";
 import type { ActionSpec } from "./actions.js";
 import { afterIntent, desynced, screenKey, scrollKey, sectionKey, sheetKey, workingFrom } from "../input/route.js";
@@ -15,7 +19,7 @@ import { useSplashPicture } from "./splashPicture.js";
 import { SetupBody } from "./SetupBody.js";
 import { InputController, menuShowing, type InputView } from "../input/controller.js";
 import { WorkArea } from "../workarea/index.js";
-import { Framed, PageBody, PaneArea, ScreenPanes, share, type DockSlot } from "./Panes.js";
+import { FrameRampOwnership, Framed, PageBody, PaneArea, ScreenPanes, share, type DockSlot } from "./Panes.js";
 import { splitDock } from "../dock/layout.js";
 import { Dock } from "../dock/Dock.js";
 import { TerminalSurface } from "../terminal/index.js";
@@ -104,6 +108,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   const dockMetrics = useRef({ max: 0, total: 0 });
   // A blur or focus of the dock Ink sent since snapshot `base`: the keys after it in the same read go where it sent them.
   const dockFocus = useRef<{ base: any; focused: boolean } | null>(null);
+  const [, redrawDockFocus] = React.useReducer((n: number) => n + 1, 0);
   // While a drag selects text: the status line names the key that gives the terminal its own selection.
   const [dragging, setDragging] = React.useState(false);
 
@@ -164,16 +169,16 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   const view: InputView = useMemo(() => {
     // The dock as drawn now, and whether it has the keys (a blur or focus sent since the snapshot counts).
     const shown = () => dockShown(live.current.snap);
-    const dockHasKeys = () => {
-      const d = shown();
-      if (!d) return false;
-      const o = dockFocus.current;
-      return o && o.base === live.current.snap ? o.focused : !!d.focused;
-    };
+    const dockHasKeys = () => resolveKeyOwner({ snapshot: live.current.snap, pendingDock: dockFocus.current,
+      menuOpen: !!live.current.menu, editorOpen: live.current.capturing, inputRequested: !!session.state.inputRequest }).dock;
     const sendDock = (i: any) => {
       session.sendIntent({ intent: "dock", ...i } as any);
-      if (i.dock === "blur" || i.dock === "hide") dockFocus.current = { base: live.current.snap, focused: false };
-      else if (i.dock === "focus" || i.dock === "show") dockFocus.current = { base: live.current.snap, focused: true };
+      const focused = i.dock === "blur" || i.dock === "hide" ? false : i.dock === "focus" || i.dock === "show" ? true : null;
+      if (focused !== null) {
+        const before = dockFocus.current;
+        dockFocus.current = { base: live.current.snap, focused };
+        if (before?.base !== live.current.snap || before?.focused !== focused) redrawDockFocus();
+      }
     };
     return {
       // The session's own state is read now, not the last frame: answering a question clears it at once, and
@@ -401,7 +406,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   useLayoutEffect(() => {
     let root: DOMElement | undefined = rootBox.current ?? undefined;
     while (root?.parentNode) root = root.parentNode;
-    const r = root as (DOMElement & { onRender?: () => void }) | undefined;
+    const r = root as (DOMElement & { onRender?: () => void; onImmediateRender?: () => void }) | undefined;
+    const restoreMotionLayout = r ? afterMotionLayout(r, () => motion.engine.level === "full") : undefined;
     const redraw = () => r?.onRender?.();
     // Nothing is lit over the startup splash either.
     hover.attach(redraw, () => live.current.menu !== null || !!live.current.snap?.splash);
@@ -409,6 +415,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     return () => {
       hover.detach(redraw);
       selected.detach(redraw);
+      restoreMotionLayout?.();
+      motion.reset();
     };
   }, []);
 
@@ -424,6 +432,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     () =>
       mouse?.onInput((events) => {
         for (const ev of events) {
+          if (ev.kind === "key" || ev.kind === "paste" || ev.kind === "mouse" && isInput(ev.data)) session.input();
           if (ev.kind === "mouse") controller.mouse(ev.data);
           else if (ev.kind === "paste") controller.paste(ev.text);
           else if (ev.kind === "focus") {
@@ -446,6 +455,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   useInput((input, key) => {
     if (mouse) return;
     if (/^\[?<\d+;\d+;\d+[Mm]$/.test(input)) return;
+    session.input();
     if (!live.current.snap?.chrome?.history) session.dismissNotices();
     controller.key(input, key);
   }, { isActive: isRawModeSupported });
@@ -464,6 +474,19 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   // While the dock has the keys no pane draws focused either: one frame says where the keys go.
   const keysInBody = (chrome.keys_at ?? "body") === "body" && !dockShown(snap)?.focused;
   const focusPane = keysInBody ? (typeof snap?.focus === "string" ? snap.focus : undefined) : "none";
+  const shownDock = dockShown(snap);
+  const dockOverride = dockFocus.current;
+  const pendingDockFocus = !!shownDock && dockOverride !== null && dockOverride.base === snap && dockOverride.focused !== !!shownDock.focused;
+  const rampOwners = resolveKeyOwner({ snapshot: snap, pendingDock: dockOverride, menuOpen: menu !== null, editorOpen: editor !== null, inputRequested: !!state.inputRequest });
+  const motionScene: MotionScene = {
+    cursor: snap?.cursor ?? 0,
+    context: snap?.motion?.interaction?.context ?? null,
+    interaction: snap?.motion?.interaction ?? undefined,
+    blocked: rampOwners.blocked || state.phase === "closed" || state.phase === "refused",
+    local: pendingDockFocus,
+  };
+  motion.prepareScene(motionScene);
+  useLayoutEffect(() => { motion.commitScene(motionScene); });
   const bodyW = size.columns;
   const bodyH = frame.bodyHeight;
   const raw = useStdout().stdout;
@@ -513,15 +536,19 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   } else if (snap?.screen) body = <ScreenBody screen={snap.screen} dockLocal={dockLocal} bus={mouse} metrics={dockMetrics} menuOpen={!!menu} leave={() => session.sendIntent({ intent: "dock", dock: "blur" } as any)} cx={cx} renderNode={renderNode} focus={focusPane} width={bodyW} height={bodyH} rows={size.rows} />;
   if (historyLaid) {
     return (
+      <MotionSceneContext.Provider value={motionScene}>
       <Box ref={rootBox} flexDirection="column" width={size.columns} height={size.rows}>
         <TopBarRow frame={frame} />
         <Box height={size.rows - 1} width={size.columns} overflow="hidden" flexDirection="column">
           <HistoryOverlay layout={historyLaid} />
         </Box>
       </Box>
+      </MotionSceneContext.Provider>
     );
   }
   return (
+    <MotionSceneContext.Provider value={motionScene}>
+    <FrameRampOwnership.Provider value={rampOwners}>
     <Box ref={rootBox} flexDirection="column" width={size.columns} height={size.rows}>
       <TopBarRow frame={frame} />
       <SourcesRow frame={frame} />
@@ -539,21 +566,10 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       </Box>
       <StatusRow frame={frame} />
     </Box>
+    </FrameRampOwnership.Provider>
+    </MotionSceneContext.Provider>
   );
 }
-
-/** The agent dock: a screen carries its own, and while settings show the snapshot carries it beside the section. */
-const dockOf = (snap: any): any => snap?.screen?.dock ?? snap?.dock ?? null;
-
-/** The dock while it is drawn: shown, on a screen of panes or beside a settings section. An item page and the work area
- * have no place for it (view_tui draws no notice there either), so there it takes no keys and no wheel. */
-const dockShown = (snap: any): any => {
-  const d = dockOf(snap);
-  if (!d?.visible) return null;
-  if (snap?.section) return d;
-  const s = snap?.screen;
-  return s && !s.page && !hasWorkSections(s) ? d : null;
-};
 
 type Metrics = { current: { max: number; total: number } };
 type DockOpts = { dockLocal: DockLocal; bus?: MouseBus; metrics: Metrics; menuOpen: boolean; leave: () => void; cx: NodeCx };

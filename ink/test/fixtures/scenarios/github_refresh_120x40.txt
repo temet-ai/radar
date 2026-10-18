@@ -1,8 +1,8 @@
  radar    Repositories   History   Settings (,)                                              synced 0s ago  ◉ read only
 ╭ views ─────────────────╮╭ repositories ────────────────────────────────────────╮╭ ankh-morpork/watch #12 ────────────╮
-│ Everything     1 repos ││ The Watch                                    1 repos ││ Patrol the Brass Bridge            │
-│ The Watch      1 repos ││   ankh-morpork/watch                           1 PRs ││                                    │
-│                        ││     #12  Patrol the Brass Bridge                open ││ state  open                        │
+│ Everything     1 repos ││The Watch                                    1 repos  ││ Patrol the Brass Bridge            │
+│ The Watch      1 repos ││  └─ ankh-morpork/watch                      1 PRs    ││                                    │
+│                        ││     └─ #12  Patrol the Brass Bridge         open     ││ state  open                        │
 │                        ││                                                      ││ author  vimes                      │
 │                        ││                                                      ││ from  ankh-morpork/watch:patrol    │
 │                        ││                                                      ││ into  ankh-morpork/watch:main      │

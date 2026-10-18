@@ -1,9 +1,12 @@
 import { PACK, SLOTS } from "./generated/pack.js";
+import type { ColourTier } from "../protocol/generated/ColourTier.js";
 
 /** The look the host resolved for this terminal: the colour of every theme slot (core and the parts' own, as
  * `#rrggbb`) and the icon pack in use (name → glyph and the style the icon is drawn in). Ratatui reads these from
  * `Theme`/`icon::Icons`; Ink draws with exactly them and chooses nothing of its own. */
 export interface Look {
+  /** The host-resolved capability tier, never inferred from the slot values. */
+  tier: ColourTier;
   slots: Readonly<Record<string, string>>;
   icons: Readonly<Record<string, { glyph: string; style: string }>>;
   /** Slots whose own style carries modifiers (`text.emphasis`: bold), in Theme::spec's words. */
@@ -14,6 +17,7 @@ export interface Look {
 
 /** The host's `look` message (snake_case, ts-rs) as this module holds it. */
 export interface HostLook {
+  tier: ColourTier;
   slots: Record<string, string>;
   modifiers?: Record<string, string>;
   icons: Record<string, { glyph: string; style: string }>;
@@ -21,6 +25,7 @@ export interface HostLook {
 }
 export function applyHostLook(l: HostLook) {
   applyLook({
+    tier: l.tier,
     slots: l.slots,
     modifiers: l.modifiers,
     icons: l.icons,
@@ -36,6 +41,7 @@ export function defaultLook(
   for (const [name, i] of Object.entries(PACK))
     icons[name] = { glyph: pack === "off" ? "" : i[pack], style: i.style };
   return {
+    tier: "truecolor",
     slots: SLOTS,
     modifiers: { "text.emphasis": "bold" },
     icons,

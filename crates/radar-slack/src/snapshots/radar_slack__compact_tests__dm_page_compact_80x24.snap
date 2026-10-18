@@ -2,10 +2,10 @@
 source: crates/radar-slack/src/compact_tests.rs
 expression: text
 ---
- radar    Slack 3   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
  Slack › #D0000CAROL › Carol Coder: hi @Alice Example, quick…
  hi @Alice Example, quick question about th…  Carol Coder · 13h ago · 5 replies
- [Thread]  Links · 3
+ [Thread]  Links
 ╭ thread ──────────────────────────────────────────────────────────────────────╮
 │ ── yesterday ──                                                              █
 │ 17:58  Carol Coder    hi @Alice Example, quick question about the stats      █

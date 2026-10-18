@@ -1,5 +1,6 @@
 import type { Connection } from "../transport/connection.js";
 import type { Capabilities } from "../protocol/generated/Capabilities.js";
+import type { MotionView } from "../protocol/generated/MotionView.js";
 import type { SplashView } from "../protocol/generated/SplashView.js";
 import type { ChromeView, Intent, MenuView } from "../chrome/types.js";
 import { applyHostLook, type HostLook } from "../text/look.js";
@@ -25,6 +26,8 @@ export type SnapshotState = {
   /** The agent dock while settings show (Snapshot.dock); a screen carries its own. */
   dock?: any | null;
   focus: unknown;
+  /** Host-owned motion cues and interaction provenance, when supported by the snapshot. */
+  motion?: MotionView;
   /** The startup splash while it shows (Snapshot.splash), drawn in place of everything. */
   splash?: SplashView;
 };
@@ -70,6 +73,8 @@ export function capabilitiesFrom(
 export class Session {
   state: SessionState = { phase: "connecting", questions: [], notices: [] };
   private listeners = new Set<() => void>();
+  private inputListeners = new Set<() => void>();
+  private intentListeners = new Set<(seq: number, cursor: number) => void>();
   private seq = 0;
   /** The dock's transcript as last taken in; the host sends only what changed after it. */
   private transcript: HeldTranscript | undefined;
@@ -100,6 +105,23 @@ export class Session {
   subscribe(fn: () => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /** Local actionable input, including keys handled without a host intent. Live only: nothing is queued or replayed. */
+  onInput(fn: () => void): () => void {
+    this.inputListeners.add(fn);
+    return () => void this.inputListeners.delete(fn);
+  }
+
+  /** Called before an event is handled, so local edits and scrolling can cancel an older visual transition too. */
+  input(): void {
+    for (const fn of [...this.inputListeners]) fn();
+  }
+
+  /** The exact wire identity of an intent, observed once before the connection can answer it. */
+  onIntent(fn: (seq: number, cursor: number) => void): () => void {
+    this.intentListeners.add(fn);
+    return () => void this.intentListeners.delete(fn);
   }
 
   /** The state changes at once; with `batch`, listeners hear of a burst of changes (messages read together) once, so a
@@ -208,7 +230,8 @@ export class Session {
   }
 
   sendIntent(intent: Intent) {
-    this.seq += 1;
+    const seq = ++this.seq;
+    const cursor = this.cursor;
     // Answering a question clears it here; the host's next snapshot is the truth.
     if (intent.intent === "invoke" && this.state.questions[0]?.menu.items.some((c) => c.value === intent.action)) {
       this.set({ questions: this.state.questions.slice(1) });
@@ -218,8 +241,9 @@ export class Session {
       // A click on a menu row chooses it and closes the menu.
       this.set({ questions: this.state.questions.slice(1) });
     }
-    tracer.intent(this.seq);
-    this.conn.send({ type: "intent", seq: this.seq, cursor: this.cursor, intent });
+    tracer.intent(seq);
+    for (const fn of [...this.intentListeners]) fn(seq, cursor);
+    this.conn.send({ type: "intent", seq, cursor, intent });
   }
 
   /** The cell a right-click pressed, for the Context intent that follows (ToHost::Pointer). */

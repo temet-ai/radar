@@ -3,7 +3,7 @@ source: crates/radar-slack/src/tests.rs
 assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
- radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
 ╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
 │General               ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
 │  ├─ parts            ││ keep resolved    24 hours                                                      ││                                                    │

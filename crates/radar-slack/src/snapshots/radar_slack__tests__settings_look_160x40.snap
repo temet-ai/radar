@@ -3,7 +3,7 @@ source: crates/radar-slack/src/tests.rs
 assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
- radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ density ───────────────────────────────────────────╮
 │General               ││ MESSAGES                                                                       ││ How the messages of a thread, the detail pane and  │
 │  ├─ parts            ││   density  how a thread's messages are laid out                        compact ││ a direct message are laid out.                     │

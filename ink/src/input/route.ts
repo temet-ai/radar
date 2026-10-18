@@ -98,6 +98,11 @@ function panesOf(screen: ScreenLike): PaneLike[] {
   return page ? (page.panes ?? []) : (screen.panes ?? []);
 }
 
+/** The first active field owns body keys even when the legacy focused pane has not moved. */
+export function typingPane(screen: ScreenLike): string | undefined {
+  return panesOf(screen).find(typing)?.pane;
+}
+
 /** view_tui::key for a screen: which Intent a key is, when the frontend does the movement itself. */
 export function screenKey(screen: ScreenLike, focus: string | undefined, chord: Chord, pageStep = 10): Intent {
   const key: Intent = { intent: "key", chord };

@@ -1,14 +1,15 @@
 ---
 source: tests/github_links.rs
+assertion_line: 309
 expression: text
 ---
  radar    Repositories   Jira   Slack   Branches   History   Settings (,)                                                                synced 25s ago  ✎ edit
 ╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
-│ Everything     2 repos ││ github.com/acme                                                            2 repos ││  local folder    /work/source   · on main    │
-│ acme           2 repos ││   acme/api                                                                   2 PRs ││ Keep background refreshes tied to their      │
-│                        ││     #42  Keep background refreshes tied to their request                      open ││ request                                      │
-│                        ││     #43  Document the public endpoints                                       draft ││                                              │
-│                        ││   acme/docs                                                                  0 PRs ││ state  open                                  │
+│ Everything     2 repos ││github.com/acme                                                            2 repos  ││  local folder    /work/source   · on main    │
+│ acme           2 repos ││  ├─ acme/api                                                              2 PRs    ││ Keep background refreshes tied to their      │
+│                        ││  │  ├─ #42  Keep background refreshes tied to their request               open     ││ request                                      │
+│                        ││  │  └─ #43  Document the public endpoints                                 draft    ││                                              │
+│                        ││  └─ acme/docs                                                             0 PRs    ││ state  open                                  │
 │                        ││                                                                                    ││ author  alice                                │
 │                        ││                                                                                    ││ from  alice/api:refresh-ownership            │
 │                        ││                                                                                    ││ into  acme/api:main                          │

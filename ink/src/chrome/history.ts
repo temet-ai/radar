@@ -1,4 +1,5 @@
 import { cellWidth, fit } from "./width.js";
+import { focusRamp, frameRuns } from "../text/frame.js";
 import { segWords } from "../text/TextLine.js";
 import type { Cell } from "./layout.js";
 import type { Hit, Text } from "./types.js";
@@ -10,10 +11,11 @@ import { fitTableColumns } from "../nodes/columns.js";
 import { thumbOf } from "../nodes/index.js";
 import type { ColumnSpec } from "../nodes/view.js";
 import type { HistoryView } from "../protocol/generated/HistoryView.js";
+import type { PaneMark } from "../motion/interaction.js";
 import { insideOf, type SelectArea } from "../input/selection.js";
 
 /** The history overlay laid out in cells (history.rs `History::paint`): every line is exactly `width` cells. */
-export type HistoryLayout = { lines: Cell[][]; hits: Hit[]; selects: SelectArea[] };
+export type HistoryLayout = { lines: Cell[][]; hits: Hit[]; selects: SelectArea[]; panes: PaneMark[] };
 
 const textOf = (t: Text): string => t.map(segWords).join("");
 
@@ -90,13 +92,15 @@ function panel(title: string, w: number, h: number, rows: PRow[], focused: boole
   const surface = bgOf("bg.surface");
   if (w < 4 || h < 2) return Array.from({ length: Math.max(0, h) }, () => [{ text: " ".repeat(Math.max(0, w)) }]);
   const border = on(slotStyle(focused ? "accent.primary" : "accent.muted"), surface);
+  const ramp = focused ? focusRamp() : undefined;
+  const edge = (text: string, x: number, y: number): Cell[] => frameRuns(text, w, h, x, y, border, ramp);
   const titleStyle = on(focused ? { ...slotStyle("text.emphasis"), bold: true } : slotStyle("text.secondary"), surface);
   const label = ` ${fit(title, Math.max(0, w - 6))} `;
   const out: Cell[][] = [
     [
-      { text: "╭", style: border },
+      ...edge("╭", 0, 0),
       { text: label, style: titleStyle },
-      { text: `${"─".repeat(Math.max(0, w - 2 - cellWidth(label)))}╮`, style: border },
+      ...edge(`${"─".repeat(Math.max(0, w - 2 - cellWidth(label)))}╮`, 1 + cellWidth(label), 0),
     ],
   ];
   const inner = w - 4;
@@ -115,15 +119,15 @@ function panel(title: string, w: number, h: number, rows: PRow[], focused: boole
       used += cellWidth(text);
     }
     out.push([
-      { text: "│", style: border },
+      ...edge("│", 0, i + 1),
       { text: " ", style: shade },
       ...kept,
       { text: " ".repeat(Math.max(0, inner - used)), style: shade },
       { text: " ", style: shade },
-      { text: "│", style: border },
+      ...edge("│", w - 1, i + 1),
     ]);
   }
-  out.push([{ text: `╰${"─".repeat(w - 2)}╯`, style: border }]);
+  out.push(edge(`╰${"─".repeat(w - 2)}╯`, 0, h - 1));
   return out;
 }
 
@@ -160,6 +164,13 @@ function barOn(framed: Cell[][], h: number, bar: { max: number; at: number }) {
 
 export function layoutHistory(view: HistoryView, width: number, height: number, top: number): HistoryLayout {
   const lines: Cell[][] = [];
+  const panes: PaneMark[] = [];
+  const paneMark = (pane: string, title: string, x: number, w: number, h: number, owns: boolean, scrollbar: boolean) => {
+    if (w < 4 || h < 2) return;
+    const y = top + lines.length;
+    panes.push({ pane, owns, area: { x, y, w, h }, title: { x: x + 1, y, w: cellWidth(` ${fit(title, Math.max(0, w - 6))} `), h: 1 },
+      keep: scrollbar ? [{ x: x + w - 1, y: y + 1, w: 1, h: h - 2 }] : [] });
+  };
   const hits: Hit[] = [];
   const base = on(slotStyle("text.primary"), bgOf("bg.base"));
   const full = (cells: Cell[]): Cell[] => {
@@ -224,6 +235,7 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
         hits.push({ x: 1, y: y0 + k, w: Math.max(0, w - 2), h: 1, target: r.target });
       });
     }
+    paneMark("events", view.events_title, 0, w, h, focused, bar.max > 0);
     const framed = panel(view.events_title, w, h, rows, focused);
     // table.rs: scroll::scrollbar on the panel's right border, between the corners, when rows run past the list.
     barOn(framed, h, bar);
@@ -250,6 +262,7 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
         }
       }
     }
+    paneMark("detail", view.detail_title, x0, w, h, focused, rows.length > Math.max(0, h - 2));
     return scrolledPanel(view.detail_title, w, h, rows, scroll, focused);
   };
   const help = (w: number, h: number): Cell[][] => {
@@ -308,6 +321,6 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   while (lines.length < height - 1) lines.push(full([]));
   lines.length = Math.min(lines.length, Math.max(0, height - 1));
   lines.push(full(foot));
-  return { lines, hits, selects };
+  return { lines, hits, selects, panes };
 }
 

@@ -4,7 +4,7 @@ expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Tones" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Entries & log  Markdown  Diff  Motion  C…" fg:text.secondary | "[Tones]" fg:accent.primary/glow.purple bold | "  Row states  Grid stat" fg:text.secondary
+02 _1 | "Entries & log  Markdown  Diff  Motion  C…" fg:text.secondary | "[Tones]" fg:accent.primary/glow.purple bold | "  Row states  Grid sta…" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " tones: text, chip " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "plain   " fg:text.muted bg:bg.surface | "sorting 12 items  " bg:bg.surface | " plain " bg:#3e3a4a | _2 bg:bg.surface | "bold" bg:bg.surface bold | _37 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "muted   sorting 12 items  " fg:text.muted bg:bg.surface | " muted " fg:text.muted bg:#26253e | _2 bg:bg.surface | "bold" fg:text.muted bg:bg.surface bold | _37 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted

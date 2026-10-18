@@ -133,6 +133,7 @@ export class Engine {
       this.running_ = [];
       this.last = undefined;
       this.message = undefined;
+      this.settle = false;
     }
   }
 
@@ -273,8 +274,8 @@ export class Engine {
 
   /** How long the frame took to reach the terminal; three slow ones in a row while effects run turn motion off for
    * the session (the reason is returned once, for the status line). */
-  drewIn(ms: number): string | undefined {
-    if (!this.running() || this.tooSlow) return undefined;
+  drewIn(ms: number, interacting = false): string | undefined {
+    if ((!this.running() && !interacting) || this.tooSlow) return undefined;
     if (ms < SLOW_MS) {
       this.slow = 0;
       return undefined;

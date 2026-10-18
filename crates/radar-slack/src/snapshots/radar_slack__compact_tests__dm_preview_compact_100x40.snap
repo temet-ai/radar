@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/compact_tests.rs
 expression: "to_text(&host, w, h)"
 ---
- radar    Slack 4   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
 ╭ feed ────────────────╮╭ Carol Coder's message ───────────────────────────────────────────────────╮
 │ For you            4 ││ ── #D0000CAROL · yesterday ──                                            │
 │ Discussions          ││ ● 17:58  Carol Coder                                                     │

@@ -1016,7 +1016,7 @@ fn ticket_page_code_from_jiras_development_panel_160x40() {
     let mut host = page_host();
     press(&mut host, KeyCode::Char('['));
     let shown = text(&host, 160, 40);
-    assert!(shown.contains("[Code · 1]") && shown.contains("api !263"), "{shown}");
+    assert!(shown.contains("[Code]") && shown.contains("api !263"), "{shown}");
     insta::assert_snapshot!(shown);
     // ⏎ shows its merge request: with no part here that owns one, its link.
     let fx = press(&mut host, KeyCode::Enter);

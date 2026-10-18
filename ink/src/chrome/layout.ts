@@ -1,8 +1,11 @@
-import { cellWidth, charWidth, fit } from "./width.js";
+import { cellWidth, charWidth, clipSegments, fit } from "./width.js";
+import { wordmarkRuns } from "../text/frame.js";
 import type { ChromeView, Hint, Hit, Ink, MenuView, SettingsNav, Text } from "./types.js";
 import { bgOf, currentLook, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
 import { inkStyle } from "../text/theme.js";
 import { wrap } from "./history.js";
+import { ATTENTION_DOT } from "../text/icons.js";
+import { paletteLines, paletteWidth, wrapPalette } from "./palette.js";
 import { cutCells, fieldWindow } from "../editor/InputField.js";
 
 /** A run of text on one row. Rows are laid out in cells so a pointer position maps to a target. `style` is the
@@ -45,7 +48,7 @@ export function chromeInk(ink: Ink | undefined, strong = false): Style {
   return strong ? { ...base, bold: true } : base;
 }
 
-/** widgets::tone: the style of a tone, which a count or a tab's badge is drawn in (the one place tones become
+/** widgets::tone: the style of a tone, which a count is drawn in (the one place tones become
  * slots): accent, warn and bad are bold; an ink that is no tone is plain. */
 export function toneStyle(ink: Ink | undefined): Style {
   switch (ink) {
@@ -67,7 +70,7 @@ export function toneStyle(ink: Ink | undefined): Style {
 }
 
 /**
- * ` radar   Books 3   Work   History   Settings          ⠷ synced 12s   ◉ read only `, row `y`, drawn as
+ * ` radar   Books ●   Work   History   Settings          ⠷ synced 12s   ◉ read only `, row `y`, drawn as
  * shell.rs top_bar does: the row on the overlay shade, each tab padded one cell either side with its icon,
  * its shortcut letter underlined in place, the active tab on the selection shade (or the accent when the bar
  * has the keys), the mode at the right end in its ink. When it does not fit the icons go first, then the
@@ -87,7 +90,7 @@ export function layoutTopBar(chrome: ChromeView, width: number, y = 0): Laid {
 
   const tabs = (icons: boolean, compact: boolean) => {
     const row = rowOf();
-    row.put(` ${bar.brand} `, { style: { ...slotStyle("accent.primary"), bold: true } });
+    for (const r of wordmarkRuns(bar.brand, { ...slotStyle("accent.primary"), bold: true }, " ", " ")) row.put(r.text, { style: r.style });
     row.put("  ");
     for (const tab of bar.tabs) {
       const on = !!tab.active;
@@ -113,9 +116,9 @@ export function layoutTopBar(chrome: ChromeView, width: number, y = 0): Laid {
         row.put(name, { style: st });
         row.put(` (${tab.mnemonic})`, { style: mark });
       }
-      if (tab.badge) {
+      if (tab.attention) {
         row.put(" ", { style: st });
-        row.put(tab.badge.text, { style: { ...toneStyle(tab.badge.ink), backgroundColor: bg } });
+        row.put(ATTENTION_DOT, { style: { ...slotStyle("status.warning"), backgroundColor: bg } });
       }
       row.put(" ", { style: st });
       // A tab is clicked on its padding and on the gap after it, so there are no dead cells between tabs.
@@ -163,9 +166,22 @@ export function layoutTopBar(chrome: ChromeView, width: number, y = 0): Laid {
     partW = 0;
   }
   const rightW = partW + modeW;
-  row.gap(Math.max(0, width - row.x - rightW));
-  for (const p of right) row.put(p.text, { style: p.style });
-  row.put(modeCell.text, { style: modeCell.style }, bar.mode.target);
+  // Ratatui paints the tabs first, then overlays the right-hand words and mode when that side fits.
+  // Reserve those cells before appending anything so compact tabs cannot push the mode off screen.
+  const showRight = rightW < width;
+  const leftWidth = Math.max(0, width - (showRight ? rightW : 0));
+  row.cells = clipSegments(row.cells, leftWidth);
+  row.x = row.cells.reduce((n, c) => n + cellWidth(c.text), 0);
+  row.hits = row.hits
+    .map((hit) => ({ ...hit, w: Math.max(0, Math.min(leftWidth, hit.x + hit.w) - hit.x) }))
+    .filter((hit) => hit.w > 0);
+  row.gap(Math.max(0, leftWidth - row.x));
+  if (showRight) {
+    for (const p of right) row.put(p.text, { style: p.style });
+    const modeX = Math.max(0, row.x - 1); // shell.rs padded mode target includes its leading neighbour
+    row.put(modeCell.text, { style: modeCell.style });
+    row.hits.push({ x: modeX, y, w: row.x - modeX, h: 1, target: bar.mode.target });
+  }
   return row.done(width);
 }
 
@@ -182,7 +198,7 @@ export function layoutSetupTopBar(chrome: ChromeView, setup: NonNullable<ChromeV
   const step = setup.step ? `${setup.step}  ` : "";
   const rightW = Math.min(cellWidth(step) + cellWidth(mode), width);
   const left: Array<[string, Style]> = [
-    [` ${bar.brand}`, { ...slotStyle("accent.primary"), bold: true }],
+    ...wordmarkRuns(bar.brand, { ...slotStyle("accent.primary"), bold: true }, " ").map(({ text, style }): [string, Style] => [text, style]),
     ["  setup / ", slotStyle("text.muted")],
     [setup.title, slotStyle("text.emphasis")],
   ];
@@ -419,6 +435,8 @@ const padTo = (s: string, w: number) => s + " ".repeat(Math.max(0, w - cellWidth
  * question's choices as raised buttons. Rows are full width, so the list under it never shows through.
  */
 export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyHeight: number): MenuLayout {
+  const measure = menu.palette ? paletteWidth : cellWidth;
+  const title = menu.palette ? `${menu.title} · ${menu.palette.matched} of ${menu.palette.total}` : menu.title;
   const overlay = bgOf("bg.overlay");
   const border: Style = { ...slotStyle("accent.primary"), backgroundColor: overlay };
   const maxW = Math.max(0, width - 2);
@@ -433,40 +451,51 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   const titleCells: Cell[] = [
     { text: " ", style: emphasis },
     ...titleLeads.map((l) => ({ text: l.text, style: { ...l.style, backgroundColor: overlay } })),
-    { text: `${menu.title} `, style: emphasis },
+    { text: `${title} `, style: emphasis },
   ];
   const titleText = titleCells.map((c) => c.text).join("");
-  const longTitle = cellWidth(titleText) > maxW || menu.title.includes("\n");
-  const keyW = Math.max(0, ...items.map((i) => cellWidth(keyOf(i))));
-  const iconW = (c: (typeof items)[number]) => (lead(c.icon) ? cellWidth(lead(c.icon)!.text) : 0);
-  const labelW = Math.max(0, ...items.filter((i) => !i.heading).map((i) => cellWidth(i.label) + iconW(i)));
-  const compactW = (c: (typeof items)[number]) => (keyW === 0 ? 1 : keyW + 2) + (c.sample ? 3 : 0) + 1 + labelW + 4 + cellWidth(c.hint);
+  const longTitle = measure(titleText) > maxW || title.includes("\n");
+  const keyW = Math.max(0, ...items.map((i) => measure(keyOf(i))));
+  const iconW = (c: (typeof items)[number]) => (lead(c.icon) ? measure(lead(c.icon)!.text) : 0);
+  const labelW = Math.max(0, ...items.filter((i) => !i.heading).map((i) => measure(i.label) + iconW(i)));
+  const longest = (text: string) => Math.max(0, ...text.split("\n").map(measure));
+  const compactW = (c: (typeof items)[number]) => menu.palette
+    ? longest(c.label) + iconW(c) + (c.sample ? 3 : 0) + (c.hint ? 3 + longest(c.hint) : 0) + (keyW === 0 ? 2 : keyW + 4)
+    : (keyW === 0 ? 1 : keyW + 2) + (c.sample ? 3 : 0) + 1 + labelW + 4 + measure(c.hint);
   const question = menu.question;
   const buttons = question ? items.map((c, i) => ({ c, i })).filter(({ c }) => !c.heading && !c.note) : [];
   const buttonText = (c: (typeof items)[number]) => ` ${keyOf(c)} ${lead(c.icon)?.text ?? ""}${c.hint ? c.hint : c.label} `;
-  const buttonsW = buttons.reduce((n, { c }, k) => n + cellWidth(buttonText(c)) + (k ? 2 : 0), 0);
+  const buttonsW = buttons.reduce((n, { c }, k) => n + measure(buttonText(c)) + (k ? 2 : 0), 0);
   const natural = Math.max(
     1,
-    cellWidth(titleText),
+    measure(titleText),
     menu.typed != null ? 58 : 0,
     ...(question ? [] : items.filter((c) => !c.heading).map(compactW)),
-    ...items.filter((c) => c.heading).map((c) => 1 + cellWidth(c.label) + iconW(c)),
-    ...items.filter((c) => c.note).map((c) => 1 + Math.min(cellWidth(c.label), 60) + iconW(c)),
+    ...items.filter((c) => c.heading).map((c) => 1 + measure(c.label) + iconW(c)),
+    ...items.filter((c) => c.note).map((c) => 1 + Math.min(measure(c.label), 60) + iconW(c)),
   );
   const innerW = Math.min(maxW, Math.max(natural, buttonsW));
   const w = innerW + 2;
+  const countText = menu.palette ? ` ${menu.palette.matched} of ${menu.palette.total} ` : "";
+  const narrowCount = menu.palette && longTitle && measure(countText) <= innerW ? [{ text: countText, style: emphasis }] : undefined;
 
   type Line = { cells: Cell[]; target?: string; sel?: boolean };
   const body: Line[] = [];
   const fillTo = (cells: Cell[], bg?: string): Cell[] => {
-    const used = cells.reduce((n, c) => n + cellWidth(c.text), 0);
+    const used = cells.reduce((n, c) => n + measure(c.text), 0);
     return [...cells, { text: " ".repeat(Math.max(0, innerW - used)), style: bg ? { backgroundColor: bg } : {} }];
   };
   if (menu.refused) body.push({ cells: [{ text: " " + menu.refused, ink: "warn", style: { backgroundColor: overlay } }] });
   if (longTitle) {
     // The icons lead the first line; every line wraps inside the frame, one cell in from its edge.
-    const leadW = titleLeads.reduce((n, x) => n + cellWidth(x.text), 0);
-    menu.title.split("\n").forEach((raw, n) => {
+    const leadW = titleLeads.reduce((n, x) => n + measure(x.text), 0);
+    if (menu.palette) {
+      const cells = (narrowCount ? menu.title : title).split("\n").map((raw, n) => [
+        ...(n === 0 ? titleLeads.map((l) => ({ text: l.text, style: l.style })) : []),
+        { text: raw.replace(/\r$/, ""), style: emphasis },
+      ]);
+      for (const line of wrapPalette(cells, innerW - 1)) body.push({ cells: [{ text: " " }, ...line] });
+    } else title.split("\n").forEach((raw, n) => {
       wrap(raw.replace(/\r$/, ""), Math.max(1, innerW - 1 - (n === 0 ? leadW : 0))).forEach((part, k) => {
         const cells: Cell[] = [{ text: " " }];
         if (n === 0 && k === 0) for (const l of titleLeads) cells.push({ text: l.text, style: l.style });
@@ -483,11 +512,18 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
       const style: Style = isHeading ? { ...slotStyle("text.muted"), bold: true } : slotStyle("text.primary");
       // menu.rs: the item's icon leads its first line, after the cell of air.
       const ic = lead(c.icon);
-      text.split("\n").forEach((part, k) => body.push({ cells: [{ text: " " }, ...(k === 0 && ic ? [{ text: ic.text, style: ic.style }] : []), { text: part, style }] }));
+      const lines = text.split("\n").map((part, k) => [...(k === 0 && ic ? [{ text: ic.text, style: ic.style }] : []), { text: menu.palette ? part.replace(/\r$/, "") : part, style }]);
+      for (const line of menu.palette ? wrapPalette(lines, innerW - 1) : lines) body.push({ cells: [{ text: " " }, ...line] });
       return;
     }
     if (question) return;
     const on = i === sel;
+    if (menu.palette) {
+      for (const cells of paletteLines(c, on, menu.palette.highlights[i] ?? [], innerW, keyW, menu.palette.hint_highlights?.[i] ?? [])) {
+        body.push({ cells, target: c.target ?? undefined, sel: on });
+      }
+      return;
+    }
     const rowBg = on ? bgOf("bg.selection") : undefined;
     const row: Style = on ? { ...slotStyle("text.emphasis"), bold: true, backgroundColor: rowBg } : slotStyle(c.muted ? "text.muted" : "text.primary");
     const keyStyle: Style = { ...slotStyle("accent.secondary"), bold: true, ...(rowBg ? { backgroundColor: rowBg } : {}) };
@@ -497,7 +533,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     if (ic) {
       cells.push({ text: " ", style: row });
       cells.push({ text: ic.text, style: { ...ic.style, ...(rowBg ? { backgroundColor: rowBg } : {}) } });
-      cells.push({ text: padTo(c.label, labelW - cellWidth(ic.text)), style: row });
+      cells.push({ text: padTo(c.label, labelW - measure(ic.text)), style: row });
     } else cells.push({ text: ` ${padTo(c.label, labelW)}`, style: row });
     cells.push({ text: `   ${c.hint} `, style: { ...slotStyle("text.muted"), ...(rowBg ? { backgroundColor: rowBg } : {}) } });
     body.push({ cells: fillTo(cells, rowBg), target: c.target ?? undefined, sel: on });
@@ -512,10 +548,10 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     const caret = Math.min(Math.max(menu.caret ?? [...menu.typed].length, 0), [...menu.typed].length);
     const v = fieldWindow(menu.typed, caret, room);
     const before = cutCells(v.before, room);
-    const at = cutCells(v.at, room - cellWidth(before));
-    const after = cutCells(v.after, room - cellWidth(before + at));
+    const at = cutCells(v.at, room - measure(before));
+    const after = cutCells(v.after, room - measure(before + at));
     const emphasisField: Style = { ...slotStyle("text.emphasis"), bold: true, backgroundColor: overlay };
-    const used = cellWidth(before + at + after);
+    const used = measure(before + at + after);
     field.push({
       cells: [
         { text: " " },
@@ -545,7 +581,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
       if (k > 0) at += 2;
       const focused = i === sel;
       const text = buttonText(c);
-      const bw = cellWidth(text);
+      const bw = measure(text);
       const face = faceOf(focused);
       const faceRgb = rgbOf(face);
       const edge = (to: [number, number, number], part: number, or: string): Style =>
@@ -566,7 +602,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   }
 
   const contentH = field.length + body.length + (body.length > 0 && buttonRows.length > 0 ? 1 : 0) + buttonRows.length;
-  const usable = menu.usable !== false && innerW >= 2 && maxH >= 1;
+  const usable = menu.usable !== false && innerW >= (menu.palette && menu.typed != null ? 4 : 2) && maxH >= (menu.palette ? field.length + Number(body.length > 0) : 1);
   const shownBody = Math.max(0, Math.min(body.length, maxH - field.length - buttonRows.length - (body.length > 0 && buttonRows.length > 0 ? 1 : 0)));
   // Read from where the view says (menu.rs: the host keeps the offset consistent with the size).
   const scroll = Math.max(0, menu.scroll ?? 0);
@@ -582,11 +618,11 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   const lines: Cell[][] = [];
   const hits: Hit[] = [];
   const edgeCell = (text: string): Cell => ({ text, style: border });
-  const shownTitle = longTitle ? [] : titleCells;
-  const titleW = shownTitle.reduce((n, c) => n + cellWidth(c.text), 0);
+  const shownTitle = longTitle ? narrowCount ?? [] : titleCells;
+  const titleW = shownTitle.reduce((n, c) => n + measure(c.text), 0);
   lines.push([edgeCell("╭"), ...shownTitle, edgeCell(`${"─".repeat(Math.max(0, w - 2 - titleW))}╮`)]);
   const put = (cells: Cell[], inner?: number) => {
-    const used = cells.reduce((n, c) => n + cellWidth(c.text), 0);
+    const used = cells.reduce((n, c) => n + measure(c.text), 0);
     const filled = used >= innerW ? cells : [...cells, { text: " ".repeat(innerW - used), style: { backgroundColor: overlay } }];
     // Every cell sits on the overlay shade unless it has its own.
     const shaded = filled.map((c) => ({ ...c, style: { backgroundColor: overlay, ...(c.style ?? {}) } }));

@@ -3,7 +3,7 @@ source: crates/radar-slack/src/tests.rs
 assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
- radar    Slack 4   History   Settings (,)                                                                                                               ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ workspace ─────────────────────────────────────────╮
 │General               ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
 │  ├─ parts            ││  api             https://slack.com                                             ││ not checked yet                                    │

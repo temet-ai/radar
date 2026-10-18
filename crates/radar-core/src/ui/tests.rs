@@ -669,7 +669,7 @@ fn page_text(w: u16) -> String {
             title: Span::raw("Label the map drawer so the maps can be found again"),
             details: vec![Span::raw("Alice E."), Span::raw(" · "), Span::raw("shelf-4 → archive")],
             under: Some(Line::raw("kept at  /work/north/maps · on shelf-4")),
-            tabs: vec!["Overview".into(), "Changes · 2".into(), "Notes · 1 open".into(), "Steps".into()],
+            tabs: vec!["Overview".into(), "Changes".into(), super::page::Tab { label: "Notes".into(), attention: true }, "Steps".into()],
             tab: 1,
             focused: false,
         };

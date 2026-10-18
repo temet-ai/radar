@@ -188,14 +188,7 @@ fn thread_view(
     }
     let tabs = vec![
         TabView::new(THREAD_TABS[0], Some(Icon::Thread)),
-        TabView::new(
-            if links.is_empty() {
-                THREAD_TABS[1].into()
-            } else {
-                format!("{} · {}", THREAD_TABS[1], links.len())
-            },
-            Some(Icon::Link),
-        ),
+        TabView::new(THREAD_TABS[1], Some(Icon::Link)),
     ];
     let fetched = p.threads.get(&thread_key(channel, ts));
     let status =

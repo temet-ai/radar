@@ -229,3 +229,93 @@ describe("pointer motion over an open menu", () => {
     expect(sent).toEqual([]);
   });
 });
+
+describe("a capturing command palette", () => {
+  const palette: MenuView = {
+    id: "palette", title: "commands", question: false, selected: 0, typed: "re", caret: 2,
+    palette: { matched: 2, total: 8, highlights: [[0], [0]] },
+    items: [
+      { value: "refresh", label: "Refresh", hint: "", keys: "r", key: "r", target: "chrome:menu:0" },
+      { value: "restore", label: "Restore", hint: "", keys: "s", target: "chrome:menu:1" },
+    ],
+  };
+
+  it("sends typing, editing, and navigation to the host without invoking shortcut letters", () => {
+    const { c, sent } = setup({ menu: palette, capturing: true });
+    c.key("r", none);
+    c.keyChord({ key: "backspace" });
+    c.keyChord({ key: "down" });
+    c.keyChord({ key: "enter" });
+    expect(sent).toEqual([
+      { intent: "key", chord: { key: { char: "r" } } },
+      { intent: "key", chord: { key: "backspace" } },
+      { intent: "key", chord: { key: "down" } },
+      { intent: "key", chord: { key: "enter" } },
+    ]);
+  });
+
+  it("allows wheel, hover, and row activation while retaining the query", () => {
+    const sent: Intent[] = [];
+    const view: InputView = {
+      menu: () => palette, capturing: () => true,
+      route: (chord) => ({ intent: "key", chord }),
+      hits: () => [{ x: 2, y: 3, w: 20, h: 1, target: "chrome:menu:1" }],
+    };
+    const c = new InputController(view, (intent) => sent.push(intent), new UiState(), () => 0);
+    c.mouse("\x1b[<65;4;4M\x1b[<35;4;4M\x1b[<0;4;4M");
+    expect(sent).toEqual([
+      { intent: "key", chord: { key: "down" } },
+      { intent: "select", target: "chrome:menu:1" },
+      { intent: "activate", target: "chrome:menu:1" },
+    ]);
+    expect(palette.typed).toBe("re");
+  });
+
+  it("forwards scoped palette footer clicks unchanged, including repeated clicks before a new frame", () => {
+    const target = "chrome:palette-key:7:0:0";
+    const sent: Intent[] = [];
+    const view: InputView = {
+      menu: () => palette, capturing: () => true,
+      route: (chord) => ({ intent: "key", chord }),
+      hits: () => [{ x: 2, y: 23, w: 20, h: 1, target }],
+    };
+    const c = new InputController(view, (intent) => sent.push(intent), new UiState(), () => 0);
+    c.mouse("\x1b[<0;4;24M\x1b[<0;4;24M");
+    expect(sent).toEqual([
+      { intent: "activate", target },
+      { intent: "activate", target },
+    ]);
+    expect(palette.typed).toBe("re");
+  });
+
+  it("recognizes scoped palette footer hover during capture while unrelated targets stay unlit", () => {
+    const target = "chrome:palette-key:7:0:0";
+    const footer = { x: 2, y: 23, w: 20, h: 1, target };
+    const lit: Array<Hit | null> = [];
+    const view: InputView = {
+      menu: () => null, capturing: () => true,
+      route: (chord) => ({ intent: "key", chord }),
+      hits: () => [footer, { x: 2, y: 3, w: 20, h: 1, target: "row:watch" }],
+    };
+    const c = new InputController(view, () => {}, new UiState(), () => 0, (hit) => lit.push(hit));
+    c.mouse("\x1b[<35;4;24M");
+    c.refreshHover();
+    c.mouse("\x1b[<35;4;4M");
+    expect(lit).toEqual([footer, footer, null]);
+  });
+
+  it("reads overflowing palette rows one line at a time without choosing another command", () => {
+    const { c, sent } = setup({ menu: { ...palette, lines: 30, shown: 5, scroll: 2 }, capturing: true });
+    c.mouse("\x1b[<64;4;4M\x1b[<65;4;4M");
+    expect(sent).toEqual([
+      { intent: "invoke", action: "chrome.palette.scroll_up" },
+      { intent: "invoke", action: "chrome.palette.scroll_down" },
+    ]);
+  });
+
+  it("still ignores the wheel while typing in an ordinary menu", () => {
+    const { c, sent } = setup({ menu: { ...palette, palette: undefined }, capturing: true });
+    c.mouse("\x1b[<65;4;4M");
+    expect(sent).toEqual([]);
+  });
+});

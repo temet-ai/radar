@@ -11,6 +11,7 @@
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 
+mod palette;
 mod source_navigation;
 mod act;
 mod agent_context;
@@ -319,6 +320,10 @@ impl Plugin for GitPlugin {
 
     fn related(&self, subject: &Subject) -> Vec<Subject> {
         scoped::related(self, subject)
+    }
+
+    fn palette_targets(&self) -> Vec<radar_core::palette::PaletteTarget> {
+        palette::targets(self)
     }
 
     fn show(&mut self, subject: &Subject) -> radar_core::Showing {

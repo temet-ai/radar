@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useContext, useId, useLayoutEffect } from "react";
 import { Box, Text, Transform } from "ink";
 import { layerMark } from "../app/scrim.js";
 import { inkStyle } from "../text/theme.js";
@@ -25,6 +25,9 @@ import type { RailLaid } from "./rail.js";
 import { layoutTour } from "./tour.js";
 import { TextLine } from "../text/TextLine.js";
 import { Framed } from "../app/Panes.js";
+import { motion } from "../motion/motion.js";
+import { MotionSceneContext } from "../motion/scene.js";
+import { settingsTreeMark } from "../motion/node-marks.js";
 import type { ChromeView, Hit, MenuView } from "./types.js";
 import type { TourCard } from "../protocol/generated/TourCard.js";
 
@@ -192,6 +195,14 @@ export function SettingsNavPane({
   focused: boolean;
 }) {
   const nav = chrome.settings;
+  const scene = useContext(MotionSceneContext);
+  const markId = useId();
+  useLayoutEffect(() => {
+    if (!scene || !nav || motion.engine.level !== "full") return;
+    const area = { x: 1, y: frame.bodyTop + 1, w: Math.max(0, frame.navWidth - 3), h: Math.max(0, frame.bodyHeight - 2) };
+    motion.markTree(markId, scene, settingsTreeMark(nav, frame.navRows, area));
+    return () => motion.markTree(markId, scene);
+  });
   if (!nav) return null;
   // shell.rs settings: `has(Pane::Nav)` is the body having the keys and the host's focus being the nav; the caller says.
   // BandedTree: a tree taller than its pane draws a scrollbar in the pane's last inner column and keeps the selected row in view.
@@ -220,6 +231,7 @@ export function SettingsNavPane({
   return (
     <Framed
       title={`settings${nav.unsaved ? " · unsaved" : ""}`}
+      pane="nav"
       width={frame.navWidth}
       height={frame.bodyHeight}
       focused={focused}
@@ -238,6 +250,13 @@ export function SettingsNavPane({
 }
 
 export function HistoryOverlay({ layout }: { layout: HistoryLayout }) {
+  const scene = useContext(MotionSceneContext);
+  const id = useId();
+  useLayoutEffect(() => {
+    if (!scene || motion.engine.level !== "full") return;
+    layout.panes.forEach((pane, i) => motion.markPane(`${id}:${i}`, scene, pane));
+    return () => layout.panes.forEach((_, i) => motion.markPane(`${id}:${i}`, scene));
+  });
   return (
     <Box flexDirection="column" flexShrink={0}>
       {layout.lines.map((cells, i) => (
@@ -298,7 +317,7 @@ export function TourCardBox({ card, width, height }: { card: TourCard; width: nu
           <Text> </Text>
         </Transform>
       </Box>
-      <Framed title={t.title} width={t.w} height={t.h} focused>
+      <Framed title={t.title} width={t.w} height={t.h} focused rampOwner={false}>
         <Box flexDirection="column" paddingLeft={1} width={t.w - 2} height={t.h - 2} overflow="hidden">
           {t.lines.map((l, i) => (
             <Box key={i} width={inner} height={1} flexShrink={0}>

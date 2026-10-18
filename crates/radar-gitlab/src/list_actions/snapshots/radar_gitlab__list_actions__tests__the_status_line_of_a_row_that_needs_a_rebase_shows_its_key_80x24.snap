@@ -2,7 +2,7 @@
 source: crates/radar-gitlab/src/list_actions/tests.rs
 expression: text
 ---
- radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+ radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
 │ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
 │ Needs my action    4 ││▌ B team-b                                            │

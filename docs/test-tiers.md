@@ -33,6 +33,17 @@ rendering, storage and contracts, so linking core is not unit-lane isolation.
 
 ## Tier ownership
 
+The `core-focus-ramp-kit` scope classifies the color sampler, clockwise perimeter,
+protected-title geometry and wordmark helpers. These use explicit themes and
+caller-owned local buffers, without a Host or full application frame. Its three
+Block/card contracts intentionally compose production painters to prove clipped
+titles and legacy inner geometry survive, and scrollbars paint last. The
+`core-focus-ramp-view` contracts paint real screens to establish caret ownership,
+page/work-area dock eligibility and exact lower-tier preservation. The
+`core-focus-ramp-shell` unit cases cover pure chrome eligibility and wordmark
+span/clipping behavior. Cross-renderer App parity requires separate execution
+evidence.
+
 - **Unit:** one component's pure model, parsing or effect-envelope behavior. No
   real host, full frame, wall-clock reads, network, credential lookup, filesystem/database, process
   or mutable global fixture state. Async does not alone make a test integration:
@@ -49,6 +60,24 @@ rendering, storage and contracts, so linking core is not unit-lane isolation.
   is separate from scenario coverage; retain full `scripts/check-mixes` at merge.
 - **Live:** explicitly ignored real-service checks, outside offline execution.
   Do not use `--run-ignored all` or `--include-ignored` for inventory validation.
+
+Names-only tab coverage has four narrow core scopes. `core-tab-attention-host`
+is integration: the host combines readiness, grouping, plugin badges and unsaved
+settings into chrome attention while preserving status data. The
+`core-tab-attention-shell` contract inspects the real Ratatui top bar's cells,
+mnemonics and click targets; `core-tab-attention-wire` protects JSON attention
+fields and their absent-field defaults without constructing a host.
+`core-page-tab-rows` classifies the complete small `ui::page::tests` module as
+unit: its cases use caller-owned tab values, local row-sized buffers and local
+hit collections. They do not construct a host, render a full application frame,
+read the clock, access persistence/network, or spawn a process. A local buffer
+alone does not make an isolated layout/hit-helper case integration. Ink rendering
+and cross-renderer parity remain separate checks; these declarations do not
+establish that either renderer's suite has run.
+
+The owner-local `gitlab-page-tab-attention` unit scope uses `MrBuilder` and
+owned detail/discussion values to distinguish unresolved work and failed
+pipelines from ordinary totals. It constructs no plugin, host, demo or frame.
 
 The two Jira builder migration comparisons remain **contract** tests: their
 legacy side constructs a full demo plugin, whose constructor reads the clock
@@ -208,7 +237,7 @@ scripts/check-test-tiers --nextest /tmp/github-tests.json --scope github-models 
 cargo nextest list --locked -p radar-github --lib --features test-support,demo --message-format json > /tmp/github-tests.json
 scripts/check-test-tiers --nextest /tmp/github-tests.json --scope github-models --scope github-hosted-fixtures
 cargo nextest list --locked -p radar-gitlab --lib --features test-support,demo --message-format json > /tmp/gitlab-tests.json
-scripts/check-test-tiers --nextest /tmp/gitlab-tests.json --scope gitlab-fixtures --scope gitlab-filter-builder-parity --scope gitlab-confirmation-unit --scope gitlab-confirmation-contract
+scripts/check-test-tiers --nextest /tmp/gitlab-tests.json --scope gitlab-fixtures --scope gitlab-filter-builder-parity --scope gitlab-confirmation-unit --scope gitlab-confirmation-contract --scope gitlab-page-tab-attention
 cargo nextest list --locked -p radar-jira --lib --features test-support,demo --message-format json > /tmp/jira-tests.json
 scripts/check-test-tiers --nextest /tmp/jira-tests.json --scope jira-fixtures --scope jira-start-builder-parity --scope jira-dispatch-builder-parity --scope jira-filter-unit --scope jira-filter-host-contract --scope jira-selected-checkpoint
 
@@ -219,6 +248,11 @@ scripts/check-test-tiers --nextest /tmp/provider-tests.json --scope github-journ
 # Core migrated areas need their explicit test-support feature:
 cargo nextest list --locked -p radar-core --lib --features test-support --message-format json > /tmp/core-tests.json
 scripts/check-test-tiers --nextest /tmp/core-tests.json --scope core-completion --scope core-scenarios
+
+# Names-only tabs: the same unfiltered core discovery checks all four narrow scopes:
+scripts/check-test-tiers --nextest /tmp/core-tests.json \
+  --scope core-tab-attention-host --scope core-tab-attention-shell \
+  --scope core-tab-attention-wire --scope core-page-tab-rows
 
 # Owner-local disposable checkout fixture discovery (real subprocess tests):
 cargo nextest list --locked -p radar-git --lib --features test-support,demo --message-format json > /tmp/git-tests.json
@@ -302,3 +336,20 @@ module-prefix or complete-binary scope; enumerate every discovered case and its
 tier; add its boundary rationale; run discovery plus the checker; and execute the
 appropriate owner-local tests. Missing cases and new unclassified cases must be
 resolved explicitly, never by deleting coverage or raising all budgets.
+
+
+## Command palette coverage
+
+The `core-palette-matching`, `core-palette-host`, `core-palette-shell` and
+`core-palette-wire` scopes separate pure matching, host routing, Unicode layout,
+and protocol serialization. Each of GitLab, GitHub, Jira, Slack and Git has an
+owner-local `*-palette-targets` unit scope for cached inventory and scoped routing.
+The host's raw-mouse case is a renderer contract, not a unit: it constructs the
+real shell hit map and proves a second press cannot confirm a replacement menu.
+
+For focused visual diagnosis, that same contract accepts
+`RADAR_PALETTE_ARTIFACTS=/absolute/output/directory` to export synthetic discovery
+and search checkpoints at 80×24 and 160×40: real Ratatui SVG/text and Bridge JSON.
+Ordinary checks write nothing. Replay the JSON through the existing Ink App test
+harness to inspect the actual frontend; these artifacts do not establish live
+terminal/PTY behavior or pixel equivalence.

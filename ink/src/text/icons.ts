@@ -12,3 +12,6 @@ export const ICONS: Readonly<Record<string, string>> = new Proxy(
       typeof name === "string" && Boolean(currentLook().icons[name]?.glyph),
   },
 ) as Record<string, string>;
+
+/** Semantic attention mark, shared with ui::icon::ATTENTION_DOT; visible even with icon packs off. */
+export const ATTENTION_DOT = "●";

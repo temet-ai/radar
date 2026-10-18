@@ -2,6 +2,6 @@
 import type { Ink } from "./Ink.js";
 
 /**
- * A count or state after a tab's label (`3`, `unsaved`).
+ * A count or state in chrome outside tab labels.
  */
 export type Badge = { text: string, ink: Ink, };

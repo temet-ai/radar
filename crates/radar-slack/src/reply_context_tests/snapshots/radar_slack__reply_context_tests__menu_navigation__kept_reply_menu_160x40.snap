@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/reply_context_tests/menu_navigation.rs
 expression: screen
 ---
- radar    Slack 4   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
 ╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
 │ For you              4 ││ last 7 days                                                    REPLIES  WHEN       ││ ── #team · yesterday ──                      │
 │ Discussions            ││mentions you                                                                        ││ ● 07:11  Bob Builder                         │

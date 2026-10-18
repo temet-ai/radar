@@ -1,11 +1,10 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 999
 expression: "gallery_text(80, 24, tab)"
 ---
  Gallery › Row states
  The kit: every element on sample data                            colours: none
- Markdown  Diff  Motion  Colours  Tones  [Row states]  Grid states  Waiting  Lo
+ Markdown  Diff  Motion  Colours  Tones  [Row states]  Grid states  Waiting  L…
 ╭ list, focused (cursor on the fourth row) ───────────────────────────────────╮
 │ A HEADING: THE CURSOR SKIPS IT                                              │█
 │  a plain row                                                                │█

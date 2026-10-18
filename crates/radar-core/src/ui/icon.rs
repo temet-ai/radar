@@ -859,6 +859,14 @@ pub fn or(theme: &Theme, icon: Icon, fallback: &str, style: ratatui::style::Styl
     }
 }
 
+/// The one-cell attention mark is meaningful even when decorative icons are off.
+pub const ATTENTION_DOT: &str = "●";
+
+/// A tab's attention mark: always warning ink, independent of the icon pack.
+pub fn attention(theme: &Theme) -> Span<'static> {
+    Span::styled(ATTENTION_DOT, theme.s(crate::design::theme::Slot::StatusWarning))
+}
+
 /// Whether icons are drawn at all.
 pub fn on(theme: &Theme) -> bool {
     theme.icons().on()

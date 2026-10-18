@@ -1,9 +1,9 @@
 //! The chrome every screen shares: the top bar (brand, screen tabs with
-//! counts, sync state), the status line (mode, keys, counts), menus and help.
+//! attention marks, sync state), the status line (mode, keys, counts), menus and help.
 //! A plugin's screen draws the whole body between them. The settings screen
 //! is laid out here: nav (the sections tree) │ middle (the section) │ detail (what the selected row is).
 
-use crate::design::theme::Slot;
+use crate::design::theme::{Slot, Tier};
 use crate::view::chrome::{ChromeView, Hint, KeysAt, StatusLine};
 use crate::view::{Ink, Target};
 use ratatui::Frame;
@@ -19,7 +19,7 @@ use crate::compose::Parts;
 use crate::design::help_bar::KeyHint;
 use crate::host::{Hit, Host, Owner, View};
 use crate::motion::{self, Region};
-use crate::plugin::{Pane, Tone};
+use crate::plugin::Pane;
 use crate::view_tui::Cx;
 use crate::theme::Theme;
 use crate::ui::icon::{self, Icon};
@@ -44,6 +44,9 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
     // The chrome is view data the host produces (having measured what
     // scrolls at this size); this paints it.
     let chrome = host.chrome_view_with(area.width, area.height, theme);
+    if host.motion_enabled() && chrome.menu.is_none() && chrome.tour.is_none() {
+        motion::frames::context(host.motion_context(), host.motion_fold().cloned());
+    }
     if let Some(view) = &chrome.history {
         *host.hovered.borrow_mut() = None;
         let [top, body] =
@@ -95,7 +98,10 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
         };
         match host.screen() {
             _ if let Some(s) = &chrome.setup => setup::body(host, theme, s, body, buf, &cursor),
-            Some((p, _)) if !host.ready(p) => crate::parts::setup_page(host, p, theme, body, buf),
+            Some((p, _)) if !host.ready(p) => crate::parts::setup_page(
+                host, p, theme, body, buf,
+                pane_ramp_allowed(&chrome, host.dock_view().is_some_and(|d| d.visible && d.focused)),
+            ),
             Some((p, spec)) => {
                 let plugin_hits = std::cell::RefCell::new(Vec::new());
                 let cx = Cx {
@@ -116,7 +122,10 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
                         // ([`crate::dock::NOTICE`]), under the middle pane.
                         view.dock = host.dock_view();
                         host.frontend.resolve_pictures(&view, host.plugins[p].as_ref());
-                        crate::view_tui::render_screen(&host.frontend, &view, body, buf, &cx)
+                        crate::view_tui::render_screen_with_ramp(
+                            &host.frontend, &view, body, buf, &cx,
+                            pane_ramp_allowed(&chrome, false),
+                        )
                     }
                     None => widgets::empty(buf, body, theme, "This part has no view for this screen."),
                 }
@@ -241,7 +250,7 @@ fn mnemonic(name: &str, key: char, base: Style, mark: Style) -> Vec<Span<'static
     }
 }
 
-/// ` radar   Books 3   Settings          ⠷ synced 12s · every 60s `
+/// ` radar   Books ●   Settings          ⠷ synced 12s · every 60s `
 /// with each tab's shortcut letter underlined.
 fn top_bar(host: &Host, theme: &Theme, chrome: &ChromeView, area: Rect, buf: &mut Buffer) {
     buf.set_style(area, theme.bg(Slot::BgOverlay));
@@ -317,8 +326,14 @@ fn top_bar(host: &Host, theme: &Theme, chrome: &ChromeView, area: Rect, buf: &mu
     }
     right.spans.push(mode);
     let right_w = part_w + mode_w;
+    let tab_area = Rect {
+        width: if right_w < area.width { area.width - right_w } else { area.width },
+        ..area
+    };
+    hits.iter_mut().for_each(|(rect, _)| *rect = rect.intersection(tab_area));
+    hits.retain(|(rect, _)| !rect.is_empty());
     host.hits.borrow_mut().append(&mut hits);
-    buf.set_line(area.x, area.y, &Line::from(spans), area.width);
+    buf.set_line(area.x, area.y, &Line::from(spans), tab_area.width);
     if right_w < area.width {
         buf.set_line(area.x + area.width - right_w, area.y, &right, right_w);
         // A padded target, as a label's (`Cx::hit_label`).
@@ -340,6 +355,75 @@ fn ink_style(theme: &Theme, ink: Ink, strong: bool) -> Style {
     if strong { theme.bold(slot) } else { theme.s(slot) }
 }
 
+/// Body ownership is separate from legacy focus styles and in-pane capture.
+fn pane_ramp_allowed(chrome: &ChromeView, dock_takes_keys: bool) -> bool {
+    chrome.keys_at == KeysAt::Body && chrome.menu.is_none() && !dock_takes_keys
+}
+
+/// Keep the original padded span below truecolor, including its clipping.
+fn brand_spans(theme: &Theme, brand: &str, trailing: bool) -> Vec<Span<'static>> {
+    let base = theme.bold(Slot::AccentPrimary);
+    if theme.tier() != Tier::TrueColor {
+        let text = if trailing { format!(" {brand} ") } else { format!(" {brand}") };
+        return vec![Span::styled(text, base)];
+    }
+    let mut spans = vec![Span::styled(" ", base)];
+    spans.extend(ui::frame::wordmark(theme, brand, base));
+    if trailing {
+        spans.push(Span::styled(" ", base));
+    }
+    spans
+}
+
+#[cfg(test)]
+mod focus_ramp_tests {
+    use super::*;
+
+    #[test]
+    fn only_body_keys_without_a_menu_or_shown_dock_allow_pane_ramps() {
+        let mut chrome = ChromeView::new(80, 24);
+        assert!(pane_ramp_allowed(&chrome, false));
+        assert!(!pane_ramp_allowed(&chrome, true));
+        for keys in [KeysAt::Bar, KeysAt::Sources, KeysAt::PageTabs] {
+            chrome.keys_at = keys;
+            assert!(!pane_ramp_allowed(&chrome, false));
+        }
+        chrome.keys_at = KeysAt::Body;
+        chrome.menu = Some(crate::view::chrome::MenuView::new("menu", "choices", vec![]));
+        assert!(!pane_ramp_allowed(&chrome, false));
+    }
+
+    #[test]
+    fn normal_and_setup_wordmarks_keep_padding_and_exact_low_tier_spans() {
+        for tier in [Tier::TrueColor, Tier::Ansi256, Tier::Ansi16, Tier::Mono] {
+            let theme = Theme::build(&crate::theme::ThemeConfig { icons: "off".into(), ..Default::default() }, tier, &[]);
+            let base = theme.bold(Slot::AccentPrimary);
+            for trailing in [false, true] {
+                let want = if trailing { " a\u{301}界z " } else { " a\u{301}界z" };
+                let spans = brand_spans(&theme, "a\u{301}界z", trailing);
+                assert_eq!(spans.iter().map(|s| s.content.as_ref()).collect::<String>(), want);
+                if tier == Tier::TrueColor {
+                    assert_eq!(spans[0], Span::styled(" ", base));
+                    assert_eq!(spans[1].content, "a\u{301}");
+                    assert_eq!(spans[1].style.fg, theme.s(Slot::GlowPurple).fg);
+                    assert_eq!(spans[3].style.fg, theme.s(Slot::GlowCyan).fg);
+                    if trailing { assert_eq!(spans.last().unwrap(), &Span::styled(" ", base)); }
+                } else {
+                    assert_eq!(spans, vec![Span::styled(want, base)]);
+                    for width in 1..=8 {
+                        let area = Rect::new(0, 0, width, 1);
+                        let mut old = Buffer::empty(area);
+                        let mut new = Buffer::empty(area);
+                        old.set_line(0, 0, &Line::from(Span::styled(want, base)), width);
+                        new.set_line(0, 0, &Line::from(spans.clone()), width);
+                        assert_eq!(new, old);
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// The top bar's `radar` and its tabs, with or without their icons, and each
 /// tab's area for clicks.
 fn tabs(
@@ -352,17 +436,15 @@ fn tabs(
 ) -> (Vec<Span<'static>>, Vec<(Rect, Hit)>) {
     let mut hits = Vec::new();
     let brand = format!(" {} ", chrome.top_bar.brand);
-    let mut x = area.x + brand.chars().count() as u16 + 2;
-    let mut spans = vec![
-        Span::styled(brand, theme.bold(Slot::AccentPrimary)),
-        Span::raw("  "),
-    ];
+    let mut x = area.x + ui::width(&brand) as u16 + 2;
+    let mut spans = brand_spans(theme, &chrome.top_bar.brand, true);
+    spans.push(Span::raw("  "));
     let bar_has_keys = chrome.keys_at == KeysAt::Bar;
     let mut tab = |spans: &mut Vec<Span<'static>>,
                    key: char,
                    name: &str,
                    icon: Option<Icon>,
-                   badge: Option<(String, Tone)>,
+                   attention: bool,
                    on: bool,
                    hit: Option<Hit>| {
         let base = if on && bar_has_keys {
@@ -389,9 +471,11 @@ fn tabs(
             parts.push(lead);
         }
         parts.extend(mnemonic(name, key, base, mark));
-        if let Some((text, t)) = badge {
+        if attention {
             parts.push(Span::styled(" ", base));
-            parts.push(Span::styled(text, widgets::tone(theme, t).patch(bg)));
+            let mut dot = icon::attention(theme);
+            dot.style = dot.style.patch(bg);
+            parts.push(dot);
         }
         parts.push(Span::styled(" ", base));
         let w: u16 = parts.iter().map(|s| s.width() as u16).sum();
@@ -428,7 +512,7 @@ fn tabs(
             t.mnemonic,
             &name,
             t.icon,
-            t.badge.as_ref().map(|b| (b.text.clone(), b.ink.tone())),
+            t.attention,
             t.active,
             hit,
         );
@@ -726,7 +810,7 @@ pub(crate) fn measure(host: &Host, theme: &Theme, width: u16, height: u16) {
         measure_settings_detail(host, theme, body);
     }
     if let Some(open) = &host.menu {
-        menu::measure(&crate::host::menu_view_of(open), &open.viewport, theme, body);
+        menu::measure(&host.menu_view().expect("menu is open"), &open.viewport, theme, body);
     }
 }
 
@@ -834,6 +918,9 @@ fn settings(
     // A pane draws as focused unless the top bar has the keys.
     let has = |pane: Pane| chrome.keys_at != KeysAt::Bar && host.focus == pane;
     let nav_focused = has(Pane::Nav);
+    let dock_takes_keys = host.current_section().is_some()
+        && host.dock_view().is_some_and(|d| d.visible && d.focused);
+    let ramp_allowed = pane_ramp_allowed(chrome, dock_takes_keys);
     let mut block = widgets::panel(theme, "settings", nav_focused);
     if snav.unsaved {
         block = block.title_bottom(Line::styled(
@@ -843,10 +930,29 @@ fn settings(
     }
     let inner = block.inner(nav);
     block.render(nav, buf);
+    let mut keep = vec![ui::frame::title_region(
+        nav, ui::width(" settings "), ui::frame::TitleEdge::Top,
+    )];
+    if snav.unsaved {
+        keep.push(ui::frame::title_region(
+            nav, ui::width(" unsaved · w retries "), ui::frame::TitleEdge::Bottom,
+        ));
+    }
+    motion::frames::with_frame(crate::view::PaneId::Nav, "settings_nav", || {
+        ui::frame::focus_border(theme, nav, buf, nav_focused && ramp_allowed, &keep);
+    });
     let columns = crate::ui::Columns::default();
     let rows_area = crate::ui::BandedTree::new(&nodes, &columns, crate::ui::TreeLook::new(theme))
         .focused(nav_focused)
         .render(theme, inner, buf, &mut state);
+    if motion::frames::enabled() {
+        let visible: Vec<(Vec<String>, u16)> = (rows_area.y..rows_area.bottom()).filter_map(|y| {
+            state.rendered_at(ratatui::layout::Position::new(rows_area.x, y)).map(|path| (path.to_vec(), y))
+        }).collect();
+        let open = snav.groups.iter().filter(|group| group.open && visible.iter().any(|(path, _)| path == &vec![group.target.0.clone()])).map(|group| vec![group.target.0.clone()]).collect();
+        let viewport = Rect { width: inner.width.saturating_sub(1), ..inner };
+        motion::frames::tree(crate::view::PaneId::Nav, "settings_nav", viewport, visible, open);
+    }
     // Clickable: the panes, then each row the tree drew.
     {
         let mut hits = host.hits.borrow_mut();
@@ -896,12 +1002,14 @@ fn settings(
     let about = section_view
         .as_ref()
         .map_or_else(|| snav.detail_title.clone(), |v| v.detail_title.clone());
-    let mid_block = widgets::panel(theme, &name, has(Pane::Middle));
-    let mid = mid_block.inner(middle);
-    mid_block.render(middle, buf);
-    let det_block = widgets::panel(theme, &about, has(Pane::Detail));
-    let det = det_block.inner(detail);
-    det_block.render(detail, buf);
+    let mid = motion::frames::with_frame(crate::view::PaneId::Middle, "body", || ui::card::panel_owned(
+        theme, middle, buf, &name,
+        ui::frame::Focus { focused: has(Pane::Middle), owns_keys: has(Pane::Middle) && ramp_allowed },
+    ));
+    let det = motion::frames::with_frame(crate::view::PaneId::Detail, "body", || ui::card::panel_owned(
+        theme, detail, buf, &about,
+        ui::frame::Focus { focused: has(Pane::Detail), owns_keys: has(Pane::Detail) && ramp_allowed },
+    ));
     // Rows to choose in the navigation and the section, text in the detail.
     // The nav's rows, not its scrollbar column (the tree's rows area is as
     // wide as the rows it drew).
@@ -1077,6 +1185,53 @@ pub fn row_text(buf: &Buffer, y: u16) -> String {
 mod tests {
     use super::*;
     use crate::host::tests::probe;
+
+    mod tab_attention {
+        use super::*;
+        use crate::design::theme::Tier;
+
+        #[test]
+        fn attention_dot_keeps_mnemonic_style_and_click_target() {
+            let mut host = two();
+            let mut chrome = host.chrome_view(80, 24);
+            chrome.top_bar.brand = "界".into();
+            chrome.top_bar.tabs[1].label = "日本Beta".into();
+            chrome.top_bar.tabs[1].attention = true;
+            for tab in &mut chrome.top_bar.tabs { tab.icon = None; }
+            chrome.top_bar.words = None;
+            let mut wide = None;
+            for pack in ["off", "unicode", "emoji"] {
+                host.colours.cfg.icons = pack.into();
+                let theme = host.build_theme(Tier::TrueColor);
+                for width in [80, 35] {
+                    let area = Rect::new(0, 0, width, 1);
+                    let mut buf = Buffer::empty(area);
+                    host.hits.borrow_mut().clear();
+                    top_bar(&host, &theme, &chrome, area, &mut buf);
+                    let text = row_text(&buf, 0);
+                    if width == 80 {
+                        let dot = text.find(icon::ATTENTION_DOT).unwrap();
+                        let x = ui::width(&text[..dot]) as u16;
+                        assert_eq!(text.matches(icon::ATTENTION_DOT).count(), 1);
+                        assert_eq!(Some(buf[(x, 0)].fg), theme.s(Slot::StatusWarning).fg);
+                        assert_eq!(host.hit_at(x, 0), Some(Hit::Tab(View::Screen(1))));
+                        let key = ui::width(&text[..text.find('B').unwrap()]) as u16;
+                        assert!(buf[(key, 0)].modifier.contains(Modifier::UNDERLINED));
+                        if let Some(before) = &wide { assert_eq!(&text, before); }
+                        wide = Some(text.clone());
+                    }
+                    let mode_w = ui::width(&format!(" {} ", chrome.top_bar.mode.text)) as u16;
+                    if mode_w < width {
+                        for x in width - mode_w..width {
+                            assert!(!matches!(host.hit_at(x, 0), Some(Hit::Tab(_) | Hit::HistoryTab)),
+                                "covered tab target at {x}: {text}");
+                        }
+                    }
+                    assert!(host.hits.borrow().iter().all(|(rect, _)| rect.right() <= width));
+                }
+            }
+        }
+    }
 
     #[test]
     fn the_top_bar_has_history_before_settings() {

@@ -211,7 +211,7 @@ impl Gallery {
             title: Span::styled("The kit: every element on sample data", theme.bold(Slot::TextEmphasis)),
             details: vec![Span::styled(note.to_string(), theme.s(Slot::TextMuted))],
             under: None,
-            tabs,
+            tabs: tabs.into_iter().map(Into::into).collect(),
             tab,
             focused: false,
         };
@@ -346,7 +346,10 @@ impl Gallery {
         lines.extend(wrapped(NOTE, width, Span::styled("│ ", bar), theme.s(Slot::TextPrimary)));
         lines.push(Line::default());
         lines.extend(wrapped(NOTE, width, Span::raw(""), theme.s(Slot::TextSecondary)));
-        card(theme, area, buf, "north-wing #104", true, &self.card, lines);
+        super::card::card_owned(
+            theme, area, buf, "north-wing #104",
+            super::frame::Focus { focused: true, owns_keys: true }, &self.card, lines,
+        );
     }
 
     fn meters_tab(&self, theme: &Theme, area: Rect, buf: &mut Buffer) {

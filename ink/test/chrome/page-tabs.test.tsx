@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { freezeClock, mount, tick } from "../app/harness.js";
 import { plain } from "../contract/support.js";
+import { ATTENTION_DOT } from "../../src/text/icons.js";
 import { iconOf } from "../../src/text/look.js";
 import { booksChrome } from "./fixture.js";
 
@@ -30,7 +31,7 @@ describe.each([80, 160])("an item page's tab row at %i columns", (cols) => {
     m.welcome();
     m.snapshot({ chrome: booksChrome({ width: cols, height: rows }), screen: view, section: null }, 1);
     await tick(40);
-    const tabs: Array<{ icon?: string; label: string }> = view.page.tabs;
+    const tabs: Array<{ icon?: string; label: string; attention?: boolean }> = view.page.tabs;
     const lead = (t: { icon?: string }) => {
       const g = iconOf(t.icon)?.glyph;
       return g ? `${g} ` : "";
@@ -40,7 +41,10 @@ describe.each([80, 160])("an item page's tab row at %i columns", (cols) => {
       .split("\n")
       .find((l) => l.includes("Overview"));
     expect(row, "the tab row").toBeDefined();
-    const want = tabs.map((t, i) => (i === view.page.tab ? `[${lead(t)}${t.label}]` : `${lead(t)}${t.label}`)).join("  ");
+    const want = tabs.map((t, i) => {
+      const label = `${lead(t)}${t.label}${t.attention ? ` ${ATTENTION_DOT}` : ""}`;
+      return i === view.page.tab ? `[${label}]` : label;
+    }).join("  ");
     expect(row!.trim()).toBe(want);
   });
 });

@@ -113,6 +113,129 @@ fn compact_line(
     Line::from(spans)
 }
 
+/// Apply scalar-position highlights without breaking combining marks or emoji sequences.
+fn palette_label(
+    text: &str,
+    highlights: &[usize],
+    base: Style,
+    matched: Style,
+) -> Vec<Line<'static>> {
+    let positions: std::collections::BTreeSet<_> = highlights.iter().copied().collect();
+    let mut offset = 0;
+    text.split('\n')
+        .map(|raw| {
+            let line = Line::raw(raw.trim_end_matches('\r'));
+            let mut spans = Vec::new();
+            for g in line.styled_graphemes(Style::default()) {
+                let end = offset + g.symbol.chars().count();
+                let style = if positions.range(offset..end).next().is_some() {
+                    matched
+                } else {
+                    base
+                };
+                spans.push(Span::styled(g.symbol.to_string(), style));
+                offset = end;
+            }
+            offset += raw.chars().count() - raw.trim_end_matches('\r').chars().count() + 1;
+            Line::from(spans)
+        })
+        .collect()
+}
+
+/// Palette rows have the same explicit grapheme wrapping in both renderers. A
+/// continuation remains part of its original command; no text is clipped away.
+fn palette_wrap(lines: Vec<Line<'static>>, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(2);
+    let mut out = Vec::new();
+    for line in lines {
+        let mut spans = Vec::new();
+        let mut used = 0;
+        for g in line.styled_graphemes(Style::default()) {
+            let cells = ui::width(g.symbol);
+            if used > 0 && used + cells > width {
+                out.push(Line::from(std::mem::take(&mut spans)));
+                used = 0;
+            }
+            spans.push(Span::styled(g.symbol.to_string(), g.style));
+            used += cells;
+        }
+        out.push(Line::from(spans));
+    }
+    out
+}
+
+fn palette_lines(
+    theme: &Theme,
+    item: &MenuItem,
+    selected: bool,
+    highlights: &[usize],
+    width: u16,
+    key_w: usize,
+    hint_highlights: &[usize],
+) -> Vec<Line<'static>> {
+    let row = row_style(theme, item, selected);
+    let bg = row.bg.map_or(Style::new(), |c| Style::new().bg(c));
+    let matched = theme.bold(Slot::AccentPrimary).patch(bg);
+    let key_style = theme.bold(Slot::AccentSecondary).patch(bg);
+    let mut labels = palette_label(&item.label, highlights, row, matched);
+    if let Some(first) = labels.first_mut() {
+        if let Some(mut icon) = lead(theme, item) {
+            icon.style = icon.style.patch(bg);
+            first.spans.insert(0, icon);
+        }
+        if let Some(spec) = &item.sample {
+            first
+                .spans
+                .insert(0, Span::styled("██ ", theme.spec(spec).patch(bg)));
+        }
+    }
+    if !item.hint.is_empty() {
+        let mut hints = palette_label(
+            &item.hint,
+            hint_highlights,
+            theme.s(Slot::TextMuted).patch(bg),
+            matched,
+        );
+        if let Some(first) = hints.first_mut() {
+            let last = labels.last_mut().expect("labels include an empty line");
+            last.spans.push(Span::styled("   ", row));
+            last.spans.append(&mut first.spans);
+        }
+        labels.extend(hints.into_iter().skip(1));
+    }
+    let inner = usize::from(width).saturating_sub(2).max(2);
+    let side_keys = key_w > 0 && key_w.saturating_add(4) <= inner;
+    let text_w = if side_keys { inner - key_w - 2 } else { inner };
+    let mut lines = palette_wrap(labels, text_w);
+    for (i, line) in lines.iter_mut().enumerate() {
+        let used = line.width();
+        line.spans.insert(0, Span::styled(" ", row));
+        line.spans
+            .push(Span::styled(" ".repeat(text_w.saturating_sub(used)), row));
+        if side_keys {
+            let key = if i == 0 { item.keys.as_str() } else { "" };
+            line.spans.push(Span::styled(
+                format!(
+                    "  {}{}",
+                    " ".repeat(key_w.saturating_sub(ui::width(key))),
+                    key
+                ),
+                key_style,
+            ));
+        }
+        line.spans.push(Span::styled(" ", row));
+    }
+    if !side_keys && !item.keys.is_empty() {
+        for mut key in palette_wrap(text_lines(&item.keys, key_style), inner) {
+            let padding = inner.saturating_sub(key.width()) + 1;
+            key.spans.insert(0, Span::styled(" ".repeat(padding), row));
+            key.spans.push(Span::styled(" ", row));
+            lines.push(key);
+        }
+    }
+    lines
+}
+
 /// Split explicit newlines without normalizing the text's spaces or case.
 fn text_lines(text: &str, style: Style) -> Vec<Line<'static>> {
     text.split('\n')
@@ -202,6 +325,10 @@ impl Layout {
         let items = &view.items;
         let sel = view.selected.unwrap_or(0);
         let question = view.question;
+        let title_text = view.palette.as_ref().map_or_else(
+            || view.title.clone(),
+            |palette| format!("{} · {} of {}", view.title, palette.matched, palette.total),
+        );
         let title_icon = match view.id.as_str() {
             _ if question => Some(Icon::Warning),
             crate::host::BULK_MENU => Some(Icon::Bulk),
@@ -214,7 +341,7 @@ impl Layout {
             title.push(icon::lead(theme, icon));
         }
         title.push(Span::styled(
-            format!("{} ", view.title),
+            format!("{title_text} "),
             theme.bold(Slot::TextEmphasis),
         ));
         let title = Line::from(title);
@@ -230,6 +357,17 @@ impl Layout {
         let compact_widths: Vec<usize> = items
             .iter()
             .map(|item| {
+                if view.palette.is_some() {
+                    return item.label.split('\n').map(ui::width).max().unwrap_or(0)
+                        + lead(theme, item).map_or(0, |s| s.width())
+                        + if item.sample.is_some() { 3 } else { 0 }
+                        + if item.hint.is_empty() {
+                            0
+                        } else {
+                            3 + item.hint.split('\n').map(ui::width).max().unwrap_or(0)
+                        }
+                        + if key_w == 0 { 2 } else { key_w + 4 };
+                }
                 (if key_w == 0 {
                     1
                 } else {
@@ -289,14 +427,30 @@ impl Layout {
                     && !items[i].label.contains('\n')
                     && !items[i].hint.contains('\n'))
         });
-        let long_title = title.width() > usize::from(max_w) || view.title.contains('\n');
+        let long_title = title.width() > usize::from(max_w) || title_text.contains('\n');
+        let narrow_count = view
+            .palette
+            .as_ref()
+            .filter(|_| long_title)
+            .map(|palette| {
+                Line::styled(
+                    format!(" {} of {} ", palette.matched, palette.total),
+                    theme.bold(Slot::TextEmphasis),
+                )
+            })
+            .filter(|line| line.width() <= usize::from(width));
         let mut content = Content {
             width,
             parts: Vec::new(),
             total: 0,
         };
         if long_title {
-            let mut lines = text_lines(&view.title, theme.bold(Slot::TextEmphasis));
+            let words = if narrow_count.is_some() {
+                &view.title
+            } else {
+                &title_text
+            };
+            let mut lines = text_lines(words, theme.bold(Slot::TextEmphasis));
             if let Some(first) = lines.first_mut() {
                 let mut icons: Vec<Span<'static>> = title_icon
                     .into_iter()
@@ -305,6 +459,9 @@ impl Layout {
                     .collect();
                 icons.append(&mut first.spans);
                 first.spans = icons;
+            }
+            if view.palette.is_some() {
+                lines = palette_wrap(lines, usize::from(width.saturating_sub(1)));
             }
             content.push(lines, 1, Line::default(), None, false);
         }
@@ -323,9 +480,28 @@ impl Layout {
                 {
                     first.spans.insert(0, icon);
                 }
+                if view.palette.is_some() {
+                    lines = palette_wrap(lines, usize::from(width.saturating_sub(1)));
+                }
                 content.push(lines, 1, Line::default(), None, false);
             } else if !question {
-                if columns_fit {
+                if let Some(palette) = &view.palette {
+                    content.push(
+                        palette_lines(
+                            theme,
+                            item,
+                            i == sel,
+                            palette.highlights.get(i).map_or(&[], Vec::as_slice),
+                            width,
+                            key_w,
+                            palette.hint_highlights.get(i).map_or(&[], Vec::as_slice),
+                        ),
+                        0,
+                        Line::default(),
+                        Some(i),
+                        i == sel,
+                    );
+                } else if columns_fit {
                     content.push(
                         vec![compact_line(theme, item, i == sel, key_w, label_w)],
                         0,
@@ -466,7 +642,11 @@ impl Layout {
             frame,
             body,
             field,
-            title: if long_title { Line::default() } else { title },
+            title: if long_title {
+                narrow_count.unwrap_or_default()
+            } else {
+                title
+            },
             parts: content.parts,
             choices,
             usable,
@@ -718,6 +898,189 @@ pub(super) fn render(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod palette_tests {
+        use super::*;
+
+        fn palette_choice(label: &str, key: &str, index: usize) -> MenuItem {
+            MenuItem {
+                value: format!("command:{index}"),
+                label: label.into(),
+                hint: String::new(),
+                key: None,
+                keys: key.into(),
+                icon: None,
+                heading: false,
+                note: false,
+                sample: None,
+                shown_only: false,
+                muted: false,
+                target: Some(Target(format!("chrome:menu:{index}"))),
+            }
+        }
+
+        #[test]
+        fn palette_highlights_use_scalar_positions_and_keep_graphemes_whole() {
+            let base = Style::default();
+            let matched = base.add_modifier(ratatui::style::Modifier::BOLD);
+            let lines = palette_label("é界e\u{301}\n🚀👩‍💻Z", &[1, 3, 5, 7, 9, 999], base, matched);
+            assert_eq!(lines.len(), 2);
+            let lit: String = lines
+                .iter()
+                .flat_map(|line| &line.spans)
+                .filter(|span| span.style == matched)
+                .map(|span| span.content.as_ref())
+                .collect();
+            assert_eq!(lit, "界e\u{301}🚀👩‍💻Z");
+            let wrapped = palette_wrap(lines, 2);
+            assert!(wrapped.iter().all(|line| line.width() <= 2));
+            let all: String = wrapped
+                .iter()
+                .flat_map(|line| &line.spans)
+                .map(|span| span.content.as_ref())
+                .collect();
+            assert_eq!(all, "é界e\u{301}🚀👩‍💻Z");
+        }
+
+        #[test]
+        fn palette_rows_keep_all_unicode_and_right_align_shortcuts_at_every_width() {
+            let theme = Theme::build(
+                &Default::default(),
+                crate::design::theme::Tier::TrueColor,
+                &[],
+            );
+            let mut item = palette_choice("界ée\u{301}\n🚀👩‍💻Z", "ctrl-r", 0);
+            item.hint = "watch\n界e\u{301}".into();
+            let highlights: Vec<_> = (0..item.label.chars().count()).collect();
+            for width in [4, 8, 16, 80, 160] {
+                let lines = palette_lines(
+                    &theme,
+                    &item,
+                    true,
+                    &highlights,
+                    width,
+                    ui::width(&item.keys),
+                    &[],
+                );
+                assert!(
+                    lines.iter().all(|line| line.width() == usize::from(width)),
+                    "width {width}"
+                );
+                let lit: String = lines
+                    .iter()
+                    .flat_map(|line| &line.spans)
+                    .filter(|span| span.style.fg == theme.s(Slot::AccentPrimary).fg)
+                    .map(|span| span.content.as_ref())
+                    .collect();
+                assert_eq!(lit, "界ée\u{301}🚀👩‍💻Z");
+                let hints: Vec<_> = lines
+                    .iter()
+                    .flat_map(|line| &line.spans)
+                    .filter(|span| span.style.fg == theme.s(Slot::TextMuted).fg)
+                    .collect();
+                assert_eq!(
+                    hints
+                        .iter()
+                        .map(|span| span.content.as_ref())
+                        .collect::<String>(),
+                    "watch界e\u{301}",
+                    "inline and continuation hints retain muted style at width {width}"
+                );
+                assert!(hints
+                    .iter()
+                    .all(|span| span.style.bg == theme.bg(Slot::BgSelection).bg));
+                let hint_only = palette_lines(
+                    &theme,
+                    &item,
+                    true,
+                    &[],
+                    width,
+                    ui::width(&item.keys),
+                    &[0, 6, 8],
+                );
+                let hint_matches: Vec<_> = hint_only
+                    .iter()
+                    .flat_map(|line| &line.spans)
+                    .filter(|span| span.style.fg == theme.s(Slot::AccentPrimary).fg)
+                    .collect();
+                assert_eq!(
+                    hint_matches
+                        .iter()
+                        .map(|span| span.content.as_ref())
+                        .collect::<String>(),
+                    "w界e\u{301}",
+                );
+                assert!(hint_matches.iter().all(|span| {
+                    span.style.add_modifier.contains(ratatui::style::Modifier::BOLD)
+                        && span.style.bg == theme.bg(Slot::BgSelection).bg
+                }));
+                let keys: String = lines
+                    .iter()
+                    .flat_map(|line| &line.spans)
+                    .filter(|span| span.style.fg == theme.s(Slot::AccentSecondary).fg)
+                    .map(|span| span.content.trim())
+                    .collect();
+                assert_eq!(keys, "ctrl-r");
+                let key_line = if width >= 12 {
+                    &lines[0]
+                } else {
+                    lines.last().unwrap()
+                };
+                let end: String = key_line
+                    .spans
+                    .iter()
+                    .map(|span| span.content.as_ref())
+                    .collect();
+                assert!(end.ends_with(if width >= 8 { "ctrl-r " } else { "-r " }));
+            }
+        }
+
+        #[test]
+        fn palette_layout_preserves_item_order_and_scrolls_to_unicode_continuations() {
+            let theme = Theme::build(
+                &Default::default(),
+                crate::design::theme::Tier::TrueColor,
+                &[],
+            );
+            let mut view = MenuView::new(
+                "palette",
+                "commands",
+                vec![
+                    palette_choice("Watch 界界\nReview 👩‍💻 reports", "ctrl-r", 0),
+                    palette_choice("Open the Library", "l", 1),
+                    palette_choice("Refresh", "r", 2),
+                ],
+            );
+            view.palette = Some(Box::new(crate::view::chrome::PaletteView {
+                matched: 3,
+                total: 12,
+                highlights: vec![vec![0], vec![0], vec![0]],
+                hint_highlights: vec![],
+            }));
+            view.typed = Some(String::new());
+            let layout = Layout::new(&view, &theme, Rect::new(0, 0, 16, 8));
+            let indices: Vec<_> = layout.parts.iter().filter_map(|part| part.item).collect();
+            assert!(indices.len() > view.items.len());
+            assert!(indices.windows(2).all(|pair| pair[0] <= pair[1]));
+            assert_eq!(indices.first(), Some(&0));
+            assert_eq!(indices.last(), Some(&2));
+            assert_eq!(
+                layout.targets,
+                view.items
+                    .iter()
+                    .map(|item| item.target.clone())
+                    .collect::<Vec<_>>()
+            );
+            let last = layout
+                .parts
+                .iter()
+                .find(|part| part.item == Some(2))
+                .unwrap();
+            let scroll = layout.scroll_for(0, 2, true, false);
+            assert!(last.rows.start >= scroll);
+            assert!(last.rows.end <= scroll + usize::from(layout.body.height));
+        }
+    }
 
     #[test]
     fn a_wrapped_button_fills_its_whole_face_including_continuation_padding() {

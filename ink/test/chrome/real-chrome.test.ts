@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { frameOf } from "../../src/chrome/Chrome.js";
 import { layoutMenu, layoutStatus, layoutTopBar, type Cell } from "../../src/chrome/layout.js";
+import { ATTENTION_DOT } from "../../src/text/icons.js";
 import { bgOf, slotStyle } from "../../src/text/look.js";
 import { cellWidth } from "../../src/chrome/width.js";
 import type { ChromeView } from "../../src/chrome/types.js";
@@ -98,7 +99,7 @@ describe("a context menu opened at the pointer (menu.at), kept inside the body",
   });
 });
 
-// shell.rs paints a count and a tab badge in widgets::tone, a chrome word in ink_style, and a menu's title in
+// shell.rs paints a count in widgets::tone, a chrome word in ink_style, and a menu's title in
 // bold emphasis with its icons in their own style, on the popup's shade (menu.rs Layout::new).
 describe("chrome styles are the ones shell.rs and menu.rs paint", () => {
   const cell = (cells: Cell[], text: string) => cells.find((c) => c.text.includes(text));
@@ -126,11 +127,11 @@ describe("chrome styles are the ones shell.rs and menu.rs paint", () => {
     expect(cell(cells, "5 quiet")?.style).toMatchObject({ color: slotStyle("text.muted").color });
   });
 
-  it("a tab's badge is drawn in its tone: a warn badge is bold", () => {
+  it("a tab's attention dot uses the warning slot", () => {
     const chrome = load("checkout_row_80x24");
-    chrome.top_bar.tabs[0]!.badge = { text: "2", ink: "warn" };
-    const badge = layoutTopBar(chrome, 160).cells.find((c) => c.text === "2");
-    expect(badge?.style).toMatchObject({ color: slotStyle("status.warning").color, bold: true });
+    chrome.top_bar.tabs[0]!.attention = true;
+    const dot = layoutTopBar(chrome, 160).cells.find((c) => c.text === ATTENTION_DOT);
+    expect(dot?.style).toMatchObject({ color: slotStyle("status.warning").color });
   });
 
   it("the menu title is bold emphasis on the popup shade, its icons keep their own style, only the frame is accent", () => {

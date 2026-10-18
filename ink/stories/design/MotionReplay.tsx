@@ -169,3 +169,58 @@ export function MotionReference({ base }: { base: string }) {
     </div>
   );
 }
+
+// #32 replays the same production cell compositor used after a committed App frame. The Rust fixture supplies
+// both clean sources and actual frame geometry; this does not pretend to be an end-to-end terminal timing test.
+import { borderForegrounds, composeFold, focusDrain, focusLap, type Border } from "../../src/motion/interaction-effects";
+
+type InteractionCell = { ch: string; fg: string; bg: string; mods: string[] };
+type InteractionMark = { area: number[]; title: number[] | null; keep: number[][] };
+export type InteractionCase = { name: string; kind: "fold" | "focus_lap" | "focus_drain"; width: number; height: number; before: InteractionCell[][]; after: InteractionCell[][]; before_mark: InteractionMark; after_mark: InteractionMark; area?: number[]; descendants?: number; open?: boolean; stops?: string[]; frames: Array<{ ms: number; rows: InteractionCell[][] }> };
+const interactionFiles = import.meta.glob<{ cases: InteractionCase[] }>("../../test/motion/fixtures/ratatui-interaction.json", { eager: true, import: "default" });
+const interactionCases = () => Object.values(interactionFiles).flatMap((f) => f.cases);
+const interactionGrid = (rows: InteractionCell[][], width: number, height: number) => {
+  const g = new Grid(width, height);
+  const attrs: Record<string, string> = { bold: "1", dim: "2", italic: "3", underline: "4", underlined: "4", reversed: "7", inverse: "7", crossed_out: "9", strike: "9" };
+  rows.forEach((row, y) => row.forEach((cell, x) => Object.assign(g.at(x, y), { ch: cell.ch, fg: parseHex(cell.fg), bg: parseHex(cell.bg), attr: cell.mods.map((m) => attrs[m.toLowerCase()]).filter(Boolean).sort().join(";") })));
+  return g;
+};
+const interactionBorder = (m: InteractionMark): Border => ({ area: rect(m.area), title: m.title ? rect(m.title) : undefined, keep: m.keep.map(rect) });
+function interactionAt(f: InteractionCase, ms: number): Grid {
+  const before = interactionGrid(f.before, f.width, f.height), after = interactionGrid(f.after, f.width, f.height);
+  if (f.kind === "fold") {
+    const area = rect(f.area!);
+    composeFold(after, after.area, { area, descendants: f.descendants!, open: f.open!, expanded: (f.open ? after : before).copyOf(area), compact: (f.open ? before : after).copyOf(area) }, ms);
+  } else {
+    const was = interactionBorder(f.before_mark), now = interactionBorder(f.after_mark);
+    const prior = borderForegrounds(before, was)!;
+    if (f.kind === "focus_lap") focusLap(after, was, now, prior, f.stops!.map(parseHex), ms);
+    else focusDrain(after, was, now, prior, ms);
+  }
+  return after;
+}
+
+/** Production integer composition, with the Rust physical-cell reference at the same elapsed time. */
+export function InteractionReplay({ kind, open, speed }: { kind: InteractionCase["kind"]; open?: boolean; speed: "real" | "slow" }) {
+  const f = interactionCases().find((c) => c.kind === kind && (kind !== "fold" || c.open === open));
+  const [elapsed, setElapsed] = useState(0);
+  const duration = kind === "fold" ? 160 : 300;
+  const rate = speed === "slow" ? 4 : 1;
+  useEffect(() => {
+    const start = performance.now();
+    const id = setInterval(() => setElapsed(Math.min(duration, Math.floor((performance.now() - start) / rate) % (duration + 900))), 30);
+    return () => clearInterval(id);
+  }, [kind, open, rate, duration]);
+  if (!f) return <p>The Rust interaction fixture must be generated before this replay is available.</p>;
+  const nearest = f.frames.reduce((a, b) => Math.abs(a.ms - elapsed) <= Math.abs(b.ms - elapsed) ? a : b);
+  return <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <figure style={{ margin: 0 }}>
+      <figcaption style={{ fontSize: 12, marginBottom: 6 }}>Production Ink compositor: {kind === "fold" ? open ? "fold open" : "reverse close" : kind.replace("_", " ")}, {duration} ms{speed === "slow" ? " at quarter speed" : ""}, t = {elapsed} ms</figcaption>
+      <CellGrid cells={cellsOf(interactionAt(f, elapsed))} cols={f.width} rows={f.height} canvas={CANVAS} label={`Ink ${f.name}`} />
+    </figure>
+    <figure style={{ margin: 0 }}>
+      <figcaption style={{ fontSize: 12, marginBottom: 6 }}>Production Rust reference, t = {nearest.ms} ms</figcaption>
+      <CellGrid cells={cellsOf(interactionGrid(nearest.rows, f.width, f.height))} cols={f.width} rows={f.height} canvas={CANVAS} label={`Rust ${f.name}`} />
+    </figure>
+  </div>;
+}

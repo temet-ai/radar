@@ -131,6 +131,10 @@ pub fn scrollbar(theme: &Theme, frame: Rect, buf: &mut Buffer, max: usize, at: u
     if max == 0 {
         return;
     }
+    crate::motion::frames::protect(Rect::new(
+        frame.right().saturating_sub(1), frame.y.saturating_add(1),
+        u16::from(frame.width > 0), frame.height.saturating_sub(2),
+    ));
     let mut state = ScrollbarState::new(max + 1).position(at);
     Scrollbar::new(ScrollbarOrientation::VerticalRight)
         .begin_symbol(None)

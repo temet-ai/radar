@@ -183,3 +183,24 @@ fn tree_nav_opens_new_groups_once_and_keeps_a_selection_that_is_there() {
     nav.sync(&t.rows);
     assert!(nav.open.is_empty(), "a group the user closed stays closed");
 }
+
+mod tab_attention {
+    use super::*;
+
+    #[test]
+    fn attention_is_explicit_and_defaults_off_on_the_wire() {
+        let tab = TabView::new("Notes", Some(Icon::Thread));
+        let wire = serde_json::to_value(&tab).unwrap();
+        assert!(wire.get("attention").is_none());
+        assert!(!serde_json::from_value::<TabView>(wire).unwrap().attention);
+        let tab = tab.attention(true);
+        let wire = serde_json::to_value(&tab).unwrap();
+        assert_eq!(wire["attention"], true);
+        assert_eq!(wire["label"], "Notes");
+        assert_eq!(serde_json::from_value::<TabView>(wire).unwrap(), tab);
+        let old: crate::view::chrome::BarTab = serde_json::from_str(
+            r#"{"label":"Watch","mnemonic":"W","target":"chrome:screen:0"}"#,
+        ).unwrap();
+        assert!(!old.attention);
+    }
+}

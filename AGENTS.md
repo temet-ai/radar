@@ -54,7 +54,10 @@ RADAR_RENDERER=ratatui radar              # the Ratatui renderer, for side-by-si
   ```
 
   With no Storybook running, read `docs/storybook/components.json` (the same manifest). Ink's `npm test` fails when
-  a story was added or removed without `npm run manifest`.
+  a story was added or removed without `npm run manifest`. The manifest command streams build errors and
+  exits nonzero on failure, preserving the committed manifest (which may still be stale). If Storybook reports
+  `uv_interface_addresses` with a permission error, rerun `cd ink && npm run manifest` from the repository root
+  in an authorized environment that permits network-interface enumeration; do not disable sandbox protections.
 
 ## UI rules (hold in every change)
 

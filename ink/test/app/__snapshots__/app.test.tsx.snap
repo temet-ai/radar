@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`chrome at 80x24 > renders an actions menu over the body and settings navigation beside it 1`] = `
-" radar    Books 3   Work   History   Settings             synced 12s  read-only
+" radar    Books   Work   History   Settings               synced 12s  read-only
   GitLab    GitHub
 ╭ settings ────────────╮╭ projects ────────────────────────────────────────────╮
 │GitLab                ││ acme/api                                             │
@@ -28,7 +28,7 @@ exports[`chrome at 80x24 > renders an actions menu over the body and settings na
 `;
 
 exports[`chrome at 80x24 > renders the top bar, sources and status line from ChromeView 1`] = `
-" radar    Books 3   Work   History   Settings             synced 12s  read-only
+" radar    Books   Work   History   Settings               synced 12s  read-only
   GitLab    GitHub
 
 
@@ -55,7 +55,7 @@ exports[`chrome at 80x24 > renders the top bar, sources and status line from Chr
 `;
 
 exports[`chrome at 160x40 > renders an actions menu over the body and settings navigation beside it 1`] = `
-" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only
+" radar    Books   Work   History   Settings                                                                                               synced 12s  read-only
   GitLab    GitHub
 ╭ settings ────────────╮╭ projects ──────────────────────────────────────────────────────────────────────╮╭ detail ────────────────────────────────────────────╮
 │GitLab                ││ acme/api                                                                       ││ what this does                                     │
@@ -98,7 +98,7 @@ exports[`chrome at 160x40 > renders an actions menu over the body and settings n
 `;
 
 exports[`chrome at 160x40 > renders the top bar, sources and status line from ChromeView 1`] = `
-" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only
+" radar    Books   Work   History   Settings                                                                                               synced 12s  read-only
   GitLab    GitHub
 
 
@@ -141,7 +141,7 @@ exports[`chrome at 160x40 > renders the top bar, sources and status line from Ch
 `;
 
 exports[`the history overlay > draws title, scope, selected row, detail and keys at 80x24 1`] = `
-" radar    Books 3   Work   History   Settings             synced 12s  read-only
+" radar    Books   Work   History   Settings               synced 12s  read-only
  History · read only · UTC · snapshot through #124
  Scope: recent activity · last 24 hours since 2026-10-11T10:29:53.000Z
  Recorded observations; coverage may be incomplete. Not task intent or
@@ -168,7 +168,7 @@ permission.
 `;
 
 exports[`the history overlay > draws title, scope, selected row, detail and keys at 160x40 1`] = `
-" radar    Books 3   Work   History   Settings                                                                                             synced 12s  read-only
+" radar    Books   Work   History   Settings                                                                                               synced 12s  read-only
  History · read only · UTC · snapshot through #124
  Scope: recent activity · last 24 hours since 2026-10-11T10:29:53.000Z
  Recorded observations; coverage may be incomplete. Not task intent or permission.
@@ -211,7 +211,7 @@ exports[`the history overlay > draws title, scope, selected row, detail and keys
 `;
 
 exports[`work area > draws the work area from the sections the view carries; at 80 columns a pending question comes first 1`] = `
-" radar    Books 3   Work   History   Settings             synced 12s  read-only
+" radar    Books   Work   History   Settings               synced 12s  read-only
   GitLab    GitHub
 ╭ Agent ───────────────────────────────────────────────────────────────────────╮
 │ ● waiting for you                                                            │

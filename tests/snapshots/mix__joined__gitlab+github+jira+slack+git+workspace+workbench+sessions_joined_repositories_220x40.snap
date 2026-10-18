@@ -3,7 +3,7 @@ source: tests/mix.rs
 assertion_line: 718
 expression: shown
 ---
- radar    Repositories 2   Jira   Branches   Work (I)   History   Settings (,)                                                                                                                       not synced yet  ✎ edit
+ radar    Repositories ●   Jira   Branches   Work (I)   History   Settings (,)                                                                                                                       not synced yet  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ team-a ──────────────────────────────────────────────────╮
 │ Everything             ││ OPENED BY everyone · 1 repo                            STATE               TICKET             APPROVALS  THREADS UPDATED FOR YOU   ││ a acme/team-a                                            │
 │ Needs my action      2 ││▌ A team-a                                                                                                                          ││                                                          │

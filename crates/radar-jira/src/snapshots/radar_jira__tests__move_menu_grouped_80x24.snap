@@ -6,7 +6,7 @@ expression: "text(&host, 80, 24)"
  Jira › acme › ABC › ABC-12
  Add a stats endpoint for the dashboard             ◐ In Progress · Story · you
  parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
- [Overview]  Comments · 3╭ move ABC-12 to… ───────────╮
+ [Overview]  Comments  Li╭ move ABC-12 to… ───────────╮
 ╭ overview ──────────────│ NOW ◐ IN PROGRESS          │────────────────────────╮
 │ status        ◐ In Prog│ USUAL NEXT                 │                        █
 │ type          Story    │ 1  ◐ In Review             │                        █

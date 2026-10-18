@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/tests.rs
 expression: "to_text(&host, 100, 40)"
 ---
- radar    ✉ Slack 4   ≣ History   ⚙ Settings (,)                  synced 40s ago · every 2m  ✎ edit
+ radar    ✉ Slack ●   ≣ History   ⚙ Settings (,)                  synced 40s ago · every 2m  ✎ edit
 ╭ feed ────────────────╮╭ #team ───────────────────────────────────────────────────────────────────╮
 │ @ For you          4 ││ 6 new                                                ↩ REPLIE ◷ WHEN     │
 │ ❝ Discussions        ││▌ today                                                                   │

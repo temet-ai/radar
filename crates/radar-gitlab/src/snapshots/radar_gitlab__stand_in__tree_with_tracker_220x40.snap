@@ -2,7 +2,7 @@
 source: crates/radar-gitlab/src/stand_in.rs
 expression: text
 ---
- radar    Repositories 1   Tickets   History   Settings (,)                                                                                                                                          not synced yet  ✎ edit
+ radar    Repositories ●   Tickets   History   Settings (,)                                                                                                                                          not synced yet  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────────────────╮
 │ Everything             ││ OPENED BY everyone · 4 repos                              STATE               TICKET          APPROVALS  THREADS UPDATED FOR YOU   ││ b acme/team-b                                            │
 │ Needs my action      2 ││▌ B team-b                                                                                                                          ││                                                          │

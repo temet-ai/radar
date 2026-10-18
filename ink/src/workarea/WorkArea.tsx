@@ -104,7 +104,7 @@ function SectionBox({
   const inner = Math.max(1, width - 2);
   return (
     <SelectFrame registry={registry as SelectSink | undefined} id={section.target} kind={selectKindOf(contentOf(section.body))} width={width} height={height}>
-    <Framed title={titleOf(section)} width={width} height={height} focused={focused}>
+    <Framed title={titleOf(section)} motionPane={`work:${section.target}`} width={width} height={height} focused={focused}>
       {pad(section.pending ? <Text color="yellow">● waiting for you</Text> : null)}
       {pad(section.head.length ? <TextLine text={section.head as Seg[]} /> : null)}
       {(() => {

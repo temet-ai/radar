@@ -45,6 +45,7 @@ fn samples() -> (Vec<ToHost>, Vec<ToRenderer>) {
         ToHost::Bye,
     ];
     let menu = MenuView {
+        palette: None,
         id: "confirm".into(),
         title: "delete the branch spike?".into(),
         question: true,

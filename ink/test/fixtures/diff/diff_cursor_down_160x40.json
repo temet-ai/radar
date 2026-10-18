@@ -179,10 +179,7 @@
       "tabs": [
         {
           "active": true,
-          "badge": {
-            "ink": "warn",
-            "text": "1"
-          },
+          "attention": true,
           "icon": "repo",
           "label": "repositories",
           "mnemonic": "R",
@@ -195,10 +192,7 @@
           "target": "chrome:tab:2"
         },
         {
-          "badge": {
-            "ink": "warn",
-            "text": "4"
-          },
+          "attention": true,
           "icon": "chat",
           "label": "slack",
           "mnemonic": "S",
@@ -924,11 +918,12 @@
         },
         {
           "icon": "file",
-          "label": "Changes · 5 files"
+          "label": "Changes"
         },
         {
+          "attention": true,
           "icon": "thread",
-          "label": "Threads · 1 open"
+          "label": "Threads"
         },
         {
           "icon": "pipeline",
@@ -936,7 +931,7 @@
         },
         {
           "icon": "commit",
-          "label": "Commits · 2"
+          "label": "Commits"
         },
         {
           "label": "Tickets"

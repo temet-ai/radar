@@ -146,3 +146,37 @@ pub fn card(
     scrolled(theme, scroll, area, inner, buf, lines);
     inner
 }
+
+/// A panel with independent base focus styling and ramp ownership.
+pub fn panel_owned(
+    theme: &Theme,
+    area: Rect,
+    buf: &mut Buffer,
+    title: &str,
+    focus: super::frame::Focus,
+) -> Rect {
+    let inner = panel(theme, area, buf, title, focus.focused);
+    let frame = area.intersection(buf.area);
+    let title = super::frame::title_region(
+        frame,
+        super::width(title).saturating_add(2),
+        super::frame::TitleEdge::Top,
+    );
+    super::frame::focus_border(theme, frame, buf, focus.owns_keys, &[title]);
+    inner
+}
+
+/// A scrolling card: border ramp first, then content and scrollbar.
+pub fn card_owned(
+    theme: &Theme,
+    area: Rect,
+    buf: &mut Buffer,
+    title: &str,
+    focus: super::frame::Focus,
+    scroll: &Scroll,
+    lines: Vec<Line<'static>>,
+) -> Rect {
+    let inner = widgets::padded(panel_owned(theme, area, buf, title, focus));
+    scrolled(theme, scroll, area, inner, buf, lines);
+    inner
+}

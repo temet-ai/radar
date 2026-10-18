@@ -154,7 +154,7 @@ fn the_merge_request_page_shows_every_tab() {
     for want in [
         "ABC-12: Add a stats endpoint for the dashboard",
         "alice · feature/ABC-263 → main",
-        "[Overview]  Changes · 5 files  Threads · 1 open  Pipeline  Commits · 2",
+        "[Overview]  Changes  Threads ●  Pipeline  Commits",
         "can it merge?",
         "◷ needs 1 approval",
         "✓ pipeline passed",
@@ -171,7 +171,7 @@ fn the_merge_request_page_shows_every_tab() {
     assert!(!text.contains("<!--") && !text.contains("**"), "{text}");
     let tabs: [&[&str]; 5] = [
         &[
-            "[Changes · 5 files]",
+            "[Changes]",
             "files · 1 of 5 seen",
             "main/java/acme/stats",
             "+42 −0",
@@ -180,7 +180,7 @@ fn the_merge_request_page_shows_every_tab() {
             "loading…",
         ],
         &[
-            "[Threads · 1 open]",
+            "[Threads ●]",
             "+ comment on !263",
             "◆ open · StatsController.java:21",
             "│ ↳ Alice Example · 46m ago",
@@ -196,7 +196,7 @@ fn the_merge_request_page_shows_every_tab() {
             "allowed to fail",
         ],
         &[
-            "[Commits · 2]",
+            "[Commits]",
             "9612f87c",
             "Resolve merge conflicts",
             "Alice Example",
@@ -212,7 +212,7 @@ fn the_merge_request_page_shows_every_tab() {
     }
     press(&mut p, KeyCode::Char('['));
     assert!(
-        draw(&p, 160, 40).contains("[Commits · 2]"),
+        draw(&p, 160, 40).contains("[Commits]"),
         "[ goes back, round"
     );
 }
@@ -1166,7 +1166,7 @@ fn a_repo_page_opens_a_merge_request_and_esc_comes_back_to_it() {
     press(&mut p, KeyCode::Char('['));
     let text = draw(&p, 160, 40);
     assert!(text.contains("Repositories › a › web"), "{text}");
-    assert!(text.contains("[Merge requests · 2]"), "{text}");
+    assert!(text.contains("[Merge requests]"), "{text}");
     assert!(text.contains("Pipelines on main"), "{text}");
     assert!(text.contains("!187") && text.contains("!198"), "{text}");
     press(&mut p, KeyCode::Down);
@@ -1251,7 +1251,7 @@ fn a_tenancy_page_is_a_table_of_its_repos_and_opens_one() {
         "Repositories › a",
         "acme/team-a",
         "3 repos · 3 merge requests",
-        "[Repos · 3]",
+        "[Repos]",
         "REPO",
         "MAIN",
         "MRS",
@@ -1350,7 +1350,7 @@ fn a_red_pipeline_leads_with_its_failed_jobs_and_the_lines_that_say_why() {
     let p = red_pipeline_tab();
     let text = draw(&p, 160, 40);
     for want in [
-        "[Pipeline · 1 failed]",
+        "[Pipeline ●]",
         "✗ failed · 6m 12s",
         "WHY IT IS RED",
         "✗ unit-test",
@@ -1570,7 +1570,7 @@ fn mains_red_pipeline_leads_the_repo_pages_pipelines_and_a_long_log_pages_in() {
         }
     );
     let text = draw(&p, 160, 40);
-    assert!(text.contains("[Log · last 153 B of 879 KB]"), "{text}");
+    assert!(text.contains("[Log]"), "{text}");
     assert!(
         text.contains("⋯ 878 KB earlier in the log, loaded when you reach the top"),
         "{text}"

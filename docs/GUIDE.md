@@ -87,7 +87,7 @@ Nothing does I/O inside a handler.
   (`radar_core::view`) and a frontend paints it. A part gives `Plugin::view` and
   `section_view` (its screens and sections); the host gives the chrome,
   `Host::chrome_view(width, height) -> view::ChromeView` (the top bar's tabs with their
-  mnemonics, badges and targets, the part's words and the mode on its right, the source
+  mnemonics, attention flags and targets, the part's words and the mode on its right, the source
   tabs, the status line's keys each with its chord and target, the open menu or question
   as a `MenuView`, the settings navigation). The Ratatui frontend is
   `radar_core::shell::render(&Host, &Theme, &mut Frame)`: an adapter, like `view_tui` for the
@@ -128,7 +128,7 @@ a part describes its screens and sections as views and gets what the user did as
 | `capturing()` | True while you take text input. Then **every** key reaches you, including `q`, `x`, `?`, `w`, screen keys; mouse clicks are ignored | before every key and click |
 | `paste(&str)` | Text pasted while capturing | `Event::Paste` |
 | `screens() -> Vec<ScreenSpec>` | `{id, name, key}`: a screen, a tab, a Shift+letter | start-up |
-| `badge(screen)` | A count on the tab. Default none; add one only if it helps (2.12) | each frame |
+| `badge(screen)` | An optional state/count with a tone. The host shows only one warning dot on its tab for `Warn` or `Bad`; other tones show no tab indicator. Keep counts in page/status content. | each frame |
 | `top_right(screen)` | Right of the top bar, e.g. "synced 12s ago · every 1m" | each frame |
 | `busy(screen)` | True while loading: the top bar shows a spinner | each frame |
 | `status(screen) -> Vec<(String, Tone)>` | Counts for the right of the status line, e.g. "3 to review" | each frame |
@@ -214,7 +214,8 @@ Register it in `src/lib.rs` behind its feature (1.14).
 2. A menu is open: the menu takes the key.
 3. The colours section is capturing, or the target plugin `capturing()`: the key goes to
    it, nothing else sees it.
-4. Any other ctrl key goes to the plugin.
+4. `ctrl-p` opens the cross-part command palette when no editor or question owns input,
+   including from History and Settings. Any other ctrl key goes to the plugin.
 5. **Host keys**, never seen by a plugin: `q` quit (settings save themselves, so it asks
    only after a save failed: try saving again and quit, quit without saving, or stay;
    save-and-quit quits only after the save succeeded: `QUIT_MENU`, `quit_after_save` in
@@ -242,6 +243,19 @@ it must not advertise hidden editor actions that the host cannot deliver there.
 Settings sections retain their own capture hints, including Slack kept-reply recovery
 without credentials, and ready-screen editors keep their existing hints and routing.
 
+The command palette searches cached destinations across configured parts, with the
+selected item's actions first on an empty query, then session-frequent places.
+Typing and arrow selection never navigate; Enter or clicking a result executes it
+through normal action/confirmation or Show routing. Escape returns unchanged,
+including to suspended History. Existing draft fields, questions and agent terminal
+input keep their ownership; finish or cancel them first. Search highlights matching
+letters, places each shortcut on the right and reports matching versus total entries.
+Discovery shows a short list; a nonempty search carries up to 256 results and reports
+the full match count. Frequency is in memory for the session, not stored on disk.
+Parts implement `Plugin::palette_targets` using local cache only, with exact scoped
+subjects and safe search words. The host rechecks readiness and the complete scoped
+subject before showing it; removed targets never fall back to opening a browser.
+
 ### 1.5 Panes, focus, mouse
 
 The universal layout is three panes, `Pane::{Nav, Middle, Detail}`: say **nav**, **middle**
@@ -257,7 +271,7 @@ selected field or section resets it; changing focus or receiving a check update 
 
 **An item page's tab row is a bar of its own, the host's.** A part with a page open
 returns its tabs from `Plugin::tabs` (`PageTabs { names, on }`, the names without their
-icons) and shows one on `Plugin::show_tab`; while a page is open `panes()` is the page's
+icons or counts) and shows one on `Plugin::show_tab`; while a page is open `panes()` is the page's
 own panes (one, or the Changes tab's files beside its diff). `← → h l` past the page's
 outer pane show the tab beside (landing on the new tab's first pane going right, its last
 going left), `tab`/`shift-tab` do the same where the page has one pane, and `↑` (or `k`)

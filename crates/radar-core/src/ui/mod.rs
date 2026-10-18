@@ -41,6 +41,7 @@ pub mod composer;
 pub mod connection;
 pub mod diff;
 pub mod entries;
+pub mod frame;
 pub mod gallery;
 pub mod highlight;
 pub mod hover;

@@ -24,6 +24,150 @@ use crate::view::{
 };
 use crate::widgets;
 
+#[cfg(test)]
+mod focus_ramp_tests {
+    use super::*;
+    use crate::design::theme::Tier;
+    use crate::theme::ThemeConfig;
+    use crate::view::{FieldBar, PageView, PaneView};
+
+    fn theme(tier: Tier) -> Theme {
+        let mut config = ThemeConfig { icons: "off".into(), ..Default::default() };
+        config.slots.insert("glow.purple".into(), "#102030".into());
+        config.slots.insert("accent.tertiary".into(), "#405060".into());
+        config.slots.insert("glow.cyan".into(), "#708090".into());
+        Theme::build(&config, tier, &[])
+    }
+
+    fn view() -> ScreenView {
+        let body = || Node::Document { lines: vec![Text::plain("Watch notes")], cut: false };
+        let mut nav = PaneView::new(PaneId::Nav, "nav", body());
+        nav.width = Some(12);
+        ScreenView::new("watch", vec![nav, PaneView::new(PaneId::Middle, "middle", body())])
+    }
+
+    fn field() -> FieldBar {
+        FieldBar { mark: "/".into(), text: "watch".into(), caret: Some(5), hint: Text::default() }
+    }
+
+    fn draw(view: &ScreenView, tier: Tier, focus: Pane, bar: bool, tabs: bool, allow: bool) -> Buffer {
+        let theme = theme(tier);
+        let cursor = StdCell::new(None);
+        let hits = RefCell::new(vec![]);
+        let plugins = vec![];
+        let cx = Cx {
+            theme: &theme, now: 0, focused: false, focus, bar, tabs,
+            cursor: &cursor, hits: &hits, parts: crate::compose::Parts::new(&plugins, None),
+        };
+        let area = Rect::new(0, 0, 160, 8);
+        let mut buffer = Buffer::empty(area);
+        render_screen_with_ramp(&Frontend::default(), view, area, &mut buffer, &cx, allow);
+        buffer
+    }
+
+    #[test]
+    fn every_pane_body_branch_ramps_only_its_owner() {
+        let t = theme(Tier::TrueColor);
+        for variant in 0..3 {
+            let mut view = view();
+            if variant == 1 {
+                view.panes[1].body = Node::Document { lines: vec![], cut: true };
+            } else if variant == 2 {
+                view.panes[1].notes.push(Text::plain("more context"));
+            }
+            let buf = draw(&view, Tier::TrueColor, Pane::Middle, false, false, true);
+            assert_eq!(buf[(0, 0)].fg, t.s(Slot::AccentMuted).fg.unwrap());
+            assert_eq!(buf[(12, 0)].fg, t.s(Slot::GlowPurple).fg.unwrap());
+        }
+    }
+
+    #[test]
+    fn caret_field_owns_the_ramp_while_navigation_border_is_quiet() {
+        let t = theme(Tier::TrueColor);
+        for bottom in [false, true] {
+            let mut view = view();
+            if bottom {
+                view.panes[1].bottom_field = Some(field());
+            } else {
+                view.panes[1].fields.push(field());
+            }
+            assert_eq!(field_owner(&view), Some(PaneId::Middle));
+            let flat = draw(&view, Tier::TrueColor, Pane::Nav, false, false, false);
+            let ramped = draw(&view, Tier::TrueColor, Pane::Nav, false, false, true);
+            assert_eq!(ramped[(0, 0)].symbol(), flat[(0, 0)].symbol());
+            assert_eq!(ramped[(0, 0)].fg, t.s(Slot::AccentMuted).fg.unwrap());
+            assert_eq!(ramped[(12, 0)].fg, t.s(Slot::GlowPurple).fg.unwrap());
+            for x in 13..21 {
+                assert_eq!(ramped[(x, 0)], flat[(x, 0)], "middle title keeps unfocused style");
+            }
+        }
+    }
+
+    #[test]
+    fn chrome_overlay_and_visible_dock_suppress_background_ramps() {
+        let base = view();
+        for (bar, tabs, allow) in [(true, false, true), (false, true, true), (false, false, false)] {
+            assert_eq!(
+                draw(&base, Tier::TrueColor, Pane::Nav, bar, tabs, allow),
+                draw(&base, Tier::TrueColor, Pane::Nav, bar, tabs, false),
+            );
+        }
+        let mut overlaid = base.clone();
+        overlaid.overlay = Some(Box::new(PaneView::new(
+            PaneId::Middle, "editor", Node::Document { lines: vec![], cut: false },
+        )));
+        assert_eq!(
+            draw(&overlaid, Tier::TrueColor, Pane::Nav, false, false, true),
+            draw(&overlaid, Tier::TrueColor, Pane::Nav, false, false, false),
+        );
+        let mut docked = base;
+        docked.dock = Some(Box::new(crate::dock::DockView { visible: true, focused: true, ..Default::default() }));
+        assert_eq!(
+            draw(&docked, Tier::TrueColor, Pane::Nav, false, false, true),
+            draw(&docked, Tier::TrueColor, Pane::Nav, false, false, false),
+        );
+        docked.dock.as_mut().unwrap().visible = false;
+        assert_ne!(
+            draw(&docked, Tier::TrueColor, Pane::Nav, false, false, true),
+            draw(&docked, Tier::TrueColor, Pane::Nav, false, false, false),
+        );
+    }
+
+    #[test]
+    fn stale_dock_focus_does_not_take_ramps_from_pages_or_work_areas() {
+        let mut page = view();
+        page.page = Some(Box::new(PageView {
+            crumbs: vec![], title: Text::plain("Watch"), details: Text::default(), under: None,
+            tabs: vec![], tab: 0, notice: None, panes: page.panes.clone(), layout: None,
+        }));
+        let mut work = view();
+        work.panes[1].body = Node::Extension {
+            capability: "work.watch".into(), version: 1, data: serde_json::json!({}),
+            fallback: Box::new(Node::Document { lines: vec![], cut: false }),
+        };
+        for mut view in [page, work] {
+            view.dock = Some(Box::new(crate::dock::DockView { visible: true, focused: true, ..Default::default() }));
+            assert!(!view.has_dock_place());
+            assert_ne!(
+                draw(&view, Tier::TrueColor, Pane::Middle, false, false, true),
+                draw(&view, Tier::TrueColor, Pane::Middle, false, false, false),
+            );
+        }
+    }
+
+    #[test]
+    fn lower_tier_renderer_cells_do_not_change_with_ramp_ownership() {
+        let mut view = view();
+        view.panes[1].fields.push(field());
+        for tier in [Tier::Ansi256, Tier::Ansi16, Tier::Mono] {
+            assert_eq!(
+                draw(&view, tier, Pane::Nav, false, false, true),
+                draw(&view, tier, Pane::Nav, false, false, false),
+            );
+        }
+    }
+}
+
 /// Legacy drawing context, retained here for direct renderer tests while old
 /// part-specific drawing helpers are retired.
 pub struct Cx<'a> {
@@ -469,6 +613,14 @@ fn pane_of(view: &ScreenView, pane: PaneId) -> Option<&crate::view::PaneView> {
     panes(view).iter().find(|p| p.pane == pane)
 }
 
+/// A field with a caret takes keys even when legacy focus stays elsewhere.
+fn field_owner(view: &ScreenView) -> Option<PaneId> {
+    panes(view).iter().find(|pane| {
+        pane.fields.iter().any(|field| field.caret.is_some())
+            || pane.bottom_field.as_ref().is_some_and(|field| field.caret.is_some())
+    }).map(|pane| pane.pane)
+}
+
 /// The sources of the pictures a view's rich text names, for the caller
 /// to resolve through the part before drawing ([`Frontend::set_pictures`]).
 pub fn picture_sources(view: &ScreenView) -> Vec<String> {
@@ -490,6 +642,28 @@ pub fn picture_sources(view: &ScreenView) -> Vec<String> {
 /// the detail while it has the focus) beside the nav pane when there is less,
 /// and the focused pane alone when narrow.
 pub fn render_screen(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buffer, cx: &Cx<'_>) {
+    render_screen_with_ramp(fe, view, area, buf, cx, true);
+}
+
+/// Paint a screen while independently gating its focused pane's colour ramp.
+/// The shell disables it when chrome owns the keys; legacy focus styles stay.
+pub fn render_screen_with_ramp(
+    fe: &Frontend,
+    view: &ScreenView,
+    area: Rect,
+    buf: &mut Buffer,
+    cx: &Cx<'_>,
+    allow_pane_ramps: bool,
+) {
+    if view.overlay.is_some() || (view.page.is_some() && !crate::motion::frames::page_identified()) {
+        crate::motion::frames::context(None, None);
+    }
+    let owner = (allow_pane_ramps && !cx.bar && !cx.tabs
+        && view.overlay.is_none()
+        && !(view.has_dock_place()
+            && view.dock.as_ref().is_some_and(|d| d.visible && d.focused)))
+        .then(|| field_owner(view).unwrap_or_else(|| cx.focus.into()));
+    let paint = PanePaint { cx, owner };
     fe.room.set((area.width, area.height));
     fe.cells.borrow_mut().clear();
     let now = selection(view);
@@ -502,18 +676,26 @@ pub fn render_screen(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buf
         fe.shown.borrow_mut().insert(view.scope.clone(), now);
     }
     if let Some(page) = &view.page {
-        render_page(fe, &view.scope, page, area, buf, cx);
+        render_page(fe, &view.scope, page, area, buf, paint);
     } else {
-        render_panes(fe, view, area, buf, cx);
+        render_panes(fe, view, area, buf, paint);
     }
     if let Some(overlay) = &view.overlay {
         draw_overlay(fe, &view.scope, overlay, area, buf, cx);
     }
 }
 
+/// Drawing-only ownership: never changes the legacy context's focus styles.
+#[derive(Clone, Copy)]
+struct PanePaint<'a, 'cx> {
+    cx: &'a Cx<'cx>,
+    owner: Option<PaneId>,
+}
+
 /// An item's page: its frame (crumbs, title and details, the line under
 /// it, the tabs), then its panes side by side under it.
-fn render_page(fe: &Frontend, scope: &str, page: &crate::view::PageView, area: Rect, buf: &mut Buffer, cx: &Cx<'_>) {
+fn render_page(fe: &Frontend, scope: &str, page: &crate::view::PageView, area: Rect, buf: &mut Buffer, paint: PanePaint<'_, '_>) {
+    let cx = paint.cx;
     let t = cx.theme;
     let frame = ui::page::PageFrame {
         crumbs: page.crumbs.iter().map(|s| span(t, s)).collect(),
@@ -523,9 +705,12 @@ fn render_page(fe: &Frontend, scope: &str, page: &crate::view::PageView, area: R
         tabs: page
             .tabs
             .iter()
-            .map(|tab| match tab.icon {
-                Some(i) => icon::with(t, i, &tab.label),
-                None => tab.label.clone(),
+            .map(|tab| ui::page::Tab {
+                label: match tab.icon {
+                    Some(i) => icon::with(t, i, &tab.label),
+                    None => tab.label.clone(),
+                },
+                attention: tab.attention,
             })
             .collect(),
         tab: page.tab,
@@ -550,7 +735,7 @@ fn render_page(fe: &Frontend, scope: &str, page: &crate::view::PageView, area: R
         body.height -= 1;
     }
     if let Some(layout) = &page.layout {
-        draw_page_layout(fe, scope, page, layout, body, buf, cx);
+        draw_page_layout(fe, scope, page, layout, body, buf, paint);
         return;
     }
     let shown: Vec<&crate::view::PaneView> = page.panes.iter().filter(|p| p.from.is_none_or(|w| body.width >= w)).collect();
@@ -560,7 +745,7 @@ fn render_page(fe: &Frontend, scope: &str, page: &crate::view::PageView, area: R
     }))
     .split(body);
     for (pane, at) in shown.into_iter().zip(rects.iter()) {
-        draw_pane(fe, scope, pane, *at, buf, cx);
+        draw_pane(fe, scope, pane, *at, buf, paint);
     }
 }
 
@@ -571,15 +756,15 @@ fn draw_page_layout(
     layout: &crate::view::PageLayout,
     area: Rect,
     buf: &mut Buffer,
-    cx: &Cx<'_>,
+    paint: PanePaint<'_, '_>,
 ) {
     use crate::view::{Axis, PageLayout, Size};
     match layout {
         PageLayout::Pane { index } => {
-            if let Some(pane) = page.panes.get(*index) { draw_pane(fe, scope, pane, area, buf, cx); }
+            if let Some(pane) = page.panes.get(*index) { draw_pane(fe, scope, pane, area, buf, paint); }
         }
         PageLayout::Responsive { min_width, wide, narrow } => {
-            draw_page_layout(fe, scope, page, if area.width >= *min_width { wide } else { narrow }, area, buf, cx);
+            draw_page_layout(fe, scope, page, if area.width >= *min_width { wide } else { narrow }, area, buf, paint);
         }
         PageLayout::Split { axis, parts } => {
             let constraints: Vec<Constraint> = parts.iter().map(|part| match part.size {
@@ -591,7 +776,7 @@ fn draw_page_layout(
                 Axis::Vertical => Layout::vertical(constraints).split(area),
             };
             for (part, rect) in parts.iter().zip(rects.iter()) {
-                draw_page_layout(fe, scope, page, &part.layout, *rect, buf, cx);
+                draw_page_layout(fe, scope, page, &part.layout, *rect, buf, paint);
             }
         }
     }
@@ -611,7 +796,7 @@ fn draw_overlay(fe: &Frontend, scope: &str, overlay: &crate::view::PaneView, are
         let height = (area.height / 3).max(5).min(area.height);
         let r = Rect { y: area.y + area.height - height, height, ..area };
         ratatui::widgets::Clear.render(r, buf);
-        draw_pane(fe, scope, overlay, r, buf, cx);
+        draw_pane(fe, scope, overlay, r, buf, PanePaint { cx, owner: None });
         return;
     };
     let want = ed.lines.len() as u16 + 4;
@@ -642,7 +827,8 @@ fn draw_overlay(fe: &Frontend, scope: &str, overlay: &crate::view::PaneView, are
 }
 
 /// The screen's own panes in the universal layout.
-fn render_panes(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buffer, cx: &Cx<'_>) {
+fn render_panes(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buffer, paint: PanePaint<'_, '_>) {
+    let cx = paint.cx;
     let get = |p: PaneId| view.pane(p);
     let (nav, mid, det) = (get(PaneId::Nav), get(PaneId::Middle), get(PaneId::Detail));
     let focus = PaneId::from(cx.focus);
@@ -659,7 +845,7 @@ fn render_panes(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buffer, 
             let b = notice_below(view, b, buf, cx);
             for (pane, at) in [(nav, a), (mid, b), (det, c)] {
                 if let Some(pane) = pane {
-                    draw_pane(fe, &view.scope, pane, at, buf, cx);
+                    draw_pane(fe, &view.scope, pane, at, buf, paint);
                 }
             }
         }
@@ -669,8 +855,8 @@ fn render_panes(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buffer, 
                     Constraint::Percentage(58), Constraint::Percentage(42),
                 ]).areas(area);
                 let a = notice_below(view, a, buf, cx);
-                draw_pane(fe, &view.scope, mid, a, buf, cx);
-                draw_pane(fe, &view.scope, det, b, buf, cx);
+                draw_pane(fe, &view.scope, mid, a, buf, paint);
+                draw_pane(fe, &view.scope, det, b, buf, paint);
                 return;
             }
             let nav_w = nav.map_or(0, |p| p.width.unwrap_or(26).saturating_sub(2));
@@ -678,17 +864,17 @@ fn render_panes(fe: &Frontend, view: &ScreenView, area: Rect, buf: &mut Buffer, 
                 Layout::horizontal([Constraint::Length(nav_w), Constraint::Fill(1)]).areas(area);
             let b = notice_below(view, b, buf, cx);
             if let Some(nav) = nav {
-                draw_pane(fe, &view.scope, nav, a, buf, cx);
+                draw_pane(fe, &view.scope, nav, a, buf, paint);
             }
             let right = if focus == PaneId::Detail { det.or(mid) } else { mid };
             if let Some(right) = right {
-                draw_pane(fe, &view.scope, right, b, buf, cx);
+                draw_pane(fe, &view.scope, right, b, buf, paint);
             }
         }
         Fit::Narrow => {
             let area = notice_below(view, area, buf, cx);
             if let Some(p) = get(focus).or(mid) {
-                draw_pane(fe, &view.scope, p, area, buf, cx);
+                draw_pane(fe, &view.scope, p, area, buf, paint);
             }
         }
     }
@@ -718,12 +904,21 @@ fn draw_pane(
     pane: &crate::view::PaneView,
     area: Rect,
     buf: &mut Buffer,
-    cx: &Cx<'_>,
+    paint: PanePaint<'_, '_>,
 ) {
+    crate::motion::frames::with_frame(pane.pane, "body", || draw_pane_contents(fe, scope, pane, area, buf, paint));
+}
+
+fn draw_pane_contents(
+    fe: &Frontend, scope: &str, pane: &crate::view::PaneView,
+    area: Rect, buf: &mut Buffer, paint: PanePaint<'_, '_>,
+) {
+    let cx = paint.cx;
     let t = cx.theme;
     let id = pane.pane;
     let legacy = Pane::from(id);
     let focused = cx.has_focus(legacy);
+    let frame_focus = ui::frame::Focus { focused, owns_keys: paint.owner == Some(id) };
     let title = pane.title_icon.map_or_else(|| pane.title.clone(), |icon| icon::with(t, icon, &pane.title));
     cx.hit_pane(area, legacy);
     // Inside the border: the title, the border and its scrollbar are not text.
@@ -733,7 +928,7 @@ fn draw_pane(
         && plain
     {
         use ratatui::widgets::Widget;
-        let inner = widgets::padded(ui::card::panel(t, area, buf, &title, focused));
+        let inner = widgets::padded(ui::card::panel_owned(t, area, buf, &title, frame_focus));
         let lines: Vec<Line<'static>> = lines.iter().map(|l| line(t, l)).collect();
         ratatui::widgets::Paragraph::new(lines).render(inner, buf);
         return;
@@ -743,11 +938,11 @@ fn draw_pane(
     {
         let lines = lines.iter().map(|l| line(t, l)).collect();
         fe.with_scroll(scope, id, |s| {
-            ui::card::card(t, area, buf, &title, focused, s, lines)
+            ui::card::card_owned(t, area, buf, &title, frame_focus, s, lines)
         });
         return;
     }
-    let mut inner = ui::card::panel(t, area, buf, &title, focused);
+    let mut inner = ui::card::panel_owned(t, area, buf, &title, frame_focus);
     for f in &pane.fields {
         draw_field_bar(t, f, Rect { height: 2, ..inner }, buf, cx);
         let used = 3.min(inner.height);
@@ -1386,6 +1581,7 @@ fn draw_tree(
     let rows: HashMap<Vec<String>, &TreeRow> = tree.visible().into_iter().collect();
     let end = drawn.x + drawn.width.saturating_sub(1);
     let mut cells = fe.cells.borrow_mut();
+    let mut motion_rows = Vec::new();
     for y in drawn.y..drawn.y + drawn.height {
         let Some(path) = state
             .rendered_at(Position { x: drawn.x, y })
@@ -1395,6 +1591,7 @@ fn draw_tree(
         };
         let target = TreeRow::target_of(&path);
         let Some(row) = rows.get(&path) else { continue };
+        if crate::motion::frames::enabled() { motion_rows.push((path.clone(), y)); }
         if !row.heading {
             let id = if tree.pointer_action { format!("node:{}", path.last().unwrap_or(&row.id)) } else { target.0.clone() };
             cx.hit(Rect { y, height: 1, ..drawn }, pane, id);
@@ -1413,6 +1610,11 @@ fn draw_tree(
             cx.hit(Rect { x, y, width, height: 1 }, pane, hit);
             cells.push((target.clone(), show.clone()));
         }
+    }
+    if crate::motion::frames::enabled() {
+        let open = tree.open.iter().filter(|path| motion_rows.iter().any(|(visible, _)| visible == *path)).cloned().collect();
+        let viewport = Rect { y: drawn.y, height: inner.bottom().saturating_sub(drawn.y), width: inner.width.saturating_sub(1), ..inner };
+        crate::motion::frames::tree(pane.into(), "body", viewport, motion_rows, open);
     }
 }
 
@@ -1579,10 +1781,7 @@ pub fn key(fe: &Frontend, view: &ScreenView, focus: PaneId, chord: Chord) -> Rou
     }
     // A field being typed into takes every key, whichever pane has the focus:
     // `/` typed from the views rail filters the tree, and ↓ is the field's.
-    if panes(view)
-        .iter()
-        .any(|pane| pane.fields.iter().any(|f| f.caret.is_some()) || pane.bottom_field.as_ref().is_some_and(|f| f.caret.is_some()))
-    {
+    if field_owner(view).is_some() {
         return Routed::Intent(Intent::Key { chord });
     }
     let page = matches!(chord.key, Key::PageUp | Key::PageDown) && !chord.ctrl;
@@ -1902,3 +2101,6 @@ pub fn keys_part(fe: &Frontend, p: &dyn crate::Plugin, scope: Scope<'_>, pane: P
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod interaction_tests;

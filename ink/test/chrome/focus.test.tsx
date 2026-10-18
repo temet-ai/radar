@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mount, tick } from "../app/harness.js";
 import { booksChrome, settingsNav } from "./fixture.js";
 import { parseAnsi } from "../nodes/ansi.js";
+import { applyLook, defaultLook, slotStyle } from "../../src/text/look.js";
 
 // Live survey (T22): after `,` Ratatui draws the section pane focused (shell.rs settings: has(pane) = the body has the
 // keys and host.focus is the pane) and Ink drew the nav focused; with the top bar holding the keys Ratatui draws no
@@ -20,6 +21,7 @@ let live: Array<() => void> = [];
 afterEach(() => {
   live.forEach((f) => f());
   live = [];
+  applyLook(defaultLook());
 });
 
 const section = {
@@ -103,17 +105,45 @@ describe("the settings navigation rows (BandedTree)", () => {
 });
 
 describe("the set-up page of a part", () => {
-  // view.rs setup_screen: one pane titled "set up <part>"; parts::setup_page draws its panel focused, whoever has the keys.
+  // The setup pane retains its legacy focused title/selection; its truecolor border follows actual keyboard ownership.
   const screen = { scope: "github", panes: [{ pane: "middle", title: "set up GitHub", body: { node: "document", lines: [[{ text: "GitHub is not set up yet." }]] } }], actions: [], version: 1 };
   it.each([
     ["nav", "body"],
     ["nav", "bar"],
-  ] as const)("is focused with the host's focus on %s and the keys at the %s", async (focus, keysAt) => {
+  ] as const)("keeps its legacy title with focus on %s while the border follows keys at the %s", async (focus, keysAt) => {
     const m = mount(160, 40);
     live.push(m.stop);
     m.welcome();
     m.snapshot({ chrome: { ...booksChrome({ width: 160, height: 40 }), keys_at: keysAt }, screen, section: null, focus }, 1);
     await tick(80);
+    const painted = parseAnsi(m.frame());
+    expect(corners(painted)).toEqual([keysAt === "body" ? FOCUS : MUTED]);
+    const title = painted.find((row) => row.map((c) => c.ch).join("").includes("set up GitHub"))!;
+    const start = title.map((c) => c.ch).join("").indexOf("set up GitHub");
+    expect(title.slice(start, start + "set up GitHub".length).every((c) => c.bold && c.fg === slotStyle("text.emphasis").color)).toBe(true);
+  });
+
+  it.each(["256", "16", "mono"] as const)("preserves the setup pane's legacy focused border at explicit %s tier", async (tier) => {
+    // RGB-looking slots deliberately remain: the explicit wire tier controls this ownership change.
+    applyLook({ ...defaultLook(), tier });
+    const m = mount(160, 40);
+    live.push(m.stop);
+    m.welcome();
+    m.snapshot({ chrome: { ...booksChrome({ width: 160, height: 40 }), keys_at: "bar" }, screen, section: null, focus: "nav" }, 1);
+    await tick(80);
     expect(corners(parseAnsi(m.frame()))).toEqual([FOCUS]);
+  });
+
+  it("preserves the setup pane's selected-row cells when the bar takes the keys", async () => {
+    const listScreen = { ...screen, panes: [{ ...screen.panes[0], body: { node: "list", selected: 0, rows: [{ target: "watch:case", text: [{ text: "Watch choices" }] }] } }] };
+    const m = mount(160, 40);
+    live.push(m.stop);
+    m.welcome();
+    const show = async (keys_at: "body" | "bar", cursor: number) => {
+      m.snapshot({ chrome: { ...booksChrome({ width: 160, height: 40 }), keys_at }, screen: listScreen, section: null, focus: "nav" }, cursor);
+      await tick(80);
+      return parseAnsi(m.frame()).find((row) => row.map((c) => c.ch).join("").includes("Watch choices"))!.slice(1, -1);
+    };
+    expect(await show("bar", 2)).toEqual(await show("body", 3));
   });
 });

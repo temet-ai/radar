@@ -54,6 +54,17 @@ pub(crate) enum Kind {
 }
 
 impl Kind {
+    /// The page's own subject, independent of its tab, row or review editor.
+    pub(crate) fn identity(&self) -> String {
+        match self {
+            Self::Tenancy(group) => serde_json::json!(["tenancy", group]),
+            Self::Repo(path) => serde_json::json!(["repository", path]),
+            Self::Mr { project, iid } => serde_json::json!(["merge-request", project, iid]),
+            Self::Job { project, id } => serde_json::json!(["job", project, id]),
+        }
+        .to_string()
+    }
+
     /// The exact requested job, on a job's page.
     pub(crate) fn job(&self) -> Option<JobKey> {
         match self {
@@ -559,10 +570,10 @@ fn tab_count(page: &Page) -> usize {
 /// Every tab's label: the page's own, then the contributed ones.
 fn tab_labels(p: &GitlabPlugin, page: &Page) -> Vec<String> {
     let mut labels = match &page.kind {
-        Kind::Tenancy(g) => tenancy::tabs(p, g),
+        Kind::Tenancy(_) => tenancy::tabs(),
         Kind::Repo(path) => repo::tabs(p, path),
-        Kind::Mr { project, iid } => mr::tabs(p, project, *iid),
-        Kind::Job { project, id } => job::tabs(p, project, *id),
+        Kind::Mr { .. } => mr::tabs(),
+        Kind::Job { .. } => job::tabs(),
     };
     labels.extend(page.extra.borrow().iter().map(|(title, _)| title.clone()));
     labels
@@ -1102,3 +1113,38 @@ mod tests;
 
 #[cfg(test)]
 mod action_labels_tests;
+
+#[cfg(test)]
+mod page_identity_tests {
+    use super::*;
+
+    #[test]
+    fn page_identity_distinguishes_kind_project_and_item() {
+        let project = "ankh-morpork/watch".to_string();
+        let other = "lancre/watch".to_string();
+        let kinds = [
+            Kind::Tenancy(project.clone()),
+            Kind::Repo(project.clone()),
+            Kind::Mr { project: project.clone(), iid: 12 },
+            Kind::Mr { project: project.clone(), iid: 13 },
+            Kind::Mr { project: other.clone(), iid: 12 },
+            Kind::Job { project: project.clone(), id: 12 },
+            Kind::Job { project, id: 13 },
+            Kind::Job { project: other, id: 12 },
+        ];
+        let keys: std::collections::BTreeSet<_> = kinds.iter().map(Kind::identity).collect();
+        assert_eq!(keys.len(), kinds.len());
+        assert_eq!(kinds[2].identity(), r#"["merge-request","ankh-morpork/watch",12]"#);
+    }
+
+    #[test]
+    fn page_identity_ignores_tab_row_and_selected_file() {
+        let mut page = Page::new(Kind::Mr { project: "ankh-morpork/watch".into(), iid: 12 });
+        let identity = page.kind.identity();
+        page.tab = mr::CHANGES;
+        page.row.set(3);
+        page.file.set(4);
+        page.extra.borrow_mut().push(("Watch notes".into(), vec![]));
+        assert_eq!(page.kind.identity(), identity);
+    }
+}

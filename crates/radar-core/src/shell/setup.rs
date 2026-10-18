@@ -91,11 +91,10 @@ fn tabbed(theme: &Theme, area: Rect, title: &str, ground: Slot, fill: Slot, buf:
 /// ` radar  setup / look & terminal          step 1 of 5   read-only `
 pub(super) fn top_bar(host: &Host, theme: &Theme, chrome: &ChromeView, setup: &SetupChrome, area: Rect, buf: &mut Buffer) {
     buf.set_style(area, theme.bg(Slot::BgOverlay));
-    let left = Line::from(vec![
-        Span::styled(format!(" {}", chrome.top_bar.brand), theme.bold(Slot::AccentPrimary)),
-        Span::styled("  setup / ", theme.s(Slot::TextMuted)),
-        Span::styled(setup.title.clone(), theme.s(Slot::TextEmphasis)),
-    ]);
+    let mut left = super::brand_spans(theme, &chrome.top_bar.brand, false);
+    left.push(Span::styled("  setup / ", theme.s(Slot::TextMuted)));
+    left.push(Span::styled(setup.title.clone(), theme.s(Slot::TextEmphasis)));
+    let left = Line::from(left);
     let bar = &chrome.top_bar;
     let mode = Span::styled(format!(" {} ", bar.mode.text), ink_style(theme, bar.mode.ink, bar.mode.strong));
     let mut right = Vec::new();

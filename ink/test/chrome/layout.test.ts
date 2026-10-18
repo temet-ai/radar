@@ -3,6 +3,7 @@ import { hitAt, layoutMenu, layoutSources, layoutStatus, layoutTopBar, type Cell
 import { withNotice } from "../../src/chrome/Chrome.js";
 import { applyLook, currentLook, defaultLook, slotStyle } from "../../src/text/look.js";
 import { actionsMenu, booksChrome, confirm } from "./fixture.js";
+import { ATTENTION_DOT } from "../../src/text/icons.js";
 import { cellWidth } from "../../src/chrome/width.js";
 
 const line = (cells: Cell[]) => cells.map((c) => c.text).join("");
@@ -167,6 +168,106 @@ describe("a note or heading of a menu with an icon (shell/menu.rs: the icon lead
       const m = layoutMenu({ id: "t", title: "add", question: false, items, typed: "", caret: 0 }, 80, 1, 22);
       const note = m.lines.map((l) => l.map((c) => c.text).join("")).find((l) => l.includes("a program"))!;
       expect(note).toMatch(/^│ \S{1,2} a program and its arguments/);
+    } finally {
+      applyLook(before);
+    }
+  });
+});
+
+
+describe("names-only top-bar tabs", () => {
+  it.each([60, 80, 160])("draws only explicit attention, including on the active tab, at %i columns", (width) => {
+    const before = currentLook();
+    applyLook(defaultLook());
+    try {
+      for (const keys_at of ["body", "bar"] as const) {
+        const chrome = booksChrome({ width, keys_at });
+        chrome.top_bar.tabs[0] = { label: "Books", mnemonic: "B", active: true, attention: true, target: "chrome:tab:0" };
+        chrome.top_bar.tabs[1] = { label: "Work", mnemonic: "W", attention: false, target: "chrome:tab:1" };
+        const bar = layoutTopBar(chrome, width);
+        const text = line(bar.cells);
+        expect(cellWidth(text)).toBe(width);
+        expect(text.slice(0, text.indexOf("synced") < 0 ? text.length : text.indexOf("synced"))).not.toMatch(/\d/);
+        const dots = bar.cells.filter((c) => c.text === ATTENTION_DOT);
+        expect(dots).toHaveLength(1);
+        expect(dots[0]!.style?.color).toBe(slotStyle("status.warning").color);
+        expect(dots[0]!.style?.backgroundColor).toBe(keys_at === "bar" ? slotStyle("accent.primary").color : slotStyle("bg.selection").color);
+        const dotAt = cellWidth(text.slice(0, text.indexOf("●")));
+        expect(hitAt(bar.hits, dotAt, 0)?.target).toBe("chrome:tab:0");
+        expect(bar.hits.map((h) => h.target)).toEqual([...chrome.top_bar.tabs.map((t) => t.target), "chrome:mode"]);
+      }
+    } finally {
+      applyLook(before);
+    }
+  });
+
+  it.each([0, 1, 2, 10, 11, 12, 20, 30, 40, 50])("clips tabs and pointer targets while keeping the fitting mode anchored at %i columns", (width) => {
+    const chrome = booksChrome({ width });
+    chrome.top_bar.tabs[0]!.attention = true;
+    const bar = layoutTopBar(chrome, width);
+    const text = line(bar.cells);
+    const mode = ` ${chrome.top_bar.mode.text} `;
+    expect(cellWidth(text)).toBe(width);
+    for (const hit of bar.hits) {
+      expect(hit.x).toBeGreaterThanOrEqual(0);
+      expect(hit.w).toBeGreaterThan(0);
+      expect(hit.x + hit.w).toBeLessThanOrEqual(width);
+    }
+    if (cellWidth(mode) < width) {
+      expect(text.endsWith(mode)).toBe(true);
+      const modeX = width - cellWidth(mode);
+      for (let x = Math.max(0, modeX - 1); x < width; x++) expect(hitAt(bar.hits, x, 0)?.target).toBe("chrome:mode");
+    } else {
+      expect(bar.hits.some((h) => h.target === "chrome:mode")).toBe(false);
+    }
+    if (text.includes(ATTENTION_DOT)) {
+      const dotX = cellWidth(text.slice(0, text.indexOf(ATTENTION_DOT)));
+      expect(hitAt(bar.hits, dotX, 0)?.target).toBe("chrome:tab:0");
+      expect(bar.cells.find((c) => c.text === ATTENTION_DOT)?.style?.color).toBe(slotStyle("status.warning").color);
+    }
+  });
+
+  it.each(["unicode", "nerd", "emoji", "off"] as const)("keeps the attention mark visible and one cell wide with the %s pack", (pack) => {
+    const before = currentLook();
+    applyLook(defaultLook(pack));
+    try {
+      const chrome = booksChrome();
+      chrome.top_bar.tabs[0]!.attention = true;
+      const dots = layoutTopBar(chrome, 160).cells.filter((c) => c.text === ATTENTION_DOT);
+      expect(dots).toHaveLength(1);
+      expect(cellWidth(dots[0]!.text)).toBe(1);
+      expect(dots[0]!.style?.color).toBe(slotStyle("status.warning").color);
+    } finally {
+      applyLook(before);
+    }
+  });
+
+  it("does not infer attention or counts from a legacy badge", () => {
+    const chrome = booksChrome();
+    chrome.top_bar.tabs[0] = { ...chrome.top_bar.tabs[0]!, badge: { text: "99", ink: "bad" } } as never;
+    const text = line(layoutTopBar(chrome, 160).cells);
+    expect(text).toContain("Books");
+    expect(text).not.toContain("99");
+    expect(text).not.toContain("●");
+  });
+
+  it("measures wide names, combining mnemonics and wide icons in terminal cells", () => {
+    const before = currentLook();
+    applyLook(defaultLook("emoji"));
+    try {
+      const chrome = booksChrome();
+      chrome.top_bar.tabs = [
+        { label: "図書", mnemonic: "図", icon: "repo", attention: true, target: "chrome:tab:0" },
+        { label: "Cafe\u0301", mnemonic: "e\u0301", target: "chrome:tab:1" },
+      ];
+      const bar = layoutTopBar(chrome, 80);
+      const text = line(bar.cells);
+      expect(cellWidth(text)).toBe(80);
+      expect(bar.cells.find((c) => c.text === "e\u0301")?.style?.underline).toBe(true);
+      const dotAt = cellWidth(text.slice(0, text.indexOf(ATTENTION_DOT)));
+      expect(hitAt(bar.hits, dotAt, 0)?.target).toBe("chrome:tab:0");
+      const nextAt = cellWidth(text.slice(0, text.indexOf("Cafe")));
+      expect(hitAt(bar.hits, nextAt, 0)?.target).toBe("chrome:tab:1");
     } finally {
       applyLook(before);
     }

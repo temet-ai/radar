@@ -1,6 +1,6 @@
 // Where motion marks rows and waiting panels (view_tui.rs motion::row / motion::loading).
 import { describe, expect, it } from "vitest";
-import { nodeMarks } from "../../src/motion/node-marks.js";
+import { nodeMarks, settingsTreeMark } from "../../src/motion/node-marks.js";
 
 const tree = (over: object = {}) =>
   ({
@@ -78,5 +78,30 @@ describe("nodeMarks", () => {
     expect(
       nodeMarks({ node: "document", lines: [] } as any, 0, 0, 10, 10),
     ).toEqual({ rows: [], loading: [] });
+  });
+});
+
+
+describe("settings fold marks", () => {
+  it("bounds long navigation retention to visible rows and preserves actual group target paths", () => {
+    const groups = Array.from({ length: 10_000 }, (_, i) => ({
+      id: `watch-${i}`, name: `Watch ${i}`, target: `chrome:group:watch-${i}`, open: true,
+      sections: [{ id: `case-${i}`, name: `Case ${i}`, target: `chrome:section:case-${i}` }],
+    }));
+    const visible = [groups[8999]!.sections[0]!, groups[9000]!, groups[9000]!.sections[0]!, groups[9001]!];
+    const area = { x: 1, y: 4, w: 21, h: 4 };
+    const marked = settingsTreeMark({ groups } as any, visible, area)!;
+    expect(marked.area).toEqual(area);
+    expect(marked.rows).toEqual([
+      { path: ["chrome:group:watch-8999", "chrome:section:case-8999"], y: 4 },
+      { path: ["chrome:group:watch-9000"], y: 5 },
+      { path: ["chrome:group:watch-9000", "chrome:section:case-9000"], y: 6 },
+      { path: ["chrome:group:watch-9001"], y: 7 },
+    ]);
+    expect(marked.open).toEqual([["chrome:group:watch-9000"], ["chrome:group:watch-9001"]]);
+    expect(marked.rows.length).toBeLessThanOrEqual(area.h);
+    expect(marked.open.length).toBeLessThanOrEqual(area.h);
+    expect(marked.pane).toBe("nav");
+    expect(marked.slot).toBe("settings_nav");
   });
 });

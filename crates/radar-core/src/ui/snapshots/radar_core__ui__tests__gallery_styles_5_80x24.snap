@@ -4,7 +4,7 @@ expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Entries & log" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Tree  Table  Card  Meters  Rows & states…" fg:text.secondary | "[Entries & log]" fg:accent.primary/glow.purple bold | "  Markdown  Diff  Mot" fg:text.secondary
+02 _1 | "Tree  Table  Card  Meters  Rows & states…" fg:text.secondary | "[Entries & log]" fg:accent.primary/glow.purple bold | "  Markdown  Diff  Mo…" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " why the sort stopped " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | " WHY IT STOPPED" fg:text.muted bg:bg.surface bold | _63 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
 05 "│" fg:accent.muted bg:bg.surface | _1 fg:text.secondary bg:bg.selection | "✗ " fg:text.secondary bg:bg.selection bold | "label     2m 04s · ran out of labels    …" fg:text.secondary bg:bg.selection | "█" fg:accent.muted bg:bg.surface

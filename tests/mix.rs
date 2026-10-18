@@ -864,7 +864,7 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Char('['));
         let shown = to_text(&host, 160, 40);
         assert!(
-            shown.contains("[Code · 1]") && shown.contains("api !263"),
+            shown.contains("[Code]") && shown.contains("api !263"),
             "{shown}"
         );
         record!(
@@ -888,7 +888,7 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Esc);
         let shown = to_text(&host, 160, 40);
         assert!(
-            shown.contains("Jira › acme › ABC › ABC-12") && shown.contains("[Code · 1]"),
+            shown.contains("Jira › acme › ABC › ABC-12") && shown.contains("[Code]"),
             "{shown}"
         );
     }
@@ -1084,7 +1084,7 @@ watched = true
     let tabs = foreign.plugins[slack]
         .tabs(screen.id)
         .expect("the thread tabs");
-    assert_eq!(tabs.names, ["Thread", "Links · 1"]);
+    assert_eq!(tabs.names, ["Thread", "Links"]);
     assert_eq!(tabs.on, 1);
     assert!(
         shown.contains(FOREIGN),

@@ -46,6 +46,10 @@ export interface InputView {
 /** The pane a work area's section target names (`pane:<id>` or `pane:<id>#n`, workarea/model.ts). */
 const paneOfTarget = (target: string | undefined): string | undefined => /^pane:(nav|middle|detail)(#\d+)?$/.exec(target ?? "")?.[1];
 
+/** Status keys remain clickable during text capture. Palette keys retain their
+ * generation-qualified target so stale clicks cannot answer a later question. */
+const statusKeyTarget = (target: string): boolean => target.startsWith("chrome:key:") || target.startsWith("chrome:palette-key:");
+
 export const DOUBLE_CLICK_MS = 400;
 
 /**
@@ -232,7 +236,7 @@ export class InputController {
   private litAt(x: number, y: number): Hit | null {
     const over = hitAt(this.view.hits(), x, y);
     if (!over) return null;
-    if (this.view.capturing() && !over.target.startsWith("chrome:key:")) return null;
+    if (this.view.capturing() && !statusKeyTarget(over.target)) return null;
     if (over.target === "pane" || over.target.startsWith("pane:")) return null;
     return { ...over, y, h: 1 };
   }
@@ -256,12 +260,16 @@ export class InputController {
     const menu = this.view.menu();
     const typing = this.view.capturing();
     if (!menu && !typing && this.view.dockMouse?.(ev, hitAt(this.view.hits(), ev.x, ev.y))) return;
-    if (typing && (ev.kind === "wheel_up" || ev.kind === "wheel_down")) return;
+    if (typing && !menu?.palette && (ev.kind === "wheel_up" || ev.kind === "wheel_down")) return;
     if (ev.kind === "wheel_up" || ev.kind === "wheel_down") {
       // The host presses ↑/↓ in a menu and k/j on the body (the wheel moves the selection).
       const up = ev.kind === "wheel_up";
       if (menu) {
-        this.keyChord({ key: up ? "up" : "down" });
+        if (menu.palette && (menu.lines ?? 0) > (menu.shown ?? 0)) {
+          // An overflowing palette is read one line at a time, without moving its
+          // selected command or editing its query (host.rs on_mouse).
+          this.sendRaw({ intent: "invoke", action: up ? "chrome.palette.scroll_up" : "chrome.palette.scroll_down" });
+        } else this.keyChord({ key: up ? "up" : "down" });
         return;
       }
       // What is under the pointer scrolls, and nothing else: not the pane that has the keys, not the dock's composer.
@@ -272,7 +280,7 @@ export class InputController {
     if (ev.kind === "motion" || ev.kind === "press") this.pointerAt = { x: ev.x, y: ev.y };
     if (ev.kind === "motion") {
       // What a click would act on is lit under the pointer (ui::hover::paint, shell.rs hover): any hit but a menu item.
-      if (menu && !typing) {
+      if (menu && (!typing || menu.palette)) {
         // Over a menu the menu's highlight moves to the item under the pointer (host.rs hover); nothing is lit.
         const at = hitAt(this.view.hits(), ev.x, ev.y);
         const idx = at ? menu.items.findIndex((c) => c.target === at.target) : -1;
@@ -308,13 +316,13 @@ export class InputController {
     const target = hit.target;
     // Inside a menu's frame, off its rows: nothing (Hit::MenuBox).
     if (target === MENU_BOX) return;
-    if (field && ev.button === "left" && !target.startsWith("chrome:key:") && !target.startsWith("chrome:menu:")) {
+    if (field && ev.button === "left" && !statusKeyTarget(target) && !target.startsWith("chrome:menu:")) {
       this.sendRaw({ intent: "key", chord: { key: "esc" } });
       return;
     }
     // Typing goes on until ⏎ or esc: a click elsewhere does not drop it. The status line's keys and a menu's own
     // rows are still pressed (host.rs on_mouse).
-    if (typing && !target.startsWith("chrome:key:") && !target.startsWith("chrome:menu:")) return;
+    if (typing && !statusKeyTarget(target) && !target.startsWith("chrome:menu:")) return;
     if (ev.button === "right") {
       this.ui.select(target);
       this.pointer(ev.x, ev.y);

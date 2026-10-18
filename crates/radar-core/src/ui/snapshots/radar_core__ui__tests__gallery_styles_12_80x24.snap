@@ -1,11 +1,10 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1012
 expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Grid states" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Diff  Motion  Colours  Tones  Row states…" fg:text.secondary | "[Grid states]" fg:accent.primary/glow.purple bold | "  Waiting  Long text  I" fg:text.secondary
+02 _1 | "Diff  Motion  Colours  Tones  Row states…" fg:text.secondary | "[Grid states]" fg:accent.primary/glow.purple bold | "  Waiting  Long text  …" fg:text.secondary
 03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " table, focused (cursor on row 3) " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
 04 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "NAME                                    …" fg:text.muted bg:bg.surface bold | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.primary/glow.purple bg:bg.surface | _1 bg:bg.surface | "sort the atlas box                      …" bg:bg.surface | "● sorting" fg:status.info bg:bg.surface | _1 bg:bg.surface | "Alice E." fg:text.secondary bg:bg.surface | _4 bg:bg.surface | "42 kB" fg:data.number bg:bg.surface | _2 bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface | "█" fg:accent.muted

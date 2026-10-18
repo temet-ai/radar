@@ -18,7 +18,7 @@ const capturedTier = (t: Tier): Captured | undefined => captured[`../looks/${t}.
 export const tiers = (): Tier[] => ["truecolor", ...(["256", "16"] as Tier[]).filter((t) => capturedTier(t)), "mono"];
 
 export function lookFor(tier: Tier, pack: Pack): Look {
-  const base = defaultLook(pack);
+  const base = { ...defaultLook(pack), tier };
   const c = capturedTier(tier);
   if (c) return { ...base, slots: { ...base.slots, ...c.slots }, modifiers: c.modifiers ?? base.modifiers };
   if (tier === "mono") return { ...base, slots: Object.fromEntries(Object.keys(base.slots).map((k) => [k, ""])) };

@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/tests.rs
 expression: "to_text(&host, 100, 40)"
 ---
- radar    Code   Tickets   Slack 4   History   Settings (,)                                  ✎ edit
+ radar    Code   Tickets   Slack ●   History   Settings (,)                                  ✎ edit
 ╭ code ────────────────────────────────────────────────────────────────────────────────────────────╮
 │ api !263 Add a stats endpoint for the dashboard [asked 2d · 2 replies]                           │
 │ api !270 Tidy the README                                                                         │

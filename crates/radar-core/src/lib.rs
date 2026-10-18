@@ -25,6 +25,7 @@ mod journal_runtime;
 pub mod log;
 pub mod mode;
 pub mod motion;
+pub mod palette;
 mod parts;
 pub mod plugin;
 mod plugin_cache;

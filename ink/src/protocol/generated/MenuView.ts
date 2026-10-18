@@ -2,6 +2,7 @@
 import type { CellAt } from "./CellAt.js";
 import type { Change } from "./Change.js";
 import type { Choice } from "./Choice.js";
+import type { PaletteView } from "./PaletteView.js";
 
 /**
  * The open menu or question (a dialog with buttons), as data: what it
@@ -61,4 +62,4 @@ usable?: boolean,
 /**
  * Why the part refuses the typed text now, if it does.
  */
-refused?: string | null, };
+refused?: string | null, palette?: PaletteView | null, };

@@ -163,7 +163,7 @@ export function Dock({
   });
   return (
     <Box ref={ref} flexDirection="column" width={width} height={height} flexShrink={0}>
-    <Framed title={tab ? `agents · ${tab.title}` : "agents"} width={width} height={height} focused={data.focused} plain={plain}>
+    <Framed title={tab ? `agents · ${tab.title}` : "agents"} width={width} height={height} focused={data.focused} plain={plain} rampOwner="dock">
       <CellLine cells={tabRowCells(tabs, at, inner)} plain={plain} />
       <Box flexDirection="column" width={inner} height={bodyH} overflow="hidden">
         {tab?.terminal ? (

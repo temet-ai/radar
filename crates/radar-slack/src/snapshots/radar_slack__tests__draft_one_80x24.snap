@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/tests.rs
 expression: "to_text(&host, 80, 24)"
 ---
- radar    C   T   S 4   History   Settings (,)  synced 40s ago · every … ✎ edit
+ radar    C   T   S ●   History   Settings (,)  synced 40s ago · every … ✎ edit
  Slack › ask for review
  Ask for review in #team                                          posted as you
  mentions @review-squad · the review channel

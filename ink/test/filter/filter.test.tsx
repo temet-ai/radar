@@ -10,17 +10,18 @@ import { mount, tick } from "../app/harness.js";
 import { parseAnsi, type TCell } from "../nodes/ansi.js";
 import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 import { bottomFieldRow, fieldRows, FIELD_ROWS } from "../../src/chrome/filter.js";
+import type { ChromeView } from "../../src/chrome/types.js";
 
 /**
  * T25: the `/` filter box. In Ratatui a pane with a `FieldBar` in `pane.fields` draws, under its title, the mark
  * ` / `, the typed text on bg.overlay with the caret cell reversed, a hint row and a blank row. Ink drew none.
  * ink/test/cells/highlight_typing-filter-<w>x<h>.json is Ratatui's styled buffer for the repos screen after `/`
  * `g` `g` (written by tests/ratatui_cells.rs); the whole App draws the same view data and the three rows of the
- * field are compared cell for cell (character, colours, bold, reversed).
+ * field are compared cell for cell (character, colours, bold, reversed). Its matching host chrome is required:
+ * the source-tab row determines the pane height and therefore its focused border's perimeter samples.
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const cellsDir = path.resolve(here, "../cells");
-const fixtures = path.resolve(here, "../fixtures");
 
 let live: Array<() => void> = [];
 afterEach(() => {
@@ -37,7 +38,7 @@ interface RatCell {
 interface Scene {
   canvas: { fg: string; bg: string };
   colours: Record<string, { hex: string }>;
-  view: { screen: any };
+  view: { screen: any; chrome: ChromeView };
   rows: RatCell[][];
 }
 
@@ -56,11 +57,11 @@ describe("the '/' filter box", () => {
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
       applyLook(defaultLook("off"));
       const [cols, rows] = size.split("x").map(Number) as [number, number];
-      const chrome = JSON.parse(fs.readFileSync(path.join(fixtures, `host_chrome_${size}.json`), "utf8"));
+      expect(scene.view.chrome, "the reference carries the chrome that determined its pane geometry").toBeDefined();
       const m = mount(cols, rows);
       live.push(m.stop);
       m.welcome();
-      m.snapshot({ chrome, screen: scene.view.screen, focus: "middle" }, 1);
+      m.snapshot({ chrome: scene.view.chrome, screen: scene.view.screen, focus: "middle" }, 1);
       await tick(60);
       const ink = parseAnsi(m.frame());
 
@@ -68,17 +69,14 @@ describe("the '/' filter box", () => {
       const at = scene.rows.findIndex((r) => rowText(r).includes(" / gg"));
       expect(at, "Ratatui drew the typed filter").toBeGreaterThan(-1);
       const inkAt = ink.findIndex((r) => rowText(r).includes(" / gg"));
-      expect(inkAt, "Ink drew the typed filter").toBeGreaterThan(-1);
+      expect(inkAt, "Ink draws the field at the same absolute row, with identical chrome geometry").toBe(at);
 
       const canvasBg = hexOf(scene, scene.canvas.bg, scene.canvas.bg);
       const bad: string[] = [];
       for (let dy = 0; dy < FIELD_ROWS; dy++) {
         const y = at + dy;
-        // the host chrome's own rows above the pane (the part's source tab row) differ in the fixture chrome, so the
-        // Ink row is found by the field's own position, not by the screen row number
-        const iy = inkAt + dy;
         scene.rows[y]!.forEach((c, x) => {
-          const i: TCell | undefined = ink[iy]?.[x];
+          const i: TCell | undefined = ink[y]?.[x];
           if (c.ch === "" || i?.ch === "") return;
           const ch = c.ch ?? " ";
           const blank = ch.trim() === "";

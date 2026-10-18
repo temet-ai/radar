@@ -305,7 +305,13 @@ impl Theme {
                 );
             }
         }
-        let (icons, _) = icon::resolve(&cfg.icons, &icon::user_packs(), &cfg.icon_overrides);
+        // The off pack ignores custom packs and overrides. Keep that explicit
+        // path independent of the runner's thread-local icon configuration.
+        let icons = if cfg.icons == "off" {
+            Icons::off()
+        } else {
+            icon::resolve(&cfg.icons, &icon::user_packs(), &cfg.icon_overrides).0
+        };
         Self { d, domain, icons }
     }
 

@@ -259,6 +259,130 @@
       ]
     },
     {
+      "id": "core-tab-attention-host",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::tests::tab_attention::",
+      "cases": [
+        {
+          "name": "host::tests::tab_attention::host_owns_warning_dots_without_rewriting_status",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host chrome projection exposes attention only for warning/error state and unsaved settings while preserving status count data.",
+          "why_not_unit": "Requires the real host and plugin state together; isolated row rendering cannot establish host-owned attention projection or unchanged status semantics."
+        },
+        {
+          "name": "host::tests::tab_attention::grouped_tabs_include_ready_siblings_only",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "A grouped top-bar tab aggregates warning/error attention across ready member screens and excludes unready siblings.",
+          "why_not_unit": "Requires real host readiness, screen grouping and plugin badges together; a renderer-only fixture cannot establish which sources contribute attention."
+        }
+      ]
+    },
+    {
+      "id": "core-tab-attention-shell",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "shell::tests::tab_attention::",
+      "cases": [
+        {
+          "name": "shell::tests::tab_attention::attention_dot_keeps_mnemonic_style_and_click_target",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Ratatui top-bar drawing preserves the warning dot, mnemonic styling and click target across widths and icon packs.",
+          "why_not_unit": "The named renderer boundary requires production host chrome and painted Ratatui cells/hit rectangles; neutral view assertions cannot establish the rendered style and pointer geometry."
+        }
+      ]
+    },
+    {
+      "id": "core-tab-attention-wire",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view::tests::tab_attention::",
+      "cases": [
+        {
+          "name": "view::tests::tab_attention::attention_is_explicit_and_defaults_off_on_the_wire",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Serialized top-bar and page tabs carry explicit attention with an absent field defaulting to false.",
+          "why_not_unit": "This is the JSON protocol boundary, including serialization and deserialization defaults, rather than only in-memory tab construction; no host or renderer is needed."
+        }
+      ]
+    },
+    {
+      "id": "core-page-tab-rows",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ui::page::tests::",
+      "cases": [
+        {
+          "name": "ui::page::tests::fitting_tabs_keep_their_labels_spacing_and_hit_indices",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated page-tab row layout preserves names, spacing and original hit indices when every tab fits."
+        },
+        {
+          "name": "ui::page::tests::a_late_selected_tab_stays_visible_when_the_row_shrinks",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated page-tab window selection keeps the selected late tab visible as available cells shrink."
+        },
+        {
+          "name": "ui::page::tests::windowed_tab_hits_keep_original_indices_and_skip_hidden_tabs",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Caller-owned row geometry and hit collection preserve original tab target indices and omit hidden/selected targets without constructing a host."
+        },
+        {
+          "name": "ui::page::tests::oversized_selected_labels_fit_by_display_cells",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated selected-label fitting measures Unicode display cells and retains bracket/hit geometry."
+        },
+        {
+          "name": "ui::page::tests::empty_and_tiny_tab_rows_are_safe",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated row layout handles empty labels, invalid selection, zero-height areas and tiny widths without out-of-bounds geometry."
+        },
+        {
+          "name": "ui::page::tests::attention_dot_is_warning_coloured_and_part_of_hit_width",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "An isolated page-tab row paints one warning-coloured attention dot and includes it in local click geometry."
+        },
+        {
+          "name": "ui::page::tests::selected_attention_survives_narrow_unicode_windows",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "An isolated selected page tab preserves attention when fitting narrow Unicode labels and keeps local window/hit geometry bounded."
+        }
+      ]
+    },
+    {
       "id": "slack-cli-fixtures",
       "package": "radar-slack",
       "binary": "radar_slack",
@@ -1581,6 +1705,1292 @@
           ],
           "boundary": "One real host executes success and refusal post tasks through Scenario and production reducers, preserves the followed row and unchanged refusal golden in exactly two shell frames.",
           "why_not_unit": "Host confirmation routing, real task completion and rendered output require a protected contract. Ordered Recorded responses are checked using complete literal post-execution ledgers and queue exhaustion, not strict pre-response request matching. Local Code/Tracker stubs are not sibling-part crates; bootstrap and persistent journal verification are not claimed."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-page-tab-attention",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "pages::mr::tab_attention_tests::",
+      "cases": [
+        {
+          "name": "pages::mr::tab_attention_tests::names_ignore_totals_and_attention_tracks_only_unresolved_or_failed_state",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owned MR/detail models keep page-tab names independent of totals and derive attention only from unresolved discussions or failed pipeline state, with loaded resolutions overriding stale summary counts."
+        }
+      ]
+    },
+    {
+      "id": "core-palette-matching",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "palette::tests::",
+      "cases": [
+        {
+          "name": "palette::tests::ranks_exact_prefix_boundary_then_substring",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure matching scores and Unicode scalar highlight positions."
+        },
+        {
+          "name": "palette::tests::matches_unicode_scalar_positions_and_lowercase_expansions",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure matching scores and Unicode scalar highlight positions."
+        }
+      ]
+    },
+    {
+      "id": "core-palette-host",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::palette_tests::",
+      "cases": [
+        {
+          "name": "host::palette_tests::palette_search_is_inert_arrows_preserve_query_and_enter_routes_once",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_cancel_empty_results_and_capture_preserve_underlying_state",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_actions_keep_freshness_and_confirmation_for_keyboard_and_intents",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_revalidates_scoped_destinations_without_browser_fallback",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_discovery_prioritizes_actions_then_session_visits_and_bounds_results",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_suspends_history_and_outside_click_restores_it",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::background_question_replaces_palette_without_rewriting_its_choices",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_respects_setup_and_visit_identity_ignores_mutable_metadata",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_normalizes_stale_panes_and_background_typed_menu_keeps_its_input",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_stale_clicks_and_invocations_cannot_answer_a_new_question",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
+          "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
+        },
+        {
+          "name": "host::palette_tests::palette_raw_mouse_double_press_cannot_reuse_old_hits_for_confirmation",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Full-shell palette hit registration and raw mouse dispatch invalidate old hits before a replacement confirmation can receive a queued second press.",
+          "why_not_unit": "Requires a real shell frame to populate the host hit map and raw pointer events across the palette-to-confirmation transition; isolated target mapping cannot detect reuse of rendered hits."
+        },
+        {
+          "name": "host::palette_tests::palette_rejects_account_scope_change_even_when_the_subject_is_unchanged",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host navigation revalidates the owner's current account-scoped destination identity before opening an unchanged subject.",
+          "why_not_unit": "Requires a real host retaining the palette inventory while its owner changes account scope before activation."
+        },
+        {
+          "name": "host::palette_tests::palette_footer_click_cannot_confirm_the_next_question",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Generation-scoped palette footer targets execute once and cannot answer the subsequent confirmation when replayed.",
+          "why_not_unit": "Requires actual host chrome target dispatch and retained menu state across the palette-to-confirmation transition."
+        }
+      ]
+    },
+    {
+      "id": "core-palette-shell",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "shell::menu::tests::palette_tests::",
+      "cases": [
+        {
+          "name": "shell::menu::tests::palette_tests::palette_highlights_use_scalar_positions_and_keep_graphemes_whole",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated palette row layout and Unicode highlight helpers preserve cells, shortcuts and viewport selection without a host or full application frame."
+        },
+        {
+          "name": "shell::menu::tests::palette_tests::palette_rows_keep_all_unicode_and_right_align_shortcuts_at_every_width",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated palette row layout and Unicode highlight helpers preserve cells, shortcuts and viewport selection without a host or full application frame."
+        },
+        {
+          "name": "shell::menu::tests::palette_tests::palette_layout_preserves_item_order_and_scrolls_to_unicode_continuations",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Isolated palette row layout and Unicode highlight helpers preserve cells, shortcuts and viewport selection without a host or full application frame."
+        }
+      ]
+    },
+    {
+      "id": "core-palette-wire",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view::chrome::palette_tests::",
+      "cases": [
+        {
+          "name": "view::chrome::palette_tests::palette_metadata_is_optional_and_round_trips_without_changing_old_menus",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "JSON palette metadata preserves optional-field compatibility for existing menus.",
+          "why_not_unit": "Serialized optional fields and generated-view compatibility are a protocol boundary."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-palette-targets",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "palette::tests::",
+      "cases": [
+        {
+          "name": "palette::tests::cached_repositories_and_merge_requests_keep_show_identity_once",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::empty_or_foreign_cached_items_never_become_palette_destinations",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::palette_identity_survives_metadata_changes_but_not_server_changes",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        }
+      ]
+    },
+    {
+      "id": "github-palette-targets",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "palette::tests::",
+      "cases": [
+        {
+          "name": "palette::tests::cached_repository_and_pull_targets_use_existing_scoped_routes_once",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::configured_only_and_untracked_pull_targets_are_absent",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::palette_identity_survives_pull_title_and_head_updates",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        }
+      ]
+    },
+    {
+      "id": "jira-palette-targets",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "palette::tests::",
+      "cases": [
+        {
+          "name": "palette::tests::cached_ticket_keys_remain_distinct_by_site_without_resolving_urls",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::removed_sites_invalid_keys_and_unloaded_tickets_are_absent",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::stored_ticket_page_uses_its_exact_configured_site_route",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        }
+      ]
+    },
+    {
+      "id": "slack-palette-targets",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "palette::tests::",
+      "cases": [
+        {
+          "name": "palette::tests::cached_messages_and_replies_share_one_team_scoped_thread_target",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::unauthenticated_cached_data_and_empty_channels_are_not_destinations",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::palette_identity_survives_message_edits_but_is_account_scoped",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        }
+      ]
+    },
+    {
+      "id": "git-palette-targets",
+      "package": "radar-git",
+      "binary": "radar_git",
+      "prefix": "palette::tests::",
+      "cases": [
+        {
+          "name": "palette::tests::cached_clone_and_worktree_targets_select_exact_folders_without_effects",
+          "tier": "unit",
+          "parts": [
+            "git"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        },
+        {
+          "name": "palette::tests::unresolved_folders_and_orphaned_worktrees_are_not_targets",
+          "tier": "unit",
+          "parts": [
+            "git"
+          ],
+          "boundary": "Owner-local cached target enumeration, exact scoped routing/effect envelopes, duplicate exclusion and stable identities; no host, requests or real clock."
+        }
+      ]
+    },
+    {
+      "id": "core-focus-ramp-kit",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ui::frame::tests::",
+      "cases": [
+        {
+          "name": "ui::frame::tests::samples_include_all_three_stops_and_use_integer_theme_mixing",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::ramp_uses_resolved_user_overrides",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::perimeter_walks_clockwise_from_top_left_with_each_corner_once",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::tiny_perimeters_are_unique_and_have_no_interior_cells",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::title_regions_use_cell_width_and_leave_corners_free",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::border_changes_only_foreground_and_preserves_explicit_top_and_bottom_titles",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::lower_tiers_are_unchanged_and_truecolor_non_owner_borders_are_quiet",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::real_block_title_cells_survive_and_later_scrollbars_keep_their_styles",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Ratatui Block title geometry and scrollbar-last painting preserve their exact cells across the border foreground overlay.",
+          "why_not_unit": "This boundary deliberately composes the actual Block and scrollbar painters; isolated sampler assertions cannot establish title or later paint precedence."
+        },
+        {
+          "name": "ui::frame::tests::border_is_safe_for_empty_and_partly_outside_buffers",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::wordmark_keeps_graphemes_and_advances_by_display_cells",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::wordmark_keeps_low_tier_content_styles_and_empty_or_single_cells",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure theme-resolved ramp sampling, perimeter geometry, protected cells and grapheme-preserving wordmark styling in caller-owned local buffers."
+        },
+        {
+          "name": "ui::frame::tests::owned_panel_uses_the_blocks_clipped_frame_but_keeps_legacy_inner",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Owner-aware panel/card wrapper preserves actual clipped Block title geometry, legacy inner geometry, scrollbar precedence and exact lower-tier buffers.",
+          "why_not_unit": "Composes actual production Block/card/scroll painters to establish renderer behavior unavailable from pure sampling."
+        },
+        {
+          "name": "ui::frame::tests::owned_card_keeps_the_scrollbar_and_lower_tier_buffers_exactly",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Owner-aware panel/card wrapper preserves actual clipped Block title geometry, legacy inner geometry, scrollbar precedence and exact lower-tier buffers.",
+          "why_not_unit": "Composes actual production Block/card/scroll painters to establish renderer behavior unavailable from pure sampling."
+        }
+      ]
+    },
+    {
+      "id": "core-focus-ramp-view",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view_tui::focus_ramp_tests::",
+      "cases": [
+        {
+          "name": "view_tui::focus_ramp_tests::every_pane_body_branch_ramps_only_its_owner",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding.",
+          "why_not_unit": "The actual screen renderer paints cooperating panes, inline fields, page layouts and overlay/dock eligibility; helper values alone cannot establish which visible border is recolored."
+        },
+        {
+          "name": "view_tui::focus_ramp_tests::caret_field_owns_the_ramp_while_navigation_border_is_quiet",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding.",
+          "why_not_unit": "The actual screen renderer paints cooperating panes, inline fields, page layouts and overlay/dock eligibility; helper values alone cannot establish which visible border is recolored."
+        },
+        {
+          "name": "view_tui::focus_ramp_tests::chrome_overlay_and_visible_dock_suppress_background_ramps",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding.",
+          "why_not_unit": "The actual screen renderer paints cooperating panes, inline fields, page layouts and overlay/dock eligibility; helper values alone cannot establish which visible border is recolored."
+        },
+        {
+          "name": "view_tui::focus_ramp_tests::stale_dock_focus_does_not_take_ramps_from_pages_or_work_areas",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding.",
+          "why_not_unit": "The actual screen renderer paints cooperating panes, inline fields, page layouts and overlay/dock eligibility; helper values alone cannot establish which visible border is recolored."
+        },
+        {
+          "name": "view_tui::focus_ramp_tests::lower_tier_renderer_cells_do_not_change_with_ramp_ownership",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding.",
+          "why_not_unit": "The actual screen renderer paints cooperating panes, inline fields, page layouts and overlay/dock eligibility; helper values alone cannot establish which visible border is recolored."
+        }
+      ]
+    },
+    {
+      "id": "core-focus-ramp-shell",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "shell::focus_ramp_tests::",
+      "cases": [
+        {
+          "name": "shell::focus_ramp_tests::only_body_keys_without_a_menu_or_shown_dock_allow_pane_ramps",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding."
+        },
+        {
+          "name": "shell::focus_ramp_tests::normal_and_setup_wordmarks_keep_padding_and_exact_low_tier_spans",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding."
+        }
+      ]
+    },
+    {
+      "id": "core-interaction-cells",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "motion::interaction::tests::",
+      "cases": [
+        {
+          "name": "motion::interaction::tests::border_changes_cancel_before_painting_and_clipped_geometry_is_explicit",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::closing_preserves_old_descendant_cells_then_removes_bottommost_first",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::drain_preserves_titles_scrollbars_and_nonuniform_resolved_targets",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::focus_band_resolves_custom_slots_and_has_no_lower_tier_fallback",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::fold_accepts_already_clipped_viewports_but_never_reclips_a_retained_anchor",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::fold_clones_wide_graphemes_continuations_and_every_cell_attribute",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::fold_integer_steps_and_reverse_are_exact_at_quarters_and_endpoint",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::fold_rejects_incomplete_rows_bad_geometry_and_wide_right_edge_atomically",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::lap_head_pins_quarters_and_last_millisecond",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::lap_trail_never_wraps_and_all_seven_stops_are_visible_after_six_steps",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::lap_walks_clockwise_at_all_quarters_and_leaves_exact_clean_ramp_behind",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::logical_descendants_are_capped_to_the_retained_viewport",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::non_rgb_drain_source_or_destination_cancels_entire_overlay",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::non_rgb_lap_prior_cancels_atomically_before_any_border_write",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::opening_unrolls_prefix_and_displaces_compact_tail_without_duplicate_rows",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::outgoing_drain_uses_integer_half_up_and_exact_current_clean_destination",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::safety_caps_and_saturated_rectangles_fail_without_allocating_snapshots",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::single_row_fold_stays_discrete_until_its_last_step",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::status_band_uses_seven_stops_in_temporal_order_and_half_up_interpolation",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::tiny_perimeters_and_completely_protected_frames_are_safe",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::title_and_scrollbar_are_protected_but_still_consume_lap_distance",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        },
+        {
+          "name": "motion::interaction::tests::title_origin_uses_display_geometry_without_rotating_the_static_ramp",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Explicit cell and theme math, without renderer or I/O."
+        }
+      ]
+    },
+    {
+      "id": "core-interaction-parity",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "motion::interaction::parity::",
+      "cases": [
+        {
+          "name": "motion::interaction::parity::rust_interaction_reference_matches_committed_cells",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Committed Rust-to-Ink physical cell fixture boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        }
+      ]
+    },
+    {
+      "id": "core-interaction-frames",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "motion::frames::tests::",
+      "cases": [
+        {
+          "name": "motion::frames::tests::absent_owner_and_resize_never_create_a_transfer",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::aggregate_border_and_late_protection_metadata_are_bounded",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::ambiguous_owners_and_oversized_viewports_use_clean_frames",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::background_delivery_cannot_borrow_a_locally_consumed_input",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::changed_tree_content_and_moved_parent_cancel_retained_rows",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::focus_transfer_laps_and_settles_to_exact_clean_frame",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::fold_rejects_unrelated_added_siblings_and_discontiguous_descendants",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::input_cancels_but_keeps_clean_baseline_for_immediate_reversal",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::modal_or_context_replacement_discards_active_motion",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::opening_unrolls_rows_and_closing_retains_disappeared_children",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::ownership_without_input_is_instant_and_first_frame_never_laps",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::refresh_without_verified_fold_does_not_animate_row_changes",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::registration_rejects_duplicate_identity_and_unbounded_metadata",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::restored_geometry_does_not_resume_an_invalidated_lap",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "motion::frames::tests::retained_fold_generations_share_cells_across_clean_redraws",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Clean-frame retention, renderer geometry, ownership and lifecycle boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        }
+      ]
+    },
+    {
+      "id": "core-interaction-host",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::interaction_motion::tests::",
+      "cases": [
+        {
+          "name": "host::interaction_motion::tests::contract::context_tracks_page_identity_and_tab_without_building_views",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::contract::native_keys_and_ink_intents_verify_once_without_changing_activation_semantics",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::contract::native_section_and_settings_group_paths_have_distinct_tree_slots",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::contract::page_tree_targets_route_to_actual_page_panes_without_hidden_root_fallback",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::contract::rejected_noop_leaf_route_change_and_newer_input_discard_evidence",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::contract::synchronous_routed_effect_replacement_invalidates_fold_evidence",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::contract::verification_is_disabled_without_full_and_raw_keys_keep_their_semantics",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "host::interaction_motion::tests::unit::only_the_exact_existing_group_and_requested_direction_verify",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary."
+        },
+        {
+          "name": "host::interaction_motion::tests::unit::pane_identity_selects_one_tree_and_reused_pane_ids_are_ambiguous",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary."
+        },
+        {
+          "name": "host::interaction_motion::tests::unit::raw_fold_keys_and_activate_preserve_the_selected_group_path",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary."
+        },
+        {
+          "name": "host::interaction_motion::tests::unit::selection_refresh_reorder_and_auto_open_never_verify_as_a_fold",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host dispatch and verified fold/context identity boundary."
+        }
+      ]
+    },
+    {
+      "id": "core-interaction-ipc",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ipc::interaction_tests::",
+      "cases": [
+        {
+          "name": "ipc::interaction_tests::contract_coalescing_keeps_only_final_compatible_fold_and_newer_input_cancels_it",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "ipc::interaction_tests::contract_context_change_with_identical_visible_page_is_sent",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "ipc::interaction_tests::contract_interaction_is_full_only_and_reconnect_forgets_acknowledgement",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "ipc::interaction_tests::contract_noop_acknowledgement_cannot_be_borrowed_by_later_background_data",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "ipc::interaction_tests::contract_noop_while_in_flight_does_not_claim_background_before_ack",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "ipc::interaction_tests::contract_optional_wire_envelope_defaults_and_round_trips_without_version_change",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        },
+        {
+          "name": "ipc::interaction_tests::contract_verified_fold_keeps_origin_and_is_consumed_once",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Optional wire metadata and coalesced input causality boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        }
+      ]
+    },
+    {
+      "id": "core-interaction-renderer",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view_tui::interaction_tests::",
+      "cases": [
+        {
+          "name": "view_tui::interaction_tests::small_tree_retains_full_blank_viewport_and_keeps_scrollbar_outside_fold_cells",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual BandedTree geometry and animated cell composition boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        }
+      ]
+    },
+    {
+      "id": "github-interaction-tree",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "screen::neutral::tests::",
+      "cases": [
+        {
+          "name": "screen::neutral::tests::fold_intent_changes_open_paths_without_rebuilding_or_losing_children",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::freeform_group_names_cannot_alias_path_separators_or_escapes",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::raw_fold_keys_and_group_activate_keep_existing_selection_and_page_behavior",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::routed_minus_on_a_pull_or_closed_repository_does_not_fold_its_parent",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::tree_labels_icons_counts_and_loading_states_remain_owner_data",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::tree_paths_roundtrip_and_survive_group_repository_and_pull_reordering",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::tree_rows_carry_no_fold_marker_folded_or_open",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        },
+        {
+          "name": "screen::neutral::tests::tree_targets_reject_wrong_ancestors_hidden_rows_and_replaced_pulls",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned stable tree path, fold routing and presentation model rules."
+        }
+      ]
+    },
+    {
+      "id": "github-interaction-host",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "tests::interaction_motion::",
+      "cases": [
+        {
+          "name": "tests::interaction_motion::repository_tree_fold_intents_verify_through_the_real_host",
+          "tier": "contract",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Actual GitHub owner and host verified-fold dispatch boundary.",
+          "why_not_unit": "The guarantee crosses actual renderer, host or wire components; pure helper rules are covered separately."
+        }
+      ]
+    },
+    {
+      "id": "github-motion-identity",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "page_identity_tests::",
+      "cases": [
+        {
+          "name": "page_identity_tests::page_identity_distinguishes_repository_pull_run_and_attempt",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned actual-page identity independent of selected child and display data."
+        },
+        {
+          "name": "page_identity_tests::page_identity_ignores_title_tab_and_selected_child",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Owned actual-page identity independent of selected child and display data."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-motion-identity",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "pages::page_identity_tests::",
+      "cases": [
+        {
+          "name": "pages::page_identity_tests::page_identity_distinguishes_kind_project_and_item",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owned actual-page identity independent of selected child and display data."
+        },
+        {
+          "name": "pages::page_identity_tests::page_identity_ignores_tab_row_and_selected_file",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owned actual-page identity independent of selected child and display data."
+        }
+      ]
+    },
+    {
+      "id": "jira-motion-identity",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "page::page_identity_tests::",
+      "cases": [
+        {
+          "name": "page::page_identity_tests::page_identity_distinguishes_site_and_ticket",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Owned actual-page identity independent of selected child and display data."
+        },
+        {
+          "name": "page::page_identity_tests::page_identity_ignores_tab_row_and_contributed_labels",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Owned actual-page identity independent of selected child and display data."
+        }
+      ]
+    },
+    {
+      "id": "slack-motion-identity",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "page::page_identity_tests::",
+      "cases": [
+        {
+          "name": "page::page_identity_tests::page_identity_does_not_guess_for_missing_or_unstamped_drafts",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owned thread/draft incarnation identity independent of cursor and text edits."
+        },
+        {
+          "name": "page::page_identity_tests::page_identity_keeps_draft_incarnation_across_edits_and_retention",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owned thread/draft incarnation identity independent of cursor and text edits."
+        },
+        {
+          "name": "page::page_identity_tests::page_identity_uses_thread_root_not_tab_or_child",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owned thread/draft incarnation identity independent of cursor and text edits."
         }
       ]
     }

@@ -108,7 +108,7 @@ fn job_view(
         .map(|subject| cx.parts.tabs(&subject))
         .unwrap_or_default();
     let mut tabs = vec![TabView::new(
-        job::tabs(p, project_path, id)[0].clone(),
+        job::tabs()[0].clone(),
         Some(Icon::Log),
     )];
     tabs.extend(
@@ -365,7 +365,7 @@ fn tenancy_view(
         None => Text::of(group, Ink::Emphasis),
     };
     let mut tab_views = vec![TabView::new(
-        tenancy::tabs(p, group)[0].clone(),
+        tenancy::tabs()[0].clone(),
         Some(Icon::Repo),
     )];
     tab_views.extend(
@@ -994,10 +994,11 @@ pub(super) fn mr_commits_view(
         Icon::Pipeline,
         Icon::Commit,
     ];
-    let mut tabs: Vec<TabView> = mr::tabs(p, project_path, iid)
+    let mut tabs: Vec<TabView> = mr::tabs()
         .into_iter()
         .zip(icons)
-        .map(|(label, icon)| TabView::new(label, Some(icon)))
+        .zip(mr::attention(p, project_path, iid))
+        .map(|((label, icon), attention)| TabView::new(label, Some(icon)).attention(attention))
         .collect();
     tabs.extend(
         page.extra

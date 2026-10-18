@@ -1,9 +1,9 @@
- radar    Repositories 1   Jira   Slack 4   Branches   Work (I)   History   Settings (,)                                                 not synced yet  ✎ edit
+ radar    Repositories ●   Jira   Slack ●   Branches   Work (I)   History   Settings (,)                                                 not synced yet  ✎ edit
   GitLab    GitHub    Local workspaces
  Repositories › a › api › !263
  ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
  checkout  terminal  editor  /work/acme/api · java · on alice/ABC-12 · 1 more
- Overview  Changes · 5 files  [Threads · 1 open]  Pipeline  Commits · 2  Tickets
+ Overview  Changes  [Threads ●]  Pipeline  Commits  Tickets
 ╭ threads ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │  + comment on !263   a comment on the merge request, not on a line                                                                                           │
 │                                                                                                                                                              │

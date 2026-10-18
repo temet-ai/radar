@@ -1452,14 +1452,17 @@ pub struct FieldBar {
     pub hint: Text,
 }
 
-/// A tab of an item page.
+/// A tab of an item page: its name and, when needed, one warning dot.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct TabView {
-    /// As drawn after the icon (`Changes · 3 files`).
+    /// The name drawn after the icon (`Changes`), without counts.
     pub label: String,
     #[serde(default, skip_serializing_if = "Option::is_none", with = "icon_name")]
     #[ts(as = "Option<String>")]
     pub icon: Option<Icon>,
+    // Something here needs attention, rather than a count.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub attention: bool,
 }
 
 impl TabView {
@@ -1467,7 +1470,14 @@ impl TabView {
         Self {
             label: label.into(),
             icon,
+            attention: false,
         }
+    }
+
+    /// Mark this tab as needing attention without putting state in its name.
+    pub fn attention(mut self, attention: bool) -> Self {
+        self.attention = attention;
+        self
     }
 
     /// The target choosing tab `i` sends ([`Intent::Select`]).

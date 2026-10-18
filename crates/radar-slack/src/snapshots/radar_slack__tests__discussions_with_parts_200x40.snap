@@ -2,7 +2,7 @@
 source: crates/radar-slack/src/tests.rs
 expression: text
 ---
- radar    Code   Tickets   Slack 4   History   Settings (,)                                                                                                           synced 40s ago · every 2m  ✎ edit
+ radar    Code   Tickets   Slack ●   History   Settings (,)                                                                                                           synced 40s ago · every 2m  ✎ edit
 ╭ feed ──────────────────╮╭ Discussions ───────────────────────────────────────────────────────────────────────────────────────────────────╮╭ Carol Coder's message ───────────────────────────────────╮
 │ For you              4 ││ BY WHAT THEY ARE ABOUT                                                                     REPLIES  WHEN       ││ ── #team · yesterday ──                                  │
 │ Discussions            ││api !263  Add a stats endpoint for the dashboard                                                                ││ ● 07:06  Carol Coder                                     │

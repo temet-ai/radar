@@ -147,10 +147,7 @@
       },
       "tabs": [
         {
-          "badge": {
-            "ink": "warn",
-            "text": "2"
-          },
+          "attention": true,
           "icon": "repo",
           "label": "repositories",
           "mnemonic": "R",
@@ -429,7 +426,7 @@
         },
         {
           "icon": "change",
-          "label": "Code · 1"
+          "label": "Code"
         }
       ],
       "title": [

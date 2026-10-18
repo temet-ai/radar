@@ -1,7 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TabRow } from "../../src/app/TabRow";
-import { bgOf, iconOf } from "../../src/text/look";
+import { bgOf } from "../../src/text/look";
 import type { ChromeView } from "../../src/chrome/types";
 import { Compare, fromScene } from "../support/Compare";
 import { bodyTopOf } from "../support/scene";
@@ -17,12 +17,12 @@ import chrome160 from "../../test/fixtures/host_chrome_160x40.json";
 
 type Args = React.ComponentProps<typeof TabRow>;
 
-/** PageBody's tab labels: the tab's icon (when the pack has one) and its words. */
+/** PageBody's tab data: the tab's name, icon and explicit attention flag. */
 const argsOf = (view: any, c: unknown, focused = false): Args => {
   const chrome = c as ChromeView;
   const page = view.page;
   return {
-    labels: page.tabs.map((t: any) => `${iconOf(t.icon)?.glyph ? `${iconOf(t.icon)!.glyph} ` : ""}${t.label}`),
+    tabs: page.tabs,
     on: page.tab,
     focused,
     width: chrome.width - 2,
@@ -32,7 +32,7 @@ const argsOf = (view: any, c: unknown, focused = false): Args => {
 /** The labels are laid out again when Ink draws, in the look the toolbar chose (the icon pack decides the glyphs). */
 function InLook({ view, args }: { view: any; args: Args }) {
   const fresh = argsOf(view, { width: args.width + 2 }, args.focused);
-  return <TabRow {...args} labels={fresh.labels} base={bgOf("bg.base")} />;
+  return <TabRow {...args} tabs={fresh.tabs} base={bgOf("bg.base")} />;
 }
 
 /** The tab row's line on the page: after the crumbs, the title and the line under it (PageBody's head). */
@@ -60,8 +60,8 @@ function Draw({ args, globals, view, c, scene, missing }: { args: Args; globals:
  *
  * **States:** a tab chosen, the row focused (the chosen tab on the focused shade), windowed when narrow.
  *
- * **Rules:** tabs show names, not counts: `Changes · 1 file`, `Threads · 1 open` are counts the host still sends
- * (#33). One attention dot when something there waits for you. No pill tabs; square shades only.
+ * **Rules:** tabs show names, not counts. One warning-colored attention dot follows the name when the host
+ * marks the tab as needing attention. No pill tabs; square shades only.
  */
 const meta = {
   title: "Page/TabRow",

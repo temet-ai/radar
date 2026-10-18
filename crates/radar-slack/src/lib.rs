@@ -11,6 +11,7 @@
 //! `alerts` and `look`; the `[slack]` config table; the `slack.*` colour slots;
 //! a cache (with the caught-up marks); `radar slack catchup`.
 
+mod palette;
 mod alert_view;
 mod agent_context;
 mod alerts;
@@ -1078,11 +1079,21 @@ impl Plugin for SlackPlugin {
     fn recognise(&self, text: &str) -> Vec<(std::ops::Range<usize>, radar_core::Subject)> {
         join::recognise(self, text)
     }
+    fn palette_targets(&self) -> Vec<radar_core::palette::PaletteTarget> {
+        palette::targets(self)
+    }
+
     fn show(&mut self, subject: &radar_core::Subject) -> radar_core::Showing {
         join::show(self, subject)
     }
     fn depth(&self, _: &str) -> usize {
         self.pages.len()
+    }
+    fn page_identity(&self, screen: &str) -> Option<String> {
+        if screen != SCREEN.id {
+            return None;
+        }
+        self.pages.last()?.identity(self.draft.as_ref())
     }
     fn tabs(&self, _: &str) -> Option<radar_core::plugin::PageTabs> {
         page::page_tabs(self)

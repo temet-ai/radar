@@ -100,39 +100,50 @@ fn open_threads(mr: &Mr, d: Option<&MrDetail>) -> usize {
     }
 }
 
-pub(super) fn tabs(p: &GitlabPlugin, project: &str, iid: u64) -> Vec<String> {
-    let mr = find_mr(p, project, iid);
-    let d = detail(p, project, iid);
-    let plural = |n: usize, one: &str, many: &str| if n == 1 { one } else { many }.to_string();
-    let files = d.map_or(mr.map_or(0, |m| m.files as usize), |d| d.files.len());
+pub(super) fn tabs() -> Vec<String> {
+    TABS.iter().map(|name| (*name).to_string()).collect()
+}
+
+/// Open discussions and failed pipelines need attention; totals do not.
+pub(super) fn attention(p: &GitlabPlugin, project: &str, iid: u64) -> [bool; 5] {
+    attention_of(find_mr(p, project, iid), detail(p, project, iid))
+}
+
+fn attention_of(mr: Option<&Mr>, d: Option<&MrDetail>) -> [bool; 5] {
     let open = match (mr, d) {
         (Some(m), d) => open_threads(m, d),
         (None, Some(d)) => d.discussions.iter().filter(|x| x.is_open()).count(),
         (None, None) => 0,
     };
-    let threads = if open > 0 {
-        format!("Threads · {open} open")
-    } else {
-        "Threads".into()
-    };
-    let commits = match d {
-        Some(d) if !d.commits.is_empty() => format!("Commits · {}", d.commits.len()),
-        _ => "Commits".into(),
-    };
-    let failed = mr
-        .and_then(red)
-        .and_then(|pl| why::failed(p, project, pl))
-        .map_or(0, |jobs| jobs.iter().filter(|j| !j.allow_failure).count());
-    let pipeline = match failed {
-        0 => TABS[PIPELINE].into(),
-        n => format!("Pipeline · {n} failed"),
-    };
-    vec![
-        TABS[OVERVIEW].into(),
-        format!("Changes · {files} {}", plural(files, "file", "files")),
-        threads,
-        pipeline,
-        commits,
-    ]
+    let failed = mr.is_some_and(|mr| mr.pipeline == Some(crate::model::Pipeline::Failed));
+    [false, false, open > 0, failed, false]
 }
 
+#[cfg(test)]
+mod tab_attention_tests {
+    use super::*;
+    use crate::model::{Discussion, Pipeline};
+    use crate::test_support::MrBuilder;
+
+    #[test]
+    fn names_ignore_totals_and_attention_tracks_only_unresolved_or_failed_state() {
+        let mut mr = MrBuilder::default().build();
+        mr.files = 42;
+        mr.notes = 17;
+        mr.threads = 3;
+        mr.threads_resolved = 2;
+        mr.pipeline = Some(Pipeline::Failed);
+        assert_eq!(tabs(), ["Overview", "Changes", "Threads", "Pipeline", "Commits"]);
+        assert_eq!(attention_of(Some(&mr), None), [false, false, true, true, false]);
+        mr.pipeline = Some(Pipeline::Passed);
+        let mut detail = MrDetail::default();
+        detail.discussions.push(Discussion {
+            id: "watch-note".into(), resolvable: true, resolved: true, notes: vec![],
+        });
+        assert_eq!(attention_of(Some(&mr), Some(&detail)), [false; 5], "loaded resolutions override the old count");
+        detail.discussions[0].resolved = false;
+        assert_eq!(attention_of(None, Some(&detail)), [false, false, true, false, false]);
+        detail.discussions[0].resolvable = false;
+        assert_eq!(attention_of(None, Some(&detail)), [false; 5], "ordinary comments are not unresolved work");
+    }
+}

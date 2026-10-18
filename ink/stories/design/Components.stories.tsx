@@ -9,7 +9,7 @@ import type { ChromeView, MenuView } from "../../src/chrome/types";
 import type { Tree } from "../../src/protocol/generated/Tree";
 import { TreeNode } from "../../src/nodes/tree";
 import { TabRow } from "../../src/app/TabRow";
-import { bgOf, iconOf } from "../../src/text/look";
+import { bgOf } from "../../src/text/look";
 import { BodyWithMenu, InPane, StatusLine, TopRows } from "../support/frames";
 import { paneOf } from "../support/stories";
 import type { RatatuiScene } from "../support/ratatui";
@@ -105,7 +105,7 @@ export const Keys: Story = {
   ),
 };
 
-/** Tabs: today the top bar's part tabs carry counts, and page tabs too; the target drops counts for one attention dot. */
+/** Tabs: names with one warning-colored dot when the host reports attention, in the top bar and item pages. */
 export const Tabs: Story = {
   render: (_args, { globals }) => (
     <Row>
@@ -124,8 +124,7 @@ export const Tabs: Story = {
 
 function PageTabs() {
   const page = (page80 as any).page;
-  const labels = page.tabs.map((t: any) => `${iconOf(t.icon)?.glyph ? `${iconOf(t.icon)!.glyph} ` : ""}${t.label}`);
-  return <TabRow labels={labels} on={page.tab} focused={false} width={78} base={bgOf("bg.base")} />;
+  return <TabRow tabs={page.tabs} on={page.tab} focused={false} width={78} base={bgOf("bg.base")} />;
 }
 
 /** Fields: today the `/` filter at the top of a pane (highlight_typing-filter); the target says what it acts on and

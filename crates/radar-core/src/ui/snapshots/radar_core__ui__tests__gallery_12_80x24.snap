@@ -1,11 +1,10 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 999
 expression: "gallery_text(80, 24, tab)"
 ---
  Gallery › Grid states
  The kit: every element on sample data                            colours: none
- Diff  Motion  Colours  Tones  Row states  [Grid states]  Waiting  Long text  I
+ Diff  Motion  Colours  Tones  Row states  [Grid states]  Waiting  Long text  …
 ╭ table, focused (cursor on row 3) ───────────────────────────────────────────╮
 │ NAME                                          STATE     OWNER       SIZE    │█
 │ sort the atlas box                            ● sorting Alice E.    42 kB   │█

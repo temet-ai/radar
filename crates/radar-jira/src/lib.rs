@@ -13,6 +13,7 @@
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 
+mod palette;
 mod source_navigation;
 mod adf;
 mod agent_context;
@@ -1224,11 +1225,21 @@ impl Plugin for JiraPlugin {
     fn recognise(&self, text: &str) -> Vec<(std::ops::Range<usize>, radar_core::Subject)> {
         join::recognise(self, text)
     }
+    fn palette_targets(&self) -> Vec<radar_core::palette::PaletteTarget> {
+        palette::targets(self)
+    }
+
     fn show(&mut self, subject: &radar_core::Subject) -> radar_core::Showing {
         join::show(self, subject)
     }
     fn depth(&self, _: &str) -> usize {
         self.pages.len()
+    }
+    fn page_identity(&self, screen: &str) -> Option<String> {
+        if screen != SCREEN.id {
+            return None;
+        }
+        Some(self.pages.last()?.identity())
     }
     fn tabs(&self, _: &str) -> Option<radar_core::plugin::PageTabs> {
         page::page_tabs(self)

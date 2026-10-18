@@ -5,7 +5,7 @@ expression: "draw(&p, 80, 24)"
 ---
  Repositories › a › api › !263
  ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
- [Overview]  Changes · 5 files  Threads · 1 open  Pipeline  Commits · 2
+ [Overview]  Changes  Threads ●  Pipeline  Commits
 ╭ can it merge? ───────────────────────────────────────────────────────────────╮
 │ ◷ needs 1 approval                                                           │
 │ ✓ pipeline passed                                                            │

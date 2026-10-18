@@ -1,7 +1,7 @@
 // Ink's motion engine keeps to motion.rs's rules (crates/radar-core/src/motion/tests.rs): off draws what was drawn,
 // each effect runs its time and no longer, subtle has fewer cues, input drops what runs, the frame after an effect is
 // exactly the one without motion, a slow terminal turns motion off. The cells themselves are parity.test.ts's.
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   Engine,
   FRAME_MS,
@@ -20,7 +20,9 @@ import {
 } from "../../src/motion/engine.js";
 import { Grid } from "../../src/motion/grid.js";
 import { parseFrame, writeFrame } from "../../src/motion/frame.js";
-import { Motion, isInput } from "../../src/motion/motion.js";
+import * as frames from "../../src/motion/frame.js";
+import type { MotionScene, PaneMark, TreeMark } from "../../src/motion/interaction.js";
+import { Motion, isInput, motion, installMotionOutput } from "../../src/motion/motion.js";
 import { parseHex } from "../../src/motion/color.js";
 
 const ink: InkColours = {
@@ -360,5 +362,197 @@ describe("idle cost", () => {
     const done = ticks;
     await new Promise((r) => setTimeout(r, 400));
     expect(ticks, "no tick once it ended").toBe(done);
+  });
+});
+
+
+// Real scheduler/output ownership belongs to the renderer contract, not the pure effect-math tier.
+describe("motion controller disposal and inactive guards", () => {
+  afterEach(() => {
+    installMotionOutput(motion);
+    motion.reset();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+  const scene: MotionScene = { cursor: 1, context: { kind: "history" }, local: false, blocked: false };
+  const plain = "\x1b[38;2;248;248;242mWatch\x1b[0m";
+
+  const pane = (name = "nav"): PaneMark => ({ pane: name, owns: name === "nav", area: { x: 0, y: 0, w: 1, h: 1 }, keep: [] });
+  const tree = (slot = "body"): TreeMark => ({ pane: "nav", slot, area: { x: 0, y: 0, w: 1, h: 1 }, rows: [{ path: ["watch"], y: 0 }], open: [] });
+  type RegistrationCase = { name: string; panes?: PaneMark[]; trees?: TreeMark[] } & ({ kind: "pane"; bad: PaneMark } | { kind: "tree"; bad: TreeMark });
+  const invalidRegistrations: RegistrationCase[] = [
+    { name: "oversize pane key", kind: "pane", bad: { ...pane(), pane: "x".repeat(1025) } },
+    { name: "65 protected rectangles", kind: "pane", bad: { ...pane(), keep: Array.from({ length: 65 }, () => AREA) } },
+    { name: "duplicate pane key", kind: "pane", panes: [pane()], bad: pane() },
+    { name: "33 pane marks", kind: "pane", panes: Array.from({ length: 32 }, (_, i) => pane(`watch-${i}`)), bad: pane() },
+    { name: "65,537 total perimeter cells", kind: "pane", panes: [pane("watch")], bad: { ...pane(), area: { x: 0, y: 0, w: 1, h: 65536 } } },
+    { name: "oversize tree key", kind: "tree", bad: { ...tree(), pane: "x".repeat(1025) } },
+    { name: "oversize tree slot", kind: "tree", bad: tree("x".repeat(1025)) },
+    { name: "4,097-byte row ID in one cell", kind: "tree", bad: { ...tree(), rows: [{ path: ["x".repeat(4097)], y: 0 }] } },
+    { name: "65 row-path components", kind: "tree", bad: { ...tree(), rows: [{ path: Array.from({ length: 65 }, () => ""), y: 0 }] } },
+    { name: "oversize open path", kind: "tree", bad: { ...tree(), open: [["x".repeat(4097)]] } },
+    { name: "rows beyond viewport", kind: "tree", bad: { ...tree(), rows: [{ path: ["a"], y: 0 }, { path: ["b"], y: 1 }] } },
+    { name: "open paths beyond rows", kind: "tree", bad: { ...tree(), open: [["a"], ["b"]] } },
+    { name: "duplicate tree key", kind: "tree", trees: [tree()], bad: tree() },
+    { name: "17 tree marks", kind: "tree", trees: Array.from({ length: 16 }, (_, i) => tree(`watch-${i}`)), bad: tree() },
+    { name: "65,537 total path bytes", kind: "tree", trees: [{ ...tree("watch"), area: { x: 0, y: 0, w: 1, h: 16 }, rows: Array.from({ length: 16 }, (_, y) => ({ path: ["x".repeat(4096)], y })) }], bad: { ...tree(), rows: [{ path: ["x"], y: 0 }] } },
+  ];
+
+  test.each(invalidRegistrations)("registration rejects $name before storing the mark or first output", ({ kind, bad, panes = [], trees = [] }) => {
+    vi.useFakeTimers();
+    const m = new Motion("full", () => 0), current = { ...scene };
+    const parse = vi.spyOn(frames, "parseFrame"), observe = vi.spyOn(m.interactions, "observe");
+    m.prepareScene(current);
+    panes.forEach((mark, i) => m.markPane(`pane-${i}`, current, mark));
+    trees.forEach((mark, i) => m.markTree(`tree-${i}`, current, mark));
+    m.apply(plain, W, H); // The pre-layout clean output must also be discarded on rejection.
+    const stored = vi.spyOn(Map.prototype, "set"), serialized = vi.spyOn(JSON, "stringify");
+    let retained: boolean, serializationCount: number;
+    try {
+      if (kind === "pane") m.markPane("bad", current, bad);
+      else m.markTree("bad", current, bad);
+      retained = stored.mock.calls.some(([, value]) => value?.mark === bad);
+      serializationCount = serialized.mock.calls.length;
+    } finally { stored.mockRestore(); serialized.mockRestore(); }
+    expect(retained).toBe(false);
+    expect(serializationCount).toBe(0);
+    // A later valid child cannot rehabilitate a rejected render or preserve its earlier marks.
+    m.markPane("later", current, pane("detail"));
+    m.commitScene(current);
+    expect(observe).not.toHaveBeenCalled();
+    expect(m.apply(plain, W, H)).toBe(plain);
+    expect(observe).toHaveBeenCalledExactlyOnceWith(plain, W, H, undefined, true);
+    expect(parse).not.toHaveBeenCalled();
+    expect(m.active).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  test.each([
+    { kind: "screen", plugin: "watch", screen: "patrol", page: null, depth: 65, tab: null },
+    { kind: "settings", plugin: null, section: "x".repeat(16385) },
+  ] as const)("prepare rejects over-budget $kind context before marks or first-output retention", (context) => {
+    const m = new Motion("full", () => 0), current: MotionScene = { ...scene, context };
+    const parse = vi.spyOn(frames, "parseFrame"), observe = vi.spyOn(m.interactions, "observe");
+    m.prepareScene(current);
+    m.markPane("nav", current, pane());
+    m.apply(plain, W, H);
+    m.commitScene(current);
+    expect(observe).toHaveBeenCalledExactlyOnceWith(plain, W, H, undefined, true);
+    expect(parse).not.toHaveBeenCalled();
+    expect(m.active).toBe(false);
+  });
+
+  test.each([
+    { name: "unkeyed", context: null },
+    { name: "oversize", context: { kind: "settings", plugin: null, section: "x".repeat(16385) } },
+  ] as const)("a valid to $name replacement clears the prior scene and still draws/settles ordinary cues", ({ context }) => {
+    vi.useFakeTimers();
+    let now = 0;
+    const m = new Motion("full", () => now), previous = { ...scene };
+    m.setMarks({ body: AREA });
+    m.prepareScene(previous);
+    m.markPane("nav", previous, pane());
+    m.commitScene(previous);
+    m.apply(plain, W, H);
+    const next: MotionScene = { ...scene, cursor: 2, context };
+    m.cue({ kind: "screen" });
+    m.prepareScene(next);
+    m.commitScene(next);
+    const parse = vi.spyOn(frames, "parseFrame"), draw = vi.spyOn(m.engine, "draw"), observe = vi.spyOn(m.interactions, "observe");
+    m.apply(plain, W, H);
+    expect(observe).toHaveBeenCalledExactlyOnceWith(plain, W, H, undefined, true);
+    expect(parse).toHaveBeenCalledTimes(1);
+    expect(draw).toHaveBeenCalledTimes(1);
+    expect(m.active).toBe(true);
+    now = SCREEN_MS + 1;
+    m.apply(plain, W, H);
+    expect(m.apply(plain, W, H)).toBe(plain);
+    expect(m.active).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+    // No output from the rejected replacement was held under the prior scene's identity.
+    observe.mockClear();
+    m.commitScene(previous);
+    expect(observe).not.toHaveBeenCalled();
+  });
+
+  test.each(["off", "subtle"] as const)("%s skips interaction geometry, retention and ANSI parsing", (level) => {
+    vi.useFakeTimers();
+    const m = new Motion(level, () => 0);
+    const parse = vi.spyOn(frames, "parseFrame");
+    const observe = vi.spyOn(m.interactions, "observe");
+    const collect = vi.fn(() => { throw new Error("inactive geometry must not be collected"); });
+    m.marksFrom(collect);
+    m.prepareScene(scene);
+    m.markPane("watch", scene, { pane: "nav", owns: true, area: AREA, keep: [] });
+    m.commitScene(scene);
+    expect(m.apply(plain, W, H)).toBe(plain);
+    expect(parse).not.toHaveBeenCalled();
+    expect(observe).not.toHaveBeenCalled();
+    expect(collect).not.toHaveBeenCalled();
+    expect(m.active).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  test("a clean frame after disabling clears settling state and an already queued tick", () => {
+    vi.useFakeTimers();
+    const m = new Motion("full", () => 0);
+    const ticks = vi.fn();
+    m.subscribe(ticks);
+    m.setMarks({ body: AREA });
+    m.cue({ kind: "screen" });
+    m.input(); // This leaves a final clean-frame request in the old engine.
+    m.setLevel("off");
+    expect(m.active).toBe(false);
+    const parse = vi.spyOn(frames, "parseFrame");
+    expect(m.apply(plain, W, H)).toBe(plain);
+    expect(parse).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(90);
+    expect(ticks).not.toHaveBeenCalled();
+    expect(m.active).toBe(false);
+  });
+
+  test("replacing the output target disposes its timer, scene and pending input generation", () => {
+    vi.useFakeTimers();
+    const old = new Motion("full", () => 0), next = new Motion("off", () => 0);
+    installMotionOutput(old);
+    const ticks = vi.fn();
+    old.subscribe(ticks);
+    old.prepareScene(scene);
+    old.commitScene(scene);
+    old.input();
+    old.intent(3, 1);
+    old.cue({ kind: "screen" });
+    expect(old.interactions.inputGeneration).toBe(1);
+    expect(vi.getTimerCount()).toBe(1);
+    installMotionOutput(next);
+    expect(old.engine.level).toBe("off");
+    expect(old.active).toBe(false);
+    expect(old.interactions.inputGeneration).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(90);
+    expect(ticks).not.toHaveBeenCalled();
+  });
+
+  test("slow-terminal shutdown retains exactly one clean-frame request", () => {
+    vi.useFakeTimers();
+    const m = new Motion("subtle", () => 0);
+    m.setMarks({ body: AREA });
+    m.cue({ kind: "screen" });
+    const notice = vi.fn();
+    const ticks = vi.fn(() => { expect(m.apply(plain, W, H)).toBe(plain); });
+    m.onSlow(notice);
+    m.subscribe(ticks);
+    vi.spyOn(m.engine, "drewIn").mockImplementationOnce(() => {
+      m.engine.setLevel("off");
+      return "slow terminal";
+    });
+    m.apply(plain, W, H);
+    expect(notice).toHaveBeenCalledExactlyOnceWith("slow terminal");
+    expect(vi.getTimerCount()).toBe(1);
+    vi.advanceTimersByTime(FRAME_MS);
+    expect(ticks).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(m.active).toBe(false);
   });
 });

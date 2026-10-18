@@ -542,8 +542,11 @@ fn highlights(w: u16, h: u16) -> Vec<Scene> {
     for k in ["/", "g", "g"] {
         head.send(Intent::Key { chord: radar_core::view::Chord::parse(k).unwrap() });
     }
-    let v = view_of(&head, None);
-    out.push(scene("highlight_typing-filter".into(), &head, w, h, v));
+    // Keep the matching chrome: a different source-tab row changes the pane
+    // height and therefore the focused perimeter's color samples.
+    let mut v = view_of(&head, None).expect("filter view");
+    v["chrome"] = serde_json::to_value(head.chrome()).unwrap();
+    out.push(scene("highlight_typing-filter".into(), &head, w, h, Some(v)));
     out
 }
 

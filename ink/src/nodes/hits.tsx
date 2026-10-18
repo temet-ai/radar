@@ -1,4 +1,4 @@
-import React, { useId, useLayoutEffect, useRef } from "react";
+import React, { useId, useLayoutEffect, useRef, useContext } from "react";
 import { Box, type DOMElement } from "ink";
 import type { Node, NodeContext } from "./view.js";
 import { visibleRows, treeLayout } from "./tree.js";
@@ -8,7 +8,8 @@ import { useScrollReport } from "./index.js";
 import { entriesFirst, entryLines } from "./lists.js";
 import { WindowContext, firstRow, type Window } from "./window.js";
 import { motion } from "../motion/motion.js";
-import { nodeMarks } from "../motion/node-marks.js";
+import { nodeMarks, treeMark } from "../motion/node-marks.js";
+import { MotionSceneContext, MotionPaneContext } from "../motion/scene.js";
 import { screenRect } from "../workarea/hit.js";
 
 /** A rectangle a press acts on, in cells relative to the node's top-left corner. */
@@ -211,14 +212,18 @@ export function HitRegion({
   // Where this node drew rows a sync changed and a panel waiting for data, for motion (view_tui's motion::row and
   // motion::loading). Nothing is measured while motion is off or the node has neither.
   const markId = useId();
+  const scene = useContext(MotionSceneContext);
+  const pane = useContext(MotionPaneContext);
   useLayoutEffect(() => {
     if ((node.node !== "tree" && node.node !== "state") || motion.engine.level === "off" || !ref.current) return;
     const at = screenRect(ref.current);
     if (!at) return;
     const m = nodeMarks(node, at.x, at.y, at.w, at.h, win);
     motion.markNode(markId, m.rows, m.loading);
+    if (scene && pane && !pane.startsWith("work:") && motion.engine.level === "full") motion.markTree(markId, scene, treeMark(node, pane, at.x, at.y, ctx.width, ctx.height ?? at.h, win));
   });
   useLayoutEffect(() => () => motion.markNode(markId, [], []), [markId]);
+  useLayoutEffect(() => () => { if (scene) motion.markTree(markId, scene); }, [markId, scene]);
   useLayoutEffect(() => {
     const registry = ctx.registry;
     if (!registry || !ref.current) return;

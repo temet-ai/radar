@@ -55,6 +55,6 @@ pub(crate) fn repos(p: &GitlabPlugin, group: &str) -> Vec<RepoRow> {
     rows
 }
 
-pub(super) fn tabs(p: &GitlabPlugin, group: &str) -> Vec<String> {
-    vec![format!("Repos · {}", repos(p, group).len())]
+pub(super) fn tabs() -> Vec<String> {
+    vec!["Repos".into()]
 }

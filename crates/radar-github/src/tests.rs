@@ -441,6 +441,74 @@ fn add_repository_accepts_exact_url_through_host() {
     );
 }
 
+mod interaction_motion {
+    use super::*;
+
+    #[test]
+    fn repository_tree_fold_intents_verify_through_the_real_host() {
+        use radar_core::motion::transition::MotionContext;
+        use radar_core::view::{Intent, Node, PaneId, TreeRow};
+
+        // A single host proves the owner/host dispatch boundary. Mapping, stale
+        // identity, labels and raw-key rules are covered by pure owner tests.
+        let mut p = screen::neutral::tests::tree_fixture();
+        p.tree_at = Some(screen::TreeItem::Group(0));
+        let mut host = hosted(p);
+        host.focus = Pane::Middle;
+        host.colours.cfg.motion = "full".into();
+        host.set_motion_enabled(true);
+        host.set_view_room(80, 24);
+        let tree = |host: &radar_core::Host| {
+            let view = host.screen_view(0, "github").unwrap();
+            let Node::Tree(tree) = &view.pane(PaneId::Middle).unwrap().body else { panic!("real repository tree") };
+            tree.clone()
+        };
+        let group = vec!["group:Watch".to_string()];
+        let repo = vec!["group:Watch".to_string(), "repo:ankh-morpork/watch".to_string()];
+        let group_target = TreeRow::target_of(&group);
+        let initial = tree(&host);
+        assert!(host.update(Event::Intent(Intent::Fold { target: group_target.clone(), open: false })).is_empty());
+        let fold = host.take_motion_fold().expect("owner Fold must produce a verified host transition");
+        assert_eq!(fold.path, group);
+        assert_eq!(fold.pane, PaneId::Middle);
+        assert_eq!(fold.slot, "body");
+        assert!(fold.before_open && !fold.after_open);
+        assert_eq!(fold.context, MotionContext::Screen {
+            plugin: "github".into(), screen: "github".into(), page: None, depth: 0, tab: None,
+        });
+        assert_eq!(tree(&host).rows, initial.rows);
+
+        host.update(Event::Intent(Intent::Activate { target: group_target }));
+        let fold = host.take_motion_fold().expect("group activation keeps its normal fold behavior");
+        assert_eq!(fold.path, group);
+        assert!(!fold.before_open && fold.after_open);
+        assert_eq!(host.plugins[0].depth("github"), 0);
+
+        let repo_target = TreeRow::target_of(&repo);
+        host.update(Event::Intent(Intent::Select { target: repo_target.clone() }));
+        assert!(host.motion_fold().is_none());
+        host.update(Event::Intent(Intent::Fold { target: repo_target.clone(), open: false }));
+        assert_eq!(host.take_motion_fold().unwrap().path, repo);
+        assert_eq!(tree(&host).rows, initial.rows);
+        host.update(Event::Intent(Intent::Fold { target: repo_target.clone(), open: false }));
+        assert!(host.motion_fold().is_none(), "accepted no-op must not animate");
+        host.update(Event::Key(key(KeyCode::Char('-'))));
+        assert!(host.motion_fold().is_none(), "closed repository '-' cannot close its parent");
+        assert!(tree(&host).open.contains(&group));
+
+        host.update(Event::Intent(Intent::Fold { target: repo_target, open: true }));
+        assert!(host.take_motion_fold().unwrap().after_open);
+        let mut pull = repo;
+        pull.push("pull:13".into());
+        host.update(Event::Intent(Intent::Select { target: TreeRow::target_of(&pull) }));
+        assert!(host.plugins[0].subject("github", Pane::Middle).unwrap().id.ends_with("/13"));
+        host.update(Event::Key(key(KeyCode::Char('-'))));
+        assert!(host.motion_fold().is_none(), "PR '-' keeps legacy no-fold behavior");
+        assert_eq!(tree(&host).selected, pull);
+        assert_eq!(tree(&host).open, initial.open);
+    }
+}
+
 #[test]
 fn mouse_rows_blank_space_double_click_and_context_selection() {
     let mut host = hosted(demo::sample());
@@ -449,7 +517,7 @@ fn mouse_rows_blank_space_double_click_and_context_selection() {
         .hits
         .borrow()
         .iter()
-        .find_map(|(r, hit)| matches!(hit, Hit::Plugin { id, .. } if id == "tree:3").then_some(*r))
+        .find_map(|(r, hit)| matches!(hit, Hit::Plugin { id, .. } if id == "group:github.com/acme\u{1f}repo:acme/api\u{1f}pull:43").then_some(*r))
         .unwrap();
     host.update(Event::Mouse {
         kind: MouseKind::Press,

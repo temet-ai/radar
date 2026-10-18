@@ -1,6 +1,6 @@
 // The one motion controller of the renderer: cues, input, the marks of the frame, the frame tick, and the hook that
 // applies the running effects to a frame. Costs nothing while nothing runs: `apply` returns the frame it was given
-// after one boolean test, no timer is armed, and nothing is parsed.
+// without parsing ANSI or arming a timer. Full motion retains one bounded clean frame for a possible next interaction.
 import Output from "ink-output";
 import { useSyncExternalStore } from "react";
 import { currentLook } from "../text/look.js";
@@ -16,11 +16,20 @@ import {
   type Marks,
 } from "./engine.js";
 import { parseFrame, writeFrame } from "./frame.js";
+import { Interactions, type MotionScene, type PaneMark, type TreeMark, type SceneMarks } from "./interaction.js";
+import { frameMetadataBounded, sceneMetadataBounded } from "./interaction-bounds.js";
 
 const SYSTEM_START = Date.now();
 
 export class Motion {
   engine: Engine;
+  readonly interactions: Interactions;
+  private committed?: SceneMarks;
+  private preparing?: MotionScene;
+  private invalidScenes = new WeakSet<MotionScene>();
+  private firstOutput?: { scene: MotionScene; output: string; width: number; height: number };
+  private paneMarks = new Map<string, { scene: MotionScene; mark: PaneMark }>();
+  private treeMarks = new Map<string, { scene: MotionScene; mark: TreeMark }>();
   private marks: Marks = {};
   private marksFn: (() => Marks) | undefined;
   private nodes = new Map<
@@ -45,6 +54,7 @@ export class Motion {
     private clock: () => number = () => Date.now() - SYSTEM_START,
   ) {
     this.engine = new Engine(level, clock);
+    this.interactions = new Interactions(clock);
   }
 
   /** The theme's colours effects blend with, read from the host's look when a cue starts and a frame is applied. */
@@ -75,18 +85,27 @@ export class Motion {
   reset() {
     if (this.timer !== undefined) clearTimeout(this.timer);
     this.timer = undefined;
+    this.armedAt = 0;
     this.engine = new Engine("off", this.clock);
     this.nodes.clear();
+    this.interactions.reset();
+    this.paneMarks.clear();
+    this.treeMarks.clear();
+    this.committed = undefined;
+    this.preparing = undefined;
+    this.invalidScenes = new WeakSet();
+    this.firstOutput = undefined;
     this.marksFn = undefined;
     this.marks = {};
   }
 
   /** `level` is the host's, after `motion::effective` (off over SSH and below full colour). */
   setLevel(level: Level | string) {
-    const was = this.engine.running();
+    const was = this.active;
     this.engine.setLevel(typeof level === "string" ? parseLevel(level) : level);
+    if (this.engine.level !== "full") this.interactions.reset();
     // Off drops what ran: one more frame puts the plain one on screen.
-    this.arm(was && !this.engine.running());
+    this.arm(was && !this.active);
   }
 
   /** Where a notice from the engine ("motion is off: this terminal is slow to draw") goes. */
@@ -101,9 +120,72 @@ export class Motion {
 
   /** A key, click or paste: what runs gives way and the next frame is plain. */
   input() {
-    if (!this.engine.running()) return;
+    this.interactions.input();
     this.engine.input();
     this.arm();
+  }
+
+  intent(seq: number, cursor: number) { this.interactions.intent(seq, cursor); }
+
+  /** Resize, theme changes, overlays or a lost connection invalidate retained geometry immediately. */
+  invalidate() {
+    this.interactions.clear();
+    this.engine.input();
+    this.arm();
+  }
+
+  private sceneMarks(scene: MotionScene): SceneMarks {
+    return { scene,
+      panes: [...this.paneMarks.values()].filter((p) => p.scene === scene).map((p) => p.mark),
+      trees: [...this.treeMarks.values()].filter((p) => p.scene === scene).map((p) => p.mark) };
+  }
+  private rejectScene(scene: MotionScene) {
+    this.invalidScenes.add(scene);
+    // A rejected replacement must not leave an older preparing scene to claim its output.
+    // Fail closed for the whole measured frame, while allowing the ordinary engine to draw it.
+    this.paneMarks.clear();
+    this.treeMarks.clear();
+    this.preparing = undefined;
+    this.committed = undefined;
+    this.firstOutput = undefined;
+    this.interactions.clear();
+  }
+  markPane(id: string, scene: MotionScene, mark?: PaneMark) {
+    this.paneMarks.delete(id);
+    if (!mark || this.engine.level !== "full" || this.invalidScenes.has(scene)) return;
+    const next = this.sceneMarks(scene);
+    next.panes = [...next.panes, mark];
+    if (!frameMetadataBounded(next)) { this.rejectScene(scene); return; }
+    this.paneMarks.set(id, { scene, mark });
+  }
+  markTree(id: string, scene: MotionScene, mark?: TreeMark) {
+    this.treeMarks.delete(id);
+    if (!mark || this.engine.level !== "full" || this.invalidScenes.has(scene)) return;
+    const next = this.sceneMarks(scene);
+    next.trees = [...next.trees, mark];
+    if (!frameMetadataBounded(next)) { this.rejectScene(scene); return; }
+    this.treeMarks.set(id, { scene, mark });
+  }
+  prepareScene(scene: MotionScene) {
+    if (this.preparing !== scene) { this.paneMarks.clear(); this.treeMarks.clear(); }
+    if (this.engine.level !== "full") { this.preparing = undefined; return; }
+    if (!sceneMetadataBounded(scene)) { this.rejectScene(scene); return; }
+    this.preparing = scene;
+  }
+
+  /** Parent layout effect follows child layout effects. Only this scene's measured marks may accompany its ANSI. */
+  commitScene(scene: MotionScene) {
+    if (this.engine.level !== "full" || this.invalidScenes.has(scene)) {
+      this.committed = undefined;
+      this.firstOutput = undefined;
+      return;
+    }
+    const frame = this.sceneMarks(scene);
+    if (!frameMetadataBounded(frame)) { this.rejectScene(scene); return; }
+    this.committed = frame;
+    const initial = this.firstOutput;
+    this.firstOutput = undefined;
+    if (initial?.scene === scene) this.interactions.observe(initial.output, initial.width, initial.height, this.committed, true);
   }
 
   /** Where the frame being drawn put its body, popup and message (set directly, for tests). */
@@ -140,7 +222,7 @@ export class Motion {
   }
 
   get active(): boolean {
-    return this.engine.running();
+    return this.engine.running() || this.interactions.running;
   }
 
   subscribe = (fn: () => void) => {
@@ -151,7 +233,7 @@ export class Motion {
 
   /** Ask for a frame soon, only while an effect runs. */
   private arm(force = false) {
-    if (this.timer !== undefined || !(force || this.engine.running())) return;
+    if (this.timer !== undefined || !(force || this.active)) return;
     this.armedAt = this.clock();
     this.timer = setTimeout(() => {
       this.timer = undefined;
@@ -162,17 +244,50 @@ export class Motion {
 
   /** Apply what runs to the frame Ink drew (its string); the same string when nothing runs. */
   apply(output: string, width: number, height: number): string {
-    if (!this.engine.running()) return output;
+    // On the first mount Ink can emit a clean frame before refs/layout effects exist. Retain it only until
+    // that exact render commits; never apply an effect to geometry from a different committed scene.
+    if (this.engine.level === "full" && this.preparing?.context && this.preparing !== this.committed?.scene) {
+      if (!this.committed && this.engine.level === "full" && output.length <= 1_048_576 && width * height <= 65_536)
+        this.firstOutput = { scene: this.preparing, output, width, height };
+      else this.interactions.clear();
+      return output;
+    }
+    if (this.engine.level === "off") {
+      this.interactions.reset();
+      if (this.timer !== undefined) clearTimeout(this.timer);
+      this.timer = undefined;
+      return output;
+    }
+    // A child may have laid out without an App render. Off/subtle do no interaction geometry/retention work.
+    if (this.engine.level === "full") {
+      if (this.committed) this.commitScene(this.committed.scene);
+      this.interactions.observe(output, width, height, this.committed, true);
+    }
+    if (!this.active) {
+      if (this.timer !== undefined) clearTimeout(this.timer);
+      this.timer = undefined;
+      this.armedAt = 0;
+      return output;
+    }
     const started = this.clock();
-    const grid = parseFrame(output, width, height);
-    const areas = this.engine.draw(grid, this.frameMarks(), this.colours());
+    const grid = parseFrame(output, width, height, this.interactions.running);
+    const areas = this.interactions.draw(grid, "fold");
+    areas.push(...this.engine.draw(grid, this.frameMarks(), this.colours()));
+    areas.push(...this.interactions.draw(grid, "focus"));
     const out = areas.length > 0 ? writeFrame(grid, output, areas) : output;
+    const lag = this.timer === undefined && this.armedAt ? Math.max(0, started - this.armedAt - FRAME_MS) : 0;
+    this.armedAt = 0;
     const why = this.engine.drewIn(
-      this.clock() - started + Math.max(0, started - this.armedAt - FRAME_MS),
+      this.clock() - started + lag,
+      this.interactions.running,
     );
-    if (why) this.onNotice?.(why);
+    if (why) { this.interactions.clear(); this.onNotice?.(why); }
     // Motion just went off with an effect on screen: one more frame puts the plain one there.
     this.arm(Boolean(why));
+    if (!why && !this.active && this.timer !== undefined) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
     return out;
   }
 }
@@ -190,6 +305,7 @@ let target: Motion = motion;
 /** Wrap Ink's Output.get (after fast-output's) so a frame passes through `m.apply`. Installed once; a later call
  * only changes which motion the wrapper asks (the renderer has one; a test brings its own). */
 export function installMotionOutput(m: Motion = motion) {
+  if (target !== m) target.reset();
   target = m;
   if (installed) return;
   installed = true;
@@ -199,11 +315,8 @@ export function installMotionOutput(m: Motion = motion) {
   };
   (Output.prototype as any).get = function (this: any) {
     const r = base.call(this);
-    if (!target.active) return r;
-    return {
-      output: target.apply(r.output, this.width, this.height),
-      height: r.height,
-    };
+    const output = target.apply(r.output, this.width, this.height);
+    return output === r.output ? r : { output, height: r.height };
   };
 }
 
@@ -213,4 +326,46 @@ export function isInput(chunk: string | Buffer): boolean {
   return (
     s.replace(/\x1b\[<(?:35|39|43|47|51|55|59|63);\d+;\d+[Mm]/g, "") !== ""
   );
+}
+
+
+/** Ink's resetAfterCommit requests output before React layout effects. Defer that existing request until all
+ * geometry and the scene have committed. Coalesce only requests in this turn; no timer or extra render is added. */
+export function afterMotionLayout(root: { onRender?: () => void; onImmediateRender?: () => void }, enabled: () => boolean = () => true): () => void {
+  const render = root.onRender;
+  const immediate = root.onImmediateRender;
+  let queued = false;
+  let alive = true;
+  let urgent = false;
+  let version = 0;
+  const request = (now: boolean) => {
+    if (!alive) return;
+    if (!enabled()) {
+      version++;
+      queued = false;
+      urgent = false;
+      (now ? immediate ?? render : render)?.();
+      return;
+    }
+    urgent ||= now;
+    if (queued) return;
+    queued = true;
+    const requested = version;
+    queueMicrotask(() => {
+      if (!alive || requested !== version) return;
+      queued = false;
+      const draw = urgent ? immediate ?? render : render;
+      urgent = false;
+      draw?.();
+    });
+  };
+  const deferred = () => request(false);
+  const deferredImmediate = () => request(true);
+  root.onRender = deferred;
+  root.onImmediateRender = deferredImmediate;
+  return () => {
+    alive = false;
+    if (root.onRender === deferred) root.onRender = render;
+    if (root.onImmediateRender === deferredImmediate) root.onImmediateRender = immediate;
+  };
 }

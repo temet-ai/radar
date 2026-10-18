@@ -147,10 +147,7 @@
       "tabs": [
         {
           "active": true,
-          "badge": {
-            "ink": "warn",
-            "text": "2"
-          },
+          "attention": true,
           "icon": "repo",
           "label": "repositories",
           "mnemonic": "R",
@@ -628,7 +625,7 @@
         },
         {
           "icon": "file",
-          "label": "Changes · 1 file"
+          "label": "Changes"
         },
         {
           "icon": "thread",

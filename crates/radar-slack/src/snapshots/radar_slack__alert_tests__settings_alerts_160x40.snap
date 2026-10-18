@@ -3,7 +3,7 @@ source: crates/radar-slack/src/alert_tests.rs
 assertion_line: 375
 expression: text
 ---
- radar    Slack 5   History   Settings (,)                                                                                                               ✎ edit
+ radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
 ╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
 │General               ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
 │  ├─ parts            ││ keep resolved    24 hours                                                      ││                                                    │

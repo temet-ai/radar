@@ -1,5 +1,6 @@
 //! Read-only GitHub.com repositories and pull requests.
 
+mod palette;
 mod actions;
 pub mod auth;
 mod cli;
@@ -130,6 +131,70 @@ struct Page {
     back_repo: Option<RepositoryId>,
     back_pull: Option<u64>,
     held: Option<PullSnapshot>,
+}
+
+#[cfg(test)]
+mod page_identity_tests {
+    use super::*;
+
+    #[test]
+    fn page_identity_ignores_title_tab_and_selected_child() {
+        let mut p = GithubPlugin::default();
+        assert_eq!(p.page_identity("github"), None);
+        let repository = RepositoryId::parse("ankh-morpork/watch").unwrap();
+        p.pages.push(Page {
+            target: Target::Pull(repository.clone(), 12),
+            tab: 0,
+            back_repo: None,
+            back_pull: None,
+            held: None,
+        });
+        p.pull_detail = Some(PullRequest {
+            repository,
+            number: 12,
+            title: "Watch patrol".into(),
+            body: None,
+            author: "vimes".into(),
+            state: "open".into(),
+            draft: false,
+            head_sha: "a".repeat(40),
+            head_repository: None,
+            head_branch: "patrol".into(),
+            base_branch: "main".into(),
+            updated_at: String::new(),
+            merged: false,
+        });
+        let identity = p.page_identity("github");
+        assert_eq!(identity.as_deref(), Some("https://github.com/ankh-morpork/watch/pull/12"));
+        assert_eq!(p.page_identity("connection"), None);
+
+        p.pull_detail.as_mut().unwrap().title = "Night watch patrol".into();
+        p.pages.last_mut().unwrap().tab = 1;
+        p.pull_at = 3;
+        p.repo_at = 2;
+        assert_eq!(p.page_identity("github"), identity);
+        p.pages.last_mut().unwrap().target = Target::Pull(
+            RepositoryId::parse("ankh-morpork/watch").unwrap(), 13,
+        );
+        assert_ne!(p.page_identity("github"), identity);
+    }
+
+    #[test]
+    fn page_identity_distinguishes_repository_pull_run_and_attempt() {
+        let repository = RepositoryId::parse("ankh-morpork/watch").unwrap();
+        let other = RepositoryId::parse("lancre/watch").unwrap();
+        let targets = [
+            Target::Repository(repository.clone()),
+            Target::Pull(repository.clone(), 12),
+            Target::Pull(other.clone(), 12),
+            Target::Run(repository.clone(), 12, 1),
+            Target::Run(repository.clone(), 12, 2),
+            Target::Run(repository, 13, 1),
+            Target::Run(other, 12, 1),
+        ];
+        let keys: std::collections::BTreeSet<_> = targets.iter().map(Target::url).collect();
+        assert_eq!(keys.len(), targets.len());
+    }
 }
 
 #[derive(Clone)]
@@ -1188,6 +1253,10 @@ impl Plugin for GithubPlugin {
     fn journal_subject(&self, subject: &Subject) -> Option<radar_core::journal::SubjectSnapshot> {
         history::subject(subject)
     }
+    fn palette_targets(&self) -> Vec<radar_core::palette::PaletteTarget> {
+        palette::targets(self)
+    }
+
     fn show(&mut self, subject: &Subject) -> Showing {
         let Some(target) = join::target(subject) else {
             return Showing::Cannot;
@@ -1208,6 +1277,13 @@ impl Plugin for GithubPlugin {
     }
     fn depth(&self, _: &str) -> usize {
         self.pages.len()
+    }
+    fn page_identity(&self, screen: &str) -> Option<String> {
+        if screen != "github" {
+            return None;
+        }
+        // The requested page target, not the selected PR or workflow job.
+        Some(self.pages.last()?.target.url())
     }
     fn screens(&self) -> Vec<ScreenSpec> {
         vec![ScreenSpec {

@@ -4,7 +4,7 @@ expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Colours" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Rows & states  Entries & log  Markdown  …" fg:text.secondary | "[Colours]" fg:accent.primary/glow.purple bold | "  Tones  Row st" fg:text.secondary
+02 _1 | "Rows & states  Entries & log  Markdown  …" fg:text.secondary | "[Colours]" fg:accent.primary/glow.purple bold | "  Tones  Row s…" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " slots " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "BACKGROUNDS" fg:text.muted bg:bg.surface bold | _65 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "██████ " fg:bg.base bg:bg.surface | "bg.base          " bg:bg.surface | "#0a0812  " fg:data.number bg:bg.surface | "the screen behind every panel" fg:text.muted bg:bg.surface | _14 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted

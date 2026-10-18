@@ -325,7 +325,7 @@ fn enter_opens_the_threads_page_and_esc_comes_back_to_the_same_row() {
     insta::assert_snapshot!("thread_page_80x24", to_text(&host, 80, 24));
     press(&mut host, KeyCode::Char(']'));
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("[Links · 1]"), "{text}");
+    assert!(text.contains("[Links]"), "{text}");
     assert!(text.contains(MR_263), "a bare link alone: {text}");
     insta::assert_snapshot!("thread_links_160x40", text);
     press(&mut host, KeyCode::Char('x'));

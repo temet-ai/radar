@@ -101,18 +101,131 @@
     },
     {
       "body": {
-        "node": "list",
+        "columns": [
+          {
+            "heading": "status",
+            "keep": 1,
+            "width": 8
+          }
+        ],
+        "name_width": 0,
+        "node": "tree",
+        "open": [
+          [
+            "group:github.com/acme"
+          ],
+          [
+            "group:github.com/acme",
+            "repo:acme/api"
+          ],
+          [
+            "group:github.com/acme",
+            "repo:acme/docs"
+          ]
+        ],
         "rows": [
           {
-            "heading": true,
-            "right": [
+            "cells": [
               {
-                "ink": "muted",
-                "text": "2 repos"
+                "heading": "status",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "2 repos"
+                  }
+                ]
               }
             ],
-            "target": "tree:0",
-            "text": [
+            "children": [
+              {
+                "cells": [
+                  {
+                    "heading": "status",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "2 PRs"
+                      }
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "cells": [
+                      {
+                        "heading": "status",
+                        "text": [
+                          {
+                            "ink": "secondary",
+                            "text": "open"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "pull:42",
+                    "name": [
+                      {
+                        "text": "#42  Keep background refreshes tied to their request"
+                      }
+                    ]
+                  },
+                  {
+                    "cells": [
+                      {
+                        "heading": "status",
+                        "text": [
+                          {
+                            "ink": "secondary",
+                            "text": "draft"
+                          }
+                        ]
+                      }
+                    ],
+                    "id": "pull:43",
+                    "name": [
+                      {
+                        "text": "#43  Document the public endpoints"
+                      }
+                    ]
+                  }
+                ],
+                "id": "repo:acme/api",
+                "name": [
+                  {
+                    "icon": "repo"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "acme/api"
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "heading": "status",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "0 PRs"
+                      }
+                    ]
+                  }
+                ],
+                "id": "repo:acme/docs",
+                "name": [
+                  {
+                    "icon": "repo"
+                  },
+                  {
+                    "ink": "primary",
+                    "text": "acme/docs"
+                  }
+                ]
+              }
+            ],
+            "id": "group:github.com/acme",
+            "name": [
               {
                 "icon": "group"
               },
@@ -121,81 +234,13 @@
                 "text": "github.com/acme"
               }
             ]
-          },
-          {
-            "right": [
-              {
-                "ink": "muted",
-                "text": "2 PRs"
-              }
-            ],
-            "target": "tree:1",
-            "text": [
-              {
-                "ink": "muted",
-                "text": "  "
-              },
-              {
-                "icon": "repo"
-              },
-              {
-                "ink": "primary",
-                "text": "acme/api"
-              }
-            ]
-          },
-          {
-            "right": [
-              {
-                "ink": "secondary",
-                "text": "open"
-              }
-            ],
-            "target": "tree:2",
-            "text": [
-              {
-                "text": "    #42  Keep background refreshes tied to their request"
-              }
-            ]
-          },
-          {
-            "right": [
-              {
-                "ink": "secondary",
-                "text": "draft"
-              }
-            ],
-            "target": "tree:3",
-            "text": [
-              {
-                "text": "    #43  Document the public endpoints"
-              }
-            ]
-          },
-          {
-            "right": [
-              {
-                "ink": "muted",
-                "text": "0 PRs"
-              }
-            ],
-            "target": "tree:4",
-            "text": [
-              {
-                "ink": "muted",
-                "text": "  "
-              },
-              {
-                "icon": "repo"
-              },
-              {
-                "ink": "primary",
-                "text": "acme/docs"
-              }
-            ]
           }
         ],
-        "selected": 2
+        "selected": [
+          "group:github.com/acme",
+          "repo:acme/api",
+          "pull:42"
+        ]
       },
       "pane": "middle",
       "title": "repositories"

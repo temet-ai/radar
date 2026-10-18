@@ -2,10 +2,10 @@
 source: crates/radar-gitlab/src/pages/tests/detail_refresh.rs
 expression: shown
 ---
- radar    Repositories 1   History   Settings (,)        not synced yet  ✎ edit
+ radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
  Repositories › a › api › !263
  ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
- Overview  [Changes · 5 files]  Threads · 1 open  Pipeline  Commits · 2
+ Overview  [Changes]  Threads ●  Pipeline  Commits
  ✗ merge request details refresh failed: details unavailable
 ╭ 1 of 5 · src/main/java/acme/stats/StatsController.java · new file ───────────╮
 │▎@@ -0,0 +1,24 @@                                                             █

@@ -179,11 +179,11 @@ const CASES: Record<string, Case> = {
   "BarTab.label": tab((t, on) => (t.label = pick(on, "Work", "ZZLABEL"))),
   "BarTab.mnemonic": tab((t, on) => (t.mnemonic = pick(on, "W", "k"))),
   "BarTab.icon": tab((t, on) => (t.icon = on ? "settings" : null)),
-  "BarTab.badge": tab((t, on) => (t.badge = on ? { text: "ZZ7", ink: "warn" } : null)),
+  "BarTab.attention": tab((t, on) => (t.attention = on)),
   "BarTab.active": tab((t, on) => (t.active = on)),
-  // Badge (on a tab, the words, the terminal chip and the status counts all hold one)
-  "Badge.text": tab((t, on) => (t.badge = { text: pick(on, "5", "ZZ7"), ink: "warn" })),
-  "Badge.ink": tab((t, on) => (t.badge = { text: "5", ink: pick(on, "muted", "bad") })),
+  // Badge (the words, the terminal chip and the status counts all hold one)
+  "Badge.text": bar((b, on) => (b.words = { text: pick(on, "5", "ZZ7"), ink: "warn" })),
+  "Badge.ink": bar((b, on) => (b.words = { text: "5", ink: pick(on, "muted", "bad") })),
   // ModeChip
   "ModeChip.text": bar((b, on) => (b.mode.text = pick(on, "read-only", "ZZMODE"))),
   "ModeChip.ink": bar((b, on) => (b.mode.ink = pick(on, "warn", "good"))),
@@ -224,6 +224,14 @@ const CASES: Record<string, Case> = {
   "Message.ink": status((s, on) => (s.message = { text: "one", ink: pick(on, "warn", "bad") })),
 
   // MenuView
+  "MenuView.palette": menu((m, on) => (m.palette = on ? { matched: 2, total: 8, highlights: [[0], [1]] } : null)),
+  "PaletteView.matched": menu((m, on) => (m.palette = { matched: on ? 1 : 2, total: 8, highlights: [[], []] })),
+  "PaletteView.total": menu((m, on) => (m.palette = { matched: 2, total: on ? 12 : 8, highlights: [[], []] })),
+  "PaletteView.highlights": menu((m, on) => (m.palette = { matched: 2, total: 8, highlights: on ? [[0], [1]] : [[], []] })),
+  "PaletteView.hint_highlights": menu((m, on) => {
+    m.items[0]!.hint = "watch";
+    m.palette = { matched: 2, total: 8, highlights: [[], []], hint_highlights: on ? [[0, 1], []] : [] };
+  }),
   "MenuView.title": menu((m, on) => (m.title = pick(on, "Pick one", "ZZTITLE"))),
   "MenuView.icon": menu((m, on) => (m.icon = on ? "settings" : null)),
   "MenuView.question": menu((m, on) => (m.question = on)),

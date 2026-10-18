@@ -903,6 +903,25 @@
             "type": {
               "name": "PaintRun[][]"
             }
+          },
+          "words": {
+            "defaultValue": null,
+            "description": "The words that changed in each line (Node::Diff.words), in characters; empty when none did.",
+            "name": "words",
+            "parent": {
+              "fileName": "ink/src/text/DiffView.tsx",
+              "name": "DiffProps"
+            },
+            "declarations": [
+              {
+                "fileName": "ink/src/text/DiffView.tsx",
+                "name": "DiffProps"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "[number, number][][]"
+            }
           }
         },
         "exportName": "DiffView"
@@ -1279,7 +1298,7 @@
       "name": "MenuBox",
       "path": "./stories/chrome/MenuBox.stories.tsx",
       "jsDocTags": {},
-      "description": "A menu or a question (`MenuView`, Ratatui `shell/menu.rs`), over the body: a framed box with a title, then each\nchoice with its key, label and line; headings (HISTORY) are never chosen; a question (`question: true`) is a\ndialog whose choices are buttons. It sits where a context click opened it (`at`) or centred.\n\n**Use it** through the host: `x` opens the place's actions menu, a write asks a question before it is sent. A part\ncontributes choices; it never draws a menu.\n\n**States:** a choice highlighted (the selection background across the row), a heading, a choice with no key, a\nquestion with buttons, a typed field, scrolled (`PgUp/PgDn`), too small to use.\n\n**Rules:** the box clears what is under it (no list showing through); keys stand before the label in their own\ncolumn (`⏎`, `/`, `ctrl-r`); a shadow may dim what is under it but never erase it (#29). No chevrons at the\nchoices, no pill buttons.",
+      "description": "A menu or a question (`MenuView`, Ratatui `shell/menu.rs`), over the body: a framed box with a title, then each\nchoice with its key, label and line; headings (HISTORY) are never chosen; a question (`question: true`) is a\ndialog whose choices are buttons. It sits where a context click opened it (`at`) or centred.\n\n**Use it** through the host: `x` opens the place's actions menu, a write asks a question before it is sent. A part\ncontributes choices; it never draws a menu.\n\n**States:** a choice highlighted (the selection background across the row), a heading, a choice with no key, a\nquestion with buttons, a typed field, scrolled (`PgUp/PgDn`), too small to use.\n\n**Command palette:** Ctrl-P searches commands. `palette` adds the matched/total count, highlights the host's\nmatched label graphemes in bold accent, and puts shortcuts against the right edge. Typing, scrolling, pointer\ntargets, scrim, and shadow use the same menu. Long labels wrap without losing a command's target.\n\n**Rules:** the box clears what is under it (no list showing through); keys stand before the label in their own\ncolumn (`⏎`, `/`, `ctrl-r`); a shadow may dim what is under it but never erase it (#29). No chevrons at the\nchoices, no pill buttons.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/chrome/Chrome.tsx",
@@ -1331,9 +1350,9 @@
         {
           "id": "chrome-menubox--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={true} />;",
-          "description": "The same menu at 160x40.",
-          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, scene160.view!.menu)` could not be resolved statically."
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={false} missing=\"Illustrative palette data; a recorded palette scene is needed for the Ratatui comparison.\" />;",
+          "description": "The command-search variant at 160x40, using the existing wide-menu story. The view is an explicit illustrative\nsample, not a recorded host frame; the matched offsets are scalar positions supplied by the host.",
+          "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, { id: \"palette\", title: \"commands\", question: false, typed: \"re\", caret: 2, selected: 0, palette: { matched: 3, total: 12, highlights: [[0, 1], [0, 1], [0, 1]] }, items: [{ value: \"refresh\", label: \"Refresh\", hint: \"current view\", keys: \"ctrl-r\", target: \"chrome:menu:0\" }, { value: \"review\", label: \"Review Watch records\", hint: \"selected record\", keys: \"r\", target: \"chrome:menu:1\" }, { value: \"restore\", label: \"Restore session\", hint: \"last session\", keys: \"\", target: \"chrome:menu:2\" }] } satisfies MenuView)` could not be resolved statically."
         },
         {
           "id": "chrome-menubox--question",
@@ -1617,7 +1636,7 @@
       "name": "TopBarRow",
       "path": "./stories/chrome/TopBar.stories.tsx",
       "jsDocTags": {},
-      "description": "The top bar (`ChromeView.top_bar`, Ratatui `shell::top_bar` and `tabs`) and, under it, the sources row\n(`ChromeView.sources`, `shell::source_tabs`). The bar holds the brand, a tab per part with its key underlined\ninside the word and an attention badge, History and Settings, the sync words and the mode.\n\n**Use it** as is: the host fills it; parts add a tab through the plugin contract, never draw their own.\n\n**States:** the active tab on the selection shade, a tab with a badge (a waiting count today, one attention dot\nplanned, #33), the bar focused (`keys_at: bar`), a source tab active.\n\n**Rules:** keys live inside their word, underlined (R̲epositories, S̲ettings); a key with no letter goes before\nthe word. Tabs show names, not counts (#33). No pill shapes on tabs or badges.\n\nThe story's `frame` is `frameOf(chrome)` (chrome/Chrome.tsx), from the recorded host chrome.",
+      "description": "The top bar (`ChromeView.top_bar`, Ratatui `shell::top_bar` and `tabs`) and, under it, the sources row\n(`ChromeView.sources`, `shell::source_tabs`). The bar holds the brand, a tab per part with its key underlined\ninside the word and an optional attention dot, History and Settings, the sync words and the mode.\n\n**Use it** as is: the host fills it; parts add a tab through the plugin contract, never draw their own.\n\n**States:** the active tab on the selection shade, a tab needing attention (one warning-colored dot), the bar focused (`keys_at: bar`), a source tab active.\n\n**Rules:** keys live inside their word, underlined (R̲epositories, S̲ettings); a key with no letter goes before\nthe word. Tabs show names, not counts. No pill shapes on tabs.\n\nThe story's `frame` is `frameOf(chrome)` (chrome/Chrome.tsx), from the recorded host chrome.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/chrome/Chrome.tsx",
@@ -1648,7 +1667,7 @@
           "id": "chrome-topbar--narrow",
           "name": "Narrow",
           "snippet": "const Narrow = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} scene={chrome80Cells as RatatuiScene} />;",
-          "description": "The host's chrome at 80 wide: the tabs narrow to their keys and badges.",
+          "description": "The host's chrome at 80 wide: the tabs narrow to their keys and attention dots.",
           "warning": "Incomplete snippet: `frame` could not be resolved statically."
         },
         {
@@ -1752,7 +1771,7 @@
       "name": "PageBody",
       "path": "./stories/page/PageBody.stories.tsx",
       "jsDocTags": {},
-      "description": "An item's page (`PageView`, Ratatui `ui::page::PageFrame` via `render_page`; Ink app/Panes.tsx `PageBody`,\nnodes/pagetitle.tsx, app/TabRow.tsx): the breadcrumbs, the title with its details at the right, the line under it,\nthe tab row, then the tab's panes in the page's layout (`PageLayout`: a pane, a split, or responsive by width).\n\n**Use it** for any one item (a merge request, a ticket, a job): the host builds it from the part's `PageView`.\n\n**States:** a tab chosen, the tab row focused (`keys_at: page_tabs`), the tab window when the tabs do not fit, a\nnotice under the tabs, responsive panes (side by side when wide, stacked when narrow).\n\n**Rules:** breadcrumbs join with a muted ` / ` and the last is bold (both renderers still draw ` › `, #46). Tabs\nshow names, not counts (`Changes · 1 file` and `Threads · 1 open` are still sent, #33). The first crumb is the part\nname. Keys: `[` `]` or `← →` between tabs, `esc` back.",
+      "description": "An item's page (`PageView`, Ratatui `ui::page::PageFrame` via `render_page`; Ink app/Panes.tsx `PageBody`,\nnodes/pagetitle.tsx, app/TabRow.tsx): the breadcrumbs, the title with its details at the right, the line under it,\nthe tab row, then the tab's panes in the page's layout (`PageLayout`: a pane, a split, or responsive by width).\n\n**Use it** for any one item (a merge request, a ticket, a job): the host builds it from the part's `PageView`.\n\n**States:** a tab chosen, the tab row focused (`keys_at: page_tabs`), the tab window when the tabs do not fit, a\nnotice under the tabs, responsive panes (side by side when wide, stacked when narrow).\n\n**Rules:** breadcrumbs join with a muted ` / ` and the last is bold (both renderers still draw ` › `, #46). Tabs\nshow names, not counts, with one warning-colored dot when the host marks attention. The first crumb is the part\nname. Keys: `[` `]` or `← →` between tabs, `esc` back.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/app/Panes.tsx",
@@ -1883,7 +1902,7 @@
       "name": "TabRow",
       "path": "./stories/page/TabRow.stories.tsx",
       "jsDocTags": {},
-      "description": "A page's tab row (`PageView.tabs`, Ratatui `ui::page::tab_row`; Ink app/TabRow.tsx): the tabs' names, the chosen\none on the selection shade, a window of tabs with the chosen one in view when they do not all fit.\n\n**Use it** inside a page (PageBody draws it); the top bar's part tabs are the TopBar.\n\n**States:** a tab chosen, the row focused (the chosen tab on the focused shade), windowed when narrow.\n\n**Rules:** tabs show names, not counts: `Changes · 1 file`, `Threads · 1 open` are counts the host still sends\n(#33). One attention dot when something there waits for you. No pill tabs; square shades only.",
+      "description": "A page's tab row (`PageView.tabs`, Ratatui `ui::page::tab_row`; Ink app/TabRow.tsx): the tabs' names, the chosen\none on the selection shade, a window of tabs with the chosen one in view when they do not all fit.\n\n**Use it** inside a page (PageBody draws it); the top bar's part tabs are the TopBar.\n\n**States:** a tab chosen, the row focused (the chosen tab on the focused shade), windowed when narrow.\n\n**Rules:** tabs show names, not counts. One warning-colored attention dot follows the name when the host\nmarks the tab as needing attention. No pill tabs; square shades only.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/app/TabRow.tsx",
@@ -1891,10 +1910,10 @@
         "displayName": "TabRow",
         "methods": [],
         "props": {
-          "labels": {
+          "tabs": {
             "defaultValue": null,
             "description": "",
-            "name": "labels",
+            "name": "tabs",
             "declarations": [
               {
                 "fileName": "ink/src/app/TabRow.tsx",
@@ -1903,7 +1922,7 @@
             ],
             "required": true,
             "type": {
-              "name": "string[]"
+              "name": "TabView[]"
             }
           },
           "on": {
@@ -2212,7 +2231,7 @@
           "id": "design-components--tabs",
           "name": "Tabs",
           "snippet": "const Tabs = (_args, { globals }) => (\n  <Row>\n    <div style={{ display: \"flex\", flexDirection: \"column\", gap: 16 }}>\n      <Today globals={globals} cols={160} rows={1} caption=\"The top bar (host_chrome_160x40)\">\n        <TopRows chrome={chrome160 as ChromeView} width={160} height={40} />\n      </Today>\n      <Today globals={globals} cols={80} rows={1} caption=\"A merge request page's tab row (gitlab_repos-page1-overview…_80x24)\">\n        <PageTabs />\n      </Today>\n    </div>\n    <Target board=\"Components\" picks={targetOf(\"Tabs\")} issues={[33]} width={760} />\n  </Row>\n);",
-          "description": "Tabs: today the top bar's part tabs carry counts, and page tabs too; the target drops counts for one attention dot."
+          "description": "Tabs: names with one warning-colored dot when the host reports attention, in the top bar and item pages."
         },
         {
           "id": "design-components--fields",
@@ -2430,13 +2449,13 @@
         {
           "id": "design-motion--fold-unroll",
           "name": "Fold Unroll",
-          "snippet": "const FoldUnroll = (args) => <Target board=\"Motion\" picks={[card(\"Fold\")]} issues={[32]} props={boardSpeed(args)} width={720} />;",
+          "snippet": "const FoldUnroll = () => <Row><InteractionReplay kind=\"fold\" open speed=\"real\" /><InteractionReplay kind=\"fold\" open={false} speed=\"real\" /></Row>;",
           "description": "Fold unroll: a folded group's rows unroll from its line."
         },
         {
           "id": "design-motion--rainbow-focus-lap",
           "name": "Rainbow Focus Lap",
-          "snippet": "const RainbowFocusLap = (args) => <Target board=\"Motion\" picks={[card(\"Focus · a rainbow lap\")]} issues={[32]} props={boardSpeed(args)} width={900} />;",
+          "snippet": "const RainbowFocusLap = () => <Row><InteractionReplay kind=\"focus_lap\" speed=\"real\" /><InteractionReplay kind=\"focus_drain\" speed=\"real\" /></Row>;",
           "description": "A rainbow lap: the ramp runs once around the panel that takes the keys."
         },
         {
@@ -2458,7 +2477,7 @@
           "description": "Notice drain: a notice's tinted ground drains as its time runs out."
         }
       ],
-      "import": "import { MotionReference, MotionReplay, Row, ShippedLabel, Target } from 'radar-ink';"
+      "import": "import { InteractionReplay, MotionReference, MotionReplay, Row, ShippedLabel, Target } from 'radar-ink';"
     },
     "design-screen": {
       "id": "design-screen",
@@ -3223,6 +3242,6 @@
   },
   "meta": {
     "docgen": "react-docgen-typescript",
-    "durationMs": 1097
+    "durationMs": 1896
   }
 }

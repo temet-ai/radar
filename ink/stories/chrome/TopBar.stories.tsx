@@ -34,15 +34,14 @@ function Draw({ args: _args, globals, c, scene }: { args: Args; globals: Globals
 /**
  * The top bar (`ChromeView.top_bar`, Ratatui `shell::top_bar` and `tabs`) and, under it, the sources row
  * (`ChromeView.sources`, `shell::source_tabs`). The bar holds the brand, a tab per part with its key underlined
- * inside the word and an attention badge, History and Settings, the sync words and the mode.
+ * inside the word and an optional attention dot, History and Settings, the sync words and the mode.
  *
  * **Use it** as is: the host fills it; parts add a tab through the plugin contract, never draw their own.
  *
- * **States:** the active tab on the selection shade, a tab with a badge (a waiting count today, one attention dot
- * planned, #33), the bar focused (`keys_at: bar`), a source tab active.
+ * **States:** the active tab on the selection shade, a tab needing attention (one warning-colored dot), the bar focused (`keys_at: bar`), a source tab active.
  *
  * **Rules:** keys live inside their word, underlined (R̲epositories, S̲ettings); a key with no letter goes before
- * the word. Tabs show names, not counts (#33). No pill shapes on tabs or badges.
+ * the word. Tabs show names, not counts. No pill shapes on tabs.
  *
  * The story's `frame` is `frameOf(chrome)` (chrome/Chrome.tsx), from the recorded host chrome.
  */
@@ -56,7 +55,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The host's chrome at 80 wide: the tabs narrow to their keys and badges. */
+/** The host's chrome at 80 wide: the tabs narrow to their keys and attention dots. */
 export const Narrow: Story = {};
 
 /** At 160 wide every tab shows its name. */

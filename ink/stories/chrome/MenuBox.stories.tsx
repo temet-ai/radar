@@ -52,6 +52,10 @@ function Draw({ args, globals, c, screen, geometry, reference, missing }: { args
  * **States:** a choice highlighted (the selection background across the row), a heading, a choice with no key, a
  * question with buttons, a typed field, scrolled (`PgUp/PgDn`), too small to use.
  *
+ * **Command palette:** Ctrl-P searches commands. `palette` adds the matched/total count, highlights the host's
+ * matched label graphemes in bold accent, and puts shortcuts against the right edge. Typing, scrolling, pointer
+ * targets, scrim, and shadow use the same menu. Long labels wrap without losing a command's target.
+ *
  * **Rules:** the box clears what is under it (no list showing through); keys stand before the label in their own
  * column (`⏎`, `/`, `ctrl-r`); a shadow may dim what is under it but never erase it (#29). No chevrons at the
  * choices, no pill buttons.
@@ -74,10 +78,19 @@ type Story = StoryObj<typeof meta>;
  * MenuView and the focus for the two pictures to be comparable cell for cell. */
 export const Menu: Story = {};
 
-/** The same menu at 160x40. */
+/** The command-search variant at 160x40, using the existing wide-menu story. The view is an explicit illustrative
+ * sample, not a recorded host frame; the matched offsets are scalar positions supplied by the host. */
 export const Wide: Story = {
-  args: argsOf(chrome160, scene160.view!.menu),
-  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={true} />,
+  args: argsOf(chrome160, {
+    id: "palette", title: "commands", question: false, typed: "re", caret: 2, selected: 0,
+    palette: { matched: 3, total: 12, highlights: [[0, 1], [0, 1], [0, 1]] },
+    items: [
+      { value: "refresh", label: "Refresh", hint: "current view", keys: "ctrl-r", target: "chrome:menu:0" },
+      { value: "review", label: "Review Watch records", hint: "selected record", keys: "r", target: "chrome:menu:1" },
+      { value: "restore", label: "Restore session", hint: "last session", keys: "", target: "chrome:menu:2" },
+    ],
+  } satisfies MenuView),
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={false} missing="Illustrative palette data; a recorded palette scene is needed for the Ratatui comparison." />,
 };
 
 /** A question before a write: a note, then two buttons. The data is Ink's hand-made test sample

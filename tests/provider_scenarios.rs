@@ -157,7 +157,7 @@ mod github {
     use super::*;
     use radar_core::host::Event;
     use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-    use radar_core::view::{Intent, Node, PaneId};
+    use radar_core::view::{Intent, Node, PaneId, TreeRow};
     use radar_github::test_support::{ExpectedRequest, Reply, Request, hosted_plugin};
 
     const REPO: &str = "ankh-morpork/watch";
@@ -274,15 +274,21 @@ mod github {
 
         renderer_checkpoint(&s);
         let screen = view(&s, "github");
-        let Node::List { rows, .. } = &screen.pane(PaneId::Middle).unwrap().body else {
-            panic!("GitHub repository list: {screen:?}")
+        let Node::Tree(tree) = &screen.pane(PaneId::Middle).unwrap().body else {
+            panic!("GitHub repository tree: {screen:?}")
         };
-        let target = rows
+        let target = tree.rows
             .iter()
-            .find(|row| serde_json::to_string(&row.text).unwrap().contains(TITLE))
-            .expect("refreshed pull request row")
-            .target
-            .clone();
+            .find_map(|group| {
+                group.children.iter().find_map(|repo| {
+                    repo.children.iter()
+                        .find(|pull| serde_json::to_string(&pull.name).unwrap().contains(TITLE))
+                        .map(|pull| TreeRow::target_of(&[
+                            group.id.clone(), repo.id.clone(), pull.id.clone(),
+                        ]))
+                })
+            })
+            .expect("refreshed pull request row");
         s.dispatch(Event::Intent(Intent::Activate { target }))
             .unwrap();
         s.settle_until(BUDGET, |_| fixture.ledger().len() == 3)

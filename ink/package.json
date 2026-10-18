@@ -10,7 +10,7 @@
     "start": "node dist/radar-ink.js",
     "storybook": "storybook dev -p 6016 --exact-port --no-open",
     "build-storybook": "storybook build -o storybook-static",
-    "manifest": "npm run build-storybook && node .storybook/copy-manifest.mjs",
+    "manifest": "node .storybook/manifest.mjs",
     "typecheck-stories": "tsc -p tsconfig.storybook.json --noEmit",
     "check-static": "node .storybook/check-static.mjs"
   },

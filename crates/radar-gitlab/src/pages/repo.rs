@@ -56,7 +56,7 @@ pub(super) fn len(p: &GitlabPlugin, path: &str, tab: usize) -> usize {
 pub(super) fn tabs(p: &GitlabPlugin, path: &str) -> Vec<String> {
     let pr = project(p, path);
     vec![
-        format!("Merge requests · {}", mrs(p, path).len()),
+        "Merge requests".into(),
         format!("Pipelines on {}", branch_of(&pr)),
     ]
 }

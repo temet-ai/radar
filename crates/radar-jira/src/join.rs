@@ -107,12 +107,19 @@ pub(crate) fn chip_text(parts: &radar_core::Parts<'_>, subject: &Subject) -> rad
 
 /// A ticket as a subject, with what others match on.
 pub(crate) fn ticket(p: &JiraPlugin, site: &str, key: &str) -> Subject {
-    let mut s = Subject::new(TICKET, key, key)
-        .with("project", key.split('-').next().unwrap_or_default())
-        .with("site", site);
+    let mut s = cached_ticket(p, site, key);
     if let Some(url) = p.cfg.site(site).and_then(|s| s.browse(key)) {
         s = s.with_url(url);
     }
+    s
+}
+
+/// Explicit local routing identity and held metadata, without resolving a site
+/// URL from the environment. Show accepts this site-qualified subject directly.
+pub(crate) fn cached_ticket(p: &JiraPlugin, site: &str, key: &str) -> Subject {
+    let mut s = Subject::new(TICKET, key, key)
+        .with("project", key.split('-').next().unwrap_or_default())
+        .with("site", site);
     if let Some(t) = held(p, site, key) {
         s = s
             .with("title", t.summary.clone())

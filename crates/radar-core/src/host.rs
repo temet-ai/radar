@@ -2,6 +2,16 @@
 //! routes everything else to plugins. `update(event) → effects` is pure
 //! (TUI-A2): the runner performs the effects.
 
+#[path = "host_palette.rs"]
+mod palette;
+
+#[path = "host_motion.rs"]
+pub(crate) mod interaction_motion;
+
+#[cfg(test)]
+#[path = "host_palette_tests.rs"]
+mod palette_tests;
+
 use std::cell::Cell;
 use std::collections::HashMap;
 
@@ -544,6 +554,9 @@ pub struct Host {
     pub menu: Option<OpenMenu>,
     /// While the keys menu is open: what each of its items does.
     menu_keys: Vec<Option<Press>>,
+    palette: Option<palette::State>,
+    palette_generation: u64,
+    palette_visits: HashMap<palette::Place, u64>,
     /// Where shows across parts came from, the latest last.
     pub back: Vec<Return>,
     /// The selected row of the parts section.
@@ -585,6 +598,8 @@ pub struct Host {
     file: String,
     /// What happened that motion shows, for the runner ([`Host::take_cues`]).
     cues: Vec<Cue>,
+    /// Bounded semantic interaction evidence; never retained renderer cells.
+    interaction_motion: interaction_motion::State,
     /// `[general] mode`: which writes radar may send ([`crate::mode`]).
     pub mode_cfg: crate::writes::Mode,
     /// The mode the environment sets for this run, and the variable.
@@ -742,6 +757,9 @@ impl Host {
             colours,
             menu: None,
             menu_keys: Vec::new(),
+            palette: None,
+            palette_generation: 0,
+            palette_visits: HashMap::new(),
             back: Vec::new(),
             parts_row: 0,
             look_row: 0,
@@ -760,6 +778,7 @@ impl Host {
             saved: toml::Table::new(),
             file: String::new(),
             cues: Vec::new(),
+            interaction_motion: Default::default(),
             mode_cfg: crate::writes::Mode::default(),
             mode_env: None,
             pause: crate::mode::PauseState {
@@ -818,6 +837,10 @@ impl Host {
     /// (else the choices stay as they were, as when an arrow filled the
     /// field from them).
     fn typed_changed(&mut self, offers: bool) {
+        if self.palette.is_some() && self.menu.as_ref().is_some_and(|open| open.owner == Owner::Host && open.menu.id == palette::ID) {
+            self.palette_changed();
+            return;
+        }
         let Some(open) = self.menu.as_mut() else {
             return;
         };
@@ -940,6 +963,13 @@ impl Host {
     }
 
     fn menu_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
+        if self.palette.is_some() {
+            if matches!(key.code, KeyCode::PageUp | KeyCode::PageDown) {
+                if let Some(open) = &mut self.menu { open.viewport.scroll(key.code == KeyCode::PageDown, true); }
+                return vec![];
+            }
+            return self.palette_key(key);
+        }
         // Reading never submits, selects an offer, or reaches the input's
         // editing shortcuts. Modified keys retain their complete binding.
         if key.modifiers.is_empty()
@@ -1425,10 +1455,12 @@ impl Host {
     /// Fold or unfold a group in the settings nav; the cursor goes to its
     /// heading.
     fn toggle_group(&mut self, g: &'static str) {
+        let before = self.settings_fold_before(g);
         if !self.folded.remove(g) {
             self.folded.insert(g);
         }
         self.nav_go((g, None));
+        self.settings_fold_after(g, before);
     }
 
     /// `+` or `-` found nothing to open or close on the row.
@@ -1487,8 +1519,24 @@ impl Host {
     /// Handle one event; then, unless it was a save's answer, save a change
     /// it completed (see [`Host::autosave`]).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
+        // Every event supersedes unconsumed evidence. In particular background
+        // sync/tick changes cannot inherit the last input's fold causality.
+        self.interaction_motion.fold = None;
+        let before = self.view;
         let out = self.update_inner(event);
+        if self.view != before {
+            self.visit_palette_place(match self.view {
+                View::Screen(i) => palette::Place::Screen(i),
+                View::Settings => palette::Place::Settings,
+            });
+        }
+        // An outside click or a background question may dismiss/replace the
+        // palette. Restore suspended History only when no new menu owns input.
+        if self.palette.is_some() && self.menu.as_ref().is_none_or(|open| open.owner != Owner::Host || open.menu.id != palette::ID) {
+            if self.menu.is_none() { self.cancel_palette(); } else { self.clear_palette_hits(); self.palette = None; }
+        }
         self.tell_dock();
+        self.finish_motion_event();
         out
     }
 
@@ -1532,10 +1580,20 @@ impl Host {
         // Reading history is intentionally not a source of new history. Background
         // provider completions still follow the ordinary trace and reducer route.
         if let Event::History { id, result } = event {
-            if let Some(history) = &mut self.history {
+            if let Some(history) = self.history.as_mut().or_else(|| self.palette.as_mut().and_then(|state| state.history.as_mut())) {
                 history.receive(id, result.map(|page| *page));
             }
             return vec![];
+        }
+        let mut input = &event;
+        while let Event::Tracked { event, .. } = input { input = event; }
+        let opens_palette = match input {
+            Event::Key(key) => palette::shortcut(*key),
+            Event::Intent(crate::view::Intent::Key { chord }) => palette::shortcut(crate::view_tui::key_of(*chord)),
+            _ => false,
+        };
+        if opens_palette && self.menu.is_none() && !self.capturing() {
+            return self.handle_outside_history(event);
         }
         if self.history.is_some() {
             // Tracked input is the overlay's as untracked input is: read
@@ -2372,6 +2430,10 @@ impl Host {
         let Some((owner, _)) = compose::owner_of(&self.plugins, &subject.kind) else {
             return self.show_link(&subject);
         };
+        self.show_owned(owner, subject, depth, true)
+    }
+
+    fn show_owned(&mut self, owner: usize, subject: Subject, depth: usize, fallback_link: bool) -> Vec<HostEffect> {
         let (view, focus) = (self.view, self.focus);
         match self.plugins[owner].show(&subject) {
             Showing::Page { screen, effects } => {
@@ -2391,10 +2453,19 @@ impl Host {
                     }
                     self.focus = Pane::Middle;
                 }
+                let current = self.plugins[owner].subject(screen, Pane::Middle).unwrap_or(subject);
+                self.visit_palette_subject(owner, &current);
                 self.route(owner, effects, depth)
             }
-            Showing::Done(effects) => self.route(owner, effects, depth),
-            Showing::Cannot => self.show_link(&subject),
+            Showing::Done(effects) => {
+                self.visit_palette_subject(owner, &subject);
+                self.route(owner, effects, depth)
+            }
+            Showing::Cannot if fallback_link => self.show_link(&subject),
+            Showing::Cannot => {
+                self.message = Some("that destination is no longer available".into());
+                vec![]
+            },
         }
     }
 
@@ -2834,6 +2905,11 @@ impl Host {
         if let Intent::Copy { text } = intent {
             return self.copy_selection(text);
         }
+        if let Intent::Invoke { action } = &intent && action.starts_with("palette:") {
+            let Some(row) = self.palette_row(action) else { return vec![]; };
+            self.menu.as_mut().expect("active palette").row = row;
+            return self.palette_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+        }
         // The chrome's own targets (a tab, a menu row, a key on the status
         // line, a settings row): what a click on them does.
         if let Intent::Activate { target } | Intent::Select { target } = &intent
@@ -2865,6 +2941,18 @@ impl Host {
             }
             self.focus = Pane::Middle;
             self.look_settings_target(&target.clone(), matches!(intent, Intent::Activate { .. }));
+            return vec![];
+        }
+        if self.palette.is_some()
+            && let Intent::Invoke { action } = &intent
+            && matches!(action.as_str(), "chrome.palette.scroll_up" | "chrome.palette.scroll_down")
+        {
+            if let Some(open) = &mut self.menu
+                && open.menu.id == palette::ID
+                && open.viewport.more()
+            {
+                open.viewport.scroll(action == "chrome.palette.scroll_down", false);
+            }
             return vec![];
         }
         if let Some(open) = &mut self.menu {
@@ -3155,7 +3243,8 @@ impl Host {
             return self.plugins[p].intent(scope, self.focus, &crate::view::Intent::Key { chord });
         }
         let routed = crate::view_tui::key(&self.frontend, &view, self.focus.into(), chord);
-        self.routed(p, scope, self.focus, routed)
+        let node = interaction_motion::screen_node(&view, self.focus);
+        self.routed(p, scope, self.focus, routed, node)
     }
 
     fn section_input(&mut self, p: usize, scope: &'static str, key: KeyEvent) -> Outcome {
@@ -3169,7 +3258,7 @@ impl Host {
             return self.plugins[p].intent(scope, Pane::Middle, &crate::view::Intent::Key { chord });
         }
         let intent = crate::view_tui::section_key(&view, chord);
-        self.plugins[p].intent(scope, Pane::Middle, &intent)
+        self.motion_part_input(p, scope, Pane::Middle, &intent, Some(&view.body))
     }
 
     /// An intent from a frontend with no terminal (or the Ratatui adapter's,
@@ -3202,7 +3291,7 @@ impl Host {
             }
         }
         let pane = if section { Pane::Middle } else { self.focus };
-        let outcome = crate::view_tui::to_part(self.plugins[p].as_mut(), scope, pane, intent);
+        let outcome = self.motion_part_input(p, scope, pane, intent, None);
         // Transitional (M11 A0b): an action invoked by its stable id that the
         // part does not match itself runs by the key its own view lists for
         // that id, under the same dispatch span. An action with no key must
@@ -3240,8 +3329,10 @@ impl Host {
         }
         let view = self.screen_view(p, scope)?;
         let want = target.as_str();
-        view.panes
-            .iter()
+        // An actual page owns its panes even when that list is empty. Hidden
+        // root panes cannot take the page's pointer intent or keyboard focus.
+        let panes = view.page.as_ref().map_or(view.panes.as_slice(), |page| &page.panes);
+        panes.iter()
             .find(|pane| match &pane.body {
                 Node::List { rows, .. } => rows.iter().any(|r| r.target.as_str() == want),
                 Node::Table { rows, .. } => rows.iter().any(|r| r.target.as_str() == want),
@@ -3291,7 +3382,7 @@ impl Host {
             return Outcome::Ignored;
         }
         let routed = crate::view_tui::click(&self.frontend, id, context);
-        self.routed(p, scope, pane, routed)
+        self.routed(p, scope, pane, routed, None)
     }
 
     fn routed(
@@ -3300,10 +3391,11 @@ impl Host {
         scope: &'static str,
         pane: Pane,
         routed: crate::view_tui::Routed,
+        known: Option<&crate::view::Node>,
     ) -> Outcome {
         use crate::view_tui::Routed;
         match routed {
-            Routed::Intent(i) => crate::view_tui::to_part(self.plugins[p].as_mut(), scope, pane, &i),
+            Routed::Intent(i) => self.motion_part_input(p, scope, pane, &i, known),
             Routed::Done => Outcome::done(),
             Routed::Ignored => Outcome::Ignored,
         }
@@ -3648,6 +3740,10 @@ impl Host {
         }
         if self.menu.is_some() {
             return self.menu_key(key);
+        }
+        if palette::shortcut(key) && !self.capturing() {
+            self.open_palette();
+            return vec![];
         }
         if self.colours.capturing() {
             return self.colours_key(key);
@@ -4940,12 +5036,13 @@ impl Host {
                 label: group.map_or(s.name, |g| g.name).to_string(),
                 mnemonic: group.map_or(s.key, |g| g.key),
                 icon: self.plugins[*p].icon(s.id),
-                // A part not set up yet shows nothing it would count.
-                badge: self
-                    .ready(*p)
-                    .then(|| self.plugins[*p].badge(s.id))
-                    .flatten()
-                    .map(|(text, tone)| c::Badge { text, ink: Ink::from(tone) }),
+                // Counts stay in status; only a warning or failure needs a dot.
+                attention: group.map_or_else(|| vec![i], |_| self.group_screens(i)).into_iter().any(|index| {
+                    let (owner, screen) = &self.screens[index];
+                    self.ready(*owner)
+                        && self.plugins[*owner].badge(screen.id)
+                            .is_some_and(|(_, tone)| matches!(tone, crate::Tone::Warn | crate::Tone::Bad))
+                }),
                 active,
                 target: targets::screen_tab(i),
             });
@@ -4954,7 +5051,7 @@ impl Host {
             label: "history".into(),
             mnemonic: HISTORY_KEY,
             icon: Some(Icon::Log),
-            badge: None,
+            attention: false,
             active: self.history.is_some(),
             target: targets::history_tab(),
         });
@@ -4962,7 +5059,7 @@ impl Host {
             label: "settings".into(),
             mnemonic: SETTINGS_KEY,
             icon: Some(Icon::Settings),
-            badge: self.unsaved().then(|| c::Badge { text: "unsaved".into(), ink: Ink::Warn }),
+            attention: self.unsaved(),
             active: self.history.is_none() && self.view == View::Settings,
             target: targets::settings_tab(),
         });
@@ -4999,7 +5096,15 @@ impl Host {
             .iter()
             .take(c::MOST)
             .enumerate()
-            .map(|(n, h)| chrome_hint(n, h))
+            .map(|(n, h)| {
+                let mut hint = chrome_hint(n, h);
+                if self.palette.is_some() {
+                    for (k, key) in hint.keys_of.iter_mut().enumerate() {
+                        key.target = crate::view::Target::new(format!("chrome:palette-key:{}:{n}:{k}", self.palette_generation));
+                    }
+                }
+                hint
+            })
             .collect();
         let scope = if self.setup.is_some() { "setup" } else { self.screen().map_or("settings", |(_, s)| s.name) };
         c::StatusLine {
@@ -5188,7 +5293,7 @@ impl Host {
             }
             // A field: how to finish it.
             if typed {
-                h.push(KeyHint::new("⏎", "save"));
+                h.push(KeyHint::new("⏎", if self.palette.is_some() { "choose" } else { "save" }));
                 h.push(KeyHint::new("esc", "cancel"));
                 return h;
             }
@@ -5275,7 +5380,16 @@ impl Host {
 
     /// The menu or question open, if one is, as view data.
     pub fn menu_view(&self) -> Option<crate::view::MenuView> {
-        self.menu.as_ref().map(menu_view_of)
+        self.menu.as_ref().map(|open| {
+            let mut view = menu_view_of(open);
+            view.palette = self.palette_view().map(Box::new);
+            if view.palette.is_some() {
+                for item in &mut view.items {
+                    item.target = Some(crate::view::Target::new(format!("chrome:menu:{}", item.value)));
+                }
+            }
+            view
+        })
     }
 }
 
@@ -5285,6 +5399,7 @@ pub(crate) fn menu_view_of(open: &OpenMenu) -> crate::view::MenuView {
     let m = &open.menu;
     {
         c::MenuView {
+            palette: None,
             id: m.id.clone(),
             title: m.title.clone(),
             icon: m.icon,
@@ -5404,11 +5519,22 @@ impl Host {
             "attention" => Hit::Attention,
             "tab" => Hit::Tab(View::Screen(index().filter(|i| *i < self.screens.len())?)),
             "source" => Hit::SourceTab(View::Screen(index().filter(|i| *i < self.screens.len())?)),
-            "menu" => Hit::MenuItem(index()?),
+            "menu" if arg.starts_with("palette:") => Hit::MenuItem(self.palette_row(arg)?),
+            "menu" if self.palette.is_none() => Hit::MenuItem(index()?),
             "section" => Hit::Section(index().filter(|i| *i < self.sections.len())?),
             "group" => Hit::Group(self.nav_groups().into_iter().find(|(g, _)| *g == arg)?.0),
             "setup" if self.setup.is_some() => Hit::SetupStop(index()?),
-            "key" => {
+            "palette-key" | "key" => {
+                let arg = if kind == "palette-key" {
+                    let (generation, arg) = arg.split_once(':')?;
+                    if self.palette.is_none() || generation.parse::<u64>().ok()? != self.palette_generation {
+                        return None;
+                    }
+                    arg
+                } else {
+                    if self.palette.is_some() { return None; }
+                    arg
+                };
                 let (n, k) = arg.split_once(':')?;
                 let (n, k) = (n.parse::<usize>().ok()?, k.parse::<usize>().ok()?);
                 let hints = self.status_hints();
@@ -5434,6 +5560,10 @@ impl Host {
             Hit::Mode => targets::mode(),
             Hit::Health(p) => targets::health(self.plugins.get(*p)?.id()),
             Hit::Attention => targets::attention(),
+            Hit::MenuItem(i) if self.palette.is_some() => {
+                let item = self.menu.as_ref()?.menu.items.get(*i)?;
+                crate::view::Target::new(format!("chrome:menu:{}", item.value))
+            }
             Hit::MenuItem(i) => targets::menu_item(*i),
             Hit::SetupStop(i) => targets::setup_stop(*i),
             Hit::Key(key, n) => {
@@ -5441,7 +5571,11 @@ impl Host {
                 let k = hint_labels(hints.get(*n)?.keys)
                     .iter()
                     .position(|l| hint_key(l) == Some(*key))?;
-                targets::hint_key(*n, k)
+                if self.palette.is_some() {
+                    crate::view::Target::new(format!("chrome:palette-key:{}:{n}:{k}", self.palette_generation))
+                } else {
+                    targets::hint_key(*n, k)
+                }
             }
             _ => return None,
         })
@@ -5589,6 +5723,76 @@ pub(crate) mod tests {
     use serde_json::json;
 
     use std::sync::{Arc, Mutex};
+
+    mod tab_attention {
+        use super::*;
+        use crate::Tone;
+
+        struct Part {
+            id: &'static str,
+            key: char,
+            tone: Tone,
+            ready: bool,
+            grouped: bool,
+        }
+
+        impl Plugin for Part {
+            fn id(&self) -> &'static str { self.id }
+            fn configure(&mut self, _: Option<&toml::Value>) -> Result<()> { Ok(()) }
+            fn config(&self) -> Option<toml::Value> { None }
+            fn screens(&self) -> Vec<ScreenSpec> {
+                vec![ScreenSpec { id: "main", name: self.id, key: self.key }]
+            }
+            fn screen_group(&self, _: &str) -> Option<crate::plugin::ScreenGroup> {
+                self.grouped.then_some(crate::plugin::ScreenGroup {
+                    id: "watch", name: "Watch", key: 'W', source: self.id,
+                })
+            }
+            fn set_up(&self) -> crate::compose::Setup {
+                if self.ready { crate::compose::Setup::Ready } else { crate::compose::Setup::Needed("connect".into()) }
+            }
+            fn badge(&self, _: &str) -> Option<(String, Tone)> { Some(("42".into(), self.tone)) }
+            fn status(&self, _: &str) -> Vec<(String, Tone)> { vec![("42 total".into(), Tone::Info)] }
+        }
+
+        fn part(id: &'static str, key: char, tone: Tone, ready: bool, grouped: bool) -> Box<dyn Plugin> {
+            Box::new(Part { id, key, tone, ready, grouped })
+        }
+
+        #[test]
+        fn host_owns_warning_dots_without_rewriting_status() {
+            let tones = [Tone::Plain, Tone::Muted, Tone::Accent, Tone::Info, Tone::Good, Tone::Warn, Tone::Bad];
+            let names = ["ankh", "borogravia", "chirm", "djelibeybi", "ephebe", "fourecks", "genua"];
+            let mut host = Host::new(tones.into_iter().zip(names).zip('A'..='G')
+                .map(|((tone, name), key)| part(name, key, tone, true, false)).collect(), 0).unwrap();
+            let bar = host.chrome_top_bar();
+            assert_eq!(bar.tabs.iter().map(|tab| tab.attention).collect::<Vec<_>>(),
+                [false, false, false, false, false, true, true, false, false]);
+            assert_eq!(bar.tabs[..7].iter().map(|tab| tab.label.as_str()).collect::<Vec<_>>(), names);
+            assert!(host.chrome_status().counts.iter().any(|count| count.text == "42 total"));
+            let wire = serde_json::to_value(&bar).unwrap();
+            assert!(wire["tabs"].as_array().unwrap().iter().all(|tab| tab.get("badge").is_none()));
+            host.save_failed = Some("storage unavailable".into());
+            assert!(host.chrome_top_bar().tabs.last().unwrap().attention);
+            host.saved = host.config_table();
+            assert!(!host.chrome_top_bar().tabs.last().unwrap().attention);
+        }
+
+        #[test]
+        fn grouped_tabs_include_ready_siblings_only() {
+            let mut host = Host::new(vec![
+                part("ankh", 'A', Tone::Info, true, true),
+                part("lancre", 'L', Tone::Warn, true, true),
+                part("sto_lat", 'S', Tone::Bad, false, true),
+            ], 0).unwrap();
+            let bar = host.chrome_top_bar();
+            assert_eq!(bar.tabs.len(), 3, "one group plus history and settings");
+            assert_eq!(bar.tabs[0].label, "Watch");
+            assert!(bar.tabs[0].attention, "a ready sibling needs attention");
+            host.plugins[1] = part("lancre", 'L', Tone::Good, true, true);
+            assert!(!host.chrome_top_bar().tabs[0].attention, "an unconfigured sibling has no dot");
+        }
+    }
 
     /// What a probe plugin was given.
     #[derive(Default, Debug)]
@@ -6201,7 +6405,7 @@ pub(crate) mod tests {
         assert!(host.unsaved());
         let screen = crate::shell::to_text(&host, 120, 20);
         assert!(
-            screen.contains("Settings (,) unsaved") && screen.contains("unsaved · w retries"),
+            screen.contains(&format!("Settings (,) {}", crate::ui::icon::ATTENTION_DOT)) && screen.contains("unsaved · w retries"),
             "{screen}"
         );
         press(&mut host, KeyCode::Char('q'));

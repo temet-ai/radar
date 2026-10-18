@@ -244,12 +244,13 @@ pub(crate) fn detail_lines(host: &Host, t: &Theme) -> Vec<Line<'static>> {
 }
 
 /// The set-up page of a part that is not set up yet, over its screen.
-pub(crate) fn setup_page(host: &Host, p: usize, t: &Theme, area: Rect, buf: &mut Buffer) {
+pub(crate) fn setup_page(host: &Host, p: usize, t: &Theme, area: Rect, buf: &mut Buffer, owns_keys: bool) {
     let plugin: &dyn Plugin = host.plugins[p].as_ref();
     let name = plugin.name();
-    let block = widgets::panel(t, &format!("set up {name}"), true);
-    let inner = block.inner(area);
-    ratatui::widgets::Widget::render(block, area, buf);
+    let inner = crate::motion::frames::with_frame(crate::view::PaneId::Middle, "body", || crate::ui::card::panel_owned(
+        t, area, buf, &format!("set up {name}"),
+        crate::ui::frame::Focus { focused: true, owns_keys },
+    ));
     host.frontend.mark_selectable(inner, true);
     let what = match plugin.set_up() {
         Setup::Needed(what) => what,

@@ -9,7 +9,7 @@ export function booksChrome(over: Partial<ChromeView> = {}): ChromeView {
     top_bar: {
       brand: "radar",
       tabs: [
-        { label: "Books", mnemonic: "B", badge: { text: "3", ink: "accent" }, active: true, target: "chrome:tab:0" },
+        { label: "Books", mnemonic: "B", active: true, target: "chrome:tab:0" },
         { label: "Work", mnemonic: "W", target: "chrome:tab:1" },
         { label: "history", mnemonic: "h", target: "chrome:history" },
         { label: "settings", mnemonic: "s", target: "chrome:settings" },

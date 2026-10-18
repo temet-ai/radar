@@ -91,6 +91,11 @@ pub(crate) struct Page {
 }
 
 impl Page {
+    /// The requested ticket, independent of loaded summary or selected links.
+    pub(crate) fn identity(&self) -> String {
+        serde_json::json!(["ticket", self.site, self.key]).to_string()
+    }
+
     fn new(site: &str, key: &str) -> Self {
         Self {
             site: site.into(),
@@ -622,21 +627,9 @@ fn fetch_state(f: Option<&Fetched<Detail>>) -> Option<Text> {
 
 // --- the page as view data -------------------------------------------------------------
 
-fn tabs(p: &JiraPlugin, page: &Page) -> Vec<String> {
-    let d = detail(p, page);
-    let comments = match d {
-        Some(d) if d.comments_total > 0 => format!("Comments · {}", d.comments_total),
-        _ => TABS[COMMENTS].into(),
-    };
-    let links = match d {
-        Some(d) if !d.links.is_empty() => format!("Links · {}", d.links.len()),
-        _ => TABS[LINKS].into(),
-    };
-    let mut labels = vec![TABS[OVERVIEW].into(), comments, links];
-    labels.extend(page.extra.borrow().iter().map(|(title, rows)| match rows.len() {
-        0 => title.clone(),
-        n => format!("{title} · {n}"),
-    }));
+fn tabs(page: &Page) -> Vec<String> {
+    let mut labels = TABS.iter().map(|name| (*name).to_string()).collect::<Vec<_>>();
+    labels.extend(page.extra.borrow().iter().map(|(title, _)| title.clone()));
     labels
 }
 
@@ -651,7 +644,7 @@ fn tab_views(labels: Vec<String>) -> Vec<TabView> {
                 OVERVIEW => Some(Icon::Info),
                 COMMENTS => Some(Icon::Thread),
                 LINKS => Some(Icon::Link),
-                _ if l.split(" · ").next().is_some_and(|w| w.eq_ignore_ascii_case(CODE)) => Some(Icon::Change),
+                _ if l.eq_ignore_ascii_case(CODE) => Some(Icon::Change),
                 _ => None,
             };
             TabView::new(l, icon)
@@ -671,7 +664,7 @@ pub(crate) fn view(p: &JiraPlugin, cx: &v::ViewCx<'_>) -> Option<v::ScreenView> 
         // Before the ticket is known its line stays, blank, so the tabs
         // do not move when it comes.
         under: Some(Text::new()),
-        tabs: tab_views(tabs(p, page)),
+        tabs: tab_views(tabs(page)),
         tab: page.tab.min(page.tab_count() - 1),
         notice: None,
         panes: vec![],
@@ -1158,7 +1151,7 @@ pub(crate) fn key(p: &mut JiraPlugin, key: KeyEvent) -> Outcome {
 /// The page's tabs, for the host to move across (GUIDE 1.5).
 pub(crate) fn page_tabs(p: &JiraPlugin) -> Option<radar_core::plugin::PageTabs> {
     let page = p.pages.last()?;
-    let names = tabs(p, page);
+    let names = tabs(page);
     let on = page.tab.min(names.len().saturating_sub(1));
     Some(radar_core::plugin::PageTabs { names, on })
 }
@@ -1195,7 +1188,7 @@ pub(crate) fn keys(p: &JiraPlugin) -> Vec<Binding> {
     b.push(Binding::new("Y", format!("copy {}", page.key)));
     b.push(Binding::new("r", "refresh this page"));
     b.push(Binding::heading("page"));
-    let labels = tabs(p, page);
+    let labels = tabs(page);
     let n = labels.len();
     let word = |i: usize| labels[i % n].split(" · ").next().unwrap_or_default().to_string();
     b.push(Binding::new("]", format!("next tab: {}", word(page.tab + 1))));
@@ -1356,3 +1349,28 @@ mod cached_refresh_tests;
 #[cfg(test)]
 #[path = "page_code_refresh_tests.rs"]
 mod code_refresh_tests;
+
+#[cfg(test)]
+mod page_identity_tests {
+    use super::*;
+
+    #[test]
+    fn page_identity_distinguishes_site_and_ticket() {
+        let page = Page::new("ankh-morpork", "WATCH-12");
+        assert_eq!(page.identity(), r#"["ticket","ankh-morpork","WATCH-12"]"#);
+        assert_ne!(page.identity(), Page::new("lancre", "WATCH-12").identity());
+        assert_ne!(page.identity(), Page::new("ankh-morpork", "WATCH-13").identity());
+        assert_ne!(Page::new("ankh:morpork", "WATCH-12").identity(),
+            Page::new("ankh", "morpork:WATCH-12").identity());
+    }
+
+    #[test]
+    fn page_identity_ignores_tab_row_and_contributed_labels() {
+        let mut page = Page::new("ankh-morpork", "WATCH-12");
+        let identity = page.identity();
+        page.tab = LINKS;
+        page.row.set(3);
+        page.extra.borrow_mut().push(("Watch notes".into(), vec![]));
+        assert_eq!(page.identity(), identity);
+    }
+}

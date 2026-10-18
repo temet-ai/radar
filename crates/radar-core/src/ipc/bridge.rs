@@ -17,7 +17,7 @@ use crate::view::{ChromeView, Intent, PaneId};
 
 use super::{
     Capabilities, InputRequest, Look, MAX_CLIPBOARD, MAX_INPUT, MAX_LINE, MAX_NOTICE, MotionCue,
-    MotionRegion, MotionView, Notice,
+    MotionInteraction, MotionRegion, MotionView, Notice,
     PROTOCOL, Question, Snapshot, ToHost, ToRenderer,
 };
 
@@ -71,6 +71,10 @@ pub struct Bridge {
     pointer: Option<(u16, u16)>,
     /// Motion cues raised and not yet sent.
     cues: Vec<MotionCue>,
+    /// Latest processed renderer input, including an ignored/no-op input.
+    processed_seq: Option<u64>,
+    /// Fresh scene causality, unlike the durable processed acknowledgement.
+    scene_origin_seq: Option<u64>,
     /// Over SSH motion is held back, as the Ratatui runner does.
     ssh: bool,
     /// The startup splash's timing, and its frame as last worked out.
@@ -118,6 +122,8 @@ impl Bridge {
             looked: None,
             pointer: None,
             cues: Vec::new(),
+            processed_seq: None,
+            scene_origin_seq: None,
             ssh: crate::system::Env::detect().ssh,
             // Only a real start shows it ([`Bridge::show_splash`]).
             splash: Splash::new(splash::Setting::Off, Level::Off),
@@ -206,6 +212,8 @@ impl Bridge {
     /// Whether motion is held back as over SSH (a test sets it).
     pub fn set_ssh(&mut self, ssh: bool) {
         self.ssh = ssh;
+        self.scene_origin_seq = None;
+        self.host.set_motion_enabled(self.motion_level().0 == Level::Full);
         self.held = None;
     }
 
@@ -246,6 +254,8 @@ impl Bridge {
     /// the Ratatui runner does); the renderer is sent it again.
     pub fn set_tier(&mut self, tier: Tier) {
         self.tier = tier;
+        self.scene_origin_seq = None;
+        self.host.set_motion_enabled(self.motion_level().0 == Level::Full);
         self.looked = None;
         self.held = None;
     }
@@ -261,6 +271,8 @@ impl Bridge {
 
     pub fn host_mut(&mut self) -> &mut Host {
         self.held = None;
+        self.scene_origin_seq = None;
+        self.host.take_motion_fold();
         &mut self.host
     }
 
@@ -291,6 +303,9 @@ impl Bridge {
         self.told = None;
         self.looked = None;
         self.cues.clear();
+        self.processed_seq = None;
+        self.scene_origin_seq = None;
+        self.host.take_motion_fold();
         self.outbox.clear();
         self.held = None;
     }
@@ -355,7 +370,10 @@ impl Bridge {
                 let pointer = self.pointer.take();
                 let context = matches!(intent, Intent::Context { .. });
                 let had_menu = self.host.menu.is_some();
+                self.host.set_motion_origin(seq, cursor);
+                self.processed_seq = Some(self.processed_seq.map_or(seq, |previous| previous.max(seq)));
                 out.effects = self.send(intent);
+                self.scene_origin_seq = (self.processed_seq == Some(seq)).then_some(seq);
                 // A context menu opens where the pointer pressed.
                 if let (true, false, Some((x, y)), Some(open)) = (context, had_menu, pointer, self.host.menu.as_mut()) {
                     open.anchor = Some((x, y).into());
@@ -405,9 +423,11 @@ impl Bridge {
     /// Hand the host an event (a tick, a finished task's message).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
         self.held = None;
+        self.scene_origin_seq = None;
         if let Some(trace) = &mut self.trace {
             trace.event(&event);
         }
+        self.host.set_motion_enabled(self.motion_level().0 == Level::Full);
         let out = self.host.update(event);
         self.records.extend(out.iter().filter_map(|e| match e {
             HostEffect::Journal(r) => Some(r.clone()),
@@ -418,9 +438,11 @@ impl Bridge {
 
     fn resize(&mut self, columns: u16, rows: u16) {
         self.held = None;
+        self.scene_origin_seq = None;
         self.width = columns.max(1);
         self.height = rows.max(1);
         self.host.set_view_room(self.width, self.height);
+        self.host.take_motion_fold();
     }
 
     /// Queue text for the terminal's clipboard; the renderer owns the
@@ -479,6 +501,22 @@ impl Bridge {
             section.paint_diffs();
         }
         let dock = if screen.is_none() && section.is_some() { self.host.dock_view() } else { None };
+        let interaction = (self.motion_level().0 == Level::Full).then(|| {
+            let mut context = self.host.motion_context();
+            // The already-built view is an additional fail-closed check for
+            // legacy owners whose depth did not identify an actual item page.
+            if screen.as_ref().is_some_and(|screen| screen.page.is_some())
+                && matches!(&context, Some(super::MotionContext::Screen { page: None, .. }))
+            {
+                context = None;
+            }
+            let fold = self.host.motion_fold().filter(|fold| {
+                context.as_ref() == Some(&fold.context)
+                    && fold.origin_seq == self.processed_seq
+                    && fold.origin_seq.is_some()
+            }).cloned();
+            MotionInteraction { context, processed_seq: self.processed_seq, origin_seq: self.scene_origin_seq, fold }
+        });
         Snapshot {
             cursor,
             chrome,
@@ -491,6 +529,7 @@ impl Bridge {
                 MotionView {
                     level: level.into(),
                     held_back,
+                    interaction,
                     ..MotionView::default()
                 }
             },
@@ -506,6 +545,7 @@ impl Bridge {
     /// carries it (and every change before it), so nothing is lost.
     pub fn outgoing(&mut self) -> Vec<ToRenderer> {
         if self.welcomed {
+            self.host.set_motion_enabled(self.motion_level().0 == Level::Full);
             // The look first, so the snapshot after it draws in it.
             if self.looked.as_ref() != Some(&self.host.colours.cfg) {
                 self.looked = Some(self.host.colours.cfg.clone());
@@ -584,6 +624,8 @@ impl Bridge {
         self.cursor += 1;
         snap.cursor = self.cursor;
         snap.motion.cues = std::mem::take(&mut self.cues);
+        self.host.take_motion_fold();
+        self.scene_origin_seq = None;
         // What the renderer will hold once it has this snapshot.
         let mut held = None;
         let (mut items_all, mut items_sent) = (0, 0);
@@ -735,7 +777,15 @@ fn same_state(a: &Snapshot, b: &Snapshot) -> bool {
         && a.dock == b.dock
         && a.focus == b.focus
         && a.motion.level == b.motion.level
+        && a.motion.held_back == b.motion.held_back
+        && interaction_state(&a.motion.interaction) == interaction_state(&b.motion.interaction)
         && a.splash == b.splash
+}
+
+// Fold evidence is a one-shot event, not persistent state. Context and the
+// acknowledgement are state: both may change without any visible text changing.
+fn interaction_state(interaction: &Option<MotionInteraction>) -> Option<(&Option<super::MotionContext>, Option<u64>)> {
+    interaction.as_ref().map(|interaction| (&interaction.context, interaction.processed_seq))
 }
 
 /// A snapshot's line length, counted as it is written, without keeping it.

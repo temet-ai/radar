@@ -4,7 +4,7 @@ expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Rows & states" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Tree  Table  Card  Meters  " fg:text.secondary | "[Rows & states]" fg:accent.primary/glow.purple bold | "  Entries & log  Markdown  Diff  Mot" fg:text.secondary
+02 _1 | "Tree  Table  Card  Meters  " fg:text.secondary | "[Rows & states]" fg:accent.primary/glow.purple bold | "  Entries & log  Markdown  Diff  Mo…" fg:text.secondary
 03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " settings rows " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
 04 "│" fg:accent.primary/glow.purple bg:bg.surface | "  ? Found in your environment: a shelf t…" fg:text.emphasis bg:bg.selection bold | "█" fg:accent.muted bg:bg.surface
 05 "│" fg:accent.primary/glow.purple bg:bg.surface | _2 bg:bg.surface | "server          " fg:text.muted bg:bg.surface | "https://shelves.example                 …" bg:bg.surface | "║" fg:bg.overlay bg:bg.surface

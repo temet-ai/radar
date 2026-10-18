@@ -2,7 +2,7 @@
 source: crates/radar-gitlab/src/stand_in.rs
 expression: narrow
 ---
- radar    R 1   T   History   Settings (,)               not synced yet  ✎ edit
+ radar    R ●   T   History   Settings (,)               not synced yet  ✎ edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
 │ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
 │ Needs my action    2 ││▌ B team-b                                            │

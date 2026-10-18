@@ -3252,7 +3252,7 @@ exports[`recorded view fixtures > sessions_settings-agents at 160x40 1`] = `
 
  recipes folder        ~/.config/radar/recipes
  recipe ask            v2 · built-in
- recipe review-mr      v2 · built-in
+ recipe review-mr      v3 · built-in
  reviews folder        radar's state folder
 
  WHILE YOU ARE AWAY

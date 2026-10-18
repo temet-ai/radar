@@ -54,3 +54,11 @@ field. Never read another part's data, and never add secrets, tokens or whole fi
 A change to the layout, a cap or the redaction list is a change to the template: bump the version in this
 file and in `TEMPLATE_VERSION`, update the golden file
 (`RADAR_WRITE_GOLDEN=1 cargo nextest run -p radar-sessions -E 'test(/brief::/)'`) and read its diff.
+
+## Connected context for reviews
+
+The review recipe also receives a task-context snapshot reference. The host assembles
+linked owner-provided contexts and the brief keeps its existing size limits. MCP `context`
+and `read` expose further sources and full cached sections with the same scoped identities.
+This affects review task content, not template v2's layout. Automatic Slack intake uses the
+same review journey; [setup and limits](../docs/user-guide/mcp-and-reviews.md) describe it.

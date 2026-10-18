@@ -29,15 +29,27 @@ pub enum Todo {
 
 struct Run {
     id: u64,
+    automatic: bool,
     journey: Journey,
     session: Option<RadarSessionId>,
     /// The note, held until a part (or the fallback) has written it.
     note: Option<ReviewNote>,
+    /// Chosen when the repository resolves; settings edits cannot move an in-flight review.
+    reviews_dir: Option<PathBuf>,
+}
+
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct QueuedReview {
+    change: SubjectKey,
+    origin: Option<AgentContext>,
+    provider: String,
 }
 
 #[derive(Default)]
 pub struct Driver {
     next: u64,
+    pub automatic_queue: std::collections::VecDeque<QueuedReview>,
+    pub queue_changed: bool,
     runs: Vec<Run>,
     /// Every session a review started, kept after its review ends: a
     /// follow-up message in the reviewer's tab is still the reviewer's.
@@ -46,6 +58,9 @@ pub struct Driver {
     pub reviews: Reviews,
     /// Where a note goes when no part keeps notes.
     pub fallback_dir: Option<PathBuf>,
+    /// Explicit destinations take precedence over workspace note routing.
+    pub configured_dir: Option<PathBuf>,
+    pub repository_dirs: std::collections::BTreeMap<String, PathBuf>,
     /// The operator's recipes folder: its `review-mr.md` replaces the built-in.
     pub recipes_dir: Option<PathBuf>,
 }
@@ -63,13 +78,26 @@ impl Driver {
         if let Some(why) = broken {
             actions.insert(0, Action::Error(format!("your review recipe is not used: {why}")));
         }
-        self.runs.push(Run { id: self.next, journey, session: None, note: None });
+        self.runs.push(Run { id: self.next, automatic: false, journey, session: None, note: None, reviews_dir: None });
         let id = self.next;
         self.apply(id, actions)
     }
 
+    pub fn enqueue(&mut self, change: SubjectKey, origin: Option<AgentContext>, provider: &str) -> Vec<Todo> {
+        if self.automatic_queue.iter().any(|q| q.change == change) { return vec![]; }
+        self.automatic_queue.push_back(QueuedReview { change, origin, provider: provider.into() });
+        self.queue_changed = true;
+        vec![Todo::Notice("local review queued".into())]
+    }
+    pub fn background_work(&self) -> bool { !self.automatic_queue.is_empty() || self.runs.iter().any(|r| r.automatic && !r.journey.step().finished()) }
+
+    pub fn automatic(&self, run: u64) -> bool { self.runs.iter().any(|r| r.id == run && r.automatic) }
+
     pub fn take_asks(&mut self) -> Vec<(u64, ReviewAsk)> {
         std::mem::take(&mut self.asks)
+    }
+    pub fn set_context(&mut self, run: u64, context: radar_core::context::Bundle) {
+        if let Some(r) = self.runs.iter_mut().find(|r| r.id == run) { r.journey.set_context(context); }
     }
 
     pub fn is_review(&self, radar: &RadarSessionId) -> bool {
@@ -79,7 +107,23 @@ impl Driver {
     /// What the owning part answered.
     pub fn answer(&mut self, run: u64, answer: ReviewAnswer, now: i64) -> Vec<Todo> {
         let input = match answer {
-            ReviewAnswer::Resolved(r) => Input::Resolved(r),
+            ReviewAnswer::Resolved(r) => {
+                if let radar_core::agent_context::Resolve::Ready(change) = &r
+                    && let Some(run) = self.runs.iter_mut().find(|r| r.id == run) {
+                    run.reviews_dir = crate::settings::locations::repository_entry(
+                        &self.repository_dirs, &change.subject.instance, &change.repository,
+                    ).cloned().or_else(|| self.configured_dir.clone());
+                }
+                if self.automatic(run) && let radar_core::agent_context::Resolve::Ready(change) = &r {
+                    let s = &change.subject;
+                    let resource = format!("{}/{}/{}/{}", s.provider, s.instance, s.kind, s.id);
+                    if self.reviews.of(&resource).is_some_and(|r| r.reviewed_sha == change.head_sha) {
+                        self.runs.retain(|r| r.id != run);
+                        return vec![Todo::Notice("this revision already has a local review".into())];
+                    }
+                }
+                Input::Resolved(r)
+            },
             ReviewAnswer::Worktree(w) => Input::Worktree(w),
             ReviewAnswer::NoteSaved(path) => return self.note_saved(run, path),
         };
@@ -94,6 +138,8 @@ impl Driver {
         }
         self.feed(run, Input::Started { session, model }, now)
     }
+
+    pub fn launch_failed(&mut self, run: u64, why: String, now: i64) -> Vec<Todo> { self.feed(run, Input::StartFailed(why), now) }
 
     pub fn start_failed(&mut self, session: &RadarSessionId, why: String, now: i64) -> Vec<Todo> {
         match self.run_of(session) {
@@ -117,7 +163,14 @@ impl Driver {
 
     pub fn tick(&mut self, now: i64) -> Vec<Todo> {
         let ids: Vec<u64> = self.runs.iter().map(|r| r.id).collect();
-        ids.into_iter().flat_map(|id| self.feed(id, Input::Tick, now)).collect()
+        let mut todo: Vec<_> = ids.into_iter().flat_map(|id| self.feed(id, Input::Tick, now)).collect();
+        if !self.runs.iter().any(|r| !r.journey.step().finished())
+            && let Some(q) = self.automatic_queue.pop_front() {
+            self.queue_changed = true;
+            todo.extend(self.start(q.change, q.origin, &q.provider, now));
+            if let Some(r) = self.runs.last_mut() { r.automatic = true; }
+        }
+        todo
     }
 
     fn run_of(&self, session: &RadarSessionId) -> Option<u64> {
@@ -148,7 +201,11 @@ impl Driver {
                             text: note.render(),
                         };
                         r.note = Some(*note);
-                        self.asks.push((run, ReviewAsk::SaveNote(request)));
+                        if r.reviews_dir.is_some() {
+                            todo.extend(self.note_saved(run, None));
+                        } else {
+                            self.asks.push((run, ReviewAsk::SaveNote(request)));
+                        }
                     }
                 }
             }
@@ -161,11 +218,12 @@ impl Driver {
         let Some(note) = self.runs[ix].note.take() else { return vec![] };
         let path = match path {
             Some(path) => Ok(path),
-            None => self.write_fallback(&note),
+            None => Self::write_note(&note, self.runs[ix].reviews_dir.as_ref().or(self.fallback_dir.as_ref())),
         };
         self.runs.remove(ix);
         match path {
             Ok(path) => {
+                self.queue_changed = true;
                 self.reviews.add(note.record(Some(path.display().to_string())));
                 vec![Todo::Notice(format!("review of {} saved at {}; nothing was posted", note.title, path.display()))]
             }
@@ -173,12 +231,28 @@ impl Driver {
         }
     }
 
-    fn write_fallback(&self, note: &ReviewNote) -> Result<PathBuf, String> {
-        let dir = self.fallback_dir.clone().ok_or("no place to keep notes")?;
-        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-        let path = dir.join(note.file_name());
-        std::fs::write(&path, note.render()).map_err(|e| e.to_string())?;
-        Ok(path)
+    fn write_note(note: &ReviewNote, dir: Option<&PathBuf>) -> Result<PathBuf, String> {
+        let dir = dir.ok_or("no place to keep notes")?;
+        std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+        let text = note.render();
+        let name = note.file_name();
+        let stem = name.trim_end_matches(".md");
+        for n in 1u64.. {
+            let path = dir.join(if n == 1 { name.clone() } else { format!("{stem}-{n}.md") });
+            // Separate Radar hosts can finish reviews at the same time; never overwrite one.
+            match std::fs::OpenOptions::new().write(true).create_new(true).open(&path) {
+                Ok(mut file) => {
+                    use std::io::Write;
+                    file.write_all(text.as_bytes()).map_err(|e| e.to_string())?;
+                    return Ok(path);
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                    if std::fs::read_to_string(&path).is_ok_and(|old| old == text) { return Ok(path); }
+                }
+                Err(e) => return Err(e.to_string()),
+            }
+        }
+        unreachable!()
     }
 }
 

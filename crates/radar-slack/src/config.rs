@@ -237,6 +237,9 @@ pub struct Channel {
 /// How review is asked for.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Review {
+    /// Start local reviews for new requests in the configured review channel.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub auto_review: bool,
     /// The alias of the channel asks go to.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub channel: String,
@@ -376,6 +379,7 @@ impl Review {
 impl Default for Review {
     fn default() -> Self {
         Self {
+            auto_review: false,
             channel: String::new(),
             group: String::new(),
             handle: String::new(),

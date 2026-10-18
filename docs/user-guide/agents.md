@@ -82,4 +82,8 @@ signed in as. It also holds the default agent, the folders an agent may use, sha
 folders, and whether an agent's own configuration is read. Desktop notifications when a
 session needs you or ends out of sight are off by default.
 
+Review folders, working folders and worktree locations have global defaults and repository
+overrides. See [where reviews and work are saved](mcp-and-reviews.md#where-reviews-and-work-are-saved)
+for the configuration and precedence.
+
 ![Settings, Agents](images/settings.sessions.agents.png)

@@ -89,6 +89,7 @@ pub(crate) fn context(base_url: &str, mr: &Mr, detail: Option<&MrDetail>) -> Opt
         && !refs.head.is_empty()
     {
         c = c.field(ContextField::new("head_sha", &refs.head));
+        if !refs.base.is_empty() { c = c.field(ContextField::new("base_sha", &refs.base)); }
     }
     if !d.description.is_empty() {
         c = c.field(ContextField::new("description", &d.description));
@@ -229,7 +230,7 @@ pub(crate) fn key_press(p: &GitlabPlugin, pane: Pane, pressed: KeyEvent) -> Opti
     } else {
         // The merge request is its own change request: no link to map, and
         // no origin row to quote beside it (the host leaves it out).
-        vec![Effect::StartReview(ReviewRequest { origin: subject.clone(), links: vec![], changes: vec![subject] })]
+        vec![Effect::StartReview(ReviewRequest { automatic: false, origin: subject.clone(), links: vec![], changes: vec![subject] })]
     }))
 }
 
@@ -252,6 +253,27 @@ pub(crate) fn agent_context(p: &GitlabPlugin, request: &AgentContextRequest) -> 
     let mr = crate::pages::find_mr(p, &project, iid)?;
     let base = SafeUrl::parse(&p.cfg.url).ok()?;
     context(base.as_str(), mr, held.map(|(_, d)| d))
+}
+
+pub(crate) fn document(p: &GitlabPlugin, request: &AgentContextRequest) -> Option<radar_core::context::Document> {
+    let mut doc = radar_core::context::Document::from_context(agent_context(p, request)?);
+    let (project, iid) = owned_mr(p, &request.subject)?;
+    if let Some(f) = p.mr_pages.get(&mr_key(&project, iid)) {
+        doc.observed_at = Some(f.at);
+        if let Some((_, detail)) = &f.value {
+            doc = doc.section("description", &detail.description)
+                .section("files", detail.files.iter().map(|f| format!("{} (+{} -{})", f.path, f.additions, f.deletions)).collect::<Vec<_>>().join("\n"))
+                .section("discussions", detail.discussions.iter().map(|d| format!("Thread {} ({})\n{}", d.id, if d.resolved { "resolved" } else { "open" }, d.notes.iter().map(|n| format!("{} {} {:?}:{}\n{}", n.author, n.at, n.path, n.line.unwrap_or_default(), n.body)).collect::<Vec<_>>().join("\n\n"))).collect::<Vec<_>>().join("\n\n"));
+            if detail.discussions.len() >= 100 || detail.discussions.iter().any(|d| d.notes.len() >= 100) {
+                if let Some(section) = doc.sections.iter_mut().find(|s| s.name == "discussions") { section.truncated = true; }
+                doc.missing.push("GitLab's cached discussion page reached its limit; older discussion may exist".into());
+            }
+            return Some(doc);
+        }
+        if let Some(error) = &f.error { doc.missing.push(format!("GitLab detail: {error}")); }
+    }
+    doc.missing.push("MR description, files and discussions have not been read".into());
+    Some(doc)
 }
 
 /// A held detail this recent is the head a review is made of.
@@ -281,10 +303,10 @@ pub(crate) fn resolve(p: &mut GitlabPlugin, request: &ChangeResolveRequest) -> O
         {
             p.resolving.remove(&key);
             return Some((
-                match resolution(base.as_str(), mr, detail) {
+                if mr.state != crate::model::MrState::Opened { Resolve::Failed("this merge request is no longer open".into()) } else { match resolution(base.as_str(), mr, detail) {
                     Some(r) => Resolve::Ready(r),
                     None => Resolve::Failed(format!("GitLab gave no head commit for {project}!{iid}")),
-                },
+                } },
                 vec![],
             ));
         }

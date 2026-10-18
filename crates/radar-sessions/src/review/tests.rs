@@ -127,7 +127,7 @@ fn the_session_starts_in_the_worktree_with_the_review_brief() {
     let [Action::StartSession(spec)] = out.as_slice() else { panic!("{out:?}") };
     assert_eq!(spec.cwd, Path::new(CWD));
     let b = &spec.brief;
-    assert!(b.starts_with("Review the change request below"), "{b}");
+    assert!(b.starts_with("Review the change at abc1234567890"), "{b}");
     assert!(b.contains("## Change request: ") && b.contains("Head sha: abc1234567890") && b.contains("Source branch: fix/retry"), "{b}");
     assert!(b.contains("src/retry.rs:12"));
     assert!(b.contains("nothing you write is posted anywhere"));
@@ -158,7 +158,7 @@ fn a_finished_turn_saves_the_review_with_sha_provider_model_and_recipe() {
     let [note] = notes(&out)[..] else { panic!("{out:?}") };
     assert_eq!(note.reviewed_sha, "abc1234567890");
     assert_eq!((note.provider.as_str(), note.model.as_deref()), ("copilot", Some("gpt-x")));
-    assert_eq!((note.recipe.as_str(), note.recipe_version), ("review-mr", 2));
+    assert_eq!((note.recipe.as_str(), note.recipe_version), ("review-mr", 3));
     assert_eq!(note.reviewed_at, NOW + 5);
     assert!(note.body.starts_with("**Verdict**") && !note.body.contains("Verd\n"));
     assert_eq!(j.step(), &Step::Done);
@@ -394,7 +394,37 @@ fn the_row_says_reviewed_and_marks_it_stale_when_the_head_moves() {
 #[test]
 fn the_recipe_is_versioned_and_forbids_posting_and_writes() {
     let r = recipe();
-    assert_eq!((r.name.as_str(), r.version), ("review-mr", 2));
+    assert_eq!((r.name.as_str(), r.version), ("review-mr", 3));
     assert!(r.permissions.contains("no file writes") && r.permissions.contains("no posting"));
     assert!(r.instructions.contains("file:line"));
+}
+
+#[test]
+fn background_queue_restores_serializes_and_skips_a_completed_revision() {
+    use radar_core::plugin::{ReviewAsk, ReviewAnswer};
+    let mut d = driver::Driver::default();
+    let mut change = resolution();
+    change.subject = SubjectKey::new("gitlab", "https://watch.example.test", "merge-request", "ankh-morpork/watch!12").unwrap();
+    d.enqueue(change.subject.clone(), None, "copilot");
+    d.enqueue(change.subject.clone(), None, "copilot");
+    assert_eq!(d.automatic_queue.len(), 1);
+    let saved = serde_json::to_value(&d.automatic_queue).unwrap();
+    let mut restored = driver::Driver::default();
+    restored.automatic_queue = serde_json::from_value(saved).unwrap();
+    let note = ReviewNote::from(&change);
+    restored.reviews.add(note.record(Some("/work/review.md".into())));
+    restored.tick(NOW);
+    let asks = restored.take_asks();
+    assert!(matches!(asks.as_slice(), [(_, ReviewAsk::Resolve(_))]));
+    let todo = restored.answer(asks[0].0, ReviewAnswer::Resolved(Resolve::Ready(change)), NOW);
+    assert!(matches!(&todo[..], [driver::Todo::Notice(t)] if t.contains("already has a local review")));
+    assert!(restored.take_asks().is_empty());
+}
+
+#[test]
+fn review_policy_allows_only_the_real_radar_read_tools() {
+    for tool in ["search", "context", "read", "changes"] {
+        let request = PermissionRequest { request_id: "read".into(), kind: PermissionKind::Mcp, target: PermissionTarget::Mcp { server: "radar".into(), tool: tool.into(), arguments: None }, tool_call_id: None, can_offer_session_approval: false };
+        assert_eq!(decide(&request, Path::new(CWD)), Verdict::Allow);
+    }
 }

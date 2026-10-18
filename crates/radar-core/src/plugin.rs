@@ -1025,6 +1025,10 @@ pub trait Plugin: Send {
     ) -> Outcome {
         Outcome::Ignored
     }
+    /// Queue a background review without taking focus from the operator.
+    fn review_enqueue(&mut self, origin: Option<crate::agent_context::AgentContext>, change: crate::journal::SubjectKey) -> Outcome {
+        self.review_start(origin, change)
+    }
     /// What the running reviews wait for, by run; each is asked once.
     fn review_asks(&mut self) -> Vec<(u64, ReviewAsk)> {
         vec![]
@@ -1199,6 +1203,29 @@ pub trait Plugin: Send {
     ) -> Option<crate::agent_context::AgentContext> {
         None
     }
+    /// Prepare a review's sources through the owner's normal reads. `true`
+    /// means a read is still pending. No navigation or external writes.
+    fn prepare_agent_context(&mut self, _subject: &crate::journal::SubjectKey) -> (bool, Vec<Effect>) { (false, vec![]) }
+    /// Explicit automation keeps polling while idle; manual pause still wins.
+    fn background_work(&self) -> bool { false }
+    /// Non-secret account identity that invalidates context snapshots when it changes.
+    fn agent_scope(&self) -> String { self.id().to_owned() }
+    /// Cached source catalog shared by MCP search and connected briefs.
+    fn agent_subjects(&self) -> Vec<Subject> {
+        self.palette_targets().into_iter().map(|t| t.subject).collect()
+    }
+    fn agent_identity(&self, _subject: &crate::journal::SubjectKey) -> Option<String> { None }
+    fn agent_document(&mut self, request: &crate::agent_context::AgentContextRequest) -> Option<crate::context::Document> {
+        self.agent_context(request).map(crate::context::Document::from_context)
+    }
+    fn agent_related(&self, subject: &Subject) -> Vec<crate::context::Related> {
+        self.related(subject).into_iter().map(|s| crate::context::Related::new(s, "related", "unknown", "owner's cached relationships")).collect()
+    }
+    /// The MCP owner submits reads; the host answers through the same service
+    /// used to build review context. No renderer or provider API lives here.
+    fn context_calls(&mut self) -> Vec<crate::context::Call> { vec![] }
+    fn context_answer(&mut self, _id: u64, _answer: Result<serde_json::Value, String>) {}
+    fn review_context(&mut self, _run: u64, _context: crate::context::Bundle) {}
     /// Resolve a change request this part owns for a review: branches, head
     /// sha, diff stats, description, open threads. Never blocks: the first
     /// ask may answer `Pending` and spawn the fetch (journaled as a read);

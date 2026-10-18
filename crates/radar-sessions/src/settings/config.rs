@@ -365,6 +365,9 @@ pub struct AgentsConfig {
     /// Per workspace, by its name; a workspace without an entry uses `defaults`.
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub workspaces: BTreeMap<String, Defaults>,
+    /// Location overrides keyed by repository path, optionally prefixed by its service URL.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub repositories: BTreeMap<String, super::locations::RepositoryLocations>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub pty: Vec<PtyCli>,
     /// Where a provider's executable is, when it is not on PATH. Kept for
@@ -379,8 +382,8 @@ pub struct AgentsConfig {
     /// recipe replaces it. Empty: the built-in recipes only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recipes_dir: Option<String>,
-    /// Where local reviews are saved when no work item takes them. Empty:
-    /// `$XDG_STATE_HOME/radar/reviews`.
+    /// Default destination for local reviews, unless the repository overrides it.
+    /// Empty: workspace notes, then `$XDG_STATE_HOME/radar/reviews`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reviews_dir: Option<String>,
     /// A desktop notification when a session needs you (an approval, a
@@ -459,6 +462,19 @@ impl AgentsConfig {
             None => AgentsConfig::default(),
         };
         cfg.sanitize();
+        for (repo, paths) in &cfg.repositories {
+            anyhow::ensure!(!repo.trim().is_empty(), "sessions.repositories requires a repository path");
+            for (name, value) in [("checkout", &paths.checkout), ("work_dir", &paths.work_dir), ("reviews_dir", &paths.reviews_dir)] {
+                if let Some(value) = value {
+                    anyhow::ensure!(expand(value).is_some(), "sessions.repositories.{repo}.{name} must be an absolute path or start with ~/");
+                }
+            }
+        }
+        for (name, value) in [("work_dir", &cfg.defaults.work_dir), ("reviews_dir", &cfg.reviews_dir)] {
+            if let Some(value) = value {
+                anyhow::ensure!(expand(value).is_some(), "sessions.{name} must be an absolute path or start with ~/");
+            }
+        }
         Ok(cfg)
     }
 

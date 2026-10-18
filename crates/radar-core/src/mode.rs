@@ -186,6 +186,7 @@ impl Host {
 
     /// On each tick: pause after the idle minutes.
     pub(crate) fn check_idle(&mut self, now: i64) {
+        if self.plugins.iter().any(|p| p.background_work()) { return; }
         let idle = self.pause.idle_minutes as i64 * 60;
         if self.pause.now.is_none() && idle > 0 && now - self.pause.last_input >= idle {
             self.pause.now = Some(Pause::Idle);

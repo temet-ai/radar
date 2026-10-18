@@ -95,6 +95,8 @@ type TerminalFactory = Box<dyn Fn(&crate::settings::config::PtyCli) -> Box<dyn A
 /// The part. The binary adds the adapters it was built with (`sessions-copilot`
 /// and the like), so this crate never names an adapter crate.
 pub struct SessionsPlugin {
+    context_server: Option<crate::tools::ContextServer>,
+    context_server_attempted: bool,
     adapters: Vec<Arc<dyn Adapter>>,
     settings: AgentsSettings,
     store: Store,
@@ -191,6 +193,8 @@ impl SessionsPlugin {
 
     pub fn new() -> Self {
         Self {
+            context_server: None,
+            context_server_attempted: false,
             adapters: Vec::new(),
             settings: AgentsSettings::default(),
             store: Store::new(),
@@ -435,11 +439,12 @@ impl SessionsPlugin {
     /// [`crate::review::policy`] in `drain`, and what that leaves waits for
     /// the operator in the dock.
     fn start_review_session(&mut self, run: u64, spec: crate::review::journey::SessionSpec) {
-        let Some(provider) = self.default_provider() else {
-            self.review_fx.push(Effect::Notify("no agent provider to review with".into()));
+        let provider = spec.provider.clone();
+        let Some(adapter) = self.adapter(&provider) else {
+            let todo = self.review.launch_failed(run, format!("review provider {provider} is unavailable"), self.now);
+            self.review_todo(todo);
             return;
         };
-        let Some(adapter) = self.adapter(&provider) else { return };
         let radar = self.next_id();
         let model = self.chosen_model.clone().or_else(|| self.settings.defaults().model.clone());
         let meta = SessionMeta {
@@ -457,7 +462,7 @@ impl SessionsPlugin {
         // The brief goes with the create: anything typed meanwhile waits for its turn.
         self.store.insert(meta).sending();
         self.order.push(radar.clone());
-        self.active = Some(radar.clone());
+        if !self.review.automatic(run) { self.active = Some(radar.clone()); }
         let todo = self.review.bind(run, radar.clone(), model.clone(), self.now);
         self.review_todo(todo);
         let inbox = self.inbox.clone();
@@ -548,11 +553,14 @@ impl SessionsPlugin {
         // Settings changed: a session that could not be made ahead may be now.
         self.spare_off = false;
         self.review.recipes_dir = self.settings.recipes_dir();
-        if let Some(dir) = self.settings.reviews_dir()
-            && self.review.fallback_dir.as_ref() != Some(&dir)
-        {
-            crate::review::driver::load(&dir, &mut self.review.reviews);
-            self.review.fallback_dir = Some(dir);
+        let configured = self.settings.reviews_dir();
+        let repositories = self.settings.repository_review_dirs();
+        if self.review.configured_dir != configured || self.review.repository_dirs != repositories {
+            for dir in configured.iter().chain(repositories.values()) {
+                crate::review::driver::load(dir, &mut self.review.reviews);
+            }
+            self.review.configured_dir = configured;
+            self.review.repository_dirs = repositories;
         }
         for a in &self.adapters {
             a.configure(self.settings.provider_setup(a.id().as_str()));
@@ -576,6 +584,8 @@ impl SessionsPlugin {
     /// chosen in the dock for that provider.
     fn setup(&self, provider: &str) -> SessionSetup {
         let mut s = self.settings.session_setup(provider);
+        if let Some(server) = &self.context_server
+            && let Ok(exe) = std::env::current_exe() { s.tool_server = Some(server.tool_server(&exe)); }
         if let Some((p, agent)) = &self.chosen_agent
             && p == provider
         {
@@ -1064,7 +1074,7 @@ impl SessionsPlugin {
         let told = self.time_turns();
         let mut fx = std::mem::take(&mut self.review_fx);
         fx.extend(told);
-        if persist || std::mem::take(&mut self.persist_soon) {
+        if persist || std::mem::take(&mut self.persist_soon) || std::mem::take(&mut self.review.queue_changed) {
             fx.push(Effect::PersistCache);
         }
         fx
@@ -1105,7 +1115,7 @@ impl SessionsPlugin {
     }
 
     fn new_session(&mut self, provider: Option<String>, resume: Option<ProviderSessionId>) {
-        self.new_session_with(provider, resume, None, None)
+        self.new_session_with(provider, resume, None, None, None)
     }
 
     /// A new session; `first` is sent as its first message once it exists,
@@ -1116,12 +1126,14 @@ impl SessionsPlugin {
         resume: Option<ProviderSessionId>,
         first: Option<String>,
         recipe: Option<crate::brief::Recipe>,
+        work_dir: Option<std::path::PathBuf>,
     ) {
         let Some(provider) = provider.or_else(|| self.default_provider()) else { return };
         let Some(adapter) = self.adapter(&provider) else { return };
         // A provider nothing has needed yet starts now (the default one started at launch).
         self.warm_provider(&provider);
         let (cwd, model, mut setup) = self.session_inputs(&provider);
+        let cwd = work_dir.unwrap_or(cwd);
         if let Some(r) = recipe {
             if let Some(a) = r.agent_for(&provider) {
                 setup.agent = Some(a);
@@ -1752,7 +1764,7 @@ impl Plugin for SessionsPlugin {
             let state = std::env::var_os("XDG_STATE_HOME")
                 .map(std::path::PathBuf::from)
                 .or_else(|| std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".local/state")));
-            if let Some(dir) = self.settings.reviews_dir().or_else(|| state.map(|s| s.join("radar").join("reviews"))) {
+            if let Some(dir) = state.map(|s| s.join("radar").join("reviews")) {
                 crate::review::driver::load(&dir, &mut self.review.reviews);
                 self.review.fallback_dir = Some(dir);
             }
@@ -1766,6 +1778,7 @@ impl Plugin for SessionsPlugin {
     }
 
     fn restore(&mut self, cache: serde_json::Value) {
+        self.review.automatic_queue = cache.get("automatic_reviews").and_then(|v| serde_json::from_value(v.clone()).ok()).unwrap_or_default();
         if let Some(reviews) = cache.get("reviews").and_then(|v| serde_json::from_value::<crate::review::Reviews>(v.clone()).ok()) {
             self.review.reviews = reviews;
         }
@@ -1805,7 +1818,7 @@ impl Plugin for SessionsPlugin {
     }
 
     fn snapshot(&self) -> Option<serde_json::Value> {
-        if self.store.sessions().next().is_none() && self.review.reviews.is_empty() && self.cache.is_empty() {
+        if self.store.sessions().next().is_none() && self.review.reviews.is_empty() && self.review.automatic_queue.is_empty() && self.cache.is_empty() {
             return None;
         }
         Some(serde_json::json!({
@@ -1813,12 +1826,22 @@ impl Plugin for SessionsPlugin {
             "order": self.order,
             "active": self.active,
             "reviews": self.review.reviews,
+            "automatic_reviews": self.review.automatic_queue,
             "warm": self.cache,
         }))
     }
 
     fn tick(&mut self, now: i64) -> Vec<Effect> {
         self.now = now;
+        if !self.context_server_attempted && !radar_core::system::sandboxed() {
+            self.context_server_attempted = true;
+            let inbox = self.inbox.clone();
+            let wake = Arc::new(move || { if let Some(w) = inbox.waker.lock().expect("waker").as_ref() { w.wake(); } });
+            match crate::tools::ContextServer::start(wake) {
+                Ok(server) => self.context_server = Some(server),
+                Err(e) => self.review_fx.push(Effect::error(None, format!("radar context server could not start: {e}"))),
+            }
+        }
         if !self.started && !self.adapters.is_empty() {
             self.start();
         }
@@ -1927,11 +1950,12 @@ impl Plugin for SessionsPlugin {
 
     fn agent_brief(&mut self, contexts: Vec<radar_core::agent_context::AgentContext>) -> Outcome {
         use crate::brief::{Brief, BriefRequest, Recipe};
+        let work_dir = self.settings.context_work_dir(&contexts);
         let (recipe, _, broken) = Recipe::load("ask", self.settings.recipes_dir().as_deref());
         let recipe = recipe.unwrap_or_else(Recipe::ask);
         let brief = Brief::build(&BriefRequest { recipe: &recipe, task: String::new(), contexts });
         // The prompt goes to a new session as its first message, at once.
-        self.new_session_with(None, None, Some(brief.text), Some(recipe));
+        self.new_session_with(None, None, Some(brief.text), Some(recipe), work_dir);
         Outcome::Handled(broken.map(|why| vec![Effect::error(None, format!("your ask recipe is not used: {why}"))]).unwrap_or_default())
     }
 
@@ -1947,12 +1971,30 @@ impl Plugin for SessionsPlugin {
         self.review_todo(todo);
         Outcome::Handled(std::mem::take(&mut self.review_fx))
     }
+    fn review_enqueue(&mut self, origin: Option<radar_core::agent_context::AgentContext>, change: radar_core::journal::SubjectKey) -> Outcome {
+        let Some(provider) = self.default_provider() else {
+            return Outcome::Handled(vec![Effect::error(None, "no agent provider to review with; configure one, then use review locally")]);
+        };
+        let todo = self.review.enqueue(change, origin, &provider);
+        self.review_todo(todo);
+        let mut fx = std::mem::take(&mut self.review_fx);
+        fx.push(Effect::PersistCache);
+        Outcome::Handled(fx)
+    }
+    fn review_context(&mut self, run: u64, context: radar_core::context::Bundle) {
+        self.review.set_context(run, context);
+    }
+    fn background_work(&self) -> bool { self.review.background_work() }
+    fn context_calls(&mut self) -> Vec<radar_core::context::Call> {
+        self.context_server.as_mut().map_or_else(Vec::new, |s| s.calls())
+    }
+    fn context_answer(&mut self, id: u64, answer: Result<serde_json::Value, String>) {
+        if let Some(server) = &mut self.context_server { server.answer(id, answer); }
+    }
 
     fn adds(&self) -> Vec<radar_core::Adds> {
-        vec![radar_core::Adds::new(
-            "merge-request",
-            "a chip when a local review exists, and when its head moved; opening the review",
-        )]
+        ["merge-request", "pull-request"].into_iter().map(|kind| radar_core::Adds::new(kind,
+            "a chip when a local review exists, and when its head moved; opening the review")).collect()
     }
 
     /// The `x` menu of a reviewed merge request opens its local review, or
@@ -1973,7 +2015,7 @@ impl Plugin for SessionsPlugin {
     /// is the subject's `head_sha` field when its owner gives one.
     fn contribute(&self, point: radar_core::Point, subject: &radar_core::Subject) -> Option<radar_core::Contribution> {
         use radar_core::plugin::Tone;
-        if subject.kind != "merge-request" {
+        if !matches!(subject.kind.as_str(), "merge-request" | "pull-request") {
             return None;
         }
         if point == radar_core::Point::Actions {

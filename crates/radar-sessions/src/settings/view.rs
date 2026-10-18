@@ -249,12 +249,12 @@ fn detail(s: &AgentsSettings) -> Vec<Text> {
         Row::Provider => words("The CLI a new session starts with. A session already running keeps its own."),
         Row::Model => words("The model a new session asks for. Empty leaves it to the provider."),
         Row::Roots => words("Folders a session may read and write besides its working directory. Empty: its working directory only. Copilot and Claude Code get them as extra directories, Codex as writable roots of its sandbox."),
-        Row::WorkDir => words("Where a session started from the dock works, and where its CLI finds the project's AGENTS.md, CLAUDE.md, agents and skills. Empty: the folder radar was started in. A review works in its own worktree."),
+        Row::WorkDir => words("Where a session started from the dock works, and where its CLI finds the project's AGENTS.md, CLAUDE.md, agents and skills. Choose repository overrides to set a folder for a particular repo. Empty: inherit the global working folder, then where radar was started. A review works in its own worktree."),
         Row::Skills => words("Skill folders (each skill a folder with a SKILL.md) every CLI loads besides its own. A CLI's own row (p) adds folders for that CLI only."),
         Row::ProjectConfig => words("Each CLI loads its own configuration of you and of the project: AGENTS.md or CLAUDE.md, its agents, skills, MCP servers and hooks. Off: only what these settings name."),
         Row::RecipesDir => recipes_detail(s),
         Row::Recipe(name) => recipe_detail(s, &name),
-        Row::ReviewsDir => words("Where a local review is saved when no workspace keeps notes for it. Empty: radar's state folder ($XDG_STATE_HOME/radar/reviews)."),
+        Row::ReviewsDir => words("The default folder for local reviews. Choose repository overrides to set a folder for a particular repo. Empty: workspace notes, then radar's state folder ($XDG_STATE_HOME/radar/reviews)."),
         Row::Allow => rules_detail(
             "When an agent asks to run a command, read or change a file, open a website or use an MCP tool, and it matches one of these, radar says yes for you; what your CLI already allows in its own settings never asks either.",
             &s.defaults().allow,
@@ -332,6 +332,11 @@ fn recipe_detail(s: &AgentsSettings, name: &str) -> Vec<Text> {
 fn actions(s: &AgentsSettings) -> Vec<ActionSpec> {
     let named = |id: &str, b: Binding| ActionSpec::named(id, &b);
     match s.selected() {
+        Row::WorkDir | Row::ReviewsDir => vec![
+            named("", Binding::heading("locations")),
+            named("sessions.agents.edit", Binding::new("⏎", "change the default")),
+            named("sessions.agents.repositories", Binding::new("p", "repository overrides")),
+        ],
         Row::Recipe(_) | Row::RecipesDir => vec![
             named("", Binding::heading("recipes")),
             named("sessions.agents.edit", Binding::new("⏎", "agent, skills, edit")),

@@ -47,7 +47,7 @@ fn carries(text: &str, key: &str) -> bool {
 }
 
 /// The merge requests held that carry `key`: open ones first, newest first.
-fn carrying<'a>(p: &'a GitlabPlugin, key: &str) -> Vec<&'a Mr> {
+pub(crate) fn carrying<'a>(p: &'a GitlabPlugin, key: &str) -> Vec<&'a Mr> {
     let mut mrs: Vec<&Mr> = p
         .data
         .values()

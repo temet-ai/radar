@@ -35,7 +35,7 @@ fn words(doc: &rich::Doc) -> String {
 
 /// The ticket held for `site`/`key`, from the list the plugin keeps.
 fn held<'a>(p: &'a JiraPlugin, site: &Site, key: &str) -> Option<&'a Ticket> {
-    p.data.get(&site.name)?.tickets.get(key)
+    p.details.get(&format!("{}\0{}", site.name, key)).and_then(|f| f.value.as_ref()).map(|d| &d.ticket).or_else(|| p.data.get(&site.name)?.tickets.get(key))
 }
 
 /// The context for one ticket.
@@ -44,6 +44,7 @@ pub(crate) fn context(p: &JiraPlugin, site: &Site, t: &Ticket) -> Option<AgentCo
     let mut c = AgentContext::new(KIND, subject, &format!("{} {}", t.key, t.summary))
         .link(site.browse(&t.key))
         .field(ContextField::new("key", &t.key))
+        .field(ContextField::new("assignee_id", &t.assignee_id))
         .field(ContextField::new("summary", &t.summary))
         .field(ContextField::new("type", &t.kind))
         .field(ContextField::new("status", &t.status));
@@ -108,6 +109,27 @@ pub(crate) fn agent_context(p: &JiraPlugin, request: &AgentContextRequest) -> Op
     let site = p.cfg.sites.iter().find(|site| key(site, &s.id).is_some_and(|k| k == *s))?;
     let t = held(p, site, &s.id)?;
     context(p, site, t)
+}
+
+pub(crate) fn document(p: &JiraPlugin, request: &AgentContextRequest) -> Option<radar_core::context::Document> {
+    let mut doc = radar_core::context::Document::from_context(agent_context(p, request)?);
+    let site = p.cfg.sites.iter().find(|site| key(site, &request.subject.id).as_ref() == Some(&request.subject))?;
+    let ticket = held(p, site, &request.subject.id)?;
+    doc = doc.section("description", words(&ticket.description)).section("acceptance_criteria", words(&ticket.ac));
+    if let Some(f) = p.details.get(&format!("{}\0{}", site.name, ticket.key)) {
+        doc.observed_at = Some(f.at);
+        if let Some(detail) = &f.value {
+            doc = doc.section("comments", detail.comments.iter().map(|c| format!("{}: {}", c.author, words(&c.body))).collect::<Vec<_>>().join("\n\n"));
+            if detail.comments_total > detail.comments.len() {
+                doc.sections.last_mut()?.truncated = true;
+                doc.missing.push(format!("{} older comments are outside Jira's cached page", detail.comments_total - detail.comments.len()));
+            }
+            return Some(doc);
+        }
+        if let Some(error) = &f.error { doc.missing.push(format!("Jira detail: {error}")); }
+    }
+    doc.missing.push("ticket comments and development links have not been read".into());
+    Some(doc)
 }
 
 /// The ticket the keys act on: the open page's, else the selected row's.

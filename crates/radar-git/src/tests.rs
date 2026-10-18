@@ -836,6 +836,23 @@ fn parking_asks_where_and_refuses_a_folder_that_is_there() {
     assert!(fx.iter().any(|e| matches!(e, Effect::Spawn(_))));
 }
 
+#[test]
+fn repository_worktree_locations_override_the_global_template_and_round_trip() {
+    let mut p = crate::GitPlugin::default();
+    p.cfg.worktree = "/work/global/{topic}".into();
+    p.cfg.links.push(crate::local::Link {
+        repo: "ankh-morpork/watch".into(), dir: "/work/watch".into(),
+        worktree: "/work/trees/watch/{topic}".into(), ..Default::default()
+    });
+    let mut fresh = crate::GitPlugin::default();
+    fresh.configure(p.config().as_ref()).unwrap();
+    assert_eq!(act::worktree_path(&fresh, "/work/watch", "vimes/WATCH-12"), "/work/trees/watch/WATCH-12");
+    assert_eq!(act::worktree_path(&fresh, "/work/watch", "vimes/WATCH-12-abcdef1"), "/work/trees/watch/WATCH-12-abcdef1");
+    assert_eq!(act::worktree_path(&fresh, "/work/library", "vimes/WATCH-12"), "/work/global/WATCH-12");
+    fresh.cfg.links[0].worktree.clear();
+    assert_eq!(act::worktree_path(&fresh, "/work/watch", "vimes/WATCH-12"), "/work/global/WATCH-12");
+}
+
 /// A terminal or editor on a merge request opens on its branch: the clone is
 /// on another, so radar asks where, and each answer does what it says.
 #[test]

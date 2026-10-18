@@ -1218,6 +1218,7 @@ mod tests {
             dir: "/legacy".into(),
             branch: "old/{key}".into(),
             base: "trunk".into(),
+            ..Default::default()
         };
         p.cfg.links.push(old.clone());
         let s = repo(BASE);
@@ -1310,12 +1311,14 @@ mod tests {
             dir: dir.clone(),
             branch: "me/{key}".into(),
             base: "trunk".into(),
+            worktree: "/work/trees/watch/{topic}".into(),
         });
         let result = run_task(request_relink(&mut p, BASE, &dir, Some("acme/api".into()))).await;
         p.on_msg(result);
         assert_eq!(p.cfg.links.len(), 1);
         assert_eq!(p.cfg.links[0].repo, BASE);
         assert_eq!(p.cfg.links[0].branch, "me/{key}");
+        assert_eq!(p.cfg.links[0].worktree, "/work/trees/watch/{topic}");
         assert_eq!(p.cfg.links[0].base, "trunk");
     }
 

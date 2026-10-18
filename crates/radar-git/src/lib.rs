@@ -226,6 +226,15 @@ impl Plugin for GitPlugin {
         agent_context::agent_context(self, request)
     }
 
+    fn agent_document(&mut self, request: &radar_core::agent_context::AgentContextRequest) -> Option<radar_core::context::Document> {
+        if request.subject.kind != "checkout" { return self.agent_context(request).map(radar_core::context::Document::from_context); }
+        self.subject_from_journal(&request.subject)?;
+        let c = self.local.linked.iter().chain(self.local.index.iter().flat_map(|i| &i.checkouts)).find(|c| c.dir == request.subject.id)?;
+        use radar_core::agent_context::{AgentContext, ContextField};
+        Some(radar_core::context::Document::from_context(AgentContext::new("Local checkout", request.subject.clone(), &c.project)
+            .field(ContextField::new("path", &c.dir)).field(ContextField::new("branch", &c.branch))
+            .field(ContextField::new("remote", &c.remote)).field(ContextField::new("project", &c.project))))
+    }
     fn ensure_worktree(
         &mut self,
         request: &radar_core::agent_context::WorktreeRequest,

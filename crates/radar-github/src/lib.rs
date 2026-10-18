@@ -1,6 +1,7 @@
 //! Read-only GitHub.com repositories and pull requests.
 
 mod palette;
+mod agent_context;
 mod actions;
 pub mod auth;
 mod cli;
@@ -45,6 +46,7 @@ use model::{
 #[derive(Default)]
 pub struct GithubPlugin {
     via: client::Via,
+    review_reads: std::collections::BTreeMap<(RepositoryId, u64), Option<Result<(), String>>>,
     pub(crate) cfg: Settings,
     actions: actions::State,
     repos: Vec<RepoState>,
@@ -208,6 +210,7 @@ struct PullSnapshot {
 }
 
 enum Answer {
+    ReviewRead { generation: u64, id: (RepositoryId, u64), action: ActionDescriptor, result: Box<Result<(PullRequest, Option<Checks>), String>> },
     Actions(Box<actions::Answer>),
     Connection {
         generation: u64,
@@ -345,6 +348,7 @@ impl GithubPlugin {
     }
 
     fn apply_config(&mut self, cfg: Settings) {
+        self.review_reads.clear();
         self.action_epoch = self.action_epoch.wrapping_add(1);
         let cfg = cfg.clone().validated().unwrap_or(cfg);
         self.discovery_loading = false;
@@ -872,6 +876,18 @@ impl GithubPlugin {
     fn receive(&mut self, answer: Answer) -> Vec<Effect> {
         self.action_epoch = self.action_epoch.wrapping_add(1);
         match answer {
+            Answer::ReviewRead { generation, id, action, result } => {
+                if generation != self.generation || !self.repos.iter().any(|r| r.id == id.0) { return vec![]; }
+                let outcome = if result.is_ok() { ReadOutcome::Succeeded } else { ReadOutcome::Failed };
+                match *result {
+                    Ok((pull, checks)) => {
+                        self.seen.insert(id.clone(), sync::Seen { pull, tag: None, checks, check_tags: CheckTags::default(), at: self.now });
+                        self.review_reads.insert(id, Some(Ok(())));
+                    }
+                    Err(error) => { self.review_reads.insert(id, Some(Err(error))); }
+                }
+                history::finished(&action, outcome, None, false)
+            }
             Answer::Actions(answer) => actions::receive(self, *answer),
             Answer::Connection {
                 generation,
@@ -1236,6 +1252,11 @@ impl Plugin for GithubPlugin {
     fn recognise(&self, text: &str) -> Vec<(std::ops::Range<usize>, Subject)> {
         join::recognise(text)
     }
+    fn agent_context(&mut self, request: &radar_core::agent_context::AgentContextRequest) -> Option<radar_core::agent_context::AgentContext> {
+        agent_context::document(self, request).map(|d| d.context)
+    }
+    fn agent_document(&mut self, request: &radar_core::agent_context::AgentContextRequest) -> Option<radar_core::context::Document> { agent_context::document(self, request) }
+    fn resolve_change(&mut self, request: &radar_core::agent_context::ChangeResolveRequest) -> Option<(radar_core::agent_context::Resolve, Vec<Effect>)> { agent_context::resolve(self, request) }
     fn subject_from_journal(&self, key: &radar_core::journal::SubjectKey) -> Option<Subject> {
         history::from_journal(self, key)
     }

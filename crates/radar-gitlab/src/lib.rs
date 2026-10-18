@@ -985,6 +985,28 @@ impl Plugin for GitlabPlugin {
     ) -> Option<radar_core::agent_context::AgentContext> {
         agent_context::agent_context(self, request)
     }
+    fn prepare_agent_context(&mut self, subject: &radar_core::journal::SubjectKey) -> (bool, Vec<Effect>) {
+        if subject.provider != "gitlab" || subject.kind != "merge-request" { return (false, vec![]); }
+        let Some((project, iid)) = agent_context::split_id(&subject.id) else { return (false, vec![]); };
+        if self.mr_pages.get(&pages::mr_key(project, iid)).is_some_and(|f| f.error.is_some()) { return (false, vec![]); }
+        agent_context::resolve(self, &radar_core::agent_context::ChangeResolveRequest { subject: subject.clone() })
+            .map_or((false, vec![]), |(state, fx)| (state == radar_core::agent_context::Resolve::Pending, fx))
+    }
+    fn agent_document(&mut self, request: &radar_core::agent_context::AgentContextRequest) -> Option<radar_core::context::Document> {
+        agent_context::document(self, request)
+    }
+    fn agent_related(&self, subject: &radar_core::Subject) -> Vec<radar_core::context::Related> {
+        use radar_core::context::Related;
+        if subject.is("ticket") {
+            return tickets::carrying(self, &subject.id).into_iter().map(|m| Related::new(join::mr(self, &m.project_path, m.iid), "implements", "inferred", "ticket key in MR title or source branch")).collect();
+        }
+        if let Some(snapshot) = self.journal_subject(subject)
+            && snapshot.key.kind == "merge-request"
+            && let Some((project, _)) = agent_context::split_id(&snapshot.key.id) {
+            return vec![Related::new(join::repo(self, project), "repository", "provider", "MR project")];
+        }
+        vec![]
+    }
     fn resolve_change(
         &mut self,
         request: &radar_core::agent_context::ChangeResolveRequest,

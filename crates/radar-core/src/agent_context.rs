@@ -121,6 +121,8 @@ pub enum Resolve {
 /// the change requests that row links, as scoped keys the owning part resolves.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReviewRequest {
+    #[serde(default)]
+    pub automatic: bool,
     pub origin: SubjectKey,
     /// Links found in the row's text. The host maps
     /// each to the part that recognises it and fills `changes`; a part that

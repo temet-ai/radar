@@ -42,6 +42,93 @@ fn the_defaults_are_local_and_reviewers_may_run_commands() {
 }
 
 #[test]
+fn repository_locations_round_trip_and_inherit_each_omitted_field() {
+    let config: toml::Value = toml::from_str(r#"
+        work_dir = "/work/default"
+        reviews_dir = "/notes/default"
+        [repositories."ankh-morpork/watch"]
+        checkout = "/work/watch"
+        work_dir = "/work/watch-agent"
+        reviews_dir = "/notes/watch"
+        [repositories."ankh-morpork/library"]
+        checkout = "/work/watch/library"
+        reviews_dir = "/notes/library"
+        [repositories."https://gitlab.example.test/ankh-morpork/watch"]
+        reviews_dir = "/notes/private-watch"
+    "#).unwrap();
+    let mut settings = AgentsSettings::default();
+    settings.configure(Some(&config)).unwrap();
+    let mut restored = AgentsSettings::default();
+    restored.configure(settings.config().as_ref()).unwrap();
+    assert_eq!(restored.cfg, settings.cfg);
+    assert_eq!(restored.work_dir("/work/watch/src".into()), std::path::PathBuf::from("/work/watch-agent"));
+    assert_eq!(restored.work_dir("/work/watch/library/src".into()), std::path::PathBuf::from("/work/default"));
+    assert_eq!(restored.work_dir("/work/watch-other".into()), std::path::PathBuf::from("/work/default"));
+    let dirs = restored.repository_review_dirs();
+    assert_eq!(locations::repository_entry(&dirs, "https://gitlab.example.test", "ankh-morpork/watch"), Some(&std::path::PathBuf::from("/notes/private-watch")));
+    assert_eq!(locations::repository_entry(&dirs, "https://github.example.test", "ankh-morpork/watch"), Some(&std::path::PathBuf::from("/notes/watch")));
+    // A workspace which changes only other defaults still inherits the global working folder.
+    restored.cfg.workspaces.insert("watch".into(), Default::default());
+    restored.set_workspace(Some("watch".into()));
+    assert_eq!(restored.work_dir("/elsewhere".into()), std::path::PathBuf::from("/work/default"));
+}
+
+#[test]
+fn repository_location_paths_are_validated_instead_of_silently_ignored() {
+    for field in ["checkout", "work_dir", "reviews_dir"] {
+        let table: toml::Value = toml::from_str(&format!("[repositories.\"ankh-morpork/watch\"]\n{field} = 'relative/path'")).unwrap();
+        let error = AgentsConfig::from_table(Some(&table)).unwrap_err().to_string();
+        assert!(error.contains(field) && error.contains("absolute path"), "{error}");
+    }
+}
+
+#[test]
+fn sending_a_repository_item_uses_its_working_folder_without_picking_a_related_repository() {
+    use radar_core::agent_context::{AgentContext, ContextField};
+    use radar_core::journal::SubjectKey;
+    let mut settings = AgentsSettings::default();
+    settings.cfg.repositories.insert("ankh-morpork/watch".into(), locations::RepositoryLocations {
+        checkout: Some("/work/watch".into()), work_dir: Some("/work/watch-agent".into()), ..Default::default()
+    });
+    for kind in ["merge-request", "pull-request"] {
+        let root = AgentContext::new("change", SubjectKey::new("sample", "https://gitlab.example.test", kind, "ankh-morpork/watch!12").unwrap(), "Watch change")
+            .field(ContextField::new("project", "ankh-morpork/watch"));
+        assert_eq!(settings.context_work_dir(std::slice::from_ref(&root)), Some("/work/watch-agent".into()));
+        let ticket = AgentContext::new("ticket", SubjectKey::new("sample", "https://jira.example.test", "ticket", "WATCH-12").unwrap(), "Ticket");
+        assert_eq!(settings.context_work_dir(&[ticket, root]), None);
+    }
+    let local = AgentContext::new("branch", SubjectKey::new("local", "/work/watch", "branch", "vimes/WATCH-12").unwrap(), "Branch");
+    assert_eq!(settings.context_work_dir(&[local]), Some("/work/watch-agent".into()));
+}
+
+#[test]
+fn repository_locations_are_editable_from_the_folder_rows_with_inheritance_and_removal() {
+    let mut s = AgentsSettings::default();
+    for row in ["def:work_dir", "rec:reviews"] {
+        select(&mut s, row);
+        let fx = effects(s.intent(SECTION, &Intent::Key { chord: Chord::char('p') }));
+        assert!(matches!(&fx[..], [Effect::Menu(m)] if m.id == "agents.repositories"));
+    }
+    let repo = "https://gitlab.example.test/ankh-morpork/watch";
+    s.on_menu("agents.repository_add", repo).unwrap();
+    for field in ["checkout", "work_dir", "reviews_dir"] {
+        let fx = s.on_menu("agents.repository_fields", &format!("{field}\t{repo}")).unwrap();
+        let [Effect::Menu(m)] = &fx[..] else { panic!("no field editor") };
+        assert_eq!(m.typed.as_deref(), Some(""));
+        let bad = s.on_menu(&m.id, "relative/path").unwrap();
+        assert!(matches!(&bad[..], [Effect::Notice(n)] if n.tone == radar_core::view::chrome::NoticeTone::Error));
+        s.on_menu(&m.id, "/work/watch").unwrap();
+    }
+    let mut restored = AgentsSettings::default();
+    restored.configure(s.config().as_ref()).unwrap();
+    assert_eq!(restored.cfg.repositories[repo].reviews_dir.as_deref(), Some("/work/watch"));
+    restored.on_menu(&format!("agents.repository_path:reviews_dir:{repo}"), "").unwrap();
+    assert!(restored.cfg.repositories[repo].reviews_dir.is_none());
+    restored.on_menu("agents.repository_fields", &format!("remove\t{repo}")).unwrap();
+    assert!(!restored.cfg.repositories.contains_key(repo));
+}
+
+#[test]
 fn a_clis_paths_agent_and_folders_are_set_from_its_menu_and_saved() {
     let mut s = AgentsSettings::default();
     select(&mut s, "cli:claude");
@@ -300,7 +387,11 @@ mod mnemonic_tests {
             select(&mut s, target);
             check(&s, &[("sessions.agents.edit", "⏎", None), ("sessions.agents.recipe.edit", "e", Some(0))]);
         }
-        for target in ["def:provider", "def:model", "def:work_dir", "def:roots", "def:skills", "def:project_config", "def:allow", "def:deny", "def:local_only", "def:reviewer_commands", "rec:reviews", "dock:notify"] {
+        for target in ["def:work_dir", "rec:reviews"] {
+            select(&mut s, target);
+            check(&s, &[("sessions.agents.edit", "⏎", None), ("sessions.agents.repositories", "p", Some(2))]);
+        }
+        for target in ["def:provider", "def:model", "def:roots", "def:skills", "def:project_config", "def:allow", "def:deny", "def:local_only", "def:reviewer_commands", "dock:notify"] {
             select(&mut s, target);
             check(&s, &[("sessions.agents.edit", "⏎", None)]);
         }
@@ -689,7 +780,7 @@ fn a_recipe_row_says_where_it_comes_from_and_what_it_runs_as() {
     if std::env::var_os("RADAR_SHOW").is_some() {
         println!("{text}");
     }
-    for want in ["recipe review-mr", "v2 · yours · agent copilot=reviewer", "recipe ask", "built-in", "review locally"] {
+    for want in ["recipe review-mr", "v3 · yours · agent copilot=reviewer", "recipe ask", "built-in", "review locally"] {
         assert!(text.contains(want), "{want}:\n{text}");
     }
     let _ = std::fs::remove_dir_all(&dir);

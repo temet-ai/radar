@@ -71,7 +71,8 @@ pub struct Local {
 }
 
 /// One `[[git.link]]`: the repo `repo` is worked on in the clone at `dir`
-/// (found by origin otherwise). `branch` and `base` override its convention.
+/// (found by origin otherwise). `branch` and `base` override its convention;
+/// `worktree` overrides the global worktree path template.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Link {
     #[serde(default)]
@@ -82,6 +83,8 @@ pub struct Link {
     pub branch: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub base: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub worktree: String,
 }
 
 pub const DEFAULT_BRANCH: &str = "{me}/{key}";
@@ -1520,6 +1523,7 @@ mod tests {
             dir: "~/code/api".into(),
             branch: "{type}/{key}".into(),
             base: "develop".into(),
+            worktree: "/work/watch/{topic}".into(),
         });
         p.cfg.conventions.push(crate::branch::Convention {
             under: "acme/team-b".into(),

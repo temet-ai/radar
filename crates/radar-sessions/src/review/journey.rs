@@ -113,6 +113,7 @@ pub enum Action {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SessionSpec {
+    pub provider: String,
     pub cwd: PathBuf,
     pub brief: String,
     pub title: String,
@@ -125,6 +126,7 @@ pub struct SessionSpec {
 pub struct Journey {
     change: SubjectKey,
     origin: Option<AgentContext>,
+    context: radar_core::context::Bundle,
     step: Step,
     since: i64,
     resolution: Option<ChangeResolution>,
@@ -157,6 +159,7 @@ impl Journey {
         let journey = Journey {
             change: change.clone(),
             origin,
+            context: Default::default(),
             step: Step::Resolving,
             since: now,
             resolution: None,
@@ -175,6 +178,9 @@ impl Journey {
 
     pub fn step(&self) -> &Step {
         &self.step
+    }
+    pub fn set_context(&mut self, context: radar_core::context::Bundle) {
+        self.context = context;
     }
     pub fn change(&self) -> &SubjectKey {
         &self.change
@@ -272,12 +278,16 @@ impl Journey {
         let Some(resolution) = self.resolution.clone() else { return self.fail("lost the change request".into()) };
         let brief = Brief::build(&BriefRequest {
             recipe: &self.recipe,
-            task: String::new(),
+            task: format!("Review the change at {} in {}. Additional linked sources are available through radar's MCP context and read tools. Use context with roots [\"{}\"] to find them, and read with its returned refs and snapshot_id for full sections. Context snapshot: {}.{}",
+                resolution.head_sha, ready.path.display(), radar_core::context::reference(&resolution.subject),
+                self.context.snapshot_id.as_deref().unwrap_or("not captured"),
+                if self.context.missing.is_empty() { String::new() } else { format!(" Context gaps: {}", self.context.missing.join("; ")) }),
             contexts: self.contexts(&resolution),
         });
         self.worktree = Some(ready.path.clone());
         self.enter(Step::Starting);
         vec![Action::StartSession(SessionSpec {
+            provider: self.provider.clone(),
             cwd: ready.path,
             brief: brief.text,
             title: format!("review: {}", resolution.title),
@@ -307,6 +317,13 @@ impl Journey {
         }
         let mut all = vec![change];
         all.extend(self.origin.clone());
+        for context in &self.context.contexts {
+            if let Some(held) = all.iter_mut().find(|c| c.subject == context.subject) {
+                for field in &context.fields {
+                    if !held.fields.iter().any(|f| f.name == field.name) { *held = held.clone().field(field.clone()); }
+                }
+            } else { all.push(context.clone()); }
+        }
         all
     }
 

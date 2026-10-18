@@ -3,6 +3,9 @@
 This guide shows how to set radar up and work in it. What radar is for, and how to install
 it, are in the [README](../../README.md).
 
+New to radar? Start with [Get started with radar](quickstart.md), a short walkthrough
+using a local Git checkout.
+
 **On this page**
 
 1. [First run](#1-first-run)
@@ -13,7 +16,7 @@ it, are in the [README](../../README.md).
 6. [The command line](#6-the-command-line)
 
 More pages: [Keys](keys.md) (every key on one page), [Connect your services](connect.md),
-[Agents](agents.md), [What radar stores and sends](privacy.md) and
+[Agents](agents.md), [MCP and automatic local reviews](mcp-and-reviews.md), [What radar stores and sends](privacy.md) and
 [When something looks wrong](troubleshooting.md).
 
 ---

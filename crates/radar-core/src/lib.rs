@@ -9,6 +9,8 @@ pub mod agent_context;
 pub mod check;
 pub mod colours;
 pub mod compose;
+pub mod context;
+pub mod agent_text;
 pub mod design;
 pub mod dock;
 pub mod health;

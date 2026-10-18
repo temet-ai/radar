@@ -156,6 +156,11 @@ pub fn contains_secret(value: &str) -> bool {
         .map_or(true, |state| redact(value, &state.known) != value)
 }
 
+/// Redact known credentials before agent source text is chunked.
+pub fn redact_registered(value: &str) -> String {
+    state().lock().map_or_else(|_| "[redacted: credential registry unavailable]".into(), |state| redact(value, &state.known))
+}
+
 /// A service's tokens start with `prefix`: the prefix and what follows are
 /// never written. A part registers its service's shapes when it starts.
 pub fn token_shape(prefix: &str) {

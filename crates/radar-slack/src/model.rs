@@ -13,6 +13,9 @@ use crate::mrkdwn::{self, Names};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Data {
+    /// Local automation checkpoints, partitioned with the authenticated account.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub auto_reviews: BTreeMap<String, crate::auto_review::Checkpoint>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub me: Option<Me>,
     /// User id → the name shown.

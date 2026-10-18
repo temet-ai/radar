@@ -290,6 +290,74 @@ fn saved_reviews_are_read_back_after_a_restart() {
 }
 
 #[test]
+fn manual_and_automatic_reviews_use_repository_then_global_locations_and_preserve_previous_notes() {
+    let root = scratch("watch-locations");
+    let fallback = root.join("fallback");
+    let global = root.join("global");
+    let repo = root.join("watch");
+    let provider = FakeProvider::new();
+    let mut p = plugin(&provider, &fallback);
+    let table: toml::Value = toml::from_str(&format!(r#"
+        reviews_dir = "{}"
+        work_dir = "/work/should-not-be-used-for-reviews"
+        [repositories."ankh-morpork/watch"]
+        reviews_dir = "{}"
+        work_dir = "/work/also-not-a-review-checkout"
+    "#, global.display(), repo.display())).unwrap();
+    p.configure(Some(&table)).unwrap();
+    let mut change = resolution();
+    change.subject = SubjectKey::new("sample", "https://gitlab.example.test", "merge-request", "ankh-morpork/watch!12").unwrap();
+    change.repository = "ankh-morpork/watch".into();
+    for (round, automatic) in [(0, true), (1, false), (2, false)] {
+        provider.script(vec![Step::Say(format!("Verdict: watch review {round}."))]);
+        let mut w = World::ok(&root);
+        if round == 2 {
+            change.repository = "ankh-morpork/library".into();
+            change.subject = SubjectKey::new("sample", "https://github.example.test", "pull-request", "ankh-morpork/library/pull/12").unwrap();
+        }
+        w.resolve = Resolve::Ready(change.clone());
+        w.take(p.tick(w.now));
+        if automatic { p.review_enqueue(None, change.subject.clone()); }
+        else { p.review_start(None, change.subject.clone()); }
+        w.until(&mut p, "review saved to configured location", |w, _| w.said("saved at"));
+        let destination = if round == 2 { &global } else { &repo };
+        assert!(w.notices.iter().any(|n| n.contains(&destination.display().to_string())));
+        assert!(!w.asked.iter().any(|ask| ask.starts_with("note ")), "explicit settings bypass workspace note routing");
+        if !automatic {
+            assert_eq!(p.store().get(p.active().unwrap()).unwrap().meta.cwd, root.display().to_string());
+        }
+    }
+    let saved = notes(&repo);
+    assert_eq!(saved.len(), 2, "a second review must not overwrite the first");
+    assert!(saved.iter().any(|note| note.contains("watch review 0")));
+    assert!(saved.iter().any(|note| note.contains("watch review 1")));
+    assert_eq!(notes(&global).len(), 1);
+    assert!(notes(&fallback).is_empty());
+    let mut restarted = plugin(&FakeProvider::new(), &fallback);
+    restarted.configure(Some(&table)).unwrap();
+    assert!(restarted.review_chip("ankh-morpork/watch!12", None).is_some());
+    assert!(restarted.review_chip("ankh-morpork/library/pull/12", None).is_some());
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn clearing_the_global_review_folder_restores_the_default_destination() {
+    let root = scratch("watch-clear-location");
+    let provider = FakeProvider::new();
+    let mut p = plugin(&provider, &root);
+    let table: toml::Value = toml::from_str("reviews_dir = '/unused/watch-reviews'").unwrap();
+    p.configure(Some(&table)).unwrap();
+    p.configure(None).unwrap();
+    provider.script(vec![Step::Say("Verdict: watch is ready.".into())]);
+    let mut w = World::ok(&root);
+    begin(&mut p, &mut w);
+    w.until(&mut p, "review saved after clearing override", |w, _| w.said("saved at"));
+    assert!(w.asked.iter().any(|ask| ask.starts_with("note ")));
+    assert_eq!(notes(&root).len(), 1);
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn the_reviewers_tab_keeps_the_policy_after_the_review_is_saved() {
     let (wt, saved) = (scratch("after-wt"), scratch("after-notes"));
     let provider = FakeProvider::new();
@@ -327,4 +395,26 @@ mod notice_severity_tests {
                 && message.icon.is_none()
                 && message.contains("request unavailable")));
     }
+}
+
+#[test]
+fn a_background_review_restores_its_queue_and_saves_a_usable_local_note() {
+    let (wt, saved) = (scratch("background-wt"), scratch("background-notes"));
+    let provider = FakeProvider::new();
+    provider.script(vec![Step::Shell("git diff main...HEAD".into()), Step::Say("Verdict: request changes.\n\n- src/watch.rs:12 [major] handle the missing guard.".into())]);
+    let mut p = plugin(&provider, &saved);
+    let mut change = resolution();
+    change.subject = SubjectKey::new("gitlab","https://watch.example.test","merge-request","ankh-morpork/watch!12").unwrap();
+    p.review_enqueue(None, change.subject.clone());
+    let cache = p.snapshot().unwrap();
+    drop(p);
+    let mut p = plugin(&provider, &saved);
+    p.restore(cache);
+    let mut w = World::ok(&wt);
+    w.resolve = Resolve::Ready(change);
+    w.until(&mut p,"background review saved",|w,_| w.said("saved at"));
+    assert!(p.active().is_none(), "background launch preserves focus");
+    let files = notes(&saved);
+    assert_eq!(files.len(), 1);
+    assert!(files[0].contains("src/watch.rs:12") && files[0].contains("posted: false"));
 }

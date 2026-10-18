@@ -36,6 +36,8 @@ pub fn decide(request: &PermissionRequest, cwd: &Path) -> Verdict {
         (PermissionKind::Write, _) | (_, PermissionTarget::Write { .. }) => {
             Verdict::Deny("this review session may not change files; report the change in your review instead")
         }
+        (_, PermissionTarget::Mcp { server, tool, .. })
+            if server == crate::tools::SERVER_NAME && radar_core::context::TOOLS.iter().any(|name| tool == name || tool == &format!("radar-{name}") || tool == &format!("mcp__radar__{name}")) => Verdict::Allow,
         (_, PermissionTarget::Mcp { .. }) => {
             Verdict::Deny("this review session may not use tools that post or change things; the review stays local")
         }

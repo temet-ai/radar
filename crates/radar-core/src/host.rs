@@ -526,6 +526,8 @@ impl std::fmt::Debug for HostEffect {
 }
 
 pub struct Host {
+    context_service: crate::context::Service,
+    review_context_started: std::collections::BTreeMap<u64, i64>,
     pub(crate) history: Option<crate::history::History>,
     history_request: u64,
     trace: Trace,
@@ -751,6 +753,8 @@ impl Host {
             p.set_waker(wake.waker(i));
         }
         Ok(Self {
+            context_service: crate::context::Service::default(),
+            review_context_started: std::collections::BTreeMap::new(),
             wake,
             history: None,
             history_request: 0,
@@ -1158,6 +1162,7 @@ impl Host {
     /// Hand each plugin its table from the config file. With no file, plugins
     /// run their first-run setup; the file is written with the first change.
     pub fn load_config(&mut self, text: Option<&str>) -> Result<()> {
+        self.context_service.clear();
         let table: toml::Table = match text {
             Some(t) => toml::from_str(t)?,
             None => toml::Table::new(),
@@ -2010,6 +2015,7 @@ impl Host {
                 if ticking > 0 {
                     out.extend(self.pump_reviews());
                 }
+                self.pump_context();
                 out
             }
             // Paused: the wakes wait, and the tick after the pause takes them in.
@@ -2022,6 +2028,7 @@ impl Host {
                         out.extend(self.route(i, fx, 0));
                     }
                 }
+                self.pump_context();
                 out
             }
             Event::Wake(_) => vec![],
@@ -2780,6 +2787,15 @@ impl Host {
     /// An intent: a key's goes where the key would (the host's own keys
     /// included); a menu's choice answers the open menu; the rest go to the
     /// focused part.
+    fn pump_context(&mut self) {
+        for i in 0..self.plugins.len() {
+            for call in self.plugins[i].context_calls() {
+                let answer = self.context_service.execute(&mut self.plugins, &call.tool, call.arguments, self.now);
+                self.plugins[i].context_answer(call.id, answer);
+            }
+        }
+    }
+
     /// A part asked for a local review (`Effect::StartReview`): each link
     /// is mapped to the change request the part that recognises it owns,
     /// and the dock owner starts one review per change request. The row it
@@ -2812,11 +2828,12 @@ impl Host {
             // A change request asked for on its own row is its own origin:
             // the brief quotes it once, as the change.
             let origin = origin.clone().filter(|o| o.subject != change);
-            if let Outcome::Handled(fx) = self.plugins[d].review_start(origin, change) {
+            let outcome = if request.automatic { self.plugins[d].review_enqueue(origin, change) } else { self.plugins[d].review_start(origin, change) };
+            if let Outcome::Handled(fx) = outcome {
                 out.extend(self.route(d, fx, depth + 1));
             }
         }
-        self.apply_dock(&crate::dock::DockIntent::Show);
+        if !request.automatic { self.apply_dock(&crate::dock::DockIntent::Show); }
         out
     }
 
@@ -2838,6 +2855,29 @@ impl Host {
                             out.extend(self.route(i, fx, 1));
                             answer = Some(resolve);
                             break;
+                        }
+                    }
+                    if matches!(answer, Some(crate::agent_context::Resolve::Ready(_))) {
+                        let args = serde_json::json!({"roots":[crate::context::reference(&request.subject)],"depth":2});
+                        if let Ok(packet) = self.context_service.execute(&mut self.plugins, "context", args, self.now)
+                            && let Some(id) = packet["snapshot_id"].as_str()
+                        {
+                            let mut bundle = self.context_service.brief(id);
+                            let mut pending = false;
+                            for context in &bundle.contexts {
+                                for i in 0..self.plugins.len() {
+                                    let (loading, fx) = self.plugins[i].prepare_agent_context(&context.subject);
+                                    pending |= loading;
+                                    out.extend(self.route(i, fx, 1));
+                                }
+                            }
+                            let started = *self.review_context_started.entry(run).or_insert(self.now);
+                            if pending && self.now - started < 10 { answer = Some(crate::agent_context::Resolve::Pending); }
+                            else {
+                                self.review_context_started.remove(&run);
+                                if pending { bundle.missing.push("some linked sources are still loading; use context again to read their results".into()); }
+                                self.plugins[d].review_context(run, bundle);
+                            }
                         }
                     }
                     ReviewAnswer::Resolved(answer.unwrap_or(crate::agent_context::Resolve::Failed(

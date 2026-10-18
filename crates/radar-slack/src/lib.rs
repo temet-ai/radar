@@ -14,6 +14,7 @@
 mod palette;
 mod alert_view;
 mod agent_context;
+mod auto_review;
 mod alerts;
 mod ask;
 mod ask_context;
@@ -1062,6 +1063,33 @@ impl Plugin for SlackPlugin {
     ) -> Option<radar_core::agent_context::AgentContext> {
         agent_context::agent_context(self, request)
     }
+    fn prepare_agent_context(&mut self, subject: &SubjectKey) -> (bool, Vec<Effect>) {
+        if self.subject_from_journal(subject).is_none() { return (false, vec![]); }
+        let Some((channel, ts)) = subject.id.split_once('/') else { return (false, vec![]); };
+        if let Some(f) = self.threads.get(&format!("{channel}\0{ts}")) {
+            if f.loading { return (true, vec![]); }
+            if f.value.is_some() || f.error.is_some() { return (false, vec![]); }
+        }
+        let fx = page::fetch_thread(self, channel, ts);
+        (!fx.is_empty(), fx)
+    }
+    fn background_work(&self) -> bool { self.cfg.review.auto_review && self.cfg.channels.iter().any(|c| c.alias == self.cfg.review.channel && c.watched) }
+    fn agent_scope(&self) -> String {
+        self.session_owner.as_ref().map_or_else(String::new, |o| format!("{}/{}", o.team_id, o.user_id))
+    }
+    fn agent_document(&mut self, request: &radar_core::agent_context::AgentContextRequest) -> Option<radar_core::context::Document> {
+        agent_context::document(self, request)
+    }
+    fn subject_from_journal(&self, key: &SubjectKey) -> Option<radar_core::Subject> {
+        if key.provider != "slack" || key.kind != join::THREAD || self.data.me.as_ref()?.team_id != key.instance { return None; }
+        let (channel, ts) = key.id.split_once('/')?;
+        self.cfg.by_id(channel)?;
+        let subject = join::thread_subject(self, channel, ts);
+        (self.journal_subject(&subject)?.key == *key).then_some(subject)
+    }
+    fn agent_related(&self, subject: &radar_core::Subject) -> Vec<radar_core::context::Related> {
+        join::threads_about(self, subject).iter().map(|t| radar_core::context::Related::new(join::thread_subject(self, t.channel, &t.parent.ts), "discussion", "observed", "URL or ticket key in cached thread")).collect()
+    }
     fn journal_subject(&self, subject: &radar_core::Subject) -> Option<SubjectSnapshot> {
         use radar_core::journal::SafeUrl;
         if !subject.is(join::THREAD) {
@@ -1160,6 +1188,7 @@ impl Plugin for SlackPlugin {
 
     fn tick(&mut self, now: i64) -> Vec<Effect> {
         self.now = now;
+        let mut automatic = auto_review::poll(self);
         // The host pauses every part (`z`, `pause if idle`) by not ticking.
         let due = self
             .sync
@@ -1171,9 +1200,9 @@ impl Plugin for SlackPlugin {
             if let Some(page::Page::Thread { channel, ts, .. }) = self.pages.last().cloned() {
                 fx.extend(page::fetch_thread(self, &channel, &ts));
             }
-            return fx;
+            automatic.extend(fx);
         }
-        vec![]
+        automatic
     }
 
     fn on_msg(&mut self, msg: Msg) -> Vec<Effect> {

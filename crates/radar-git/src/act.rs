@@ -316,9 +316,10 @@ pub(crate) fn base_for(p: &GitPlugin, project: &str) -> String {
 /// Where a branch parked on a worktree goes: the template beside the clone.
 pub(crate) fn worktree_path(p: &GitPlugin, clone: &str, branch: &str) -> String {
     let topic = branch.rsplit('/').next().unwrap_or(branch);
-    let at = p
-        .cfg
-        .worktree
+    let template = p.cfg.links.iter()
+        .find(|link| !link.worktree.is_empty() && local::expand(&link.dir) == Path::new(clone))
+        .map_or(p.cfg.worktree.as_str(), |link| link.worktree.as_str());
+    let at = template
         .replace("{clone}", clone.trim_end_matches('/'))
         .replace("{topic}", topic);
     local::expand(&at).display().to_string()

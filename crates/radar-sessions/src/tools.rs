@@ -24,11 +24,14 @@ use tokio::task::{JoinHandle, JoinSet};
 use crate::adapter::ToolServer;
 use crate::event::RadarSessionId;
 
+mod context_server;
+pub use context_server::ContextServer;
+
 /// The server's name in every CLI: Claude Code calls its tools `mcp__radar__<tool>`.
 pub const SERVER_NAME: &str = "radar";
 /// The MCP revisions this server answers, newest first. A client asking for another gets
 /// the newest, as the specification says.
-pub const PROTOCOL_VERSIONS: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
+pub const PROTOCOL_VERSIONS: &[&str] = &["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 /// The longest line read; a longer one closes the connection.
 pub const MAX_LINE: usize = 1 << 20;
 /// The tools this server offers.
@@ -276,18 +279,20 @@ where
     output.flush().await
 }
 
-const USAGE: &str = "usage: radar mcp --socket <path> --ticket <ticket>\n\
-radar's MCP server for one agent session, on stdin and stdout. Started by the agent's CLI.";
+const USAGE: &str = "usage: radar mcp [--workspace <path>]\n       radar mcp --socket <path> --ticket <ticket>\n\
+Connect an agent's stdio MCP client to a running radar host. No service credentials are passed to the agent.";
 
 /// `radar mcp …`: `args` are what follows `mcp`. Returns the exit code; the caller exits with
 /// it (a blocked read of stdin would otherwise hold the runtime open).
 pub async fn relay_main(args: impl IntoIterator<Item = String>) -> i32 {
-    let (mut socket, mut ticket) = (None, None);
+    let (mut socket, mut ticket, mut workspace) = (None, None, None);
     let mut args = args.into_iter();
     while let Some(a) = args.next() {
         match a.as_str() {
-            "--socket" => socket = args.next(),
-            "--ticket" => ticket = args.next(),
+            "--socket" | "--ticket" | "--workspace" => {
+                let Some(value) = args.next().filter(|v| !v.starts_with("--")) else { eprintln!("{USAGE}"); return 2; };
+                match a.as_str() { "--socket" => socket = Some(value), "--ticket" => ticket = Some(value), _ => workspace = Some(value) }
+            },
             "-h" | "--help" => {
                 println!("{USAGE}");
                 return 0;
@@ -298,11 +303,15 @@ pub async fn relay_main(args: impl IntoIterator<Item = String>) -> i32 {
             }
         }
     }
-    let (Some(socket), Some(ticket)) = (socket, ticket) else {
-        eprintln!("{USAGE}");
-        return 2;
+    let (socket, ticket) = match (socket, ticket) {
+        (Some(socket), Some(ticket)) if workspace.is_none() => (PathBuf::from(socket), ticket),
+        (None, None) => match context_server::discover(workspace.as_deref().map(Path::new)) {
+            Ok(v) => v,
+            Err(e) => { eprintln!("radar mcp: {e}"); return 1; }
+        },
+        _ => { eprintln!("{USAGE}"); return 2; }
     };
-    match relay(Path::new(&socket), &ticket, tokio::io::stdin(), tokio::io::stdout()).await {
+    match relay(&socket, &ticket, tokio::io::stdin(), tokio::io::stdout()).await {
         Ok(()) => 0,
         Err(e) => {
             eprintln!("radar mcp: {e}");

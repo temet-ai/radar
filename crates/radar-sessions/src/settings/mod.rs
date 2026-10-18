@@ -9,6 +9,7 @@
 //! read a status again or to start a sign-in; the plugin owns the adapters.
 
 pub mod config;
+pub mod locations;
 pub(crate) mod setup;
 pub mod status;
 mod view;
@@ -204,7 +205,28 @@ impl AgentsSettings {
     /// Where a session started from the dock works: the workspace's folder
     /// when one is set and absolute, else `fallback`.
     pub fn work_dir(&self, fallback: std::path::PathBuf) -> std::path::PathBuf {
-        self.defaults().work_dir.as_deref().and_then(config::expand).unwrap_or(fallback)
+        locations::checkout_entry(&self.cfg.repositories, &fallback)
+            .and_then(|r| r.work_dir.as_deref()).and_then(config::expand)
+            .or_else(|| self.defaults().work_dir.as_deref().and_then(config::expand))
+            .or_else(|| self.cfg.defaults.work_dir.as_deref().and_then(config::expand))
+            .unwrap_or(fallback)
+    }
+
+    /// The selected repository's override for a "send to agent" session.
+    pub fn context_work_dir(&self, contexts: &[radar_core::agent_context::AgentContext]) -> Option<std::path::PathBuf> {
+        let context = contexts.first()?;
+        let repository = context.fields.iter().find(|f| matches!(f.name.as_str(), "project" | "repository"));
+        let entry = repository.and_then(|f| locations::repository_entry(&self.cfg.repositories, &context.subject.instance, &f.value))
+            .or_else(|| {
+                (context.subject.provider == "local").then(|| {
+                    locations::checkout_entry(&self.cfg.repositories, std::path::Path::new(&context.subject.instance))
+                }).flatten()
+            })?;
+        entry.work_dir.as_deref().and_then(config::expand)
+    }
+
+    pub fn repository_review_dirs(&self) -> BTreeMap<String, std::path::PathBuf> {
+        locations::review_dirs(&self.cfg.repositories)
     }
 
     /// The folder of the operator's own recipes: the one set, else radar's config folder's `recipes`.
@@ -412,6 +434,7 @@ impl AgentsSettings {
                 "sessions.agents.add" => Outcome::Handled(self.activate_add()),
                 "sessions.agents.edit" => Outcome::Handled(self.activate()),
                 "sessions.agents.paths" => Outcome::Handled(self.cli_menu()),
+                "sessions.agents.repositories" => Outcome::Handled(self.repository_menu()),
                 "sessions.agents.recipe.edit" => Outcome::Handled(self.edit_recipes()),
                 _ => intent.chord().map_or(Outcome::Ignored, |c| self.key(c)),
             },
@@ -430,6 +453,7 @@ impl AgentsSettings {
             Key::Char('i') => Outcome::Handled(self.sign_in()),
             Key::Char('r') => Outcome::Handled(self.refresh()),
             Key::Char('p') if matches!(self.selected(), Row::Cli(_)) => Outcome::Handled(self.cli_menu()),
+            Key::Char('p') if matches!(self.selected(), Row::WorkDir | Row::ReviewsDir) => Outcome::Handled(self.repository_menu()),
             // The command still needed, for the terminal: its install while it is missing, else its sign-in.
             Key::Char('y') if matches!(self.selected(), Row::Cli(_)) => Outcome::Handled(self.copy_command()),
             Key::Char('o') if matches!(self.selected(), Row::Cli(_)) => Outcome::Handled(self.open_page()),
@@ -611,7 +635,7 @@ impl AgentsSettings {
             ))],
             Row::ReviewsDir => vec![Effect::Menu(Menu::typed(
                 "agents.reviews_dir",
-                "Where local reviews are saved (empty: radar's state folder)",
+                "Default review folder (empty: workspace notes, then radar's state folder)",
                 self.cfg.reviews_dir.clone().unwrap_or_default(),
             ))],
             Row::Recipe(name) => self.recipe_menu(&name),
@@ -804,6 +828,9 @@ impl AgentsSettings {
     // --- menus ------------------------------------------------------------
 
     pub fn typing(&self, menu: &str, text: &str) -> Typing {
+        if menu.starts_with("agents.repository_path:") {
+            return Typing { verdict: folder_verdict(text, false), offers: vec![] };
+        }
         if let Some(rest) = menu.strip_prefix("agents.cli:") {
             return self.typing_cli(rest, text);
         }
@@ -943,6 +970,7 @@ impl AgentsSettings {
     /// The user chose or typed `value` in a menu this section opened.
     pub fn on_menu(&mut self, menu: &str, value: &str) -> Option<Vec<Effect>> {
         let value = value.trim();
+        if let Some(effects) = self.repository_location_menu(menu, value) { return Some(effects); }
         // A field chosen from a provider's menu or a recipe's: ask for its value.
         if let ("agents.cli" | "agents.recipe", Some((who, field))) = (menu, value.split_once('\t')) {
             let (who, field) = (who.to_string(), field.to_string());

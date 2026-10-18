@@ -1388,6 +1388,30 @@ impl Plugin for JiraPlugin {
         fx
     }
 
+    fn prepare_agent_context(&mut self, subject: &radar_core::journal::SubjectKey) -> (bool, Vec<Effect>) {
+        if subject.provider != "jira" || subject.kind != "ticket" { return (false, vec![]); }
+        let Some(site) = self.cfg.sites.iter().find(|site| agent_context::key(site, &subject.id).as_ref() == Some(subject)).map(|s| s.name.clone()) else { return (false, vec![]); };
+        if let Some(f) = self.details.get(&detail_key(&site, &subject.id)) {
+            if f.loading || f.checking || f.more.is_some() { return (true, vec![]); }
+            if f.error.is_some() { return (false, vec![]); }
+            if let Some(d) = &f.value && self.now - f.at < 60 {
+                if d.comments.len() < d.comments_total && d.comments.len() < 500 {
+                    let fx = page::fetch_more(self, &site, &subject.id);
+                    return (!fx.is_empty(), fx);
+                }
+                return (false, vec![]);
+            }
+        }
+        let fx = page::fetch(self, &site, &subject.id, true);
+        (!fx.is_empty(), fx)
+    }
+    fn agent_identity(&self, subject: &radar_core::journal::SubjectKey) -> Option<String> {
+        let site = self.cfg.sites.iter().find(|site| agent_context::key(site, &subject.id).as_ref() == Some(subject))?;
+        self.data.get(&site.name)?.me.as_ref().map(|m| m.account_id.clone())
+    }
+    fn agent_document(&mut self, request: &radar_core::agent_context::AgentContextRequest) -> Option<radar_core::context::Document> {
+        agent_context::document(self, request)
+    }
     fn agent_context(
         &mut self,
         request: &radar_core::agent_context::AgentContextRequest,

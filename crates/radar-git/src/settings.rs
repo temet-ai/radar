@@ -69,6 +69,7 @@ pub enum Field {
     LinkDir(Option<usize>, String),
     LinkBranch(usize),
     LinkBase(usize),
+    LinkWorktree(usize),
     /// A new convention: `under template [base]`.
     ConvAdd,
     ConvUnder(usize),
@@ -595,7 +596,8 @@ fn validate(p: &GitPlugin, field: &Field, text: &str) -> Verdict {
             }
         }
         Field::Branch => template_verdict(p, text, None),
-        Field::Worktree => {
+        Field::LinkWorktree(_) if text.is_empty() => Verdict::Good("uses the global worktree template".into()),
+        Field::Worktree | Field::LinkWorktree(_) => {
             if text.is_empty() {
                 Verdict::Bad("needs a template, e.g. {clone}-{topic}".into())
             } else if !text.contains("{topic}") {
@@ -866,6 +868,7 @@ fn section_rows(
                 || matches!(&p.local.edit, Some((Field::LinkDir(Some(j), _), _)) if *j == i)
                 || editing(&Field::LinkBranch(i))
                 || editing(&Field::LinkBase(i))
+                || editing(&Field::LinkWorktree(i))
             {
                 input_at = Some((n, 1));
             }
@@ -1651,6 +1654,7 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
                     "branch",
                 ),
                 MenuItem::new('m', "modify base branch…", "new branches start from it", "base"),
+                MenuItem::new('o', "worktree folder…", "empty: the global template", "worktree"),
                 MenuItem::new('a', "link another repo", "a repo, then its clone", "add"),
                 MenuItem::new('d', "disconnect link…", "forget this link", "remove"),
             ],
@@ -1941,6 +1945,7 @@ pub fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<Effect>
                 "repo" => edit(p, Field::LinkRepo(Some(i)), &l.repo),
                 "branch" => edit(p, Field::LinkBranch(i), &l.branch),
                 "base" => edit(p, Field::LinkBase(i), &l.base),
+                "worktree" => edit(p, Field::LinkWorktree(i), &l.worktree),
                 "remove" => vec![Effect::Menu(
                     Menu::confirm(
                         format!("lc-link-remove:{i}"),
@@ -2117,6 +2122,10 @@ fn commit(p: &mut GitPlugin, field: Field, text: String) -> Vec<Effect> {
         }
         Field::LinkBase(i) => {
             cfg.links[i].base = text;
+            vec![]
+        }
+        Field::LinkWorktree(i) => {
+            cfg.links[i].worktree = text;
             vec![]
         }
         Field::ConvAdd => {
@@ -2759,6 +2768,7 @@ mod tests {
             dir: "/radar/no/such/web".into(),
             branch: "{type}/{key}-{slug}".into(),
             base: "develop".into(),
+            ..Default::default()
         });
         p.cfg.conventions.push(Convention {
             under: "acme/team-b".into(),

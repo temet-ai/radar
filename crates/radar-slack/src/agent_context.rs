@@ -40,15 +40,16 @@ pub(crate) fn merge_request_links(links: &[String]) -> Vec<String> {
     const MARK: &str = "/-/merge_requests/";
     let mut out: Vec<String> = Vec::new();
     for l in links {
-        let Some(at) = l.find(MARK) else { continue };
+        let mark = if l.contains(MARK) { MARK } else { "/pull/" };
+        let Some(at) = l.find(mark) else { continue };
         if !(l.starts_with("https://") || l.starts_with("http://")) {
             continue;
         }
-        let digits: String = l[at + MARK.len()..].chars().take_while(char::is_ascii_digit).collect();
+        let digits: String = l[at + mark.len()..].chars().take_while(char::is_ascii_digit).collect();
         if digits.is_empty() {
             continue;
         }
-        let url = format!("{}{MARK}{digits}", &l[..at]);
+        let url = format!("{}{mark}{digits}", &l[..at]);
         if !out.contains(&url) {
             out.push(url);
         }
@@ -115,6 +116,25 @@ pub(crate) fn context(p: &SlackPlugin, channel: &str, ts: &str) -> Option<AgentC
         c = c.field(ContextField::new("linked_merge_requests", shown.join("\n")));
     }
     Some(c)
+}
+
+pub(crate) fn document(p: &SlackPlugin, request: &AgentContextRequest) -> Option<radar_core::context::Document> {
+    use radar_core::Plugin;
+    p.subject_from_journal(&request.subject)?;
+    let (channel, ts) = request.subject.id.split_once('/')?;
+    let (thread, _) = held(p, channel, ts)?;
+    let mut ctx = context(p, channel, ts)?;
+    ctx.subject = request.subject.clone();
+    let names = Namer { data: &p.data, cfg: &p.cfg };
+    let messages = std::iter::once(thread.parent).chain(thread.replies.iter());
+    let text = messages.map(|m| format!("{} {}: {}", m.ts, p.data.author(m), mrkdwn::plain(&m.text, &names))).collect::<Vec<_>>().join("\n\n");
+    let mut doc = radar_core::context::Document::from_context(ctx).section("thread", text);
+    doc.observed_at = p.data.channels.get(channel).map(|c| c.read_at);
+    if thread.parent.reply_count as usize > thread.replies.len() {
+        doc.sections.last_mut()?.truncated = true;
+        doc.missing.push("some thread replies have not been read".into());
+    }
+    Some(doc)
 }
 
 /// The message the keys act on: the selected one on the feed, a thread
@@ -190,7 +210,7 @@ pub(crate) fn key_press(p: &SlackPlugin, pane: Pane, pressed: KeyEvent) -> Optio
         if links.is_empty() {
             vec![Effect::Notify("no merge request linked in this thread".into())]
         } else {
-            vec![Effect::StartReview(ReviewRequest { origin: subject, links, changes: vec![] })]
+            vec![Effect::StartReview(ReviewRequest { automatic: false, origin: subject, links, changes: vec![] })]
         }
     }))
 }

@@ -454,7 +454,7 @@ impl Service {
                     .filter(|p| p.set_up() == Setup::Ready)
                     .flat_map(|p| p.agent_related(&s))
                     .collect();
-                // Owners recognize links and ticket keys in authored fields; this is
+                // Owners recognize links and item keys in authored fields; this is
                 // evidence of a mention, never a claim that the link authorizes work.
                 for section in &d.sections {
                     for p in plugins.iter().filter(|p| p.set_up() == Setup::Ready) {

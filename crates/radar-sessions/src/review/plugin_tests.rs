@@ -404,7 +404,7 @@ fn a_background_review_restores_its_queue_and_saves_a_usable_local_note() {
     provider.script(vec![Step::Shell("git diff main...HEAD".into()), Step::Say("Verdict: request changes.\n\n- src/watch.rs:12 [major] handle the missing guard.".into())]);
     let mut p = plugin(&provider, &saved);
     let mut change = resolution();
-    change.subject = SubjectKey::new("gitlab","https://watch.example.test","merge-request","ankh-morpork/watch!12").unwrap();
+    change.subject = SubjectKey::new("sample","https://watch.example.test","merge-request","ankh-morpork/watch!12").unwrap();
     p.review_enqueue(None, change.subject.clone());
     let cache = p.snapshot().unwrap();
     drop(p);

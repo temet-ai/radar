@@ -10,7 +10,7 @@ struct Source {
     body: Arc<Mutex<String>>,
 }
 fn key(id: &str) -> SubjectKey {
-    SubjectKey::new("jira", "https://watch.example.test", "ticket", id).unwrap()
+    SubjectKey::new("sample", "https://watch.example.test", "item", id).unwrap()
 }
 impl Plugin for Source {
     fn configure(&mut self, _: Option<&toml::Value>) -> anyhow::Result<()> {
@@ -23,12 +23,12 @@ impl Plugin for Source {
         "context-fixture"
     }
     fn owns(&self) -> Vec<Owned> {
-        vec![Owned::page("ticket", "Tickets")]
+        vec![Owned::page("item", "Items")]
     }
     fn agent_subjects(&self) -> Vec<Subject> {
         ["WATCH-12", "WATCH-13"]
             .into_iter()
-            .map(|id| Subject::new("ticket", id, id))
+            .map(|id| Subject::new("item", id, id))
             .collect()
     }
     fn journal_subject(&self, s: &Subject) -> Option<SubjectSnapshot> {
@@ -44,7 +44,7 @@ impl Plugin for Source {
         let s = self.subject_from_journal(&r.subject)?;
         Some(
             Document::from_context(
-                AgentContext::new("Ticket", r.subject.clone(), &s.label)
+                AgentContext::new("Item", r.subject.clone(), &s.label)
                     .field(ContextField::new("description", "short preview")),
             )
             .section("description", self.body.lock().unwrap().clone()),

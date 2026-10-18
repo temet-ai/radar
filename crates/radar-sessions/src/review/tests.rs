@@ -404,7 +404,7 @@ fn background_queue_restores_serializes_and_skips_a_completed_revision() {
     use radar_core::plugin::{ReviewAsk, ReviewAnswer};
     let mut d = driver::Driver::default();
     let mut change = resolution();
-    change.subject = SubjectKey::new("gitlab", "https://watch.example.test", "merge-request", "ankh-morpork/watch!12").unwrap();
+    change.subject = SubjectKey::new("sample", "https://watch.example.test", "merge-request", "ankh-morpork/watch!12").unwrap();
     d.enqueue(change.subject.clone(), None, "copilot");
     d.enqueue(change.subject.clone(), None, "copilot");
     assert_eq!(d.automatic_queue.len(), 1);

@@ -1,7 +1,8 @@
 import type { Chord, Intent } from "../chrome/types.js";
 export type { Intent };
 import { visibleRows } from "../nodes/tree.js";
-import type { Tree } from "../nodes/view.js";
+import { decodeDetail } from "../nodes/detail.js";
+import type { Tree, TreeRow } from "../nodes/view.js";
 
 /**
  * What a key comes to on a view, mirroring crates/radar-core/src/view_tui.rs (`key`, `section_key`)
@@ -44,31 +45,75 @@ const targetOf = (path: string[]) => path.join("\u001f");
 /** The tree row target as the host names it: `TreeRow::target_of` joins the path with a unit separator. */
 export const treeTarget = targetOf;
 
+const samePath = (a: string[], b: string[]) => a.length === b.length && a.every((s, i) => s === b[i]);
+const beneath = (path: string[], parent: string[]) => path.length > parent.length && parent.every((s, i) => s === path[i]);
+
+/** Tree::row: every component, including each ancestor, must identify exactly one sibling. */
+function treeRowAt(tree: Tree, path: string[]): TreeRow | undefined {
+  let rows = tree.rows;
+  let found: TreeRow | undefined;
+  for (const id of path) {
+    const matches = rows.filter((row) => row.id === id);
+    if (matches.length !== 1) return undefined;
+    found = matches[0]!;
+    rows = found.children ?? [];
+  }
+  return found;
+}
+
+/** Every group held by the host, parent first, including groups hidden under a closed ancestor. */
+export function heldGroupPaths(tree: Tree): string[][] {
+  const paths: string[][] = [];
+  const walk = (rows: TreeRow[], prefix: string[]) => {
+    const ids = new Map<string, number>();
+    for (const row of rows) ids.set(row.id, (ids.get(row.id) ?? 0) + 1);
+    for (const row of rows) {
+      if (ids.get(row.id) !== 1 || !row.children?.length) continue;
+      const path = [...prefix, row.id];
+      paths.push(path);
+      walk(row.children, path);
+    }
+  };
+  walk(tree.rows, []);
+  return paths;
+}
+
 /** view.rs `tree_step`. */
 export function treeStep(tree: Tree, chord: Chord): Intent | undefined {
-  const shown = visibleRows(tree);
-  if (shown.length === 0 || !plain(chord)) return undefined;
-  const sel = tree.selected ?? [];
-  const eq = (a: string[], b: string[]) => a.length === b.length && a.every((s, i) => s === b[i]);
-  let at = shown.findIndex((s) => eq(s.path, sel));
-  if (at < 0) at = 0;
-  const open = tree.open ?? [];
-  const isOpen = (p: string[]) => open.some((o) => eq(o, p));
-  const hasChildren = (i: number) => (shown[i]?.row.children?.length ?? 0) > 0;
+  if (!plain(chord) || (chord.shift && typeof chord.key === "string")) return undefined;
   const c = ch(chord);
-  if ((c === "+" || c === "=") && hasChildren(at) && !isOpen(shown[at]!.path)) {
-    return { intent: "fold", target: treeTarget(shown[at]!.path), open: true };
+  if (c === "=") return { intent: "open_all" };
+  const shown = visibleRows(tree);
+  if (shown.length === 0) return undefined;
+  const sel = tree.selected ?? [];
+  const found = shown.findIndex((s) => samePath(s.path, sel) && !s.row.heading);
+  if (found < 0) {
+    const movement = ["up", "down", "home", "end"].some((key) => keyIs(chord, key)) || ["j", "k", "g", "G"].includes(c ?? "");
+    const first = shown.find((s) => !s.row.heading);
+    return movement && first ? { intent: "select", target: treeTarget(first.path) } : undefined;
   }
-  if (c === "-") {
+  const at = found;
+  const open = tree.open ?? [];
+  const isOpen = (p: string[]) => open.some((o) => samePath(o, p));
+  const hasChildren = (i: number) => (shown[i]?.row.children?.length ?? 0) > 0;
+  if (found >= 0) {
     const path = shown[at]!.path;
-    let group: string[];
-    if (hasChildren(at) && isOpen(path)) group = path;
-    else if (path.length > 1) group = path.slice(0, -1);
-    else return undefined;
-    return { intent: "fold", target: treeTarget(group), open: false };
-  }
-  if (c === " " && hasChildren(at)) {
-    return { intent: "fold", target: treeTarget(shown[at]!.path), open: !isOpen(shown[at]!.path) };
+    const group = hasChildren(at);
+    if ((c === "+" || keyIs(chord, "right")) && group && !isOpen(path))
+      return { intent: "fold", target: treeTarget(path), open: true };
+    if (c === " " && group)
+      return { intent: "fold", target: treeTarget(path), open: !isOpen(path) };
+    if (c === "-" || keyIs(chord, "left")) {
+      if (group && isOpen(path)) return { intent: "fold", target: treeTarget(path), open: false };
+      const parent = shown.slice(0, at).reverse().find((s) => !s.row.heading && beneath(path, s.path));
+      if (parent) return c === "-"
+        ? { intent: "fold", target: treeTarget(parent.path), open: false }
+        : { intent: "select", target: treeTarget(parent.path) };
+    }
+    if (keyIs(chord, "right") && group && isOpen(path)) {
+      const child = shown.slice(at + 1).find((s) => !s.row.heading && beneath(s.path, path));
+      if (child) return { intent: "select", target: treeTarget(child.path) };
+    }
   }
   const to = rowsStepBy(shown.length, at, chord, (i) => !!shown[i]!.row.heading);
   return to === undefined ? undefined : { intent: "select", target: treeTarget(shown[to]!.path) };
@@ -87,9 +132,11 @@ export function workingFrom<T>(pending: { base: T; working: T } | undefined, bas
   return base ? { base, working: base } : undefined;
 }
 
-/** Whether a field in `pane` is being typed into: it has the caret. */
+/** An active field or inline row editor owns keys even while legacy focus names a different pane. */
 function typing(pane: PaneLike): boolean {
-  return (pane.fields ?? []).some((f) => f.caret != null) || pane.bottom_field?.caret != null;
+  const body = pane.body;
+  return (pane.fields ?? []).some((f) => f.caret != null) || pane.bottom_field?.caret != null
+    || ((body?.node === "list" || body?.node === "tree") && body.editing != null);
 }
 
 /** view_tui::panes: an item page's panes while one is open over the screen, else the screen's. */
@@ -98,7 +145,7 @@ function panesOf(screen: ScreenLike): PaneLike[] {
   return page ? (page.panes ?? []) : (screen.panes ?? []);
 }
 
-/** The first active field owns body keys even when the legacy focused pane has not moved. */
+/** The first active field or inline editor owns body keys even when legacy focus has not moved. */
 export function typingPane(screen: ScreenLike): string | undefined {
   return panesOf(screen).find(typing)?.pane;
 }
@@ -107,8 +154,7 @@ export function typingPane(screen: ScreenLike): string | undefined {
 export function screenKey(screen: ScreenLike, focus: string | undefined, chord: Chord, pageStep = 10): Intent {
   const key: Intent = { intent: "key", chord };
   if (screen.overlay) return key;
-  // A field being typed into takes every key, whichever pane has the focus: `/` typed from the views rail filters
-  // the tree, and ↓ is the field's (view_tui::key).
+  // Fields and inline list/tree editors take every key, whichever pane has legacy focus (view_tui::key).
   if (panesOf(screen).some(typing)) return key;
   const pane = panesOf(screen).find((p) => p.pane === focus);
   if (!pane) return key;
@@ -130,7 +176,7 @@ export function screenKey(screen: ScreenLike, focus: string | undefined, chord: 
     }
     return key;
   }
-  if (body?.node === "tree") {
+  if (body?.node === "tree" && !body.editing) {
     const step = treeStep(body as Tree, chord);
     if (step) return step;
     if (keyIs(chord, "enter") && !chord.ctrl && !chord.alt && (body.selected?.length ?? 0) > 0) {
@@ -183,8 +229,11 @@ export function scrollKey(screen: ScreenLike, focus: string | undefined, chord: 
   }
   const pane = panes.find((p) => p.pane === focus);
   if (!pane) return undefined;
-  if (pane.body?.node !== "rich" && pane.body?.node !== "document") return undefined;
-  const s = [...scrollers].reverse().find((x) => x.focused && x.kind === pane.body.node);
+  let scrolling = pane.body;
+  while (scrolling?.node === "extension" && scrolling.capability === "detail" && !decodeDetail(scrolling)) scrolling = scrolling.fallback;
+  const kind = decodeDetail(scrolling) ? "rich" : scrolling?.node;
+  if (kind !== "rich" && kind !== "document") return undefined;
+  const s = [...scrollers].reverse().find((x) => x.focused && x.kind === kind);
   const name = SCROLL_NAMES.find(([is]) => is(chord))?.[1];
   if (!s || !name) return undefined;
   const moved = s.key(name);
@@ -216,10 +265,10 @@ export function sectionKey(section: { body?: any }, chord: Chord): Intent {
     const to = rowsStepBy(rows.length, at, chord, (i) => !!rows[i]!.heading) ?? (up ? at : undefined);
     if (to !== undefined) return { intent: "select", target: rows[to]!.target };
   }
-  if (body?.node === "tree" && (body.rows?.length ?? 0) > 0 && !body.editing) {
+  if (body?.node === "tree" && !body.editing) {
     const step = treeStep(body as Tree, chord);
     if (step) return step;
-    if ((keyIs(chord, "up") || ch(chord) === "k") && plain(chord)) {
+    if ((keyIs(chord, "up") || ch(chord) === "k") && plain(chord) && !chord.shift) {
       return { intent: "select", target: treeTarget(body.selected ?? []) };
     }
   }
@@ -252,6 +301,9 @@ export function afterIntent<T extends { screen?: any; section?: any; focus?: unk
   // Any other intent (a key, activate, invoke...) changes the host's state in ways the renderer cannot foresee
   // (focus moving to another pane, the bar, a page opening): the keys after it in the same read are not routed
   // from this copy but sent as the plain keys the host moves itself on, as Ratatui's runner sends them.
+  // OpenAll may be rejected for an unidentified page, or stop early on an owner effect/data change. Interaction
+  // metadata is optional, so even an absent context is not proof the whole expansion will complete. Buffered keys
+  // after it go raw to the host and use the state it actually reached, just as terminal input does.
   if (intent.intent !== "select" && intent.intent !== "fold") return desynced(snap);
   // `pane:<id>` focuses that pane and moves nothing (the host's own target: a press on a pane's empty space, the wheel).
   const pane = intent.intent === "select" ? /^pane:(nav|middle|detail)$/.exec(intent.target)?.[1] : undefined;
@@ -261,13 +313,15 @@ export function afterIntent<T extends { screen?: any; section?: any; focus?: unk
     if (body.node === "tree") {
       const shown = visibleRows(body as Tree);
       if (intent.intent === "select") {
-        const hit = shown.find((s) => treeTarget(s.path) === intent.target);
-        return hit ? { ...body, selected: hit.path } : body;
+        if (!treeRowAt(body as Tree, intent.target.split("\u001f"))) return body;
+        const hits = shown.filter((s) => !s.row.heading && treeTarget(s.path) === intent.target);
+        return hits.length === 1 ? { ...body, selected: hits[0]!.path } : body;
       }
       const path = intent.target.split("\u001f");
-      const eq = (a: string[], b: string[]) => a.length === b.length && a.every((s, i) => s === b[i]);
-      const open = ((body as Tree).open ?? []).filter((o) => !eq(o, path));
-      return { ...body, open: intent.open ? [...open, path] : open };
+      if (!treeRowAt(body as Tree, path)?.children?.length) return body;
+      const open = ((body as Tree).open ?? []).filter((o) => !samePath(o, path));
+      const selected = !intent.open && beneath(body.selected ?? [], path) ? path : body.selected;
+      return { ...body, selected, open: intent.open ? [...open, path] : open };
     }
     if (intent.intent === "select" && Array.isArray(body.rows)) {
       const at = body.rows.findIndex((r: any) => r.target === intent.target);

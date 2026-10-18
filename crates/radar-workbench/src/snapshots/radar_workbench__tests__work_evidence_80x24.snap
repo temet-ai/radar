@@ -1,9 +1,10 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
  radar    I   History   Settings (,)  local annotations · observations … ✎ edit
-╭ evidence ────────────────────────────────────────────────────────────────────╮
+╭ 3 evidence ──────────────────────────────────────────────────────────────────╮
 │ Local work saved.                                                            █
 │ Original evidence · observations only · no execution authority               █
 │ Snapshot events 5 · map 6                                                    █
@@ -25,4 +26,4 @@ expression: text
 │ 00000000-0000-4000-8000-000000000000                                         ║
 │ Map #6 · explicit relation · authored                                        ║
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices

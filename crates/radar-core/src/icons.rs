@@ -90,7 +90,7 @@ impl Colours {
                     match refused {
                         Some(why) => {
                             self.edit = Some(input);
-                            Reply::Say(format!("not yet: {why}"))
+                            Reply::Error(format!("not yet: {why}"))
                         }
                         None => {
                             // A style written by hand stays.
@@ -148,7 +148,7 @@ impl Colours {
             Binding::new("⏎", "type your own glyph"),
         ];
         if self.cfg.icon_overrides.contains_key(icon.name()) {
-            rows.push(Binding::new("r", "use the pack's glyph"));
+            rows.push(Binding::new("r", "restore the pack's glyph"));
         }
         rows
     }
@@ -340,7 +340,7 @@ mod tests {
         let mut c = Colours::default();
         c.cfg.icons = "nerd".into();
         c.icons_first_row();
-        let Reply::Say(m) = typed(&mut c, "🐞") else {
+        let Reply::Error(m) = typed(&mut c, "🐞") else {
             panic!("refused in words")
         };
         assert!(m.starts_with("not yet:") && m.contains("2 cells"), "{m}");

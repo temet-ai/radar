@@ -48,7 +48,7 @@ pub fn intent(p: &mut GithubPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             crate::chord_for(&rows, intent).map_or(Outcome::Ignored, |chord| p.press(pane, chord))
         }
         v::Intent::Fold { target, open } if pane == Pane::Middle => super::fold(p, target, *open),
-        v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
+        v::Intent::OpenAll | v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
     }
 }
 
@@ -85,7 +85,7 @@ fn nav_pane(p: &GithubPlugin) -> PaneView {
     pane
 }
 
-fn middle_pane(p: &GithubPlugin) -> PaneView {
+pub(super) fn middle_pane(p: &GithubPlugin) -> PaneView {
     let items = super::tree_items(p);
     if items.is_empty() {
         return PaneView::new(
@@ -799,25 +799,35 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn routed_minus_on_a_pull_or_closed_repository_does_not_fold_its_parent() {
-        let mut p = tree_fixture();
-        for item in [TreeItem::Pull(0, 0), TreeItem::Repo(0)] {
+    fn routed_minus_on_a_pull_or_closed_repository_collapses_and_selects_its_parent() {
+        for (item, parent) in [
+            (TreeItem::Pull(0, 0), TreeItem::Repo(0)),
+            (TreeItem::Repo(0), TreeItem::Group(0)),
+        ] {
+            let mut p = tree_fixture();
             p.tree_at = Some(item);
             if matches!(item, TreeItem::Repo(_)) { p.folded_repos.insert(0); }
             let before = tree(&p);
-            let routed = v::tree_step(&before, v::Chord::char('-')).expect("shared router proposes parent fold");
-            assert!(matches!(intent(&mut p, Pane::Middle, &routed), Outcome::Ignored));
-            assert_eq!(tree(&p), before);
+            let routed = v::tree_step(&before, v::Chord::char('-')).expect("shared parent fold");
+            assert!(matches!(intent(&mut p, Pane::Middle, &routed), Outcome::Handled(_)));
+            assert_eq!(p.tree_at, Some(parent));
+            assert_eq!(tree(&p).selected, tree_path(&p, parent).unwrap());
+            assert!(!tree(&p).open.contains(&tree_path(&p, parent).unwrap()));
+            assert_eq!(tree(&p).rows, before.rows);
         }
-        // The shared tree router also accepts '=' as '+'. Once represented
-        // as Fold there is no original key to distinguish; raw '=' stays as
-        // before, while the routed alias opens only the selected repository.
-        let before = tree(&p);
-        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Key { chord: v::Chord::char('=') }), Outcome::Ignored));
-        assert_eq!(tree(&p), before);
-        let routed = v::tree_step(&before, v::Chord::char('=')).unwrap();
-        assert!(matches!(intent(&mut p, Pane::Middle, &routed), Outcome::Handled(_)));
-        assert!(!p.folded_repos.contains(&0));
+    }
+
+    #[test]
+    fn opening_a_visible_unselected_group_preserves_selection_and_rejects_empty_groups() {
+        let mut p = tree_fixture();
+        p.tree_at = Some(TreeItem::Pull(0, 0));
+        p.folded_groups.insert(1);
+        let target = TreeRow::target_of(&tree_path(&p, TreeItem::Group(1)).unwrap());
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Fold { target, open: true }), Outcome::Handled(_)));
+        assert_eq!(p.tree_at, Some(TreeItem::Pull(0, 0)));
+        p.cfg.groups.push(crate::config::Group { name: "Unseen University".into(), owner: None, repositories: vec![] });
+        let target = TreeRow::target_of(&tree_path(&p, TreeItem::Group(2)).unwrap());
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Fold { target, open: false }), Outcome::Ignored));
     }
 
     #[test]
@@ -860,4 +870,27 @@ pub(crate) mod tests {
         p.folded_repos.insert(0);
         check(&p);
     }
+    #[test]
+    fn stale_or_hidden_context_and_page_only_targets_are_ignored_on_browse() {
+        let mut p = tree_fixture();
+        p.tree_at = Some(TreeItem::Repo(0));
+        let child = TreeRow::target_of(&tree_path(&p, TreeItem::Pull(0, 0)).unwrap());
+        p.folded_repos.insert(0);
+        for target in [child, v::Target::new("pull:0")] {
+            let before = tree(&p);
+            assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Context { target: target.clone() }), Outcome::Ignored));
+            assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Activate { target }), Outcome::Ignored));
+            assert_eq!(tree(&p), before);
+            assert!(p.pages.is_empty());
+        }
+        let repo = p.repos[0].id.clone();
+        p.open_target(crate::join::Target::Repository(repo));
+        for tab in [0, 2] {
+            p.pages.last_mut().unwrap().tab = tab;
+            assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Context { target: v::Target::new("pull:0") }), Outcome::Ignored));
+        }
+        p.pages.last_mut().unwrap().tab = 1;
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Select { target: v::Target::new("pull:0") }), Outcome::Handled(_)));
+    }
+
 }

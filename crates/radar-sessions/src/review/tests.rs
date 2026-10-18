@@ -92,7 +92,7 @@ fn a_change_request_that_is_gone_fails_with_the_owners_words() {
     let (mut j, _) = start();
     let out = j.feed(Input::Resolved(Resolve::Failed("GitLab: 404 not found".into())), NOW);
     assert_eq!(j.step(), &Step::Failed("GitLab: 404 not found".into()));
-    assert!(matches!(&out[..], [Action::Notice(m)] if m.contains("404 not found")));
+    assert!(matches!(&out[..], [Action::Error(m)] if m.contains("404 not found")));
 }
 
 #[test]

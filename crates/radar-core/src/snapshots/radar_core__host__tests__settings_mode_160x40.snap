@@ -1,10 +1,10 @@
 ---
 source: crates/radar-core/src/host.rs
-assertion_line: 6743
+assertion_line: 7107
 expression: text
 ---
  radar    A   History   Settings (,)                                                                                                                ◉ read only
-╭ settings ────────────╮╭ mode ──────────────────────────────────────────────────────────────────────────╮╭ the modes ─────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 mode ────────────────────────────────────────────────────────────────────────╮╭ 3 the modes ───────────────────────────────────────╮
 │General               ││ WHAT RADAR MAY CHANGE                                                          ││ ● read only                                        │
 │  ├─ parts            ││                                                                                ││     changes nothing anywhere: every write is shown │
 │  ├─ mode             ││ mode    read only                                                              ││ and asked, and none is sent                        │
@@ -42,4 +42,4 @@ expression: text
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate

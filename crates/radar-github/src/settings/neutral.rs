@@ -5,7 +5,7 @@ use radar_core::ui::connection;
 use radar_core::ui::icon::Icon;
 use radar_core::view::{self as v, Ink, ListRow, Node, SectionView, Seg, Text};
 
-use super::{ConnRow, GithubPlugin, Row};
+use super::{ConnRow, GithubPlugin};
 
 /// A muted capitals heading and what it takes, as a list row draws it.
 fn heading(words: &str, about: &str) -> Text {
@@ -35,6 +35,26 @@ fn token_words(token: &str) -> String {
 }
 
 pub fn view(p: &GithubPlugin, section: &str, cx: &v::ViewCx<'_>) -> Option<SectionView> {
+    if section == "repositories" {
+        let typing = p.editor.as_ref().map(|editor| super::validate(&editor.field, &editor.input.value()));
+        let mut detail = vec![Text::of(
+            "Create groups and choose repositories. Press a to browse, e to edit, d to remove, or m to move a repository.",
+            Ink::Secondary,
+        )];
+        if let Some(result) = typing {
+            detail.push(Text::of("as you type", Ink::Muted));
+            detail.push(Text::of(result.unwrap_or_else(|reason| reason), Ink::Info));
+        }
+        return Some(SectionView {
+            version: v::VERSION,
+            scope: section.into(),
+            body: Node::Tree(repositories(p)),
+            detail_title: super::title(p, section),
+            detail_blocks: vec![],
+            detail,
+            actions: super::keys(p, section).iter().map(crate::action_spec).collect(),
+        });
+    }
     if section == "connection" {
         p.setup_card.set(cx.setup);
     }
@@ -104,35 +124,6 @@ pub fn view(p: &GithubPlugin, section: &str, cx: &v::ViewCx<'_>) -> Option<Secti
                 })
                 .collect();
             (rows, super::conn_at(p))
-        }
-        "repositories" => {
-            let rows = super::order(p)
-                .into_iter()
-                .enumerate()
-                .map(|(i, row)| {
-                    let label = match row {
-                        Row::Add => "create a group or add a repository".to_owned(),
-                        Row::Group(g) => format!("◆  {}", p.cfg.groups[g].name),
-                        Row::Repository(g, r) => {
-                            let group = &p.cfg.groups[g];
-                            let full = &group.repositories[r];
-                            let name = group
-                                .owner
-                                .as_ref()
-                                .and_then(|owner| full.strip_prefix(&format!("{owner}/")))
-                                .unwrap_or(full);
-                            let branch = if r + 1 == group.repositories.len() {
-                                "└─ "
-                            } else {
-                                "├─ "
-                            };
-                            format!("  {branch}{name}")
-                        }
-                    };
-                    ListRow::new(format!("setting:{i}"), Text::plain(label))
-                })
-                .collect();
-            (rows, p.repository_row)
         }
         _ => return None,
     };
@@ -239,8 +230,47 @@ pub fn view(p: &GithubPlugin, section: &str, cx: &v::ViewCx<'_>) -> Option<Secti
     })
 }
 
+/// The complete held settings hierarchy. Folding changes visibility only;
+/// identity paths keep edits and delete confirmations tied to the same item.
+pub(super) fn repositories(p: &GithubPlugin) -> v::Tree {
+    let mut rows = vec![v::TreeRow::new("add", Text::plain("create a group or add a repository"))];
+    let mut open = Vec::new();
+    for group in &p.cfg.groups {
+        let id = super::group_id(&group.name);
+        if !p.repository_folded.contains(&id) { open.push(vec![id.clone()]); }
+        let mut row = v::TreeRow::new(id, Text::from(vec![
+            Seg::icon(Icon::Group), Seg::new(&group.name, Ink::Emphasis),
+        ]));
+        row.children = group.repositories.iter().map(|full| {
+            let name = group.owner.as_ref()
+                .and_then(|owner| full.strip_prefix(&format!("{owner}/")))
+                .unwrap_or(full);
+            v::TreeRow::new(format!("repo:{full}"), Text::plain(name))
+        }).collect();
+        rows.push(row);
+    }
+    let selected = super::path(p, super::selected(p));
+    let editing = p.editor.as_ref().and_then(|editor| {
+        let path = match &editor.field {
+            super::Field::Add => vec!["add".into()],
+            super::Field::RenameGroup(name) => vec![super::group_id(name)],
+            super::Field::Repository(group, repo) => vec![super::group_id(group), format!("repo:{repo}")],
+            super::Field::MoveToNewGroup(repo) => super::all_rows(p).into_iter().find_map(|row| match row {
+                super::Row::Repository(g, r) if p.cfg.groups[g].repositories[r] == *repo => Some(super::path(p, row)),
+                _ => None,
+            })?,
+            super::Field::Api | super::Field::Token => return None,
+        };
+        Some(Box::new(v::TreeEditing { path, at: 0, text: editor.input.value(), caret: editor.input.cursor() }))
+    });
+    v::Tree { rows, selected, open, editing, ..v::Tree::default() }
+}
+
 pub fn intent(p: &mut GithubPlugin, section: &str, intent: &v::Intent) -> Outcome {
     if !matches!(section, "connection" | "repositories") {
+        return Outcome::Ignored;
+    }
+    if p.editor.is_some() && !matches!(intent, v::Intent::Key { .. } | v::Intent::Invoke { .. }) {
         return Outcome::Ignored;
     }
     match intent {
@@ -258,11 +288,253 @@ pub fn intent(p: &mut GithubPlugin, section: &str, intent: &v::Intent) -> Outcom
             crate::chord_for(&rows, intent)
                 .map_or(Outcome::Ignored, |chord| super::key(p, section, chord))
         }
-        v::Intent::Fold { .. }
+        v::Intent::Fold { target, open } if section == "repositories" => super::fold(p, target, *open),
+        v::Intent::OpenAll | v::Intent::Fold { .. }
         | v::Intent::Show { .. }
         | v::Intent::End { .. }
         | v::Intent::EditSelect { .. }
         | v::Intent::EditUnselect
-        | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
+        | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
     }
+}
+
+#[cfg(test)]
+mod tree_tests {
+    use super::*;
+    use crate::{config::{Group, Settings}, settings};
+    use radar_core::input::TextInput;
+    use radar_core::plugin::Effect;
+
+    fn fixture() -> GithubPlugin {
+        let mut p = GithubPlugin::default();
+        p.apply_config(Settings {
+            groups: vec![
+                Group { name: "Watch".into(), owner: None, repositories: vec!["ankh-morpork/watch".into(), "ankh-morpork/guilds".into()] },
+                Group { name: "Witches".into(), owner: None, repositories: vec!["lancre/witches".into()] },
+            ],
+            ..Settings::default()
+        });
+        p
+    }
+
+    fn target(parts: &[&str]) -> v::Target {
+        v::TreeRow::target_of(&parts.iter().map(|part| (*part).into()).collect::<Vec<_>>())
+    }
+
+    fn select(p: &mut GithubPlugin, target: &v::Target) -> Outcome {
+        intent(p, "repositories", &v::Intent::Select { target: target.clone() })
+    }
+
+    fn press(p: &mut GithubPlugin, key: v::Key) -> Outcome {
+        intent(p, "repositories", &v::Intent::Key { chord: v::Chord::new(key) })
+    }
+
+    #[test]
+    fn settings_paths_selection_and_folds_survive_reorder_and_refresh() {
+        let mut p = fixture();
+        let repo = target(&["group:Watch", "repo:ankh-morpork/guilds"]);
+        assert!(matches!(select(&mut p, &repo), Outcome::Handled(_)));
+        let mut cfg = p.cfg.clone();
+        cfg.groups.reverse();
+        cfg.groups[1].repositories.reverse();
+        p.apply_config(cfg);
+        assert_eq!(v::TreeRow::target_of(&repositories(&p).selected), repo);
+        let before = repositories(&p);
+        let step = v::tree_step(&before, v::Chord::char('-')).unwrap();
+        assert!(matches!(intent(&mut p, "repositories", &step), Outcome::Handled(_)));
+        let folded = repositories(&p);
+        assert_eq!(folded.rows, before.rows);
+        assert_eq!(folded.selected, ["group:Watch"]);
+        assert!(!folded.open.contains(&vec!["group:Watch".into()]));
+        assert!(matches!(select(&mut p, &repo), Outcome::Ignored));
+        p.apply_config(p.cfg.clone());
+        assert_eq!(repositories(&p), folded);
+        assert!(matches!(intent(&mut p, "repositories", &v::Intent::Fold { target: target(&["group:Watch"]), open: true }), Outcome::Handled(_)));
+        assert_eq!(repositories(&p).selected, ["group:Watch"]);
+        assert!(matches!(select(&mut p, &repo), Outcome::Handled(_)));
+    }
+
+    #[test]
+    fn settings_reject_wrong_ancestors_removed_targets_and_leaf_folds() {
+        let mut p = fixture();
+        let repo = target(&["group:Watch", "repo:ankh-morpork/watch"]);
+        assert!(matches!(select(&mut p, &target(&["group:Witches", "repo:ankh-morpork/watch"])), Outcome::Ignored));
+        assert!(matches!(intent(&mut p, "repositories", &v::Intent::Fold { target: repo.clone(), open: false }), Outcome::Ignored));
+        select(&mut p, &repo);
+        let mut cfg = p.cfg.clone();
+        cfg.groups[0].repositories.remove(0);
+        p.apply_config(cfg);
+        assert!(matches!(select(&mut p, &repo), Outcome::Ignored));
+        assert_eq!(repositories(&p).selected, ["group:Watch"]);
+        p.apply_config(Settings::default());
+        assert_eq!(repositories(&p).rows.len(), 1);
+        assert_eq!(repositories(&p).selected, ["add"]);
+        assert!(matches!(intent(&mut p, "repositories", &v::Intent::Fold { target: target(&["add"]), open: false }), Outcome::Ignored));
+    }
+
+    #[test]
+    fn repository_editor_keeps_identity_and_captures_fold_keys_after_reordering() {
+        let mut p = fixture();
+        let repo = target(&["group:Watch", "repo:ankh-morpork/watch"]);
+        select(&mut p, &repo);
+        assert!(matches!(press(&mut p, v::Key::Char('e')), Outcome::Handled(_)));
+        let editing = repositories(&p).editing.unwrap();
+        assert_eq!(v::TreeRow::target_of(&editing.path), repo);
+        assert_eq!(editing.text, "ankh-morpork/watch");
+        assert!(matches!(intent(&mut p, "repositories", &v::Intent::Fold { target: target(&["group:Watch"]), open: false }), Outcome::Ignored));
+        assert!(matches!(select(&mut p, &target(&["group:Witches"])), Outcome::Ignored));
+        let mut cfg = p.cfg.clone();
+        cfg.groups.reverse();
+        cfg.groups[1].repositories.reverse();
+        p.apply_config(cfg);
+        p.editor.as_mut().unwrap().input = TextInput::new("ankh-morpork/patrol");
+        press(&mut p, v::Key::Enter);
+        assert_eq!(p.cfg.groups[1].repositories, ["ankh-morpork/guilds", "ankh-morpork/patrol"]);
+        assert_eq!(repositories(&p).selected, ["group:Watch", "repo:ankh-morpork/patrol"]);
+        assert!(p.editor.is_none());
+    }
+
+    #[test]
+    fn removed_editor_identity_cancels_capture_without_retargeting() {
+        for kind in ["repository", "group", "move"] {
+            let mut p = fixture();
+            let row = if kind == "group" { target(&["group:Watch"]) }
+                else { target(&["group:Watch", "repo:ankh-morpork/watch"]) };
+            select(&mut p, &row);
+            if kind == "move" {
+                let menu = menu_id(&mut p, 'm');
+                settings::on_menu(&mut p, &menu, "new");
+            } else {
+                press(&mut p, v::Key::Char('e'));
+            }
+            assert!(radar_core::Plugin::capturing(&p));
+            let mut cfg = p.cfg.clone();
+            if kind == "group" { cfg.groups.remove(0); }
+            else { cfg.groups[0].repositories.remove(0); }
+            p.apply_config(cfg);
+            assert!(p.editor.is_none(), "{kind} editor must disappear with its target");
+            assert!(!radar_core::Plugin::capturing(&p), "{kind} editor cannot consume invisible typing");
+            assert!(repositories(&p).editing.is_none());
+            assert!(!p.cfg.repositories.contains(&"ankh-morpork/watch".into()));
+        }
+    }
+
+    #[test]
+    fn stale_editor_commit_still_refuses_an_unreconciled_replacement() {
+        let mut p = fixture();
+        select(&mut p, &target(&["group:Watch", "repo:ankh-morpork/watch"]));
+        press(&mut p, v::Key::Char('e'));
+        // The commit boundary remains defensive even if a caller bypasses the
+        // normal configuration reconciliation above.
+        p.cfg.groups[0].repositories.remove(0);
+        assert_eq!(repositories(&p).editing.unwrap().path, ["group:Watch", "repo:ankh-morpork/watch"]);
+        p.editor.as_mut().unwrap().input = TextInput::new("ankh-morpork/patrol");
+        let Outcome::Handled(effects) = press(&mut p, v::Key::Enter) else { panic!("stale editor feedback") };
+        assert!(effects.iter().any(|effect| matches!(effect, Effect::Notify(text) if text == "repository changed; reopen edit")));
+        assert_eq!(p.cfg.groups[0].repositories, ["ankh-morpork/guilds"]);
+    }
+
+    #[test]
+    fn settings_delete_payload_and_generation_guard_stay_on_the_selected_repository() {
+        let mut p = fixture();
+        let repo = target(&["group:Watch", "repo:ankh-morpork/guilds"]);
+        select(&mut p, &repo);
+        let Outcome::Handled(effects) = press(&mut p, v::Key::Char('d')) else { panic!("delete confirmation") };
+        let Some(Effect::Menu(menu)) = effects.first() else { panic!("delete confirmation") };
+        assert_eq!(menu.id, "remove");
+        assert_eq!(p.remove_menu.as_ref().unwrap().1.full_name(), "ankh-morpork/guilds");
+        select(&mut p, &target(&["group:Witches"]));
+        settings::on_menu(&mut p, &menu.id, "yes");
+        assert_eq!(p.cfg.groups[0].repositories, ["ankh-morpork/watch"]);
+        assert_eq!(p.cfg.groups[1].repositories, ["lancre/witches"]);
+
+        select(&mut p, &target(&["group:Watch", "repo:ankh-morpork/watch"]));
+        press(&mut p, v::Key::Char('d'));
+        p.apply_config(p.cfg.clone());
+        settings::on_menu(&mut p, "remove", "yes");
+        assert_eq!(p.cfg.groups[0].repositories, ["ankh-morpork/watch"]);
+    }
+
+    #[test]
+    fn renaming_a_folded_group_keeps_selection_and_fold_and_escapes_identity() {
+        let mut p = fixture();
+        let group = target(&["group:Watch"]);
+        select(&mut p, &group);
+        intent(&mut p, "repositories", &v::Intent::Fold { target: group, open: false });
+        press(&mut p, v::Key::Char('e'));
+        p.editor.as_mut().unwrap().input = TextInput::new("Watch\u{1f}%1F");
+        press(&mut p, v::Key::Enter);
+        let model = repositories(&p);
+        assert_eq!(model.selected, ["group:Watch%1F%251F"]);
+        assert!(!model.open.contains(&model.selected));
+        assert_eq!(v::TreeRow::path_of(&v::TreeRow::target_of(&model.selected)), model.selected);
+    }
+    fn menu_id(p: &mut GithubPlugin, key: char) -> String {
+        let Outcome::Handled(effects) = press(p, v::Key::Char(key)) else { panic!("settings menu") };
+        effects.iter().find_map(|effect| match effect {
+            Effect::Menu(menu) => Some(menu.id.clone()),
+            _ => None,
+        }).expect("settings menu")
+    }
+
+    #[test]
+    fn group_delete_keeps_its_payload_and_refuses_reordered_or_reset_configuration() {
+        let mut p = fixture();
+        select(&mut p, &target(&["group:Watch"]));
+        let menu = menu_id(&mut p, 'd');
+        assert_eq!(menu, "remove-group:0");
+        select(&mut p, &target(&["group:Witches"]));
+        settings::on_menu(&mut p, &menu, "yes");
+        assert_eq!(p.cfg.groups.len(), 1);
+        assert_eq!(p.cfg.groups[0].name, "Witches");
+
+        for change in 0..3 {
+            let mut p = fixture();
+            select(&mut p, &target(&["group:Watch"]));
+            let menu = menu_id(&mut p, 'd');
+            let mut cfg = p.cfg.clone();
+            if change != 1 { cfg.groups.reverse(); }
+            if change == 2 { p.cfg = cfg; } else { p.apply_config(cfg); }
+            let before = p.cfg.clone();
+            let effects = settings::on_menu(&mut p, &menu, "yes");
+            assert_eq!(p.cfg, before);
+            assert!(effects.iter().any(|effect| matches!(effect, Effect::Notify(text) if text == "settings changed; reopen the group action")));
+        }
+    }
+
+    #[test]
+    fn repository_move_refuses_stale_source_destination_reset_and_new_group_choices() {
+        for choice in ["1", "new"] {
+            for change in 0..3 {
+                let mut p = fixture();
+                select(&mut p, &target(&["group:Watch", "repo:ankh-morpork/watch"]));
+                let menu = menu_id(&mut p, 'm');
+                assert_eq!(menu, "move:0:0");
+                let mut cfg = p.cfg.clone();
+                if change != 1 { cfg.groups.reverse(); }
+                if change == 2 { p.cfg = cfg; } else { p.apply_config(cfg); }
+                let before = p.cfg.clone();
+                let effects = settings::on_menu(&mut p, &menu, choice);
+                assert_eq!(p.cfg, before);
+                assert!(p.editor.is_none());
+                assert!(effects.iter().any(|effect| matches!(effect, Effect::Notify(text) if text == "settings changed; reopen move")));
+            }
+        }
+    }
+
+    #[test]
+    fn hidden_removed_and_legacy_context_targets_do_not_open_fallback_actions() {
+        let mut p = fixture();
+        let repo = target(&["group:Watch", "repo:ankh-morpork/watch"]);
+        select(&mut p, &target(&["group:Watch"]));
+        intent(&mut p, "repositories", &v::Intent::Fold { target: target(&["group:Watch"]), open: false });
+        let before = repositories(&p).selected;
+        for target in [repo.clone(), v::Target::new("setting:2")] {
+            assert!(matches!(intent(&mut p, "repositories", &v::Intent::Context { target }), Outcome::Ignored));
+            assert_eq!(repositories(&p).selected, before);
+        }
+        p.apply_config(Settings::default());
+        assert!(matches!(intent(&mut p, "repositories", &v::Intent::Context { target: repo }), Outcome::Ignored));
+    }
+
 }

@@ -1,13 +1,14 @@
 ---
 source: crates/radar-jira/src/tests.rs
+assertion_line: 1276
 expression: "text(&host, 160, 40)"
 ---
  radar    Jira   History   Settings (,)                                                                                       not synced yet · every 2m  ✎ edit
- Jira › acme › ABC › ABC-12
+ Jira / acme / ABC / ABC-12
  Add a stats endpoint for the dashboard                                                                                             ◐ In Progress · Story · you
  parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
  [Overview]  Comments  Links  Code
-╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────╮
+╭ 1 overview ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────╮
 │ DESCRIPTION                                                                                                          ││ status        ◐ In Progress          │
 │ Why                                                                                                                  ││ type          Story                  │
 │                                                                                                                      ││ priority      Medium                 │
@@ -41,4 +42,4 @@ expression: "text(&host, 160, 40)"
 │                                                                                                                      ││                                      │
 │                                                                                                                      ││                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯
- JIRA   asking Jira where ABC-12 can go…                                                                                              6 tickets · 4 doing  jira
+ JIRA   ↑↓ move   ⏎ choose   esc close                                                                                                6 tickets · 4 doing  jira

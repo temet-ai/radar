@@ -1,21 +1,22 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
- radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
-╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+ radar    Work items   History   Settings (,)                                                                     local annotations · observations only  ✎ edit
+╭ 1 local groups ───────╮╭ 2 work items · page 1 ──────────────────────────────────────────────────────────────╮╭ 3 linked sources and context ────────────────╮
 │ All items             ││ Ship explicit work-item navigation                                             task ││ pull-request · acme/api/7                    ║
 │ release candidate     ││ pull-request · acme/api/7                                              pull-request ││ authored                                     █
-│                       ││ ticket · ABC-12                                                              ticket ││ Source owner unavailable here; c copies its  █
+│                       ││ ticket · ABC-12                                                              ticket ││ Source owner unavailable here; copy its      █
 │                       ││ checkout · /home/user/projects/api                                         checkout ││ exact locator.                               █
 │                       ││ workflow-run · acme/api/42/1                                           workflow-run ││ Local work saved.                            █
 │                       ││                                                                                     ││ Ship explicit work-item navigation           █
 │                       ││                                                                                     ││ Local groups: release candidate              █
 │                       ││                                                                                     ││ Selected pull-request: acme/api/7            █
-│                       ││                                                                                     ││ authored link · c copy locator · x actions   █
+│                       ││                                                                                     ││ authored link · copy locator · extra actions █
 │                       ││                                                                                     ││ Locator event in this page: source.selected  █
 │                       ││                                                                                     ││ · requested                                  █
-│                       ││                                                                                     ││ v history: original claims and outcomes ·    █
+│                       ││                                                                                     ││ view history: original claims and outcomes · █
 │                       ││                                                                                     ││ completeness not guaranteed                  █
 │                       ││                                                                                     ││ Partial one-hop map: more relation evidence  █
 │                       ││                                                                                     ││ may exist. Inspect task evidence with v.     █
@@ -41,4 +42,4 @@ expression: text
 │                       ││                                                                                     ││ Observations only. Relations grant no        ║
 │ Groups · page 1       ││                                                                                     ││ identity, permission or completion.          ║
 ╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate

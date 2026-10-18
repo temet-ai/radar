@@ -4,7 +4,7 @@ assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack ●   History   Settings (,)                               ✎ edit
-╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ────────────────────────────────────────╮
 │General               ││  workspace       Acme · https://acme.slack.com       █
 │  ├─ parts            ││  api             https://slack.com                   █
 │  ├─ mode             ││  token           xoxp…ests (typed in)                █
@@ -15,7 +15,7 @@ expression: "to_text(&host, 80, 24)"
 │  ├─ connection       ││  permissions   ├─ public channels             has it ║
 │  ├─ channels         ││                ├─ private channels            has it ║
 │  ├─ review           │╰──────────────────────────────────────────────────────╯
-│  ├─ alerts           │╭ workspace ───────────────────────────────────────────╮
+│  ├─ alerts           │╭ 3 workspace ─────────────────────────────────────────╮
 │  └─ look             ││ CHECKED                                              █
 │                      ││ not checked yet                                      █
 │                      ││                                                      █
@@ -26,4 +26,4 @@ expression: "to_text(&host, 80, 24)"
 │                      ││ belongs to one. The check finds it.                  ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   b bulk   x menu   ←→↑↓ navigate            slack
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                  slack

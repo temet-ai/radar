@@ -328,7 +328,7 @@ pub fn link_icon(label: &str) -> Icon {
 /// else `✗`, before the words.
 pub fn failed(words: &str) -> radar_core::Effect {
     let (icon, mark) = icon::plain_or(Icon::Error, "✗");
-    radar_core::Effect::notify(icon, format!("{mark}{words}"))
+    radar_core::Effect::error(icon, format!("{mark}{words}"))
 }
 
 /// An alert state's mark as plain words (no theme in reach): its icon, else
@@ -354,6 +354,32 @@ pub fn channel_heading(id: &str, alias: &str) -> (Option<Icon>, String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod notice_severity_tests {
+        use super::*;
+
+        #[test]
+        fn failed_notice_keeps_error_tone_with_icons_on_and_off() {
+            use radar_core::ui::icon as packs;
+            // Restore the thread-local pack even if this helper contract fails.
+            struct Restore(packs::Icons);
+            impl Drop for Restore {
+                fn drop(&mut self) { packs::set_current(&self.0); }
+            }
+            let _restore = Restore(packs::current());
+            for pack in ["off", "unicode"] {
+                let (icons, warnings) = packs::resolve(pack, &[], &Default::default());
+                assert!(warnings.is_empty());
+                packs::set_current(&icons);
+                let radar_core::Effect::Notice(message) = failed("request refused") else {
+                    panic!("failure must carry semantic error severity");
+                };
+                assert_eq!(message.tone, radar_core::view::chrome::NoticeTone::Error);
+                assert_eq!(message.icon, (pack != "off").then_some(Icon::Error));
+                assert_eq!(message.text, if pack == "off" { "✗ request refused" } else { "request refused" });
+            }
+        }
+    }
 
     #[test]
     fn a_channels_icon_follows_its_id() {

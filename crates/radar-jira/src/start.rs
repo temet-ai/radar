@@ -380,7 +380,13 @@ mod tests {
 
         #[test]
         fn minimal_ticket_preserves_legacy_start_plans() {
-            let original = crate::demo::sample().data["acme"].tickets["ABC-12"].clone();
+            let mut original = crate::demo::sample().data["acme"].tickets["ABC-12"].clone();
+            let provider_id = original.id.clone();
+            assert!(!provider_id.is_empty(), "the complete demo has a provider identity");
+            // This migration's legacy fixture omitted the provider ID. Keep
+            // that exact starting state, and also prove that the complete
+            // demo's ID does not change key-addressed assignment/move plans.
+            original.id.clear();
             let me = alice();
             let ms = moves();
             for (status, category, assignee) in [
@@ -397,10 +403,17 @@ mod tests {
                 legacy.assignee_id = assignee.1.into();
                 let minimal = ticket(status, category, assignee);
                 assert_eq!((&minimal.id, &minimal.summary), (&legacy.id, &legacy.summary));
+                let mut identified = legacy.clone();
+                identified.id.clone_from(&provider_id);
                 for wanted in ["", "In Review"] {
                     assert_eq!(
                         plan("acme", &minimal, Some(&me), Some(&ms), wanted),
                         plan("acme", &legacy, Some(&me), Some(&ms), wanted),
+                    );
+                    assert_eq!(
+                        plan("acme", &minimal, Some(&me), Some(&ms), wanted),
+                        plan("acme", &identified, Some(&me), Some(&ms), wanted),
+                        "provider IDs do not change key-addressed start plans",
                     );
                 }
             }

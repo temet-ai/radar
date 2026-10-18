@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen/status_availability_tests.rs
+assertion_line: 332
 expression: question
 ---
  radar    Branches   History   Settings (,)    synced 0s ago · every 1m  ✎ edit
-╭ all ─────────────────────────────────────────────────────────────────────────╮
+╭ 2 all ───────────────────────────────────────────────────────────────────────╮
 │ CLONES · 1 clone, 1 worktree       AHEAD  BEHIND  DIRTY      STASH  UPDATED  │
 │api  on main  ● in use              —      —       clean      —      2961w    │
 │  ├─ api-hotfix  on hotfix          ↑2     ↓1      2 changed  —      2961w    │
@@ -14,9 +15,9 @@ expression: question
 │                │ the folder /work/acme/api-hotfix is removed│                │
 │                │ its branch hotfix stays                    │                │
 │                │                                            │                │
-│                │                  ▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔│                │
-│                │                   y remove it    n keep it │                │
-│                │                  ▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁│                │
+│                │             ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔│                │
+│                │              yes, remove it    no, keep it │                │
+│                │             ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁│                │
 │                ╰────────────────────────────────────────────╯                │
 │                                                                              │
 │                                                                              │

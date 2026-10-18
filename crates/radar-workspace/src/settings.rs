@@ -579,7 +579,7 @@ fn row_menu(p: &WorkspacePlugin) -> Option<Menu> {
                 format!("ws-found:{i}"),
                 tilde(&o.dir),
                 vec![
-                    MenuItem::new('y', "use it", "add it as a workspace", "use"),
+                    MenuItem::new('y', "yes, use it", "add it as a workspace", "use"),
                     MenuItem::new('n', "not now", "stop asking this time", "pass"),
                 ],
             ))
@@ -616,19 +616,19 @@ fn row_menu(p: &WorkspacePlugin) -> Option<Menu> {
                 MenuItem::new('e', "editor…", "the editor it opens in", "editor"),
                 MenuItem::new(
                     'p',
-                    "after a worktree…",
+                    "post-worktree command…",
                     "a command run after one is made",
                     "after",
                 ),
-                MenuItem::new('m', "notes…", "okf, or a path template", "notes"),
+                MenuItem::new('m', "notes format…", "okf, or a path template", "notes"),
                 MenuItem::new(
                     's',
-                    "look again",
+                    "scan again",
                     "find its clones and notes again",
                     "reindex",
                 ),
                 MenuItem::new('a', "add a workspace", "another folder to work from", "add"),
-                MenuItem::new('d', "stop using it…", "remove this workspace", "remove"),
+                MenuItem::new('d', "disconnect workspace…", "remove this workspace", "remove"),
             ],
         )),
     }
@@ -885,7 +885,7 @@ pub fn intent(p: &mut WorkspacePlugin, section: &str, intent: &v::Intent) -> Out
             click(p, section, target.as_str());
             press(p, v::Chord::new(v::Key::Enter))
         }
-        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
+        Intent::OpenAll | Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
             Some(chord) => press(p, chord),
             None => Outcome::Ignored,
@@ -906,7 +906,7 @@ fn press(p: &mut WorkspacePlugin, key: v::Chord) -> Outcome {
             Edit::Submit(text) => match validate(p, &field, &text) {
                 Verdict::Bad(why) => {
                     p.state.edit = Some((field, input));
-                    Outcome::Handled(vec![Effect::Notify(format!("not yet: {why}"))])
+                    Outcome::Handled(vec![Effect::error(None, format!("not yet: {why}"))])
                 }
                 Verdict::Good(_) | Verdict::Warn(_) => {
                     Outcome::Handled(commit(p, field, text.trim().to_string()))
@@ -997,5 +997,45 @@ pub fn bulk(p: &WorkspacePlugin, _scope: &str) -> Vec<MenuItem> {
             ),
             "ws-reindex",
         )]
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    fn check_menu(menu: &Menu) -> usize {
+        let mut checked = 0;
+        for item in &menu.items {
+            if !item.heading && !item.note && radar_core::mnemonic::letter(&item.keys).is_some() {
+                let words = radar_core::mnemonic::choice_words(menu.question, &item.label, &item.hint);
+                assert!(radar_core::mnemonic::at(&item.keys, words).is_some(),
+                    "{}: {:?} has no mnemonic in {:?}", menu.id, item.keys, words);
+                checked += 1;
+            }
+        }
+        checked
+    }
+
+    #[test]
+    fn workspace_and_discovery_producers_keep_keyed_action_words() {
+        let mut p = crate::demo::sample();
+        p.state.offers = Some(vec![find::Offer {
+            dir: "/work/ankh-morpork".into(), name: "Watch".into(), clones: 2, repos: "repos".into(),
+        }]);
+        let before = p.cfg.clone();
+        let mut checked = 0;
+        for row in 0..rows(&p).len() {
+            p.state.row = row;
+            if let Some(menu) = row_menu(&p) {
+                checked += check_menu(&menu);
+                if menu.id.starts_with("ws-found:") {
+                    assert_eq!(menu.items.iter().map(|item| (item.key, item.value.as_str())).collect::<Vec<_>>(),
+                        [(Some('y'), "use"), (Some('n'), "pass")]);
+                }
+            }
+        }
+        assert!(checked >= 13, "exercise discovery and configured workspaces");
+        assert_eq!(p.cfg, before);
     }
 }

@@ -85,7 +85,7 @@ impl Host {
         let Some(m) = Mode::parse(value) else { return };
         self.mode_cfg = m;
         self.apply_mode();
-        self.message = Some(
+        self.notify(
             match &self.mode_env {
                 Some((now, v)) => format!(
                     "mode {} saved; {v} keeps radar {} for this run",
@@ -168,10 +168,10 @@ impl Host {
     /// `z`: pause every part, or resume.
     pub(crate) fn toggle_pause(&mut self) {
         if self.pause.now.take().is_some() {
-            self.message = Some("refreshing resumed".into());
+            self.notify("refreshing resumed".into());
         } else {
             self.pause.now = Some(Pause::Asked);
-            self.message = Some("refreshing paused · z resumes".into());
+            self.notify("refreshing paused · z resumes".into());
         }
     }
 
@@ -180,7 +180,7 @@ impl Host {
         self.pause.last_input = now;
         if self.pause.now == Some(Pause::Idle) {
             self.pause.now = None;
-            self.message = Some("refreshing resumed".into());
+            self.notify("refreshing resumed".into());
         }
     }
 
@@ -189,7 +189,7 @@ impl Host {
         let idle = self.pause.idle_minutes as i64 * 60;
         if self.pause.now.is_none() && idle > 0 && now - self.pause.last_input >= idle {
             self.pause.now = Some(Pause::Idle);
-            self.message = Some(
+            self.notify(
                 format!(
                     "refreshing paused after {} idle",
                     minutes(self.pause.idle_minutes)
@@ -251,7 +251,7 @@ impl Host {
     pub(crate) fn on_idle_menu(&mut self, value: &str) {
         let Ok(m) = value.parse::<u64>() else { return };
         self.pause.idle_minutes = m;
-        self.message = Some(format!("pause if idle: {}", idle_words(m)).into());
+        self.notify(format!("pause if idle: {}", idle_words(m)).into());
     }
 }
 

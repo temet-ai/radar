@@ -395,7 +395,7 @@ pub(crate) fn contribute(p: &JiraPlugin, point: Point, s: &Subject) -> Option<Co
             for (n, (site, key)) in found.iter().enumerate() {
                 if s.is(PULL_REQUEST) {
                     let subject = ticket(p, site, key);
-                    let mut open = Action::new('v', format!("open {key}"), pull_open_action(&subject))
+                    let mut open = Action::new('v', format!("view {key}"), pull_open_action(&subject))
                         .icon(Icon::Issue);
                     if n > 0 {
                         open.key = None;
@@ -403,7 +403,7 @@ pub(crate) fn contribute(p: &JiraPlugin, point: Point, s: &Subject) -> Option<Co
                     actions.push(open);
                     continue;
                 }
-                let mut open = Action::new('v', format!("open {key}"), format!("open\0{key}")).icon(Icon::Issue);
+                let mut open = Action::new('v', format!("view {key}"), format!("open\0{key}")).icon(Icon::Issue);
                 let mut mv = Action::new('>', format!("move {key} to …"), format!("move\0{key}")).icon(Icon::Navigate).edits();
                 if n > 0 {
                     open.key = None;

@@ -1028,12 +1028,35 @@ mod tests {
             "its repo, selected"
         );
         assert!(!p.tree.borrow().opened().contains(&repo), "and closed");
-        press(&mut p, Pane::Middle, KeyCode::Char('='));
-        draw(&p);
-        assert!(p.tree.borrow().opened().contains(&repo), "= opens it again");
-        press(&mut p, Pane::Middle, KeyCode::Char('-'));
-        press(&mut p, Pane::Middle, KeyCode::Char('+'));
-        assert!(p.tree.borrow().opened().contains(&repo));
+        // Open-all is host-owned; it expands every held group through the
+        // owner's existing Fold intent rather than an owner-local '=' key.
+        let now = p.now;
+        let mut host = radar_core::Host::new(vec![Box::new(p)], now).unwrap();
+        host.focus = Pane::Middle;
+        host.set_view_room(160, 40);
+        let tree = |host: &radar_core::Host| {
+            let view = host.screen_view(0, "repos").expect("repositories screen");
+            let radar_core::view::Node::Tree(tree) = &view
+                .pane(radar_core::view::PaneId::Middle)
+                .expect("repositories pane")
+                .body
+            else {
+                panic!("repositories tree")
+            };
+            tree.clone()
+        };
+        for key in ['=', '-', '+'] {
+            assert!(host.update(radar_core::host::Event::Key(KeyEvent::new(
+                KeyCode::Char(key), KeyModifiers::NONE,
+            ))).is_empty(), "folds have no external effects");
+            let after = tree(&host);
+            assert_eq!(after.selected, repo, "folding keeps the selected repo");
+            assert_eq!(after.open.contains(&repo), key != '-', "{key}");
+            if key == '=' {
+                assert!(after.groups().iter().all(|path| after.open.contains(path)),
+                    "= opens every held tenancy and repo");
+            }
+        }
     }
 
     #[test]

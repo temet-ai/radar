@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 2221
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
-╭ #svc ────────────────────────────────────────────────────────────────────────╮
+╭ 2 #svc ──────────────────────────────────────────────────────────────────────╮
 │ 1 new                                                    ↩ REPLIE ◷ WHEN     │
-│▌ today                                                                       │
-│▌ └─ • Carol C.  The service is being upgraded at noon             5h         │
+│today                                                                         │
+│  └─ • Carol C.  The service is being upgraded at noon             5h         │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -25,4 +26,4 @@ expression: "to_text(&host, 80, 24)"
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ the last 7 days ·                                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   b ◫ bulk   +/- ± expand/collapse   q ✕ quit   x ≡ menu               #
+ SLACK   ◫ bulk   +/- ± expand/collapse   ≡ extra actions   ~ notices         #

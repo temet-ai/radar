@@ -1557,7 +1557,7 @@ pub fn intent(p: &mut GitPlugin, section: &str, intent: &v::Intent) -> Outcome {
             click(p, section, target.as_str());
             press(p, section, v::Chord::new(v::Key::Enter))
         }
-        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
+        Intent::Fold { .. } | Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } | Intent::OpenAll => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => {
             let Some(chord) = intent.chord() else {
                 return Outcome::Ignored;
@@ -1650,15 +1650,15 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
                     "names for new branches here",
                     "branch",
                 ),
-                MenuItem::new('m', "base branch…", "new branches start from it", "base"),
+                MenuItem::new('m', "modify base branch…", "new branches start from it", "base"),
                 MenuItem::new('a', "link another repo", "a repo, then its clone", "add"),
-                MenuItem::new('d', "unlink…", "forget this link", "remove"),
+                MenuItem::new('d', "disconnect link…", "forget this link", "remove"),
             ],
         ));
     }
     if section == "branches" {
         let reset = |on: bool, what: &str| {
-            on.then(|| MenuItem::new('r', "back to the default", what.to_string(), "reset"))
+            on.then(|| MenuItem::new('r', "restore the default", what.to_string(), "reset"))
         };
         let edit = |hint: &str| MenuItem::new('e', "change it", hint.to_string(), "edit");
         let (id, title, mut items) = match selected_brow(p) {
@@ -1668,11 +1668,11 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
                     format!("lc-conv:{i}"),
                     p.cfg.conventions[i].under.clone(),
                     vec![
-                        MenuItem::new('u', "change the path", "the repos it covers", "under"),
+                        MenuItem::new('u', "update the path", "the repos it covers", "under"),
                         MenuItem::new('t', "branch template…", "needs {key}", "branch"),
-                        MenuItem::new('m', "base branch…", "new branches start from it", "base"),
+                        MenuItem::new('m', "modify base branch…", "new branches start from it", "base"),
                         MenuItem::new('a', "add a convention", "another repo path", "add"),
-                        MenuItem::new('d', "remove…", "forget this convention", "remove"),
+                        MenuItem::new('d', "drop it…", "forget this convention", "remove"),
                     ],
                 ));
             }
@@ -1719,7 +1719,7 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
                     "a name, then its marker files",
                     "add",
                 ),
-                MenuItem::new('d', "remove…", "forget this type", "remove"),
+                MenuItem::new('d', "drop it…", "forget this type", "remove"),
             ],
         ));
     }
@@ -1728,7 +1728,7 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
     }
     let look = MenuItem::new(
         's',
-        "look now",
+        "scan now",
         "look for checkouts in every folder",
         "scan",
     );
@@ -1749,7 +1749,7 @@ fn row_menu(p: &GitPlugin, section: &str) -> Option<Menu> {
                 MenuItem::new('e', "change it", "type or paste another folder", "edit"),
                 look,
                 MenuItem::new('a', "add a folder", "another folder to look in", "add"),
-                MenuItem::new('d', "stop looking here…", "remove this folder", "remove"),
+                MenuItem::new('d', "drop this search folder…", "remove this folder", "remove"),
             ],
         ),
         Row::Depth => Menu::new(
@@ -2195,7 +2195,7 @@ fn typed(p: &mut GitPlugin, key: impl FnOnce(&mut TextInput) -> Edit) -> Outcome
         Edit::Submit(text) => match validate(p, &field, &text) {
             Verdict::Bad(why) => {
                 p.local.edit = Some((field, input));
-                Outcome::Handled(vec![Effect::Notify(format!("not yet: {why}"))])
+                Outcome::Handled(vec![Effect::error(None, format!("not yet: {why}"))])
             }
             Verdict::Good(_) | Verdict::Warn(_) => {
                 Outcome::Handled(commit(p, field, text.trim().to_string()))
@@ -2365,7 +2365,7 @@ mod tests {
         press(&mut p, "checkouts", KeyCode::Enter);
         let fx = typed(&mut p, "checkouts", "/radar/no/such/folder");
         assert!(
-            matches!(&fx[..], [Effect::Notify(m)] if m == "not yet: not a folder on this machine"),
+            matches!(&fx[..], [Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.text == "not yet: not a folder on this machine"),
             "{fx:?}"
         );
         assert!(p.local.edit.is_some(), "still typing after a refusal");
@@ -2498,7 +2498,7 @@ mod tests {
         p.local.rows[1] = 0;
         press(&mut p, "editors", KeyCode::Enter);
         let fx = typed(&mut p, "editors", "elixir");
-        assert!(matches!(&fx[..], [Effect::Notify(m)] if m.contains("marker file")));
+        assert!(matches!(&fx[..], [Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("marker file")));
         typed(&mut p, "editors", " mix.exs");
         let ty = p.cfg.types.last().unwrap();
         assert_eq!(
@@ -2896,5 +2896,46 @@ mod tests {
             60,
         );
         assert!(right.is_some());
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    fn check_menu(menu: &Menu) -> usize {
+        let mut checked = 0;
+        for item in &menu.items {
+            if !item.heading && !item.note && radar_core::mnemonic::letter(&item.keys).is_some() {
+                let words = radar_core::mnemonic::choice_words(menu.question, &item.label, &item.hint);
+                assert!(radar_core::mnemonic::at(&item.keys, words).is_some(),
+                    "{}: {:?} has no mnemonic in {:?}", menu.id, item.keys, words);
+                checked += 1;
+            }
+        }
+        checked
+    }
+
+    #[test]
+    fn settings_producers_embed_every_letter_in_action_words() {
+        let mut p = crate::demo::sample();
+        p.cfg.links.push(Link { repo: "ankh-morpork/watch".into(), dir: "/work/watch".into(), ..Default::default() });
+        p.cfg.conventions.push(Convention { under: "ankh-morpork".into(), branch: "{key}".into(), base: "trunk".into() });
+        p.cfg.me = "vimes".into();
+        p.cfg.branch = "watch/{key}".into();
+        p.cfg.worktree = "{clone}/../{topic}".into();
+        p.cfg.after_worktree = "printf 'watch'".into();
+        p.cfg.terminal = "tmux new-window".into();
+        p.cfg.type_map.insert("story".into(), "watch".into());
+        let before = p.cfg.clone();
+        let mut checked = 0;
+        for section in SECTIONS {
+            for row in 0..row_count(&p, section.id) {
+                p.local.rows[at(section.id)] = row;
+                if let Some(menu) = row_menu(&p, section.id) { checked += check_menu(&menu); }
+            }
+        }
+        assert!(checked > 25);
+        assert_eq!(p.cfg, before, "describing commands and paths never rewrites them");
     }
 }

@@ -12,7 +12,8 @@
           "char": "c"
         }
       },
-      "label": "check the connection"
+      "label": "check the connection",
+      "mnemonic_at": 0
     },
     {
       "id": "slack.connection.copy_manifest",
@@ -21,7 +22,8 @@
           "char": "m"
         }
       },
-      "label": "copy radar's Slack app manifest"
+      "label": "copy radar's Slack app manifest",
+      "mnemonic_at": 23
     },
     {
       "id": "slack.connection.new_app",
@@ -30,7 +32,8 @@
           "char": "o"
         }
       },
-      "label": "open Slack's new-app page, the manifest filled in"
+      "label": "open Slack's new-app page, the manifest filled in",
+      "mnemonic_at": 0
     },
     {
       "id": "slack.connection.kept_replies",
@@ -582,7 +585,33 @@
             },
             {
               "ink": "muted",
-              "text": "   o opens · m copies the manifest"
+              "text": "   "
+            },
+            {
+              "look": "text.muted underline",
+              "text": "o"
+            },
+            {
+              "key_hint": "o",
+              "look": "text.muted",
+              "text": "pen"
+            },
+            {
+              "ink": "muted",
+              "text": " · "
+            },
+            {
+              "look": "text.muted",
+              "text": "copy "
+            },
+            {
+              "look": "text.muted underline",
+              "text": "m"
+            },
+            {
+              "key_hint": "m",
+              "look": "text.muted",
+              "text": "anifest"
             }
           ]
         },

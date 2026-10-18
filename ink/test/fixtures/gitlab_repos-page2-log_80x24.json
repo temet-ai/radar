@@ -13,7 +13,8 @@
           "char": "o"
         }
       },
-      "label": "open the job in GitLab"
+      "label": "open the job in GitLab",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.page.open_pipeline",
@@ -22,7 +23,8 @@
           "char": "p"
         }
       },
-      "label": "open its pipeline"
+      "label": "open its pipeline",
+      "mnemonic_at": 1
     },
     {
       "id": "gitlab.page.copy_link",
@@ -31,7 +33,8 @@
           "char": "y"
         }
       },
-      "label": "copy its link"
+      "label": "copy its link",
+      "mnemonic_at": 3
     },
     {
       "id": "gitlab.page.refresh",
@@ -40,7 +43,8 @@
           "char": "r"
         }
       },
-      "label": "load its log again"
+      "label": "reread its log",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.job.copy_lines",
@@ -49,7 +53,8 @@
           "char": "c"
         }
       },
-      "label": "copy its last lines"
+      "label": "copy its last lines",
+      "mnemonic_at": 0
     },
     {
       "heading": true,
@@ -72,7 +77,8 @@
           "char": "g"
         }
       },
-      "label": "go to the start, loading the part before"
+      "label": "go to the start, loading the part before",
+      "mnemonic_at": 0
     },
     {
       "heading": true,

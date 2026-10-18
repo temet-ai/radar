@@ -113,10 +113,11 @@ fn command(cmd: &str) -> Block {
 
 /// A link: its words, opened when clicked; then the keys that open and
 /// copy it from the section, when it has them.
-fn link(words: &str, url: &str, keys: Option<&str>) -> Block {
+fn link(words: &str, url: &str, hints: &[(&str, &str)]) -> Block {
     let mut text = Text::new().push(Seg::new(words, Ink::Accent).linked(url));
-    if let Some(keys) = keys {
-        text.add(Seg::new(format!("   {keys}"), Ink::Muted));
+    for (index, (key, action)) in hints.iter().enumerate() {
+        text.add(Seg::new(if index == 0 { "   " } else { " · " }, Ink::Muted));
+        text.extend(radar_core::mnemonic::text(key, action, "text.muted"));
     }
     Block::line(text)
 }
@@ -127,7 +128,7 @@ pub(crate) fn token_help(p: &GitlabPlugin) -> Vec<Block> {
     vec![
         Block::section(Some(Icon::Connection), "get a GitLab token", None, vec![
             line("1 Open GitLab's new-token page:"),
-            link(&token_page_words(p), &token_page(p), Some("o opens · y copies")),
+            link(&token_page_words(p), &token_page(p), &[("o", "open"), ("y", "copy")]),
             line(&format!("  name radar · scope from access: {}", scope(p))),
             line("2 Pick an expiry date, then Create personal access token."),
             line("3 Copy the glpat-… value into token, or keep it out of radar's config:"),
@@ -166,8 +167,8 @@ pub(crate) fn follow_help(p: &GitlabPlugin) -> Vec<Block> {
 
 fn more() -> Block {
     Block::section(Some(Icon::Link), "more", None, vec![
-        link("GitLab docs: access tokens", DOCS, None),
-        link("radar guide: connect GitLab", GUIDE, None),
+        link("GitLab docs: access tokens", DOCS, &[]),
+        link("radar guide: connect GitLab", GUIDE, &[]),
     ])
 }
 

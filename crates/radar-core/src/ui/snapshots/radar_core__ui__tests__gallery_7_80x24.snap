@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Diff
+ Gallery / Diff
  The kit: every element on sample data                            colours: none
  Card  Meters  Rows & states  Entries & log  Markdown  [Diff]  Motion  Colours
 ╭ shelf/Shelves.java · 6 added, 2 removed ─────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │ 22 27   }                                                                    ║
 │         \ No newline at end of file                                          ║
 ╰──────────────────────────────────────────────────────────────────────────────╯
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

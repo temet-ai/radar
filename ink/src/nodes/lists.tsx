@@ -19,6 +19,7 @@ import {
   clipCells,
   lineCells,
   padCells,
+  paragraphCells,
   patch,
   patchCells,
   useRowCache,
@@ -260,16 +261,24 @@ function headingFor(column: ColumnSpec, width: number, style: Style): Cell[] {
 export type { Placed };
 
 /** ui::entries: every line of every entry, with the entry it belongs to and whether it is the head. */
-export function entryLines(rows: EntryView[]) {
-  const lines: { text: Text; entry: number | null; head: boolean }[] = [];
+export function entryLines(rows: EntryView[], width?: number, plain = false) {
+  const lines: { text: Text; cells?: Cell[]; entry: number | null; head: boolean }[] = [];
   const spans: [number, number][] = [];
+  const append = (text: Text, entry: number | null, head: boolean) => {
+    if (plain && width !== undefined) {
+      // Accessibility suffixes and links expand the authored visual line. Wrap
+      // that presentation once, and share its rows with scrolling and targets.
+      for (const cells of paragraphCells(lineCells(text, true), Math.max(1, width - 2)))
+        lines.push({ text, cells, entry, head });
+    } else lines.push({ text, entry, head });
+  };
   rows.forEach((r, i) => {
     for (const l of r.before ?? [])
-      lines.push({ text: l, entry: null, head: false });
+      append(l, null, false);
     const start = lines.length;
-    lines.push({ text: r.head, entry: i, head: true });
+    append(r.head, i, true);
     for (const l of r.body ?? [])
-      lines.push({ text: l, entry: i, head: false });
+      append(l, i, false);
     spans.push([start, lines.length]);
   });
   return { lines, spans };
@@ -317,23 +326,23 @@ export function EntriesNode({
       />
     );
   const width = ctx.width;
-  const line = (t: Text, isSel: boolean) => {
+  const line = (t: Text, isSel: boolean, wrapped?: Cell[]) => {
     const cells = [
       ...cellsOf(" "),
-      ...clipCells(lineCells(t, ctx.plainText), Math.max(0, width - 2)),
+      ...(wrapped ?? clipCells(lineCells(t, ctx.plainText), Math.max(0, width - 2))),
     ];
     return isSel
       ? rowLine(cells, width, true, ctx.focused, ctx.plainText)
       : padCells(cells, width);
   };
-  const { lines } = entryLines(rows);
+  const { lines } = entryLines(rows, width, ctx.plainText);
   const shown = win ? lines.slice(win.first, win.first + win.count) : lines;
   return (
     <Box flexDirection="column">
       <CellBlock
         plain={ctx.plainText}
         lines={shown.map((l) =>
-          line(l.text, l.head && l.entry === (selected ?? -1)),
+          line(l.text, l.head && l.entry === (selected ?? -1), l.cells),
         )}
       />
     </Box>

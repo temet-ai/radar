@@ -21,6 +21,9 @@ use radar_core::plugin::Pane;
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use radar_core::view::{Chord, Intent, Key};
 
+#[path = "support/mnemonic_acceptance.rs"]
+mod mnemonic_acceptance;
+
 const W: u16 = 120;
 const H: u16 = 32;
 
@@ -133,6 +136,24 @@ fn scrub_ids(text: String) -> String {
 /// What a user and a renderer can see after a key.
 fn seen(h: &Headless) -> String {
     let host = h.host();
+    let chrome = host.chrome_view(W, H);
+    let screen = h.screen();
+    let section = h.section();
+    let mut gaps = mnemonic_acceptance::chrome_gaps(&chrome);
+    for value in screen
+        .as_ref()
+        .map(serde_json::to_value)
+        .into_iter()
+        .chain(section.as_ref().map(serde_json::to_value))
+    {
+        gaps.extend(mnemonic_acceptance::fixture_gaps(
+            &value.expect("serialize neutral view"),
+        ));
+    }
+    assert!(
+        gaps.is_empty(),
+        "first-party chrome mnemonic gaps: {gaps:#?}"
+    );
     scrub_ids(format!(
         "{:?} {:?} bar={} sources={} tabs={} quit={} message={:?}\n{:?}\n{:?}\n{:?}",
         host.view,
@@ -142,9 +163,9 @@ fn seen(h: &Headless) -> String {
         host.tabs,
         host.quit,
         host.message.as_ref().map(|m| &m.text),
-        host.chrome_view(W, H),
-        h.screen(),
-        h.section(),
+        chrome,
+        screen,
+        section,
     ))
 }
 

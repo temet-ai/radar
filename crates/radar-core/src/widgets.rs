@@ -91,11 +91,29 @@ pub fn chip_ground(theme: &Theme, fg: Option<Color>) -> Style {
 }
 
 /// A key and what it does, as the status line and action grids show them.
-pub fn key_hint(theme: &Theme, key: &str, label: &str) -> Vec<Span<'static>> {
-    vec![
-        Span::styled(key.to_string(), theme.bold(Slot::AccentSecondary)),
-        Span::styled(format!(" {label}"), theme.s(Slot::TextMuted)),
-    ]
+pub fn key_hint(theme: &Theme, key: &str, label: &str, mnemonic_at: Option<usize>, mnemonic_shift: bool) -> Vec<Span<'static>> {
+    let valid = crate::mnemonic::valid_at(key, label, mnemonic_at);
+    let prefix = crate::mnemonic::prefix(key, label, mnemonic_at, mnemonic_shift);
+    let mut spans = Vec::new();
+    if !prefix.is_empty() {
+        spans.push(Span::styled(format!("{prefix} "), theme.bold(Slot::AccentSecondary)));
+    }
+    spans.extend(mnemonic_word(label, mnemonic_at.filter(|_| valid), theme.s(Slot::TextMuted)));
+    spans
+}
+
+/// Apply an authoritative scalar position to the complete containing grapheme,
+/// adding underline without replacing the word's other style layers.
+pub fn mnemonic_word(words: &str, at: Option<usize>, style: Style) -> Vec<Span<'static>> {
+    let Some(range) = at.and_then(|at| crate::mnemonic::grapheme_range(words, at)) else {
+        return vec![Span::styled(words.to_string(), style)];
+    };
+    let chars: Vec<_> = words.chars().collect();
+    [(&chars[..range.start], false), (&chars[range.clone()], true), (&chars[range.end..], false)]
+        .into_iter()
+        .filter(|(text, _)| !text.is_empty())
+        .map(|(text, underline)| Span::styled(text.iter().collect::<String>(), if underline { style.add_modifier(Modifier::UNDERLINED) } else { style }))
+        .collect()
 }
 
 /// One list row across the panel: highlight, left content clipped to the room
@@ -241,6 +259,9 @@ pub struct Button {
     pub icon: Option<Span<'static>>,
     /// What choosing it does, in a few words.
     pub words: String,
+    /// Host-owned scalar position in words and explicit uppercase modifier.
+    pub mnemonic_at: Option<usize>,
+    pub mnemonic_shift: bool,
     /// The highlighted one, which `⏎` chooses: filled with the accent.
     pub focused: bool,
     /// It will not do all it says now (a write the mode refuses).
@@ -250,7 +271,9 @@ pub struct Button {
 impl Button {
     /// Its width in cells: a cell either side of the key and the words.
     pub fn width(&self) -> usize {
-        3 + crate::ui::width(&self.keys) + self.icon.as_ref().map_or(0, Span::width) + crate::ui::width(&self.words)
+        let prefix = crate::mnemonic::prefix(&self.keys, &self.words, self.mnemonic_at, self.mnemonic_shift);
+        2 + if prefix.is_empty() { 0 } else { crate::ui::width(prefix) + 1 }
+            + self.icon.as_ref().map_or(0, Span::width) + crate::ui::width(&self.words)
     }
 }
 
@@ -293,13 +316,18 @@ pub fn buttons(theme: &Theme, row: &[Button], pad: usize) -> ([Line<'static>; 3]
             let words = if b.muted { Slot::TextMuted } else { Slot::TextPrimary };
             (theme.bold(Slot::AccentSecondary).patch(face), theme.s(words).patch(face))
         };
-        mid.push(Span::styled(format!(" {} ", b.keys), key));
+        let prefix = crate::mnemonic::prefix(&b.keys, &b.words, b.mnemonic_at, b.mnemonic_shift);
+        let inline_shift = crate::mnemonic::valid_at(&b.keys, &b.words, b.mnemonic_at) && b.mnemonic_shift;
+        mid.push(Span::styled(if prefix.is_empty() || inline_shift { " ".into() } else { format!(" {prefix} ") }, key));
         if let Some(icon) = &b.icon {
             let mut icon = icon.clone();
             icon.style = icon.style.patch(face);
             mid.push(icon);
         }
-        mid.push(Span::styled(format!("{} ", b.words), words));
+        if inline_shift { mid.push(Span::styled("shift ", key)); }
+        let at = b.mnemonic_at.filter(|_| crate::mnemonic::valid_at(&b.keys, &b.words, b.mnemonic_at));
+        mid.extend(mnemonic_word(&b.words, at, words));
+        mid.push(Span::styled(" ", words));
     }
     ([Line::from(top), Line::from(mid), Line::from(bottom)], places)
 }
@@ -309,17 +337,216 @@ mod tests {
     use super::*;
     use crate::design::theme::Tier;
 
+    mod mnemonic_tests {
+    use super::*;
+
     #[test]
-    fn a_chip_stands_on_its_tones_tint_in_full_colour_and_on_the_overlay_otherwise() {
-        let t = Theme::new(Tier::TrueColor);
-        // status.success #50fa7b 16% over bg.overlay #1a162a (board 01, Tone tints)
-        assert_eq!(chip(&t, "passed", Tone::Good).style.bg, Some(Color::Rgb(0x23, 0x3a, 0x37)));
-        assert_eq!(chip(&t, "passed", Tone::Good).style.fg, t.s(Slot::StatusSuccess).fg);
-        assert_ne!(chip(&t, "x", Tone::Bad).style.bg, chip(&t, "x", Tone::Good).style.bg, "read by the ground");
-        for tier in [Tier::Ansi256, Tier::Ansi16, Tier::Mono] {
-            let t = Theme::new(tier);
-            assert_eq!(chip(&t, "passed", Tone::Good).style.bg, t.bg(Slot::BgOverlay).bg, "{tier:?} as today");
+    fn key_words_use_authoritative_scalar_graphemes_and_preserve_styles() {
+        let theme = Theme::new(Tier::TrueColor);
+        let spans = key_hint(&theme, "e", "😀 e\u{301}dit", Some(2), false);
+        assert_eq!(Line::from(spans.clone()).to_string(), "😀 e\u{301}dit");
+        let lit: String = spans.iter().filter(|s| s.style.add_modifier.contains(Modifier::UNDERLINED)).map(|s| s.content.as_ref()).collect();
+        assert_eq!(lit, "e\u{301}");
+        assert!(spans.iter().all(|s| s.style.fg == theme.s(Slot::TextMuted).fg));
+        assert_eq!(Line::from(key_hint(&theme, "A", "ask", Some(0), true)).to_string(), "shift ask");
+        for invalid in [None, Some(1), Some(100)] {
+            assert_eq!(Line::from(key_hint(&theme, "r", "refresh", invalid, true)).to_string(), "r refresh");
         }
+        assert_eq!(Line::from(key_hint(&theme, "ctrl-r", "refresh", Some(0), false)).to_string(), "ctrl-r refresh");
+    }
+
+    #[test]
+    fn keyed_button_measurement_matches_painted_caption_and_underlined_zero() {
+        let mut button = Button { keys: "y".into(), words: "yes, post it".into(), mnemonic_at: Some(0), ..Default::default() };
+        for focused in [false, true] {
+            button.focused = focused;
+            for tier in [Tier::Mono, Tier::TrueColor] {
+                let theme = Theme::new(tier);
+                let (lines, places) = buttons(&theme, std::slice::from_ref(&button), 0);
+                assert_eq!(lines[1].to_string(), " yes, post it ");
+                assert_eq!(button.width(), 14);
+                assert_eq!(places, [(0, 14)]);
+                assert!(lines.iter().all(|line| line.width() == 14));
+                assert_eq!(lines[1].spans.iter().filter(|s| s.style.add_modifier.contains(Modifier::UNDERLINED)).map(|s| s.content.as_ref()).collect::<String>(), "y");
+            }
+        }
+    }
+
+    }
+
+    mod chip_tone_acceptance {
+        use super::*;
+        use crate::theme::ThemeConfig;
+
+        // These are explicit widget tone examples, not application-state mapping
+        // tests. A producer may assign a different tone or render a state as
+        // ordinary text; these cases only establish the chip primitive contract.
+        const NAMED: [(&str, Tone, Color, Color, bool); 5] = [
+            ("passed", Tone::Good, Color::Rgb(0x50, 0xfa, 0x7b), Color::Rgb(0x23, 0x3a, 0x37), false),
+            ("needs review", Tone::Warn, Color::Rgb(0xf1, 0xfa, 0x8c), Color::Rgb(0x3c, 0x3a, 0x3a), true),
+            ("failed", Tone::Bad, Color::Rgb(0xff, 0x63, 0x63), Color::Rgb(0x3f, 0x22, 0x33), true),
+            ("running", Tone::Info, Color::Rgb(0x82, 0xaa, 0xff), Color::Rgb(0x2b, 0x2e, 0x4c), false),
+            ("merged", Tone::Muted, Color::Rgb(0x62, 0x72, 0xa4), Color::Rgb(0x26, 0x25, 0x3e), false),
+        ];
+
+        fn theme(tier: Tier) -> Theme {
+            // Explicit off avoids auto-pack/thread-local discovery in pure cases.
+            Theme::build(&ThemeConfig { icons: "off".into(), ..Default::default() }, tier, &[])
+        }
+
+        #[test]
+        fn named_tones_keep_square_padding_and_exact_rgb_tints() {
+            let t = theme(Tier::TrueColor);
+            assert_eq!(t.bg(Slot::BgOverlay).bg, Some(Color::Rgb(0x1a, 0x16, 0x2a)));
+            for (text, tone, fg, bg, bold) in NAMED {
+                let span = chip(&t, text, tone);
+                assert_eq!(span.content, format!(" {text} "), "{text}: square, one space either side");
+                assert_eq!(span.width(), text.len() + 2, "{text}");
+                assert_eq!(span.style.fg, Some(fg), "{text}: word colour");
+                // Literal expectations: rounded 16% foreground over #1a162a;
+                // do not calculate the oracle with chip_ground or theme::mix.
+                assert_eq!(span.style.bg, Some(bg), "{text}: ground");
+                assert_eq!(span.style.add_modifier, if bold { Modifier::BOLD } else { Modifier::empty() }, "{text}");
+            }
+            assert_eq!(chip(&t, "passed", Tone::Good).style.fg, t.s(Slot::StatusSuccess).fg);
+            assert_ne!(chip(&t, "x", Tone::Bad).style.bg, chip(&t, "x", Tone::Good).style.bg, "read by the ground");
+            for (tone, fg, bg, bold) in [
+                (Tone::Plain, Color::Rgb(0xf8, 0xf8, 0xf2), Color::Rgb(0x3e, 0x3a, 0x4a), false),
+                (Tone::Accent, Color::Rgb(0xe1, 0x35, 0xff), Color::Rgb(0x3a, 0x1b, 0x4c), true),
+            ] {
+                let style = chip(&t, "label", tone).style;
+                assert_eq!((style.fg, style.bg), (Some(fg), Some(bg)));
+                assert_eq!(style.add_modifier.contains(Modifier::BOLD), bold);
+            }
+        }
+
+        #[test]
+        fn lower_tiers_keep_flat_overlay_and_tone_modifiers() {
+            for (tier, overlay, foregrounds) in [
+                (Tier::Ansi256, Some(Color::Indexed(235)), [Some(Color::Indexed(84)), Some(Color::Indexed(228)), Some(Color::Indexed(203)), Some(Color::Indexed(111)), Some(Color::Indexed(61))]),
+                (Tier::Ansi16, Some(Color::DarkGray), [Some(Color::LightGreen), Some(Color::LightYellow), Some(Color::LightRed), Some(Color::LightBlue), Some(Color::DarkGray)]),
+                (Tier::Mono, None, [None; 5]),
+            ] {
+                let t = theme(tier);
+                assert_eq!(t.bg(Slot::BgOverlay).bg, overlay);
+                for ((text, tone, _, _, bold), fg) in NAMED.into_iter().zip(foregrounds) {
+                    let span = chip(&t, text, tone);
+                    assert_eq!(span.content, format!(" {text} "));
+                    assert_eq!((span.style.fg, span.style.bg), (fg, overlay), "{tier:?}: {text}");
+                    assert_eq!(span.style.add_modifier, if bold { Modifier::BOLD } else { Modifier::empty() }, "{tier:?}: {text}");
+                }
+            }
+        }
+
+        #[test]
+        fn custom_rgb_slots_and_non_rgb_inputs_obey_the_same_ground_rule() {
+            let cfg = ThemeConfig {
+                icons: "off".into(),
+                slots: [("bg.overlay".into(), "#102030".into()), ("status.success".into(), "#f010e0".into())].into(),
+                ..Default::default()
+            };
+            let t = Theme::build(&cfg, Tier::TrueColor, &[]);
+            let span = chip(&t, "passed", Tone::Good);
+            assert_eq!(span.style.fg, Some(Color::Rgb(0xf0, 0x10, 0xe0)));
+            // (16,32,48)*.84 + (240,16,224)*.16 rounds to (52,29,76).
+            assert_eq!(span.style.bg, Some(Color::Rgb(0x34, 0x1d, 0x4c)));
+            for fg in [None, Some(Color::Reset), Some(Color::Indexed(84)), Some(Color::LightGreen)] {
+                assert_eq!(chip_ground(&t, fg).bg, Some(Color::Rgb(0x10, 0x20, 0x30)), "{fg:?}");
+            }
+            for tier in [Tier::Ansi256, Tier::Ansi16, Tier::Mono] {
+                let t = Theme::build(&cfg, tier, &[]);
+                // An RGB foreground alone must not tint a non-RGB overlay.
+                assert_eq!(chip_ground(&t, Some(Color::Rgb(240, 16, 224))), t.bg(Slot::BgOverlay));
+            }
+        }
+
+        #[test]
+        fn icon_spans_keep_the_words_ground_and_the_icons_own_foreground() {
+            use crate::compose::Chip;
+            use crate::ui::chips::{chip as contributed_chip, chip_spans};
+            use crate::ui::icon::Icon;
+            // Contract: explicit built-in icon resolution reads the pack registry.
+            let t = Theme::build(&ThemeConfig { icons: "unicode".into(), ..Default::default() }, Tier::TrueColor, &[]);
+            let c = Chip::new("failed", Tone::Bad).icon(Icon::Thread);
+            let spans = chip_spans(&t, &c);
+            assert_eq!(spans.iter().map(|s| s.content.as_ref()).collect::<Vec<_>>(), [" ", "❝ ", "failed "]);
+            assert_eq!(spans.iter().map(|s| s.content.as_ref()).collect::<String>(), contributed_chip(&t, &c).content);
+            assert!(spans.iter().all(|s| s.style.bg == Some(Color::Rgb(0x3f, 0x22, 0x33))));
+            assert_eq!(spans[1].style.fg, Some(Color::Rgb(0x80, 0xff, 0xea)), "icon keeps accent.secondary");
+            for i in [0, 2] {
+                assert_eq!(spans[i].style.fg, Some(Color::Rgb(0xff, 0x63, 0x63)));
+                assert!(spans[i].style.add_modifier.contains(Modifier::BOLD));
+            }
+            assert_eq!(chip_spans(&theme(Tier::TrueColor), &c)[0].content, " failed ", "icons off preserve both padding cells");
+        }
+
+        #[test]
+        fn native_chip_cells_match_the_reviewed_capture() {
+            use crate::compose::Chip;
+            use crate::ipc::look::{Look, colour_word};
+            use crate::ui::icon::Icon;
+            use crate::view::{Ink, Seg, Text};
+            use serde_json::json;
+            let mut cases = Vec::new();
+            for (name, tier, icons, custom) in [
+                ("truecolor-off", Tier::TrueColor, "off", false),
+                ("truecolor-icons", Tier::TrueColor, "unicode", false),
+                ("256-icons", Tier::Ansi256, "unicode", false),
+                ("16-icons", Tier::Ansi16, "unicode", false),
+                ("mono-icons", Tier::Mono, "unicode", false),
+                ("custom-rgb-icons", Tier::TrueColor, "unicode", true),
+            ] {
+                let mut cfg = ThemeConfig { icons: icons.into(), ..Default::default() };
+                if custom {
+                    cfg.slots.insert("bg.overlay".into(), "#102030".into());
+                    cfg.slots.insert("status.success".into(), "#f010e0".into());
+                }
+                let t = Theme::build(&cfg, tier, &[]);
+                let mut rows = Vec::new();
+                for (text, tone, _, _, _) in NAMED {
+                    let chip = Chip::new(text, tone).icon(Icon::Thread);
+                    let input = Text::from(vec![Seg::new("|", Ink::Plain), Seg::chip(&chip), Seg::new("|", Ink::Plain)]);
+                    let line = crate::view_tui::line(&t, &input);
+                    let width = line.width() as u16;
+                    let mut buf = Buffer::empty(Rect::new(0, 0, width, 1));
+                    buf.set_line(0, 0, &line, width);
+                    // Compact runs come from the actual native cells, including the
+                    // unstyled delimiters immediately outside each padded chip.
+                    let mut runs: Vec<(String, String, String, String)> = Vec::new();
+                    for x in 0..width {
+                        let cell = &buf[(x, 0)];
+                        let fg = colour_word(Some(cell.fg));
+                        let bg = colour_word(Some(cell.bg));
+                        let modifiers = [
+                            (Modifier::BOLD, "bold"), (Modifier::DIM, "dim"),
+                            (Modifier::ITALIC, "italic"), (Modifier::UNDERLINED, "underline"),
+                            (Modifier::REVERSED, "inverse"), (Modifier::CROSSED_OUT, "strike"),
+                        ].into_iter().filter_map(|(flag, name)| cell.modifier.contains(flag).then_some(name))
+                            .collect::<Vec<_>>().join(" ");
+                        if let Some(run) = runs.last_mut().filter(|r| r.1 == fg && r.2 == bg && r.3 == modifiers) {
+                            run.0.push_str(cell.symbol());
+                        } else {
+                            runs.push((cell.symbol().into(), fg, bg, modifiers));
+                        }
+                    }
+                    rows.push(json!({ "text": input, "width": width, "runs": runs }));
+                }
+                cases.push(json!({ "name": name, "look": Look::of(&t), "rows": rows }));
+            }
+            let actual = json!({ "format": 1, "cases": cases });
+            let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../ink/test/fixtures/chips/tone-acceptance.ratatui.json");
+            // Explicit export only. Ordinary tests compare without rewriting.
+            if std::env::var_os("RADAR_CHIP_CELLS_DIR").is_some() {
+                let dir = std::path::PathBuf::from(std::env::var_os("RADAR_CHIP_CELLS_DIR").unwrap());
+                std::fs::create_dir_all(&dir).unwrap();
+                std::fs::write(dir.join("tone-acceptance.ratatui.json"), format!("{}\n", serde_json::to_string_pretty(&actual).unwrap())).unwrap();
+            } else {
+                let expected: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path).expect("reviewed native chip capture")).unwrap();
+                assert_eq!(actual, expected, "native chip capture is stale; review changes before explicit export");
+            }
+        }
+
     }
 
     fn button(keys: &str, words: &str, focused: bool) -> Button {
@@ -344,7 +571,7 @@ mod tests {
         // the edges are tints of the face, not the face.
         let accent = theme.bg(Slot::AccentPrimary).bg;
         assert_eq!(mid.spans[1].style.bg, accent);
-        assert_eq!(mid.spans[4].style.bg, theme.bg(Slot::BgSelection).bg);
+        assert_eq!(mid.spans.iter().find(|span| span.content == " n ").unwrap().style.bg, theme.bg(Slot::BgSelection).bg);
         assert_eq!(top.spans[1].style.bg, accent);
         assert_ne!(top.spans[1].style.fg, accent);
         assert_ne!(top.spans[1].style.fg, bottom.spans[1].style.fg);

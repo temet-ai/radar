@@ -57,6 +57,8 @@ pub const STORIES: &[Story] = &[
     Story { name: "Waiting", render: waiting },
     Story { name: "Long text", render: long_text },
     Story { name: "Icons", render: icons },
+    Story { name: "Notices", render: notices },
+    Story { name: "Detail", render: super::gallery::detail_story },
 ];
 
 /// Each built-in pack: every icon with its name, in its colour, and a tree
@@ -374,10 +376,10 @@ fn tones(theme: &Theme, area: Rect, buf: &mut Buffer, _frame: usize) -> u16 {
     let cells = board.band(&[("stage bar: each mark in a run", false), ("key hints", false)], 7);
     let lines = stages(&sample_stages(theme), cells[0].inner.width.saturating_sub(2));
     board.text(&cells[0], lines);
-    let hints: Vec<Span> = [("j k", "move"), ("space", "fold"), ("⏎", "open"), ("x", "actions"), ("q", "quit")]
+    let hints: Vec<Span> = [("↑↓", "move"), ("space", "fold"), ("⏎", "open"), ("x", "extra actions"), ("q", "quit")]
         .iter()
         .flat_map(|(k, l)| {
-            let mut h = widgets::key_hint(theme, k, l);
+            let mut h = widgets::key_hint(theme, k, l, crate::mnemonic::at(k, l), crate::mnemonic::at(k, l).is_some() && crate::mnemonic::shifted(k));
             h.push(Span::raw("   "));
             h
         })
@@ -705,5 +707,52 @@ fn long_text(theme: &Theme, area: Rect, buf: &mut Buffer, _frame: usize) -> u16 
     many.draw_foot(theme, "✎ note on box 104", widgets::padded(cells[0].inner), board.buf, &cursor);
     let one = Composer::one_line("sort the atlas box");
     one.draw_foot(theme, "new item on shelf 3 · its title", widgets::padded(cells[1].inner), board.buf, &cursor);
+    board.used()
+}
+
+/// The same bounded occurrence list with moving and static ground, then the
+/// inert reader that keeps recovery guidance after its transient row expires.
+fn notices(theme: &Theme, area: Rect, buf: &mut Buffer, _frame: usize) -> u16 {
+    use crate::view::chrome::{NoticeHistoryView, NoticeTone, NoticeView};
+    let entries = vec![
+        NoticeView {
+            id: 1,
+            tone: NoticeTone::Info,
+            icon: Some(super::icon::Icon::Copy),
+            text: "Copied the Watch link".into(),
+            created_ms: 0,
+            lifetime_ms: 5000,
+        },
+        NoticeView {
+            id: 2,
+            tone: NoticeTone::Error,
+            icon: None,
+            text: "The Watch request failed. Try again when the connection returns.".into(),
+            created_ms: 1000,
+            lifetime_ms: 10_000,
+        },
+    ];
+    let mut board = Board::new(theme, buf, area);
+    let cells = board.band(
+        &[
+            ("timed ground · older notice dimmed", false),
+            ("motion off · same expiry", false),
+        ],
+        7,
+    );
+    for (cell, moving) in cells.into_iter().zip([true, false]) {
+        let stack = super::notices::layout(&entries, 0, cell.inner, 2500, moving);
+        super::notices::paint(&stack, theme, board.buf);
+    }
+    let cells = board.band(&[("recent notices · session only", false)], 18);
+    let history = NoticeHistoryView {
+        entries: entries.clone(),
+        detail: entries.last().cloned(),
+        omitted: 3,
+        selected: 0,
+        scroll: 0,
+        detail_scroll: 0,
+    };
+    super::notices::history(theme, &history, cells[0].inner, board.buf);
     board.used()
 }

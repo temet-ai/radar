@@ -26,7 +26,7 @@ const view = (w: number, h: number, over: Partial<HistoryView> = {}): HistoryVie
     list_scroll: 0,
     state: "",
     detail_title: "details",
-    detail: [[{ text: "kind git.push" }], [{ text: "scope  s/a  all" }]],
+    detail: [[{ text: "kind git.push" }], [{ text: "scope  " }, { text: "s", target: "chrome:history:key:s" }, { text: "/" }, { text: "a", target: "chrome:history:key:a" }, { text: "  all" }]],
     detail_keys_line: 1,
     detail_keys: [{ label: "s", chord: { key: { char: "s" } }, target: "chrome:history:key:s" }, { label: "a", chord: { key: { char: "a" } }, target: "chrome:history:key:a" }],
     detail_scroll: 0,

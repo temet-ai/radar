@@ -31,7 +31,7 @@ exports[`work area from the recorded real Work view > 160x40: columns side by si
 │                       ││                                                                                     ││ links are inferred.                          │
 │                       ││                                                                                     ││ Local work saved.                            │
 │                       ││                                                                                     ││ Ship the work area                           │
-│                       ││                                                                                     ││ v history: original claims and outcomes ·    │
+│                       ││                                                                                     ││ view history: original claims and outcomes · │
 │                       ││                                                                                     ││ completeness not guaranteed                  │
 │                       ││                                                                                     ││ Titles and groups are authored locally.      │
 │                       ││                                                                                     ││ Relations do not imply identity, permission  │
@@ -51,10 +51,10 @@ exports[`work area from the recorded real Work view > 160x40: columns side by si
 │ Groups · page 1       ││                                                                                     ││                                              │
 ╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
 ╭ map ─────────────────────────────────╮╭ tabs ────────────────────────────────────────────────────────────────────────╮╭ actions ─────────────────────────────╮
-│ 0 groups · 1 items on page 1         ││ ○ 00000001                                                                   ││ create a local task…                 │
+│ 0 groups · 1 items on page 1         ││ ○ 00000001                                                                   ││ new local task…                      │
 │ Ship the work area · task            ││ ● linked sources                                                             ││ refresh local work                   │
 ╰──────────────────────────────────────╯│ ○ evidence                                                                   ││ filter this item page…               │
-╭ timeline (complete) ─────────────────╮│                                                                              ││ apply local group label…             │
+╭ timeline (complete) ─────────────────╮│                                                                              ││ set local group label…               │
 │ #1 map · authored                    ││                                                                              ││ inspect bounded evidence…            │
 │ #2 map · authored                    ││                                                                              ││                                      │
 │ #3 map · authored                    ││                                                                              ││                                      │
@@ -76,7 +76,7 @@ exports[`work area from the recorded real Work view > plain-text mode keeps labe
 menu; no links are inferred.
   Local work saved.
   Ship the work area
-  v history: original claims and outcomes · completeness not guaranteed
+  view history [v]: original claims and outcomes · completeness not guaranteed
   Titles and groups are authored locally. Relations do not imply identity,
 permission or completion.
   Task item ID: <uuid>
@@ -92,9 +92,9 @@ permission or completion.
   ● linked sources
   ○ evidence
 [rail] actions (focused)
-  [n] create a local task…
+  [n] new local task…
   [r] refresh local work
   [/] filter this item page…
-  [t] apply local group label…
+  [t] set local group label…
   [v] inspect bounded evidence…"
 `;

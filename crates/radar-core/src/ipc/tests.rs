@@ -51,7 +51,8 @@ fn samples() -> (Vec<ToHost>, Vec<ToRenderer>) {
         question: true,
         change: None,
         items: vec![Choice {
-            value: "yes".into(),
+            mnemonic_at: Some(0),
+            mnemonic_shift: false,            value: "yes".into(),
             label: "yes".into(),
             hint: String::new(),
             key: Some('y'),
@@ -140,6 +141,9 @@ fn samples() -> (Vec<ToHost>, Vec<ToRenderer>) {
         ToRenderer::Notice(Notice {
             cursor: 5,
             text: "copied 4 characters".into(),
+            occurrence: None,
+            revision: 0,
+            now_ms: 0,
         }),
         ToRenderer::Clipboard {
             text: "spike".into(),
@@ -218,6 +222,9 @@ fn export(dir: &Path) {
         .with_import_extension(Some("js"));
     ToHost::export_all(&cfg).unwrap();
     ToRenderer::export_all(&cfg).unwrap();
+    // Extension payloads are carried as JSON, so dependency discovery cannot
+    // see their typed contract. Keep the detail reader generated from Rust.
+    crate::view::detail::DetailContent::export_all(&cfg).unwrap();
 }
 
 /// Every `.ts` file under `dir`, by its path relative to `dir`.

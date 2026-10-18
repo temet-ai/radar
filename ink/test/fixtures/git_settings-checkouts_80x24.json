@@ -19,7 +19,8 @@
           "char": "s"
         }
       },
-      "label": "look for checkouts now"
+      "label": "look for checkouts now",
+      "mnemonic_at": 17
     }
   ],
   "body": {

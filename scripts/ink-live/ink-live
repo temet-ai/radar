@@ -62,8 +62,8 @@ check_parts() {
   for p in gitlab github jira slack git workspace; do
     printf '%s\n' "$places" | grep -q "^settings\.$p\." || missing="$missing $p"
   done
-  # workbench has no settings place; its Work screen is the place named "work".
-  printf '%s\n' "$places" | grep -q "^work[[:space:]]" || missing="$missing workbench"
+  # Workbench has no settings place; accept the current and previous screen names.
+  printf '%s\n' "$places" | grep -Eq "^work(-items)?[[:space:]]" || missing="$missing workbench"
   [ -z "$missing" ] || die "$bin lacks default parts:$missing. It is a partial feature mix (the gate's target/fleet/debug/radar is one). Unset RADAR_BIN to use the default build, or build: cargo build --release --bin radar"
 }
 need_name() { [ -n "${1:-}" ] || die "a NAME is needed"; [ -d "$(dir_of "$1")" ] || die "no run named $1 (start it first)"; }

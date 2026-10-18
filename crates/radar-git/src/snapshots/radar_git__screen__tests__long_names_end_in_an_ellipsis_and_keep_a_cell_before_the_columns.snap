@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen.rs
+assertion_line: 2139
 expression: text
 ---
  radar    Branches   History   Settings (,)   synced 20s ago · every 1m  ✎ edit
-╭ all ─────────────────────────────────────────────────────────────────────────╮
+╭ 2 all ───────────────────────────────────────────────────────────────────────╮
 │ CLONES · 3 clones, 1 worktree      AHEAD  BEHIND  DIRTY      STASH  UPDATED  │
 │api  on alice/ABC-12  ● in use      ↑2     —       3 changed  1      3h       │
 │  ├─ api-hotfix  on alice/ABC-14    ↑1     ↓3      clean      —      1d       │
@@ -13,7 +14,7 @@ expression: text
 │  ├─ alice/ABC-9  merged            —      —       —          —      6d       │
 │  ├─ alice/ABC-7                    —      gone    —          —      2w       │
 │  └─ spike                          —      —       —          —      9d       │
-│banking-foreign-exchang…  on ali…   —      —       clean      —      4d       │
+│banking-foreign-exchange-…  on ali… —      —       clean      —      4d       │
 │  └─ alice/ABC-1234-add-co…  ● here —      —       clean      —      4d       │
 │web  on main                        —      —       clean      —      4d       │
 │  └─ main  ● here                   —      —       clean      —      4d       │
@@ -25,4 +26,4 @@ expression: text
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ every clone, its worktrees and its local branches                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCHES   ⏎ use it   b bulk   +/- expand/collapse   q quit   x menu
+ BRANCHES   ⏎ use it   bulk   extra actions   ~ notices

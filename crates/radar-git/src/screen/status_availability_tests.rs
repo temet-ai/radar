@@ -178,13 +178,13 @@ fn unknown_or_stale_dirty_worktree_cannot_enable_forced_removal_or_prune() {
         ) else {
             panic!("handled refusal")
         };
-        assert!(matches!(&fx[..], [Effect::Notify(why)] if why.contains("read the clones again")));
+        assert!(matches!(&fx[..], [Effect::Notice(why)] if why.tone == radar_core::view::chrome::NoticeTone::Error && why.contains("read the clones again")));
         let question = format!("{DELETE}:tree\t{CLONE}\t{WORKTREE}");
         p.branches.tree.borrow_mut().select(vec![clone_id(CLONE)]);
         let fx = on_menu(&mut p, &question, "yes").unwrap();
         assert!(matches!(
             &fx[..],
-            [Effect::Report(JournalOutcome::Blocked), Effect::Notify(_)]
+            [Effect::Report(JournalOutcome::Blocked), Effect::Notice(message)] if message.tone == radar_core::view::chrome::NoticeTone::Error
         ));
         assert!(p.branches.changing.is_empty());
         assert!(
@@ -522,7 +522,7 @@ fn interrupted_cached_dirty_status_cannot_force_remove_and_preserves_unknowns() 
         ) else {
             panic!("handled refusal")
         };
-        assert!(matches!(&fx[..], [Effect::Notify(why)] if why.contains("read the clones again")));
+        assert!(matches!(&fx[..], [Effect::Notice(why)] if why.tone == radar_core::view::chrome::NoticeTone::Error && why.contains("read the clones again")));
         let fx = on_menu(
             &mut p,
             &format!("{DELETE}:tree\t{CLONE}\t{WORKTREE}"),
@@ -531,7 +531,7 @@ fn interrupted_cached_dirty_status_cannot_force_remove_and_preserves_unknowns() 
         .unwrap();
         assert!(matches!(
             &fx[..],
-            [Effect::Report(JournalOutcome::Blocked), Effect::Notify(_)]
+            [Effect::Report(JournalOutcome::Blocked), Effect::Notice(message)] if message.tone == radar_core::view::chrome::NoticeTone::Error
         ));
         assert!(!candidates(&p).iter().any(|c| c.tree == WORKTREE));
         receive(&mut p, false);

@@ -94,10 +94,11 @@ fn command(cmd: &str) -> Block {
     Block::line(Text::new().push(Seg::new("$ ", Ink::Muted)).push(Seg::new(cmd, Ink::Primary)))
 }
 
-fn link(words: &str, url: &str, keys: Option<&str>) -> Block {
+fn link(words: &str, url: &str, hints: &[(&str, &str)]) -> Block {
     let mut text = Text::new().push(Seg::new(words, Ink::Accent).linked(url));
-    if let Some(keys) = keys {
-        text.add(Seg::new(format!("   {keys}"), Ink::Muted));
+    for (index, (key, action)) in hints.iter().enumerate() {
+        text.add(Seg::new(if index == 0 { "   " } else { " · " }, Ink::Muted));
+        text.extend(radar_core::mnemonic::text(key, action, "text.muted"));
     }
     Block::line(text)
 }
@@ -108,12 +109,12 @@ pub(crate) fn access_help(p: &GithubPlugin) -> Vec<Block> {
         Block::section(Some(Icon::Terminal), "easiest: the gh program", None, vec![
             line("Choose gh's sign-in. Not signed in yet?"),
             command("gh auth login"),
-            link("cli.github.com: install gh", GH_SITE, None),
+            link("cli.github.com: install gh", GH_SITE, &[]),
         ]),
         Block::section(Some(Icon::Connection), "or a token", None, vec![
             line("Public repositories need none. For private ones:"),
             line("1 Open the fine-grained token page:"),
-            link("github.com / new token", &token_page(p), Some("o opens · y copies")),
+            link("github.com / new token", &token_page(p), &[("o", "open"), ("y", "copy")]),
             line("2 Repository access: the repositories to follow."),
             line(&format!("3 Permissions come filled in from access: {}.", permissions_words(p.cfg.access))),
             line("4 Generate token, copy the github_pat_… value into token, or:"),
@@ -145,8 +146,8 @@ pub(crate) fn follow_help() -> Vec<Block> {
 
 fn more() -> Block {
     Block::section(Some(Icon::Link), "more", None, vec![
-        link("GitHub docs: access tokens", DOCS, None),
-        link("radar guide: connect GitHub", GUIDE, None),
+        link("GitHub docs: access tokens", DOCS, &[]),
+        link("radar guide: connect GitHub", GUIDE, &[]),
     ])
 }
 

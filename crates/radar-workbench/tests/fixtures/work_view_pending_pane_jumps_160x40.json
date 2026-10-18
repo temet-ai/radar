@@ -1,0 +1,14 @@
+[
+  {
+    "pane": "nav",
+    "key": "1"
+  },
+  {
+    "pane": "middle",
+    "key": "2"
+  },
+  {
+    "pane": "detail",
+    "key": "3"
+  }
+]

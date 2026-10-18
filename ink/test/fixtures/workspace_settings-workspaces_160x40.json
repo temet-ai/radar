@@ -12,7 +12,8 @@
           "char": "y"
         }
       },
-      "label": "use it"
+      "label": "yes, use it",
+      "mnemonic_at": 0
     },
     {
       "id": "workspace.workspaces.pass",
@@ -21,7 +22,8 @@
           "char": "n"
         }
       },
-      "label": "not now"
+      "label": "not now",
+      "mnemonic_at": 0
     }
   ],
   "body": {

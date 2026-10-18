@@ -68,13 +68,13 @@ export function unmountAll() {
 }
 
 /** The App over a fake connection at `columns` x `rows`, welcomed. */
-export function mount(columns: number, rows: number) {
+export function mount(columns: number, rows: number, plainText = false) {
   const out = new Out(columns, rows);
   const stdin = new In();
   const conn = new FakeConnection();
   const mouse = new MouseBus();
   tapMouse(stdin, mouse);
-  const session = new Session(conn, capabilitiesFrom({}, out));
+  const session = new Session(conn, capabilitiesFrom(plainText ? { RADAR_PLAIN_TEXT: "1" } : {}, out), undefined, false, () => 0);
   session.start();
   const instance = render(<App session={session} mouse={mouse} />, {
     stdout: out as any,

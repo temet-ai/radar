@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen/status_availability_tests.rs
+assertion_line: 290
 expression: preview
 ---
  radar    B   History   Settings (,)  read incomplete · no complete syn… ✎ edit
-╭ api-hotfix ──────────────────────────────────────────────────────────────────╮
+╭ 3 api-hotfix ────────────────────────────────────────────────────────────────╮
 │ folder   /work/acme/api-hotfix                                               │
 │ clone    /work/acme/api                                                      │
 │ on       hotfix                                                              │
@@ -25,4 +26,4 @@ expression: preview
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCHES   r retry status   A ask an agent   b bulk   q quit   x menu
+ BRANCHES   retry status   shift ask an agent   bulk   extra actions

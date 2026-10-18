@@ -2,6 +2,13 @@
   "chrome": {
     "height": 24,
     "keys_at": "body",
+    "notices_visible": true,
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "middle"
+      }
+    ],
     "screen_keys": [
       "R",
       "G",
@@ -74,7 +81,8 @@
               "target": "chrome:key:1:0"
             }
           ],
-          "label": "quit"
+          "label": "quit",
+          "mnemonic_at": 0
         },
         {
           "icon": "menu",
@@ -90,7 +98,23 @@
               "target": "chrome:key:2:0"
             }
           ],
-          "label": "menu"
+          "label": "extra actions",
+          "mnemonic_at": 1
+        },
+        {
+          "keys": "~",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "~"
+                }
+              },
+              "label": "~",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "notices"
         },
         {
           "keys": "←→↑↓",
@@ -100,28 +124,28 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:3:0"
+              "target": "chrome:key:4:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:3:1"
+              "target": "chrome:key:4:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:3:2"
+              "target": "chrome:key:4:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:3:3"
+              "target": "chrome:key:4:3"
             }
           ],
           "label": "navigate"
@@ -165,7 +189,7 @@
           "target": "chrome:tab:4"
         },
         {
-          "label": "work",
+          "label": "work items",
           "mnemonic": "I",
           "target": "chrome:tab:6"
         },
@@ -188,7 +212,8 @@
       }
     },
     "version": 1,
-    "width": 80
+    "width": 80,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 24,
@@ -214,7 +239,8 @@
             "char": "o"
           }
         },
-        "label": "open #team-alerts thread's link"
+        "label": "open #team-alerts thread's link",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.page.copy_link",
@@ -223,7 +249,8 @@
             "char": "y"
           }
         },
-        "label": "copy #team-alerts thread's link"
+        "label": "copy #team-alerts thread's link",
+        "mnemonic_at": 3
       },
       {
         "id": "gitlab.page.refresh",
@@ -232,7 +259,8 @@
             "char": "r"
           }
         },
-        "label": "refresh this page and its tenancy"
+        "label": "refresh this page and its tenancy",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.page.next_tab",

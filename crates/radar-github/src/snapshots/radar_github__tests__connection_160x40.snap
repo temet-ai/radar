@@ -4,7 +4,7 @@ assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ public only ───────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 public only ─────────────────────────────────────╮
 │General               ││  SIGN IN  how radar reads GitHub                                               ││ NOW                                                │
 │  ├─ parts            ││  [ ] public only     public repositories, no token                             ││ env:GITHUB_TOKEN                                   │
 │  ├─ mode             ││  [ ] gh's sign-in    asks gh for its token                                     ││                                                    │
@@ -22,7 +22,7 @@ expression: text
 │                      ││  REPOSITORIES  github.com/owner, owner/repo or a group name                    ││ OR A TOKEN ─────────────────────────────────────── │
 │                      ││  + add a repository or group   paste or type it                                ││   Public repositories need none. For private ones: │
 │                      ││    github.com/acme   2 repositories                                            ││   1 Open the fine-grained token page:              │
-│                      ││                                                                                ││   github.com / new token   o opens · y copies      │
+│                      ││                                                                                ││   github.com / new token   open · copy             │
 │                      ││                                                                                ││   2 Repository access: the repositories to follow. │
 │                      ││                                                                                ││   3 Permissions come filled in from access:        │
 │                      ││                                                                                ││   contents, pull requests, actions, statuses:      │
@@ -42,4 +42,4 @@ expression: text
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                              github
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                             github

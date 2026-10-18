@@ -1,5 +1,5 @@
 //! The page frame: what an item's own page has above its body. A breadcrumb
-//! (`Shelves › a › api › #12`), the title with its details at the right, an
+//! (`Shelves / a / api / #12`), the title with its details at the right, an
 //! optional line under it, and the names-only tabs. The body
 //! is the caller's; scroll it with [`super::scroll`] or a
 //! [`super::table::Table`].
@@ -124,13 +124,13 @@ fn inset(r: Rect) -> Rect {
     }
 }
 
-/// `Shelves › a › api › #12`: separated by muted `›`, the last in bold.
+/// `Shelves / a / api / #12`: separated by muted `/`, the last in bold.
 pub fn crumbs(theme: &Theme, parts: Vec<Span<'static>>) -> Line<'static> {
     let n = parts.len();
     let mut spans = Vec::new();
     for (i, mut s) in parts.into_iter().enumerate() {
         if i > 0 {
-            spans.push(Span::styled(" › ", theme.s(Slot::TextMuted)));
+            spans.push(Span::styled(" / ", theme.s(Slot::TextMuted)));
         }
         if i + 1 == n {
             s.style = s.style.add_modifier(Modifier::BOLD);

@@ -752,7 +752,7 @@ impl WorkbenchPlugin {
                     .map(|i| self.item_title(i))
                     .unwrap_or_else(|| "Local work".into()),
             ),
-            Binding::new("n", "create a local task…").adds(),
+            Binding::new("n", "new local task…").adds(),
             Binding::new(
                 "r",
                 if self.prepared.is_some() {
@@ -778,7 +778,7 @@ impl WorkbenchPlugin {
         }
         if self.selected.is_some() {
             if self.prepared.is_none() {
-                rows.push(Binding::new("t", "apply local group label…").adds());
+                rows.push(Binding::new("t", "set local group label…").adds());
             }
             rows.push(Binding::new("v", "inspect bounded evidence…"));
         }

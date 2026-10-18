@@ -4,7 +4,7 @@ assertion_line: 254
 expression: "radar_core::shell::to_text(&host, 80, 24)"
 ---
  radar    Branches   History   Settings (,)                              ✎ edit
-╭ settings ────────────╮╭ editors ─────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 editors ───────────────────────────────────────────╮
 │General               ││  + add a project type                                │
 │  ├─ parts            ││ java      build.gradle build.gradle.kts pom.xml asks │
 │  ├─ mode             ││ python    pyproject.toml setup.py               asks │
@@ -15,7 +15,7 @@ expression: "radar_core::shell::to_text(&host, 80, 24)"
 │  ├─ checkouts        ││                                                      │
 │  ├─ terminal         ││                                                      │
 │  ├─ editors          │╰──────────────────────────────────────────────────────╯
-│  ├─ links            │╭ add a project type ──────────────────────────────────╮
+│  ├─ links            │╭ 3 add a project type ────────────────────────────────╮
 │  └─ branches         ││ Another kind of project, told apart by a file at the █
 │                      ││ top of its checkout, with the editor it opens in.    █
 │                      ││                                                      █
@@ -26,4 +26,4 @@ expression: "radar_core::shell::to_text(&host, 80, 24)"
 │                      ││ NOW                                                  ║
 │                      ││ 5 types                                              ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices   ←→↑↓ navigate

@@ -3,7 +3,7 @@
 //! Repositories │ a detail pane of whatever is selected. Described as view data
 //! ([`view`]) and driven by intents ([`intent`]).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
@@ -13,6 +13,7 @@ use radar_core::ui::icon::{self, Icon};
 use radar_core::ui;
 use radar_core::view::{self as v, Block, ColumnSpec, Ink, Intent, Node, PaneId, PaneView, Seg, Text, TreeRow, kit};
 use radar_core::time;
+use radar_core::view::detail::{self, DetailContent, DetailFact, DetailHeader, FootAction, FootActions};
 
 use crate::config::Site;
 use crate::model::{Category, Ticket};
@@ -21,17 +22,100 @@ use radar_core::Parts;
 
 // --- what the tree holds -------------------------------------------------------
 
-/// A status in a site, with its tickets: each top ticket with the children
-/// that are in the same status group.
+/// A ticket and the complete ancestry held in this filtered view. A child
+/// stays with its parent even when their statuses differ.
+pub(crate) struct TicketNode<'a> {
+    pub ticket: &'a Ticket,
+    pub children: Vec<TicketNode<'a>>,
+}
+
+/// Only roots are grouped by status; the count includes all held descendants.
 pub(crate) struct GroupNode<'a> {
     pub status: String,
     pub category: Category,
-    pub tops: Vec<(&'a Ticket, Vec<&'a Ticket>)>,
+    pub tops: Vec<TicketNode<'a>>,
 }
 
-impl GroupNode<'_> {
+impl<'a> GroupNode<'a> {
+    fn nodes(&self) -> impl Iterator<Item = &TicketNode<'a>> {
+        let mut pending: Vec<_> = self.tops.iter().rev().collect();
+        std::iter::from_fn(move || {
+            let node = pending.pop()?;
+            pending.extend(node.children.iter().rev());
+            Some(node)
+        })
+    }
+
+    pub fn tickets(&self) -> impl Iterator<Item = &'a Ticket> + '_ {
+        self.nodes().map(|node| node.ticket)
+    }
+
     pub fn len(&self) -> usize {
-        self.tops.iter().map(|(_, c)| 1 + c.len()).sum()
+        self.tickets().count()
+    }
+}
+
+/// Use only loaded, filtered tickets. Repeated query keys refer to one ticket;
+/// the first occurrence keeps Jira's ordering. A missing parent makes a root.
+/// Break each cycle at its smallest key, independent of response order, so
+/// every distinct ticket appears once without inventing or fetching a parent.
+fn forest(tickets: Vec<&Ticket>) -> Vec<GroupNode<'_>> {
+    let mut seen = HashSet::new();
+    let tickets: Vec<_> = tickets.into_iter().filter(|t| seen.insert(t.key.as_str())).collect();
+    let indices: BTreeMap<_, _> = tickets.iter().enumerate().map(|(i, t)| (t.key.as_str(), i)).collect();
+    let mut parents: Vec<_> = tickets.iter().map(|t| {
+        t.parent.as_ref().and_then(|parent| indices.get(parent.key.as_str()).copied())
+    }).collect();
+    let mut finished = vec![false; tickets.len()];
+    for start in 0..tickets.len() {
+        let mut path: Vec<usize> = Vec::new();
+        let mut positions = BTreeMap::new();
+        let mut next = Some(start);
+        while let Some(i) = next {
+            if finished[i] {
+                break;
+            }
+            if let Some(&at) = positions.get(&i) {
+                let root = *path[at..].iter().min_by_key(|&&j| tickets[j].key.as_str()).expect("cycle is nonempty");
+                parents[root] = None;
+                break;
+            }
+            positions.insert(i, path.len());
+            path.push(i);
+            next = parents[i];
+        }
+        for i in path {
+            finished[i] = true;
+        }
+    }
+    let mut children = vec![Vec::new(); tickets.len()];
+    for (i, parent) in parents.iter().enumerate() {
+        if let Some(parent) = parent {
+            children[*parent].push(i);
+        }
+    }
+    fn branch<'a>(i: usize, tickets: &[&'a Ticket], children: &[Vec<usize>]) -> TicketNode<'a> {
+        TicketNode {
+            ticket: tickets[i],
+            children: children[i].iter().map(|&child| branch(child, tickets, children)).collect(),
+        }
+    }
+    let mut by: BTreeMap<(Category, String), Vec<TicketNode<'_>>> = BTreeMap::new();
+    for (i, ticket) in tickets.iter().enumerate() {
+        if parents[i].is_none() {
+            by.entry((ticket.category, ticket.status.clone())).or_default().push(branch(i, &tickets, &children));
+        }
+    }
+    by.into_iter().map(|((category, status), tops)| GroupNode { status, category, tops }).collect()
+}
+
+/// Walk every held ticket with its current structural path, regardless of folds.
+fn visit_tickets<'a>(nodes: &[TicketNode<'a>], site: &str, prefix: &[String], visit: &mut impl FnMut(&'a Ticket, &[String], bool)) {
+    for node in nodes {
+        let mut path = prefix.to_vec();
+        path.push(ticket_id(site, &node.ticket.key));
+        visit(node.ticket, &path, !node.children.is_empty());
+        visit_tickets(&node.children, site, &path, visit);
     }
 }
 
@@ -81,35 +165,7 @@ pub(crate) fn nodes(p: &JiraPlugin) -> Vec<SiteNode<'_>> {
                 .into_iter()
                 .filter(|t| p.shown(t))
                 .collect();
-            let mut by: BTreeMap<(Category, String), Vec<&Ticket>> = BTreeMap::new();
-            for t in tickets {
-                by.entry((t.category, t.status.clone())).or_default().push(t);
-            }
-            let groups = by
-                .into_iter()
-                .map(|((category, status), ts)| {
-                    let here = |k: &str| ts.iter().any(|t| t.key == k);
-                    let mut tops: Vec<(&Ticket, Vec<&Ticket>)> = Vec::new();
-                    for t in &ts {
-                        match &t.parent {
-                            Some(par) if here(&par.key) => {}
-                            _ => tops.push((t, vec![])),
-                        }
-                    }
-                    for t in &ts {
-                        if let Some(par) = &t.parent
-                            && let Some((_, kids)) = tops.iter_mut().find(|(top, _)| top.key == par.key)
-                        {
-                            kids.push(t);
-                        }
-                    }
-                    GroupNode {
-                        status,
-                        category,
-                        tops,
-                    }
-                })
-                .collect();
+            let groups = forest(tickets);
             SiteNode {
                 index,
                 site,
@@ -123,21 +179,25 @@ pub(crate) fn nodes(p: &JiraPlugin) -> Vec<SiteNode<'_>> {
 }
 
 pub(crate) fn selected(p: &JiraPlugin) -> Option<Selected<'_>> {
+    selection(p).map(|(selected, _)| selected)
+}
+
+/// Resolve the subject and its held children together from the repaired forest,
+/// so action hints never scan unrelated sites or follow a cut cycle edge.
+fn selection(p: &JiraPlugin) -> Option<(Selected<'_>, bool)> {
     let path = p.tree.borrow().selected().to_vec();
     let last = path.last()?.clone();
     for sn in nodes(p) {
         if last == site_id(&sn.site.name) {
-            return Some(Selected::Site(sn.index));
+            return Some((Selected::Site(sn.index), !sn.groups.is_empty()));
         }
         for g in &sn.groups {
             if last == group_id(&sn.site.name, &g.status) {
-                return Some(Selected::Group(sn.index, g.status.clone()));
+                return Some((Selected::Group(sn.index, g.status.clone()), !g.tops.is_empty()));
             }
-            for (top, kids) in &g.tops {
-                for t in std::iter::once(top).chain(kids.iter()) {
-                    if last == ticket_id(&sn.site.name, &t.key) {
-                        return Some(Selected::Ticket(Item { site: sn.site, t }));
-                    }
+            for node in g.nodes() {
+                if last == ticket_id(&sn.site.name, &node.ticket.key) {
+                    return Some((Selected::Ticket(Item { site: sn.site, t: node.ticket }), !node.children.is_empty()));
                 }
             }
         }
@@ -149,10 +209,14 @@ pub(crate) fn selected(p: &JiraPlugin) -> Option<Selected<'_>> {
 /// the selection was if it is still there). Jira says nothing when the
 /// selection moves; its preview is drawn from the tree.
 fn to_results(p: &mut JiraPlugin, keep: bool) -> Vec<Effect> {
-    let found = targets(p);
-    if !(keep && selected(p).is_some())
-        && let Some((path, ..)) = found.into_iter().next()
-    {
+    let before = p.filter_before.take().unwrap_or_else(|| p.tree.borrow().selected().to_vec());
+    let nodes = nodes(p);
+    let kept = keep.then(|| {
+        paths(&nodes).into_iter().find(|(path, _, _)| path.last() == before.last()).map(|(path, _, _)| path)
+    }).flatten();
+    open_new_nodes(p, &nodes);
+    let next = kept.or_else(|| targets(p).into_iter().next().map(|(path, ..)| path));
+    if let Some(path) = next {
         let mut state = p.tree.borrow_mut();
         for depth in 1..path.len() {
             state.open(path[..depth].to_vec());
@@ -169,22 +233,9 @@ fn targets(p: &JiraPlugin) -> Vec<(Vec<String>, String, Vec<String>)> {
         let sid = site_id(&sn.site.name);
         for g in &sn.groups {
             let gid = group_id(&sn.site.name, &g.status);
-            for (top, kids) in &g.tops {
-                let tid = ticket_id(&sn.site.name, &top.key);
-                let words = |t: &Ticket| vec![t.key.clone(), t.summary.clone()];
-                out.push((
-                    vec![sid.clone(), gid.clone(), tid.clone()],
-                    format!("{} {}", top.key, top.summary),
-                    words(top),
-                ));
-                for k in kids {
-                    out.push((
-                        vec![sid.clone(), gid.clone(), tid.clone(), ticket_id(&sn.site.name, &k.key)],
-                        format!("{} {}", k.key, k.summary),
-                        words(k),
-                    ));
-                }
-            }
+            visit_tickets(&g.tops, &sn.site.name, &[sid.clone(), gid], &mut |ticket, path, _| {
+                out.push((path.to_vec(), format!("{} {}", ticket.key, ticket.summary), vec![ticket.key.clone(), ticket.summary.clone()]));
+            });
         }
     }
     out
@@ -315,15 +366,13 @@ fn added_columns(p: &JiraPlugin, nodes: &[SiteNode<'_>], parts: &Parts<'_>) -> V
     let mut out: Vec<ColumnSpec> = Vec::new();
     for sn in nodes {
         for g in &sn.groups {
-            for (top, kids) in &g.tops {
-                for tk in std::iter::once(top).chain(kids.iter()) {
-                    for cell in parts.cells(&join::ticket(p, &sn.site.name, &tk.key)) {
-                        let lead = cell.icon.map_or(0, |i| ui::width(&icon::plain(i)));
-                        let w = ((lead + ui::width(&cell.text)).max(ui::width(&cell.heading)) + 1).min(20) as u16;
-                        match out.iter_mut().find(|c| c.heading == cell.heading) {
-                            Some(c) => c.width = c.width.max(w),
-                            None => out.push(ColumnSpec::extra(cell.heading, w)),
-                        }
+            for tk in g.tickets() {
+                for cell in parts.cells(&join::ticket(p, &sn.site.name, &tk.key)) {
+                    let lead = cell.icon.map_or(0, |i| ui::width(&icon::plain(i)));
+                    let w = ((lead + ui::width(&cell.text)).max(ui::width(&cell.heading)) + 1).min(20) as u16;
+                    match out.iter_mut().find(|c| c.heading == cell.heading) {
+                        Some(c) => c.width = c.width.max(w),
+                        None => out.push(ColumnSpec::extra(cell.heading, w)),
                     }
                 }
             }
@@ -445,6 +494,9 @@ fn tree_rows(p: &JiraPlugin, nodes: &[SiteNode<'_>], now: i64, parts: &Parts<'_>
         }
         row
     };
+    fn branch(node: &TicketNode<'_>, site: &str, ticket: &impl Fn(&str, &Ticket) -> TreeRow) -> TreeRow {
+        ticket(site, node.ticket).children(node.children.iter().map(|child| branch(child, site, ticket)))
+    }
     nodes
         .iter()
         .map(|sn| {
@@ -453,7 +505,7 @@ fn tree_rows(p: &JiraPlugin, nodes: &[SiteNode<'_>], now: i64, parts: &Parts<'_>
                 TreeRow::new(group_id(site, &g.status), status_text(p, &g.status, g.category)).children(
                     g.tops
                         .iter()
-                        .map(|(top, kids)| ticket(site, top).children(kids.iter().map(|k| ticket(site, k)))),
+                        .map(|node| branch(node, site, &ticket)),
                 )
             });
             TreeRow::new(site_id(site), site_name(p, sn))
@@ -497,35 +549,69 @@ fn tree_look_view(p: &JiraPlugin) -> v::TreeLook {
     }
 }
 
-/// Open each site and status the first time it appears, and parents with
-/// their children; after that, open and closed are the user's.
-fn open_new_nodes(p: &JiraPlugin, nodes: &[SiteNode<'_>]) {
-    let mut seen = p.opened_once.borrow_mut();
-    let mut state = p.tree.borrow_mut();
+/// Paths to all held rows, including groups hidden inside a closed ancestor.
+fn paths(nodes: &[SiteNode<'_>]) -> Vec<(Vec<String>, bool, bool)> {
+    let mut out = Vec::new();
     for sn in nodes {
         let sid = site_id(&sn.site.name);
-        if seen.insert(sid.clone()) {
-            state.open(vec![sid.clone()]);
-        }
-        for g in &sn.groups {
-            let gid = group_id(&sn.site.name, &g.status);
-            // Finished work starts folded: it is there, out of the way.
-            if seen.insert(gid.clone()) && g.category != Category::Done {
-                state.open(vec![sid.clone(), gid.clone()]);
-            }
-            for (top, kids) in &g.tops {
-                let tid = ticket_id(&sn.site.name, &top.key);
-                if !kids.is_empty() && seen.insert(tid.clone()) {
-                    state.open(vec![sid.clone(), gid.clone(), tid]);
-                }
-            }
+        out.push((vec![sid.clone()], !sn.groups.is_empty(), true));
+        for group in &sn.groups {
+            let path = vec![sid.clone(), group_id(&sn.site.name, &group.status)];
+            out.push((path.clone(), !group.tops.is_empty(), group.category != Category::Done));
+            visit_tickets(&group.tops, &sn.site.name, &path, &mut |_, path, children| {
+                out.push((path.to_vec(), children, true));
+            });
         }
     }
-    if state.selected().is_empty()
-        && let Some(first) = nodes.first()
-    {
-        state.select(vec![site_id(&first.site.name)]);
+    out
+}
+
+/// Open each group once; afterwards fold choices follow its identity across
+/// status/ancestry changes. Selected tickets follow the same identity, opening
+/// their new ancestry when a refresh or filter moves them to another branch.
+fn open_new_nodes(p: &JiraPlugin, nodes: &[SiteNode<'_>]) {
+    let paths = paths(nodes);
+    let by_id: BTreeMap<_, _> = paths.iter().filter_map(|(path, _, _)| path.last().map(|id| (id, path))).collect();
+    let mut seen = p.opened_once.borrow_mut();
+    let mut state = p.tree.borrow_mut();
+    for open in &mut state.open {
+        if let Some(path) = open.last().and_then(|id| by_id.get(id)) {
+            *open = (*path).clone();
+        }
     }
+    for (path, children, initially_open) in &paths {
+        if *children && seen.insert(path.last().expect("row path").clone()) && *initially_open {
+            state.open(path.clone());
+        }
+    }
+    let previous = state.selected.clone();
+    let current = previous.last().and_then(|id| by_id.get(id)).copied();
+    if let Some(path) = current {
+        if *path != previous {
+            for depth in 1..path.len() {
+                state.open(path[..depth].to_vec());
+            }
+        }
+        state.select(path.clone());
+    } else {
+        state.select(previous.iter().rev().find_map(|id| by_id.get(id).map(|path| (*path).clone()))
+            .or_else(|| paths.first().map(|(path, _, _)| path.clone())).unwrap_or_default());
+    }
+    // A deliberate fold keeps selection on the closest visible ancestor.
+    for depth in 1..state.selected.len() {
+        if !state.is_open(&state.selected[..depth]) {
+            state.selected.truncate(depth);
+            break;
+        }
+    }
+}
+
+fn accepts_tree_target(p: &JiraPlugin, target: &v::Target, fold: bool) -> bool {
+    let nodes = nodes(p);
+    open_new_nodes(p, &nodes);
+    let path = TreeRow::path_of(target);
+    let held = paths(&nodes).into_iter().any(|(held, children, _)| held == path && (!fold || children));
+    held && (fold || (1..path.len()).all(|depth| p.tree.borrow().is_open(&path[..depth])))
 }
 
 /// The middle pane: go to and the filter over the tree of tickets, what
@@ -653,18 +739,27 @@ fn detail_pane(p: &JiraPlugin, cx: &v::ViewCx<'_>) -> PaneView {
     let sel = selected(p);
     let blocks = match &sel {
         Some(Selected::Ticket(it)) => {
-            let mut blocks = Vec::new();
-            if let Some(l) = write::outcome(p, &it.site.name, &it.t.key) {
-                blocks.extend([Block::line(l), Block::line(Text::new())]);
+            let mut content = ticket_detail(p, it, cx.now, &cx.parts);
+            if let Some(outcome) = write::outcome(p, &it.site.name, &it.t.key) {
+                content.sections.insert(
+                    0,
+                    Block::section_of(None, "latest change", None, vec![outcome]),
+                );
             }
-            blocks.extend(ticket_detail(p, it, cx.now, &cx.parts, cx.icon_lead > 0));
-            for (title, lines) in cx.parts.sections(&join::ticket(p, &it.site.name, &it.t.key)) {
-                blocks.push(Block::line(Text::new()));
-                blocks.push(Block::section_of(None, &title, None, lines));
+            for (title, lines) in cx
+                .parts
+                .sections(&join::ticket(p, &it.site.name, &it.t.key))
+            {
+                content
+                    .sections
+                    .push(Block::section_of(None, &title, None, lines));
             }
-            blocks
+            return detail::pane(name_of(p, sel.as_ref()), content, ticket_foot(p, it));
         }
-        Some(Selected::Group(i, status)) => group_detail(p, *i, status).into_iter().map(Block::line).collect(),
+        Some(Selected::Group(i, status)) => group_detail(p, *i, status)
+            .into_iter()
+            .map(Block::line)
+            .collect(),
         Some(Selected::Site(i)) => site_detail(p, *i),
         None => {
             let mut lines = vec![Text::of("Select a site, a status or a ticket.", Ink::Muted)];
@@ -676,7 +771,14 @@ fn detail_pane(p: &JiraPlugin, cx: &v::ViewCx<'_>) -> PaneView {
             lines.into_iter().map(Block::line).collect()
         }
     };
-    PaneView::new(PaneId::Detail, name_of(p, sel.as_ref()), Node::Rich { blocks, pictures: None })
+    PaneView::new(
+        PaneId::Detail,
+        name_of(p, sel.as_ref()),
+        Node::Rich {
+            blocks,
+            pictures: None,
+        },
+    )
 }
 
 /// `✗ words` in the `failed` look.
@@ -691,68 +793,148 @@ fn failed_line(p: &JiraPlugin, words: &str) -> Text {
 /// shows; the ticket's page has them all.
 const DETAIL_LINES: usize = 12;
 
-fn ticket_detail(p: &JiraPlugin, it: &Item<'_>, now: i64, parts: &Parts<'_>, icons: bool) -> Vec<Block> {
+/// Use the selected ticket's Detail actions, independent of the focused pane.
+fn ticket_foot(p: &JiraPlugin, it: &Item<'_>) -> FootActions {
+    let offered = p.screen_rows(Pane::Detail);
+    let mut controls = Vec::new();
+    for (id, caption) in [
+        ("jira.tickets.comment", "comment"),
+        ("jira.tickets.move", "status"),
+        ("jira.tickets.assign_me", "assign to me"),
+        ("jira.tickets.open_in_jira", "open"),
+        ("jira.tickets.copy_link", "copy link"),
+        ("jira.tickets.copy_key", "copy key"),
+        ("jira.tickets.open", "page"),
+    ] {
+        if let Some((id, binding)) = offered.iter().find(|(offered, _)| offered == id) {
+            let mut control =
+                FootAction::new(v::ActionSpec::named(id.clone(), binding)).caption(caption);
+            if id == "jira.tickets.assign_me"
+                && let Some(reason) = write::assign_blocked(p, &it.site.name, &it.t.key)
+            {
+                control = control.disabled(reason);
+            }
+            controls.push(control);
+        }
+    }
+    FootActions::new(controls)
+}
+
+fn ticket_detail(p: &JiraPlugin, it: &Item<'_>, now: i64, parts: &Parts<'_>) -> DetailContent {
     let tk = it.t;
     let key = p.cfg.style_for("key");
-    let mut head = Text::from(vec![
-        Seg::icon(tk.icon()),
+    let mut path = Text::from(vec![Seg::icon(Icon::Site)]);
+    let mut has_component = false;
+    for component in [
+        Seg::styled(it.site.name.clone(), format!("jira.{}", it.site.color)),
+        Seg::new(tk.project.clone(), Ink::Secondary),
         Seg::styled(tk.key.clone(), key.clone()),
-        Seg::new(" · ", Ink::Muted),
-        Seg::styled(tk.kind.clone(), p.cfg.style_for(tk.type_word())),
-    ]);
-    // The priority, named only when it has an icon to go with it.
-    if icons && crate::model::priority_icon(&tk.priority).is_some() {
-        head.add(Seg::new(" · ", Ink::Muted));
-        head.add(priority_seg(&tk.priority));
-        head.add(Seg::new(tk.priority.clone(), Ink::Secondary));
+    ] {
+        if component.text.trim().is_empty() { continue; }
+        if has_component { path.add(Seg::new(" / ", Ink::Secondary)); }
+        path.add(component);
+        has_component = true;
     }
-    if let Some(par) = &tk.parent {
-        head.add(Seg::new(" · parent ", Ink::Muted));
-        head.add(Seg::styled(par.key.clone(), key.clone()));
+    let mut header = DetailHeader::new(
+        path,
+        Text::from(vec![
+            Seg::icon(tk.icon()),
+            Seg::new(tk.summary.clone(), Ink::Emphasis).strong(),
+        ]),
+    );
+    if !tk.reporter.trim().is_empty() {
+        header.author = Some(Text::from(vec![
+            Seg::icon(Icon::Person),
+            Seg::new(tk.reporter.clone(), Ink::Secondary),
+        ]));
     }
-    let who = if tk.assignee.is_empty() { "unassigned".to_string() } else { tk.assignee.clone() };
-    let [who_icon, who_name] = assignee_segs(p, &it.site.name, tk, who, Ink::Secondary);
-    let mut state = status_text(p, &tk.status, tk.category);
-    state.extend(Text::from(vec![
-        Seg::new(" · ", Ink::Muted),
-        who_icon,
-        who_name,
-        Seg::new(" · ", Ink::Muted),
-        Seg::icon(Icon::Updated),
-        Seg::new(format!("updated {} ago", ago(&tk.updated, now)), Ink::Muted),
-    ]));
-    let mut lines = vec![head, Text::new().push(Seg::new(tk.summary.clone(), Ink::Emphasis).strong()), state];
-    if let Some(par) = &tk.parent
-        && !par.summary.is_empty()
-    {
-        lines.push(Text::of(format!("in {}: {}", par.key, par.summary), Ink::Muted));
+    if !tk.updated.trim().is_empty() {
+        header.age = Some(Text::of(
+            format!("{} ago", ago(&tk.updated, now)),
+            Ink::Muted,
+        ));
+    }
+    let who = if tk.assignee.is_empty() {
+        "unassigned".to_string()
+    } else {
+        tk.assignee.clone()
+    };
+    let mut facts = vec![
+        DetailFact::new(
+            "status",
+            if tk.status.trim().is_empty() {
+                Text::new()
+            } else {
+                status_text(p, &tk.status, tk.category)
+            },
+        ),
+        DetailFact::new(
+            "type",
+            Text::from(vec![Seg::styled(
+                tk.kind.clone(),
+                p.cfg.style_for(tk.type_word()),
+            )]),
+        ),
+        DetailFact::new(
+            "priority",
+            Text::from(vec![
+                priority_seg(&tk.priority),
+                Seg::new(tk.priority.clone(), Ink::Secondary),
+            ]),
+        ),
+        DetailFact::new(
+            "assignee",
+            Text::from(assignee_segs(p, &it.site.name, tk, who, Ink::Secondary).to_vec()),
+        ),
+    ];
+    if let Some(parent) = &tk.parent {
+        let mut value = Text::from(vec![Seg::styled(parent.key.clone(), key)]);
+        if !parent.summary.trim().is_empty() {
+            value.add(Seg::new(format!(": {}", parent.summary), Ink::Secondary));
+        }
+        facts.push(DetailFact::new("parent", value));
     }
     let mut chips = join::chip_text(parts, &join::ticket(p, &it.site.name, &tk.key));
     if !chips.0.is_empty() {
         chips.0.remove(0);
-        lines.push(chips);
+        facts.push(DetailFact::new("related", chips));
     }
     if !tk.labels.is_empty() {
-        let mut line = page::labels_text(p, &tk.labels);
-        line.0.insert(0, Seg::icon(Icon::Label));
-        lines.push(line);
+        let mut labels = page::labels_text(p, &tk.labels);
+        labels.0.insert(0, Seg::icon(Icon::Label));
+        facts.push(DetailFact::new("labels", labels));
     }
-    let mut blocks: Vec<Block> = lines.into_iter().map(Block::line).collect();
-    let section = |blocks: &mut Vec<Block>, heading: &str, body: &radar_core::ui::rich::Doc, empty: &str| {
-        blocks.push(Block::line(Text::new()));
-        let inside = if body.is_empty() {
-            Block::line(Text::of(empty, Ink::Muted))
-        } else {
-            Block::Doc {
-                doc: body.clone(),
-                bar: None,
-                most: Some(DETAIL_LINES),
-                urls: None,
-            }
+    facts.extend([
+        DetailFact::new(
+            "components",
+            Text::of(tk.components.join(", "), Ink::Secondary),
+        ),
+        DetailFact::new(
+            "fix versions",
+            Text::of(tk.fix_versions.join(", "), Ink::Secondary),
+        ),
+    ]);
+    let mut blocks = Vec::new();
+    let section =
+        |blocks: &mut Vec<Block>, heading: &str, body: &radar_core::ui::rich::Doc, empty: &str| {
+            let inside = if body.is_empty() {
+                Block::line(Text::of(empty, Ink::Muted))
+            } else {
+                Block::Doc {
+                    doc: body.clone(),
+                    bar: None,
+                    most: Some(DETAIL_LINES),
+                    urls: None,
+                }
+            };
+            blocks.push(Block::section(None, heading, None, vec![inside]));
         };
-        blocks.push(Block::section(None, heading, None, vec![inside]));
-    };
-    section(&mut blocks, "description", &tk.description, "no description");
+    section(
+        &mut blocks,
+        "description",
+        &tk.description,
+        "no description",
+    );
     let ac_set = it.site.ac_field(&tk.project).is_some();
     section(
         &mut blocks,
@@ -764,7 +946,7 @@ fn ticket_detail(p: &JiraPlugin, it: &Item<'_>, now: i64, parts: &Parts<'_>, ico
             "no field set for this project: settings, projects"
         },
     );
-    blocks
+    DetailContent::new(header, facts, blocks)
 }
 
 fn group_detail(p: &JiraPlugin, i: usize, status: &str) -> Vec<Text> {
@@ -783,14 +965,12 @@ fn group_detail(p: &JiraPlugin, i: usize, status: &str) -> Vec<Text> {
             Ink::Secondary,
         ));
         lines.push(Text::new());
-        for (top, kids) in &g.tops {
-            for tk in std::iter::once(top).chain(kids.iter()) {
-                lines.push(Text::from(vec![
-                    Seg::icon(tk.icon()),
-                    Seg::styled(format!("{} ", tk.key), p.cfg.style_for("key")),
-                    Seg::new(tk.summary.clone(), Ink::Primary),
-                ]));
-            }
+        for tk in g.tickets() {
+            lines.push(Text::from(vec![
+                Seg::icon(tk.icon()),
+                Seg::styled(format!("{} ", tk.key), p.cfg.style_for("key")),
+                Seg::new(tk.summary.clone(), Ink::Primary),
+            ]));
         }
     }
     lines
@@ -1026,11 +1206,17 @@ pub fn intent(p: &mut JiraPlugin, pane: Pane, intent: &Intent) -> Outcome {
             Outcome::Handled(vec![Effect::Menu(p.assignee_menu())])
         }
         Intent::Context { target } | Intent::Activate { target } if target.as_str() == "assignees" => Outcome::Ignored,
-        Intent::Select { .. } | Intent::Context { .. } | Intent::Fold { .. } => {
+        Intent::Select { target } | Intent::Context { target } | Intent::Fold { target, .. } => {
+            if !accepts_tree_target(p, target, matches!(intent, Intent::Fold { .. })) {
+                return if matches!(intent, Intent::Context { .. }) { Outcome::Ignored } else { Outcome::done() };
+            }
             p.tree.borrow_mut().apply(intent);
             Outcome::done()
         }
         Intent::Activate { target } => {
+            if !accepts_tree_target(p, target, false) {
+                return Outcome::done();
+            }
             p.tree.borrow_mut().select(TreeRow::path_of(target));
             Outcome::Handled(page::open_from_tree(p))
         }
@@ -1049,7 +1235,7 @@ pub fn intent(p: &mut JiraPlugin, pane: Pane, intent: &Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
+        Intent::OpenAll | Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
             Some(chord) => key(p, pane, radar_core::view_tui::key_of(chord)),
             None => Outcome::Ignored,
@@ -1067,7 +1253,13 @@ pub fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             return Outcome::Handled(to_results(p, false));
         }
         match input.key(key) {
-            Edit::Cancel => p.filter.clear(),
+            Edit::Cancel => {
+                p.filter.clear();
+                if let Some(before) = p.filter_before.take() {
+                    p.tree.borrow_mut().select(before);
+                }
+                open_new_nodes(p, &nodes(p));
+            }
             Edit::Submit(text) => {
                 p.filter = text;
                 return Outcome::Handled(to_results(p, true));
@@ -1081,6 +1273,7 @@ pub fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Outcome {
     }
     match key.code {
         KeyCode::Char('/') => {
+            p.filter_before = Some(p.tree.borrow().selected().to_vec());
             p.filter_input = Some(TextInput::new(&p.filter));
             return Outcome::done();
         }
@@ -1163,16 +1356,11 @@ pub fn on_bulk(p: &mut JiraPlugin, value: &str) -> Option<Vec<Effect>> {
     Some(match value {
         "j-open" => {
             let nodes = nodes(p);
+            open_new_nodes(p, &nodes);
             let mut state = p.tree.borrow_mut();
-            for sn in &nodes {
-                let sid = site_id(&sn.site.name);
-                state.open(vec![sid.clone()]);
-                for g in &sn.groups {
-                    let gid = group_id(&sn.site.name, &g.status);
-                    state.open(vec![sid.clone(), gid.clone()]);
-                    for (top, _) in &g.tops {
-                        state.open(vec![sid.clone(), gid.clone(), ticket_id(&sn.site.name, &top.key)]);
-                    }
+            for (path, children, _) in paths(&nodes) {
+                if children {
+                    state.open(path);
                 }
             }
             vec![]
@@ -1215,7 +1403,10 @@ pub fn on_bulk(p: &mut JiraPlugin, value: &str) -> Option<Vec<Effect>> {
 
 /// The actions menu (`x`) for a pane, named after what is selected.
 pub fn keys(p: &JiraPlugin, pane: Pane) -> Vec<Binding> {
-    let sel = selected(p);
+    let (sel, has_kids) = match selection(p) {
+        Some((selected, children)) => (Some(selected), children),
+        None => (None, false),
+    };
     let view_rows = |b: &mut Vec<Binding>| {
         b.push(Binding::new("/", "filter the view by words"));
         b.push(Binding::new("r", "refresh now"));
@@ -1248,14 +1439,6 @@ pub fn keys(p: &JiraPlugin, pane: Pane) -> Vec<Binding> {
             }
             let state = p.tree.borrow();
             let open = state.is_open(state.selected());
-            let has_kids = match &sel {
-                Some(Selected::Ticket(it)) => p
-                    .visible()
-                    .iter()
-                    .any(|o| o.t.parent.as_ref().is_some_and(|par| par.key == it.t.key)),
-                Some(_) => true,
-                None => false,
-            };
             if has_kids {
                 let what = match &sel {
                     Some(Selected::Site(_)) => "its statuses",
@@ -1287,3 +1470,9 @@ pub fn keys(p: &JiraPlugin, pane: Pane) -> Vec<Binding> {
         }
     }
 }
+
+#[cfg(test)]
+mod detail_tests;
+
+#[cfg(test)]
+mod tree_tests;

@@ -4,7 +4,7 @@ assertion_line: 32
 expression: shown
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
-╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ────────────────────────────────────────╮
 │General               ││  ? Found: a Jira site. Use it?                       █
 │  ├─ parts            ││  ? Found: a Jira site (JIRA_OTHER_URL, …). Use it?   █
 │  ├─ mode             ││  + add a site                                        █
@@ -15,7 +15,7 @@ expression: shown
 │  ├─ connection       ││    ├─ signed in as    Alice Example                  ║
 │  ├─ projects         ││    ├─ check           not checked yet                ║
 │  ├─ views            │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ site ────────────────────────────────────────────────╮
+│  └─ look             │╭ 3 site ──────────────────────────────────────────────╮
 │                      ││ CHECKED                                              █
 │                      ││ not checked yet                                      █
 │                      ││                                                      ║
@@ -26,4 +26,4 @@ expression: shown
 │                      ││                                                      ║
 │                      ││ ACCEPTS                                              ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate    jira
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                   jira

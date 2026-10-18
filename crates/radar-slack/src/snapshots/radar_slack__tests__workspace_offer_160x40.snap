@@ -4,7 +4,7 @@ assertion_line: 548
 expression: text
 ---
  radar    History   Settings (,)                                                                                                                         ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in your environment ─────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 found in your environment ───────────────────────╮
 │General               ││  ? Found: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?             ││ radar found a Slack user token in your             █
 │  ├─ parts            ││  workspace       — the check finds it                                          ││ environment. Do you want to use it?                █
 │  ├─ mode             ││  api             https://slack.com                                             ││                                                    █
@@ -25,8 +25,7 @@ expression: text
 │                      ││  CHANNELS  the registry; watched ones are read                                 ││ MAKE A USER TOKEN  about two minutes, once ─────── █
 │                      ││  + add a channel   paste its link, a message link, or its id                   ││   1 Open Slack's new-app page, radar's manifest    █
 │                      ││                                                                                ││   filled in:                                       █
-│                      ││                                                                                ││   api.slack.com / new app   o opens · m copies the █
-│                      ││                                                                                ││   manifest                                         █
+│                      ││                                                                                ││   api.slack.com / new app   open · copy manifest   █
 │                      ││                                                                                ││     user scopes only: 10                           █
 │                      ││                                                                                ││   2 Pick your workspace, Next, Create.             █
 │                      ││                                                                                ││   3 Install to Workspace, then Allow.              █
@@ -39,7 +38,8 @@ expression: text
 │                      ││                                                                                ││   If Slack says Request to Install, your admin     █
 │                      ││                                                                                ││   approves it first.                               █
 │                      ││                                                                                ││   A missing scope switches off only its own        █
-│                      ││                                                                                ││   actions.                                         ║
-│                      ││                                                                                ││ MORE ───────────────────────────────────────────── ║
+│                      ││                                                                                ││   actions.                                         █
+│                      ││                                                                                ││ MORE ───────────────────────────────────────────── █
+│                      ││                                                                                ││   Slack: what each scope allows                    ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate

@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/compact_tests.rs
+assertion_line: 175
 expression: text
 ---
  radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
- Slack › #team › Bob Builder: @review-squad :gitlab: m…
+ Slack / #team / Bob Builder: @review-squad :gitlab: m…
  @review-squad :gitlab: mr Add a stats endpoint for the dashboard                                                              Bob Builder · 2d ago · 2 replies
  [Thread]  Links
-╭ thread ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 thread ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Bob Builder  2d ago                                                                                                                                          │
 │ @review-squad :gitlab: mr Add a stats endpoint for the dashboard                                                                                             │
 │ 👀 1                                                                                                                                                         │
@@ -41,4 +42,4 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                            4 new · 3 for you  slack
+ SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           4 new · 3 for you  slack

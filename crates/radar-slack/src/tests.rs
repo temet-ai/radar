@@ -252,7 +252,7 @@ fn threads_are_ordered_by_their_latest_activity_and_show_its_time() {
     assert!(row("Lunch at 12:30?") < row("Anyone seen ABC-12"), "{text}");
     let ask_row = text.lines().find(|l| l.contains("Bob B.  @review-squad :gitlab: mr")).unwrap();
     assert!(ask_row.contains("10m"), "the time of its newest reply: {ask_row}");
-    assert!(row("▌ today") < row("Bob B.  @review-squad :gitlab: mr"), "under today: {text}");
+    assert!(row("│today ") < row("Bob B.  @review-squad :gitlab: mr"), "under today: {text}");
     // Discussions too.
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Up]);
     let text = to_text(&host, 160, 40);
@@ -300,11 +300,20 @@ fn the_preview_scrolls_with_its_own_keys_and_pgdn_from_anywhere() {
     assert!(text.contains("Add a stats endpoint"), "the review ask: {text}");
     insta::assert_snapshot!("preview_focused_80x24", text);
     // ↑↓ in the focused detail pane move through it, not to the next message.
-    let tree_before = to_text(&host, 160, 40);
+    let text_before = to_text(&host, 160, 40);
+    let before = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
+    let subject = host.plugins[0].subject(crate::SCREEN.id, radar_core::Pane::Detail)
+        .expect("the review ask's thread");
     press(&mut host, KeyCode::Down);
     assert_eq!(host.focus, radar_core::Pane::Detail);
-    assert!(to_text(&host, 160, 40).contains("Add a stats endpoint"), "still the ask");
-    let _ = tree_before;
+    let text_after = to_text(&host, 160, 40);
+    let after = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
+    assert_eq!(host.plugins[0].subject(crate::SCREEN.id, radar_core::Pane::Detail), Some(subject));
+    assert_eq!(after.pane(radar_core::view::PaneId::Middle), before.pane(radar_core::view::PaneId::Middle),
+        "scrolling the preview keeps the exact selected tree row and folds");
+    assert_eq!(after.pane(radar_core::view::PaneId::Detail), before.pane(radar_core::view::PaneId::Detail),
+        "the same message content remains, even when its title scrolls out of view");
+    assert_ne!(text_after, text_before, "the preview actually scrolls");
     // PgDn from the list scrolls the detail pane.
     press(&mut host, KeyCode::Char('2'));
     let fx = press(&mut host, KeyCode::PageDown);
@@ -319,7 +328,7 @@ fn enter_opens_the_threads_page_and_esc_comes_back_to_the_same_row() {
     let before = to_text(&host, 160, 40);
     press(&mut host, KeyCode::Enter);
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("Slack › #team › Bob Builder: @review-squad"), "{text}");
+    assert!(text.contains("Slack / #team / Bob Builder: @review-squad"), "{text}");
     assert!(text.contains("approved, nice one"), "{text}");
     insta::assert_snapshot!("thread_page_160x40", text);
     insta::assert_snapshot!("thread_page_80x24", to_text(&host, 80, 24));
@@ -515,7 +524,7 @@ fn the_x_menu_of_a_message_lists_what_works_there() {
     press(&mut host, KeyCode::Char('x'));
     let labels = menu_labels(&host);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "Bob Builder's message");
-    for want in ["⏎ open its thread", "o open it in Slack", "y copy its link", "m mark read up to here", "c reply in its thread", "e react to it", "r refresh"] {
+    for want in ["⏎ open its thread", "o open it in Slack", "y copy its link", "m mark read up to here", "c comment in its thread", "e react to it", "r refresh"] {
         assert!(labels.iter().any(|l| l.starts_with(want)), "{want}: {labels:?}");
     }
     insta::assert_snapshot!("message_keys_100x40", to_text(&host, 100, 40));
@@ -1228,7 +1237,7 @@ fn the_ticket_page_has_a_slack_tab_whose_rows_open_the_thread() {
     press(&mut host, KeyCode::Enter);
     assert_eq!(host.screen().unwrap().1.name, "slack");
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("Slack › #team › Carol Coder: Anyone seen ABC-12"), "{text}");
+    assert!(text.contains("Slack / #team / Carol Coder: Anyone seen ABC-12"), "{text}");
     assert!(text.contains("can you look?"), "{text}");
     press(&mut host, KeyCode::Esc);
     assert_eq!(host.screen().unwrap().1.name, "tickets", "back to the ticket");
@@ -1629,9 +1638,35 @@ mod review_post {
             expected,
             "one request per accepted ask, never retried"
         );
+        let refusal = s
+            .host()
+            .message
+            .as_deref()
+            .expect("the refused ask reports why")
+            .to_owned();
+        assert!(refusal.contains("✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent"));
         let text = s.inspect(|host| to_text(host, 160, 40));
-        assert!(text.contains("✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent"), "{text}");
+        assert!(
+            text.contains("Slack did not take it: Slack is busy (rate limited): it was not sent"),
+            "{text}"
+        );
         insta::assert_snapshot!("radar_slack__tests__draft_refused_160x40", text);
+        key(&mut s, KeyCode::Char('~'));
+        let history = s.inspect(|host| {
+            host.chrome_view(160, 40)
+                .notice_history
+                .expect("the refusal remains accessible")
+        });
+        assert_eq!(history.selected, 0);
+        let detail = history.detail.expect("the full refusal is selected");
+        assert_eq!(detail.text, refusal);
+        assert_eq!(detail.tone, radar_core::view::chrome::NoticeTone::Error);
+        assert_eq!(
+            rec.requests(),
+            expected,
+            "reading history cannot retry a refused ask"
+        );
+        key(&mut s, KeyCode::Esc);
 
         s.settle(BUDGET).await.unwrap();
         assert!(s.is_idle());
@@ -1777,9 +1812,9 @@ mod reply_confirmation {
             [
                 " looking now, <@U00000BOB1> · ",
                 " second line · ",
-                "y yes · post it",
+                "y yes · yes, post it",
                 "e edit · keep writing",
-                "n no · drop it",
+                "n no · no, drop it",
             ]
         );
         assert!(rec.requests().is_empty(), "preview cannot send");
@@ -1865,7 +1900,7 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         on_team(&mut host, 4);
         // The x menu marks the writes the mode refuses.
         press(&mut host, KeyCode::Char('x'));
-        let reply_row = menu_labels(&host).into_iter().find(|l| l.contains("reply in its thread")).unwrap();
+        let reply_row = menu_labels(&host).into_iter().find(|l| l.contains("comment in its thread")).unwrap();
         assert_eq!(reply_row.ends_with("· radar is read only"), mode == Mode::ReadOnly, "{mode:?}: {reply_row}");
         press(&mut host, KeyCode::Esc);
         press(&mut host, KeyCode::Char('c'));
@@ -1950,7 +1985,7 @@ fn a_reaction_is_picked_asked_and_sent_once() {
     let menu = &host.menu.as_ref().unwrap().menu;
     assert_eq!(menu.title, "react :eyes: to Bob Builder's message?");
     assert_eq!(menu_labels(&host), [" adds :eyes: to that message in #team", "y yes", "n no"]);
-    assert_eq!(menu.items[1].hint, "add it");
+    assert_eq!(menu.items[1].hint, "yes, add it");
     let fx = press(&mut host, KeyCode::Char('n'));
     assert_eq!(spawned(&fx), 0);
     press(&mut host, KeyCode::Char('e'));

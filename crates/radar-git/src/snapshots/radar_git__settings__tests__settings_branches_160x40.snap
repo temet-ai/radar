@@ -4,7 +4,7 @@ assertion_line: 2815
 expression: "shot(\"branches\", 160, 40)"
 ---
  radar    Branches   History   Settings (,)                                                                                                              ✎ edit
-╭ settings ────────────╮╭ branches ──────────────────────────────────────────────────────────────────────╮╭ me ────────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 branches ────────────────────────────────────────────────────────────────────╮╭ 3 me ──────────────────────────────────────────────╮
 │General               ││  + add a convention for a repo   a repo path, a template, a base               ││ Your name in branch names: {me}.                   │
 │  ├─ parts            ││ acme/team-b → {type}/{key}-{slug}                                 from develop ││                                                    │
 │  ├─ mode             ││ …tform-services/billing/payments-gateway → {type}/{key}-{slug}    from develop ││ ACCEPTS                                            │
@@ -42,4 +42,4 @@ expression: "shot(\"branches\", 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate

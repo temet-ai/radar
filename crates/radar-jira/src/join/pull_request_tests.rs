@@ -31,6 +31,12 @@ fn actions(p: &JiraPlugin, s: &Subject) -> Vec<Action> {
     let Some(Contribution::Actions(actions)) = contribute(p, Point::Actions, s) else {
         return vec![];
     };
+    for action in &actions {
+        if let Some(key) = action.key.filter(|key| key.is_alphabetic()) {
+            assert!(radar_core::mnemonic::at(&key.to_string(), &action.what).is_some(),
+                "{}: {key} / {}", action.id, action.what);
+        }
+    }
     actions
 }
 
@@ -65,7 +71,7 @@ fn pull_request_tickets_fill_read_only_places_and_open_exact_site() {
     let actions = actions(&p, &s);
     assert_eq!(
         actions.iter().map(|a| a.what.as_str()).collect::<Vec<_>>(),
-        ["open ABC-12", "open DEF-3"]
+        ["view ABC-12", "view DEF-3"]
     );
     assert_eq!(
         actions.iter().map(|a| a.key).collect::<Vec<_>>(),
@@ -97,7 +103,7 @@ fn pull_request_development_links_match_exact_urls_without_path_aliases() {
     }
     code(&mut p, "acme", "ABC-12", URL);
     assert_eq!(related(&p, &s)[0].id, "ABC-12");
-    assert!(actions(&p, &s).iter().all(|a| a.what == "open ABC-12"));
+    assert!(actions(&p, &s).iter().all(|a| a.what == "view ABC-12"));
 }
 
 #[test]

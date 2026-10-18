@@ -1,10 +1,10 @@
 ---
 source: crates/radar-jira/src/tests.rs
-assertion_line: 1786
+assertion_line: 1737
 expression: "text(&host, 80, 24)"
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
-╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ────────────────────────────────────────╮
 │General               ││  ? Found: a Jira site. Use it?                       █
 │  ├─ parts            ││  ? Found: a Jira site (JIRA_OTHER_URL, …). Use it?   █
 │  ├─ mode             ││  + add a site                                        █
@@ -15,7 +15,7 @@ expression: "text(&host, 80, 24)"
 │  ├─ connection       ││    ├─ signed in as    Alice Example                  ║
 │  ├─ projects         ││    ├─ check           not checked yet                ║
 │  ├─ views            │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ found in /work/acme/.mcp.json ───────────────────────╮
+│  └─ look             │╭ 3 found in /work/acme/.mcp.json ─────────────────────╮
 │                      ││ radar found a Jira site in /work/acme/.mcp.json. Do  █
 │                      ││ you want to use it?                                  █
 │                      ││                                                      ║
@@ -26,4 +26,4 @@ expression: "text(&host, 80, 24)"
 │                      ││ radar stores only the variables' names (env:NAME)    ║
 │                      ││ and reads their values each time it starts. It never ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate    jira
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                   jira

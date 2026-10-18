@@ -4,7 +4,7 @@ assertion_line: 247
 expression: "radar_core::shell::to_text(&host, 80, 24)"
 ---
  radar    Branches   History   Settings (,)                              ✎ edit
-╭ settings ────────────╮╭ terminal ────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 terminal ──────────────────────────────────────────╮
 │General               ││ terminal   ghostty · from $TERMINAL                  │
 │  ├─ parts            ││                                                      │
 │  ├─ mode             ││                                                      │
@@ -15,7 +15,7 @@ expression: "radar_core::shell::to_text(&host, 80, 24)"
 │  ├─ checkouts        ││                                                      │
 │  ├─ terminal         ││                                                      │
 │  ├─ editors          │╰──────────────────────────────────────────────────────╯
-│  ├─ links            │╭ terminal ────────────────────────────────────────────╮
+│  ├─ links            │╭ 3 terminal ──────────────────────────────────────────╮
 │  └─ branches         ││ What opens a terminal in a checkout (t on a repo or  █
 │                      ││ a merge request). Inside tmux it is a new tmux       █
 │                      ││ window; on a desktop your terminal app; over ssh     █
@@ -26,4 +26,4 @@ expression: "radar_core::shell::to_text(&host, 80, 24)"
 │                      ││ ⏎ picks one of the terminals found here, or type a   ║
 │                      ││ command line: {dir} is the folder, {cmd} the command ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices   ←→↑↓ navigate

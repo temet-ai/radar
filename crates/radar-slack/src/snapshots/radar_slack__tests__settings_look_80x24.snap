@@ -4,7 +4,7 @@ assertion_line: 588
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack ●   History   Settings (,)                               ✎ edit
-╭ settings ────────────╮╭ look ────────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 look ──────────────────────────────────────────────╮
 │General               ││ MESSAGES                                             █
 │  ├─ parts            ││   density                                    compact █
 │  ├─ mode             ││   author   who wrote a message        links and keys █
@@ -15,7 +15,7 @@ expression: "to_text(&host, 80, 24)"
 │  ├─ connection       ││   emoji                                   muted text ║
 │  ├─ channels         ││   code     code, inline or in a block    data string ║
 │  ├─ review           │╰──────────────────────────────────────────────────────╯
-│  ├─ alerts           │╭ density ─────────────────────────────────────────────╮
+│  ├─ alerts           │╭ 3 density ───────────────────────────────────────────╮
 │  └─ look             ││ How the messages of a thread, the detail pane and a  █
 │                      ││ direct message are laid out.                         █
 │                      ││                                                      █
@@ -26,4 +26,4 @@ expression: "to_text(&host, 80, 24)"
 │                      ││ marks a new day, and a thread's replies sit under    ║
 │                      ││ one divider. In a narrow panel the author and time   ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate            slack
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                  slack

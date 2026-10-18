@@ -564,7 +564,7 @@ fn a_part_not_set_up_has_a_set_up_page_and_adds_nothing() {
     assert!(text.contains("Add a notebook to follow."), "{text}");
     assert!(!text.contains("PgUp"), "nothing to scroll:\n{text}");
     press(&mut host, KeyCode::Char('x'));
-    assert_eq!(labels(&host), ["set up Notes in settings", "History", "recent activity (last 24 hours)", "all activity history"]);
+    assert_eq!(labels(&host), ["set up Notes in settings", "recent notices (this session)", "History", "recent activity (last 24 hours)", "all activity history"]);
     press(&mut host, KeyCode::Enter);
     assert_eq!(host.view, View::Settings);
     assert_eq!(host.current_section().unwrap().1.name, "notebooks");
@@ -772,6 +772,7 @@ fn contributed_actions_sit_under_their_part_and_lose_keys_others_use() {
         // j moves in lists: never a contributed key.
         ("", "jump", false, None),
         // Host history remains available beside the parts' own actions.
+        ("~", "recent notices (this session)", false, Some('~')),
         ("", "History", true, None),
         ("H", "recent activity (last 24 hours)", false, Some('H')),
         ("", "all activity history", false, None),
@@ -851,7 +852,7 @@ fn alone_a_part_shows_nothing_of_the_others() {
     let text = to_text(&host, 80, 24);
     assert!(text.contains("book 1") && !text.contains('['), "{text}");
     press(&mut host, KeyCode::Char('x'));
-    assert_eq!(labels(&host), ["open it", "History", "recent activity (last 24 hours)", "all activity history"]);
+    assert_eq!(labels(&host), ["open it", "recent notices (this session)", "History", "recent activity (last 24 hours)", "all activity history"]);
 }
 
 #[test]

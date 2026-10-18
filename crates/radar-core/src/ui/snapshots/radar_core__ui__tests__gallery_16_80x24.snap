@@ -1,0 +1,29 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
+expression: "gallery_text(80, 24, tab)"
+---
+ Gallery / Notices
+ The kit: every element on sample data                            colours: none
+ Row states  Grid states  Waiting  Long text  Icons  [Notices]  Detail
+╭ timed ground · older notice dimmed ─────────────────────────────────────────╮
+│                                                                             │█
+│                                                                             │█
+│                                                                             │█
+│              info Copied the Watch link                                     │█
+│              error The Watch request failed. Try again when the connection… │█
+╰─────────────────────────────────────────────────────────────────────────────╯█
+╭ motion off · same expiry ───────────────────────────────────────────────────╮█
+│                                                                             │█
+│                                                                             │█
+│                                                                             │█
+│              info Copied the Watch link                                     │█
+│              error The Watch request failed. Try again when the connection… │║
+╰─────────────────────────────────────────────────────────────────────────────╯║
+╭ recent notices · session only ──────────────────────────────────────────────╮║
+│ Recent notices                                                              │║
+│ This session only · 2 retained · 3 older omitted                            │║
+│                                                                             │║
+│  error The Watch request failed. Try again when the connection returns.     │║
+│  info Copied the Watch link                                                 │
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

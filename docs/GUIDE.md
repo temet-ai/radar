@@ -65,7 +65,7 @@ three and ratatui's own widgets reach a part through the kit, `radar_core::ui` (
 Nothing does I/O inside a handler.
 
 - The host's `Host::update(Event) -> Vec<HostEffect>` is pure. `Event` is `Key`, `Tick`,
-  `Wake`, `Msg` (a spawned task's result), `Saved`, `Notice`, `ToClipboard`, `Paste`,
+  `Wake`, `Msg` (a spawned task's result), `Saved`, `Notice`, `ErrorNotice`, `ToClipboard`, `Paste`,
   `Mouse`, `Intent` (from a frontend), `History` and `Tracked` (the action journal),
   `TerminalRoute` and `Scanned` (setup's look for keys).
 - A plugin's handlers (`intent`, `on_msg`, `on_bus`, `on_menu`, `tick`, `paste`)
@@ -75,7 +75,7 @@ Nothing does I/O inside a handler.
   `Menu(Menu)`, `Show(Subject)`, `Changed(Changes)` (rows a sync changed, for motion,
   1.17), `Press(char)` (a key pressed where the focus is: a row an owner drew for another
   part's action does what its key does, 1.13), `Act` (run another part's action on a
-  subject), `NotifyWith(icon, msg)`; for the agent dock `StartReview`, `SendToAgent`,
+  subject), `NotifyWith(icon, msg)`, `Notice(Message)`; for the agent dock `StartReview`, `SendToAgent`,
   `ShowDock`, `HideDock`; for the action journal and the work map `Journal`, `Report`,
   `SpawnAction`, `Observe`, `Work`, `ResolveSources`, `ShowSource`
   (`crates/radar-core/src/plugin.rs`).
@@ -83,6 +83,15 @@ Nothing does I/O inside a handler.
   The runner's `perform` (`crates/radar-core/src/runner.rs`, private) does the real work: spawns the
   task on tokio and sends the result back as `Event::Msg`, opens links, copies, writes
   `config.toml`, and queues caches for `plugin_cache`'s writer thread.
+- Each notice enqueue gets a unique occurrence ID, including repeated words.
+  `Effect::notify` is informational; use `Effect::error` for a semantic failure,
+  without guessing severity from its text or icon. Host producers use `Host::notify`
+  or `notify_error`. The bounded session ledger retains the latest 256 notices and
+  an omitted count, never persisting their text. Information expires after five
+  seconds; errors after ten seconds or a key; Escape clears the active set.
+  The runner and IPC bridge inject monotonic UI milliseconds separately from
+  provider/journal epoch time. Snapshots carry active occurrence IDs and bounded
+  history only while open; immediate IPC delivery uses the same IDs.
 - Nothing a part or the host shows is drawn by it: both describe it as view data
   (`radar_core::view`) and a frontend paints it. A part gives `Plugin::view` and
   `section_view` (its screens and sections); the host gives the chrome,
@@ -101,7 +110,8 @@ Nothing does I/O inside a handler.
   capture, and sends `Event::Tick` every 200 ms (and on resize). A part that woke the host
   (`radar_core::wake`) gets `Event::Wake` at once, then at most one per 40 ms however often it
   wakes. It draws after each event, and on a 30 ms frame tick only while a motion effect
-  runs (1.17).
+  runs (1.17) or a visible notice countdown needs it. Notices are composited after
+  motion, outside retained frames; motion-off keeps their expiry and static ground.
 
 ### 1.3 The `Plugin` trait, member by member
 
@@ -208,6 +218,14 @@ Register it in `src/lib.rs` behind its feature (1.14).
 
 ### 1.4 Keys: who gets what
 
+Before ordinary key routing, notice dismissal observes the physical key without
+consuming it. `~` opens the session-only recent-notices view when no menu, modal,
+editor, setup, tour or focused dock owns input. That inert view uses `j`/`k` for
+selection, PageUp/PageDown for full-detail scrolling and Escape or `~` to return;
+`H` still opens the durable action journal. Background confirmations and editors
+take ownership immediately. A notice click dismisses its captured occurrence ID
+and cannot activate the covered control.
+
 `Host::on_key` (`host.rs`) decides, in this order:
 
 1. `ctrl-c` quits from anywhere, even while typing or with a menu open.
@@ -222,9 +240,10 @@ Register it in `src/lib.rs` behind its feature (1.14).
    `host.rs`); `x` and `?` the actions menu; `b` the
    bulk menu; `w` write the config now (harmless; it is saved after each change anyway); `z`
    pause or resume every part's refreshing; `` ` `` the agent dock (`dock::KEY`), when a part
-   has one; `H` read-only activity history (`HISTORY_KEY`); `,` settings (`SETTINGS_KEY`); a Shift+letter that is a screen's key;
-   `tab`/`shift-tab` next/previous pane; `h`/`l`/`←`/`→` previous/next pane; `1`..`9` the
-   pane at that position. Past a screen's outer pane `h l ← →` go to the screen beside;
+   has one; `H` read-only activity history (`HISTORY_KEY`); `~` session notices; `,` settings (`SETTINGS_KEY`); a Shift+letter that is a screen's key;
+   `tab`/`shift-tab` next/previous pane; `h`/`l` previous/next pane; `1`..`9` the
+   pane at that position. Unmodified `←`/`→` navigate a focused tree; outside trees
+   they move panes. Past a screen's outer pane `h l` go to the screen beside;
    past an item page's, to the tab beside (`Plugin::tabs`, 1.5), as `tab` does on a page
    with one pane.
 6. Settings with the nav focused: `j`/`k`/`↑`/`↓` move between sections.
@@ -233,7 +252,7 @@ Register it in `src/lib.rs` behind its feature (1.14).
    gives the keys to the top bar on a screen's panes (2.2) or to the page's tab row on an
    item page (1.5).
 
-So a plugin cannot bind `h l q x ? b w z H ,` or `` ` ``, a screen's capital, the arrows
+So a plugin cannot bind `h l q x ? b w z H ~ ,` or `` ` ``, a screen's capital, the arrows
 left/right, `tab` or digits, and every other plain key is free on its own screen (a
 contributed action has a shorter list, 1.13). `Effect::Focus(pane)` moves focus from a handler.
 
@@ -282,8 +301,8 @@ body; the status line says `←→ tabs · ↓ enter` and the `x` menu names the
 side. A click anywhere takes the keys back. A page's own `[`/`]` keep working from the
 body. A page with one tab has no row to move across. For this to work a part reports `↑`
 not handled at the top of a page's list or text (`move_in`, `Scroll::key`, the kit's
-lists and trees do), and nothing a page draws takes `h l ← → tab` (the host never shows
-them a part). *Why:* a page's tabs are reached by the same movement keys as a screen's
+lists and trees do). `h l tab` remain host pane keys; a focused tree takes `← →`
+for its own hierarchy, while other panes retain arrow pane navigation. *Why:* a page's tabs are reached by the same movement keys as a screen's
 panes.
 
 Mouse: what can be pointed at is a `Target` in the view data, a part's (rows, cells,
@@ -833,7 +852,7 @@ thread). The GitLab implementation is `crates/radar-gitlab/src/pages/` (`mod.rs`
   editor, `t` terminal, `s` look for checkouts again (1.11a). The review (M2): `a`
   approves or takes it back; on the Changes tab `n`/`N` next and previous file in the
   order the tree beside the diff shows them (folders skipped); that tree is the page's
-  first pane (`Nav`, the diff is `Middle`: `h l ← → tab 1 2` move between them as
+  first pane (`Nav`, the diff is `Middle`: `h l tab 1 2` move between them as
   everywhere, `panes()` says so while the tree shows; in it `j k g G` move over folders
   and files, `space` or `⏎` folds a folder, `⏎` on a file opens it, `+`/`-` fold
   (`folds`), `↑` at its top goes up to the tab row, a click on a row selects it and opens
@@ -1156,15 +1175,15 @@ Each part is developed, tested and run on its own; radar-core is the only thing 
   `cargo metadata`), if a part's source names another part's crate or `"id"`, if radar-core
   names any part or tool word (gitlab, jira, slack, merge request, ticket, ...), or if a
   part is not behind its feature.
-- **The mix build** (`scripts/check-mixes`, portable bash, nextest when installed): per
-  mix `tests/mix.rs` with `demo`. `--quick` (per commit) checks none, each alone and
-  all, and compares their first screen and, with all parts, each other screen once
-  (`tests/snapshots/mix__*.snap`); no crate's own suite, which its session runs. Without
-  it (at the close) every crate's own tests run once (`--workspace --all-features`, which
-  includes the guard), and every combination of parts is built as shipped and runs its
-  smoke (each screen draws, a click and a key act) and one screen per icon pack. `--reference` writes `tests/reference/`, every screen in every
-  mix, size and pack, the library the Ink renderer is compared against; not a test. It
-  runs at merge, not while working on one part (3).
+- **The mix build** (`scripts/check-mixes`, portable bash, nextest when installed):
+  checks none, each part alone, all parts, each adapter with its part and the shipped mix,
+  and runs `tests/mix.rs` with `demo` in each: the smoke (each screen draws, a click and
+  a key act), the first screen's recording (`tests/snapshots/mix__*.snap`) and, with
+  all parts, each other screen once and one screen per icon pack. A mix whose check
+  fails skips its tests. No crate's own suite (its session runs it, CI runs the
+  workspace once) and no pairs or other combinations: the guard keeps parts from
+  depending on each other, and what two parts do together runs in the all-parts mix.
+  `--quick` is the same run.
 
 **Starting work on a part.** Its own branch, worktree and session. Its crate depends on
 radar-core and crates.io only; its tests never need another part (use a stand-in, 1.13). Run
@@ -1176,7 +1195,7 @@ small branch that lands first, with its tests in radar-core using neutral stand-
 tool named. Parts then build on it.
 
 **Merging a part into `main`** happens only when its own checks pass (`cargo test -p
-radar-<id>`, clippy, its live check) and `scripts/check-mixes` passes.
+radar-<id>`, clippy, its live check) and CI passes (which runs `scripts/check-mixes`).
 
 ### 1.15 The kit: `radar_core::ui`
 
@@ -1246,8 +1265,9 @@ When to use which:
   through `TreeLook::from_specs`; a stage's style from the part's word for that state;
   everything else uses core slots or a `Tone`.
 - **Tree lines**: a row at depth `d` starts `"{d-1 spaces}├─ "`, so each glyph sits under
-  its parent's name; a top-level node with a `stripe` starts `▌ ` and the stripe runs down
-  its rows; `TreeLook::band_level` says whose blocks alternate bands (1: a group's
+  its parent's name; top-level names have no left-edge stripe. Legacy stripe metadata
+  is retained for compatibility but draws no rail. `TreeLook::band_level` says whose
+  blocks alternate bands (1: a group's
   children; 2: one level deeper). A row with no cells (a group's heading) runs across
   the columns.
 
@@ -1356,9 +1376,13 @@ only while one runs. Idle, radar draws on events alone, as before.
 | Popup sweeps open | a menu or confirm appeared (host); closing it is instant | the popup | 180 ms | yes | yes |
 | Row glows (accent background that fades) | a sync changed the row (part: `Effect::Changed`) | the row | 450 ms | yes | yes |
 | New row sweeps in | a sync added the row (part) | the row | 320 ms | glows | yes |
-| Message sweeps in | a status-line message appeared (host) | the message | 250 ms | | yes |
-| Message fades out | the message left (host) | where it was | 200 ms | | yes |
+| Message sweeps in | a marked message appeared (gallery primitive) | the message | 250 ms | | yes |
+| Message fades out | the marked message left (gallery primitive) | where it was | 200 ms | | yes |
 | Shimmer, repeating | a panel waits for its first data (part: `motion::loading`) | the panel | 1.4 s a pass | | yes |
+
+Host notices are composited after motion, outside retained frames. The gallery
+message primitive and its native/Ink cell fixtures exercise message arrival and
+departure; they do not establish animation of host notices.
 
 **What a part does.**
 
@@ -1521,7 +1545,7 @@ CJK in tree rows, tables, columns and cards (`ui/tests.rs`, "Wide text").
 change because of icons; a part's icon snapshots load a config with `[theme] icons =
 "unicode"` or `"nerd"` (Private Use Area glyphs are fine in a snapshot), at 80x24 and
 160x40. Each pack's glyph table is a unit test in radar-core (`ui/icon/tests.rs`); the mix
-check draws one screen per pack, and `tests/reference/` the main screens with each.
+check draws one screen per pack.
 `radar shot --icons <pack>` (default `nerd`) draws with any pack, and the SVG's fonts put
 Nerd Fonts first (`visual::FONTS`); the gallery's Icons story shows every pack.
 
@@ -1533,23 +1557,31 @@ A new plugin meets every rule below. Each has its reason. "Check" says how to te
 
 ### Keys and bars
 
-**2.1 The status line is lazydocker's fixed bar.** `PgUp/PgDn scroll · b bulk · +/-
-expand/collapse · q quit · x menu · ←→↑↓ navigate`, drawn by the host
-(`Host::status_hints`): `b bulk` only where there is a bulk list, `+/-` only on a tree
+**2.1 The status line is lazydocker's fixed bar.** `PgUp/PgDn scroll · bulk · +/-
+expand/collapse · quit · extra actions · ←→↑↓ navigate`, drawn by the host
+(`Host::status_hints`), with b, q and x underlined inside their words. The bulk
+action appears only where there is a bulk list, `+/-` only on a tree
 that folds, `PgUp/PgDn` on every screen (and in settings when the detail scrolls). With
 the top bar or a page's tab row holding the keys it says `←→ screens · ↓ enter` (or
 `←→ tabs`, `←→ sources`) instead. A plugin adds nothing to it except while capturing
 (`hints`, `section_hints`) and, in front of the fixed keys, the one or two main actions
-of the selected row that apply right now (`row_hints`: `u rebase`, `m merge`; none when
+of the selected row that apply right now (`row_hints`: u in “update by rebasing”, m in “merge”; none when
 nothing applies). *Why:* one bar with the same keys everywhere is learned once. Check:
 no `hints()` output outside capturing; `PgUp/PgDn` really scrolls something on your
 screen.
 
-**2.2 No shortcut footers or repeated letters.** No key hints inside a panel, no letter in
-front of a row, no "letter after a name". The tab shows the shortcut as an underlined
-letter inside the name (`shell::mnemonic`). *Why:* a key shown twice, or a letter before
-every row, is noise the reader has to skip. Check: keys appear only in menus' key column
-and the status line.
+**2.2 No shortcut footers or repeated letters.** No key hints inside a panel, no
+separate letter before or after a visual action word. Tabs, hints, menus and
+buttons underline the key inside a meaningful word. The host supplies
+`mnemonic_at` (a Unicode scalar position) and `mnemonic_shift` on `Hint`, `Choice`,
+`ActionSpec` and keyed rich lines; both renderers underline the complete grapheme
+at that position, without searching for another matching letter. Uppercase
+bindings retain their dispatch and show `shift` explicitly. Named and glyph
+keys stay before the word; numeric custom-provider choices also keep their
+visible number. Missing or invalid legacy metadata keeps the original key
+visible. Plain-text output retains explicit shortcuts because underline alone
+cannot convey them to a screen reader. *Why:* visual repetition is noise, but a
+shortcut must remain discoverable in every output mode.
 
 **The top bar takes the keys too.** `↑` (or `k`) on the first row of any pane of a screen
 (not inside an item page, where `↑` at the top does nothing) gives the keys to the top
@@ -1562,21 +1594,23 @@ handler reports `↑` not handled when it cannot move any further** (the kit's
 `tree::key`, `Scroll::key` and `rows::select` do; a part's own list returns
 `Outcome::Ignored`), and the host takes it up. An item page's tab row takes the keys the
 same way: `↑` past the top of the body, `← →` along the row, `↓` back in; in the body
-`← → h l` past the page's panes and `tab` on a one-pane tab move across the tabs, so no
+`h l` past the page's panes and `tab` on a one-pane tab move across the tabs; arrows
+retain that behavior outside focused trees, so no
 movement key is dead on a page (1.5). *Why:* moving to and from the top bar and a page's
 tabs must work the same on every screen and page.
 
-**2.3 Pane movement is the host's.** `tab`, `h l ← →`, `1`..`N`, `⏎` in, `esc` out (1.4).
-Do not rebind them. In a tree, `space` alone folds and `⏎` opens the row's page (1.12);
-`+` (or `=`, no shift needed) expands the selected group and `-` collapses it, or on a row
-inside a group collapses that group and selects it, as file managers do; on a row with
-nothing to fold the tree stays as it is and the status line says so (the host does, when
-the part reports the key not handled). `ui::tree::key` does all of it (`tree::expand`,
-`tree::collapse`), and a log's sections take the same keys. Where the focused panel is
-such a tree (the settings nav, or a part's: `Plugin::folds`, `Plugin::section_folds`)
-the status line shows `+/- expand/collapse` and the `x` menu lists both keys; the host
-adds them, a part only says where its trees are. *Why:* lazydocker's navigation is
-easy to follow, and folding with `+`/`-` is shown where it works.
+**2.3 Pane movement is the host's.** `tab`, `h l`, `1`..`N`, `⏎` in, `esc` out (1.4).
+Do not rebind them. Outside trees, `← →` also move panes. Inside a focused tree,
+`space` toggles the selected group; `+` opens it; `-` closes an open group or
+closes/selects its parent; `→` opens a group or enters its first selectable child;
+`←` closes an open group or selects its parent; `=` opens all groups already held
+in the current tree. It never fetches missing children. `⏎` retains the owner's
+original action. Up/k at the first selectable row still exits to the top bar.
+Editors, menus, dock capture and modified keys keep their prior ownership.
+The host consumes `Intent::OpenAll` and applies validated parent-first folds
+without changing the selected subject; owner actions and confirmations remain
+separate. Where a focused panel is a tree (`Plugin::folds`,
+`Plugin::section_folds`), shared hints/menu entries describe the same operations.
 
 **2.4 `↑`/`↓` in a focused detail pane move through it.** `PgUp`/`PgDn` scroll it from
 any pane; a new selection resets it to the top; a scrollbar shows when there is more.
@@ -1707,11 +1741,14 @@ indentation, not `▸▾` or `[+]`/`[-]`. Things that belong together share a ba
 stay configurable. A part sends its tree as view data and the kit draws it
 (`ui::tree::BandedTree`, from `view_tui.rs` in Ratatui, the same in Ink): each row's own
 tree line (`├─`/`└─`) comes before its text, with its room taken before the name is
-fitted so columns stay aligned; the group's colour stripe `▌` (a slot such as
-`tenant.<colour>`) runs down every row, a `│` line past a block that is not the last, and
+fitted so columns stay aligned; there is no left-edge stripe. A `│` line runs past
+a block that is not the last, with
 background bands on group headings and on every other block (a repo with its merge
-requests); the selected row keeps the selection background. A folded node ends in a dim
-`⋯ n`. The band, heading and line colours are look words (GitLab's `band`, `heading`,
+requests). Selection preserves semantic foregrounds and modifiers, using
+`bg.selection` when focused and `bg.overlay` when unfocused; mono adds an accessible
+selection marker through text modifiers. A folded node reserves a dim `⋯ n`, where
+`n` counts held descendants only, not unfetched server totals. If the exact count
+cannot fit, show only `⋯`, never a truncated number. The band, heading and line colours are look words (GitLab's `band`, `heading`,
 `lines` in `config::default_styles`, group "repositories tree" in Settings, look); `band`
 and `heading` are backgrounds, so only the slot's colour is used and the menu offers
 colour and reset only. Panels are drawn on `bg.surface`, so a band must be a different
@@ -2009,10 +2046,12 @@ minutes on a day-old project, and the same guarantee holds at unit speed.
 |---|---|---|---|
 | Unit | logic: parsing, validation, config round trip, filter grammar; keys to actions; each `x` row's key is the part's and is taken, each click target it draws is taken, each action it adds to another part acts (`radar_core::check`, 3.2); hit helpers (full rows, padded labels), hover style, pointer sequences | `#[cfg(test)]` next to the code; no host, no full frame | ms each |
 | Integration | a few per part, through the host: open a page, a write's confirm, a click on a row, the top bar, typing into an input; snapshots of each screen and section | the part's `tests.rs` (`hosted()`), radar-core's host tests | well under 1s each |
-| End to end | per mix: start, each screen draws, a click and a key act, joined parts show each other's contributions; recordings only for the first screen of none, each alone and all; each other screen once, with all parts), everything else in `tests/reference/` | `tests/mix.rs` only | under 1s per mix |
+| End to end | per mix: start, each screen draws, a click and a key act, joined parts show each other's contributions; recordings only for the first screen of none, each alone and all; each other screen once, with all parts | `tests/mix.rs` only | under 1s per mix |
 
 **Budgets, enforced.** Each crate's suite runs in under ~10s wall with `cargo nextest run
--p <crate>`; `scripts/check-mixes` in under ~3 min warm. `.config/nextest.toml` flags any
+-p <crate>`. `scripts/check-mixes` is 15 feature builds (none, 8 parts alone, all, 4
+adapters, shipped), each a check and one test binary; most of its time is compiling, so
+it is not run while working on one part. `.config/nextest.toml` flags any
 test over 2s as SLOW (and kills one over 20s): make it smaller or move it down the pyramid
 (rebuild nothing per row, draw only the part's area, no real sleeps). Only the two
 whole-app sweeps in `tests/` get longer (`key_intent_parity`, which presses every key and
@@ -2024,16 +2063,21 @@ the Ink renderer in a real PTY (`ink_pty`) and CLI tests (`work_cli`,
 `slack_cli_history`, `mcp_relay`).
 
 **A session working on one part tests only that crate** (`cargo nextest run -p radar-<part>`,
-clippy on it). The mix check (`scripts/check-mixes`) runs at merge. Before handing over:
+clippy on it). After a merge, test only the crates the merged branches changed; CI runs
+the workspace suite and the mix check on the pull request. Before handing over:
 
 ```bash
 cargo nextest run -p radar-<part>               # your crate, seconds (cargo test -p if no nextest)
-cargo clippy --workspace --all-features --all-targets -- -D warnings
-cargo build --release                        # the live check runs target/release/radar
-scripts/check-mixes --quick                  # per commit: none/each/all mixes checked, their recordings (1.14)
-scripts/check-mixes                          # at the close: each crate once, every mix built and its smoke
+cargo clippy -p radar-<part> --all-features --all-targets -- -D warnings
+cargo build --release                        # only when a live check needs the binary
+scripts/check-mixes                          # when Cargo features, src/lib.rs or tests/mix.rs changed (1.14)
 scripts/shots --compare main                 # when a colour, style or layout changed (3.1a)
 ```
+
+A failing mix test is usually a recording that needs regenerating or a test that
+looks a row up the old way; read it, fix the one test, and rerun that one mix
+(`cargo nextest run -p radar --no-default-features --features <mix>,demo,test-support
+--test mix`), not the whole check.
 
 ### 3.1 Unit tests and snapshots
 
@@ -2309,9 +2353,9 @@ beside each step; keep names from real work out of everything you write (2.20).
 
 ### 4.2 Pre-handoff checklist
 
-- [ ] `cargo nextest run -p radar-<part>` (in its budget, nothing SLOW), `cargo clippy
-      --workspace --all-features --all-targets -- -D warnings` and `cargo build --release`
-      pass; `scripts/check-mixes` passes at merge (3).
+- [ ] `cargo nextest run -p radar-<part>` (in its budget, nothing SLOW) and `cargo clippy
+      -p radar-<part> --all-features --all-targets -- -D warnings` pass; CI (workspace
+      suite, workspace clippy, `scripts/check-mixes`) passes on the pull request (3).
 - [ ] It joins the others only through subjects, `Show` and contributions (1.13): no
       import or name of another part; nothing shown for a part that is absent; set up or
       not, it looks finished alone.

@@ -52,7 +52,7 @@ exports[`work area from the recorded real Work view with a pending question > 16
 │ Groups · page 1       ││                                                                                     ││                                              │
 ╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
 ╭ map ─────────────────────────────────╮╭ tabs ────────────────────────────────────────────────────────────────────────╮╭ actions ─────────────────────────────╮
-│ 0 groups · 0 items on page 1         ││ ● linked sources                                                             ││ create a local task…                 │
+│ 0 groups · 0 items on page 1         ││ ● linked sources                                                             ││ new local task…                      │
 ╰──────────────────────────────────────╯│ ○ evidence                                                                   ││ review retained change…              │
 ╭ timeline ────────────────────────────╮│                                                                              ││ filter this item page…               │
 │ No evidence loaded.                  ││                                                                              ││ copy retained local batch for        │
@@ -89,7 +89,7 @@ relationships or goals are inferred.
   ● linked sources
   ○ evidence
 [rail] actions
-  [n] create a local task…
+  [n] new local task…
   [r] review retained change…
   [/] filter this item page…
   [y] copy retained local batch for inspection"

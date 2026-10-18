@@ -1,15 +1,16 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
- radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
-╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+ radar    Work items   History   Settings (,)                                                                     local annotations · observations only  ✎ edit
+╭ 1 local groups ───────╮╭ 2 work items · page 1 ──────────────────────────────────────────────────────────────╮╭ 3 linked sources and context ────────────────╮
 │ All items             ││ Keep selected while browsing groups                                            task ││ No source binding in this evidence page. Add │
 │ Unassigned group 0    ││                                                                                     ││ an exact source from its actions menu; no    │
 │ Unassigned group 1    ││                                                                                     ││ links are inferred.                          │
 │ Unassigned group 2    ││                                                                                     ││ Local work saved.                            │
 │ Unassigned group 3    ││                                                                                     ││ Keep selected while browsing groups          │
-│ Unassigned group 4    ││                                                                                     ││ v history: original claims and outcomes ·    │
+│ Unassigned group 4    ││                                                                                     ││ view history: original claims and outcomes · │
 │ Unassigned group 5    ││                                                                                     ││ completeness not guaranteed                  │
 │ Unassigned group 6    ││       ╭ Label Keep selected while browsing groups · groups page 1 ─────────────────────────────────╮oups are authored locally.      │
 │ Unassigned group 7    ││       │  Create a local group label…   name it yourself                                            │not imply identity, permission  │
@@ -41,4 +42,4 @@ expression: text
 │                       ││                                                                                     ││                                              │
 │ Groups · page 1       ││                                                                                     ││                                              │
 ╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   j/k move   ⏎ choose   esc close
+ WORK ITEMS   ↑↓ move   ⏎ choose   esc close

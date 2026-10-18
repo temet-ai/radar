@@ -1,14 +1,7 @@
 //! Configured local workspaces and the repositories found inside them.
 
-use radar_core::design::theme::Slot;
 use radar_core::plugin::{Binding, Outcome, Pane, ScreenSpec};
-use radar_core::view_tui::Cx;
-use radar_core::view::{self as v, Ink, ListRow, Node, PaneId, PaneView, Text};
-use radar_core::ratatui::buffer::Buffer;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
-use radar_core::ratatui::layout::{Constraint, Layout, Rect};
-use radar_core::ratatui::widgets::{Block, Borders, Widget};
-use radar_core::ui;
+use radar_core::view::{self as v, Ink, Node, PaneId, PaneView, Text, TreeRow};
 
 use crate::{Target, WorkspacePlugin};
 
@@ -22,24 +15,46 @@ pub const SCREEN: ScreenSpec = ScreenSpec {
 struct Row {
     space: usize,
     repo: Option<usize>,
+    path: Vec<String>,
     label: String,
+    ambiguous: bool,
+}
+
+// Folder identities, not row positions or display names, survive index refreshes.
+fn id(kind: &str, dir: &str) -> String {
+    format!("{kind}:{}", dir.replace('%', "%25").replace(v::PATH_SEP, "%1F"))
 }
 
 fn rows(p: &WorkspacePlugin) -> Vec<Row> {
     let mut rows = Vec::new();
+    let mut space_counts = std::collections::BTreeMap::new();
+    for source in &p.cfg.spaces {
+        *space_counts.entry(source.dir.as_str()).or_insert(0usize) += 1;
+    }
     for (space, source) in p.cfg.spaces.iter().enumerate() {
+        let Some(count) = space_counts.remove(source.dir.as_str()) else { continue; };
+        let path = vec![id("workspace", &source.dir)];
+        let ambiguous = count > 1;
         rows.push(Row {
-            space,
-            repo: None,
-            label: source.label(),
+            space, repo: None, path: path.clone(),
+            label: if ambiguous { source.dir.clone() } else { source.label() }, ambiguous,
         });
+        // Configuration loading permits duplicates. Never choose one entry's
+        // editor/settings on behalf of another with the same directory identity.
+        if ambiguous { continue; }
         if let Some(index) = p.state.indexes.get(&source.dir) {
+            let mut repository_counts = std::collections::BTreeMap::new();
+            for found in &index.repositories {
+                *repository_counts.entry(found.dir.as_str()).or_insert(0usize) += 1;
+            }
             for (repo, found) in index.repositories.iter().enumerate() {
-                let name = found.dir.rsplit('/').next().unwrap_or(&found.dir);
+                let Some(count) = repository_counts.remove(found.dir.as_str()) else { continue; };
                 rows.push(Row {
                     space,
                     repo: Some(repo),
-                    label: format!("  {name}"),
+                    path: vec![path[0].clone(), id("repository", &found.dir)],
+                    label: found.dir.rsplit('/').next().unwrap_or(&found.dir).into(),
+                    ambiguous: count > 1,
                 });
             }
         }
@@ -47,14 +62,57 @@ fn rows(p: &WorkspacePlugin) -> Vec<Row> {
     rows
 }
 
+fn visible(p: &WorkspacePlugin, row: &Row) -> bool {
+    row.repo.is_none() || !p.state.screen_folded.contains(&row.path[0])
+}
+
+fn selected<'a>(p: &WorkspacePlugin, rows: &'a [Row]) -> Option<&'a Row> {
+    let mut path = p.state.screen_selected.clone();
+    while !path.is_empty() {
+        if let Some(row) = rows.iter().find(|row| row.path == path) {
+            if row.ambiguous { return None; }
+            if visible(p, row) { return Some(row); }
+        }
+        path.pop();
+    }
+    rows.iter().find(|row| !row.ambiguous && visible(p, row))
+}
+
+fn tree(p: &WorkspacePlugin) -> v::Tree {
+    let items = rows(p);
+    let selected = selected(p, &items).map(|row| row.path.clone()).unwrap_or_default();
+    let mut open = Vec::new();
+    let mut roots: Vec<TreeRow> = Vec::new();
+    for row in items {
+        let mut node = TreeRow::new(row.path.last().unwrap(), Text::of(row.label, if row.repo.is_none() { Ink::Emphasis } else { Ink::Secondary }));
+        if row.ambiguous {
+            node.heading = true;
+            node.detail = Some(Text::of(if row.repo.is_none() {
+                "duplicate folder in Settings; cannot open"
+            } else {
+                "duplicate folder in held index; cannot open"
+            }, Ink::Warn));
+        }
+        if row.repo.is_none() {
+            if !row.ambiguous && !p.state.screen_folded.contains(&row.path[0]) {
+                open.push(row.path);
+            }
+            roots.push(node);
+        } else if let Some(parent) = roots.last_mut() {
+            parent.children.push(node);
+        }
+    }
+    v::Tree { rows: roots, selected, open, ..v::Tree::default() }
+}
+
 pub fn view(p: &WorkspacePlugin, cx: &v::ViewCx<'_>) -> v::ScreenView {
     let list = rows(p);
-    let selected = p.state.screen_row.min(list.len().saturating_sub(1));
-    let items = list.iter().enumerate().map(|(i, row)| {
-        ListRow::new(format!("row:{i}"), Text::of(&row.label, if row.repo.is_none() { Ink::Emphasis } else { Ink::Secondary }))
-    }).collect();
-    let detail = list.get(selected).map_or_else(
-        || vec![Text::of("Add a local workspace in Settings.", Ink::Secondary)],
+    let detail = selected(p, &list).map_or_else(
+        || vec![Text::of(if list.iter().any(|row| row.ambiguous) {
+            "Duplicate folder identities cannot be opened. Resolve duplicate workspace entries in Settings or refresh the repository index."
+        } else {
+            "Add a local workspace in Settings."
+        }, Ink::Secondary)],
         |row| {
             let space = &p.cfg.spaces[row.space];
             if let Some(repo) = row.repo.and_then(|i| p.state.indexes.get(&space.dir)?.repositories.get(i)) {
@@ -64,20 +122,16 @@ pub fn view(p: &WorkspacePlugin, cx: &v::ViewCx<'_>) -> v::ScreenView {
             }
         });
     let mut screen = v::ScreenView::new(SCREEN.id, vec![
-        PaneView::new(PaneId::Middle, "local repositories", Node::List { rows: items, selected: Some(selected), editing: None }),
+        PaneView::new(PaneId::Middle, "local repositories", Node::Tree(tree(p))),
         PaneView::new(PaneId::Detail, "details", Node::Document { lines: detail, cut: false }),
     ]);
     screen.actions = keys(p, Pane::from(cx.focus)).iter().map(|b| v::ActionSpec::named(action_id(b), b)).collect();
     screen
 }
 
-/// The stable id of a row of the local repositories screen, chosen here by hand from
-/// its key (`workspace.local_repositories.<verb>`); a label edit never changes it.
-/// A heading has no id.
+/// Stable action ids preserve the screen's existing editor and refresh actions.
 fn action_id(b: &Binding) -> &'static str {
-    if b.is_heading() {
-        return "";
-    }
+    if b.is_heading() { return ""; }
     match b.keys.as_str() {
         "⏎" => "workspace.local_repositories.open",
         "r" => "workspace.local_repositories.look_again",
@@ -85,136 +139,70 @@ fn action_id(b: &Binding) -> &'static str {
     }
 }
 
+fn select(p: &mut WorkspacePlugin, target: &v::Target) -> Outcome {
+    let path = TreeRow::path_of(target);
+    if !rows(p).iter().any(|row| row.path == path && !row.ambiguous && visible(p, row)) {
+        return Outcome::Ignored;
+    }
+    p.state.screen_selected = path;
+    Outcome::done()
+}
+
+fn fold(p: &mut WorkspacePlugin, target: &v::Target, open: bool) -> Outcome {
+    let path = TreeRow::path_of(target);
+    let model = tree(p);
+    if !model.visible().iter().any(|(shown, row)| *shown == path && !row.children.is_empty()) {
+        return Outcome::Ignored;
+    }
+    if open {
+        p.state.screen_folded.remove(&path[0]);
+    } else {
+        p.state.screen_folded.insert(path[0].clone());
+        if model.selected.starts_with(&path) {
+            p.state.screen_selected = path;
+        }
+    }
+    Outcome::done()
+}
+
 pub fn intent(p: &mut WorkspacePlugin, pane: Pane, intent: &v::Intent) -> Outcome {
+    if pane != Pane::Middle { return Outcome::Ignored; }
     match intent {
         v::Intent::Select { target } | v::Intent::Context { target } | v::Intent::Activate { target } => {
-            let out = click(p, target.as_str());
+            let out = select(p, target);
             if matches!(intent, v::Intent::Activate { .. }) && matches!(out, Outcome::Handled(_)) {
-                return key(p, Pane::Middle, radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)));
+                return key(p, v::Chord::new(v::Key::Enter));
             }
             out
         }
-        v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| key(p, pane, radar_core::view_tui::key_of(chord))),
-        v::Intent::Fold { .. } | v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::EditSelect { .. } | v::Intent::EditUnselect | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
+        v::Intent::Fold { target, open } => fold(p, target, *open),
+        v::Intent::Key { chord } => key(p, *chord),
+        v::Intent::Invoke { action } => {
+            let chord = keys(p, pane).iter().find(|binding| action_id(binding) == action).and_then(|binding| v::Chord::parse(&binding.keys));
+            chord.map_or(Outcome::Ignored, |chord| key(p, chord))
+        }
+        _ => Outcome::Ignored,
     }
 }
 
-#[allow(dead_code)]
-pub fn render(p: &WorkspacePlugin, area: Rect, buf: &mut Buffer, cx: &Cx<'_>) {
-    let [left, right] =
-        Layout::horizontal([Constraint::Percentage(58), Constraint::Percentage(42)]).areas(area);
-    Block::default()
-        .borders(Borders::ALL)
-        .title(" local repositories ")
-        .render(left, buf);
-    Block::default()
-        .borders(Borders::ALL)
-        .title(" details ")
-        .render(right, buf);
-    cx.hit_pane(left, Pane::Middle);
-    cx.hit_pane(right, Pane::Detail);
-    let list = rows(p);
-    let selected = p.state.screen_row.min(list.len().saturating_sub(1));
-    let inner = left.inner(radar_core::ratatui::layout::Margin {
-        horizontal: 1,
-        vertical: 1,
-    });
-    let offset = selected.saturating_sub(inner.height.saturating_sub(1) as usize);
-    for (visible, (index, row)) in list
-        .iter()
-        .enumerate()
-        .skip(offset)
-        .take(inner.height as usize)
-        .enumerate()
-    {
-        let y = inner.y + visible as u16;
-        let style = if index == selected {
-            cx.theme
-                .bold(Slot::TextEmphasis)
-                .patch(cx.theme.bg(Slot::BgSelection))
-        } else if row.repo.is_none() {
-            cx.theme.bold(Slot::TextSecondary)
-        } else {
-            cx.theme.s(Slot::TextSecondary)
-        };
-        buf.set_style(Rect::new(inner.x, y, inner.width, 1), style);
-        buf.set_string(inner.x, y, ui::fit(&row.label, inner.width as usize), style);
-        cx.hit_row(inner, y, Pane::Middle, format!("row:{index}"));
+fn key(p: &mut WorkspacePlugin, chord: v::Chord) -> Outcome {
+    if chord.ctrl || chord.alt { return Outcome::Ignored; }
+    if let Some(step) = v::tree_step(&tree(p), chord) {
+        return intent(p, Pane::Middle, &step);
     }
-    let detail = right.inner(radar_core::ratatui::layout::Margin {
-        horizontal: 1,
-        vertical: 1,
-    });
-    if let Some(row) = list.get(selected) {
-        let space = &p.cfg.spaces[row.space];
-        let index = p.state.indexes.get(&space.dir);
-        let lines = if let Some(repo) = row.repo.and_then(|i| index?.repositories.get(i)) {
-            vec![
-                repo.project.as_str(),
-                repo.dir.as_str(),
-                "",
-                "Enter opens this folder in your editor",
-            ]
-        } else {
-            vec![
-                space.dir.as_str(),
-                "",
-                "Repositories are read from this workspace's clones folder.",
-                "Enter opens the workspace in your editor",
-            ]
-        };
-        for (n, line) in lines.into_iter().enumerate().take(detail.height as usize) {
-            buf.set_string(
-                detail.x,
-                detail.y + n as u16,
-                ui::fit(line, detail.width as usize),
-                cx.theme.s(Slot::TextSecondary),
-            );
-        }
-    } else if detail.height > 0 {
-        buf.set_string(
-            detail.x,
-            detail.y,
-            "Add a local workspace in Settings.",
-            cx.theme.s(Slot::TextSecondary),
-        );
-    }
-}
-
-pub fn key(p: &mut WorkspacePlugin, pane: Pane, key: KeyEvent) -> Outcome {
-    if pane != Pane::Middle {
-        return Outcome::Ignored;
-    }
-    let list = rows(p);
-    match key.code {
-        KeyCode::Up | KeyCode::Char('k') => {
-            p.state.screen_row = p.state.screen_row.saturating_sub(1);
-            Outcome::done()
-        }
-        KeyCode::Down | KeyCode::Char('j') => {
-            p.state.screen_row = (p.state.screen_row + 1).min(list.len().saturating_sub(1));
-            Outcome::done()
-        }
-        KeyCode::Enter => {
-            let Some(row) = list.get(p.state.screen_row) else {
-                return Outcome::done();
-            };
+    match chord.key {
+        v::Key::Enter => {
+            let list = rows(p);
+            let Some(row) = selected(p, &list) else { return Outcome::done(); };
             let space = &p.cfg.spaces[row.space];
-            let dir = row
-                .repo
+            let dir = row.repo
                 .and_then(|i| p.state.indexes.get(&space.dir)?.repositories.get(i))
                 .map_or_else(|| space.dir.clone(), |repo| repo.dir.clone());
             Outcome::Handled(p.open_editor(space, Target::Folder(dir)))
         }
-        KeyCode::Char('r') => {
+        v::Key::Char('r') => {
             let mut effects = Vec::new();
-            for dir in p
-                .cfg
-                .spaces
-                .iter()
-                .map(|s| s.dir.clone())
-                .collect::<Vec<_>>()
-            {
+            for dir in p.cfg.spaces.iter().map(|s| s.dir.clone()).collect::<Vec<_>>() {
                 effects.extend(p.reindex(&dir, true));
             }
             Outcome::Handled(effects)
@@ -223,28 +211,202 @@ pub fn key(p: &mut WorkspacePlugin, pane: Pane, key: KeyEvent) -> Outcome {
     }
 }
 
-pub fn click(p: &mut WorkspacePlugin, id: &str) -> Outcome {
-    if let Some(row) = id
-        .strip_prefix("row:")
-        .and_then(|n| n.parse::<usize>().ok())
-    {
-        if row < rows(p).len() {
-            p.state.screen_row = row;
-        }
-        Outcome::done()
-    } else {
-        Outcome::Ignored
-    }
-}
-
-pub fn keys(_: &WorkspacePlugin, pane: Pane) -> Vec<Binding> {
+pub fn keys(p: &WorkspacePlugin, pane: Pane) -> Vec<Binding> {
     if pane == Pane::Middle {
-        vec![
-            Binding::heading("local repositories"),
-            Binding::new("⏎", "open the selected folder"),
-            Binding::new("r", "look for repositories again"),
-        ]
+        let mut bindings = vec![Binding::heading("local repositories")];
+        if selected(p, &rows(p)).is_some() {
+            bindings.push(Binding::new("⏎", "open the selected folder"));
+        }
+        bindings.push(Binding::new("r", "look for repositories again"));
+        bindings
     } else {
         vec![]
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{config::Space, find::Repo, notes::Index};
+
+    fn fixture() -> WorkspacePlugin {
+        let mut p = WorkspacePlugin::new();
+        for (dir, names) in [("/work/ankh-morpork", vec!["watch", "guilds"]), ("/work/lancre", vec!["witches"])] {
+            p.cfg.spaces.push(Space::new(dir));
+            p.state.indexes.insert(dir.into(), Index {
+                repositories: names.into_iter().map(|name| Repo { dir: format!("{dir}/{name}"), project: name.into() }).collect(),
+                ..Index::default()
+            });
+        }
+        p
+    }
+
+    #[test]
+    fn paths_selection_and_folds_survive_workspace_and_repository_reordering() {
+        let mut p = fixture();
+        let path = tree(&p).visible()[2].0.clone();
+        let target = TreeRow::target_of(&path);
+        assert!(matches!(select(&mut p, &target), Outcome::Handled(_)));
+        p.cfg.spaces.reverse();
+        p.state.indexes.get_mut("/work/ankh-morpork").unwrap().repositories.reverse();
+        assert_eq!(tree(&p).selected, path);
+        let step = v::tree_step(&tree(&p), v::Chord::char('-')).unwrap();
+        assert!(matches!(intent(&mut p, Pane::Middle, &step), Outcome::Handled(_)));
+        assert_eq!(tree(&p).selected, path[..1]);
+        assert_eq!(tree(&p).visible().len(), 3);
+        assert!(matches!(select(&mut p, &target), Outcome::Ignored));
+        let parent = TreeRow::target_of(&path[..1]);
+        assert!(matches!(fold(&mut p, &parent, true), Outcome::Handled(_)));
+        assert!(matches!(select(&mut p, &target), Outcome::Handled(_)));
+        p.state.indexes.get_mut("/work/ankh-morpork").unwrap().repositories.retain(|r| r.project != "guilds");
+        assert!(matches!(select(&mut p, &target), Outcome::Ignored));
+        assert_eq!(tree(&p).selected, path[..1]);
+    }
+
+    #[test]
+    fn stale_wrong_ancestor_and_leaf_targets_are_ignored() {
+        let mut p = fixture();
+        let path = tree(&p).visible()[1].0.clone();
+        let leaf = TreeRow::target_of(&path);
+        assert!(matches!(fold(&mut p, &leaf, false), Outcome::Ignored));
+        let wrong = TreeRow::target_of(&[id("workspace", "/work/lancre"), path[1].clone()]);
+        assert!(matches!(select(&mut p, &wrong), Outcome::Ignored));
+        p.cfg.spaces.clear();
+        assert!(tree(&p).rows.is_empty());
+        assert!(tree(&p).selected.is_empty());
+        assert!(matches!(select(&mut p, &leaf), Outcome::Ignored));
+        assert!(matches!(key(&mut p, v::Chord::new(v::Key::Enter)), Outcome::Handled(effects) if effects.is_empty()));
+    }
+
+    #[test]
+    fn open_preserves_another_selection_and_identity_escapes_path_delimiters() {
+        let mut p = fixture();
+        let paths: Vec<_> = tree(&p).visible().into_iter().map(|(path, _)| path).collect();
+        select(&mut p, &TreeRow::target_of(&paths[1]));
+        let other = TreeRow::target_of(&paths[3]);
+        fold(&mut p, &other, false);
+        fold(&mut p, &other, true);
+        assert_eq!(tree(&p).selected, paths[1]);
+        assert_ne!(id("workspace", "/work/%1F"), id("workspace", "/work/\u{1f}"));
+        let path = vec![id("workspace", "/work/\u{1f}%")];
+        assert_eq!(TreeRow::path_of(&TreeRow::target_of(&path)), path);
+    }
+    #[test]
+    fn activation_and_named_open_action_keep_the_exact_folder_target() {
+        use radar_core::plugin::Effect;
+        let mut p = fixture();
+        let path = tree(&p).visible()[1].0.clone();
+        let target = TreeRow::target_of(&path);
+        p.cfg.spaces.reverse();
+        let Outcome::Handled(effects) = intent(&mut p, Pane::Middle, &v::Intent::Activate { target: target.clone() }) else {
+            panic!("open folder effects")
+        };
+        let Some(Effect::Journal(action)) = effects.first() else { panic!("folder launch descriptor") };
+        assert_eq!(action.subjects[0].key.id, "/work/ankh-morpork");
+        assert_eq!(action.subjects[1].key.id, "/work/ankh-morpork/watch");
+        assert!(matches!(effects.get(1), Some(Effect::Spawn(_))));
+        let Outcome::Handled(effects) = intent(&mut p, Pane::Middle, &v::Intent::Invoke { action: "workspace.local_repositories.open".into() }) else {
+            panic!("named open action")
+        };
+        assert!(matches!(effects.first(), Some(Effect::Journal(action)) if action.subjects[1].key.id == "/work/ankh-morpork/watch"));
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Invoke { action: "workspace.local_repositories.unknown".into() }), Outcome::Ignored));
+        p.state.indexes.get_mut("/work/ankh-morpork").unwrap().repositories.clear();
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Activate { target }), Outcome::Ignored));
+    }
+
+    #[test]
+    fn configured_duplicate_workspaces_fail_closed_before_and_after_reordering() {
+        use radar_core::Plugin;
+        let mut p = WorkspacePlugin::new();
+        let config: toml::Value = toml::from_str(r#"
+            [[space]]
+            dir = "/work/ankh-morpork"
+            name = "Watch"
+            editor = "watch-editor"
+            repos = "watch-clones"
+            tickets = ["WATCH"]
+            [[space]]
+            dir = "/work/ankh-morpork"
+            name = "Guilds"
+            editor = "guild-editor"
+            repos = "guild-clones"
+            tickets = ["GUILD"]
+        "#).unwrap();
+        p.configure(Some(&config)).unwrap();
+        p.state.indexes.insert("/work/ankh-morpork".into(), Index {
+            repositories: vec![Repo { dir: "/work/ankh-morpork/watch".into(), project: "watch".into() }],
+            ..Index::default()
+        });
+        let root = vec![id("workspace", "/work/ankh-morpork")];
+        let child = vec![root[0].clone(), id("repository", "/work/ankh-morpork/watch")];
+        p.state.screen_selected = child.clone();
+        let before = tree(&p);
+        for _ in 0..2 {
+            let model = tree(&p);
+            assert_eq!(model, before);
+            assert_eq!(model.rows.len(), 1);
+            assert!(model.rows[0].heading && model.rows[0].children.is_empty());
+            assert!(model.selected.is_empty());
+            for path in [&root, &child] {
+                let target = TreeRow::target_of(path);
+                for event in [
+                    v::Intent::Select { target: target.clone() },
+                    v::Intent::Context { target: target.clone() },
+                    v::Intent::Activate { target: target.clone() },
+                    v::Intent::Fold { target, open: true },
+                ] {
+                    assert!(matches!(intent(&mut p, Pane::Middle, &event), Outcome::Ignored));
+                }
+            }
+            assert!(matches!(key(&mut p, v::Chord::new(v::Key::Enter)), Outcome::Handled(effects) if effects.is_empty()));
+            assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Invoke { action: "workspace.local_repositories.open".into() }), Outcome::Ignored));
+            p.cfg.spaces.reverse();
+        }
+        assert_eq!(p.cfg.spaces.len(), 2);
+        assert_eq!(p.cfg.spaces[0].editor, "watch-editor");
+        assert_eq!(p.cfg.spaces[1].editor, "guild-editor");
+        assert_eq!(p.cfg.spaces[0].repos, "watch-clones");
+        assert_eq!(p.cfg.spaces[1].repos, "guild-clones");
+    }
+
+    #[test]
+    fn restored_duplicate_repository_identities_never_launch_or_open_context() {
+        use radar_core::Plugin;
+        let mut p = fixture();
+        let root = id("workspace", "/work/ankh-morpork");
+        let child = vec![root, id("repository", "/work/ankh-morpork/watch")];
+        p.state.screen_selected = child.clone();
+        let index = Index {
+            repositories: vec![
+                Repo { dir: "/work/ankh-morpork/watch".into(), project: "watch".into() },
+                Repo { dir: "/work/ankh-morpork/watch".into(), project: "guilds".into() },
+            ], ..Index::default()
+        };
+        p.restore(serde_json::json!({ "indexes": { "/work/ankh-morpork": index } }));
+        for _ in 0..2 {
+            let model = tree(&p);
+            assert!(model.selected.is_empty());
+            assert_eq!(model.rows[0].children.len(), 1);
+            assert!(model.rows[0].children[0].heading);
+            let target = TreeRow::target_of(&child);
+            assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Context { target: target.clone() }), Outcome::Ignored));
+            assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Activate { target }), Outcome::Ignored));
+            assert!(matches!(key(&mut p, v::Chord::new(v::Key::Enter)), Outcome::Handled(effects) if effects.is_empty()));
+            p.state.indexes.get_mut("/work/ankh-morpork").unwrap().repositories.reverse();
+        }
+    }
+
+    #[test]
+    fn hidden_and_removed_context_targets_do_not_open_a_fallback_menu() {
+        let mut p = fixture();
+        let child = tree(&p).visible()[1].0.clone();
+        let target = TreeRow::target_of(&child);
+        fold(&mut p, &TreeRow::target_of(&child[..1]), false);
+        let selected = tree(&p).selected;
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Context { target: target.clone() }), Outcome::Ignored));
+        assert_eq!(tree(&p).selected, selected);
+        p.cfg.spaces.clear();
+        assert!(matches!(intent(&mut p, Pane::Middle, &v::Intent::Context { target }), Outcome::Ignored));
+    }
+
 }

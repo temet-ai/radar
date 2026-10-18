@@ -4,7 +4,7 @@ assertion_line: 542
 expression: text
 ---
  radar    History   Settings (,)                                                                                 ✎ edit
-╭ set up Slack ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 set up Slack ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Slack is not set up yet.                                                                                             │
 │                                                                                                                      │
 │ Add your workspace token: a user token (xoxp-…), as env:NAME or typed in. radar found SLACK_APP_USER_OAUTH_TOKEN     │
@@ -32,4 +32,4 @@ expression: text
 │                                                                                                                      │
 │                                                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   q quit   x menu   ←→↑↓ navigate
+ SLACK   quit   extra actions   ~ notices   ←→↑↓ navigate

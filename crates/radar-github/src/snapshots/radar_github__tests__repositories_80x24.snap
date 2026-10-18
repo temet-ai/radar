@@ -4,18 +4,18 @@ assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                          ✎ edit
-╭ settings ────────────╮╭ repositories ────────────────────────────────────────╮
-│General               ││ create a group or add a repository                   │
-│  ├─ parts            ││ ◆  github.com/acme                                   │
-│  ├─ mode             ││   ├─ api                                             │
-│  ├─ appearance       ││   └─ docs                                            │
+╭ 1 settings ──────────╮╭ 2 repositories ──────────────────────────────────────╮
+│General               ││create a group or add a repository                    │
+│  ├─ parts            ││github.com/acme                                       │
+│  ├─ mode             ││  ├─ api                                              │
+│  ├─ appearance       ││  └─ docs                                             │
 │  ├─ colours          ││                                                      │
 │  └─ icons            ││                                                      │
 │GitHub                ││                                                      │
 │  ├─ connection       ││                                                      │
 │  └─ repositories     ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ create a group or add a repository ──────────────────╮
+│                      │╭ 3 create a group or add a repository ────────────────╮
 │                      ││ Create groups and choose repositories. Press a to    │
 │                      ││ browse, e to edit, d to remove, or m to move a       │
 │                      ││ repository.                                          │
@@ -26,4 +26,4 @@ expression: text
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate                              github
+ SETTINGS   +/- expand/collapse   quit   extra actions   ~ notices       github

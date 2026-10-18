@@ -56,6 +56,7 @@ export type PaneArea = { x: number; y: number; w: number; h: number; pane: strin
 export class HitRegistry {
   private hits: Hit[] = [];
   private areas: PaneArea[] = [];
+  private scopedHits = new Map<string, Hit[]>();
   private selects: SelectArea[] = [];
   private cleared = false;
   /** A frame is about to register its hits. The old ones stay answerable until the first new one arrives (or `settle`),
@@ -89,6 +90,13 @@ export class HitRegistry {
     this.fresh();
     this.hits.push(hit);
   }
+  /** Locally scrolling nodes replace their own rectangles without disturbing pinned controls or siblings. */
+  replace(owner: string, hits: Hit[]) {
+    // These rectangles are lifecycle-owned: a local scroll can commit while an App
+    // render is pending. It must not clear still-mounted sibling control groups.
+    this.scopedHits.set(owner, hits);
+  }
+  remove(owner: string) { this.scopedHits.delete(owner); }
   addPane(area: PaneArea) {
     this.fresh();
     this.areas.push(area);
@@ -98,7 +106,7 @@ export class HitRegistry {
     this.fresh();
   }
   all(): Hit[] {
-    return this.hits;
+    return [...this.hits, ...[...this.scopedHits.values()].flat()];
   }
   /** The pane drawn at the cell, if any (the last registered wins, as for hits). */
   paneAt(x: number, y: number): string | undefined {

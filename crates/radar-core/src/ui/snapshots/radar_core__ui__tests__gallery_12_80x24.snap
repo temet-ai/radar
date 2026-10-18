@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Grid states
+ Gallery / Grid states
  The kit: every element on sample data                            colours: none
  Diff  Motion  Colours  Tones  Row states  [Grid states]  Waiting  Long text  …
 ╭ table, focused (cursor on row 3) ───────────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │ No items match this view.                                                   │║
 │                                                                             │║
 │                                                                             │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

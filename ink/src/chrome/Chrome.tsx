@@ -22,9 +22,9 @@ import {
 import { cellWidth, clipSegments } from "./width.js";
 import type { HistoryLayout } from "./history.js";
 import type { RailLaid } from "./rail.js";
-import { layoutTour } from "./tour.js";
+import { layoutTour, plainTourText } from "./tour.js";
 import { TextLine } from "../text/TextLine.js";
-import { Framed } from "../app/Panes.js";
+import { paneTitle, Framed } from "../app/Panes.js";
 import { motion } from "../motion/motion.js";
 import { MotionSceneContext } from "../motion/scene.js";
 import { settingsTreeMark } from "../motion/node-marks.js";
@@ -104,13 +104,14 @@ export function frameOf(
   menu: MenuView | null,
   width: number,
   height: number,
+  plain = false,
 ): ChromeFrame {
   // What the pointer is over is lit over the finished frame (app/hover.ts), not here.
   const top = chrome.setup ? layoutSetupTopBar(chrome, chrome.setup, width, 0) : layoutTopBar(chrome, width, 0);
   const sources = layoutSources(chrome, width, 1);
   const bodyTop = sources ? 2 : 1;
   const statusY = Math.max(bodyTop, height - 1);
-  const status = layoutStatus(chrome, width, statusY);
+  const status = layoutStatus(chrome, width, statusY, plain);
   const bodyHeight = Math.max(0, statusY - bodyTop);
   const hits: Hit[] = [...top.hits, ...(sources?.hits ?? []), ...status.hits];
   const navWidth = chrome.settings
@@ -132,7 +133,7 @@ export function frameOf(
     navAt = nav.at;
     hits.push(...nav.hits);
   }
-  const laidMenu = menu ? layoutMenu(menu, width, bodyTop, bodyHeight) : null;
+  const laidMenu = menu ? layoutMenu(menu, width, bodyTop, bodyHeight, plain) : null;
   // A menu is over everything: its hits win and the status line stays live (a click on `q quit`
   // presses it with a menu open); the body below is not a target while a menu is open.
   // The menu's whole frame is a hit too, under its rows (host.rs Hit::MenuBox): a press on its field or its border
@@ -230,7 +231,7 @@ export function SettingsNavPane({
   });
   return (
     <Framed
-      title={`settings${nav.unsaved ? " · unsaved" : ""}`}
+      title={paneTitle({ pane: "nav", title: `settings${nav.unsaved ? " · unsaved" : ""}` }, chrome.pane_jumps)}
       pane="nav"
       width={frame.navWidth}
       height={frame.bodyHeight}
@@ -304,8 +305,8 @@ export function MenuBox({
 
 /** The tour's card (shell/tour.rs): a panel on bg.surface at the body's lower right, thrown a shadow and nothing else
  * dims (the layer's mark is shadow-only, app/scrim.ts). A menu draws after it and over it. */
-export function TourCardBox({ card, width, height }: { card: TourCard; width: number; height: number }) {
-  const t = layoutTour(card, width, height);
+export function TourCardBox({ card, width, height, plain = false }: { card: TourCard; width: number; height: number; plain?: boolean }) {
+  const t = layoutTour(card, width, height, plain);
   if (!t) return null;
   const inner = Math.max(0, t.w - 4);
   const emphasis = { ...slotStyle("text.emphasis"), bold: true, backgroundColor: bgOf("bg.surface") };
@@ -326,7 +327,7 @@ export function TourCardBox({ card, width, height }: { card: TourCard; width: nu
                   {l.words}
                 </Text>
               ) : l.text ? (
-                <TextLine text={l.text} />
+                plain ? <Text wrap="truncate">{plainTourText(l.text, inner)}</Text> : <TextLine text={l.text} />
               ) : (
                 <Text> </Text>
               )}

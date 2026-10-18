@@ -280,12 +280,15 @@ fn rules_detail(what: &str, rules: &[super::config::Rule]) -> Vec<Text> {
 
 fn recipes_detail(s: &AgentsSettings) -> Vec<Text> {
     let dir = s.recipes_dir().map_or("none".into(), |p| p.display().to_string());
+    let mut edit = Text::of("A file named like a built-in (ask.md, review-mr.md) replaces it; any other file is a recipe of its own. Choose ", Ink::Secondary);
+    edit.extend(radar_core::mnemonic::text("e", "edit recipes", "text.secondary"));
+    edit.add(Seg::new(" to copy the built-ins there and open the folder in your editor.", Ink::Secondary));
     vec![
         Text::of(format!("Your recipes: {dir}"), Ink::Primary),
         Text::new(),
         Text::of("A recipe is a Markdown file: a front matter of name, version, inputs, scope, permissions, expected-output and stopping-point, then the instructions for the agent. Optional: agent (one name, or provider=name pairs) and skills (comma separated).", Ink::Primary),
         Text::new(),
-        Text::of("A file named like a built-in (ask.md, review-mr.md) replaces it; any other file is a recipe of its own. e copies the built-ins there and opens the folder in your editor.", Ink::Secondary),
+        edit,
     ]
 }
 
@@ -315,14 +318,14 @@ fn recipe_detail(s: &AgentsSettings, name: &str) -> Vec<Text> {
         lines.push(kv("stops", r.stopping_point.clone()));
     }
     lines.push(Text::new());
-    lines.push(Text::of(
-        match name {
-            "ask" => "Used by A (ask an agent about it) on any row: the brief's task and limits.",
-            "review-mr" => "Used by review locally: the reviewer's task, limits and report.",
-            _ => "A recipe of your own.",
-        },
-        Ink::Secondary,
-    ));
+    lines.push(if name == "ask" {
+        let mut used = Text::of("Used by ", Ink::Secondary);
+        used.extend(radar_core::mnemonic::text("A", "ask an agent about it", "text.secondary"));
+        used.add(Seg::new(" on any row: the brief's task and limits.", Ink::Secondary));
+        used
+    } else {
+        Text::of(if name == "review-mr" { "Used by review locally: the reviewer's task, limits and report." } else { "A recipe of your own." }, Ink::Secondary)
+    });
     lines
 }
 

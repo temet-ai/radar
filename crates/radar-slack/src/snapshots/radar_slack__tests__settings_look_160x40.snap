@@ -4,7 +4,7 @@ assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ density ───────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 look ────────────────────────────────────────────────────────────────────────╮╭ 3 density ─────────────────────────────────────────╮
 │General               ││ MESSAGES                                                                       ││ How the messages of a thread, the detail pane and  │
 │  ├─ parts            ││   density  how a thread's messages are laid out                        compact ││ a direct message are laid out.                     │
 │  ├─ mode             ││   author   who wrote a message                                  links and keys ││                                                    │
@@ -42,4 +42,4 @@ expression: "to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                               slack
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                              slack

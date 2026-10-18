@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1012
+assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
-00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Icons" fg:text.secondary bold
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Icons" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Tones  Row states  Grid states  Waiting …" fg:text.secondary | "[Icons]" fg:accent.primary/glow.purple bold
+02 _1 | "Tones  Row states  Grid states  Waiting …" fg:text.secondary | "[Icons]" fg:accent.primary/glow.purple bold | "  Notices  Detail  " fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " nerd: Nerd Font symbols: needs a Nerd F…" fg:text.secondary bg:bg.surface | "╮" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "\u{f42b} " fg:accent.primary/glow.purple bg:bg.surface | "group               " fg:text.secondary bg:bg.surface | "\u{f401} " fg:accent.secondary/glow.cyan bg:bg.surface | "repo                " fg:text.secondary bg:bg.surface | "\u{f418} " fg:accent.secondary/glow.cyan bg:bg.surface | "branch              " fg:text.secondary bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "\u{f417} " fg:text.muted bg:bg.surface | "commit              " fg:text.secondary bg:bg.surface | "\u{f407} " fg:accent.primary/glow.purple bg:bg.surface | "change              " fg:text.secondary bg:bg.surface | "\u{f4dd} " fg:text.muted bg:bg.surface | "draft               " fg:text.secondary bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
@@ -26,4 +26,4 @@ expression: "gallery_styles(80, 24, tab)"
 20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "\u{f023} " fg:status.warning bg:bg.surface | "private_channel     " fg:text.secondary bg:bg.surface | "\u{f0e0} " fg:accent.primary/glow.purple bg:bg.surface | "direct              " fg:text.secondary bg:bg.surface | "\u{f112} " fg:accent.secondary/glow.cyan bg:bg.surface | "reply               " fg:text.secondary bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 21 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "\u{f486} " fg:accent.primary/glow.purple bg:bg.surface | "mention             " fg:text.secondary bg:bg.surface | "\u{f4a2} " fg:status.warning bg:bg.surface | "reaction            " fg:text.secondary bg:bg.surface | "\u{f444} " fg:accent.primary/glow.purple bg:bg.surface | "unread              " fg:text.secondary bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 22 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "\u{f49a} " fg:status.warning bg:bg.surface | "alert               " fg:text.secondary bg:bg.surface | "\u{f490} " fg:status.error/diff.removed bg:bg.surface | "alert_firing        " fg:text.secondary bg:bg.surface | "\u{f478} " fg:status.success/diff.added bg:bg.surface | "alert_resolved      " fg:text.secondary bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted
+23 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

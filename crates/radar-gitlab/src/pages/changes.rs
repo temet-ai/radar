@@ -629,14 +629,14 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page, project: &str, iid: u64, p
         "gitlab.mr.toggle_side_by_side",
         Binding::new(
             "v",
-            if p.cfg.side_by_side { "show the diff in one column" } else { "show the diff side by side" },
+            if p.cfg.side_by_side { "view the diff in one column" } else { "view the diff side by side" },
         ),
     ));
     if let Some(to) = next {
         b.push(act("gitlab.mr.next_file", Binding::new("n", format!("next file: {}", name(to)))));
     }
     if let Some(to) = neighbour(p, project, iid, at, -1) {
-        b.push(act("gitlab.mr.previous_file", Binding::new("N", format!("previous file: {}", name(to)))));
+        b.push(act("gitlab.mr.previous_file", Binding::new("N", format!("open previous file: {}", name(to)))));
     }
     let lines = lines(p, page, project, iid);
     let cur = page.diff.cursor();

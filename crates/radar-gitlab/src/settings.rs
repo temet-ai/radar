@@ -334,16 +334,23 @@ pub fn source_rows(p: &GitlabPlugin) -> Vec<SourceRow> {
 }
 
 /// A row of the tenancies tree by its ids, as the tree knows it.
-fn source_path(row: &SourceRow) -> Vec<String> {
+fn source_id(p: &GitlabPlugin, index: usize) -> String {
+    // Identity survives reordering and fences connection replacement without
+    // putting configured credentials into a frontend target.
+    format!("tenancy:{}:{}", p.connection_stamp().generation(),
+        serde_json::to_string(&(&p.cfg.base, &p.cfg.sources[index].group)).unwrap())
+}
+
+fn source_path(p: &GitlabPlugin, row: &SourceRow) -> Vec<String> {
     match row {
         SourceRow::Add => vec!["add".into()],
-        SourceRow::Tenancy(i) => vec![format!("t{i}")],
-        SourceRow::Repo { source, rel } => vec![format!("t{source}"), rel.clone()],
+        SourceRow::Tenancy(i) => vec![source_id(p, *i)],
+        SourceRow::Repo { source, rel } => vec![source_id(p, *source), rel.clone()],
     }
 }
 
 /// Draw the tenancies section as a banded tree: `+ add`, then each tenancy
-/// with its stripe, open or folded (`⋯`), with its repos. The word at a
+/// on the heading shade, open or folded (`⋯ n`), with its held repos. The word at a
 /// row's right (shown, hidden, the check) is a column. Returns where each
 /// row of [`source_rows`] landed, for clicks; a text input being typed goes
 /// on its row through the tree.
@@ -1141,7 +1148,7 @@ pub fn tenancies_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView 
         let look = format!("tenant.{} {}", source.color, p.cfg.style_for("tenant"));
         let counts = if kind_of(p, source) == "a single repo" { "   a single repo".into() }
             else { format!("   {} repos · {} hidden", repos.len(), source.hide.len()) };
-        let mut row = v::TreeRow::new(format!("t{i}"), v::Text::new()
+        let mut row = v::TreeRow::new(source_id(p, i), v::Text::new()
             .push(v::Seg::styled("● ", look.clone()))
             .push(v::Seg::styled(format!("{:<CODE_W$}", source.code), look))
             .push(v::Seg::new(source.group.clone(), v::Ink::Emphasis).strong()))
@@ -1162,12 +1169,12 @@ pub fn tenancies_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView 
     let ordered = source_rows(p);
     let column_width = rows.iter().flat_map(|row| std::iter::once(row).chain(row.children.iter()))
         .flat_map(|row| row.cells.iter()).map(|cell| radar_core::ui::width(&cell.text.words())).max().unwrap_or(0) as u16 + 1;
-    let selected = ordered.get(p.section_rows[1]).map(source_path).unwrap_or_default();
+    let selected = ordered.get(p.section_rows[1]).map(|row| source_path(p, row)).unwrap_or_default();
     let editing = p.edit.as_ref().and_then(|(target, input)| {
         let (path, at) = match target {
             Target::SourceAdd => (vec!["add".into()], 3),
-            Target::SourceCode(i) => (vec![format!("t{i}")], 2),
-            Target::SourceGroup(i) => (vec![format!("t{i}")], 2 + p.cfg.sources[*i].code.chars().count().max(CODE_W) as u16),
+            Target::SourceCode(i) => (vec![source_id(p, *i)], 2),
+            Target::SourceGroup(i) => (vec![source_id(p, *i)], 2 + p.cfg.sources[*i].code.chars().count().max(CODE_W) as u16),
             _ => return None,
         };
         Some(Box::new(v::TreeEditing { path, at, text: input.value(), caret: input.cursor() }))
@@ -1222,9 +1229,9 @@ pub fn tenancies_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView 
         body: v::Node::Tree(v::Tree {
             rows, selected,
             open: p.cfg.sources.iter().enumerate().filter(|(_, s)| !p.folded.contains(&s.group))
-                .map(|(i, _)| vec![format!("t{i}")]).collect(),
+                .map(|(i, _)| vec![source_id(p, i)]).collect(),
             columns: vec![v::ColumnSpec::new("", column_width, 0)], name_width: width.saturating_sub(column_width + 2),
-            look: Some(v::TreeLook { lines: p.cfg.style_for("lines"), band: String::new(), heading: String::new(), band_level: 1 }),
+            look: Some(v::TreeLook { lines: p.cfg.style_for("lines"), band: String::new(), heading: "bg.overlay".into(), band_level: 1 }),
             editing, ..v::Tree::default()
         }),
         detail_title: detail_title(p, "tenancies"), detail,
@@ -1235,19 +1242,58 @@ pub fn tenancies_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView 
 
 pub fn tenancies_intent(p: &mut GitlabPlugin, intent: &v::Intent) -> Outcome {
     let select = |p: &mut GitlabPlugin, target: &v::Target| {
-        if p.edit.is_some() { return; }
+        if p.edit.is_some() { return false; }
         let path = v::TreeRow::path_of(target);
-        if let Some(i) = source_rows(p).iter().position(|row| source_path(row) == path) { p.section_rows[1] = i; }
+        if path.first().is_some_and(|id| id != "add")
+            && p.cfg.sources.iter().enumerate()
+                .filter(|(i, _)| path.first() == Some(&source_id(p, *i))).count() != 1
+        {
+            return false;
+        }
+        let ordered = source_rows(p);
+        let mut matches = ordered.iter().enumerate().filter(|(_, row)| source_path(p, row) == path);
+        let Some((i, _)) = matches.next() else { return false };
+        if matches.next().is_some() { return false; }
+        p.section_rows[1] = i;
+        true
     };
     match intent {
-        v::Intent::Select { target } | v::Intent::Context { target } => { select(p, target); Outcome::done() }
+        v::Intent::Select { target } | v::Intent::Context { target } => {
+            if select(p, target) { Outcome::done() } else { Outcome::Ignored }
+        }
         v::Intent::Activate { target } => {
-            select(p, target);
+            if !select(p, target) { return Outcome::Ignored; }
             key(p, "tenancies", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
         }
         v::Intent::Fold { target, open } => {
-            select(p, target);
-            key(p, "tenancies", radar_core::view_tui::key_of(v::Chord::char(if *open { '+' } else { '-' })))
+            if p.edit.is_some() {
+                return Outcome::Ignored;
+            }
+            let path = v::TreeRow::path_of(target);
+            let mut matches = p.cfg.sources.iter().enumerate()
+                .filter(|(i, _)| path == source_path(p, &SourceRow::Tenancy(*i)));
+            let Some((index, source)) = matches.next() else { return Outcome::Ignored };
+            if matches.next().is_some() { return Outcome::Ignored; }
+            let source = (index, source.group.clone());
+            let before = source_rows(p).get(p.section_rows[1]).cloned();
+            if *open {
+                p.folded.remove(&source.1);
+            } else {
+                p.folded.insert(source.1);
+            }
+            // Opening another group must not move the subject. Closing a
+            // selected descendant lands on its parent, never a shifted row.
+            let selected = match before {
+                Some(SourceRow::Repo { source: at, .. }) if !*open && at == source.0 =>
+                    Some(SourceRow::Tenancy(at)),
+                other => other,
+            };
+            if let Some(selected) = selected
+                && let Some(at) = source_rows(p).iter().position(|row| *row == selected)
+            {
+                p.section_rows[1] = at;
+            }
+            Outcome::done()
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
             key(p, "tenancies", radar_core::view_tui::key_of(chord))
@@ -1324,7 +1370,7 @@ fn row_menu(p: &GitlabPlugin, section: &str) -> Option<Menu> {
                             "ask GitLab whether it exists, and if it is a group or a repo",
                             format!("check:{}", CheckTarget::Source(p.cfg.group_path(source)).payload()),
                         ),
-                        MenuItem::new('d', "stop tracking…", "remove this tenancy", "remove"),
+                        MenuItem::new('d', "drop from tracking…", "remove this tenancy", "remove"),
                     ]));
                 }
             };
@@ -1401,7 +1447,7 @@ fn row_menu(p: &GitlabPlugin, section: &str) -> Option<Menu> {
                 )
                 .chain([MenuItem::new(
                     'd',
-                    "stop tracking…",
+                    "drop from tracking…",
                     "remove this tenancy",
                     "remove",
                 )])
@@ -1490,7 +1536,7 @@ fn row_menu(p: &GitlabPlugin, section: &str) -> Option<Menu> {
             if default_styles().get(w).is_some_and(|d| *d != spec) {
                 items.push(MenuItem::new(
                     'r',
-                    "back to default",
+                    "restore default",
                     look_summary(&default_styles()[w], w),
                     "reset",
                 ));
@@ -1932,7 +1978,7 @@ fn sign_menu(view: usize, key: &str, value: &str, described: &str) -> Effect {
         vec![
             MenuItem::new(
                 'i',
-                "only these",
+                "include only these",
                 format!("show only those {described}"),
                 "include",
             ),
@@ -1970,7 +2016,7 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
             Edit::Submit(text) => match validate(p, &target, &text) {
                 Err(why) => {
                     p.edit = Some((target, input));
-                    Outcome::Handled(vec![Effect::Notify(format!("not yet: {why}"))])
+                    Outcome::Handled(vec![Effect::error(None, format!("not yet: {why}"))])
                 }
                 Ok(_) => Outcome::Handled(commit(p, target, text.trim().to_string())),
             },
@@ -2331,7 +2377,7 @@ fn key_rows(p: &GitlabPlugin, section: &str) -> Vec<crate::Row> {
                 let mut rows = vec![
                     head(Binding::heading(p.cfg.sources[i].group.clone())),
                     act("gitlab.connection.follow_check", Binding::new("c", "check it")),
-                    act("gitlab.connection.unfollow", Binding::new("d", "stop tracking…")),
+                    act("gitlab.connection.unfollow", Binding::new("d", "drop from tracking…")),
                 ];
                 rows.extend(page(false));
                 return rows;
@@ -2464,6 +2510,72 @@ mod tests {
     }
 
     #[test]
+    fn neutral_tenancy_folds_keep_the_subject_and_reject_non_groups() {
+        let mut p = sample();
+        p.cfg.sources[0].hide.push("held/repo".into());
+        let first = p.cfg.sources[0].group.clone();
+        p.folded.insert(first.clone());
+        let selected = SourceRow::Tenancy(1);
+        p.section_rows[1] = source_rows(&p).iter().position(|row| *row == selected).unwrap();
+        let target = v::TreeRow::target_of(&source_path(&p, &SourceRow::Tenancy(0)));
+        let _ = tenancies_intent(&mut p, &v::Intent::Fold { target: target.clone(), open: true });
+        assert!(!p.folded.contains(&first));
+        assert_eq!(source_rows(&p)[p.section_rows[1]], selected,
+            "opening an earlier group preserves the selected subject, not its old index");
+        let repo = source_rows(&p).into_iter().find(|row|
+            matches!(row, SourceRow::Repo { source: 0, .. })).unwrap();
+        p.section_rows[1] = source_rows(&p).iter().position(|row| *row == repo).unwrap();
+        let before = p.folded.clone();
+        let repo_target = v::TreeRow::target_of(&source_path(&p, &repo));
+        let _ = tenancies_intent(&mut p, &v::Intent::Fold {
+            target: repo_target, open: false,
+        });
+        assert_eq!(p.folded, before, "a leaf cannot name a group fold");
+        assert_eq!(source_rows(&p)[p.section_rows[1]], repo);
+        let _ = tenancies_intent(&mut p, &v::Intent::Fold { target, open: false });
+        assert_eq!(source_rows(&p)[p.section_rows[1]], SourceRow::Tenancy(0));
+        let before = p.folded.clone();
+        let _ = tenancies_intent(&mut p, &v::Intent::Fold {
+            target: v::TreeRow::target_of(&["missing".into()]), open: true,
+        });
+        assert_eq!(p.folded, before);
+        let stale = v::TreeRow::target_of(&source_path(&p, &repo));
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Context { target: stale.clone() }), Outcome::Ignored),
+            "a hidden row cannot open the retained subject's menu");
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Activate { target: stale }), Outcome::Ignored));
+        assert_eq!(source_rows(&p)[p.section_rows[1]], SourceRow::Tenancy(0));
+    }
+
+    #[test]
+    fn tenancy_tree_targets_survive_reorder_and_refuse_replaced_or_ambiguous_sources() {
+        let mut p = sample();
+        let target = v::TreeRow::target_of(&source_path(&p, &SourceRow::Tenancy(0)));
+        let group = p.cfg.sources[0].group.clone();
+        p.cfg.sources.swap(0, 1);
+        let _ = tenancies_intent(&mut p, &v::Intent::Select { target: target.clone() });
+        assert_eq!(source_rows(&p)[p.section_rows[1]], SourceRow::Tenancy(1));
+        assert_eq!(p.cfg.sources[1].group, group);
+        p.cfg.sources.push(p.cfg.sources[1].clone());
+        p.cfg.sources.last_mut().unwrap().hide.push("unique/held-child".into());
+        let unique_leaf = v::TreeRow::target_of(&source_path(&p, &SourceRow::Repo {
+            source: 2, rel: "unique/held-child".into(),
+        }));
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Activate { target: unique_leaf }), Outcome::Ignored),
+            "a unique leaf under an ambiguous parent cannot open an action menu");
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Context { target: target.clone() }), Outcome::Ignored));
+        let before = p.folded.clone();
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Fold { target: target.clone(), open: false }), Outcome::Ignored));
+        assert_eq!(p.folded, before);
+        p.cfg.sources.pop();
+        let url = p.cfg.url.clone();
+        p.replace_connection(format!("{url}/other"), p.cfg.token.clone());
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Context { target: target.clone() }), Outcome::Ignored));
+        p.replace_connection(url, p.cfg.token.clone());
+        assert!(matches!(tenancies_intent(&mut p, &v::Intent::Activate { target }), Outcome::Ignored),
+            "connection A-B-A must not revive a prior tree target");
+    }
+
+    #[test]
     fn plus_and_minus_fold_a_tenancy_and_minus_on_its_repo_folds_it_and_lands_on_it() {
         let mut p = sample();
         assert!(radar_core::Plugin::section_folds(&p, "tenancies"));
@@ -2503,7 +2615,7 @@ mod tests {
         p.section_rows[1] = 1; // the first tenancy, below "+ add a tenancy"
         let out = press(&mut p, "tenancies", KeyCode::Enter);
         let m = menu_of(&out).unwrap();
-        assert!(m.items.iter().any(|i| i.label == "stop tracking…"));
+        assert!(m.items.iter().any(|i| i.label == "drop from tracking…"));
         let out = press(&mut p, "tenancies", KeyCode::Char('d'));
         let confirm = menu_of(&out).unwrap().id.clone();
         assert_eq!(p.cfg.sources.len(), 2, "nothing removed before yes");
@@ -2521,7 +2633,7 @@ mod tests {
         }
         let out = typed(&mut p, "connection", "short");
         assert!(
-            matches!(&out, Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notify(m)] if m.contains("too short")))
+            matches!(&out, Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("too short")))
         );
         assert!(p.edit.is_some(), "still editing after a refusal");
         for _ in 0..5 {
@@ -2841,5 +2953,81 @@ mod tests {
             p.checks.get("auth").map(|(c, _)| c.clone()),
             Some(Check::Running)
         );
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    fn check_menu(menu: &Menu) -> usize {
+        let mut checked = 0;
+        for item in &menu.items {
+            if !item.heading && !item.note && radar_core::mnemonic::letter(&item.keys).is_some() {
+                let words = radar_core::mnemonic::choice_words(menu.question, &item.label, &item.hint);
+                assert!(radar_core::mnemonic::at(&item.keys, words).is_some(),
+                    "{}: {:?} has no mnemonic in {:?}", menu.id, item.keys, words);
+                checked += 1;
+            }
+        }
+        checked
+    }
+
+
+    fn check_setup_link(blocks: &[radar_core::view::Block], url: &str, copy: &str, key: &str) {
+        use radar_core::view::{Block, Text};
+        fn find<'a>(blocks: &'a [Block], url: &str) -> Option<&'a Text> {
+            blocks.iter().find_map(|block| match block {
+                Block::Line { text, .. } if text.0.iter().any(|seg| seg.link.as_deref() == Some(url)) => Some(text),
+                Block::Section { blocks, .. } => find(blocks, url),
+                _ => None,
+            })
+        }
+        let text = find(blocks, url).expect("actual setup token link");
+        assert_eq!(text.0[0].link.as_deref(), Some(url));
+        assert!(text.words().ends_with(&format!("   open · {copy}")));
+        assert!(text.plain_words().ends_with(&format!("   open [o] · {copy} [{key}]")));
+        let underlined: Vec<_> = text.0.iter().filter(|seg| seg.look.as_deref().is_some_and(|look| look.contains("underline"))).map(|seg| seg.text.as_str()).collect();
+        assert_eq!(underlined, ["o", key]);
+        let hints: Vec<_> = text.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect();
+        assert_eq!(hints, ["o", key]);
+        assert!(text.0[1..].iter().all(|seg| seg.link.is_none() && seg.target.is_none()));
+    }
+
+    #[test]
+    fn settings_producers_embed_every_letter_in_action_words() {
+        let mut checked = 0;
+        for changed in [false, true] {
+            let (mut p, fixture) = crate::test_support::hosted_plugin(vec![]).unwrap();
+            check_setup_link(&crate::setup::token_help(&p), &crate::setup::token_page(&p), "copy", "y");
+            p.me = "vimes".into();
+            p.cfg.sources.push(Source {
+                group: "ankh-morpork".into(), code: "watch".into(), color: "cyan".into(), hide: vec![],
+            });
+            if changed {
+                for style in p.cfg.style.values_mut() { *style = "text.primary italic".into(); }
+            }
+            p.folded.clear();
+            for section in ["connection", "tenancies", "views", "look"] {
+                for row in 0..row_count(&p, section) {
+                    p.section_rows[index(section)] = row;
+                    if let Some(menu) = row_menu(&p, section) { checked += check_menu(&menu); }
+                }
+            }
+            fixture.assert_finished();
+        }
+        assert!(checked > 20, "exercise real settings rows, including reset variants");
+    }
+
+    #[test]
+    fn condition_sign_producer_keeps_the_original_values() {
+        let Effect::Menu(menu) = sign_menu(0, "author", "vimes", "opened by Vimes") else {
+            panic!("condition menu")
+        };
+        assert_eq!(check_menu(&menu), 2);
+        assert_eq!(menu.items[0].key, Some('i'));
+        assert_eq!(menu.items[0].value, "include");
+        assert_eq!(menu.items[1].key, Some('e'));
+        assert_eq!(menu.items[1].value, "exclude");
     }
 }

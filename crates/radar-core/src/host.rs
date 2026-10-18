@@ -2,11 +2,20 @@
 //! routes everything else to plugins. `update(event) → effects` is pure
 //! (TUI-A2): the runner performs the effects.
 
+#[path = "host/detail_actions.rs"]
+mod detail_actions;
+
 #[path = "host_palette.rs"]
 mod palette;
 
+#[path = "host_notices.rs"]
+mod notice_support;
+
 #[path = "host_motion.rs"]
 pub(crate) mod interaction_motion;
+
+#[path = "host_tree.rs"]
+mod shared_tree;
 
 #[cfg(test)]
 #[path = "host_palette_tests.rs"]
@@ -174,6 +183,8 @@ enum Input {
 enum Press {
     /// Press this key.
     Key(KeyEvent, Option<MenuKeyContext>),
+    /// A shared tree operation retains the exact held tree and selection.
+    TreeKey(KeyEvent, shared_tree::MenuContext),
     /// A contributed action: the plugin, the subject, the action's id.
     Act(usize, Subject, String, Option<MenuKeyContext>),
     /// Captured, validated subject scope; reading never follows a later selection.
@@ -185,6 +196,7 @@ impl std::fmt::Debug for Press {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Key(key, context) => f.debug_tuple("Key").field(key).field(context).finish(),
+            Self::TreeKey(key, _) => f.debug_tuple("TreeKey").field(key).finish(),
             Self::Act(..) => f.write_str("Act(..)"),
             Self::History(..) => f.write_str("History(..)"),
             Self::RecentHistory => f.write_str("RecentHistory"),
@@ -366,6 +378,8 @@ pub enum Event {
     /// How something the runner did went, for the status line (a link
     /// opened, or why it could not be).
     Notice(String),
+    /// A runner failure, explicitly typed.
+    ErrorNotice(String),
     /// Result of the one-pane Herdr right-click routing request.
     TerminalRoute(Result<(), String>),
     /// Put `text` on the user's clipboard through their terminal, then show
@@ -404,6 +418,10 @@ pub enum MouseKind {
 /// A clickable area, as the last frame drew it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Hit {
+    Notice(u64),
+    NoticeHistory(u64),
+    NoticeHistoryOpen,
+    NoticeHistoryKey(KeyEvent),
     /// A history row or key; interpreted only by the active overlay.
     History,
     /// The History tab in the top bar.
@@ -540,6 +558,10 @@ pub struct Host {
     pub folded: std::collections::HashSet<&'static str>,
     /// The status line's message (its words, and an icon drawn before them).
     pub message: Option<crate::plugin::Message>,
+    pub notices: crate::notices::Notices,
+    pub(crate) notice_history: Option<crate::notices::HistorySelection>,
+    notice_input_supported: bool,
+    notice_motion: bool,
     /// A drag is selecting text (the Ratatui runner's): the key that makes
     /// the terminal select its own text instead ([`crate::select::bypass_key`]),
     /// which the status line names while it lasts.
@@ -592,6 +614,7 @@ pub struct Host {
     pub frontend: crate::view_tui::Frontend,
     /// The last press: what it hit and when, for double clicks.
     last_press: Option<(Hit, u64)>,
+    detail_lease: std::cell::RefCell<detail_actions::State>,
     saved: toml::Table,
     /// The config file as last read or written: a save edits it, so what radar
     /// does not own (a part this build lacks, comments) stays.
@@ -622,7 +645,8 @@ struct Seen {
     view: View,
     depth: Option<usize>,
     menu: Option<(String, String)>,
-    message: Option<crate::plugin::Message>,
+    notice_id: u64,
+    notices_active: bool,
     /// Setup's screen, while it shows.
     setup: Option<crate::setup::At>,
 }
@@ -750,6 +774,10 @@ impl Host {
             on_heading: false,
             folded: Default::default(),
             message: None,
+            notices: Default::default(),
+            notice_history: None,
+            notice_input_supported: false,
+            notice_motion: true,
             selecting: None,
             terminal: None,
             now,
@@ -775,6 +803,7 @@ impl Host {
             hovered: std::cell::RefCell::new(None),
             frontend: crate::view_tui::Frontend::default(),
             last_press: None,
+            detail_lease: Default::default(),
             saved: toml::Table::new(),
             file: String::new(),
             cues: Vec::new(),
@@ -825,7 +854,8 @@ impl Host {
         match reply {
             Reply::Ignored => return false,
             Reply::Done => {}
-            Reply::Say(m) => self.message = Some(m.into()),
+            Reply::Say(m) => self.notify(m.into()),
+            Reply::Error(m) => self.notify_error(m),
             Reply::Menu(menu) => self.menu = Some(OpenMenu::open(Owner::Host, menu)),
         }
         true
@@ -932,7 +962,7 @@ impl Host {
                 }
                 let text = open.input.as_ref().map(|f| f.value()).unwrap_or_default();
                 if let Some(why) = open.refused.clone() {
-                    self.message = Some(format!("not yet: {why}").into());
+                    self.notify_error(format!("not yet: {why}"));
                     return vec![];
                 }
                 let open = self.menu.take().expect("menu is open");
@@ -992,7 +1022,7 @@ impl Host {
         let chosen = if modified {
             if keys_menu {
                 self.menu_keys.iter().position(|press| {
-                    matches!(press, Some(Press::Key(bound, _))
+                    matches!(press, Some(Press::Key(bound, _) | Press::TreeKey(bound, _))
                         if bound.code == key.code && bound.modifiers == key.modifiers)
                 })
             } else {
@@ -1045,6 +1075,7 @@ impl Host {
             .flatten();
         let stale = match &press {
             Some(Press::Key(_, Some(context))) => !self.menu_key_is_current(context),
+            Some(Press::TreeKey(key, context)) => !self.tree_menu_is_current(*key, context),
             Some(Press::Act(plugin, subject, id, Some(context))) => {
                 !self.menu_subject_is_current(context, *plugin, subject, id)
             }
@@ -1058,7 +1089,7 @@ impl Host {
                     .record(Some(menu.action), JournalOutcome::Blocked, None);
             }
             self.menu_keys.clear();
-            self.message = Some("that target changed; press x to choose again".into());
+            self.notify_error("that target changed; press x to choose again");
             return vec![];
         }
         self.complete_menu_trace(open.menu.question && item.value == "no");
@@ -1069,7 +1100,7 @@ impl Host {
             Owner::Host if keys_menu => match press {
                 Some(Press::History(subject)) => self.open_history(subject),
                 Some(Press::RecentHistory) => self.open_recent_history(),
-                Some(Press::Key(k, _)) => self.on_key(k),
+                Some(Press::Key(k, _) | Press::TreeKey(k, _)) => self.on_key(k),
                 Some(Press::Act(p, subject, id, _)) => self.contributed_act(p, &subject, &id, 0),
                 None => vec![],
             },
@@ -1104,7 +1135,7 @@ impl Host {
             },
             Owner::Host => {
                 if let Some(m) = self.colours.on_menu(&open.menu.id, &item.value) {
-                    self.message = Some(m.into());
+                    self.notify(m.into());
                 }
                 vec![]
             }
@@ -1329,7 +1360,7 @@ impl Host {
     /// The splash's start line, on the status line for five seconds: the
     /// splash went before it could show it.
     pub fn show_start_line(&mut self, words: String) {
-        self.message = Some(words.clone().into());
+        self.notify(words.clone().into());
         self.start_line = Some((words, self.now + 5));
     }
 
@@ -1465,7 +1496,7 @@ impl Host {
 
     /// `+` or `-` found nothing to open or close on the row.
     fn nothing_to_fold(&mut self, c: char) {
-        self.message = Some(
+        self.notify(
             if c == '-' {
                 "nothing to collapse here"
             } else {
@@ -1478,6 +1509,9 @@ impl Host {
     /// Whether the focused panel is a tree whose groups fold with `+` and
     /// `-`: the settings nav, or a part's ([`Plugin::folds`]).
     pub fn folds_here(&self) -> bool {
+        if let Some(tree) = self.focused_tree() {
+            return !tree.groups().is_empty();
+        }
         if self.menu.is_some() || self.bar || self.tabs {
             return false;
         }
@@ -1519,11 +1553,17 @@ impl Host {
     /// Handle one event; then, unless it was a save's answer, save a change
     /// it completed (see [`Host::autosave`]).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
+        self.guard_notice_history_owner();
+        if let Some(out) = self.update_notices(&event) {
+            self.reconcile_detail_lease();
+            return out;
+        }
         // Every event supersedes unconsumed evidence. In particular background
         // sync/tick changes cannot inherit the last input's fold causality.
         self.interaction_motion.fold = None;
         let before = self.view;
         let out = self.update_inner(event);
+        self.guard_notice_history_owner();
         if self.view != before {
             self.visit_palette_place(match self.view {
                 View::Screen(i) => palette::Place::Screen(i),
@@ -1537,6 +1577,7 @@ impl Host {
         }
         self.tell_dock();
         self.finish_motion_event();
+        self.reconcile_detail_lease();
         out
     }
 
@@ -1911,7 +1952,8 @@ impl Host {
                 .menu
                 .as_ref()
                 .map(|m| (m.menu.id.clone(), m.menu.title.clone())),
-            message: self.message.clone(),
+            notice_id: self.notices.through_id(),
+            notices_active: self.notices.has_active(),
             setup: self.setup.as_ref().map(|s| s.at),
         }
     }
@@ -1934,11 +1976,8 @@ impl Host {
         if now.menu.is_some() && now.menu != before.menu {
             self.cue(Cue::Popup);
         }
-        match (&before.message, &now.message) {
-            (_, Some(m)) if before.message.as_ref() != Some(m) => self.cue(Cue::Message),
-            (Some(_), None) => self.cue(Cue::MessageGone),
-            _ => {}
-        }
+        if now.notice_id != before.notice_id { self.cue(Cue::Message); }
+        else if before.notices_active && !now.notices_active { self.cue(Cue::MessageGone); }
     }
 
     fn handle(&mut self, event: Event) -> Vec<HostEffect> {
@@ -1952,7 +1991,7 @@ impl Host {
                     && now >= *until
                 {
                     if self.message.as_ref().is_some_and(|m| m.text == *words) {
-                        self.message = None;
+                        self.clear_message_compat();
                     }
                     self.start_line = None;
                 }
@@ -2032,19 +2071,21 @@ impl Host {
             }
             Event::Notice(text) | Event::ToClipboard { note: text, .. } => {
                 if !text.is_empty() {
-                    self.message = Some(text.into());
+                    self.notify(text.into());
                 }
                 vec![]
             }
+            Event::ErrorNotice(text) => { self.notify_error(text); vec![] }
             Event::TerminalRoute(result) => {
-                if let Some(terminal) = self.terminal.as_mut() {
-                    terminal.route = match result {
+                if self.terminal.is_some() {
+                    let route = match result {
                         Ok(()) => crate::terminal_host::Route::Ready,
                         Err(error) => {
-                            self.message = Some(format!("{error}; use x for actions").into());
+                            self.notify_error(format!("{error}; use x for actions"));
                             crate::terminal_host::Route::Failed(error)
                         }
                     };
+                    self.terminal.as_mut().expect("checked").route = route;
                 }
                 vec![]
             }
@@ -2064,13 +2105,12 @@ impl Host {
                         // A save after a change says nothing: the part's
                         // own word about the change stays on the line.
                         if asked {
-                            self.message = Some("saved".into());
+                            self.notify("saved".into());
                         }
                     }
                     Err(e) => {
                         self.quit_after_save = false;
-                        self.message =
-                            Some(format!("✗ settings not saved: {e} · w tries again").into());
+                        self.notify_error(format!("✗ settings not saved: {e} · w tries again"));
                         self.save_failed = Some(e);
                     }
                 }
@@ -2176,7 +2216,7 @@ impl Host {
                     if let Some(subject) = subject {
                         out.extend(self.route(from, vec![Effect::Show(subject)], depth + 1));
                     } else {
-                        self.message = Some("This source is unavailable here. Its exact locator is still available to copy.".into());
+                        self.notify_error("This source is unavailable here. Its exact locator is still available to copy.");
                     }
                     continue;
                 }
@@ -2231,7 +2271,7 @@ impl Host {
                 Effect::HideDock => "ui.dock.hide",
                 Effect::OpenApp { .. } => "system.open.app",
                 Effect::Copy(_) => "system.copy",
-                Effect::Notify(_) | Effect::NotifyWith(..) => "ui.notice",
+                Effect::Notify(_) | Effect::NotifyWith(..) | Effect::Notice(_) => "ui.notice",
                 Effect::Focus(_) => "ui.focus",
                 Effect::PersistCache => "cache.save",
                 Effect::Emit { .. } => "bus.emit",
@@ -2288,8 +2328,8 @@ impl Host {
                     // then hand the contexts to the part that owns the dock.
                     let contexts: Vec<_> = self.plugins.iter_mut().filter_map(|p| p.agent_context(&request)).collect();
                     match (contexts.is_empty(), self.dock_owner()) {
-                        (true, _) => self.message = Some("nothing to send for this".into()),
-                        (false, None) => self.message = Some("no agent dock here".into()),
+                        (true, _) => self.notify_error("nothing to send for this"),
+                        (false, None) => self.notify_error("no agent dock here"),
                         (false, Some(d)) => {
                             if let Outcome::Handled(fx) = self.plugins[d].agent_brief(contexts) {
                                 out.extend(self.route(d, fx, depth + 1));
@@ -2300,9 +2340,10 @@ impl Host {
                 }
                 Effect::OpenApp { link, web } => external = Some(HostEffect::OpenApp { link, web }),
                 Effect::Copy(t) => external = Some(HostEffect::Copy(t)),
-                Effect::Notify(m) => self.message = Some(m.into()),
+                Effect::Notice(message) => self.notify(message),
+                Effect::Notify(m) => self.notify(m.into()),
                 Effect::NotifyWith(icon, m) => {
-                    self.message = Some(crate::plugin::Message::new(Some(icon), m))
+                    self.notify(crate::plugin::Message::new(Some(icon), m))
                 }
                 Effect::Focus(p) => self.focus = p,
                 Effect::PersistCache => {
@@ -2463,7 +2504,7 @@ impl Host {
             }
             Showing::Cannot if fallback_link => self.show_link(&subject),
             Showing::Cannot => {
-                self.message = Some("that destination is no longer available".into());
+                self.notify_error("that destination is no longer available");
                 vec![]
             },
         }
@@ -2473,11 +2514,11 @@ impl Host {
     fn show_link(&mut self, subject: &Subject) -> Vec<HostEffect> {
         match &subject.url {
             Some(url) => {
-                self.message = Some(format!("opening {}", subject.label).into());
+                self.notify(format!("opening {}", subject.label).into());
                 vec![HostEffect::Open(url.clone())]
             }
             None => {
-                self.message = Some(format!("cannot open {} here", subject.label).into());
+                self.notify_error(format!("cannot open {} here", subject.label));
                 vec![]
             }
         }
@@ -2745,7 +2786,7 @@ impl Host {
     /// was asked on gives the brief its origin. Nothing is posted.
     fn start_reviews(&mut self, request: crate::agent_context::ReviewRequest, depth: usize) -> Vec<HostEffect> {
         let Some(d) = self.dock_owner() else {
-            self.message = Some("no agent dock here".into());
+            self.notify_error("no agent dock here");
             return vec![];
         };
         let mut changes = request.changes.clone();
@@ -2761,7 +2802,7 @@ impl Host {
             }
         }
         if changes.is_empty() {
-            self.message = Some("no change request to review here".into());
+            self.notify_error("no change request to review here");
             return vec![];
         }
         let ask = crate::agent_context::AgentContextRequest { subject: request.origin };
@@ -2896,6 +2937,14 @@ impl Host {
 
     fn on_intent(&mut self, intent: crate::view::Intent) -> Vec<HostEffect> {
         use crate::view::Intent;
+        if let Intent::Select { target } | Intent::Activate { target } | Intent::Context { target }
+            | Intent::Fold { target, .. } | Intent::Show { target, .. } = &intent
+            && target.as_str().starts_with(crate::view::detail::TARGET_PREFIX)
+        {
+            return if matches!(intent, Intent::Activate { .. }) {
+                self.activate_detail_control(target)
+            } else { vec![] };
+        }
         if let Intent::Key { chord } = intent {
             return self.on_key(crate::view_tui::key_of(chord));
         }
@@ -2993,12 +3042,21 @@ impl Host {
                     | Intent::Activate { .. }
                     | Intent::Context { .. }
                     | Intent::Fold { .. }
+                    | Intent::OpenAll
                     | Intent::Show { .. }
             )
         {
             return vec![];
         }
-        self.message = None;
+        if let Intent::Fold { target, open } = &intent
+            && target.as_str().starts_with(crate::view::chrome::targets::PREFIX)
+        {
+            return self.settings_nav_fold(target, *open);
+        }
+        if matches!(intent, Intent::OpenAll) {
+            return self.open_all_intent();
+        }
+        self.clear_message_compat();
         let context = matches!(intent, Intent::Context { .. });
         let invoked = match &intent {
             Intent::Invoke { action } => Some(action.clone()),
@@ -3032,7 +3090,7 @@ impl Host {
             return vec![];
         }
         if text.len() > crate::ipc::MAX_CLIPBOARD {
-            self.message = Some("too much text to copy".into());
+            self.notify_error("too much text to copy");
             return vec![];
         }
         vec![HostEffect::CopySelection(text)]
@@ -3258,7 +3316,7 @@ impl Host {
             return self.plugins[p].intent(scope, Pane::Middle, &crate::view::Intent::Key { chord });
         }
         let intent = crate::view_tui::section_key(&view, chord);
-        self.motion_part_input(p, scope, Pane::Middle, &intent, Some(&view.body))
+        self.shared_part_input(p, scope, Pane::Middle, &intent, Some(&view.body))
     }
 
     /// An intent from a frontend with no terminal (or the Ratatui adapter's,
@@ -3291,7 +3349,7 @@ impl Host {
             }
         }
         let pane = if section { Pane::Middle } else { self.focus };
-        let outcome = self.motion_part_input(p, scope, pane, intent, None);
+        let outcome = self.shared_part_input(p, scope, pane, intent, None);
         // Transitional (M11 A0b): an action invoked by its stable id that the
         // part does not match itself runs by the key its own view lists for
         // that id, under the same dispatch span. An action with no key must
@@ -3378,6 +3436,9 @@ impl Host {
         _at: ratatui::layout::Position,
         context: bool,
     ) -> Outcome {
+        if id.starts_with(crate::view::detail::TARGET_PREFIX) {
+            return Outcome::done();
+        }
         if !self.has_view(p, scope) {
             return Outcome::Ignored;
         }
@@ -3395,7 +3456,7 @@ impl Host {
     ) -> Outcome {
         use crate::view_tui::Routed;
         match routed {
-            Routed::Intent(i) => self.motion_part_input(p, scope, pane, &i, known),
+            Routed::Intent(i) => self.shared_part_input(p, scope, pane, &i, known),
             Routed::Done => Outcome::done(),
             Routed::Ignored => Outcome::Ignored,
         }
@@ -3492,6 +3553,22 @@ impl Host {
         } else {
             self.hit_at(column, row)
         };
+        if matches!(hit, Some(Hit::NoticeHistoryOpen)) {
+            if kind == MouseKind::Press && self.notice_history_can_open() { self.open_notice_history(); }
+            return vec![];
+        }
+        if let Some(Hit::Notice(id)) = hit {
+            if kind == MouseKind::Press && self.notices_visible() { self.notices.dismiss(id); self.sync_message_compat(); }
+            return vec![];
+        }
+        let detail_target = match &hit {
+            Some(Hit::Plugin { id, .. }) if id.starts_with(crate::view::detail::TARGET_PREFIX) => Some(id.clone()),
+            _ => None,
+        };
+        if detail_target.is_some() && kind == MouseKind::Context {
+            self.last_press = None;
+            return vec![];
+        }
         let key = |code| KeyEvent::new(code, KeyModifiers::NONE);
         if kind == MouseKind::Context {
             if self.menu.is_some() && !replacing_context || self.capturing() {
@@ -3585,6 +3662,13 @@ impl Host {
         // Typing goes on until ⏎ or esc; a click elsewhere does not drop it.
         if self.colours.capturing() || self.target().is_some_and(|p| self.plugins[p].capturing()) {
             return vec![];
+        }
+        // Controls bypass row focus and double-press synthesis entirely.
+        if let Some(target) = detail_target {
+            self.last_press = None;
+            return if kind == MouseKind::Press {
+                self.activate_detail_control(&crate::view::Target::new(target))
+            } else { vec![] };
         }
         // A click anywhere takes the keys from the top bar, or from a
         // page's tab row.
@@ -3716,7 +3800,7 @@ impl Host {
                 self.finish_dispatch(span, handled);
                 out
             }
-            Hit::History | Hit::Pane(_) | Hit::MenuBox | Hit::MenuItem(_) | Hit::Key(..) => vec![],
+            Hit::Notice(_) | Hit::NoticeHistory(_) | Hit::NoticeHistoryOpen | Hit::NoticeHistoryKey(_) | Hit::History | Hit::Pane(_) | Hit::MenuBox | Hit::MenuItem(_) | Hit::Key(..) => vec![],
         };
         if double {
             // On a setup step that is a section, a double click is the
@@ -3732,7 +3816,7 @@ impl Host {
     }
 
     fn on_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
-        self.message = None;
+        self.clear_message_compat();
         // ctrl-c always gets out, even mid-typing or with a menu open.
         if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
             self.quit = true;
@@ -3767,6 +3851,10 @@ impl Host {
         {
             return fx;
         }
+        if key.code == KeyCode::Char('~') && self.notice_history_can_open() {
+            self.open_notice_history();
+            return vec![];
+        }
         if key.code == KeyCode::Char(HISTORY_KEY) {
             return self.open_recent_history();
         }
@@ -3792,6 +3880,9 @@ impl Host {
         } else {
             self.last_pane.insert(self.view, self.focus);
         }
+        if let Some(out) = self.shared_tree_key(key) {
+            return out;
+        }
         match key.code {
             // Settings are saved as they change; only a failed save leaves
             // something to lose to a stray q: ask first.
@@ -3804,13 +3895,13 @@ impl Host {
                         vec![
                             MenuItem::new(
                                 'w',
-                                "try saving again and quit",
+                                "write settings and quit",
                                 "write config.toml first",
                                 "save",
                             ),
                             MenuItem::new(
                                 'd',
-                                "quit without saving",
+                                "discard changes and quit",
                                 "lose the changes",
                                 "discard",
                             ),
@@ -3849,7 +3940,7 @@ impl Host {
                     }
                 };
                 if !placed && self.dock.visible {
-                    self.message = Some("the agent dock shows beside the lists, not on this page".into());
+                    self.notify("the agent dock shows beside the lists, not on this page".into());
                 }
                 return out;
             }
@@ -3866,7 +3957,7 @@ impl Host {
                             Menu::new(BULK_MENU, "bulk commands", items),
                         ))
                     }
-                    None => self.message = Some("no bulk commands here".into()),
+                    None => self.notify("no bulk commands here".into()),
                 }
                 return vec![];
             }
@@ -3953,8 +4044,8 @@ impl Host {
                 return vec![];
             }
             KeyCode::Char(c @ '1'..='9') => {
-                if let Some(p) = self.panes().get(c as usize - '1' as usize) {
-                    self.focus = *p;
+                if let Some(jump) = self.pane_jumps().into_iter().find(|jump| jump.key == c) {
+                    self.focus = jump.pane.into();
                     return vec![];
                 }
             }
@@ -3963,7 +4054,7 @@ impl Host {
         if self.view == View::Settings {
             if matches!(key.code, KeyCode::PageUp | KeyCode::PageDown) {
                 if !self.settings_detail.page(key.code == KeyCode::PageDown) {
-                    self.message = Some("nothing to scroll here".into());
+                    self.notify("nothing to scroll here".into());
                 }
                 return vec![];
             }
@@ -3971,32 +4062,17 @@ impl Host {
                 return vec![];
             }
         }
-        if self.view == View::Settings && self.focus == Pane::Nav {
-            if let Some(down) = vertical(&key) {
-                let rows = self.nav_rows();
-                let at = rows.iter().position(|r| *r == self.nav_at()).unwrap_or(0);
-                if !down && at == 0 {
-                    self.enter_bar();
-                } else {
-                    self.nav_go(rows[step(at, rows.len(), down)]);
-                }
-                return vec![];
+        if self.view == View::Settings && self.focus == Pane::Nav
+            && let Some(down) = vertical(&key)
+        {
+            let rows = self.nav_rows();
+            let at = rows.iter().position(|r| *r == self.nav_at()).unwrap_or(0);
+            if !down && at == 0 {
+                self.enter_bar();
+            } else {
+                self.nav_go(rows[step(at, rows.len(), down)]);
             }
-            if key.code == KeyCode::Char(' ') {
-                self.toggle_group(self.nav_at().0);
-                return vec![];
-            }
-            // `+` (or `=`) opens a folded group; `-` folds the group the
-            // cursor is in, the cursor to its heading.
-            if let KeyCode::Char(c @ ('+' | '=' | '-')) = key.code {
-                let (g, _) = self.nav_at();
-                if !g.is_empty() && self.folded.contains(g) == (c != '-') {
-                    self.toggle_group(g);
-                } else {
-                    self.nothing_to_fold(c);
-                }
-                return vec![];
-            }
+            return vec![];
         }
         if self.in_colours_section() {
             let before = (self.colours.row, self.colours.icon_row);
@@ -4103,7 +4179,7 @@ impl Host {
             // The status line offers PgUp/PgDn everywhere: where nothing
             // took them, it says so rather than doing nothing.
             KeyCode::PageUp | KeyCode::PageDown => {
-                self.message = Some("nothing to scroll here".into())
+                self.notify("nothing to scroll here".into())
             }
             _ => {}
         }
@@ -4117,7 +4193,7 @@ impl Host {
         } else {
             " · esc goes back"
         };
-        self.message = Some(format!("nothing to move to here{back}").into());
+        self.notify(format!("nothing to move to here{back}").into());
     }
 
     /// The bulk commands for what is on screen, and the plugin they belong
@@ -4338,7 +4414,7 @@ impl Host {
         }
         // A tree with groups: `+` and `-` (the status line names them too).
         // Before a trailing "back" row, so that stays last.
-        let fold_keys = match self.view {
+        let fold_keys = self.shared_fold_keys().unwrap_or_else(|| match self.view {
             View::Screen(_) => self
                 .screen()
                 .filter(|(p, _)| self.ready(*p))
@@ -4349,13 +4425,14 @@ impl Host {
                 Binding::new("-", "collapse the group, or the one this row is in"),
             ],
             View::Settings => Vec::new(),
-        };
+        });
         if !fold_keys.is_empty() && !self.bar && !self.sources && !self.tabs {
             let at = rows
                 .iter()
                 .rposition(|r| r.keys == "esc")
                 .filter(|i| i + 1 == rows.len())
                 .unwrap_or(rows.len());
+            let fold_keys = fold_keys.into_iter().filter(|fold| !rows.iter().any(|row| row.keys == fold.keys)).collect::<Vec<_>>();
             rows.splice(at..at, fold_keys);
         }
         if self.view == View::Settings && self.unsaved() {
@@ -4418,7 +4495,10 @@ impl Host {
             items.push(item);
             presses.push(
                 crate::plugin::parse_key(&b.keys)
-                    .map(|key| Press::Key(key, self.menu_key_context(&b.keys))),
+                    .map(|key| match self.tree_menu_context(key) {
+                        Some(context) => Press::TreeKey(key, context),
+                        None => Press::Key(key, self.menu_key_context(&b.keys)),
+                    }),
             );
         }
         for (p, name, actions, subject) in contributed {
@@ -4428,7 +4508,7 @@ impl Host {
                 let keys = a.key.map(crate::plugin::key_text).unwrap_or_default();
                 let mut item = MenuItem::pick(&a.what, "", items.len().to_string())
                     .shown_as(keys)
-                    .icon(a.icon);
+                    .icon(Some(a.icon.unwrap_or(crate::ui::icon::Icon::Action)));
                 item.key = a.key;
                 if let Some(why) = a.change.and_then(crate::writes::row_note) {
                     item.label = format!("{} · {why}", a.what);
@@ -4443,6 +4523,8 @@ impl Host {
                 )));
             }
         }
+        items.push(MenuItem::new('~', "recent notices (this session)", "", items.len().to_string()));
+        presses.push(Some(Press::Key(KeyEvent::new(KeyCode::Char('~'), KeyModifiers::NONE), self.menu_key_context("~"))));
         items.push(MenuItem::heading("History"));
         presses.push(None);
         items.push(MenuItem::new(
@@ -4480,6 +4562,7 @@ impl Host {
     }
 
     fn open_recent_history(&mut self) -> Vec<HostEffect> {
+        self.notice_history = None;
         self.history_request = self.history_request.wrapping_add(1);
         let (history, request) =
             crate::history::History::recent(self.now.saturating_mul(1000), self.history_request);
@@ -4760,6 +4843,19 @@ impl Host {
         Some(vec![])
     }
 
+    /// Digits follow the active surface's logical routing, including hidden panes.
+    pub fn pane_jumps(&self) -> Vec<crate::view::chrome::PaneJump> {
+        if self.setup.is_some() { return vec![]; }
+        // Some owners measure responsive page routing while producing their view.
+        // An unrelated raw view enumeration must not decide the displayed jumps.
+        if let Some((owner, spec)) = self.screen().filter(|(owner, _)| self.ready(*owner)) {
+            let (width, height) = self.frontend.room();
+            let _ = self.screen_view_in(owner, spec.id, width, height);
+        }
+        self.panes().into_iter().zip('1'..='9')
+            .map(|(pane, key)| crate::view::chrome::PaneJump { pane: pane.into(), key }).collect()
+    }
+
     /// The panes of what is showing, left to right.
     pub fn panes(&self) -> Vec<Pane> {
         // Setup has one place for the keys: the card.
@@ -4845,7 +4941,7 @@ fn merged_config(file: &str, table: &toml::Table, owned: &[&str]) -> String {
 fn hint_icon(action: &str) -> Option<crate::ui::icon::Icon> {
     use crate::ui::icon::Icon;
     Some(match action {
-        "menu" => Icon::Menu,
+        "extra actions" => Icon::Menu,
         "quit" => Icon::Quit,
         "scroll" => Icon::Scroll,
         "bulk" => Icon::Bulk,
@@ -4903,6 +4999,8 @@ pub(crate) fn chrome_hint(n: usize, h: &KeyHint<'_>) -> crate::view::chrome::Hin
         vec![]
     };
     c::Hint {
+        mnemonic_at: crate::mnemonic::at(h.keys, h.action),
+        mnemonic_shift: crate::mnemonic::at(h.keys, h.action).is_some() && crate::mnemonic::shifted(h.keys),
         keys: h.keys.to_string(),
         label: h.action.to_string(),
         icon: hint_icon(h.action),
@@ -4931,8 +5029,14 @@ impl Host {
     /// the menu's reading position are the same for every frontend.
     pub fn chrome_view_with(&self, width: u16, height: u16, theme: &Theme) -> crate::view::ChromeView {
         use crate::view::chrome::{self as c, targets};
+        let body = crate::shell::body_of(self, width, height);
+        self.frontend.set_room(body.width, body.height);
         crate::shell::measure(self, theme, width, height);
         let mut out = c::ChromeView::new(width, height);
+        out.notices_visible = self.notices_visible();
+        out.notices = self.notices.view();
+        if !out.notices_visible { out.notices.now_ms = 0; }
+        out.notice_history = self.notice_history.as_ref().map(|s| self.notices.history_view(s.selected, s.scroll, s.detail_scroll));
         // The overlay takes the body: everything under the top bar.
         out.history = self
             .history
@@ -4966,6 +5070,8 @@ impl Host {
         }
         out.screen_keys = self.claimed_capitals();
         out.status = self.chrome_status();
+        out.pane_jumps = self.pane_jumps();
+        out.write_mode = self.mode().into();
         // The services' marks as this theme's icons draw them.
         out.status.health = self.health_chips(theme.icons());
         out.menu = self.menu_view();
@@ -5098,7 +5204,11 @@ impl Host {
             .enumerate()
             .map(|(n, h)| {
                 let mut hint = chrome_hint(n, h);
-                if self.palette.is_some() {
+                if self.notice_history.is_some() {
+                    for key in &mut hint.keys_of {
+                        if let Some(target) = Self::notice_history_key_target(crate::view_tui::key_of(key.chord)) { key.target = target; }
+                    }
+                } else if self.palette.is_some() {
                     for (k, key) in hint.keys_of.iter_mut().enumerate() {
                         key.target = crate::view::Target::new(format!("chrome:palette-key:{}:{n}:{k}", self.palette_generation));
                     }
@@ -5116,11 +5226,7 @@ impl Host {
                 .take(c::MOST)
                 .map(|(text, tone)| c::Badge { text, ink: Ink::from(tone) })
                 .collect(),
-            message: self.message.as_ref().map(|m| c::Message {
-                text: m.text.clone(),
-                icon: m.icon,
-                ink: Ink::Info,
-            }),
+            message: None,
             health: self.health_chips(&crate::ui::icon::current()),
             attention: self.attention_chip(),
         }
@@ -5260,6 +5366,7 @@ impl Host {
 
     /// The status line's keys, in the order shown.
     fn status_hints(&self) -> Vec<KeyHint<'static>> {
+        if self.notice_history.is_some() { return vec![KeyHint::new("↑↓", "move"), KeyHint::new("PgUp/PgDn", "details"), KeyHint::new("esc", "back")]; }
         // While a drag selects: how to select with the terminal instead.
         if let Some(key) = self.selecting {
             return vec![KeyHint::new(key, "terminal's own selection")];
@@ -5280,10 +5387,8 @@ impl Host {
                 h.push(KeyHint::new(
                     if open.menu.question {
                         "←→"
-                    } else if typed {
-                        "↑↓"
                     } else {
-                        "j/k"
+                        "↑↓"
                     },
                     "move",
                 ));
@@ -5330,7 +5435,7 @@ impl Host {
                 KeyHint::new("←→", "tabs"),
                 KeyHint::new("↓", "enter"),
                 KeyHint::new("q", "quit"),
-                KeyHint::new("x", "menu"),
+                KeyHint::new("x", "extra actions"),
             ];
         }
         // The top bar has the keys: moving between screens and back in.
@@ -5339,7 +5444,7 @@ impl Host {
                 KeyHint::new("←→", "screens"),
                 KeyHint::new("↓", "enter"),
                 KeyHint::new("q", "quit"),
-                KeyHint::new("x", "menu"),
+                KeyHint::new("x", "extra actions"),
             ];
         }
         if self.sources {
@@ -5348,7 +5453,7 @@ impl Host {
                 KeyHint::new("↑", "screens"),
                 KeyHint::new("↓", "enter"),
                 KeyHint::new("q", "quit"),
-                KeyHint::new("x", "menu"),
+                KeyHint::new("x", "extra actions"),
             ];
         }
         // Otherwise lazydocker's bar: the same few keys everywhere; the rest
@@ -5372,7 +5477,8 @@ impl Host {
         }
         h.extend([
             KeyHint::new("q", "quit"),
-            KeyHint::new("x", "menu"),
+            KeyHint::new("x", "extra actions"),
+            KeyHint::new("~", "notices"),
             KeyHint::new("←→↑↓", "navigate"),
         ]);
         h
@@ -5411,6 +5517,8 @@ pub(crate) fn menu_view_of(open: &OpenMenu) -> crate::view::MenuView {
                 .take(c::MOST)
                 .enumerate()
                 .map(|(i, it)| c::Choice {
+                    mnemonic_at: (!it.heading && !it.note).then(|| crate::mnemonic::at(&it.keys, crate::mnemonic::choice_words(m.question, &it.label, &it.hint))).flatten(),
+                    mnemonic_shift: !it.heading && !it.note && crate::mnemonic::at(&it.keys, crate::mnemonic::choice_words(m.question, &it.label, &it.hint)).is_some() && crate::mnemonic::shifted(&it.keys),
                     value: it.value.clone(),
                     label: it.label.clone(),
                     hint: it.hint.clone(),
@@ -5435,6 +5543,39 @@ pub(crate) fn menu_view_of(open: &OpenMenu) -> crate::view::MenuView {
             usable: open.viewport.usable.get(),
             refused: open.refused.clone(),
         }
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_projection_tests {
+    use super::*;
+
+    #[test]
+    fn host_projects_effective_words_display_only_keys_and_shift_without_changing_routes() {
+        let hint = chrome_hint(3, &KeyHint::new("A", "ask an agent"));
+        assert_eq!(hint.mnemonic_at, Some(0));
+        assert!(hint.mnemonic_shift);
+        assert_eq!(hint.keys_of[0].chord, crate::view::Chord::char('A'));
+        let rows = vec![
+            MenuItem::pick("refresh", "later", "refresh-id").shown_as("r"),
+            MenuItem::new('Y', "copy item key", "", "copy-id"),
+            MenuItem::heading("read"),
+            MenuItem::note("recorded text"),
+        ];
+        let menu = menu_view_of(&OpenMenu::open(Owner::Host, Menu::new("watch", "actions", rows)));
+        assert_eq!(menu.items[0].key, None);
+        assert_eq!(menu.items[0].mnemonic_at, Some(0));
+        assert_eq!(menu.items[0].value, "refresh-id");
+        assert_eq!(menu.items[1].mnemonic_at, Some(3));
+        assert!(menu.items[1].mnemonic_shift);
+        assert!(menu.items[2..].iter().all(|i| i.mnemonic_at.is_none()));
+        let question = menu_view_of(&OpenMenu::open(Owner::Host, Menu::confirm("confirm", "post?", "post it", "keep it")));
+        assert_eq!(question.items[0].hint, "yes, post it");
+        assert_eq!(question.items[1].hint, "no, keep it");
+        assert_eq!(question.items[0].mnemonic_at, Some(0));
+        assert_eq!(question.items[1].mnemonic_at, Some(0));
+        assert_eq!(question.items[0].value, "yes");
+        assert_eq!(question.items[1].value, "no");
     }
 }
 
@@ -5512,6 +5653,7 @@ impl Host {
         let (kind, arg) = rest.split_once(':').unwrap_or((rest, ""));
         let index = || arg.parse::<usize>().ok();
         Some(match kind {
+            "notices" if self.notice_history.is_some() => Hit::NoticeHistoryKey(Self::notice_history_target_key(arg)?),
             "history" => Hit::HistoryTab,
             "settings" => Hit::Tab(View::Settings),
             "mode" => Hit::Mode,
@@ -5552,6 +5694,9 @@ impl Host {
         use crate::view::chrome::targets;
         Some(match hit {
             Hit::HistoryTab => targets::history_tab(),
+            Hit::NoticeHistoryOpen => crate::view::Target::new("chrome:notices:open"),
+            Hit::NoticeHistory(id) => crate::view::Target::new(format!("chrome:notices:id:{id}")),
+            Hit::NoticeHistoryKey(key) => Self::notice_history_key_target(*key)?,
             Hit::Tab(View::Settings) => targets::settings_tab(),
             Hit::Tab(View::Screen(i)) => targets::screen_tab(*i),
             Hit::SourceTab(View::Screen(i)) => targets::source_tab(*i),
@@ -5586,6 +5731,10 @@ impl Host {
     /// [`Host::chrome_target_of`]): what a click on it does. `activate`
     /// false only moves a menu's highlight.
     fn chrome_intent(&mut self, target: &crate::view::Target, activate: bool) -> Vec<HostEffect> {
+        if target.as_str() == "chrome:notices:open" {
+            if activate && self.notice_history_can_open() { self.open_notice_history(); }
+            return vec![];
+        }
         // The history overlay's rows and keys are its own: a row selects, a
         // key does what pressing it does.
         if target.as_str().starts_with(crate::history::targets::PREFIX) {
@@ -5804,6 +5953,7 @@ pub(crate) mod tests {
         pub inputs: Vec<i64>,
         /// Typing into a field of its section (`t` starts, `⏎` keeps).
         pub typing: bool,
+        pub overlay: bool,
         /// Pages open on its screen (`p` opens one), and the page's tab
         /// showing (of three: the first has one pane, the others two).
         pub depth: usize,
@@ -5865,12 +6015,20 @@ pub(crate) mod tests {
             self.with(|l| l.bus.push(format!("menu {menu} {value}")));
             vec![]
         }
+        fn on_msg(&mut self, msg: Msg) -> Vec<Effect> {
+            if msg.downcast_ref::<&str>() == Some(&"question") {
+                vec![Effect::Menu(Menu::confirm("background-question", "proceed?", "yes", "no"))]
+            } else { vec![] }
+        }
         fn view(&self, scope: &str, _: &crate::view::ViewCx<'_>) -> Option<crate::view::ScreenView> {
             use crate::view as v;
             let panes = self.panes(scope).into_iter().map(|pane| v::PaneView::new(
                 pane.into(), self.id, v::Node::List { rows: vec![], selected: None, editing: None },
             )).collect();
             let mut view = v::ScreenView::new(scope, panes);
+            if self.with(|log| log.overlay) {
+                view.overlay = Some(Box::new(v::PaneView::new(v::PaneId::Middle, "dialog", v::Node::Document { lines: vec![], cut: false })));
+            }
             view.actions = self.keys(scope, Pane::Middle).iter()
                 .map(|b| v::ActionSpec::named(format!("{}.{scope}.{}", self.id, b.keys), b))
                 .collect();
@@ -6431,7 +6589,7 @@ pub(crate) mod tests {
         host.update(Event::Saved(Err("disk full".into())));
         press(&mut host, KeyCode::Char('q'));
         press(&mut host, KeyCode::Char('d'));
-        assert!(host.quit, "quit without saving");
+        assert!(host.quit, "discard changes and quit");
     }
 
     #[test]
@@ -6580,7 +6738,7 @@ pub(crate) mod tests {
         assert_eq!(chrome.top_bar.tabs[0].target, targets::screen_tab(0));
         assert_eq!(chrome.top_bar.mode.target, targets::mode());
         assert_eq!(chrome.status.scope, "BOOKS");
-        let menu = chrome.status.hints.iter().find(|h| h.label == "menu").expect("x menu");
+        let menu = chrome.status.hints.iter().find(|h| h.label == "extra actions").expect("extra actions");
         assert_eq!(menu.keys_of[0].chord, crate::view::Chord::char('x'));
         assert_eq!(chrome.keys_at, KeysAt::Body);
         assert!(chrome.menu.is_none() && chrome.settings.is_none());
@@ -7140,7 +7298,7 @@ pub(crate) mod tests {
     fn styles_at(host: &Host, needle: &str) -> (u16, u16, Vec<(String, Style)>) {
         let theme = host.build_theme(crate::design::theme::Tier::TrueColor);
         let mut term = ratatui::Terminal::new(ratatui::backend::TestBackend::new(80, 24)).unwrap();
-        term.draw(|f| crate::shell::render(host, &theme, f))
+        term.draw(|f| { crate::shell::render(host, &theme, f); crate::shell::render_notices(host, &theme, f.buffer_mut()); })
             .unwrap();
         let buf = term.backend().buffer().clone();
         for y in 0..24 {
@@ -7206,9 +7364,9 @@ pub(crate) mod tests {
         assert_eq!(host.message.as_ref().unwrap().icon, Some(Icon::RunFailed));
         host.menu = None;
         let (_, y, cells) = styles_at(&host, &format!("{failed} it broke"));
-        assert_eq!(y, 23);
+        assert_eq!(y, 21, "notice stays above the panel border and status hints");
         assert_eq!(cells[0].1.fg, own(Icon::RunFailed));
-        assert_eq!(cells[2].1.fg, theme.s(Slot::StatusInfo).fg);
+        assert_eq!(cells[2].1.fg, theme.s(Slot::TextPrimary).fg);
     }
 
     #[test]
@@ -7238,11 +7396,12 @@ pub(crate) mod tests {
         let text = crate::shell::to_text(&host, 80, 24);
         assert!(text.contains(" crash "), "{text}");
         assert!(text.contains(" WHERE"), "{text}");
-        assert!(text.contains(" o  open"), "{text}");
+        assert!(text.contains(" open    opens it"), "{text}");
+        assert!(!text.contains(" o  open"), "no separate letter or icon column: {text}");
         host.menu = None;
         let text = crate::shell::to_text(&host, 80, 24);
         assert!(
-            text.lines().last().unwrap().contains("  it broke"),
+            text.lines().nth(21).unwrap().contains("info it broke"),
             "{text}"
         );
     }
@@ -7261,8 +7420,11 @@ pub(crate) mod tests {
             labels,
             vec![
                 "go into alpha",
+                "toggle the group",
                 "expand the group",
                 "collapse the group, or the one this row is in",
+                "expand every held group",
+                "recent notices (this session)",
                 "History",
                 "recent activity (last 24 hours)",
                 "all activity history"
@@ -7552,7 +7714,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn left_and_right_past_the_outer_panes_go_to_the_screen_beside() {
+    fn left_and_right_past_the_outer_panes_go_to_the_screen_beside_unless_tree_owned() {
         let (mut host, _) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
         assert_eq!(host.view, View::Screen(0));
         host.focus = Pane::Detail;
@@ -7563,7 +7725,18 @@ pub(crate) mod tests {
         host.focus = Pane::Detail;
         press(&mut host, KeyCode::Right);
         assert_eq!((host.view, host.focus), (View::Settings, Pane::Nav));
+        // Settings navigation is an actual tree: left selects the parent,
+        // then closes it, then stays at its boundary. h still changes panes.
+        let group = host.nav_at().0;
         press(&mut host, KeyCode::Left);
+        assert_eq!((host.view, host.focus), (View::Settings, Pane::Nav));
+        assert!(host.on_heading);
+        assert!(!host.folded.contains(group));
+        press(&mut host, KeyCode::Left);
+        assert!(host.folded.contains(group));
+        press(&mut host, KeyCode::Left);
+        assert_eq!((host.view, host.focus), (View::Settings, Pane::Nav));
+        press(&mut host, KeyCode::Char('h'));
         assert_eq!((host.view, host.focus), (View::Screen(1), Pane::Detail));
         host.view = View::Settings;
         host.focus = Pane::Middle;
@@ -7599,8 +7772,10 @@ pub(crate) mod tests {
         host.update(Event::Notice("copied 12 characters".into()));
         assert_eq!(host.take_cues(), [Cue::Message]);
         host.update(Event::Notice("copied 12 characters".into()));
-        assert!(host.take_cues().is_empty(), "the same message again");
+        assert_eq!(host.take_cues(), [Cue::Message], "identical words are a new occurrence");
         press(&mut host, KeyCode::Char('a'));
+        assert!(host.take_cues().is_empty(), "information remains until expiry or Escape");
+        press(&mut host, KeyCode::Esc);
         assert_eq!(host.take_cues(), [Cue::MessageGone]);
         press(&mut host, KeyCode::Char('c'));
         let mut changes = Changes::default();

@@ -173,13 +173,13 @@ pub(crate) fn menu_key_context(p: &SlackPlugin, action: &str) -> Option<String> 
     Some(serde_json::json!([p.read_stamp(), channel, ts, 1, target(&link)]).to_string())
 }
 
-/// Reactions offered, each with a key and what it says.
+/// Reactions offered: shortcut, exact provider identifier, and human action words.
 pub(crate) const REACTIONS: [(char, &str, &str); 5] = [
-    ('e', "eyes", "looking at it"),
+    ('e', "eyes", "eyes on it"),
     ('d', "white_check_mark", "done"),
-    ('p', "+1", "agreed"),
-    ('t', "pray", "thank you"),
-    ('r', "raised_hands", "well done"),
+    ('p', "+1", "plus one"),
+    ('t', "pray", "thanks"),
+    ('r', "raised_hands", "raise hands"),
 ];
 
 // --- opening and fetching -------------------------------------------------------------
@@ -697,7 +697,7 @@ pub fn rows(p: &SlackPlugin) -> Vec<Row> {
                 )));
             }
             b.push(head(Binding::heading("on Slack")));
-            b.push(act("slack.page.reply", Binding::new("c", "reply in it…").adds()));
+            b.push(act("slack.page.reply", Binding::new("c", "comment in its thread…").adds()));
             b.push(act("slack.page.react", Binding::new("e", "react to its first message…").adds()));
             b.push(head(Binding::heading("page")));
             b.push(act("slack.page.next_tab", Binding::new(
@@ -733,11 +733,11 @@ pub fn rows(p: &SlackPlugin) -> Vec<Row> {
                         "e",
                         format!("edit the words for {}", it.label),
                     )));
-                    b.push(act("slack.draft.take_out", Binding::new("d", format!("take {} out", it.label))));
+                    b.push(act("slack.draft.take_out", Binding::new("d", format!("drop {}", it.label))));
                 }
                 b.push(act("slack.draft.choose_channel", Binding::new("c", "post it in another channel…")));
                 b.push(act("slack.draft.copy_text", Binding::new("y", "copy the review ask text")));
-                b.push(act("slack.draft.drop", Binding::new("n", "drop the review ask…")));
+                b.push(act("slack.draft.drop", Binding::new("n", "cancel the review ask…")));
             }
             b.push(act("slack.draft.back", Binding::new("esc", "back, keeping the draft")));
             b
@@ -1087,5 +1087,40 @@ mod journal_tests {
             panic!("missing reaction intent")
         };
         assert!(!unknown.subjects.iter().any(|s| s.key.kind == "thread"));
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn draft_action_producer_does_not_depend_on_the_items_name() {
+        let mut p = SlackPlugin {
+                cfg: crate::demo::settings(),
+                now: radar_core::plugin::DEMO_NOW,
+                env: Some(vec![]),
+                app_running: Some(false),
+                ..Default::default()
+            };
+        let item = crate::ask::Item {
+            id: "ankh-morpork/watch!44".into(),
+            url: "https://gitlab.example/ankh-morpork/watch/-/merge_requests/44".into(),
+            label: "zzz".into(), words: "Keep these exact words".into(), tickets: vec![],
+        };
+        p.draft = Some(crate::ask::Draft::new(&p.cfg, item));
+        p.pages.push(Page::Draft);
+        for (_, binding) in rows(&p) {
+            if radar_core::mnemonic::letter(&binding.keys).is_some() {
+                assert!(radar_core::mnemonic::at(&binding.keys, &binding.what).is_some(),
+                    "{} / {}", binding.keys, binding.what);
+            }
+        }
+        let bindings = rows(&p);
+        let (_, drop) = bindings.iter().find(|(id, _)| id == "slack.draft.take_out").unwrap();
+        assert_eq!((&*drop.keys, &*drop.what), ("d", "drop zzz"));
+        let (_, cancel) = bindings.iter().find(|(id, _)| id == "slack.draft.drop").unwrap();
+        assert_eq!((&*cancel.keys, &*cancel.what), ("n", "cancel the review ask…"));
+        assert_eq!(p.draft.as_ref().unwrap().items[0].words, "Keep these exact words");
     }
 }

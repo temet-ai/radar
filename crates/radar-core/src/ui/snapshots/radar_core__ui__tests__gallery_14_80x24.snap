@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 999
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Long text
+ Gallery / Long text
  The kit: every element on sample data                            colours: none
- Colours  Tones  Row states  Grid states  Waiting  [Long text]  Icons
+ Colours  Tones  Row states  Grid states  Waiting  [Long text]  Icons  Notices
 ╭ cut with … (fit) ───────────────────────────────────────────────────────────╮
 │ 60 move the globes to the top shelf once the new brackets are …|            │█
 │ 40 move the globes to the top shelf once t…|                                │█
@@ -26,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │ │ else.                                                                     │║
 │                                                                             │║
 │                                                                             │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

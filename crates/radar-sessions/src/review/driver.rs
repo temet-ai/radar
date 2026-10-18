@@ -23,6 +23,8 @@ pub enum Todo {
     StopSession(RadarSessionId),
     /// Say it in the notice line.
     Notice(String),
+    /// A failed operation, independent of its icon or wording.
+    Error(String),
 }
 
 struct Run {
@@ -55,11 +57,11 @@ impl Driver {
             return vec![Todo::Notice("a review of this change request is already running".into())];
         }
         let (recipe, _, broken) = crate::brief::Recipe::load(super::journey::RECIPE, self.recipes_dir.as_deref());
-        let Some(recipe) = recipe else { return vec![Todo::Notice("no review recipe".into())] };
+        let Some(recipe) = recipe else { return vec![Todo::Error("no review recipe".into())] };
         self.next += 1;
         let (journey, mut actions) = Journey::with_recipe(change, origin, provider, recipe, now);
         if let Some(why) = broken {
-            actions.insert(0, Action::Notice(format!("your review recipe is not used: {why}")));
+            actions.insert(0, Action::Error(format!("your review recipe is not used: {why}")));
         }
         self.runs.push(Run { id: self.next, journey, session: None, note: None });
         let id = self.next;
@@ -137,6 +139,7 @@ impl Driver {
                 Action::StartSession(spec) => todo.push(Todo::StartSession { run, spec }),
                 Action::StopSession(s) => todo.push(Todo::StopSession(s)),
                 Action::Notice(text) => todo.push(Todo::Notice(text)),
+                Action::Error(text) => todo.push(Todo::Error(text)),
                 Action::SaveNote(note) => {
                     if let Some(r) = self.runs.iter_mut().find(|r| r.id == run) {
                         let request = NoteRequest {
@@ -166,7 +169,7 @@ impl Driver {
                 self.reviews.add(note.record(Some(path.display().to_string())));
                 vec![Todo::Notice(format!("review of {} saved at {}; nothing was posted", note.title, path.display()))]
             }
-            Err(why) => vec![Todo::Notice(format!("the review of {} could not be saved: {why}", note.title))],
+            Err(why) => vec![Todo::Error(format!("the review of {} could not be saved: {why}", note.title))],
         }
     }
 

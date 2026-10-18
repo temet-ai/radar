@@ -58,8 +58,8 @@ pub struct Bridge {
     /// The question or captured input open as last told, by its contents.
     asked: Option<String>,
     question_id: u64,
-    /// The status line's words as last told.
-    told: Option<String>,
+    /// Highest occurrence ID delivered immediately.
+    told_notice_id: u64,
     /// Messages that are never coalesced, oldest first.
     outbox: VecDeque<ToRenderer>,
     /// The colour tier the look is resolved at, as the Ratatui runner
@@ -88,6 +88,7 @@ pub struct Bridge {
     /// The splash's clock: since the bridge was made, or as a test sets it.
     origin: std::time::Instant,
     clock_ms: Option<u64>,
+    ui_origin_ms: u64,
     /// Latency tracing (`RADAR_TRACE_LATENCY=1`), when on.
     trace: Option<super::trace::Trace>,
 }
@@ -101,6 +102,7 @@ impl Bridge {
     pub fn new(mut host: Host, width: u16, height: u16) -> Self {
         host.enable_journal();
         host.set_view_room(width, height);
+        let ui_origin_ms = host.notices.now_ms();
         Self {
             host,
             width,
@@ -116,7 +118,7 @@ impl Bridge {
             lead: std::cell::RefCell::new(None),
             asked: None,
             question_id: 0,
-            told: None,
+            told_notice_id: 0,
             outbox: VecDeque::new(),
             tier: Tier::TrueColor,
             looked: None,
@@ -131,6 +133,7 @@ impl Bridge {
             held: None,
             origin: std::time::Instant::now(),
             clock_ms: None,
+            ui_origin_ms,
             trace: super::trace::wanted(std::env::var(super::trace::VAR).ok().as_deref()).then(Default::default),
         }
     }
@@ -155,6 +158,15 @@ impl Bridge {
     /// Set the splash's clock, in ms (tests).
     pub fn set_clock_ms(&mut self, ms: u64) {
         self.clock_ms = Some(ms);
+        self.advance_notices();
+    }
+
+    fn advance_notices(&mut self) {
+        let revision = self.host.notices.revision();
+        let now_ms = self.ui_origin_ms.saturating_add(self.now().as_millis().min(u64::MAX as u128) as u64);
+        self.host.set_ui_clock_ms(now_ms);
+        self.host.set_notice_motion_enabled(self.motion_level().0 != Level::Off);
+        if revision != self.host.notices.revision() { self.held = None; }
     }
 
     fn now(&self) -> std::time::Duration {
@@ -270,6 +282,7 @@ impl Bridge {
     }
 
     pub fn host_mut(&mut self) -> &mut Host {
+        self.advance_notices();
         self.held = None;
         self.scene_origin_seq = None;
         self.host.take_motion_fold();
@@ -278,7 +291,8 @@ impl Bridge {
 
     /// Give the host back (to the Ratatui renderer, when Ink cannot run):
     /// its parts, state and journal are as the renderer left them.
-    pub fn into_host(self) -> Host {
+    pub fn into_host(mut self) -> Host {
+        self.host.reset_notice_input_support();
         self.host
     }
 
@@ -295,12 +309,13 @@ impl Bridge {
     /// The renderer is new (started or restarted): it is told everything
     /// again after its hello. Host state is untouched.
     pub fn reconnect(&mut self) {
+        self.host.reset_notice_input_support();
         self.welcomed = false;
         self.in_flight = None;
         self.last_state = None;
         self.sent = None;
         self.asked = None;
-        self.told = None;
+        self.told_notice_id = self.host.notices.through_id();
         self.looked = None;
         self.cues.clear();
         self.processed_seq = None;
@@ -346,6 +361,7 @@ impl Bridge {
                 self.resize(capabilities.columns, capabilities.rows);
                 self.capabilities = Some(capabilities);
                 self.welcomed = true;
+                self.told_notice_id = self.host.notices.through_id();
                 self.cursor += 1;
                 self.outbox.push_back(ToRenderer::Welcome {
                     protocol: PROTOCOL,
@@ -422,6 +438,7 @@ impl Bridge {
 
     /// Hand the host an event (a tick, a finished task's message).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
+        self.advance_notices();
         self.held = None;
         self.scene_origin_seq = None;
         if let Some(trace) = &mut self.trace {
@@ -473,7 +490,6 @@ impl Bridge {
 
     /// The chrome, screen, section and focus as they are now.
     pub fn snapshot_now(&self, cursor: u64) -> Snapshot {
-        let chrome = self.host.chrome_view(self.width, self.height);
         let (w, h) = (self.width, self.height);
         // The icon column the views are built for, as the Ratatui shell sets it
         // before it asks for a view: no frame is drawn here to set it.
@@ -482,7 +498,9 @@ impl Bridge {
         // section a part owns. The host keeps its section index while a
         // screen shows, so a section is sent only on the settings view: a
         // renderer draws what it is sent.
-        let mut screen = crate::view::screen_showing(&self.host, w, h);
+        let mut screen = self.host.displayed_screen(w, h);
+        // Responsive owner measurement precedes chrome pane-jump projection.
+        let chrome = self.host.chrome_view(w, h);
         let mut section = match self.host.current_section() {
             // Setup's own steps (a step that is a section sends the section).
             _ if self.host.setup_host_step() => self.host.setup_section_view(),
@@ -544,6 +562,7 @@ impl Bridge {
     /// change while a snapshot is in flight waits; the next snapshot
     /// carries it (and every change before it), so nothing is lost.
     pub fn outgoing(&mut self) -> Vec<ToRenderer> {
+        self.advance_notices();
         if self.welcomed {
             self.host.set_motion_enabled(self.motion_level().0 == Level::Full);
             // The look first, so the snapshot after it draws in it.
@@ -724,16 +743,17 @@ impl Bridge {
                 });
             }
         }
-        let words = self.host.message.as_ref().map(|m| m.text.clone());
-        if words != self.told {
-            self.told = words.clone();
-            if let Some(text) = words.filter(|t| !t.is_empty()) {
-                self.cursor += 1;
-                self.outbox.push_back(ToRenderer::Notice(Notice {
-                    cursor: self.cursor,
-                    text: text.chars().take(MAX_NOTICE).collect(),
-                }));
-            }
+        let notices: Vec<_> = self.host.notices.since(self.told_notice_id).cloned().collect();
+        for occurrence in notices {
+            self.told_notice_id = occurrence.id;
+            self.cursor += 1;
+            self.outbox.push_back(ToRenderer::Notice(Notice {
+                cursor: self.cursor,
+                text: occurrence.text.clone(),
+                occurrence: Some(occurrence),
+                revision: self.host.notices.revision(),
+                now_ms: self.host.notices.now_ms(),
+            }));
         }
     }
 

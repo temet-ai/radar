@@ -22,7 +22,7 @@ runtime. From the repository root:
 cargo build                                   # the radar binary, at target/debug/radar
 cargo nextest run -p radar-<crate>            # the tests of the crate you changed
 cargo clippy --workspace --all-features --all-targets -- -D warnings
-scripts/check-mixes --quick                   # each part alone, none, and all together
+scripts/check-mixes                           # each part alone, none, and all together
 cd ink && npm ci && npm run typecheck && npm test
 cd sidecars/claude-agent && npm ci && npm test
 ```

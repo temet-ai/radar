@@ -12,7 +12,8 @@
           "char": "e"
         }
       },
-      "label": "switch to cozy"
+      "label": "change to cozy layout",
+      "mnemonic_at": 5
     },
     {
       "id": "slack.look.kept_replies",

@@ -2,16 +2,33 @@
 """Replay the small, allowlisted headless host scenarios. Python stdlib only."""
 
 import argparse
+from contextlib import contextmanager
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
 import shlex
+import signal
+import struct
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 
 ROOT = Path(__file__).resolve().parent.parent
 DIAGNOSTIC_BYTES = 16 * 1024
+BUILD_SECONDS = 900
+EXECUTION_SECONDS = 20
+TERM_GRACE_SECONDS = 1
+KILL_GRACE_SECONDS = 1
+POLL_SECONDS = 0.05
+SUPERVISOR = Path(__file__).resolve().with_name("scenarios-supervisor.py")
+REPORT = struct.Struct("!4sBi")
+REPORT_MAGIC = b"RSC1"
+# Terminal bookkeeping only, never Cargo or supervisor exit evidence. It prevents
+# Popen.__del__ from performing a hidden reap after ownership is lost.
+ABANDONED_RETURN_CODE = 255
 
 
 @dataclass(frozen=True)
@@ -103,6 +120,205 @@ def command(scenario, cargo="cargo"):
     ]
 
 
+def build_command(scenario, cargo="cargo"):
+    argv = command(scenario, cargo)
+    return argv[:argv.index("--")] + ["--no-run"]
+
+
+@dataclass(frozen=True)
+class PhaseResult:
+    returncode: int
+    output: str
+    truncated: bool = False
+    timed_out: bool = False
+    interrupted: int = 0
+    cleanup_failed: bool = False
+    error: str = ""
+    cleanup_error: str = ""
+
+
+@contextmanager
+def capture_interrupts():
+    # Record rather than raise: a signal during Popen must not lose the child
+    # between spawning it and recording ownership of its new process group.
+    interrupted = []
+    previous = {}
+
+    def remember(signum, _frame):
+        if not interrupted:
+            interrupted.append(signum)
+
+    try:
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            previous[signum] = signal.signal(signum, remember)
+        yield interrupted
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
+
+
+def process_support_error():
+    required = ("killpg", "pipe", "set_blocking", "waitpid", "WNOHANG",
+                "waitstatus_to_exitcode", "setsid", "getpgid", "getsid", "set_inheritable")
+    if os.name != "posix" or not all(hasattr(os, name) for name in required):
+        return "Scenario replay requires POSIX process groups, pipes and waitpid."
+    if signal.getsignal(signal.SIGCHLD) != signal.SIG_DFL:
+        return "Scenario replay requires the default SIGCHLD handler to retain child ownership."
+    if threading.current_thread() is not threading.main_thread() or threading.active_count() != 1:
+        return "Scenario replay requires a standalone, single-threaded main-thread controller."
+    return None
+
+
+@dataclass
+class OwnedSupervisor:
+    # This standalone CLI is the sole reaper. A live OR unreaped dead supervisor
+    # reserves its PID; the status pipe reports Cargo completion, not ownership.
+    process: object = None
+    state: str = "not-created"
+    signals_finished: bool = False
+
+    def abandon(self):
+        self.state = "lost"
+        if self.process.returncode is None:
+            self.process.returncode = ABANDONED_RETURN_CODE
+
+    def can_signal(self):
+        if self.state != "reserved" or self.signals_finished:
+            return False
+        if self.process.returncode is not None or process_support_error():
+            self.abandon()
+            return False
+        return True
+
+
+def stop_process_group(owned):
+    """Signal only the reserved supervisor group, then perform the sole raw reap."""
+    errors = []
+    for signum in (signal.SIGTERM, signal.SIGKILL):
+        if not owned.can_signal():
+            errors.append("supervisor ownership/configuration was lost; no further group signals")
+            break
+        try:
+            os.killpg(owned.process.pid, signum)
+        except ProcessLookupError:
+            pass
+        except OSError as error:
+            errors.append(f"group signal {signum} failed: {str(error)[:200]}")
+        if signum == signal.SIGTERM:
+            time.sleep(TERM_GRACE_SECONDS)
+    # From here on, even failed/late/interrupted reaping never permits a signal.
+    owned.signals_finished = True
+    if owned.state != "reserved":
+        return "; ".join(errors)
+    deadline = time.monotonic() + KILL_GRACE_SECONDS
+    while True:
+        try:
+            pid, status = os.waitpid(owned.process.pid, os.WNOHANG)
+        except OSError as error:
+            owned.abandon()
+            errors.append(f"supervisor reap failed: {str(error)[:200]}")
+            break
+        if pid == owned.process.pid:
+            try:
+                owned.process.returncode = os.waitstatus_to_exitcode(status)
+                owned.state = "reaped"
+            except ValueError as error:
+                owned.abandon()
+                errors.append(f"invalid supervisor wait status: {str(error)[:200]}")
+            break
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            owned.abandon()
+            errors.append(f"supervisor reap exceeded {KILL_GRACE_SECONDS:g}s")
+            break
+        time.sleep(min(remaining, POLL_SECONDS))
+    return "; ".join(errors)
+
+
+def decode_report(data):
+    if len(data) != REPORT.size:
+        return 1, "Supervisor status was empty, incomplete or oversized."
+    magic, kind, value = REPORT.unpack(data)
+    if magic == REPORT_MAGIC:
+        if kind == 1 and -127 <= value <= 255:
+            return value, ""
+        if kind == 2 and 1 <= value <= 4095:
+            return 1, f"Could not launch Cargo (errno {value}); supply --cargo /path/to/cargo if needed."
+        if kind == 3 and value == 1:
+            return 1, "Scenario supervisor reported an internal error."
+    return 1, "Invalid supervisor status record."
+
+
+def observe_report(reader, deadline, interrupted):
+    # One fixed-size report plus one overflow byte; no pipe reads to exhaustion.
+    data = bytearray()
+    while not interrupted:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return 1, True, ""
+        try:
+            chunk = os.read(reader, REPORT.size + 1 - len(data))
+        except BlockingIOError:
+            time.sleep(min(remaining, POLL_SECONDS))
+            continue
+        data.extend(chunk)
+        if len(data) > REPORT.size:
+            return 1, False, "Supervisor status was oversized or duplicated."
+        if not chunk:
+            if time.monotonic() > deadline:
+                return 1, True, ""
+            code, error = decode_report(data)
+            return code, False, error
+    return 1, False, ""
+
+
+def run_phase(argv, seconds):
+    unsupported = process_support_error()
+    if unsupported:
+        raise ValueError(unsupported)
+    interpreter = Path(sys.executable).resolve()
+    if not interpreter.is_file() or not os.access(interpreter, os.X_OK):
+        raise FileNotFoundError("Scenario supervisor Python interpreter is unavailable")
+    if not SUPERVISOR.is_file():
+        raise FileNotFoundError("Scenario supervisor helper is unavailable")
+    # File-backed output keeps memory bounded. The private pipe carries only a
+    # fixed-size Cargo status; stdout can never impersonate this protocol.
+    with tempfile.TemporaryFile() as log, capture_interrupts() as interrupted:
+        reader = writer = None
+        owned = OwnedSupervisor()
+        code, timed_out, error, cleanup_error = 1, False, "", ""
+        try:
+            reader, writer = os.pipe()
+            os.set_blocking(reader, False)
+            deadline = time.monotonic() + seconds
+            helper_argv = [str(interpreter), "-I", "-S", str(SUPERVISOR), str(writer), "--", *argv]
+            owned.process = subprocess.Popen(
+                helper_argv, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
+                close_fds=True, pass_fds=(writer,), start_new_session=True)
+            owned.state = "reserved"
+            os.close(writer)
+            writer = None
+            try:
+                code, timed_out, error = observe_report(reader, deadline, interrupted)
+            except Exception as failure:
+                error = f"Could not read supervisor status: {str(failure)[:300]}"
+        finally:
+            for descriptor in (writer, reader):
+                if descriptor is not None:
+                    try:
+                        os.close(descriptor)
+                    except OSError as failure:
+                        error = error or f"Could not close supervisor status pipe: {str(failure)[:200]}"
+            if owned.state == "reserved":
+                cleanup_error = stop_process_group(owned)
+        size = log.seek(0, os.SEEK_END)
+        log.seek(max(0, size - DIAGNOSTIC_BYTES))
+        output = log.read(DIAGNOSTIC_BYTES).decode("utf-8", errors="replace")
+        return PhaseResult(code, output, size > DIAGNOSTIC_BYTES,
+                           timed_out, interrupted[0] if interrupted else 0,
+                           bool(cleanup_error), error, cleanup_error)
+
+
 def print_list():
     for index, scenario in enumerate(SCENARIOS, 1):
         print(f"{index}. {scenario.name}: {scenario.description}")
@@ -125,37 +341,60 @@ def interactive_selection(value, previous=None):
 
 
 def run_scenario(scenario, cargo="cargo", dry_run=False):
-    argv = command(scenario, cargo)
+    phases = (
+        ("Build", build_command(scenario, cargo), BUILD_SECONDS),
+        ("Execution", command(scenario, cargo), EXECUTION_SECONDS),
+    )
     print(f"\n{scenario.name}: {scenario.description}", flush=True)
-    print(f"$ {shlex.join(argv)}", flush=True)
     if dry_run:
+        for phase, argv, seconds in phases:
+            print(f"{phase} (deadline {seconds:g}s): $ {shlex.join(argv)}", flush=True)
         return 0
+    unsupported = process_support_error()
+    if unsupported:
+        print(f"{unsupported} No command was launched.", file=sys.stderr)
+        return 1
     print("Running headless; each run creates a new host, fixture and scratch journal.", flush=True)
-    # Keep only a bounded tail in memory/on screen, including Cargo failures.
-    # The temporary full log is removed after the command finishes.
-    try:
-        with tempfile.TemporaryFile() as log:
-            result = subprocess.run(argv, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
-                                    check=False)
-            size = log.tell()
-            log.seek(max(0, size - DIAGNOSTIC_BYTES))
-            output = log.read().decode("utf-8", errors="replace")
-        if size > DIAGNOSTIC_BYTES:
-            print(f"[Showing last {DIAGNOSTIC_BYTES} bytes of command output]")
-        print(output, end="" if output.endswith("\n") else "\n")
-        if result.returncode:
-            print(f"Scenario failed (Cargo exit {result.returncode}).", file=sys.stderr)
-            return result.returncode if result.returncode > 0 else 1
-        # libtest otherwise exits successfully when an exact name no longer exists.
-        if not re.search(r"test result: ok\. 1 passed; 0 failed; 0 ignored;", output):
-            print("Scenario unverified: expected exactly one passing, non-ignored test. "
-                  f"Check the launcher mapping against tests/{scenario.binary}.rs.", file=sys.stderr)
+    for phase, argv, seconds in phases:
+        print(f"{phase} (deadline {seconds:g}s): $ {shlex.join(argv)}", flush=True)
+        try:
+            result = run_phase(argv, seconds)
+        except (OSError, ValueError) as error:
+            print(f"Could not run Cargo during {phase.lower()}: {error}. "
+                  "Supply --cargo /path/to/cargo if needed.", file=sys.stderr)
             return 1
-        return 0
-    except OSError as error:
-        print(f"Could not run Cargo: {error}. Supply --cargo /path/to/cargo if needed.",
+        if result.truncated:
+            print(f"[Showing last {DIAGNOSTIC_BYTES} bytes of command output]")
+        print(result.output, end="" if result.output.endswith("\n") else "\n")
+        if result.cleanup_failed:
+            print(f"{phase} cleanup failed: {result.cleanup_error or 'supervisor was not reaped'}.",
+                  file=sys.stderr)
+        if result.interrupted:
+            print(f"{phase} interrupted (signal {result.interrupted}); "
+                  "attempted owned process-group cleanup.", file=sys.stderr)
+            return 128 + result.interrupted
+        if result.timed_out:
+            print(f"{phase} timed out after {seconds:g}s; attempted owned process-group cleanup."
+                  + (" This includes Cargo startup and revalidation." if phase == "Execution" else ""),
+                  file=sys.stderr)
+            return 124
+        if result.cleanup_failed:
+            return 1
+        if result.error:
+            print(f"{phase} failed: {result.error}", file=sys.stderr)
+            return 1
+        if result.returncode:
+            print(f"{phase} failed (Cargo exit {result.returncode}).", file=sys.stderr)
+            return result.returncode if result.returncode > 0 else 1
+    # libtest otherwise exits successfully when an exact name no longer exists.
+    summaries = re.findall(r"^test result: .*$", result.output, re.MULTILINE)
+    if len(summaries) != 1 or not summaries[0].startswith(
+            "test result: ok. 1 passed; 0 failed; 0 ignored;"):
+        print("Scenario unverified: expected exactly one passing, non-ignored test. "
+              f"Check the launcher mapping against tests/{scenario.binary}.rs.",
               file=sys.stderr)
         return 1
+    return 0
 
 
 def parser():
@@ -195,7 +434,10 @@ def main(argv=None):
             if chosen is None:
                 return status
             previous = chosen
-            status = max(status, run_scenario(chosen, args.cargo, args.dry_run))
+            result = run_scenario(chosen, args.cargo, args.dry_run)
+            if result in (128 + signal.SIGINT, 128 + signal.SIGTERM):
+                return result
+            status = max(status, result)
     if args.scenario is None:
         cli.error("choose a scenario, --list or --interactive")
     try:

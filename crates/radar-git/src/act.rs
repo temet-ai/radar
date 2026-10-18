@@ -541,7 +541,7 @@ pub fn on_planned(
         Ok(menu) => fx.push(Effect::Menu(menu)),
         Err(why) => {
             fx.push(Effect::Report(JournalOutcome::Blocked));
-            fx.push(Effect::Notify(writes::failed_line(&why)));
+            fx.push(Effect::error(None, writes::failed_line(&why)));
         }
     }
     fx
@@ -574,7 +574,7 @@ fn new_question(
             [
                 ('s', "stash", format!("stash it as {name}"), "stash"),
                 ('w', "worktree", "park on a worktree instead".into(), "park"),
-                ('n', "no", "leave it".into(), "no"),
+                ('n', "no", "no, leave it".into(), "no"),
             ],
         ));
     }
@@ -603,7 +603,7 @@ fn new_question(
                     format!("recreate it off fresh {}", plan.base),
                     "recreate",
                 ),
-                ('n', "no", "leave it".into(), "no"),
+                ('n', "no", "no, leave it".into(), "no"),
             ],
         ));
     }
@@ -932,7 +932,7 @@ pub(crate) fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<
             if let Some(no) = writes::not_sent(change) {
                 return Some(vec![
                     Effect::Report(JournalOutcome::Blocked),
-                    Effect::Notify(no),
+                    Effect::error(None, no),
                 ]);
             }
             let force = kind == "force";
@@ -1076,7 +1076,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: ActMsg) -> Vec<Effect> {
                         fx.extend(local::scan_now(p, false));
                     }
                 }
-                Err(e) => fx.push(Effect::Notify(writes::failed_line(&e))),
+                Err(e) => fx.push(Effect::error(None, writes::failed_line(&e))),
             }
             // Preserve the original context for UI/cache/rescan effects. Step
             // summaries are independent terminal observations after it finishes.
@@ -1600,7 +1600,7 @@ pub(crate) fn finished(p: &mut GitPlugin, key: &str, results: Vec<StartResult>) 
     fx.extend(vec![
         journal("git.workspace.completed"),
         Effect::Report(outcome),
-        Effect::Notify(said),
+        if ok == results.len() { Effect::Notify(said) } else { Effect::error(None, said) },
         Effect::Emit {
             topic: STARTED,
             payload: started_payload(key, &results),
@@ -2153,5 +2153,41 @@ mod journal_tests {
             .expect("scan before step observations");
         assert_eq!(task(&completed).1, Some(scan));
         assert!(!format!("{records:?}").contains("SECRET_"));
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    fn check(menu: &Menu) {
+        assert!(menu.question);
+        for item in menu.items.iter().filter(|item| !item.note && !item.heading) {
+            let words = radar_core::mnemonic::choice_words(menu.question, &item.label, &item.hint);
+            assert!(radar_core::mnemonic::at(&item.keys, words).is_some(),
+                "{}: {} / {}", menu.id, item.keys, words);
+        }
+    }
+
+    #[test]
+    fn custom_questions_use_visible_hints_and_keep_dispatch_values() {
+        let mut p = GitPlugin { now: radar_core::plugin::DEMO_NOW, ..Default::default() };
+        for plan in [
+            Plan { base: "trunk".into(), dirty: 1, ..Default::default() },
+            Plan { base: "trunk".into(), exists_local: true, unpushed: 2, ..Default::default() },
+        ] {
+            let menu = new_question(&p, "/work/watch", "ankh-morpork/watch", "watch/changes", &plan).unwrap();
+            check(&menu);
+            let no = menu.items.iter().find(|item| item.key == Some('n')).unwrap();
+            assert_eq!((&*no.label, &*no.hint, &*no.value), ("no", "no, leave it", "no"));
+            assert_eq!(radar_core::mnemonic::at(&no.keys, &no.hint), Some(0));
+            assert!(menu.id.ends_with("/work/watch\twatch/changes\ttrunk\tankh-morpork/watch"));
+        }
+        let checkout = Checkout { dir: "/work/watch".into(), branch: "trunk".into(), ..Default::default() };
+        let effects = open_on(&mut p, "editor", "ankh-morpork/watch", &checkout, "watch/changes");
+        let menu = effects.iter().find_map(|effect| match effect { Effect::Menu(menu) => Some(menu), _ => None }).unwrap();
+        check(menu);
+        assert_eq!(menu.items.iter().filter(|item| !item.note).map(|item| (item.key, item.value.as_str())).collect::<Vec<_>>(),
+            [(Some('w'), "worktree"), (Some('c'), "here"), (Some('o'), "as")]);
     }
 }

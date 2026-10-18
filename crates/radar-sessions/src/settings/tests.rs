@@ -58,7 +58,7 @@ fn a_clis_paths_agent_and_folders_are_set_from_its_menu_and_saved() {
     s.on_menu("agents.cli:claude:config_dir", "~/claude-work").unwrap();
     s.on_menu("agents.cli:claude:agent", "code-reviewer").unwrap();
     s.on_menu("agents.cli:claude:plugins", "/srv/plugins/review").unwrap();
-    assert!(matches!(&s.on_menu("agents.cli:claude:skills", "relative/skills").unwrap()[..], [Effect::Notify(w)] if w.contains("whole path")));
+    assert!(matches!(&s.on_menu("agents.cli:claude:skills", "relative/skills").unwrap()[..], [Effect::Notice(w)] if w.tone == radar_core::view::chrome::NoticeTone::Error && w.contains("whole path")));
     s.on_menu("agents.skills", "/srv/skills").unwrap();
     s.on_menu("agents.work_dir", "~/code").unwrap();
     effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:project_config") }));
@@ -90,6 +90,9 @@ fn a_recipes_agent_and_skills_are_edited_in_settings_on_its_own_copy() {
     let fx = effects(s.intent(SECTION, &Intent::Activate { target: Target::new("rec:review-mr") }));
     let [Effect::Menu(m)] = &fx[..] else { panic!("{fx:?}") };
     assert_eq!(m.id, "agents.recipe");
+    assert_eq!(m.items.iter().map(|i| (i.key, i.value.as_str(), radar_core::mnemonic::at(&i.keys, &i.label))).collect::<Vec<_>>(), [
+        (Some('e'), "review-mr\tedit", Some(0)), (Some('a'), "review-mr\tagent", Some(0)), (Some('s'), "review-mr\tskills", Some(0)),
+    ]);
     s.on_menu("agents.recipe:review-mr:agent", "copilot=reviewer").unwrap();
     s.on_menu("agents.recipe:review-mr:skills", "security-review, notes").unwrap();
     // The built-in was copied to the folder first, then changed there; its instructions are as shipped.
@@ -99,6 +102,11 @@ fn a_recipes_agent_and_skills_are_edited_in_settings_on_its_own_copy() {
     assert_eq!(r.agent_for("copilot").as_deref(), Some("reviewer"));
     assert_eq!(r.skills, ["security-review", "notes"]);
     assert_eq!(r.instructions, crate::review::journey::recipe().instructions);
+    let own = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("rec:review-mr") })));
+    assert_eq!(own.items.iter().map(|i| (i.key, i.value.as_str(), radar_core::mnemonic::at(&i.keys, &i.label))).collect::<Vec<_>>(), [
+        (Some('e'), "review-mr\tedit", Some(0)), (Some('a'), "review-mr\tagent", Some(0)),
+        (Some('s'), "review-mr\tskills", Some(0)), (Some('b'), "review-mr\tbuilt-in", Some(8)),
+    ]);
     // Back to the built-in: the operator's file is kept as .bak.
     let fx = s.on_menu("agents.recipe", "review-mr\tbuilt-in").unwrap();
     assert!(matches!(&fx[..], [Effect::Notify(w)] if w.contains(".bak")));
@@ -151,6 +159,174 @@ fn menu_of(fx: Vec<Effect>) -> radar_core::Menu {
     fx.into_iter().find_map(|e| if let Effect::Menu(m) = e { Some(m) } else { None }).expect("a menu")
 }
 
+mod mnemonic_tests {
+    use super::*;
+
+    fn owned_settings() -> AgentsSettings {
+        let mut s = AgentsSettings::default();
+        // Full settings views enumerate recipes. Pin their fallback to an
+        // owned regular file, never the operator's HOME/XDG recipe directory.
+        // The provider/action/help cases retain that small filesystem boundary;
+        // rule-menu and setup-card cases do not call recipe discovery at all.
+        s.cfg.recipes_dir = Some(concat!(env!("CARGO_MANIFEST_DIR"), "/src/lib.rs").into());
+        s
+    }
+
+    #[test]
+    fn provider_mnemonics_keep_native_keys_and_number_arbitrary_custom_names_without_changing_dispatch() {
+        let mut s = owned_settings();
+        let custom = [
+            ("rincewind", "Rincewind"), ("ook", "Ook"), ("death", "Death"),
+            ("mort", "Mort"), ("uberwald", "Überwald"), ("great-atuin", "𐐷 Great A’Tuin"),
+            ("turtle", "🐢"), ("tiffany", "Tiffany Aching"),
+        ];
+        // Set the data directly: this is a chooser/dispatch test, not a PATH probe.
+        s.cfg.pty = custom.iter().map(|(id, name)| PtyCli {
+            id: (*id).into(), name: (*name).into(), command: (*id).into(), args: vec![], login: None,
+        }).collect();
+        s.on_menu("agents.provider", "great-atuin").unwrap();
+        let menu = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:provider") })));
+        assert_eq!((menu.id.as_str(), menu.at.as_deref(), menu.question), ("agents.provider", Some("great-atuin"), false));
+        let offered: Vec<_> = menu.items.iter().map(|i| (i.key, i.label.as_str(), i.value.as_str())).collect();
+        assert_eq!(offered, [
+            (Some('c'), "Copilot", "copilot"), (Some('x'), "Codex", "codex"), (Some('l'), "Claude Agent", "claude"),
+            (Some('1'), "Rincewind", "rincewind"), (Some('2'), "Ook", "ook"), (Some('3'), "Death", "death"),
+            (Some('4'), "Mort", "mort"), (Some('5'), "Überwald", "uberwald"),
+            (Some('6'), "𐐷 Great A’Tuin", "great-atuin"), (Some('7'), "🐢", "turtle"),
+        ], "only the seven old custom letter keys change; names, ids, order and offer limit stay fixed");
+        assert_eq!(menu.items.iter().map(|i| radar_core::mnemonic::at(&i.keys, &i.label)).collect::<Vec<_>>(),
+            [Some(0), Some(4), Some(1), None, None, None, None, None, None, None]);
+        assert_eq!(menu.items.iter().filter(|i| i.hint == "now").map(|i| i.value.as_str()).collect::<Vec<_>>(), ["great-atuin"]);
+        for item in &menu.items {
+            assert_eq!(item.keys, item.key.unwrap().to_string());
+            assert!(!item.heading && !item.note && !item.muted);
+            let chosen = menu.items.iter().find(|i| i.key == item.key).unwrap();
+            let fx = s.on_menu(&menu.id, &chosen.value).unwrap();
+            assert!(matches!(&fx[..], [Effect::Notify(words)] if words == &format!("new sessions start with {}", chosen.label)));
+            assert_eq!(s.defaults().provider, chosen.value, "the numeric/letter choice reaches the same provider id");
+            let again = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:provider") })));
+            assert_eq!(again.at.as_deref(), Some(chosen.value.as_str()));
+            assert_eq!(again.items.iter().filter(|i| i.hint == "now").count(), 1);
+        }
+        assert!(s.take_requests().is_empty(), "choosing a default does not start or reconfigure a provider");
+    }
+
+    #[test]
+    fn rule_kind_mnemonics_use_actual_offers_and_keep_permission_values_and_dispatch() {
+        let expected = [
+            ('c', "a command", "shell", 2, "git diff"),
+            ('r', "reading files", "read", 0, "/srv/watch/*"),
+            ('w', "writing files", "write", 0, "/srv/watch/*"),
+            ('u', "URL access", "url", 0, "ankh-morpork.example"),
+            ('m', "an MCP tool", "mcp", 3, "watch/search"),
+        ];
+        for (list, verb) in [("agents.allow", "Always allow"), ("agents.deny", "Always deny")] {
+            let mut s = owned_settings();
+            let menu = menu_of(s.rules_menu(list));
+            assert_eq!(menu.id, list);
+            let ways: Vec<_> = menu.items.iter().filter(|i| i.key.is_some()).collect();
+            assert_eq!(ways.len(), expected.len());
+            for (item, (key, words, kind, at, argument)) in ways.into_iter().zip(expected) {
+                assert_eq!((item.key, item.keys.as_str(), item.label.as_str(), item.hint.as_str()), (Some(key), key.to_string().as_str(), words, ""));
+                assert_eq!(radar_core::mnemonic::at(&item.keys, &item.label), Some(at));
+                assert_eq!(item.value, format!("type\t{kind}"));
+                let field = menu_of(s.on_menu(&menu.id, &item.value).unwrap());
+                assert_eq!(field.id, format!("{list}:{kind}"));
+                assert_eq!(field.title, format!("{verb} {words}"));
+                assert_eq!(field.typed.as_deref(), Some(""));
+                s.on_menu(&field.id, argument).unwrap();
+                assert!(s.rules(list).iter().any(|r| r.kind == kind && r.argument == argument), "{list}: {kind} keeps the original rule payload");
+            }
+            let other = if list == "agents.allow" { "agents.deny" } else { "agents.allow" };
+            assert!(s.rules(other).is_empty());
+        }
+    }
+
+    #[test]
+    fn cli_field_mnemonics_keep_field_names_values_order_and_typed_menu_dispatch() {
+        let mut s = owned_settings();
+        // Setup has the same CLI menu without enumerating the recipes folder.
+        s.setup_card.set(true);
+        select(&mut s, "cli:claude");
+        let menu = menu_of(effects(s.intent(SECTION, &Intent::Key { chord: Chord::char('p') })));
+        assert_eq!(menu.id, "agents.cli");
+        let expected = [
+            ('e', "executable", "executable", 0), ('f', "config dir", "config_dir", 3),
+            ('a', "agent", "agent", 0), ('s', "skills", "skills", 0),
+            ('n', "instructions", "instructions", 1), ('p', "plugins", "plugins", 0),
+        ];
+        assert_eq!(menu.items.len(), expected.len());
+        for (item, (key, label, field, at)) in menu.items.iter().zip(expected) {
+            assert_eq!((item.key, item.label.as_str()), (Some(key), label));
+            assert_eq!(item.value, format!("claude\t{field}"));
+            assert_eq!(radar_core::mnemonic::at(&item.keys, &item.label), Some(at));
+            let typed = menu_of(s.on_menu(&menu.id, &item.value).unwrap());
+            assert_eq!(typed.id, format!("agents.cli:claude:{field}"));
+        }
+    }
+
+    #[test]
+    fn settings_action_mnemonics_preserve_stable_ids_and_chords_for_actual_row_states() {
+        let mut s = owned_settings();
+        s.cfg.pty.push(PtyCli { id: "ook".into(), name: "Ook 🐢".into(), command: "ook".into(), args: vec![], login: None });
+        let cli = [
+            ("sessions.agents.sign_in", "i", Some(1)), ("sessions.agents.copy", "y", Some(3)),
+            ("sessions.agents.open", "o", Some(0)), ("sessions.agents.add", "a", Some(0)),
+            ("sessions.agents.refresh", "r", Some(0)), ("sessions.agents.paths", "p", Some(0)),
+        ];
+        let check = |s: &AgentsSettings, expected: &[(&str, &str, Option<usize>)]| {
+            let view = s.section_view(SECTION, &cx()).unwrap();
+            for heading in view.actions.iter().filter(|a| a.heading) {
+                assert!(heading.id.is_empty() && heading.key.is_none() && heading.mnemonic_at.is_none() && !heading.mnemonic_shift);
+            }
+            let actual: Vec<_> = view.actions.iter().filter(|a| !a.heading)
+                .map(|a| (a.id.clone(), a.key, a.mnemonic_at, a.mnemonic_shift)).collect();
+            let expected: Vec<_> = expected.iter().map(|(id, key, at)| ((*id).to_string(), Chord::parse(key), *at, false)).collect();
+            assert_eq!(actual, expected, "{}", s.selected().target());
+        };
+        for target in ["cli:copilot", "cli:codex", "cli:claude", "cli:ook"] {
+            select(&mut s, target);
+            check(&s, &cli);
+        }
+        s.login = Some(("copilot".into(), Login::Starting));
+        select(&mut s, "cli:copilot");
+        let mut active = cli.to_vec();
+        active.push(("sessions.agents.cancel", "esc", None));
+        check(&s, &active);
+        s.login = None;
+        select(&mut s, "cli:add");
+        check(&s, &[("sessions.agents.add", "a", Some(0))]);
+        for target in ["rec:folder", "rec:ask", "rec:review-mr"] {
+            select(&mut s, target);
+            check(&s, &[("sessions.agents.edit", "⏎", None), ("sessions.agents.recipe.edit", "e", Some(0))]);
+        }
+        for target in ["def:provider", "def:model", "def:work_dir", "def:roots", "def:skills", "def:project_config", "def:allow", "def:deny", "def:local_only", "def:reviewer_commands", "rec:reviews", "dock:notify"] {
+            select(&mut s, target);
+            check(&s, &[("sessions.agents.edit", "⏎", None)]);
+        }
+    }
+
+    #[test]
+    fn recipe_help_uses_the_same_styled_words_and_keeps_shift_visible_for_ask() {
+        let mut s = owned_settings();
+        let underlined = |text: &radar_core::view::Text| text.0.iter()
+            .filter(|seg| seg.look.as_ref().is_some_and(|look| look.split_whitespace().any(|word| word == "underline")))
+            .map(|seg| seg.text.clone()).collect::<Vec<_>>();
+        select(&mut s, "rec:folder");
+        let section = s.section_view(SECTION, &cx()).unwrap();
+        let edit = section.detail.last().unwrap();
+        assert!(edit.words().ends_with("Choose edit recipes to copy the built-ins there and open the folder in your editor."));
+        assert_eq!(underlined(edit), ["e"]);
+        assert_eq!(edit.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), ["e"]);
+        select(&mut s, "rec:ask");
+        let section = s.section_view(SECTION, &cx()).unwrap();
+        let ask = section.detail.last().unwrap();
+        assert_eq!(ask.words(), "Used by shift ask an agent about it on any row: the brief's task and limits.");
+        assert_eq!(underlined(ask), ["a"]);
+        assert_eq!(ask.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), ["A"]);
+    }
+}
+
 fn asked(command: &str) -> crate::event::PermissionRequest {
     use crate::event::*;
     PermissionRequest {
@@ -200,7 +376,7 @@ fn always_allow_lists_its_rules_in_words_and_adds_one_by_kind_without_any_syntax
     assert_eq!(m.id, "agents.allow");
     let labels: Vec<&str> = m.items.iter().map(|i| i.label.as_str()).collect();
     assert!(labels.contains(&"  nothing yet"), "{labels:?}");
-    for want in ["a command", "reading files", "changing files", "a website", "an MCP tool"] {
+    for want in ["a command", "reading files", "writing files", "URL access", "an MCP tool"] {
         assert!(labels.contains(&want), "{want} in {labels:?}");
     }
     // c: a command. A short title; the example is under the field before anything is typed.
@@ -219,7 +395,7 @@ fn always_allow_lists_its_rules_in_words_and_adds_one_by_kind_without_any_syntax
     assert!(s.defaults().allow.is_empty());
     // The same for always deny, a website.
     let d = menu_of(effects(s.intent(SECTION, &Intent::Activate { target: Target::new("def:deny") })));
-    let site = d.items.iter().find(|i| i.label == "a website").unwrap();
+    let site = d.items.iter().find(|i| i.label == "URL access").unwrap();
     let field = menu_of(s.on_menu("agents.deny", &site.value).unwrap());
     s.on_menu(&field.id, "example.com").unwrap();
     assert_eq!(s.defaults().deny[0].to_string(), "url(example.com)");

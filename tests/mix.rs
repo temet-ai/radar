@@ -1,34 +1,23 @@
 //! This build's mix of parts, as a user with a fresh config meets it: the
 //! first screen, the parts section, and every `x` menu row on the way. Run
-//! for every mix by `scripts/check-mixes`.
+//! for no parts, each part alone and all parts by `scripts/check-mixes`.
 //!
-//! What is recorded where (GUIDE 3, the testing pyramid): per commit, the
-//! first screen of no parts, each part alone and all parts, and each other
-//! screen once, with all parts; at the close, one screen per icon pack; every
-//! screen in every mix, size and pack only in `tests/reference/`, written by
-//! the ignored [`the_reference_library`].
+//! What is recorded (GUIDE 3, the testing pyramid): the first screen of no
+//! parts, each part alone and all parts, each other screen once, with all
+//! parts, and one screen per icon pack, with all parts.
 
 use radar_core::Host;
 use radar_core::host::{Event, View};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use radar_core::shell::to_text;
 
-std::thread_local! {
-    /// Recording into `tests/reference/` (the reference library's run).
-    static REFERENCE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
-}
-
-/// A recording of a screen: always one of the reference library's, and
-/// compared in `tests/snapshots/` too where `compared` says (per commit,
-/// or at the close).
+/// A screen, drawn, and compared with `tests/snapshots/` where `compared`
+/// says.
 macro_rules! record {
     ($compared:expr, $name:expr, $text:expr) => {
-        if REFERENCE.get() {
-            insta::with_settings!({ snapshot_path => "reference" }, {
-                insta::assert_snapshot!($name, $text);
-            });
-        } else if $compared {
-            insta::assert_snapshot!($name, $text);
+        let text = $text;
+        if $compared {
+            insta::assert_snapshot!($name, text);
         }
     };
 }
@@ -182,7 +171,7 @@ fn the_first_screen_starts_through_the_ink_protocol() {
 
 /// With an icon pack, the first screen and the settings keep their shape:
 /// icons on the tabs, the sections and the status line. Each pack's glyphs
-/// are radar-core's unit tests; here one screen per pack, at the close.
+/// are radar-core's unit tests; here one screen per pack.
 fn the_first_screen_and_settings_with(pack: &str) {
     let mut host = started();
     host.colours.cfg.icons = pack.into();
@@ -200,50 +189,13 @@ fn the_first_screen_and_settings_with(pack: &str) {
 }
 
 #[test]
-#[ignore = "at the close: scripts/check-mixes"]
 fn the_first_screen_and_settings_with_unicode_icons() {
     the_first_screen_and_settings_with("unicode");
 }
 
 #[test]
-#[ignore = "at the close: scripts/check-mixes"]
 fn the_first_screen_and_settings_with_nerd_icons() {
     the_first_screen_and_settings_with("nerd");
-}
-
-/// Every screen this mix records, in every size and icon pack, written to
-/// `tests/reference/` where its text changed (`scripts/check-mixes
-/// --reference`). The reference the Ink renderer is compared against; not
-/// a test.
-#[test]
-#[ignore = "writes tests/reference/: scripts/check-mixes --reference"]
-fn the_reference_library() {
-    same_everywhere();
-    // SAFETY: before any recording of this test's process reads it.
-    unsafe { std::env::set_var("INSTA_UPDATE", "always") };
-    REFERENCE.set(true);
-    the_first_screen_looks_finished_at_80x24();
-    the_first_screen_looks_finished_at_160x40();
-    the_first_screen_and_settings_with("unicode");
-    the_first_screen_and_settings_with("nerd");
-    the_parts_section_lists_this_mix();
-    #[cfg(feature = "gitlab")]
-    a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first();
-    #[cfg(all(feature = "gitlab", feature = "jira"))]
-    {
-        joined::the_main_screens_with_icons();
-        joined::merge_requests_carry_their_tickets();
-        joined::tickets_carry_their_code_at_160x40();
-        joined::tickets_carry_their_code_at_80x24();
-        joined::development_links_read_in_the_background_chip_a_merge_request_without_opening_the_ticket();
-        joined::a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back();
-        joined::jiras_actions_on_a_merge_request_open_and_move_its_ticket();
-    }
-    #[cfg(all(feature = "gitlab", feature = "slack"))]
-    {
-        alerts::a_firing_alert_marks_its_repo_row_and_not_a_repo_no_rule_names();
-        alerts::the_repo_page_carries_the_marker_and_an_alerts_tab_whose_row_opens_the_thread();
-    }
 }
 
 #[test]
@@ -266,9 +218,7 @@ fn the_parts_section_lists_this_mix() {
 /// data, each screen and settings draws, a click on its top-bar tab and its
 /// key go there, and the first row of its `x` menu, chosen, acts. What each
 /// part's rows and targets do is its own crate's check (radar_core::check).
-/// At the close, in every mix.
 #[test]
-#[ignore = "at the close: scripts/check-mixes"]
 fn each_screen_draws_and_a_click_and_a_key_act() {
     type Start = (&'static str, fn() -> Host);
     #[allow(unused_mut)]
@@ -699,31 +649,6 @@ jql = "project = ABC ORDER BY updated DESC"
         assert_eq!((screen(&host).as_str(), host.focus), ("Jira", Pane::Nav));
     }
 
-    /// The main screens and a page with each icon pack: rows, states,
-    /// columns and the other part's cells and chips, aligned. Only in the
-    /// reference library: a pack's glyphs are radar-core's unit tests.
-    pub(super) fn the_main_screens_with_icons() {
-        for pack in ["unicode", "nerd"] {
-            let mut host = both();
-            host.colours.cfg.icons = pack.into();
-            let name = |what: &str, w: u16, h: u16| {
-                format!("{}_icons_{pack}_{what}_{w}x{h}", super::mix_name())
-            };
-            key(&mut host, KeyCode::Char('R'));
-            for (w, h) in [(80, 24), (160, 40)] {
-                record!(false, name("repositories", w, h), to_text(&host, w, h));
-            }
-            down_to(&mut host, "!263", "!263");
-            key(&mut host, KeyCode::Enter);
-            record!(false, name("mr_page", 160, 40), to_text(&host, 160, 40));
-            key(&mut host, KeyCode::Esc);
-            key(&mut host, KeyCode::Char('J'));
-            for (w, h) in [(80, 24), (160, 40)] {
-                record!(false, name("tickets", w, h), to_text(&host, w, h));
-            }
-        }
-    }
-
     #[test]
     pub(super) fn merge_requests_carry_their_tickets() {
         let mut host = both();
@@ -853,7 +778,7 @@ jql = "project = ABC ORDER BY updated DESC"
     pub(super) fn a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back() {
         let mut host = both();
         key(&mut host, KeyCode::Char('J'));
-        down_to(&mut host, "ABC-12", "╭ ABC-12 ");
+        down_to(&mut host, "ABC-12", "╭ 3 ABC-12 ");
         // The detail pane has GitLab's section.
         let shown = to_text(&host, 160, 40);
         assert!(
@@ -874,7 +799,7 @@ jql = "project = ABC ORDER BY updated DESC"
         );
         key(&mut host, KeyCode::Enter);
         let shown = to_text(&host, 160, 40);
-        assert!(shown.contains("Repositories › a › api › !263"), "{shown}");
+        assert!(shown.contains("Repositories / a / api / !263"), "{shown}");
         // The merge request's page has Jira's ticket section.
         assert!(
             shown.contains("TICKET") && shown.contains("ABC-12 · ◐ In Review · Story"),
@@ -888,7 +813,7 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Esc);
         let shown = to_text(&host, 160, 40);
         assert!(
-            shown.contains("Jira › acme › ABC › ABC-12") && shown.contains("[Code]"),
+            shown.contains("Jira / acme / ABC / ABC-12") && shown.contains("[Code]"),
             "{shown}"
         );
     }
@@ -943,7 +868,7 @@ jql = "project = ABC ORDER BY updated DESC"
             .collect();
         assert!(rows.contains(&(String::new(), "Jira".into())), "{rows:?}");
         assert!(
-            rows.contains(&("v".into(), "open ABC-12".into())),
+            rows.contains(&("v".into(), "view ABC-12".into())),
             "{rows:?}"
         );
         assert!(
@@ -969,7 +894,7 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Esc);
         // v: the ticket's page, on Jira's screen; esc comes back.
         key(&mut host, KeyCode::Char('v'));
-        assert!(to_text(&host, 160, 40).contains("Jira › acme › ABC › ABC-12"));
+        assert!(to_text(&host, 160, 40).contains("Jira / acme / ABC / ABC-12"));
         key(&mut host, KeyCode::Esc);
         assert!(to_text(&host, 160, 40).contains("Repositories"));
         // >: Jira is asked where it can go (a task, never run here).
@@ -1181,13 +1106,15 @@ color = "green"
 }
 
 /// A merge request GitLab says is behind its target: its tree row offers the
-/// rebase (a key, an `x` row, a line of the detail pane, the status line, a click
+/// rebase (a key, an `x` row, the detail footer, the status line, a click
 /// on its STATE), asks before it and sends nothing on a no, next to any
 /// other part.
 #[cfg(feature = "gitlab")]
 #[test]
 fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
     use radar_core::host::{HostEffect, MouseKind};
+    use radar_core::plugin::Pane;
+    use radar_core::view::{Intent, PaneId, ScreenView};
     let mut host = started();
     host.load_config(Some(repos::GITLAB))
         .expect("the config loads");
@@ -1200,10 +1127,15 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
     }
     let shown = to_text(&host, 160, 40);
     assert!(
-        shown.contains("▷ needs rebase") && shown.contains("rebase onto main"),
+        shown.contains("▷ needs rebase") && shown.contains("stats → main"),
         "{shown}"
     );
-    assert!(shown.contains("u rebase"), "on the status line:\n{shown}");
+    let footer = shown.lines().rev().nth(2).expect("the pinned detail footer");
+    assert!(
+        footer.contains("│update ") && footer.contains("extra actions│"),
+        "the compact rebase control and full menu stay at the detail foot:\n{shown}"
+    );
+    assert!(shown.lines().last().unwrap().contains("update by rebasing"), "on the status line:\n{shown}");
     record!(every_part(), format!("{}_row_actions_160x40", mix_name()), shown);
     // At 80 wide the detail pane is its own screen.
     let mut narrow = host.focus;
@@ -1227,7 +1159,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         .map(|i| (i.keys.clone(), i.label.clone()))
         .collect();
     assert!(
-        rows.contains(&("u".into(), "rebase onto main…".into())),
+        rows.contains(&("u".into(), "update by rebasing onto main…".into())),
         "{rows:?}"
     );
     assert!(
@@ -1270,6 +1202,102 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         host.menu.as_ref().expect("a question").menu.id,
         "act-rebase:acme/team-a/api!263"
     );
+    let original_question = host.menu.as_ref().unwrap().menu.clone();
+    let fx = host.update(Event::Key(KeyEvent::new(
+        KeyCode::Char('n'),
+        KeyModifiers::NONE,
+    )));
+    assert!(
+        host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
+        "cancelling the native row question sends nothing: {fx:?}"
+    );
+
+    // The real owner's footer uses a displayed lease, then the same resolver
+    // and confirmation as its key and STATE click. No task is ever polled.
+    let rebase = |view: &ScreenView| {
+        view.panes
+            .iter()
+            .find(|pane| pane.pane == PaneId::Detail)
+            .and_then(|pane| pane.foot_actions.as_ref())
+            .expect("the merge request's footer")
+            .actions
+            .iter()
+            .find(|control| control.action.id == "gitlab.repos.rebase")
+            .expect("the original rebase action")
+            .clone()
+    };
+    host.focus = Pane::Middle;
+    let (gitlab, screen) = host.screen().expect("the repositories screen");
+    let raw = host.screen_view(gitlab, screen.id).expect("the raw owner view");
+    assert!(rebase(&raw).target.is_none(), "owner data cannot dispatch");
+    let live = rebase(&host.displayed_screen(160, 40).expect("the displayed view"));
+    assert!(live.disabled.is_none());
+    let target = live.target.expect("the displayed rebase control is live");
+    let fx = host.update(Event::Intent(Intent::Activate {
+        target: target.clone(),
+    }));
+    assert!(fx.is_empty(), "the footer asks without sending: {fx:?}");
+    assert_eq!(host.focus, Pane::Detail, "admission focuses the owning pane");
+    assert_eq!(host.menu.as_ref().expect("the original question").menu, original_question);
+    assert_eq!(press(&mut host, KeyCode::Right), 0);
+    let no_row = host.menu.as_ref().unwrap().row;
+    assert_eq!(original_question.items[no_row].value, "no");
+    for _ in 0..2 {
+        let fx = host.update(Event::Intent(Intent::Activate {
+            target: target.clone(),
+        }));
+        assert!(fx.is_empty(), "a repeated background target cannot dispatch: {fx:?}");
+        assert_eq!(host.menu.as_ref().expect("the question stays open").menu, original_question);
+        assert_eq!(
+            host.menu.as_ref().unwrap().row, no_row,
+            "a stale target cannot replace the modal with an identical new question"
+        );
+    }
+    let fx = host.update(Event::Key(KeyEvent::new(
+        KeyCode::Char('n'),
+        KeyModifiers::NONE,
+    )));
+    assert!(
+        host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
+        "cancelling the footer question sends nothing: {fx:?}"
+    );
+    host.focus = Pane::Middle;
+    let fx = host.update(Event::Intent(Intent::Activate {
+        target: target.clone(),
+    }));
+    assert!(fx.is_empty() && host.menu.is_none(), "cancel cannot revive a lease: {fx:?}");
+    assert_eq!(host.focus, Pane::Middle, "a retired target cannot steal focus");
+
+    // A fresh lease still asks in read-only mode, and even yes cannot send.
+    host.set_env_mode(Some((radar_core::writes::Mode::ReadOnly, "RADAR_MODE".into())));
+    let fresh = rebase(&host.displayed_screen(160, 40).expect("the new displayed view"))
+        .target
+        .expect("the re-acquired rebase control");
+    assert_ne!(fresh, target, "the old confirmation retired its lease");
+    let fx = host.update(Event::Intent(Intent::Activate { target: fresh }));
+    assert!(fx.is_empty(), "read-only activation still asks first: {fx:?}");
+    assert_eq!(host.focus, Pane::Detail);
+    assert_eq!(
+        host.menu.as_ref().expect("the guarded original question").menu,
+        original_question.noting(Some(
+            "radar is read only (set by RADAR_MODE): nothing will be sent".into()
+        ))
+    );
+    let fx = host.update(Event::Key(KeyEvent::new(
+        KeyCode::Char('y'),
+        KeyModifiers::NONE,
+    )));
+    assert!(
+        host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
+        "the original owner write guard refuses even yes: {fx:?}"
+    );
+    assert!(
+        host.message.as_deref().is_some_and(|message|
+            message.ends_with("GitLab did not rebase !263: not sent: radar is read only")
+        ),
+        "the provider's original read-only refusal: {:?}", host.message
+    );
+    host.set_env_mode(None);
 }
 
 /// Git next to GitLab: a merge request's page says where its repo is
@@ -1301,10 +1329,23 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
         press(&mut host, KeyCode::Down);
     }
     let row = to_text(&host, 160, 40);
+    let footer = row.lines().rev().nth(2).expect("the pinned detail footer");
     assert!(
-        row.contains("check out stats"),
-        "the detail pane lists git's action:\n{row}"
+        footer.contains("extra actions│"),
+        "the detail footer exposes the full contextual menu:\n{row}"
     );
+    // Contributed actions live in the Detail menu, reached through its footer.
+    let focus = host.focus;
+    host.focus = radar_core::Pane::Detail;
+    press(&mut host, KeyCode::Char('x'));
+    let menu = &host.menu.as_ref().expect("the detail actions menu").menu;
+    assert!(
+        menu.items.iter().any(|item| item.keys == "c" && item.label == "check out stats…"),
+        "the detail menu retains git's checkout action: {:?}",
+        menu.items
+    );
+    press(&mut host, KeyCode::Esc);
+    host.focus = focus;
     assert!(
         row.contains("api  main"),
         "the repo row says it is cloned here, on its branch:\n{row}"
@@ -1407,7 +1448,7 @@ fn without_slack_gitlab_shows_nothing_about_alerts() {
     let _ = to_text(&host, 160, 40);
     press(&mut host, KeyCode::Enter);
     let shown = to_text(&host, 160, 40);
-    assert!(shown.contains("Repositories ›"), "{shown}");
+    assert!(shown.contains("Repositories /"), "{shown}");
     assert!(
         !shown.to_lowercase().contains("alert") && !shown.contains("firing"),
         "{shown}"
@@ -1547,7 +1588,7 @@ service = "api"
         key(&mut host, KeyCode::Enter);
         let shown = to_text(&host, 160, 40);
         assert!(
-            shown.contains("Repositories › a › api") && shown.contains("firing · 1"),
+            shown.contains("Repositories / a / api") && shown.contains("firing · 1"),
             "{shown}"
         );
         assert!(shown.contains("Alerts"), "{shown}");
@@ -1571,10 +1612,10 @@ service = "api"
         key(&mut host, KeyCode::Enter);
         let shown = to_text(&host, 160, 40);
         assert!(
-            shown.contains("Slack › #team-alerts › alertbot:"),
+            shown.contains("Slack / #team-alerts / alertbot:"),
             "{shown}"
         );
         key(&mut host, KeyCode::Esc);
-        assert!(to_text(&host, 160, 40).contains("Repositories › a › api"));
+        assert!(to_text(&host, 160, 40).contains("Repositories / a / api"));
     }
 }

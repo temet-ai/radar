@@ -4,7 +4,7 @@ assertion_line: 384
 expression: "crate::shell::to_text(&host, 160, 40)"
 ---
  radar     History    Settings (,)                                                                                                                      edit
-╭ settings ────────────╮╭ icons ─────────────────────────────────────────────────────────────────────────╮╭ group ─────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 icons ───────────────────────────────────────────────────────────────────────╮╭ 3 group ───────────────────────────────────────────╮
 │General               ││ code                                                                           █│ Shows a group of repositories, a tenancy.          │
 │  ├─  parts          ││     group             a group of repositories, a tenancy                      █│                                                    │
 │  ├─  mode           ││   R  repo              a repository                                      yours █│ now                                               │
@@ -42,4 +42,4 @@ expression: "crate::shell::to_text(&host, 160, 40)"
 │                      ││     subtask           a sub-task                                              ║│                                                    │
 │                      ││     priority_highest  highest priority                                        ║│                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q  quit   x  menu   ←→↑↓ navigate
+ SETTINGS    quit    extra actions   ~ notices   ←→↑↓ navigate

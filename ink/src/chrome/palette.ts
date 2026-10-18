@@ -1,21 +1,19 @@
 import type { Cell } from "./layout.js";
 import type { Choice } from "./types.js";
 import { cellWidth } from "./width.js";
+import { mnemonicRange } from "../text/mnemonic.js";
 import { graphemes } from "../editor/graphemes.js";
 import { bgOf, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
 
 /** Palette layout, like shell/menu.rs, keeps a grapheme whole. In particular a
  * joiner sequence, flag, or emoji modifier occupies one two-cell glyph. */
 export function paletteWidth(text: string): number {
-  return graphemes(text).reduce((n, g) => n + (
-    /[\u200d\ufe0f\u20e3]|\p{Emoji_Modifier}/u.test(g) || /^\p{Regional_Indicator}{2}$/u.test(g)
-      ? 2 : cellWidth(g)
-  ), 0);
+  return cellWidth(text);
 }
 
 /** Host offsets count Unicode scalars. Highlight the containing grapheme so a
  * combining accent or emoji sequence is never split into separate styled runs. */
-export function paletteLabel(text: string, highlights: readonly number[], base: Style, matched: Style): Cell[][] {
+export function paletteLabel(text: string, highlights: readonly number[], base: Style, matched: Style, mnemonic?: [number, number]): Cell[][] {
   const positions = new Set(highlights);
   let offset = 0;
   return text.split("\n").map((raw) => {
@@ -24,8 +22,10 @@ export function paletteLabel(text: string, highlights: readonly number[], base: 
       const end = offset + [...g].length;
       let on = false;
       for (let i = offset; i < end; i++) if (positions.has(i)) on = true;
+      const underline = mnemonic && offset < mnemonic[1] && end > mnemonic[0];
       offset = end;
-      return { text: g, style: on ? matched : base };
+      const style = on ? matched : base;
+      return { text: g, style: underline ? { ...style, underline: true } : style };
     });
     offset += [...raw].length - [...line].length + 1;
     return cells;
@@ -66,7 +66,10 @@ export function paletteLines(item: Choice, selected: boolean, highlights: readon
   const row: Style = selected ? { ...slotStyle("text.emphasis"), bold: true, ...shade } : slotStyle(item.muted ? "text.muted" : "text.primary");
   const matched: Style = { ...slotStyle("accent.primary"), bold: true, ...shade };
   const keyStyle: Style = { ...slotStyle("accent.secondary"), bold: true, ...shade };
-  const labels = paletteLabel(item.label, highlights, row, matched);
+  const keys = item.keys ?? item.key ?? "";
+  const mnemonic = mnemonicRange(item.label, keys, item.mnemonic_at);
+  const labels = paletteLabel(item.label, highlights, row, matched, mnemonic);
+  if (mnemonic && item.mnemonic_shift) labels[0]!.unshift({ text: "shift ", style: keyStyle });
   const icon = paletteLead(item);
   if (icon) labels[0]!.unshift({ ...icon, style: { ...icon.style, ...shade } });
   if (item.sample) labels[0]!.unshift({ text: "██ ", style: { ...specStyle(item.sample), ...shade } });
@@ -78,7 +81,7 @@ export function paletteLines(item: Choice, selected: boolean, highlights: readon
   const inner = Math.max(2, width - 2);
   const sideKeys = keyW > 0 && keyW + 4 <= inner;
   const textW = sideKeys ? inner - keyW - 2 : inner;
-  const key = item.keys ?? item.key ?? "";
+  const key = mnemonic ? "" : keys;
   const lines = wrapPalette(labels, textW).map((cells, i) => {
     const used = cells.reduce((n, c) => n + paletteWidth(c.text), 0);
     const shownKey = i === 0 ? key : "";

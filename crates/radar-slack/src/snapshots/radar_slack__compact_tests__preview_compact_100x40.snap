@@ -1,19 +1,27 @@
 ---
 source: crates/radar-slack/src/compact_tests.rs
+assertion_line: 135
 expression: "to_text(&host, w, h)"
 ---
  radar    Slack ●   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
-╭ feed ────────────────╮╭ Bob Builder's message ───────────────────────────────────────────────────╮
-│ For you            4 ││ ── #team · Sun 4 Oct ──                                                  │
-│ Discussions          ││ ● 06:16  Bob Builder                                                     │
-│ ▌ #team        6 NEW ││     @review-squad :gitlab: mr Add a stats endpoint for the dashboard     │
-│ ▌ #svc         1 NEW ││     👀 1                                                                 │
-│                      ││ ● 06:46  Alice Example                                                   │
-│                      ││     looking 👀                                                           │
-│                      ││ ● 07:16  Carol Coder                                                     │
-│                      ││     approved, nice one                                                   │
+╭ 1 feed ──────────────╮╭ 3 Bob Builder's message ─────────────────────────────────────────────────╮
+│ For you            4 ││ Acme / #team                                                             │
+│ Discussions          ││ @review-squad :gitlab: mr Add a stats endpoint for the dashboard         │
+│ ▌ #team        6 NEW ││                                                     Bob Builder · 2d ago │
+│ ▌ #svc         1 NEW ││                                                                          │
+│                      ││ thread   thread start                                                    │
+│                      ││ replies  2                                                               │
 │                      ││                                                                          │
-│                      ││ 2 replies · last 2d ago                                                  │
+│                      ││ THREAD  Sun 4 Oct ────────────────────────────────────────────────────── │
+│                      ││   ● 06:16  Bob Builder                                                   │
+│                      ││   @review-squad :gitlab: mr Add a stats endpoint for the dashboard       │
+│                      ││   👀 1                                                                   │
+│                      ││   ● 06:46  Alice Example                                                 │
+│                      ││   looking 👀                                                             │
+│                      ││   ● 07:16  Carol Coder                                                   │
+│                      ││   approved, nice one                                                     │
+│                      ││                                                                          │
+│                      ││   2 replies · last 2d ago                                                │
 │                      ││                                                                          │
 │                      ││ LINKS ────────────────────────────────────────────────────────────────── │
 │                      ││   mr                                                                     │
@@ -31,14 +39,7 @@ expression: "to_text(&host, w, h)"
 │                      ││                                                                          │
 │                      ││                                                                          │
 │                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
+│                      ││──────────────────────────────────────────────────────────────────────────│
+│                      ││⏎ thread  open  copy  mark read  comment  react              extra actions│
 ╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate       7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate           slack

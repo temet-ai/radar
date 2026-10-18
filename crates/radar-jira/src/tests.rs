@@ -274,8 +274,14 @@ fn plus_and_minus_fold_the_tree_and_minus_on_a_ticket_closes_its_status() {
     press(&mut host, KeyCode::Char('-'));
     press(&mut host, KeyCode::Char('='));
     assert!(jira(&host).tree.borrow().is_open(&group));
-    press(&mut host, KeyCode::Char('+'));
-    assert!(host.message.as_deref().is_some_and(|m| m.starts_with("nothing to expand")), "{:?}", host.message);
+    // An already-open group owns `+` as a quiet no-op under the shared
+    // contract: it must not change the selected subject, folds, or pane.
+    let before = jira(&host).tree.borrow().clone();
+    let effects = press(&mut host, KeyCode::Char('+'));
+    assert_eq!(*jira(&host).tree.borrow(), before);
+    assert_eq!(host.focus, Pane::Middle);
+    assert!(effects.is_empty(), "opening an open group must not start other work");
+    assert!(host.message.is_none(), "a tree boundary is a quiet no-op");
 }
 
 fn typed(host: &mut radar_core::Host, s: &str) {
@@ -297,7 +303,7 @@ fn section(host: &mut radar_core::Host, name: &str) {
 /// Down the tree until `key` is selected, then ⏎.
 fn open_ticket(host: &mut radar_core::Host, key: &str) {
     for _ in 0..20 {
-        if text(host, 160, 40).lines().nth(1).is_some_and(|l| l.contains(&format!("╭ {key} "))) {
+        if text(host, 160, 40).lines().nth(1).is_some_and(|l| l.contains(&format!("╭ 3 {key} "))) {
             press(host, KeyCode::Enter);
             return;
         }
@@ -318,10 +324,10 @@ fn the_tree_is_site_then_status_then_tickets_with_children_under_their_parent() 
     assert_eq!(statuses, ["In Progress", "In Review", "To Do"], "doing first, then to do");
     let doing = &acme.groups[0];
     assert_eq!(doing.tops.len(), 1, "the epic, its story under it");
-    assert_eq!(doing.tops[0].0.key, "ABC-1");
-    let kids: Vec<&str> = doing.tops[0].1.iter().map(|t| t.key.as_str()).collect();
+    assert_eq!(doing.tops[0].ticket.key, "ABC-1");
+    let kids: Vec<&str> = doing.tops[0].children.iter().map(|t| t.ticket.key.as_str()).collect();
     assert_eq!(kids, ["ABC-12", "ABC-13"]);
-    assert_eq!(nodes[1].groups[0].tops[0].0.key, "XYZ-7");
+    assert_eq!(nodes[1].groups[0].tops[0].ticket.key, "XYZ-7");
 }
 
 #[test]
@@ -342,9 +348,13 @@ fn the_preview_of_a_ticket_has_its_description_and_acceptance_criteria() {
     }
     let shown = text(&host, 160, 40);
     for want in [
-        "ABC-12 · Story · parent ABC-1",
+        "acme / ABC / ABC-12",
+        "type      Story",
+        "parent    ABC-1: Dashboard for the stats",
         "Add a stats endpoint for the dashboard",
-        "◐ In Progress · you · updated 1h",
+        "status    ◐ In Progress",
+        "assignee  you",
+        "Bob Example · 1h ago",
         "#backend",
         "DESCRIPTION",
         "What ABC-12 is about.",
@@ -432,7 +442,7 @@ fn go_to_jumps_to_a_key_and_opens_one_not_in_the_view() {
     assert!(shown.contains("at ABC-20 Stats page shows yesterday twice"), "{shown}");
     press(&mut host, KeyCode::Enter);
     assert!(!host.plugins[0].capturing());
-    assert!(text(&host, 160, 40).contains("╭ ABC-20 "));
+    assert!(text(&host, 160, 40).contains("╭ 3 ABC-20 "));
     // A key the view does not have: its page, fetched from the site watching it.
     press(&mut host, KeyCode::Char(':'));
     host.update(Event::Paste("XYZ-99".into()));
@@ -466,7 +476,7 @@ fn pgdn_scrolls_the_preview_from_any_pane_and_moving_resets_it() {
     let path = jira(&host).tree.borrow().selected().to_vec();
     let key = path.last().and_then(|id| id.rsplit(':').next()).unwrap_or_default().to_string();
     let first = shown.lines().nth(2).unwrap_or_default();
-    assert!(first.contains(&format!("{key} · ")), "moving starts the detail pane from its top: {first}");
+    assert!(first.contains(&format!("/ {key} ")), "moving starts the detail pane from its top: {first}");
 }
 
 #[test]
@@ -502,9 +512,21 @@ fn bulk_copies_every_key_and_link_and_opens_and_closes_the_tree() {
 
 // --- refreshing ------------------------------------------------------------------
 
+/// List/page-only fixtures retain the legacy missing provider IDs explicitly,
+/// so their exact request counts do not include development-panel prefetch.
+fn sample_without_provider_ids() -> JiraPlugin {
+    let mut p = sample();
+    for data in p.data.values_mut() {
+        for ticket in data.tickets.values_mut() {
+            ticket.id.clear();
+        }
+    }
+    p
+}
+
 #[test]
 fn tick_asks_each_site_once_and_folds_the_answers() {
-    let mut p = sample();
+    let mut p = sample_without_provider_ids();
     let fx = p.tick(NOW);
     assert_eq!(fx.len(), 2, "one task per site");
     assert!(p.tick(NOW + 1000).is_empty(), "nothing more while they run");
@@ -859,7 +881,7 @@ fn an_mcp_json_site_is_added_reading_its_variables_and_says_where_from() {
         assert!(shown.contains(name), "the detail names {name}: {shown}");
     }
     assert!(shown.contains("acceptance criteria in"), "{shown}");
-    assert!(shown.contains("╭ found in /work/acme/.mcp.json "), "{shown}");
+    assert!(shown.contains("╭ 3 found in /work/acme/.mcp.json "), "{shown}");
     let fx = press(&mut host, KeyCode::Enter);
     assert!(spawned(&fx) >= 1, "checked and fetched at once");
     let s = jira(&host).cfg.sites.last().unwrap().clone();
@@ -907,11 +929,11 @@ fn enter_opens_the_ticket_page_and_fetches_it() {
     assert_eq!(spawned(&fx), 1);
     assert!(host.plugins[0].busy("tickets"));
     let shown = text(&host, 160, 40);
-    assert!(shown.contains("Jira › acme › ABC › ABC-12"), "{shown}");
+    assert!(shown.contains("Jira / acme / ABC / ABC-12"), "{shown}");
     assert_eq!(host.plugins[0].panes("tickets"), vec![Pane::Middle]);
     press(&mut host, KeyCode::Esc);
     assert!(jira(&host).pages.is_empty());
-    assert!(text(&host, 160, 40).contains("╭ ABC-12 "), "back on the same row");
+    assert!(text(&host, 160, 40).contains("╭ 3 ABC-12 "), "back on the same row");
 }
 
 #[test]
@@ -1035,9 +1057,9 @@ fn links_open_a_linked_tickets_page_and_esc_comes_back() {
     press(&mut host, KeyCode::Down);
     let fx = press(&mut host, KeyCode::Enter);
     assert_eq!(spawned(&fx), 1);
-    assert!(text(&host, 160, 40).contains("Jira › acme › ABC › ABC-15"));
+    assert!(text(&host, 160, 40).contains("Jira / acme / ABC / ABC-15"));
     press(&mut host, KeyCode::Esc);
-    assert!(text(&host, 160, 40).contains("Jira › acme › ABC › ABC-12"));
+    assert!(text(&host, 160, 40).contains("Jira / acme / ABC / ABC-12"));
     // The web link opens in the browser.
     press(&mut host, KeyCode::Down);
     let fx = press(&mut host, KeyCode::Enter);
@@ -1315,9 +1337,9 @@ fn c_composes_a_comment_shows_exactly_what_will_post_and_posts_once() {
             "Fixed in !263, see https://example.com/x",
             "",
             "• tests qx",
-            "y yes post it",
+            "y yes yes, post it",
             "e edit keep writing",
-            "n no drop it"
+            "n no no, drop it"
         ]
     );
     insta::assert_snapshot!("comment_confirm_160x40", text(&host, 160, 40));
@@ -1395,9 +1417,9 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
                 [
                     "hello",
                     "radar is read only (set by RADAR_MODE): nothing will be sent",
-                    "y yes post it",
+                    "y yes yes, post it",
                     "e edit keep writing",
-                    "n no drop it",
+                    "n no no, drop it",
                 ]
             );
         } else {
@@ -1445,7 +1467,7 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         match mode {
             Mode::ReadOnly => assert_eq!(note, "radar is read only (set by RADAR_MODE): nothing will be sent"),
             Mode::Write => assert_eq!(note, "radar is in write mode (set by RADAR_MODE): this needs edit mode, nothing will be sent"),
-            Mode::Edit => assert_eq!(note, "y yes move it"),
+            Mode::Edit => assert_eq!(note, "y yes yes, move it"),
         }
         let fx = press(&mut host, KeyCode::Char('y'));
         assert_eq!(spawned(&fx), usize::from(mode == Mode::Edit), "{mode:?}: move");
@@ -1548,7 +1570,7 @@ fn n_makes_a_new_ticket_from_project_type_summary_and_description() {
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "create this in ABC on acme?");
     assert_eq!(
         menu_text(&host),
-        ["Bug · Stats count twice", "", "Seen on the dashboard.", "y yes create it", "e edit keep writing", "n no drop it"]
+        ["Bug · Stats count twice", "", "Seen on the dashboard.", "y yes yes, create it", "e edit keep writing", "n no no, drop it"]
     );
     // Declined, it is kept for N: the summary, then the description.
     press(&mut host, KeyCode::Char('n'));
@@ -1584,7 +1606,7 @@ fn n_makes_a_new_ticket_from_project_type_summary_and_description() {
     let fx = msg(&mut host, JiraMsg::Wrote { dispatch, change, result: Ok(serde_json::json!({ "id": "10300", "key": "ABC-31" })) });
     assert!(spawned(&fx) >= 1);
     assert_eq!(host.message.as_deref(), Some("✓ created ABC-31"));
-    assert!(text(&host, 160, 40).contains("Jira › acme › ABC › ABC-31"), "its page opens");
+    assert!(text(&host, 160, 40).contains("Jira / acme / ABC / ABC-31"), "its page opens");
 }
 
 #[test]
@@ -1660,7 +1682,7 @@ fn a_merge_request_naming_a_ticket_gets_its_column_section_tab_and_actions() {
     let rows: Vec<(Option<char>, &str)> = actions.iter().map(|a| (a.key, a.what.as_str())).collect();
     assert_eq!(
         rows,
-        [(Some('v'), "open ABC-12"), (Some('>'), "move ABC-12 to …"), (None, "open DEF-3"), (None, "move DEF-3 to …")]
+        [(Some('v'), "view ABC-12"), (Some('>'), "move ABC-12 to …"), (None, "view DEF-3"), (None, "move DEF-3 to …")]
     );
     // A Tickets tab on its page: a row per ticket, ⏎ opens the ticket.
     let Some(Contribution::Tab { title, rows }) = p.contribute(Point::Tab, &s) else { panic!() };
@@ -1777,13 +1799,13 @@ fn settings_projects_80x24() {
 }
 
 #[test]
-fn projects_section_uses_neutral_tree_and_skips_site_headings() {
+fn projects_section_uses_neutral_tree_with_selectable_site_rows() {
     let mut p = sample();
     let view = settings::projects_view(&p, 100, p.now);
     let radar_core::view::Node::Tree(tree) = &view.body else { panic!("projects is a tree") };
-    assert!(tree.rows[0].heading);
-    assert_eq!(tree.selected, ["0", "add"]);
-    assert!(tree.open.contains(&vec!["0".into()]));
+    assert!(!tree.rows[0].heading);
+    assert_eq!(tree.selected, ["s:acme", "add"]);
+    assert!(tree.open.contains(&vec!["s:acme".into()]));
     let down = radar_core::view_tui::section_key(&view, radar_core::view::Chord::new(radar_core::view::Key::Down));
     settings::projects_intent(&mut p, &down);
     assert!(matches!(settings::project_rows(&p)[p.section_rows[1]], settings::ProjRow::Colour(0)));
@@ -1792,18 +1814,18 @@ fn projects_section_uses_neutral_tree_and_skips_site_headings() {
 }
 
 #[test]
-fn home_end_and_pages_in_projects_never_rest_on_a_sites_own_row() {
+fn home_end_and_pages_in_projects_keep_a_selected_visible_tree_row() {
     let mut host = hosted();
     section(&mut host, "projects");
     for k in [KeyCode::End, KeyCode::Home, KeyCode::PageDown, KeyCode::PageUp, KeyCode::Down, KeyCode::Up] {
         press(&mut host, k);
         let p = jira(&host);
-        let row = &crate::settings::project_rows(p)[p.section_rows[1]];
-        assert!(!matches!(row, crate::settings::ProjRow::Site(_)), "{k:?}");
+        let radar_core::view::Node::Tree(tree) = settings::projects_view(p, 100, p.now).body else { panic!("projects tree") };
+        assert!(tree.visible().iter().any(|(path, _)| *path == tree.selected), "{k:?}");
     }
     press(&mut host, KeyCode::Home);
     let p = jira(&host);
-    assert!(matches!(crate::settings::project_rows(p)[p.section_rows[1]], crate::settings::ProjRow::Add(0)));
+    assert!(matches!(crate::settings::project_rows(p)[p.section_rows[1]], crate::settings::ProjRow::Site(0)));
 }
 
 #[test]
@@ -1874,7 +1896,7 @@ fn an_offer_from_the_environment_adds_a_site_that_reads_the_variables() {
     press(&mut host, KeyCode::Down);
     let shown = text(&host, 160, 40);
     assert!(shown.contains("? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?"), "{shown}");
-    assert!(shown.contains("╭ found in your environment "), "{shown}");
+    assert!(shown.contains("╭ 3 found in your environment "), "{shown}");
     for name in ["JIRA_OTHER_URL", "JIRA_OTHER_EMAIL", "JIRA_OTHER_API_TOKEN"] {
         assert!(shown.contains(name), "the detail names {name}: {shown}");
     }
@@ -2106,7 +2128,7 @@ fn a_check_reports_who_the_token_is() {
     assert!(matches!(&fx[0], Effect::Notify(m) if m == "✓ signed in as Alice Example"));
     assert_eq!(p.data["beta"].me.as_ref().unwrap().name, "Alice Example");
     let fx = settings::on_checked(&mut p, crate::settings_checks::Target::Site("acme".into()), Err("Jira turned the email and API token down (401): check them under settings, sites".into()));
-    assert!(matches!(&fx[0], Effect::Notify(m) if m.starts_with("✗ Jira turned")));
+    assert!(matches!(&fx[0], Effect::Notice(m) if m.tone == radar_core::view::chrome::NoticeTone::Error && m.starts_with("✗ Jira turned")));
 }
 
 /// Open a settings field's input from its row, empty it and type `w`: the
@@ -2173,8 +2195,8 @@ fn every_settings_input_starts_where_its_value_was_drawn() {
     input_sits_on_its_value(&mut host, "connection", 9, &[Enter], "│    └─ projects ", "ABC");
     input_sits_on_its_value(&mut host, "connection", 17, &[Char('e')], "│  refresh ", "every 2m");
     // projects: the add row under each site.
-    input_sits_on_its_value(&mut host, "projects", 2, &[Char('a')], "├─ + watch a project", "watch a project");
-    input_sits_on_its_value(&mut host, "projects", 6, &[Char('a')], "├─ + watch a project", "watch a project");
+    input_sits_on_its_value(&mut host, "projects", 3, &[Char('a')], "├─ + watch a project", "watch a project");
+    input_sits_on_its_value(&mut host, "projects", 8, &[Char('a')], "├─ + watch a project", "watch a project");
     // views: the add row, a view's name, its JQL, words to add, a type, a label.
     let first = jira(&host).cfg.views[0].name.clone();
     let row = format!("│  {first}");

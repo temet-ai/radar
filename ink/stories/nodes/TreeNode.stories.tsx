@@ -10,13 +10,14 @@ import repos160 from "../../test/fixtures/gitlab_repos_160x40.json";
 import repos80Cells from "../../test/cells/gitlab_repos-80x24.json";
 import repos160Cells from "../../test/cells/gitlab_repos-160x40.json";
 import navFocusCells from "../../test/cells/highlight_focused-pane-nav-80x24.json";
+import foldedCells from "../../test/cells/highlight_folded-row-80x24.json";
 
 const pane80 = paneOf(repos80, "Everything");
 const pane160 = paneOf(repos160, "Everything");
 const tree80 = pane80.body as Tree;
 
-/** The host's tree after `-` on team-a: the same rows with that group left out of `open`. */
-const foldedTree: Tree = { ...tree80, open: (tree80.open ?? []).filter((p) => p.join("/") !== "t:team-a") };
+/** The native capture includes the exact host view after selecting and closing a loaded group. */
+const foldedPane = paneOf(foldedCells.view.screen, "Everything");
 
 type Args = React.ComponentProps<typeof TreeNode>;
 
@@ -44,12 +45,16 @@ function Figure({ args, globals, pane, scene, missing }: { args: Args; globals: 
  * a table when the rows are one kind.
  *
  * **States:** open (tree lines `├─ └─ │` show what is open), folded (the row ends in `⋯ n`, the count of rows it
- * holds), selected (the selection background across the whole row, bold emphasis text), selected without focus (a
- * quieter background when another pane has the keys), group rows on the heading band.
+ * holds recursively in the current view, including hidden descendants), selected (the selection background across
+ * the whole row), selected without focus (the overlay background when another pane has the keys), hover and change
+ * glow. Semantic foregrounds and modifiers stay intact in every state. Group rows use the heading band. Mono/plain
+ * output supplements unavailable grounds with underline, and bold for the focused selection.
  *
  * **Rules:** no chevrons (▸ ▾ › ⌄) and no `[+]`/`[-]` for folding: the tree lines and `⋯ n` say it. No left-edge
- * stripes for new work (the group stripe `▌` is on its way out, #45). Selection is the background across the row,
- * never a marker glyph. Keys: `space` toggles a fold, `+`/`=` open, `-` closes or goes to the parent.
+ * stripes. Selection is the background across the row, never a marker glyph. The reserved count is held descendants,
+ * never a server's uncached total; at tiny widths a bare `⋯` replaces a count that cannot fit whole. Keys: `space`
+ * toggles, `+` opens the selected group, `-` closes it or closes/selects its parent, right opens or enters, left closes
+ * or selects its parent, and `=` opens every held group. Tab, h/l and pane digits still move between panes.
  *
  * Width and height in `ctx` come from the pane the story draws it in.
  */
@@ -72,10 +77,10 @@ export const Wide: Story = {
   render: (args, { globals }) => <Figure args={args} globals={globals} pane={pane160} scene={repos160Cells as RatatuiScene} />,
 };
 
-/** team-a folded: its row keeps its cells and ends in `⋯ n`; no chevron, no `[+]`. */
+/** A loaded group folded by the host: `⋯ 2` counts its child and nested descendant, both still held in the view. */
 export const Folded: Story = {
-  args: { tree: foldedTree },
-  render: (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={undefined} missing={"tests/ratatui_cells.rs records no folded tree. A `highlight_folded-row` scene there would give one."} />,
+  args: { tree: foldedPane.body as Tree },
+  render: (args, { globals }) => <Figure args={args} globals={globals} pane={foldedPane} scene={foldedCells as RatatuiScene} />,
 };
 
 /** The nav pane has the keys: the tree's selected row keeps a quieter selection background, the frame is muted. */

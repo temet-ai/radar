@@ -114,7 +114,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
+        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } | v::Intent::OpenAll => Outcome::Ignored,
     }
 }
 
@@ -722,7 +722,7 @@ fn alert_rows(p: &SlackPlugin, shown: &mut BTreeMap<Vec<String>, Item>) -> Vec<T
     out
 }
 
-fn detail_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
+pub(super) fn detail_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
     let item = super::selected(p);
     let title = match &item {
         Some(Item::Subject(s)) => s.label.clone(),
@@ -842,97 +842,8 @@ fn detail_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
             }
         }
         Some(item) => {
-            let message: Option<(String, crate::client::Message)> = match &item {
-                Item::Found(i) => p
-                    .data
-                    .for_you
-                    .get(*i)
-                    .map(|f| (f.channel_id.clone(), f.message.clone())),
-                _ => item.message(p).and_then(|(channel, ts, thread)| {
-                    let message = p.data.thread(&channel, &thread).and_then(|th| {
-                        if ts == thread {
-                            Some(th.parent.clone())
-                        } else {
-                            th.replies.iter().find(|m| m.ts == ts).cloned()
-                        }
-                    });
-                    message.map(|message| (channel, message))
-                }),
-            };
-            if let Some((channel, message)) = message {
-                if p.cfg.density == crate::config::Density::Compact {
-                    compact_detail(p, cx, &item, &channel, &message, &mut blocks);
-                    return PaneView::new(
-                        PaneId::Detail,
-                        title,
-                        Node::Rich {
-                            blocks,
-                            pictures: Some("slack".into()),
-                        },
-                    );
-                }
-                blocks.push(Block::line(Text::from(vec![
-                    Seg::icon(Icon::Person),
-                    Seg::new(p.data.author(&message), Ink::Emphasis),
-                    Seg::new(
-                        format!(
-                            "  #{}  {} ago",
-                            p.alias(&channel),
-                            crate::view::age(&message.ts, cx.now)
-                        ),
-                        Ink::Secondary,
-                    ),
-                ])));
-                if cx.width < 120 {
-                    blocks.push(Block::line(Text::of(
-                        crate::view::first_line(&p.data, &p.cfg, &message),
-                        Ink::Primary,
-                    )));
-                }
-                blocks.push(Block::Doc {
-                    doc: super::message_doc(p, &message),
-                    bar: None,
-                    most: None,
-                    urls: None,
-                });
-                let reactions = crate::view::reactions(&message);
-                if !reactions.is_empty() {
-                    blocks.push(Block::line(Text::of(reactions, Ink::Secondary)));
-                }
-                let thread = found_thread_of(p, &item);
-                if let Some(th) = thread.and_then(|ts| p.data.thread(&channel, ts))
-                    && th.reply_count() > 0
-                {
-                    let last = th
-                        .replies
-                        .iter()
-                        .rev()
-                        .take(3)
-                        .rev()
-                        .map(|reply| {
-                            Text::from(vec![
-                                Seg::new(crate::view::who(&p.data, reply), Ink::Emphasis),
-                                Seg::new(
-                                    format!(": {}", crate::view::first_line(&p.data, &p.cfg, reply)),
-                                    Ink::Primary,
-                                ),
-                            ])
-                        })
-                        .collect();
-                    blocks.push(Block::section_of(
-                        Some(Icon::Reply),
-                        "replies",
-                        Some(format!(
-                            "{} · last {} ago",
-                            crate::view::replies(th.reply_count()),
-                            crate::view::age(th.last(), cx.now)
-                        )),
-                        last,
-                    ));
-                }
-                if let Some(th) = thread.and_then(|ts| p.data.thread(&channel, ts)) {
-                    link_blocks(&th, &mut blocks);
-                }
+            if let Some(message) = super::detail::resolve(p, &item) {
+                return super::detail::pane(p, cx, title, &message);
             }
         }
     }
@@ -944,132 +855,4 @@ fn detail_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
             pictures: Some("slack".into()),
         },
     )
-}
-
-fn compact_detail(
-    p: &SlackPlugin,
-    cx: &v::ViewCx<'_>,
-    item: &Item,
-    channel: &str,
-    message: &crate::client::Message,
-    blocks: &mut Vec<Block>,
-) {
-    blocks.push(Block::line(Text::of(
-        format!(
-            "── #{} · {} ──",
-            p.alias(channel),
-            crate::view::day(&message.ts, cx.now)
-        ),
-        Ink::Secondary,
-    )));
-    let thread = found_thread_of(p, item).and_then(|ts| p.data.thread(channel, ts));
-    let messages: Vec<_> = thread.as_ref().map_or_else(
-        || vec![message],
-        |th| {
-            std::iter::once(th.parent)
-                .chain(th.replies.iter())
-                .collect()
-        },
-    );
-    for (i, m) in messages.iter().enumerate() {
-        let mark = if p.data.is_new(
-            channel,
-            thread.as_ref().map_or(&message.ts, |th| &th.parent.ts),
-            &m.ts,
-        ) {
-            "● "
-        } else {
-            "  "
-        };
-        blocks.push(Block::line(Text::from(vec![
-            Seg::new(mark, Ink::Accent),
-            Seg::new(crate::view::clock(&m.ts), Ink::Muted),
-            Seg::new(format!("  {}", p.data.author(m)), Ink::Emphasis),
-        ])));
-        blocks.push(Block::line(Text::of(
-            format!("    {}", crate::view::first_line(&p.data, &p.cfg, m)),
-            Ink::Primary,
-        )));
-        for shared in &m.shared {
-            let by = if shared.author.is_empty() {
-                "a message"
-            } else {
-                &shared.author
-            };
-            blocks.push(Block::Wrapped {
-                text: format!(
-                    "{by}: {}",
-                    crate::mrkdwn::plain(
-                        &shared.text,
-                        &crate::model::Namer {
-                            data: &p.data,
-                            cfg: &p.cfg
-                        }
-                    )
-                ),
-                prefix: Seg::new("    │ ", Ink::Muted),
-                ink: Ink::Secondary,
-            });
-        }
-        for file in &m.files {
-            blocks.push(Block::line(Text::from(vec![
-                Seg::icon(if file.image {
-                    Icon::FileImage
-                } else {
-                    Icon::File
-                }),
-                Seg::new(format!("{}  ", file.name), Ink::Secondary).linked(file.url.clone()),
-            ])));
-        }
-        let reactions = crate::view::reactions(m);
-        if !reactions.is_empty() {
-            blocks.push(Block::line(Text::of(
-                format!("    {reactions}"),
-                Ink::Secondary,
-            )));
-        }
-        if i + 1 == messages.len() && thread.as_ref().is_some_and(|th| th.reply_count() > 0) {
-            blocks.push(Block::line(Text::new()));
-            let th = thread.as_ref().expect("checked");
-            blocks.push(Block::line(Text::of(
-                format!(
-                    "{} · last {} ago",
-                    crate::view::replies(th.reply_count()),
-                    crate::view::age(th.last(), cx.now)
-                ),
-                Ink::Secondary,
-            )));
-        }
-    }
-    if let Some(th) = thread {
-        link_blocks(&th, blocks);
-    }
-}
-
-fn link_blocks(th: &Thread<'_>, blocks: &mut Vec<Block>) {
-    let links = th.openable();
-    if links.is_empty() {
-        return;
-    }
-    let mut lines = Vec::new();
-    for (label, url) in links {
-        lines.push(Text::from(vec![
-            Seg::icon(crate::view::link_icon(&label)),
-            Seg::new(label.clone(), Ink::Emphasis).linked(url.clone()),
-        ]));
-        if label != url {
-            lines.push(Text::from(vec![Seg::new(url.clone(), Ink::Accent).linked(url)]));
-        }
-    }
-    blocks.push(Block::line(Text::new()));
-    blocks.push(Block::section_of(Some(Icon::Link), "links", None, lines));
-}
-
-fn found_thread_of<'a>(p: &'a SlackPlugin, item: &'a Item) -> Option<&'a str> {
-    match item {
-        Item::Found(i) => p.data.for_you.get(*i).map(found_thread),
-        Item::Thread { ts, .. } => Some(ts),
-        Item::Reply { thread, .. } => Some(thread),
-        _ => None,
-    }
 }

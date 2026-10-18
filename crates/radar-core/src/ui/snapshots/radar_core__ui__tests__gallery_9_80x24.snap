@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Colours
+ Gallery / Colours
  The kit: every element on sample data                            colours: none
  Rows & states  Entries & log  Markdown  Diff  Motion  [Colours]  Tones  Row s…
 ╭ slots ──────────────────────────────────────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │ STATUS                                                                      │║
 │ ██████ status.success   #50fa7b  things that are fine: passed, ready, shown │║
 │ ██████ status.warning   #f1fa8c  things that want you: review, unsaved      │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

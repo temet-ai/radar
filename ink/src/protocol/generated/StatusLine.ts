@@ -6,7 +6,7 @@ import type { Hint } from "./Hint.js";
 import type { Message } from "./Message.js";
 
 /**
- * ` BOOKS   PgUp/PgDn scroll   q quit   x menu          11 open · 3 need you `
+ * ` BOOKS   PgUp/PgDn scroll   quit   extra actions     11 open · 3 need you `
  */
 export type StatusLine = { 
 /**

@@ -3,6 +3,7 @@
 const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
 export function graphemes(text: string): string[] {
+  if (/^[\x20-\x7e]*$/.test(text)) return text.split("");
   return Array.from(segmenter.segment(text), (s) => s.segment);
 }
 

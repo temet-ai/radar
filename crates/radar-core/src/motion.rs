@@ -392,7 +392,7 @@ impl Engine {
         self.level
     }
 
-    /// A new setting. Off drops everything at once.
+    /// A new setting. Off drops everything at once; leaving Full drops loading.
     pub fn set_level(&mut self, level: Level) {
         self.frames.clear();
         self.level = if self.too_slow { Level::Off } else { level };
@@ -400,6 +400,18 @@ impl Engine {
             self.running.clear();
             self.last = None;
             self.message = None;
+            self.settle = false;
+        } else if self.level != Level::Full {
+            let before = self.running.len();
+            self.running.retain(|r| !r.shimmer);
+            if self.running.len() != before {
+                // Leave one clean frame without restarting ordinary effects
+                // that survive the loading policy change.
+                self.settle = true;
+                if self.running.is_empty() {
+                    self.last = None;
+                }
+            }
         }
     }
 

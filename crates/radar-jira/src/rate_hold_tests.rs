@@ -24,7 +24,7 @@ fn running_low(p: &JiraPlugin, remaining: u64, reset: i64) {
 
 #[test]
 fn a_site_under_a_tenth_of_its_allowance_is_not_synced_until_its_reset() {
-    let mut p = sample();
+    let mut p = sample_without_provider_ids();
     let (jql, site) = (acme_jql(&p), p.cfg.sites[0].clone());
     let every = p.cfg.refresh_secs as i64;
     running_low(&p, 80, NOW + 600);

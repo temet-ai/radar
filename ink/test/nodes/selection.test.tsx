@@ -12,10 +12,8 @@ import { styledFrameAt, frameAt } from "./helpers.js";
 import { parseAnsi } from "./ansi.js";
 import { paintHover } from "../../src/app/hover.js";
 
-// The maintainer's screenshots: the selected row had no highlight, groups had no stripe or bands, and folds were marked with
-// glyphs. Ratatui (ui::tree, widgets::row_style) paints the selected row's background `bg.selection` across the row,
-// emphasis-bold when the pane has the keys, text.secondary when it has not; draws a ▌ stripe in the group's colour
-// down every row of a group; sits top-level rows on the heading shade and every other block on the band.
+// Lists keep widgets::row_style; trees preserve semantic text and use their own state grounds. All selections fill
+// the row. Tree groups use the heading shade and alternating blocks use a band, with no left-edge stripe.
 const SELECTION = "#44475a";
 const OVERLAY = "#1a162a";
 const t = (text: string, ink?: string) =>
@@ -210,9 +208,9 @@ describe("a tree's look", () => {
   } as never;
   const rows = () => cellsAt(tree, 30);
 
-  it("draws the group's ▌ stripe in its colour down every row of the group", () => {
-    for (const r of rows())
-      expect(r[0]).toMatchObject({ ch: "▌", fg: "#50fa7b" });
+  it("ignores the legacy stripe field and starts the group's name at the left edge", () => {
+    expect(rows()[0]![0]!.ch).toBe("g");
+    expect(rows().flat().some((c) => c.ch === "▌")).toBe(false);
   });
   it("draws tree lines ├─ └─ and no chevron or [+] anywhere", () => {
     const text = rows()

@@ -577,7 +577,7 @@ impl WorkspacePlugin {
             // A filesystem write can fail after it changed part of the file.
             StartMsg::Failed(why) => vec![
                 Effect::Report(JournalOutcome::Unknown),
-                Effect::Notify(radar_core::writes::failed_line(&why)),
+                Effect::error(None, radar_core::writes::failed_line(&why)),
             ],
         }
     }
@@ -743,7 +743,7 @@ impl WorkspacePlugin {
             return vec![
                 journal_at("workspace.start.result", &space.dir, &key, ""),
                 Effect::Report(JournalOutcome::Blocked),
-                Effect::Notify(format!("{key} was not started: {why}")),
+                Effect::error(None, format!("{key} was not started: {why}")),
             ];
         }
         let (title, kind) =
@@ -1307,8 +1307,8 @@ mod tests {
         ]});
         let fx = p.start_bus(GIT_STARTED, &bad);
         assert!(matches!(&fx[..], [Effect::Journal(action),
-            Effect::Report(JournalOutcome::Blocked), Effect::Notify(t)]
-            if action.kind.as_str() == "workspace.start.result" && t == "ABC-12 was not started: dirty"));
+            Effect::Report(JournalOutcome::Blocked), Effect::Notice(t)]
+            if t.tone == radar_core::view::chrome::NoticeTone::Error && action.kind.as_str() == "workspace.start.result" && t.text == "ABC-12 was not started: dirty"));
     }
 
     #[test]

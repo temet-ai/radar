@@ -44,6 +44,7 @@ pub enum Reply {
     Done,
     Menu(Menu),
     Say(String),
+    Error(String),
 }
 
 #[derive(Default)]
@@ -168,7 +169,7 @@ impl Colours {
                         }
                         None => {
                             self.edit = Some(input);
-                            Reply::Say(
+                            Reply::Error(
                                 "not yet: a colour is # and six hex digits, e.g. #e135ff".into(),
                             )
                         }
@@ -289,7 +290,7 @@ impl Colours {
                 if self.cfg.slots.contains_key(&name) {
                     items.push(MenuItem::new(
                         'r',
-                        "use the palette's",
+                        "restore the palette's",
                         "drop your colour for this one",
                         "reset",
                     ));
@@ -1003,7 +1004,7 @@ mod tests {
             Some("#12zz")
         );
         assert!(
-            matches!(press(&mut c, KeyCode::Enter), Reply::Say(m) if m.contains("six hex digits")),
+            matches!(press(&mut c, KeyCode::Enter), Reply::Error(m) if m.contains("six hex digits")),
             "refused, and still editing"
         );
         press(&mut c, KeyCode::Backspace);

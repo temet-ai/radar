@@ -4,26 +4,26 @@ assertion_line: 309
 expression: text
 ---
  radar    R   J   S   B   History   Settings (,)         synced 25s ago  ✎ edit
-╭ views ───────────────╮╭ repositories ────────────────────────────────────────╮
-│ Everything   2 re╭ acme/api #42 ──────────────────────────╮         2 repos  │
-│ acme         2 re│ ⏎  open its page                       │         2 PRs    │
-│                  │ o  open on GitHub                      │es tied  open     │
-│                  │ y  copy the link                       │points   draft    │
-│                  │ r  refresh configured repositories     │         0 PRs    │
-│                  │ JIRA                                   │                  │
-│                  │ v  open ABC-12                         │                  │
-│                  │ SLACK                                  │                  │
-│                  │ t  open discussion in #team            │                  │
-│                  │ GIT                                    │                  │
-│                  │ e  open current folder in an editor    │                  │
-│                  │    open terminal in current folder     │                  │
-│                  │ s  scan configured local folders       │                  │
-│                  │    link a matching local folder…       │                  │
-│                  │ HISTORY                                │                  │
-│                  │ H  recent activity (last 24 hours)     │                  │
-│                  │    all activity history                │                  │
-│                  │    history for selected item           │                  │
-│                  ╰────────────────────────────────────────╯                  │
-│                      ││                                                      │
-╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- GITHUB   j/k move   ⏎ choose   esc close                     github jira slack
+╭ 1 views ╭ acme/api #42 ───────────────────────────────────────────╮──────────╮
+│ Everythi│ ⏎      open its page                                    █ 2 repos  │
+│ acme    │        open on GitHub                                   █ 2 PRs    │
+│         │        copy the link                                    █ open     │
+│         │        refresh configured repositories                  █ draft    │
+│         │ space  toggle the group                                 █ 0 PRs    │
+│         │ +      expand the group                                 █          │
+│         │ -      collapse the group, or the one this row is in    █          │
+│         │ =      expand every held group                          █          │
+│         │ JIRA                                                    █          │
+│         │        view ABC-12                                      █          │
+│         │ SLACK                                                   █          │
+│         │        open discussion thread in #team                  █          │
+│         │ GIT                                                     █          │
+│         │        open current folder in an editor                 █          │
+│         │        open terminal in current folder                  █          │
+│         │        scan configured local folders                    █          │
+│         │        link a matching local folder…                    █          │
+│         │ ~      recent notices (this session)                    █          │
+│         │ HISTORY                                                 ║          │
+│         │        shift recent activity (last 24 hours)            ║          │
+╰─────────╰─────────────────────────────────────────────────────────╯──────────╯
+ GITHUB   ↑↓ move   ⏎ choose   esc close                      github jira slack

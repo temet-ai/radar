@@ -1,12 +1,13 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
+assertion_line: 1691
 expression: "hosted(job_page(), 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                      ⠷ not synced yet  ✎ edit
- Repositories › b › worker › !342 › unit-test
+ Repositories / b / worker / !342 / unit-test
  unit-test                                                                                                   ✗ failed · stage test · 1m 14s · the script failed
  [Log]
-╭ log ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 log ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Running with gitlab-runner 17.0                                                                                                                              │
 │ ─ Preparing the "docker" executor · 4s ⋯ 1 line                                                                                                              │
 │ ┌ Executing "step_script" stage of the job script · 1m 14s                                                                                                   │
@@ -41,4 +42,4 @@ expression: "hosted(job_page(), 160, 40)"
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                 4 open · 1 to review · 1 ready  gitlab
+ REPOSITORIES   PgUp/PgDn scroll   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                4 open · 1 to review · 1 ready  gitlab

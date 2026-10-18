@@ -2,6 +2,21 @@
   "chrome": {
     "height": 24,
     "keys_at": "body",
+    "notices_visible": true,
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "nav"
+      },
+      {
+        "key": "2",
+        "pane": "middle"
+      },
+      {
+        "key": "3",
+        "pane": "detail"
+      }
+    ],
     "screen_keys": [
       "R",
       "G",
@@ -74,7 +89,8 @@
               "target": "chrome:key:1:0"
             }
           ],
-          "label": "bulk"
+          "label": "bulk",
+          "mnemonic_at": 0
         },
         {
           "icon": "fold",
@@ -115,7 +131,8 @@
               "target": "chrome:key:3:0"
             }
           ],
-          "label": "quit"
+          "label": "quit",
+          "mnemonic_at": 0
         },
         {
           "icon": "menu",
@@ -131,7 +148,23 @@
               "target": "chrome:key:4:0"
             }
           ],
-          "label": "menu"
+          "label": "extra actions",
+          "mnemonic_at": 1
+        },
+        {
+          "keys": "~",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "~"
+                }
+              },
+              "label": "~",
+              "target": "chrome:key:5:0"
+            }
+          ],
+          "label": "notices"
         },
         {
           "keys": "←→↑↓",
@@ -141,28 +174,28 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:5:0"
+              "target": "chrome:key:6:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:5:1"
+              "target": "chrome:key:6:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:5:2"
+              "target": "chrome:key:6:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:5:3"
+              "target": "chrome:key:6:3"
             }
           ],
           "label": "navigate"
@@ -205,7 +238,7 @@
           "target": "chrome:tab:4"
         },
         {
-          "label": "work",
+          "label": "work items",
           "mnemonic": "I",
           "target": "chrome:tab:6"
         },
@@ -228,7 +261,8 @@
       }
     },
     "version": 1,
-    "width": 80
+    "width": 80,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 24,
@@ -262,7 +296,8 @@
             "char": "o"
           }
         },
-        "label": "open the site in Jira"
+        "label": "open the site in Jira",
+        "mnemonic_at": 0
       },
       {
         "id": "jira.tickets.copy_link",
@@ -271,7 +306,8 @@
             "char": "y"
           }
         },
-        "label": "copy the site's link"
+        "label": "copy the site's link",
+        "mnemonic_at": 3
       },
       {
         "id": "jira.tickets.filter",
@@ -289,7 +325,8 @@
             "char": "r"
           }
         },
-        "label": "refresh now"
+        "label": "refresh now",
+        "mnemonic_at": 0
       },
       {
         "heading": true,
@@ -304,7 +341,8 @@
             "char": "n"
           }
         },
-        "label": "new ticket on acme…"
+        "label": "new ticket on acme…",
+        "mnemonic_at": 0
       },
       {
         "id": "jira.tickets.goto",
@@ -322,7 +360,8 @@
             "char": "a"
           }
         },
-        "label": "show one assignee's tickets…"
+        "label": "show one assignee's tickets…",
+        "mnemonic_at": 9
       },
       {
         "id": "jira.tickets.kept_text",

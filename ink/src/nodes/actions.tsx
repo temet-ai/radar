@@ -1,6 +1,8 @@
 import React from "react";
 import { Box, Text as InkText } from "ink";
 import type { ActionSpec, ChordName } from "./view.js";
+import { mnemonicPrefix, mnemonicRuns } from "../text/mnemonic.js";
+import { textProps } from "../text/TextLine.js";
 
 /** A chord as the actions menu writes it (`d`, `⏎`, `ctrl-r`), the same names view::Chord::name gives. */
 export function chordName(chord: ChordName): string {
@@ -10,6 +12,12 @@ export function chordName(chord: ChordName): string {
       ? key.char === " " ? "space" : key.char
       : ({ enter: "⏎", esc: "esc", tab: "tab", back_tab: "shift-tab", backspace: "backspace", delete: "delete", up: "↑", down: "↓", left: "←", right: "→", home: "home", end: "end", page_up: "pgup", page_down: "pgdn" } as const)[key];
   return chord.ctrl ? `ctrl-${base}` : base;
+}
+
+/** Presentation keeps every supplied modifier; dispatch's legacy comparison stays separate. */
+export function displayChord(chord: ChordName): string {
+  const base = chordName({ ...chord, ctrl: false, alt: false });
+  return `${chord.ctrl ? "ctrl-" : ""}${chord.alt ? "alt-" : ""}${base}`;
 }
 
 /** The intent that runs an action by its stable id (Intent::Invoke), never by its key. */
@@ -26,7 +34,7 @@ export function intentForChord(actions: readonly ActionSpec[], chord: ChordName)
 }
 
 /** The part's actions listed where a node the renderer cannot draw sits, so nothing the part offers is lost with it. */
-export function ActionList({ actions }: { actions: readonly ActionSpec[] }) {
+export function ActionList({ actions, plain }: { actions: readonly ActionSpec[]; plain?: boolean }) {
   if (actions.length === 0) return null;
   return (
     <Box flexDirection="column">
@@ -38,8 +46,11 @@ export function ActionList({ actions }: { actions: readonly ActionSpec[] }) {
         ) : (
           <InkText key={a.id || i}>
             {"  "}
-            {a.key ? `${chordName(a.key)}  ` : "   "}
-            {a.label}
+            {(() => {
+              const key = a.key ? displayChord(a.key) : "";
+              const prefix = plain ? key : mnemonicPrefix(a.label, key, a);
+              return <>{prefix ? `${prefix}  ` : ""}{mnemonicRuns(a.label, key, plain ? {} : a).map((run, j) => <InkText key={j} {...textProps(run.style ?? {})}>{run.text}</InkText>)}</>;
+            })()}
           </InkText>
         ),
       )}

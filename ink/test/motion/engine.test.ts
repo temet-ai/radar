@@ -226,6 +226,117 @@ describe("motion engine", () => {
     expect(subtle.e.running()).toBe(false);
   });
 
+  test("leaving full drops every shimmer, settles once and never discovers loading at subtle", () => {
+    const { e, t, draw } = rig("full");
+    const wait: Marks = { loading: [row(1), row(5)] };
+    draw(wait);
+    t.now = 300;
+    expect(sameCells(draw(wait), plain())).toBe(false);
+
+    e.setLevel("subtle");
+    e.setLevel("subtle");
+    expect(e.nextFrame(), "one clean frame is still owed").toBe(FRAME_MS);
+    expect(sameCells(draw(wait), plain())).toBe(true);
+    expect(e.running()).toBe(false);
+    expect(e.nextFrame()).toBeUndefined();
+    for (const loading of [[], [row(2)], [row(1), row(5)]]) {
+      t.now += 300;
+      e.setLevel("subtle");
+      expect(sameCells(draw({ loading }), plain())).toBe(true);
+      expect(e.nextFrame(), "neither old nor new loading restarts subtle").toBeUndefined();
+    }
+  });
+
+  test("leaving full preserves compatible cues and their elapsed time", () => {
+    const compatible: Cue[] = [
+      { kind: "screen" },
+      { kind: "popup" },
+      { kind: "changed", changed: ["row:3"], added: [] },
+    ];
+    for (const cue of compatible) {
+      const actual = rig("full");
+      const expected = rig("full");
+      const wait: Marks = { ...marks, loading: [row(7)] };
+      actual.e.cue(cue, ink);
+      expected.e.cue(cue, ink);
+      actual.draw(wait);
+      expected.draw();
+      actual.t.now = expected.t.now = 30;
+      actual.draw(wait);
+      expected.draw();
+
+      actual.e.setLevel("subtle");
+      actual.e.setLevel("subtle");
+      for (const now of [60, 90, 450, 480]) {
+        actual.t.now = expected.t.now = now;
+        expect(actual.draw(wait).cells, `${cue.kind} at ${now} ms`).toEqual(expected.draw().cells);
+        expect(actual.e.running()).toBe(expected.e.running());
+      }
+      expect(actual.e.nextFrame()).toBeUndefined();
+    }
+  });
+
+  test("repeated full preserves shimmer phase and an off reset leaves no pending frame", () => {
+    const actual = rig("full");
+    const expected = rig("full");
+    const wait: Marks = { loading: [AREA] };
+    actual.draw(wait);
+    expected.draw(wait);
+    for (const now of [100, 300, 600]) {
+      actual.t.now = expected.t.now = now;
+      actual.e.setLevel("full");
+      expect(actual.draw(wait).cells).toEqual(expected.draw(wait).cells);
+    }
+    actual.e.setLevel("subtle");
+    expect(actual.e.running(), "the removed shimmer owes a clean frame").toBe(true);
+    actual.t.now = 1000;
+    actual.e.setLevel("full");
+    expect(actual.draw(wait).cells, "a downgrade discards the old shimmer clock").toEqual(rig("full").draw(wait).cells);
+    actual.e.setLevel("subtle");
+    actual.e.setLevel("off");
+    expect(actual.e.nextFrame(), "off drops even a pending settling frame").toBeUndefined();
+    expect(sameCells(actual.draw(wait), plain())).toBe(true);
+
+    actual.t.now = 2000;
+    actual.e.setLevel("full");
+    expect(actual.e.running(), "a level change cannot revive discarded loading").toBe(false);
+    expect(actual.draw(wait).cells, "fresh discovery starts at zero elapsed time").toEqual(rig("full").draw(wait).cells);
+    expect(actual.e.running()).toBe(true);
+  });
+
+  test("the slow-terminal off policy cannot be raised while loading remains marked", () => {
+    const { e, draw } = rig("full");
+    const wait: Marks = { loading: [AREA] };
+    draw(wait);
+    expect(e.drewIn(100)).toBeUndefined();
+    expect(e.drewIn(100)).toBeUndefined();
+    expect(e.drewIn(100)).toBeDefined();
+    for (const level of ["subtle", "full", "off", "full"] as const) {
+      e.setLevel(level);
+      expect(e.level).toBe("off");
+      expect(sameCells(draw(wait), plain())).toBe(true);
+      expect(e.nextFrame()).toBeUndefined();
+    }
+  });
+
+  test("discarding loading from a clean frame adds no settle and preserves an owed ordinary settle", () => {
+    for (const owed of [false, true]) {
+      const { e, t, draw } = rig("full");
+      if (owed) e.cue({ kind: "screen" }, ink);
+      const wait: Marks = { ...marks, loading: [row(7)] };
+      draw(wait);
+      t.now = 30;
+      draw(wait);
+      if (owed) e.input();
+      expect(e.discardLoading()).toBe(true);
+      expect(e.running(), `existing ordinary settle: ${owed}`).toBe(owed);
+      expect(e.discardLoading(), "repeated removal is inert").toBe(false);
+      expect(e.running()).toBe(owed);
+      expect(sameCells(draw(), plain())).toBe(true);
+      expect(e.nextFrame()).toBeUndefined();
+    }
+  });
+
   test("a message that leaves fades out from what was shown", () => {
     const { e, t } = rig("full");
     const shown = plain();

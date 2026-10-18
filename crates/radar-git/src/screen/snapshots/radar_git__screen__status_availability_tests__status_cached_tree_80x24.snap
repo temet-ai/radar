@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen/status_availability_tests.rs
+assertion_line: 266
 expression: tree
 ---
  radar    B   History   Settings (,)  read incomplete · last complete 1… ✎ edit
-╭ dirty ───────────────────────────────────────────────────────────────────────╮
+╭ 2 dirty ─────────────────────────────────────────────────────────────────────╮
 │ CLONES · 1 clone, 1 worktree       AHEAD  BEHIND  DIRTY      STASH  UPDATED  │
 │api  on main  ● in use              —      —       clean      —      2961w    │
 │  └─ api-hotfix  on hotfix          —      —       last known —      2961w    │
@@ -25,4 +26,4 @@ expression: tree
 │ Some clone data could not be read.                                           │
 │ clones and worktrees with changes or unread status                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCHES   ⏎ use it   r retry status   A ask an agent   b bulk   x menu
+ BRANCHES   ⏎ use it   retry status   shift ask an agent   extra actions

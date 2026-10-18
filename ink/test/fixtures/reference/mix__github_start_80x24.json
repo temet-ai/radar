@@ -2,6 +2,13 @@
   "chrome": {
     "height": 24,
     "keys_at": "body",
+    "notices_visible": true,
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "middle"
+      }
+    ],
     "screen_keys": [
       "G"
     ],
@@ -21,7 +28,8 @@
               "target": "chrome:key:0:0"
             }
           ],
-          "label": "quit"
+          "label": "quit",
+          "mnemonic_at": 0
         },
         {
           "icon": "menu",
@@ -37,7 +45,23 @@
               "target": "chrome:key:1:0"
             }
           ],
-          "label": "menu"
+          "label": "extra actions",
+          "mnemonic_at": 1
+        },
+        {
+          "keys": "~",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "~"
+                }
+              },
+              "label": "~",
+              "target": "chrome:key:2:0"
+            }
+          ],
+          "label": "notices"
         },
         {
           "keys": "←→↑↓",
@@ -47,28 +71,28 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:2:0"
+              "target": "chrome:key:3:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:2:1"
+              "target": "chrome:key:3:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:2:2"
+              "target": "chrome:key:3:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:2:3"
+              "target": "chrome:key:3:3"
             }
           ],
           "label": "navigate"
@@ -105,7 +129,8 @@
       ]
     },
     "version": 1,
-    "width": 80
+    "width": 80,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 24,

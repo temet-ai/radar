@@ -624,7 +624,7 @@ pub(crate) fn contribute(p: &SlackPlugin, point: Point, s: &Subject) -> Option<C
             Some(Contribution::Actions(vec![
                 Action::new(
                     't',
-                    format!("open discussion in #{}", p.alias(first.channel)),
+                    format!("open discussion thread in #{}", p.alias(first.channel)),
                     discussion_action(&thread_subject(p, first.channel, &first.parent.ts)),
                 ).icon(Icon::Thread),
             ]))

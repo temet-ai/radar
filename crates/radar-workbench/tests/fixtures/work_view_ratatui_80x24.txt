@@ -1,5 +1,5 @@
  radar    I   History   Settings (,)  local annotations · observations … ✎ edit
-╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+╭ 2 work items · page 1 ───────────────────────────────────────────────────────╮
 │ Ship the work area                                                      task │
 │                                                                              │
 │                                                                              │
@@ -21,4 +21,4 @@
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices

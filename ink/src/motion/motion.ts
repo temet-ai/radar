@@ -5,7 +5,8 @@ import Output from "ink-output";
 import { useSyncExternalStore } from "react";
 import { currentLook } from "../text/look.js";
 import { parseHex } from "./color.js";
-import type { Rect } from "./grid.js";
+import type { Rect, Grid } from "./grid.js";
+import { monotonicClock } from "../notices/store.js";
 import {
   Engine,
   FRAME_MS,
@@ -18,14 +19,31 @@ import {
 import { parseFrame, writeFrame } from "./frame.js";
 import { Interactions, type MotionScene, type PaneMark, type TreeMark, type SceneMarks } from "./interaction.js";
 import { frameMetadataBounded, sceneMetadataBounded } from "./interaction-bounds.js";
+import { bounded, MAX_BASELINE_ANSI } from "./interaction-effects.js";
 
-const SYSTEM_START = Date.now();
+// Loading may cross an edge, but neither malformed coordinates nor an unbounded frame may reach the ANSI parser.
+const visibleLoading = (area: Rect, width: number, height: number): boolean =>
+  [area.x, area.y, area.w, area.h, area.x + area.w, area.y + area.h].every(Number.isSafeInteger) &&
+  area.w > 0 && area.h > 0 && area.x < width && area.y < height && area.x + area.w > 0 && area.y + area.h > 0;
+const boundedOutput = (output: string, width: number, height: number): boolean =>
+  output.length <= MAX_BASELINE_ANSI && bounded({ x: 0, y: 0, w: width, h: height });
+
+/** Painted after all effects; never retained as a clean source. */
+export interface PresentationLayer {
+  visible(): boolean;
+  running(): boolean;
+  draw(grid: Grid): Rect[];
+  clear(): void;
+}
 
 export class Motion {
   engine: Engine;
   readonly interactions: Interactions;
   private committed?: SceneMarks;
   private preparing?: MotionScene;
+  // Ordinary node marks use render identity even when interaction metadata is absent or rejected.
+  private preparingNodes?: MotionScene;
+  private committedNodes?: MotionScene;
   private invalidScenes = new WeakSet<MotionScene>();
   private firstOutput?: { scene: MotionScene; output: string; width: number; height: number };
   private paneMarks = new Map<string, { scene: MotionScene; mark: PaneMark }>();
@@ -34,7 +52,7 @@ export class Motion {
   private marksFn: (() => Marks) | undefined;
   private nodes = new Map<
     string,
-    { rows: ReadonlyArray<readonly [string, Rect]>; loading: readonly Rect[] }
+    { rows: ReadonlyArray<readonly [string, Rect]>; loading: readonly Rect[]; scene?: MotionScene }
   >();
   private slotNames = {
     base: "bg.base",
@@ -47,14 +65,18 @@ export class Motion {
   private listeners = new Set<() => void>();
   private ticks = 0;
   private armedAt = 0;
+  private presentation?: PresentationLayer;
+  // Also pauses a live loader rejected by output bounds, until a valid output arrives.
+  private presentationBlocked = false;
   private onNotice: ((text: string) => void) | undefined;
 
   constructor(
     level: Level = "off",
-    private clock: () => number = () => Date.now() - SYSTEM_START,
+    private clock: () => number = () => performance.now(),
   ) {
+    this.clock = clock = monotonicClock(clock);
     this.engine = new Engine(level, clock);
-    this.interactions = new Interactions(clock);
+    this.interactions = new Interactions(() => this.clock());
   }
 
   /** The theme's colours effects blend with, read from the host's look when a cue starts and a frame is applied. */
@@ -82,7 +104,8 @@ export class Motion {
   }
 
   /** Back to nothing running, level off and no marks (a test starts from this). */
-  reset() {
+  reset(clock?: () => number) {
+    if (clock) this.clock = monotonicClock(clock);
     if (this.timer !== undefined) clearTimeout(this.timer);
     this.timer = undefined;
     this.armedAt = 0;
@@ -93,10 +116,15 @@ export class Motion {
     this.treeMarks.clear();
     this.committed = undefined;
     this.preparing = undefined;
+    this.preparingNodes = undefined;
+    this.committedNodes = undefined;
     this.invalidScenes = new WeakSet();
     this.firstOutput = undefined;
     this.marksFn = undefined;
     this.marks = {};
+    this.presentation?.clear();
+    this.presentation = undefined;
+    this.presentationBlocked = false;
   }
 
   /** `level` is the host's, after `motion::effective` (off over SSH and below full colour). */
@@ -167,6 +195,7 @@ export class Motion {
     this.treeMarks.set(id, { scene, mark });
   }
   prepareScene(scene: MotionScene) {
+    this.preparingNodes = scene;
     if (this.preparing !== scene) { this.paneMarks.clear(); this.treeMarks.clear(); }
     if (this.engine.level !== "full") { this.preparing = undefined; return; }
     if (!sceneMetadataBounded(scene)) { this.rejectScene(scene); return; }
@@ -175,6 +204,7 @@ export class Motion {
 
   /** Parent layout effect follows child layout effects. Only this scene's measured marks may accompany its ANSI. */
   commitScene(scene: MotionScene) {
+    if (scene === this.preparingNodes) this.committedNodes = scene;
     if (this.engine.level !== "full" || this.invalidScenes.has(scene)) {
       this.committed = undefined;
       this.firstOutput = undefined;
@@ -199,30 +229,54 @@ export class Motion {
   }
 
   /** What a node drew where: its rows by sync key (`TreeRow.glow`) and its panels waiting for data, in screen cells.
-   * Replaced as a whole each time the node lays out; `owner` is any id unique to the node. */
+   * Replaced as a whole each time the node lays out; `owner` is any id unique to the node.
+   * App nodes supply their actual render scene; direct controller fixtures may omit it. */
   markNode(
     owner: string,
     rows: ReadonlyArray<readonly [string, Rect]>,
     loading: readonly Rect[] = [],
+    scene?: MotionScene,
   ) {
     if (rows.length === 0 && loading.length === 0) this.nodes.delete(owner);
-    else this.nodes.set(owner, { rows, loading });
+    else this.nodes.set(owner, { rows, loading, scene });
   }
 
-  private frameMarks(): Marks {
-    const base = this.marksFn?.() ?? this.marks;
-    if (this.nodes.size === 0) return base;
-    const rows: Array<readonly [string, Rect]> = [];
+  private currentNode(scene?: MotionScene): boolean {
+    return this.preparingNodes === this.committedNodes && (!scene || scene === this.committedNodes);
+  }
+
+  /** The idle check reads loading only; ordinary row arrays are not flattened until an engine draw is needed. */
+  private loadingMarks(base: Marks, width: number, height: number): Rect[] {
+    if (this.preparingNodes !== this.committedNodes || this.committedNodes?.blocked) return [];
+    if (this.nodes.size === 0) return (base.loading ?? []).filter((area) => visibleLoading(area, width, height));
     const loading: Rect[] = [];
-    for (const n of this.nodes.values()) {
-      rows.push(...n.rows);
-      loading.push(...n.loading);
-    }
+    for (const n of this.nodes.values()) if (this.currentNode(n.scene))
+      for (const area of n.loading) if (visibleLoading(area, width, height)) loading.push(area);
+    return loading;
+  }
+
+  private frameMarks(base: Marks, loading: readonly Rect[]): Marks {
+    if (this.nodes.size === 0) return { ...base, loading };
+    const rows: Array<readonly [string, Rect]> = [];
+    // Row cues retain their existing ordering at Subtle, whose output can precede layout.
+    for (const n of this.nodes.values()) rows.push(...n.rows);
     return { ...base, rows, loading };
   }
 
-  get active(): boolean {
-    return this.engine.running() || this.interactions.running;
+  private get effectsActive(): boolean { return this.engine.running() || this.interactions.running; }
+  get active(): boolean { return !this.presentationBlocked && (this.effectsActive || !!this.presentation?.running()); }
+  setPresentation(layer: PresentationLayer) {
+    this.presentation?.clear(); this.presentation = layer; this.presentationBlocked = false; this.refreshPresentation();
+  }
+  refreshPresentation() {
+    if (!this.active && this.timer !== undefined) { clearTimeout(this.timer); this.timer = undefined; }
+    this.arm();
+  }
+  private late(output: string, width: number, height: number): string {
+    if (!this.presentation?.visible()) { this.presentation?.clear(); this.refreshPresentation(); return output; }
+    const grid = parseFrame(output, width, height, true), areas = this.presentation.draw(grid);
+    this.refreshPresentation();
+    return areas.length ? writeFrame(grid, output, areas) : output;
   }
 
   subscribe = (fn: () => void) => {
@@ -244,36 +298,61 @@ export class Motion {
 
   /** Apply what runs to the frame Ink drew (its string); the same string when nothing runs. */
   apply(output: string, width: number, height: number): string {
+    const outputBounded = boundedOutput(output, width, height);
+    const rejectedLoading = !outputBounded && this.engine.discardLoading();
+    // Late layers and a rejected live loader obey the same bounds before parsing or retaining any frame.
+    // Keep other cues intact for the next valid output; a malformed loading frame cannot keep scheduling work.
+    if (this.presentation || this.presentationBlocked || rejectedLoading) {
+      this.presentationBlocked = !outputBounded;
+      if (this.presentationBlocked) {
+        this.presentation?.clear();
+        if (this.timer !== undefined) clearTimeout(this.timer);
+        this.timer = undefined;
+        this.armedAt = 0;
+        return output;
+      }
+    }
+    // An output for a replacement is already clean. Drop only the old loading effect before the commit gate;
+    // it must not keep an uncommitted render alive or force ANSI parsing merely to reconcile an absent owner.
+    if (this.preparingNodes !== this.committedNodes && this.engine.discardLoading() && !this.effectsActive)
+      this.armedAt = 0;
     // On the first mount Ink can emit a clean frame before refs/layout effects exist. Retain it only until
     // that exact render commits; never apply an effect to geometry from a different committed scene.
     if (this.engine.level === "full" && this.preparing?.context && this.preparing !== this.committed?.scene) {
       if (!this.committed && this.engine.level === "full" && output.length <= 1_048_576 && width * height <= 65_536)
         this.firstOutput = { scene: this.preparing, output, width, height };
       else this.interactions.clear();
-      return output;
+      return this.late(output, width, height);
     }
     if (this.engine.level === "off") {
       this.interactions.reset();
       if (this.timer !== undefined) clearTimeout(this.timer);
       this.timer = undefined;
-      return output;
+      return this.late(output, width, height);
     }
     // A child may have laid out without an App render. Off/subtle do no interaction geometry/retention work.
     if (this.engine.level === "full") {
       if (this.committed) this.commitScene(this.committed.scene);
       this.interactions.observe(output, width, height, this.committed, true);
     }
-    if (!this.active) {
+    // Discover uncued loading on the actual full-motion output, never from registration or an active/timer getter.
+    // Read the shell marks at most once and preserve the node-over-shell precedence for this exact frame.
+    const mayLoad = this.engine.level === "full" && outputBounded;
+    const base = this.effectsActive || mayLoad ? this.marksFn?.() ?? this.marks : undefined;
+    const loading = mayLoad && base ? this.loadingMarks(base, width, height) : [];
+    if (!this.effectsActive && loading.length === 0) {
       if (this.timer !== undefined) clearTimeout(this.timer);
       this.timer = undefined;
       this.armedAt = 0;
-      return output;
+      return this.late(output, width, height);
     }
     const started = this.clock();
-    const grid = parseFrame(output, width, height, this.interactions.running);
+    const grid = parseFrame(output, width, height, loading.length > 0 || this.interactions.running || !!this.presentation?.visible());
     const areas = this.interactions.draw(grid, "fold");
-    areas.push(...this.engine.draw(grid, this.frameMarks(), this.colours()));
+    areas.push(...this.engine.draw(grid, this.frameMarks(base!, loading), this.colours()));
     areas.push(...this.interactions.draw(grid, "focus"));
+    if (this.presentation?.visible()) areas.push(...this.presentation.draw(grid));
+    else this.presentation?.clear();
     const out = areas.length > 0 ? writeFrame(grid, output, areas) : output;
     const lag = this.timer === undefined && this.armedAt ? Math.max(0, started - this.armedAt - FRAME_MS) : 0;
     this.armedAt = 0;

@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/history/tests.rs
+assertion_line: 169
 expression: screen
 ---
  History · read only · UTC · snapshot not loaded
@@ -41,4 +42,4 @@ expression: screen
 │                                                                                              ││                                                              │
 │                                                                                              ││                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────╯
- j/k move · enter details · n/p pages · r refresh · x/? keys · esc close
+ ↑↓ move · enter details · next page · previous page · refresh · extra keys · esc close

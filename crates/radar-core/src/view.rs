@@ -110,6 +110,11 @@ pub struct Seg {
     /// An inline target, used for actions embedded in a line under a title.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target: Option<Target>,
+    /// Presentation-only shortcut after this phrase in a plain-text reader.
+    /// Visual drawers use its supplied underline styling and ignore this field;
+    /// this does not name an action or grant any input-routing authority.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_hint: Option<String>,
     /// A look the part names for its own domain instead of an ink: a style
     /// spec in the theme's words (`<part>.blue bold`, a look the user set),
     /// which the frontend resolves in its theme.
@@ -243,6 +248,15 @@ impl Text {
         self.0.iter().map(|s| s.text.as_str()).collect()
     }
 
+    /// Plain readers retain the exact original shortcut even without underline.
+    /// Unlike words(), this is presentation text and never a scalar-index source.
+    pub fn plain_words(&self) -> String {
+        self.0.iter().map(|s| match &s.key_hint {
+            Some(key) => format!("{} [{key}]", s.text),
+            None => s.text.clone(),
+        }).collect()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.0.iter().all(|s| s.text.is_empty() && s.icon.is_none())
     }
@@ -338,6 +352,10 @@ pub struct Chord {
     pub ctrl: bool,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub alt: bool,
+    // Distinguish modified navigation keys on the wire. Printable shifted
+    // characters keep their existing uppercase/symbol encoding.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub shift: bool,
 }
 
 impl Chord {
@@ -346,6 +364,7 @@ impl Chord {
             key,
             ctrl: false,
             alt: false,
+            shift: false,
         }
     }
 
@@ -358,6 +377,7 @@ impl Chord {
             key: Key::Char(c),
             ctrl: true,
             alt: false,
+            shift: false,
         }
     }
 
@@ -390,6 +410,7 @@ impl Chord {
             key,
             ctrl,
             alt: false,
+            shift: false,
         })
     }
 
@@ -427,6 +448,10 @@ impl Chord {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(tag = "intent", rename_all = "snake_case")]
 pub enum Intent {
+    /// Presentation-only acknowledgement for one physical key.
+    NoticeInput { escape: bool, #[ts(type = "number")] through_id: u64 },
+    /// Dismiss one currently visible occurrence without activating anything beneath it.
+    DismissNotice { #[ts(type = "number")] id: u64 },
     /// Move the selection to a target (a row, a view in the nav pane).
     Select { target: Target },
     /// Do what the target does when chosen (`⏎`, a double click).
@@ -435,6 +460,9 @@ pub enum Intent {
     Context { target: Target },
     /// Open or close a group in a tree.
     Fold { target: Target, open: bool },
+    /// Open every group held by the focused tree. The host expands this
+    /// into validated folds; it never asks an owner to fetch more rows.
+    OpenAll,
     /// Choose a cell another part added to a row ([`CellView::show`]): the
     /// host selects the row through its owner, then shows the subject. The
     /// owner gets [`Intent::Select`]; it never sees this one.
@@ -490,6 +518,12 @@ impl From<crate::writes::Change> for Change {
 /// [`Intent::Invoke`] names; the journal records what running it does.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct ActionSpec {
+    /// Zero-based Unicode scalar position in label; underline its complete grapheme.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mnemonic_at: Option<usize>,
+    /// Show the named Shift modifier before a valid keyed word.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub mnemonic_shift: bool,
     pub id: String,
     pub label: String,
     /// The key that runs it, when it has one.
@@ -517,6 +551,8 @@ impl ActionSpec {
                 id.into()
             },
             label: b.what.clone(),
+            mnemonic_at: (!b.is_heading()).then(|| crate::mnemonic::at(&b.keys, &b.what)).flatten(),
+            mnemonic_shift: !b.is_heading() && crate::mnemonic::at(&b.keys, &b.what).is_some() && crate::mnemonic::shifted(&b.keys),
             key: Chord::parse(&b.keys),
             heading: b.is_heading(),
             icon: b.icon,
@@ -920,6 +956,44 @@ pub struct Note {
 }
 
 impl Tree {
+    /// Resolve one unambiguous held path, including rows under closed groups.
+    pub fn row(&self, path: &[String]) -> Option<&TreeRow> {
+        let mut rows = self.rows.as_slice();
+        let mut found = None;
+        for id in path {
+            let mut matches = rows.iter().filter(|row| row.id == *id);
+            let row = matches.next()?;
+            if matches.next().is_some() { return None; }
+            found = Some(row);
+            rows = &row.children;
+        }
+        found
+    }
+
+    /// Every unambiguous nonempty held group, parent before child. Counts and
+    /// open-all use only these rows, never a remote total or missing children.
+    pub fn groups(&self) -> Vec<Vec<String>> {
+        fn walk(tree: &Tree, rows: &[TreeRow], prefix: &[String], out: &mut Vec<Vec<String>>) {
+            for row in rows {
+                let mut path = prefix.to_vec();
+                path.push(row.id.clone());
+                if !row.children.is_empty() && tree.row(&path).is_some() {
+                    out.push(path.clone());
+                    walk(tree, &row.children, &path, out);
+                }
+            }
+        }
+        let mut groups = vec![];
+        walk(self, &self.rows, &[], &mut groups);
+        groups
+    }
+
+    /// A row can receive a selection only while it is shown and selectable.
+    pub fn selectable(&self, path: &[String]) -> bool {
+        self.row(path).is_some_and(|row| !row.heading)
+            && (1..path.len()).all(|end| self.open.iter().any(|p| p == &path[..end]))
+    }
+
     /// Every row a frontend shows, in order, with its path: the roots and
     /// the children of the open groups.
     pub fn visible(&self) -> Vec<(Vec<String>, &TreeRow)> {
@@ -1291,11 +1365,20 @@ fn setup_screen(host: &crate::host::Host, p: usize, scope: &str) -> crate::view:
 pub enum Block {
     Line {
         text: Text,
+        /// Unicode scalar position in Text::words(), including icon fallback text
+        /// in offsets. Only non-icon text and chip captions supply mnemonics.
+        /// Draw the complete containing grapheme, preserving segment styles.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        mnemonic_at: Option<usize>,
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        mnemonic_shift: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         target: Option<Target>,
-        /// The key that does what the line says, drawn `[k]` in muted words
-        /// at the right edge of the room when the line and it fit there
-        /// ([`Block::keyed`]).
+        /// The unchanged shortcut for this line. Valid mnemonic metadata puts
+        /// its letter inside the words; glyph/named/modifier keys precede them.
+        /// Legacy or invalid letter metadata and plain readers keep `[k]`,
+        /// right-aligned when it fits and wrapped otherwise.
+        /// See [`Block::keyed`].
         #[serde(default, skip_serializing_if = "Option::is_none")]
         key: Option<String>,
     },
@@ -1345,6 +1428,8 @@ impl Block {
     pub fn line(text: impl Into<Text>) -> Self {
         Self::Line {
             text: text.into(),
+            mnemonic_at: None,
+            mnemonic_shift: false,
             target: None,
             key: None,
         }
@@ -1354,18 +1439,20 @@ impl Block {
     pub fn action(target: impl Into<String>, text: impl Into<Text>) -> Self {
         Self::Line {
             text: text.into(),
+            mnemonic_at: None,
+            mnemonic_shift: false,
             target: Some(Target::new(target)),
             key: None,
         }
     }
 
-    /// An action's line with its key at the right edge: `merge  [m]`.
+    /// An action's line with its letter inside the word, or a named/symbol key.
     pub fn keyed(target: impl Into<String>, text: impl Into<Text>, key: impl Into<String>) -> Self {
-        Self::Line {
-            text: text.into(),
-            target: Some(Target::new(target)),
-            key: Some(key.into()),
-        }
+        let text = text.into();
+        let key = key.into();
+        let mnemonic_at = crate::mnemonic::at_text(&key, &text);
+        let mnemonic_shift = mnemonic_at.is_some() && crate::mnemonic::shifted(&key);
+        Self::Line { text, mnemonic_at, mnemonic_shift, target: Some(Target::new(target)), key: Some(key) }
     }
 
     /// A section titled `title` (drawn in capitals) holding `blocks`.
@@ -1612,6 +1699,9 @@ pub struct PaneView {
     /// Its rows sit a cell in from each side (a page's list of rows).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub inset: bool,
+    // Pinned, host-admitted controls for the shared detail surface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub foot_actions: Option<detail::FootActions>,
 }
 
 impl PaneView {
@@ -1621,6 +1711,7 @@ impl PaneView {
             title: title.into(),
             title_icon: None,
             body,
+            foot_actions: None,
             notes: vec![],
             footer: None,
             width: None,
@@ -1876,48 +1967,56 @@ pub fn rows_step_by(
     Some(to)
 }
 
-/// What a movement key does in a tree: select another row, or open or close
-/// a group. `None` when it is not the tree's key.
+/// Whether the shared tree owns a key, including no-op boundaries. Shifted
+/// arrows and modified keys retain their existing outer dispatch ownership;
+/// printable `+` and `G` may arrive with Shift from a terminal.
+pub fn tree_key(chord: Chord) -> bool {
+    !chord.ctrl && !chord.alt && match chord.key {
+        Key::Up | Key::Down | Key::Left | Key::Right | Key::Home | Key::End => !chord.shift,
+        Key::Char('j' | 'k' | 'g' | 'G' | ' ' | '+' | '-' | '=') => true,
+        _ => false,
+    }
+}
+
+/// What a movement key does in a tree: select another row, open or close a
+/// group, or open every held group. `None` also means an owned no-op; callers
+/// use [`tree_key`] to keep boundary left/right from moving into another pane.
+/// A stale selection never retargets a row-local fold to the first row.
 pub fn tree_step(tree: &Tree, chord: Chord) -> Option<Intent> {
-    let shown = tree.visible();
-    let at = shown
-        .iter()
-        .position(|(p, _)| *p == tree.selected)
-        .unwrap_or(0);
-    let has_children = |i: usize| shown.get(i).is_some_and(|(_, r)| !r.children.is_empty());
-    let target = |i: usize| TreeRow::target_of(&shown[i].0);
-    if shown.is_empty() || chord.ctrl || chord.alt {
+    if !tree_key(chord) {
         return None;
     }
+    if chord.key == Key::Char('=') {
+        return Some(Intent::OpenAll);
+    }
+    let shown = tree.visible();
+    let target = |i: usize| TreeRow::target_of(&shown[i].0);
+    let select = |i: usize| Intent::Select { target: target(i) };
+    let at = shown.iter().position(|(path, row)| *path == tree.selected && !row.heading);
+    let Some(at) = at else {
+        return matches!(chord.key, Key::Up | Key::Down | Key::Home | Key::End | Key::Char('j' | 'k' | 'g' | 'G'))
+            .then(|| shown.iter().position(|(_, row)| !row.heading).map(select))
+            .flatten();
+    };
+    let (path, row) = &shown[at];
+    let group = !row.children.is_empty();
+    let open = tree.open.contains(path);
+    let parent = || (0..at).rev().find(|&i| {
+        !shown[i].1.heading && shown[i].0.len() < path.len() && path.starts_with(&shown[i].0)
+    });
+    let fold = |i: usize, open| Intent::Fold { target: target(i), open };
     match chord.key {
-        // An open group has nothing more to open: the key is nobody's.
-        Key::Char('+' | '=') if has_children(at) && !tree.open.contains(&shown[at].0) => {
-            Some(Intent::Fold {
-                target: target(at),
-                open: true,
-            })
-        }
-        Key::Char('-') => {
-            // Close the group, or the one this row is in.
-            let path = &shown[at].0;
-            let group = if has_children(at) && tree.open.contains(path) {
-                path.clone()
-            } else if path.len() > 1 {
-                path[..path.len() - 1].to_vec()
-            } else {
-                return None;
-            };
-            Some(Intent::Fold {
-                target: TreeRow::target_of(&group),
-                open: false,
-            })
-        }
-        Key::Char(' ') if has_children(at) => Some(Intent::Fold {
-            target: target(at),
-            open: !tree.open.contains(&shown[at].0),
-        }),
-        _ => rows_step_by(shown.len(), at, chord, |i| shown[i].1.heading)
-            .map(|i| Intent::Select { target: target(i) }),
+        Key::Char('+') if group && !open => Some(fold(at, true)),
+        Key::Right if group && !open => Some(fold(at, true)),
+        Key::Right if group => shown.iter().enumerate().skip(at + 1)
+            .take_while(|(_, (p, _))| p.starts_with(path))
+            .find(|(_, (_, row))| !row.heading).map(|(i, _)| select(i)),
+        Key::Left if group && open => Some(fold(at, false)),
+        Key::Left => parent().map(select),
+        Key::Char('-') if group && open => Some(fold(at, false)),
+        Key::Char('-') => parent().map(|i| fold(i, false)),
+        Key::Char(' ') if group => Some(fold(at, !open)),
+        _ => rows_step_by(shown.len(), at, chord, |i| shown[i].1.heading).map(select),
     }
 }
 
@@ -1980,6 +2079,7 @@ impl TreeNav {
         }
         let mut all = Vec::new();
         groups(rows, &[], &mut all);
+        self.open.retain(|path| all.contains(path));
         for g in all {
             if self.seen.insert(g.clone()) && !self.open.contains(&g) {
                 self.open.push(g);
@@ -1991,14 +2091,14 @@ impl TreeNav {
             ..Tree::default()
         };
         let shown = probe.visible();
-        if !shown.iter().any(|(p, _)| *p == self.selected) {
+        if !shown.iter().any(|(p, row)| *p == self.selected && !row.heading) {
             // A row whose group closed keeps the selection on the group.
             let mut up = self.selected.clone();
-            while !up.is_empty() && !shown.iter().any(|(p, _)| *p == up) {
+            while !up.is_empty() && !shown.iter().any(|(p, row)| *p == up && !row.heading) {
                 up.pop();
             }
             self.selected = if up.is_empty() {
-                shown.first().map(|(p, _)| p.clone()).unwrap_or_default()
+                shown.iter().find(|(_, row)| !row.heading).map(|(p, _)| p.clone()).unwrap_or_default()
             } else {
                 up
             };
@@ -2028,6 +2128,7 @@ impl TreeNav {
 }
 
 pub mod chrome;
+pub mod detail;
 pub mod kit;
 
 pub use chrome::{Choice, ChromeView, MenuView};

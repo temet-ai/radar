@@ -1,13 +1,24 @@
+import { graphemes } from "../editor/graphemes.js";
+
 /** Terminal cell width of a string: wide (CJK, emoji) count 2, combining marks 0. */
 export function cellWidth(s: string): number {
+  if (/^[\x20-\x7e]*$/.test(s)) return s.length;
   let w = 0;
-  for (const ch of s) w += charWidth(ch.codePointAt(0)!);
+  for (const g of graphemes(s)) w += graphemeCells(g);
   return w;
+}
+
+/** A complete grapheme's terminal width, matching unicode-width's emoji sequences. */
+export function graphemeCells(g: string): number {
+  if (/^\p{Regional_Indicator}{2}$/u.test(g) || /^[#*0-9]\ufe0f?\u20e3$/u.test(g)) return 2;
+  if (/\p{Emoji}\ufe0f/u.test(g) || /\p{Extended_Pictographic}\p{Emoji_Modifier}/u.test(g) || /^\p{Extended_Pictographic}(?:\ufe0f|\p{Emoji_Modifier})?(?:\u200d\p{Extended_Pictographic}(?:\ufe0f|\p{Emoji_Modifier})?)+$/u.test(g)) return 2;
+  return [...g].reduce((n, ch) => n + charWidth(ch.codePointAt(0)!), 0);
 }
 
 export function charWidth(cp: number): number {
   if (cp === 0) return 0;
   if (cp < 32 || (cp >= 0x7f && cp < 0xa0)) return 0;
+  if (/\p{Mark}/u.test(String.fromCodePoint(cp))) return 0;
   if (
     (cp >= 0x300 && cp <= 0x36f) ||
     (cp >= 0x200b && cp <= 0x200f) ||
@@ -39,8 +50,8 @@ export function clipSegments<T extends { text: string }>(segs: T[], max: number)
   for (const seg of segs) {
     if (w >= max) break;
     let text = "";
-    for (const ch of seg.text) {
-      const cw = charWidth(ch.codePointAt(0)!);
+    for (const ch of graphemes(seg.text)) {
+      const cw = graphemeCells(ch);
       if (w + cw > max) {
         w = max;
         break;
@@ -59,8 +70,8 @@ export function fit(s: string, max: number): string {
   if (cellWidth(s) <= max) return s;
   let out = "";
   let w = 0;
-  for (const ch of s) {
-    const cw = charWidth(ch.codePointAt(0)!);
+  for (const ch of graphemes(s)) {
+    const cw = graphemeCells(ch);
     if (w + cw > max - 1) break;
     out += ch;
     w += cw;

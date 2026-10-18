@@ -302,9 +302,25 @@ fn scene(name: String, head: &Headless, w: u16, h: u16, view: Option<Value>) -> 
 }
 
 /// Draw what `head` shows now, with a selection over it.
-fn scene_selected(name: String, head: &Headless, w: u16, h: u16, view: Option<Value>, sel: Option<&Selection>) -> Scene {
+fn scene_selected(name: String, head: &Headless, w: u16, h: u16, mut view: Option<Value>, sel: Option<&Selection>) -> Scene {
     let theme = theme_of(head);
     let buf = paint_selected(head.host(), &theme, w, h, sel);
+    if let Some(view) = view.as_mut() {
+        // These are the actual native rectangles registered by this paint,
+        // independent of Ink's control layout and hit calculation.
+        view["detail_foot_hits"] = Value::Array(head.host().hits.borrow().iter()
+            .filter_map(|(rect, hit)| match hit {
+                Hit::Plugin { id, .. } if id.starts_with(radar_core::view::detail::TARGET_PREFIX) => Some(json!({
+                    "target": id, "x": rect.x, "y": rect.y,
+                    "width": rect.width, "height": rect.height,
+                })),
+                _ => None,
+            }).collect());
+    }
+    if name.starts_with("detail_") {
+        assert!(view.as_ref().and_then(|v| v["detail_foot_hits"].as_array()).is_some_and(|hits| !hits.is_empty()),
+            "positive detail scene {name} must expose admitted native footer controls");
+    }
     let text = file_of(&name, &buf, &theme, view);
     (name, text)
 }
@@ -374,8 +390,11 @@ fn surfaces(w: u16, h: u16) -> Vec<Scene> {
 fn view_with(head: &Headless, pointer: Option<Position>, sel: Option<&Selection>) -> Option<Value> {
     let at = |p: Position| json!({"x": p.x, "y": p.y});
     Some(json!({
-        "screen": head.screen(),
-        "menu": head.menu(),
+        "screen": head.displayed_screen(),
+        "chrome": head.chrome(),
+        "focus": PaneId::from(head.host().focus),
+        "look": radar_core::ipc::Look::of(&theme_of(head)),
+        "menu": head.host().menu_view(),
         "pointer": pointer.map(at),
         "selection": sel.map(|s| json!({
             "anchor": at(s.anchor),
@@ -385,29 +404,37 @@ fn view_with(head: &Headless, pointer: Option<Position>, sel: Option<&Selection>
     }))
 }
 
-/// The first screen with a merge request chosen whose detail has an ACTIONS
-/// section: a detail pane of text to read.
-fn detail_head(w: u16, h: u16) -> Option<Headless> {
+/// Choose a real cached subject through ordinary row selection. The renderer
+/// capture is explicit about Detail focus so the 80-column case exercises it.
+fn detail_head_for(part: &str, w: u16, h: u16) -> Option<Headless> {
     let mut head = demo(w, h);
-    head.show_screen(0);
+    let index = head.host().screens.iter().position(|(owner, _)| {
+        head.host().plugins[*owner].id() == part
+    })?;
+    head.show_screen(index);
     unfold(&mut head);
-    let has_actions = |head: &Headless| {
-        head.screen().and_then(|v| v.pane(PaneId::Detail).cloned()).is_some_and(|p| match &p.body {
-            Node::Rich { blocks, .. } => blocks
-                .iter()
-                .any(|b| matches!(b, radar_core::view::Block::Section { title, .. } if title == "ACTIONS")),
-            _ => false,
-        })
+    let has_detail = |head: &Headless| {
+        head.screen().and_then(|v| v.pane(PaneId::Detail).cloned())
+            .is_some_and(|p| radar_core::view::detail::DetailContent::of(&p.body).is_some())
     };
     let rows = head.screen().map(|v| offered(&v)).unwrap_or_default();
     for o in rows.into_iter().filter(|o| o.pane == PaneId::Middle) {
         head.focus(o.pane);
         head.send(Intent::Select { target: o.target });
-        if has_actions(&head) {
-            return Some(head);
+        if has_detail(&head) {
+            head.focus(PaneId::Detail);
+            let shown = head.displayed_screen()?;
+            let pane = shown.pane(PaneId::Detail)?;
+            if pane.foot_actions.as_ref().is_some_and(|foot| foot.menu.target.is_some()) {
+                return Some(head);
+            }
         }
     }
     None
+}
+
+fn detail_head(w: u16, h: u16) -> Option<Headless> {
+    detail_head_for("gitlab", w, h)
 }
 
 /// A drag across two rows of the first text area the frame marks as
@@ -441,6 +468,33 @@ fn highlights(w: u16, h: u16) -> Vec<Scene> {
     unfold(&mut head);
     let v = view_of(&head, None);
     out.push(scene("highlight_selected-row".into(), &head, w, h, v));
+
+    // A real host fold, including held descendant count and selected-subject
+    // reconciliation. Storybook and Ink compare this exact closed tree rather
+    // than synthesizing a different open-path set beside an unrelated frame.
+    {
+        let mut folded = demo(w, h);
+        folded.show_screen(0);
+        unfold(&mut folded);
+        let (pane, target) = folded.screen().and_then(|screen| {
+            screen.panes.into_iter().find_map(|pane| {
+                let Node::Tree(tree) = pane.body else { return None };
+                tree.visible().into_iter().find(|(_, row)| !row.heading && !row.children.is_empty())
+                    .map(|(path, _)| (pane.pane, TreeRow::target_of(&path)))
+            })
+        }).expect("the canonical host demo has a loaded hierarchical tree");
+        folded.focus(pane);
+        folded.send(Intent::Select { target: target.clone() });
+        folded.send(Intent::Fold { target: target.clone(), open: false });
+        let closed = folded.screen().unwrap().panes.into_iter()
+            .find(|item| item.pane == pane).unwrap().body;
+        let Node::Tree(tree) = closed else { panic!("fold retains the same tree") };
+        let path = TreeRow::path_of(&target);
+        assert!(!tree.open.contains(&path));
+        assert_eq!(tree.selected, path);
+        let v = view_of(&folded, None);
+        out.push(scene("highlight_folded-row".into(), &folded, w, h, v));
+    }
 
     // Focused pane: the same screen with the focus moved to each other pane.
     let panes: Vec<PaneId> = head.screen().map(|v| v.panes.iter().map(|p| p.pane).collect()).unwrap_or_default();
@@ -506,14 +560,43 @@ fn highlights(w: u16, h: u16) -> Vec<Scene> {
         // The selection moves down one, so it is not the first item's by default.
         head.send(Intent::Key { chord: radar_core::view::Chord::parse("↓").unwrap() });
         let v = view_of(&head, None);
+        // Replay the same complete wire projection that Ink receives, rather
+        // than Headless's reduced semantic menu (which omits display metadata).
+        let recorded: radar_core::view::MenuView = serde_json::from_value(
+            v.as_ref().unwrap()["menu"].clone(),
+        ).expect("captured menu must be a complete renderer projection");
+        let actual = head.host().menu_view().expect("the captured menu is open");
+        assert_eq!(serde_json::to_value(&recorded).unwrap(), serde_json::to_value(&actual).unwrap());
+        let mut keyed = 0;
+        for item in &recorded.items {
+            if item.heading || item.note || item.shown_only { continue; }
+            let mut chars = item.keys.chars();
+            if let Some(key) = chars.next().filter(|c| c.is_alphabetic() && chars.next().is_none()) {
+                let words = if recorded.question && !item.hint.is_empty() { &item.hint } else { &item.label };
+                let at = item.mnemonic_at.expect("captured letter action needs its word position");
+                let letter = words.chars().nth(at).expect("captured position is in the word");
+                assert_eq!(letter.to_lowercase().collect::<String>(), key.to_lowercase().collect::<String>());
+                assert_eq!(item.mnemonic_shift, key.is_uppercase());
+                keyed += 1;
+            }
+        }
+        assert!(keyed > 0, "the menu capture exercises letter mnemonics");
         out.push(scene("highlight_menu".into(), &head, w, h, v));
     }
 
-    // A detail pane's sections: the first merge request of the first screen,
-    // its STATE, ACTIONS (keys at the edge), PIPELINE and CHANGES.
+    // A real merge request with its shared identity, facts, sections and foot.
+    // Retain the existing scene identity for its section/underline contract.
     if let Some(head) = detail_head(w, h) {
         let v = view_of(&head, None);
         out.push(scene("highlight_detail-sections".into(), &head, w, h, v));
+    }
+
+    // All three adapters share the same native reference at both widths.
+    for part in ["gitlab", "jira", "slack"] {
+        let head = detail_head_for(part, w, h)
+            .unwrap_or_else(|| panic!("{part} demo has a selectable detail subject at {w}x{h}"));
+        let view = view_of(&head, None);
+        out.push(scene(format!("detail_{part}"), &head, w, h, view));
     }
 
     // Text selected by a drag across two rows: in that detail pane where the

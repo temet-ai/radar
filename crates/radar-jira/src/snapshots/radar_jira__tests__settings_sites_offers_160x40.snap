@@ -1,10 +1,10 @@
 ---
 source: crates/radar-jira/src/tests.rs
-assertion_line: 898
+assertion_line: 849
 expression: shown
 ---
  radar    Jira   History   Settings (,)                                                                                                                  ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 found in /work/acme/.mcp.json ───────────────────╮
 │General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ radar found a Jira site in /work/acme/.mcp.json.   █
 │  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ Do you want to use it?                             █
 │  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    █
@@ -31,15 +31,15 @@ expression: shown
 │                      ││                                                                                ││ SITE ───────────────────────────────────────────── █
 │                      ││                                                                                ││   The address you use for Jira, like               █
 │                      ││                                                                                ││   ankh-morpork.atlassian.net.                      █
-│                      ││                                                                                ││   Paste any Jira link; radar keeps the site part.  ║
+│                      ││                                                                                ││   Paste any Jira link; radar keeps the site part.  █
 │                      ││                                                                                ││ EMAIL ──────────────────────────────────────────── ║
 │                      ││                                                                                ││   The email you sign in to Atlassian with, on your ║
 │                      ││                                                                                ││   profile:                                         ║
 │                      ││                                                                                ││   id.atlassian.com / profile                       ║
 │                      ││                                                                                ││ API TOKEN  about a minute ──────────────────────── ║
 │                      ││                                                                                ││   1 Open Atlassian's API token page:               ║
-│                      ││                                                                                ││   id.atlassian.com / api tokens   o opens · y      ║
-│                      ││                                                                                ││   copies                                           ║
+│                      ││                                                                                ││   id.atlassian.com / api tokens   open · copy      ║
 │                      ││                                                                                ││   2 Create API token, label it radar, pick an      ║
+│                      ││                                                                                ││   expiry, then Create.                             ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                    jira
+ SETTINGS   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                     jira

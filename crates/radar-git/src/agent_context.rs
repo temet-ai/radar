@@ -381,6 +381,10 @@ mod tests {
         let mut p = branches();
         select(&p, "b:spike");
         assert!(crate::screen::row_hints(&p, Pane::Middle).iter().any(|h| h.keys == "A"));
+        let binding = crate::screen::keys(&p, Pane::Middle).into_iter().find(|binding| binding.keys == "A").unwrap();
+        let action = radar_core::view::ActionSpec::named(SEND_ID, &binding);
+        assert_eq!(action.mnemonic_at, Some(0));
+        assert!(action.mnemonic_shift, "uppercase agent shortcut stays discoverable");
         let out = crate::screen::intent(
             &mut p,
             Pane::Middle,

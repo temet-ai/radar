@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen/removal_tests.rs
+assertion_line: 378
 expression: stale
 ---
  radar    Branches   History   Settings (,)   synced 20s ago · every 1m  ✎ edit
-╭ all ─────────────────────────────────────────────────────────────────────────╮
+╭ 2 all ───────────────────────────────────────────────────────────────────────╮
 │ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  DIRTY      STASH  UPDATED  │
 │api  on main  ● in use              —      —       clean      —      2961w    │
 │  ├─ api-hotfix  on hotfix          —      —       2 changed  —      2961w    │
@@ -23,6 +24,6 @@ expression: stale
 │                                                                              │
 │                                                                              │
 │─ shows ──────────────────────────────────────────────────────────────────────│
-│ every clone, its worktrees and its local branches                            │
+│ every clone,  error worktree changed: press d to review removal again        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCHES   worktree changed: press d to review removal again           1 dirty
+ BRANCHES   ⏎ use it   delete   shift ask an agent   bulk   extra actions

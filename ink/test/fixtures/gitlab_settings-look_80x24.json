@@ -12,7 +12,8 @@
           "char": "c"
         }
       },
-      "label": "colour…"
+      "label": "colour…",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.look.bold",
@@ -21,7 +22,8 @@
           "char": "o"
         }
       },
-      "label": "bold"
+      "label": "bold",
+      "mnemonic_at": 1
     },
     {
       "id": "gitlab.look.italic",
@@ -30,7 +32,8 @@
           "char": "i"
         }
       },
-      "label": "italic"
+      "label": "italic",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.look.underline",
@@ -39,7 +42,8 @@
           "char": "u"
         }
       },
-      "label": "underline"
+      "label": "underline",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.look.dim",
@@ -48,7 +52,8 @@
           "char": "d"
         }
       },
-      "label": "dim"
+      "label": "dim",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.look.kept_comments",

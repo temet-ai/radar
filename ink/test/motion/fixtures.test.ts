@@ -1,9 +1,10 @@
 // Ink's motion engine against T31's Ratatui fixtures (ink/test/fixtures/motion/*.json, written by
-// tests/motion_cells.rs): real shell frames at 80x24, the cue as the bridge sends it, the marks the shell made, and
+// tests/motion_cells.rs): real shell or gallery frames at 80x24, the cue as the bridge sends it, the marks made, and
 // the cells Ratatui's Engine+ManualClock produced at the start, middle and end of each effect. Each file is replayed
 // the way the Rust side ran it: the cue, then the same frame drawn at t=0 and at every moment up to the file's own;
 // every cell must equal Ratatui's (within one colour level), the frame after the end must be `after` exactly, and the
-// engine must then ask for no more frames.
+// engine must then ask for no more frames. Message cases use the marked gallery primitive; host notices
+// are composited after motion and are not represented by these message-animation fixtures.
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import { cueOf } from "../../src/motion/attach.js";

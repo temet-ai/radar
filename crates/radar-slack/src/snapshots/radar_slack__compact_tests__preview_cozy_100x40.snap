@@ -1,15 +1,23 @@
 ---
 source: crates/radar-slack/src/compact_tests.rs
+assertion_line: 140
 expression: "to_text(&host, 100, 40)"
 ---
  radar    Slack ●   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
-╭ feed ────────────────╮╭ Bob Builder's message ───────────────────────────────────────────────────╮
-│ For you            4 ││ Bob Builder  #team  2d ago                                               │
+╭ 1 feed ──────────────╮╭ 3 Bob Builder's message ─────────────────────────────────────────────────╮
+│ For you            4 ││ Acme / #team                                                             │
 │ Discussions          ││ @review-squad :gitlab: mr Add a stats endpoint for the dashboard         │
-│ ▌ #team        6 NEW ││ @review-squad :gitlab: mr                                                │
-│ ▌ #svc         1 NEW ││ (https://git.example/acme/team-a/api/-/merge_requests/263) Add a stats   │
-│                      ││ endpoint for the dashboard                                               │
-│                      ││ 👀 1                                                                     │
+│ ▌ #team        6 NEW ││                                                     Bob Builder · 2d ago │
+│ ▌ #svc         1 NEW ││                                                                          │
+│                      ││ thread   thread start                                                    │
+│                      ││ replies  2                                                               │
+│                      ││                                                                          │
+│                      ││ MESSAGE ──────────────────────────────────────────────────────────────── │
+│                      ││   @review-squad :gitlab: mr                                              │
+│                      ││   (https://git.example/acme/team-a/api/-/merge_requests/263) Add a       │
+│                      ││   stats endpoint for the dashboard                                       │
+│                      ││   👀 1                                                                   │
+│                      ││                                                                          │
 │                      ││ REPLIES  2 replies · last 2d ago ─────────────────────────────────────── │
 │                      ││   you: looking 👀                                                        │
 │                      ││   Carol C.: approved, nice one                                           │
@@ -31,14 +39,7 @@ expression: "to_text(&host, 100, 40)"
 │                      ││                                                                          │
 │                      ││                                                                          │
 │                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
+│                      ││──────────────────────────────────────────────────────────────────────────│
+│                      ││⏎ thread  open  copy  mark read  comment  react              extra actions│
 ╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate       7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate           slack

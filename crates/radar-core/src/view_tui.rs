@@ -382,6 +382,7 @@ pub struct Frontend {
     shown: RefCell<HashMap<String, String>>,
     cells: RefCell<Vec<(Target, SubjectRef)>>,
     room: StdCell<(u16, u16)>,
+    mode: StdCell<crate::writes::Mode>,
     lead: StdCell<usize>,
     pictures: RefCell<HashMap<String, ui::image::Fetch>>,
     /// Where a drag can select in the last frame ([`crate::select`]): the
@@ -396,6 +397,9 @@ fn no_pictures() -> ui::image::Fetch {
 }
 
 impl Frontend {
+    /// Display-only write muting. The host and owner retain dispatch authority.
+    pub fn set_mode(&self, mode: crate::writes::Mode) { self.mode.set(mode); }
+
     /// A new frame: nothing is selectable until it is marked.
     pub fn begin_selectable(&self) {
         self.selectable.borrow_mut().clear();
@@ -621,19 +625,36 @@ fn field_owner(view: &ScreenView) -> Option<PaneId> {
     }).map(|pane| pane.pane)
 }
 
+/// A renderer-neutral editor or overlay has precedence over tree navigation.
+pub(crate) fn screen_captures_keys(view: &ScreenView) -> bool {
+    view.overlay.is_some() || field_owner(view).is_some() || panes(view).iter().any(|pane| match &pane.body {
+        Node::List { editing, .. } => editing.is_some(),
+        Node::Tree(tree) => tree.editing.is_some(),
+        _ => false,
+    })
+}
+
 /// The sources of the pictures a view's rich text names, for the caller
 /// to resolve through the part before drawing ([`Frontend::set_pictures`]).
 pub fn picture_sources(view: &ScreenView) -> Vec<String> {
-    let mut out: Vec<String> = Vec::new();
-    for p in panes(view) {
-        if let Node::Rich {
-            pictures: Some(s), ..
-        } = &p.body
-            && !out.contains(s)
-        {
-            out.push(s.clone());
-        }
+    fn collect(node: &Node, out: &mut Vec<String>) {
+        let source = match node {
+            Node::Rich { pictures, .. } => pictures.clone(),
+            Node::Extension { fallback, .. } => {
+                if let Some(content) = crate::view::detail::DetailContent::of(node) {
+                    content.pictures
+                } else {
+                    collect(fallback, out);
+                    None
+                }
+            }
+            _ => None,
+        };
+        if let Some(source) = source && !out.contains(&source) { out.push(source); }
     }
+    let mut out = Vec::new();
+    for pane in panes(view) { collect(&pane.body, &mut out); }
+    if let Some(overlay) = &view.overlay { collect(&overlay.body, &mut out); }
     out
 }
 
@@ -655,6 +676,20 @@ pub fn render_screen_with_ramp(
     cx: &Cx<'_>,
     allow_pane_ramps: bool,
 ) {
+    render_screen_with_ramp_and_jumps(fe, view, area, buf, cx, allow_pane_ramps, &[]);
+}
+
+/// Paint only the jump labels the host says actually dispatch on this surface.
+#[allow(clippy::too_many_arguments)]
+pub fn render_screen_with_ramp_and_jumps(
+    fe: &Frontend,
+    view: &ScreenView,
+    area: Rect,
+    buf: &mut Buffer,
+    cx: &Cx<'_>,
+    allow_pane_ramps: bool,
+    jumps: &[crate::view::chrome::PaneJump],
+) {
     if view.overlay.is_some() || (view.page.is_some() && !crate::motion::frames::page_identified()) {
         crate::motion::frames::context(None, None);
     }
@@ -663,7 +698,7 @@ pub fn render_screen_with_ramp(
         && !(view.has_dock_place()
             && view.dock.as_ref().is_some_and(|d| d.visible && d.focused)))
         .then(|| field_owner(view).unwrap_or_else(|| cx.focus.into()));
-    let paint = PanePaint { cx, owner };
+    let paint = PanePaint { cx, owner, jumps };
     fe.room.set((area.width, area.height));
     fe.cells.borrow_mut().clear();
     let now = selection(view);
@@ -690,6 +725,7 @@ pub fn render_screen_with_ramp(
 struct PanePaint<'a, 'cx> {
     cx: &'a Cx<'cx>,
     owner: Option<PaneId>,
+    jumps: &'a [crate::view::chrome::PaneJump],
 }
 
 /// An item's page: its frame (crumbs, title and details, the line under
@@ -796,7 +832,7 @@ fn draw_overlay(fe: &Frontend, scope: &str, overlay: &crate::view::PaneView, are
         let height = (area.height / 3).max(5).min(area.height);
         let r = Rect { y: area.y + area.height - height, height, ..area };
         ratatui::widgets::Clear.render(r, buf);
-        draw_pane(fe, scope, overlay, r, buf, PanePaint { cx, owner: None });
+        draw_pane(fe, scope, overlay, r, buf, PanePaint { cx, owner: None, jumps: &[] });
         return;
     };
     let want = ed.lines.len() as u16 + 4;
@@ -920,10 +956,13 @@ fn draw_pane_contents(
     let focused = cx.has_focus(legacy);
     let frame_focus = ui::frame::Focus { focused, owns_keys: paint.owner == Some(id) };
     let title = pane.title_icon.map_or_else(|| pane.title.clone(), |icon| icon::with(t, icon, &pane.title));
+    let title = crate::view::chrome::pane_title(paint.jumps, id, &title);
     cx.hit_pane(area, legacy);
     // Inside the border: the title, the border and its scrollbar are not text.
-    fe.mark_selectable(area.inner(ratatui::layout::Margin::new(1, 1)), pane.body.is_text());
-    let plain = pane.notes.is_empty() && pane.footer.is_none() && pane.fields.is_empty() && pane.bottom_field.is_none() && pane.head.is_none();
+    if pane.foot_actions.is_none() {
+        fe.mark_selectable(area.inner(ratatui::layout::Margin::new(1, 1)), pane.body.is_text());
+    }
+    let plain = pane.foot_actions.is_none() && pane.notes.is_empty() && pane.footer.is_none() && pane.fields.is_empty() && pane.bottom_field.is_none() && pane.head.is_none();
     if let Node::Document { lines, cut: true } = &pane.body
         && plain
     {
@@ -967,10 +1006,21 @@ fn draw_pane_contents(
         inner.y += 1;
         inner.height -= 1;
     }
-    if pane.inset {
-        inner = widgets::padded(inner);
+    let (body, foot) = ui::detail::reserve(inner, pane.foot_actions.is_some());
+    inner = body;
+    if pane.foot_actions.is_some() { fe.mark_selectable(inner, pane.body.is_text()); }
+    if let (Some(foot), Some(actions)) = (foot, &pane.foot_actions) {
+        buf.set_string(foot.x, foot.y, "─".repeat(usize::from(foot.width)), t.s(Slot::TextMuted));
+        for control in ui::detail::controls(t, actions, foot.width, fe.mode.get()) {
+            let width = control.line.width().min(usize::from(foot.width.saturating_sub(control.x))) as u16;
+            let rect = Rect::new(foot.x + control.x, foot.y + 1, width, 1);
+            buf.set_line(rect.x, rect.y, &control.line, width);
+            if let Some(target) = control.target && width > 0 { cx.hit(rect, legacy, target); }
+        }
     }
-    draw_node(fe, scope, id, &pane.body, area, inner, buf, cx, focused);
+    if pane.inset { inner = widgets::padded(inner); }
+    let frame = if pane.foot_actions.is_some() { ui::card::above(area, body) } else { area };
+    draw_node(fe, scope, id, &pane.body, frame, inner, buf, cx, focused);
 }
 
 /// A line to type into at the top of a pane: its mark, the field (or what
@@ -1021,7 +1071,7 @@ pub(crate) fn rich_lines_with_urls(t: &Theme, blocks: &[crate::view::Block], wid
     let mut media = Vec::new();
     for b in blocks {
         match b {
-            Block::Line { text, key, .. } => lines.push(keyed_line(t, text, key.as_deref(), width.saturating_add(1))),
+            Block::Line { text, key, mnemonic_at, mnemonic_shift, .. } => lines.push(keyed_line(t, text, key.as_deref(), *mnemonic_at, *mnemonic_shift, width.saturating_add(1))),
             Block::Section { mark, title, detail, blocks } => {
                 lines.push(ui::card::section(t, *mark, title, detail.as_deref(), width.saturating_add(1)));
                 let (rows, placed) = section_rows(t, blocks, width, pictured, urls);
@@ -1068,19 +1118,104 @@ pub(crate) fn rich_lines_with_urls(t: &Theme, blocks: &[crate::view::Block], wid
     (lines, media)
 }
 
-/// A line with its key at the right edge of `room` (` [k]`, muted), the
-/// words cut to leave it room; the line as it is when they do not fit
-/// with it, or there is no key.
-fn keyed_line(t: &Theme, text: &Text, key: Option<&str>, room: u16) -> Line<'static> {
-    let mut out = line(t, text);
+/// A word mnemonic with its optional Shift prefix, or a named/glyph shortcut
+/// before the words. Missing/invalid letter metadata keeps a discoverable
+/// legacy ` [k]` suffix, right-aligned when it fits and wrapped otherwise.
+pub(crate) fn keyed_line(t: &Theme, text: &Text, key: Option<&str>, mnemonic_at: Option<usize>, mnemonic_shift: bool, room: u16) -> Line<'static> {
+    let mut out = coalesced_line(line(t, text));
     let Some(key) = key else { return out };
-    let shortcut = format!(" [{key}]");
-    let (used, need) = (out.width(), ui::width(&shortcut));
-    if used + need > usize::from(room) {
+    if key.is_empty() { return out; }
+    if crate::mnemonic::letter(key).is_none() {
+        out.spans.insert(0, Span::styled(format!("{key} "), t.bold(Slot::AccentSecondary)));
         return out;
     }
-    out.spans.push(Span::raw(" ".repeat(usize::from(room) - used - need)));
+    if let Some(at) = mnemonic_at
+        && crate::mnemonic::eligible(text, at)
+        && crate::mnemonic::valid_at(key, &text.words(), Some(at))
+    {
+        out = mnemonic_line(t, text, at);
+        if mnemonic_shift { out.spans.insert(0, Span::styled("shift ", t.bold(Slot::AccentSecondary))); }
+        return out;
+    }
+    let shortcut = format!(" [{key}]");
+    let (used, need) = (out.width(), ui::width(&shortcut));
+    out.spans.push(Span::raw(" ".repeat(usize::from(room).saturating_sub(used + need))));
     out.spans.push(Span::styled(shortcut, t.s(Slot::TextMuted)));
+    out
+}
+
+/// Preserve source-scalar offsets across hidden icon fallbacks. Splitting spans
+/// only changes underline; custom looks, link metadata and chip grounds survive.
+fn mnemonic_line(t: &Theme, text: &Text, at: usize) -> Line<'static> {
+    let Some(range) = crate::mnemonic::grapheme_range(&text.words(), at) else { return line(t, text) };
+    let mut offset = 0;
+    let mut out = Vec::new();
+    for seg in &text.0 {
+        let end = offset + seg.text.chars().count();
+        let painted = spans(t, &Text::from(vec![seg.clone()]));
+        let intersects = range.start < end && range.end > offset && (seg.icon.is_none() || seg.chip);
+        if !intersects {
+            out.extend(painted);
+        } else {
+            let prefix = if seg.chip {
+                painted.iter().map(|s| s.content.chars().count()).sum::<usize>()
+                    .saturating_sub(seg.text.chars().count() + 1)
+            } else { 0 };
+            let start = prefix + range.start.saturating_sub(offset);
+            let stop = prefix + (range.end.min(end) - offset);
+            let mut painted_at = 0;
+            for span in painted {
+                let chars: Vec<_> = span.content.chars().collect();
+                let next = painted_at + chars.len();
+                let a = start.saturating_sub(painted_at).min(chars.len());
+                let b = stop.saturating_sub(painted_at).min(chars.len());
+                for (part, underlined) in [(&chars[..a], false), (&chars[a..b.max(a)], true), (&chars[b.max(a)..], false)] {
+                    if !part.is_empty() {
+                        out.push(Span::styled(part.iter().collect::<String>(), if underlined { span.style.add_modifier(ratatui::style::Modifier::UNDERLINED) } else { span.style }));
+                    }
+                }
+                painted_at = next;
+            }
+        }
+        offset = end;
+    }
+    coalesced_line(Line::from(out))
+}
+
+/// Keep a grapheme that crosses a source style boundary in one painted cell.
+/// The base scalar's colour wins; modifiers compose, and a continuation link
+/// is kept when the base has none. No text or cell width is changed.
+pub(crate) fn coalesced_line(line: Line<'static>) -> Line<'static> {
+    use ratatui::style::Style;
+    let mut text = String::new();
+    let mut styles = Vec::new();
+    for span in &line.spans {
+        let start = text.len();
+        text.push_str(&span.content);
+        styles.push((start..text.len(), line.style.patch(span.style)));
+    }
+    let raw = Span::raw(&text);
+    let mut spans: Vec<Span<'static>> = Vec::new();
+    let mut cursor = 0;
+    for g in raw.styled_graphemes(Style::default()) {
+        let start = g.symbol.as_ptr() as usize - text.as_ptr() as usize;
+        let end = start + g.symbol.len();
+        while cursor < styles.len() && styles[cursor].0.end <= start { cursor += 1; }
+        let mut style = styles.get(cursor).map_or(line.style, |(_, style)| *style);
+        let mut next = cursor + 1;
+        while let Some((range, other)) = styles.get(next) {
+            if range.start >= end { break; }
+            style = style.add_modifier(other.add_modifier);
+            if style.underline_color.is_none() { style.underline_color = other.underline_color; }
+            next += 1;
+        }
+        match spans.last_mut() {
+            Some(last) if last.style == style => last.content.to_mut().push_str(g.symbol),
+            _ => spans.push(Span::styled(g.symbol.to_owned(), style)),
+        }
+    }
+    let mut out = Line::from(spans);
+    out.alignment = line.alignment;
     out
 }
 
@@ -1112,27 +1247,14 @@ fn section_rows(t: &Theme, blocks: &[crate::view::Block], width: u16, pictured: 
 /// Ink's `wrapCells` breaks it (and as `Paragraph`'s wrap without
 /// trimming): a word wider than a row is cut at its edge, the spaces where
 /// a row breaks are dropped. A line that fits is kept as it is.
-fn wrap_line(line: Line<'static>, width: usize) -> Vec<Line<'static>> {
-    use unicode_width::UnicodeWidthChar;
+pub(crate) fn wrap_line(line: Line<'static>, width: usize) -> Vec<Line<'static>> {
+    let line = coalesced_line(line);
     if width == 0 || line.width() <= width {
         return vec![line];
     }
     type Cell = (String, usize, ratatui::style::Style);
-    let mut cells: Vec<Cell> = Vec::new();
-    for s in &line.spans {
-        let style = line.style.patch(s.style);
-        for ch in s.content.chars() {
-            match ch.width().unwrap_or(0) {
-                0 => {
-                    if let Some(last) = cells.last_mut() {
-                        last.0.push(ch);
-                    }
-                }
-                w => cells.push((ch.to_string(), w, style)),
-            }
-        }
-    }
-    let wide = |cs: &[Cell]| cs.iter().map(|c| c.1).sum::<usize>();
+    let cells: Vec<Cell> = line.styled_graphemes(ratatui::style::Style::default())
+        .map(|g| (g.symbol.to_owned(), ui::width(g.symbol), g.style)).collect();
     let to_line = |cs: Vec<Cell>| {
         let mut spans: Vec<Span<'static>> = Vec::new();
         for (ch, _, style) in cs {
@@ -1143,47 +1265,50 @@ fn wrap_line(line: Line<'static>, width: usize) -> Vec<Line<'static>> {
         }
         Line::from(spans)
     };
+    // Match Paragraph's WordWrapper with trim:false. Keep leading spaces,
+    // discard only the gap consumed at a wrap, and retain trailing spaces.
+    // The same rows drive section painting and whole-action continuation hits.
     let mut rows: Vec<Vec<Cell>> = Vec::new();
-    let (mut row, mut word, mut gap): (Vec<Cell>, Vec<Cell>, Vec<Cell>) = (Vec::new(), Vec::new(), Vec::new());
-    let flush = |row: &mut Vec<Cell>, word: &mut Vec<Cell>, gap: &mut Vec<Cell>, rows: &mut Vec<Vec<Cell>>| {
-        if word.is_empty() {
-            return;
+    let mut row = Vec::new();
+    let mut word = Vec::new();
+    let mut gap = std::collections::VecDeque::<Cell>::new();
+    let (mut row_width, mut word_width, mut gap_width) = (0, 0, 0);
+    let mut previous_word = false;
+    for cell in cells {
+        let whitespace = cell.0 == "\u{200b}" || (cell.0 != "\u{a0}" && cell.0.chars().all(char::is_whitespace));
+        let cell_width = cell.1;
+        if cell_width > width { continue; }
+        if (previous_word && whitespace) || (row.is_empty() && word_width + gap_width + cell_width > width) {
+            row.extend(gap.drain(..));
+            row.append(&mut word);
+            row_width += gap_width + word_width;
+            gap_width = 0;
+            word_width = 0;
         }
-        if wide(row) + wide(gap) + wide(word) <= width {
-            row.append(gap);
-            row.append(word);
-        } else {
-            if !row.is_empty() {
-                rows.push(std::mem::take(row));
+        if row_width >= width || (cell_width > 0 && row_width + gap_width + word_width >= width) {
+            let mut remaining = width.saturating_sub(row_width);
+            rows.push(std::mem::take(&mut row));
+            row_width = 0;
+            while let Some(space) = gap.front() {
+                if space.1 > remaining { break; }
+                remaining -= space.1;
+                gap_width -= space.1;
+                gap.pop_front();
             }
-            let mut rest = std::mem::take(word);
-            while wide(&rest) > width {
-                let mut used = 0;
-                let n = rest.iter().take_while(|c| {
-                    used += c.1;
-                    used <= width
-                }).count();
-                let tail = rest.split_off(n.max(1));
-                rows.push(rest);
-                rest = tail;
-            }
-            *row = rest;
+            if whitespace && gap.is_empty() { continue; }
         }
-        word.clear();
-        gap.clear();
-    };
-    for c in cells {
-        if c.0 == " " {
-            flush(&mut row, &mut word, &mut gap, &mut rows);
-            gap.push(c);
+        if whitespace {
+            gap_width += cell_width;
+            gap.push_back(cell);
         } else {
-            word.push(c);
+            word_width += cell_width;
+            word.push(cell);
         }
+        previous_word = !whitespace;
     }
-    flush(&mut row, &mut word, &mut gap, &mut rows);
-    if !row.is_empty() || rows.is_empty() {
-        rows.push(row);
-    }
+    row.extend(gap);
+    row.append(&mut word);
+    if !row.is_empty() || rows.is_empty() { rows.push(row); }
     rows.into_iter().map(to_line).collect()
 }
 
@@ -1204,10 +1329,13 @@ fn rich_hits(t: &Theme, blocks: &[crate::view::Block], width: u16, room: u16, in
     };
     for (i, block) in blocks.iter().enumerate() {
         match block {
-            Block::Line { text, target, .. } => {
+            Block::Line { text, target, key, mnemonic_at, mnemonic_shift } => {
                 let y = top + rows_before(i);
                 if let Some(target) = target {
-                    hits.push((y, left, room, target.0.clone()));
+                    let line = keyed_line(t, text, key.as_deref(), *mnemonic_at, *mnemonic_shift, width.saturating_add(1));
+                    for (row, line) in wrap_line(line, usize::from(room)).iter().enumerate() {
+                        if line.width() > 0 { hits.push((y + row, left, room, target.0.clone())); }
+                    }
                 }
                 let mut x = left;
                 for seg in &text.0 {
@@ -1234,6 +1362,42 @@ fn radar_core_rich_height(lines: &[Line<'_>], width: u16) -> usize {
 }
 
 #[allow(clippy::too_many_arguments)]
+fn draw_detail(
+    fe: &Frontend, scope: &str, id: PaneId, content: &crate::view::detail::DetailContent,
+    frame: Rect, inner: Rect, buf: &mut Buffer, cx: &Cx<'_>,
+) {
+    let t = cx.theme;
+    let fetch = content.pictures.as_ref().and_then(|source| fe.pictures.borrow().get(source).cloned());
+    let laid = ui::detail::layout(t, content, inner.width, fetch.is_some());
+    fe.with_scroll(scope, id, |scroll| {
+        if inner.is_empty() { scroll.fit(0, 0); return; }
+        let height = laid.lines.len().min(usize::from(u16::MAX)) as u16;
+        ui::scroll::scrolled_with(t, scroll, frame, inner, buf, height, |area, buffer| {
+            for (row, line) in laid.lines.iter().take(usize::from(area.height)).enumerate() {
+                buffer.set_line(area.x, area.y + row as u16, line, area.width);
+            }
+        });
+        let at = usize::from(scroll.at());
+        if let Some(fetch) = &fetch {
+            for media in &laid.media {
+                let top = media.line as i32 - at as i32;
+                if top + i32::from(media.rows) <= 0 || top >= i32::from(inner.height) { continue; }
+                ui::image::want(&media.src, fetch);
+                ui::image::draw(&media.src, media.cols, media.rows, inner, buf, media.x, top);
+            }
+        }
+        for hit in &laid.hits {
+            if hit.row >= at && hit.row < at + usize::from(inner.height) && hit.x < inner.width {
+                let width = hit.width.min(inner.width - hit.x);
+                if width > 0 {
+                    cx.hit(Rect::new(inner.x + hit.x, inner.y + (hit.row - at) as u16, width, 1), Pane::from(id), hit.target.clone());
+                }
+            }
+        }
+    });
+}
+
+#[allow(clippy::too_many_arguments)]
 fn draw_node(
     fe: &Frontend,
     scope: &str,
@@ -1247,6 +1411,10 @@ fn draw_node(
 ) {
     let t = cx.theme;
     let legacy = Pane::from(id);
+    if let Some(content) = crate::view::detail::DetailContent::of(node) {
+        draw_detail(fe, scope, id, &content, frame, inner, buf, cx);
+        return;
+    }
     match node {
         // No room for a row: none is drawn or marked.
         Node::List { .. } if inner.height == 0 || inner.width == 0 => {}
@@ -1371,6 +1539,12 @@ fn draw_node(
             }
             ui::states::empty(t, inner, buf, text);
         }
+        // An unsupported detail payload already carries its complete identity,
+        // facts and actions. Give that fallback the same body room, without a
+        // warning row that would change its final scroll position.
+        Node::Extension { capability, fallback, .. } if capability == crate::view::detail::CAPABILITY => {
+            draw_node(fe, scope, id, fallback, frame, inner, buf, cx, focused);
+        }
         Node::Extension {
             capability,
             fallback,
@@ -1432,57 +1606,6 @@ fn node_of(t: &Theme, row: &TreeRow) -> ui::Node {
     node
 }
 
-/// Cut a row's name (and its children's) to what the columns leave: the
-/// widest words give way, each ending in `…`, so the kit never has to cut
-/// a word bare and the cell after it keeps its gap.
-fn fit_names(node: &mut ui::Node, depth: usize, width: usize, columns: usize) {
-    let lead = if depth == 0 { 2 } else { depth + 2 };
-    let budget = width
-        .saturating_sub(depth * 2 + lead)
-        .saturating_sub(columns + 1);
-    shrink(&mut node.name, budget);
-    for c in &mut node.children {
-        fit_names(c, depth + 1, width, columns);
-    }
-}
-
-/// `spans` in `budget` cells: the widest span is cut with `…` until they fit.
-fn shrink(spans: &mut Vec<Span<'static>>, budget: usize) {
-    const LEAST: usize = 4;
-    loop {
-        let total: usize = spans.iter().map(Span::width).sum();
-        if total <= budget {
-            return;
-        }
-        let excess = total - budget;
-        let Some((i, w)) = spans
-            .iter()
-            .map(Span::width)
-            .enumerate()
-            .max_by_key(|(_, w)| *w)
-            .filter(|(_, w)| *w > LEAST)
-        else {
-            // Nothing wide enough to cut: drop from the end.
-            if let Some(last) = spans.pop() {
-                if spans.is_empty() {
-                    spans.push(last);
-                    return;
-                }
-                continue;
-            }
-            return;
-        };
-        let to = w.saturating_sub(excess).max(LEAST);
-        let text = ui::fit(spans[i].content.trim_end(), to);
-        let style = spans[i].style;
-        spans[i] = Span::styled(text.trim_end().to_string(), style);
-        if ui::width(&spans[i].content) >= w {
-            spans.truncate(i + 1);
-            return;
-        }
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 fn draw_tree(
     fe: &Frontend,
@@ -1525,11 +1648,6 @@ fn draw_tree(
         own.fit(width, name).with_extra(&extra, width, name)
     };
     let mut nodes: Vec<ui::Node> = tree.rows.iter().map(|r| node_of(t, r)).collect();
-    if tree.cut_names {
-        for n in &mut nodes {
-            fit_names(n, 0, width, cols.width());
-        }
-    }
     let mut trees = fe.trees.borrow_mut();
     let state = trees.entry(scope.to_string()).or_default();
     state.close_all();
@@ -1558,7 +1676,7 @@ fn draw_tree(
         input.set_cursor(e.caret);
         input
     });
-    let mut banded = ui::BandedTree::new(&nodes, &cols, look).focused(focused);
+    let mut banded = ui::BandedTree::new(&nodes, &cols, look).focused(focused).cut_names(tree.cut_names);
     if let Some(input) = &typing {
         banded = banded.input(input, cx.cursor);
     }
@@ -1599,6 +1717,10 @@ fn draw_tree(
         if let Some(key) = &row.glow {
             crate::motion::row(key.clone(), Rect { y, height: 1, ..drawn });
         }
+        if !ui::tree::row_columns_visible(
+            path.len().saturating_sub(1), width, cols.width(), !row.cells.is_empty(),
+            !row.children.is_empty() && !tree.open.contains(&path),
+        ) { continue; }
         for cell in &row.cells {
             if let (Some(target), Some((x, width))) = (&cell.target, cols.at(&cell.heading, end)) {
                 cx.hit(Rect { x, y, width, height: 1 }, pane, target.0.clone());
@@ -1707,6 +1829,8 @@ pub fn chord_of(key: &KeyEvent) -> Option<Chord> {
         key: k,
         ctrl: key.modifiers.contains(KeyModifiers::CONTROL),
         alt: key.modifiers.contains(KeyModifiers::ALT),
+        shift: !matches!(key.code, KeyCode::Char(_) | KeyCode::BackTab)
+            && key.modifiers.contains(KeyModifiers::SHIFT),
     })
 }
 
@@ -1736,6 +1860,7 @@ pub fn key_of(chord: Chord) -> KeyEvent {
     if chord.alt {
         mods |= KeyModifiers::ALT;
     }
+    if chord.shift { mods |= KeyModifiers::SHIFT; }
     KeyEvent::new(code, mods)
 }
 
@@ -1776,12 +1901,7 @@ pub enum Routed {
 /// part), `⏎` activating the selection, any other key passed on.
 pub fn key(fe: &Frontend, view: &ScreenView, focus: PaneId, chord: Chord) -> Routed {
     // While something is written in, every key is the part's.
-    if view.overlay.is_some() {
-        return Routed::Intent(Intent::Key { chord });
-    }
-    // A field being typed into takes every key, whichever pane has the focus:
-    // `/` typed from the views rail filters the tree, and ↓ is the field's.
-    if field_owner(view).is_some() {
+    if screen_captures_keys(view) {
         return Routed::Intent(Intent::Key { chord });
     }
     let page = matches!(chord.key, Key::PageUp | Key::PageDown) && !chord.ctrl;
@@ -1845,7 +1965,13 @@ pub fn key(fe: &Frontend, view: &ScreenView, focus: PaneId, chord: Chord) -> Rou
         }
         return Routed::Intent(Intent::Key { chord });
     }
-    match &pane.body {
+    fn scrolling(node: &Node) -> &Node {
+        match node {
+            Node::Extension { capability, fallback, .. } if capability == crate::view::detail::CAPABILITY => scrolling(fallback),
+            _ => node,
+        }
+    }
+    match scrolling(&pane.body) {
         Node::List { .. } | Node::Table { .. } | Node::Entries { .. } | Node::Log { .. } | Node::Diff { .. } => {}
         Node::Rich { .. } => {
             // Scrolled to the end: the part may bring more.
@@ -1859,6 +1985,9 @@ pub fn key(fe: &Frontend, view: &ScreenView, focus: PaneId, chord: Chord) -> Rou
         Node::Tree(tree) => {
             if let Some(i) = crate::view::tree_step(tree, chord) {
                 return Routed::Intent(i);
+            }
+            if crate::view::tree_key(chord) && matches!(chord.key, Key::Left | Key::Right) {
+                return Routed::Done;
             }
             if chord == Chord::new(Key::Enter) && !tree.selected.is_empty() {
                 return Routed::Intent(Intent::Activate {
@@ -1899,13 +2028,14 @@ pub fn section_key(view: &SectionView, chord: Chord) -> Intent {
     // A section's tree moves and folds as a screen's does; `↑` on its
     // first row stays there. While a row is typed into, keys are the part's.
     if let Node::Tree(tree) = &view.body
-        && !tree.rows.is_empty()
         && tree.editing.is_none()
     {
         if let Some(i) = crate::view::tree_step(tree, chord) {
             return i;
         }
-        if matches!(chord.key, Key::Up | Key::Char('k')) && !chord.ctrl && !chord.alt {
+        if matches!(chord.key, Key::Up | Key::Char('k')) && !chord.ctrl && !chord.alt
+            && !chord.shift && tree.selectable(&tree.selected)
+        {
             return Intent::Select {
                 target: TreeRow::target_of(&tree.selected),
             };
@@ -1916,6 +2046,9 @@ pub fn section_key(view: &SectionView, chord: Chord) -> Intent {
 
 /// A click (or a right click, `context`) on a hit the adapter drew.
 pub fn click(fe: &Frontend, id: &str, context: bool) -> Routed {
+    // Only host admission may dispatch pinned controls. Never turn a reserved
+    // target into a provider row Select/Context through a fallback adapter.
+    if id.starts_with(crate::view::detail::TARGET_PREFIX) { return Routed::Done; }
     // A pane's background only focuses it; it has no menu of its own.
     if id == PANE_HIT {
         return if context { Routed::Ignored } else { Routed::Done };
@@ -2104,3 +2237,6 @@ mod tests;
 
 #[cfg(test)]
 mod interaction_tests;
+
+#[cfg(test)]
+mod detail_tests;

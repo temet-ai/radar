@@ -12,7 +12,8 @@
           "char": "e"
         }
       },
-      "label": "change it"
+      "label": "change it",
+      "mnemonic_at": 5
     },
     {
       "id": "github.repositories.activate_add",
@@ -28,7 +29,8 @@
           "char": "c"
         }
       },
-      "label": "check GitHub connection"
+      "label": "check GitHub connection",
+      "mnemonic_at": 0
     },
     {
       "id": "github.repositories.browse",
@@ -37,46 +39,62 @@
           "char": "a"
         }
       },
-      "label": "browse repositories this token can access"
+      "label": "browse repositories this token can access",
+      "mnemonic_at": 32
     }
   ],
   "body": {
-    "node": "list",
+    "columns": [],
+    "name_width": 0,
+    "node": "tree",
+    "open": [
+      [
+        "group:github.com/acme"
+      ]
+    ],
     "rows": [
       {
-        "target": "setting:0",
-        "text": [
+        "id": "add",
+        "name": [
           {
             "text": "create a group or add a repository"
           }
         ]
       },
       {
-        "target": "setting:1",
-        "text": [
+        "children": [
           {
-            "text": "◆  github.com/acme"
+            "id": "repo:acme/api",
+            "name": [
+              {
+                "text": "api"
+              }
+            ]
+          },
+          {
+            "id": "repo:acme/docs",
+            "name": [
+              {
+                "text": "docs"
+              }
+            ]
           }
-        ]
-      },
-      {
-        "target": "setting:2",
-        "text": [
+        ],
+        "id": "group:github.com/acme",
+        "name": [
           {
-            "text": "  ├─ api"
-          }
-        ]
-      },
-      {
-        "target": "setting:3",
-        "text": [
+            "icon": "group"
+          },
           {
-            "text": "  └─ docs"
+            "ink": "emphasis",
+            "text": "github.com/acme"
           }
         ]
       }
     ],
-    "selected": 0
+    "selected": [
+      "add"
+    ]
   },
   "detail": [
     [

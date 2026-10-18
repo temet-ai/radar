@@ -4,7 +4,7 @@ assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    History   Settings (,)                                         ✎ edit
-╭ settings ────────────╮╭ parts ───────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 parts ─────────────────────────────────────────────╮
 │General               ││ No parts are compiled into this build of radar. Each │
 │  ├─ parts            ││ part is a cargo feature: build radar with the ones   │
 │  ├─ mode             ││ you want (cargo build --features <part>).            │
@@ -15,7 +15,7 @@ expression: "to_text(&started(), 80, 24)"
 │                      ││                                                      │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ about ───────────────────────────────────────────────╮
+│                      │╭ 3 about ─────────────────────────────────────────────╮
 │                      ││ A part is one ability of radar, usually one tool it  │
 │                      ││ works with, compiled in as a cargo feature. Parts    │
 │                      ││ never depend on each other: each works alone, and    │
@@ -26,4 +26,4 @@ expression: "to_text(&started(), 80, 24)"
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate

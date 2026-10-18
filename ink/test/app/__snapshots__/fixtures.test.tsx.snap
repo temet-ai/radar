@@ -24,11 +24,11 @@ exports[`recorded view fixtures through the whole App > _hand_work_list_80x24.js
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > _hand_work_list_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ Views ─────────────────╮╭ Items ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ▤ My work            4 ││radar                                                                                                                               │
 │ To review            2 ││  └─ Fix the diff view                                                                                         open    Ada          │
@@ -67,14 +67,14 @@ exports[`recorded view fixtures through the whole App > _hand_work_list_160x40.j
 │                        ││                                                                                                                                    │
 │                        ││                                                                                                                                    │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ all ─────────────────────────────────────────────────────────────────────────╮
 │ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  │
-│▤ api  on ⎇ alice/ABC-…  ● in use   ↑2     —       ⚠ 3 change 1      3h       │
+│▤ api  on ⎇ alice/ABC-12  ● in use  ↑2     —       ⚠ 3 change 1      3h       │
 │  ├─ ▪ api-hotfix  on ⎇ alice/ABC-… ↑1     ↓3      clean      —      1d       │
 │  ├─ ⎇ main                         —      ↓4      —          —      2d       │
 │  ├─ ⎇ alice/ABC-12  ● here         ↑2     —       ⚠ 3 change —      3h       │
@@ -94,11 +94,11 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ every clone, its worktrees and its local branches                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCH-SCREEN   q ✕ quit   x ≡ menu                   gitlab github jira slack"
+ BRANCH-SCREEN   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_branch-screen_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api ─────────────────────────────────────────╮
 │ ▽ all                  ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  ││ folder   /work/acme/api                      │
 │ ⚠ dirty              1 ││▤ api  on ⎇ alice/ABC-12  ● in use        ↑2     —       ⚠ 3 change 1      3h       ││ origin   git@example.com:acme/team-a/api.git │
@@ -137,7 +137,7 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_160x40
 │                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
 │                        ││ every clone, its worktrees and its local branches                                  ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- BRANCH-SCREEN   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                              gitlab github jira slack"
+ BRANCH-SCREEN   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                             gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-branches_80x24.json at 80x24 1`] = `
@@ -164,11 +164,11 @@ exports[`recorded view fixtures through the whole App > git_settings-branches_80
 │                      ││ develop                                              ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- BRANCHES   q ✕ quit   x ≡ menu                        gitlab github jira slack"
+ BRANCHES   ✕ quit   ≡ extra actions   ~ notices       gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-branches_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ branches ──────────────────────────────────────────────────────────────────────╮╭ add a convention ──────────────────────────────────╮
 │GitLab                ││  + add a convention for a repo   a repo path, a template, a base               ││ A branch name template and base branch for the     │
 │  ├─ connection       ││ me         not set                                                             ││ repos under a path. The longest matching path      │
@@ -207,7 +207,7 @@ exports[`recorded view fixtures through the whole App > git_settings-branches_16
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- BRANCHES   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                   gitlab github jira slack"
+ BRANCHES   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                  gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-checkouts_80x24.json at 80x24 1`] = `
@@ -234,11 +234,11 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_8
 │                      ││                                                      ║
 │                      ││ NOW                                                  ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- CHECKOUTS   q ✕ quit   x ≡ menu                       gitlab github jira slack"
+ CHECKOUTS   ✕ quit   ≡ extra actions   ~ notices      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-checkouts_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ checkouts ─────────────────────────────────────────────────────────────────────╮╭ add a folder ──────────────────────────────────────╮
 │GitLab                ││  + add a folder to look in   paste or type a folder                            ││ Another folder to look for git checkouts in. radar │
 │  ├─ connection       ││ folder     /work                                                       3 found ││ matches each checkout to its repo by its origin    │
@@ -277,7 +277,7 @@ exports[`recorded view fixtures through the whole App > git_settings-checkouts_1
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- CHECKOUTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                  gitlab github jira slack"
+ CHECKOUTS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                 gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-editors_80x24.json at 80x24 1`] = `
@@ -304,11 +304,11 @@ exports[`recorded view fixtures through the whole App > git_settings-editors_80x
 │                      ││ NOW                                                  ║
 │                      ││ 5 types                                              ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- EDITORS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu    gitlab github jira slack"
+ EDITORS   ✕ quit   ≡ extra actions   ~ notices        gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-editors_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ editors ───────────────────────────────────────────────────────────────────────╮╭ add a project type ────────────────────────────────╮
 │GitLab                ││  + add a project type   a name, then its marker files                          ││ Another kind of project, told apart by a file at   │
 │  ├─ connection       ││ java      build.gradle build.gradle.kts pom.xml                           asks ││ the top of its checkout, with the editor it opens  │
@@ -347,7 +347,7 @@ exports[`recorded view fixtures through the whole App > git_settings-editors_160
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- EDITORS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                    gitlab github jira slack"
+ EDITORS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                   gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-links_80x24.json at 80x24 1`] = `
@@ -374,11 +374,11 @@ exports[`recorded view fixtures through the whole App > git_settings-links_80x24
 │                      ││                                                      ║
 │                      ││ NOW                                                  ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- LINKS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ LINKS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-links_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ links ─────────────────────────────────────────────────────────────────────────╮╭ link to a local folder ────────────────────────────╮
 │GitLab                ││  + link a repo to your clone   the repo's path, then the folder                ││ Tie a repo to the clone you work in. A link wins   │
 │  ├─ connection       ││                                                                                ││ over the clone radar finds by its origin, and the  │
@@ -417,7 +417,7 @@ exports[`recorded view fixtures through the whole App > git_settings-links_160x4
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- LINKS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ LINKS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-terminal_80x24.json at 80x24 1`] = `
@@ -444,11 +444,11 @@ exports[`recorded view fixtures through the whole App > git_settings-terminal_80
 │                      ││ ⏎ picks one of the terminals found here, or type a   ║
 │                      ││ command line: {dir} is the folder, {cmd} the command ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- TERMINAL   q ✕ quit   x ≡ menu                        gitlab github jira slack"
+ TERMINAL   ✕ quit   ≡ extra actions   ~ notices       gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > git_settings-terminal_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ terminal ──────────────────────────────────────────────────────────────────────╮╭ terminal ──────────────────────────────────────────╮
 │GitLab                ││ terminal   radar finds one · when it opens                                     ││ What opens a terminal in a checkout (t on a repo   │
 │  ├─ connection       ││                                                                                ││ or a merge request). Inside tmux it is a new tmux  │
@@ -487,7 +487,7 @@ exports[`recorded view fixtures through the whole App > git_settings-terminal_16
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- TERMINAL   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                   gitlab github jira slack"
+ TERMINAL   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                  gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github_80x24.json at 80x24 1`] = `
@@ -514,11 +514,11 @@ exports[`recorded view fixtures through the whole App > github_github_80x24.json
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ GITHUB   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
 │ Everything     2 repos ││◆ github.com/acme                                                          2 repos  ││  ⌂ local folder    no matching origin; link  │
 │ ◆ acme         2 repos ││  ├─ ▤ acme/api                                                            2 PRs    ││ a folder or scan configured folders          │
@@ -557,12 +557,12 @@ exports[`recorded view fixtures through the whole App > github_github_160x40.jso
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ GITHUB   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-checks-actions_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- GitHub › acme/api › #42
+ GitHub / acme/api / #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be match
  [Overview]  Checks  Actions
@@ -584,12 +584,12 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ GITHUB   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-checks-actions_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- GitHub › acme/api › #42
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ GitHub / acme/api / #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be matched
  [Overview]  Checks  Actions
@@ -627,12 +627,12 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ GITHUB   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-pull-requests-actions_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- GitHub › acme/api
+ GitHub / acme/api
  acme/api
   ⌂ local folder    no matching origin; link a folder or scan configured folder
  [Overview]  Pull requests  Actions
@@ -654,12 +654,12 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ GITHUB   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page1-overview-pull-requests-actions_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- GitHub › acme/api
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ GitHub / acme/api
  acme/api
   ⌂ local folder    no matching origin; link a folder or scan configured folders
  [Overview]  Pull requests  Actions
@@ -697,12 +697,12 @@ exports[`recorded view fixtures through the whole App > github_github-page1-over
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ GITHUB   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-checks-actions_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- GitHub › acme/api › #42
+ GitHub / acme/api / #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be match
  [Overview]  Checks  Actions
@@ -724,12 +724,12 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ GITHUB   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-checks-actions_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- GitHub › acme/api › #42
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ GitHub / acme/api / #42
  acme/api
   ⌂ local folder    source repository unavailable; no local folder can be matched
  [Overview]  Checks  Actions
@@ -767,12 +767,12 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ GITHUB   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-jobs_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- GitHub › acme/api › run 501 · attempt 2
+ GitHub / acme/api / run 501 · attempt 2
  Build and test · run 501 · attempt 2
  [Overview]  Jobs
 ╭ Overview ────────────────────────────────────────────────────────────────────╮
@@ -794,12 +794,12 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ GITHUB   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_github-page2-overview-jobs_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- GitHub › acme/api › run 501 · attempt 2
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ GitHub / acme/api / run 501 · attempt 2
  Build and test · run 501 · attempt 2
  [Overview]  Jobs
 ╭ Overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -837,7 +837,7 @@ exports[`recorded view fixtures through the whole App > github_github-page2-over
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ GITHUB   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-connection_80x24.json at 80x24 1`] = `
@@ -864,11 +864,11 @@ exports[`recorded view fixtures through the whole App > github_settings-connecti
 │                      ││                                                      ║
 │                      ││ config: [github] token                               ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- CONNECTION   q ✕ quit   x ≡ menu                      gitlab github jira slack"
+ CONNECTION   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ public only ───────────────────────────────────────╮
 │GitLab                ││  SIGN IN  how radar reads GitHub                                               ││ NOW                                                │
 │  ├─ connection       ││  ○ public only     public repositories, no token                               ││ env:GITHUB_TOKEN                                   │
@@ -887,7 +887,7 @@ exports[`recorded view fixtures through the whole App > github_settings-connecti
 │                      ││  REPOSITORIES  github.com/owner, owner/repo or a group name                    ││ ⇌ OR A TOKEN ───────────────────────────────────── │
 │                      ││  + add a repository or group   paste or type it                                ││   Public repositories need none. For private ones: │
 │                      ││    ◆ github.com/acme   2 repositories                                          ││   1 Open the fine-grained token page:              │
-│                      ││                                                                                ││   github.com / new token   o opens · y copies      │
+│                      ││                                                                                ││   github.com / new token   open · copy             │
 │                      ││                                                                                ││   2 Repository access: the repositories to follow. │
 │                      ││                                                                                ││   3 Permissions come filled in from access:        │
 │                      ││                                                                                ││   contents, pull requests, actions, statuses:      │
@@ -907,16 +907,16 @@ exports[`recorded view fixtures through the whole App > github_settings-connecti
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- CONNECTION   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
+ CONNECTION   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-repositories_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ repositories ────────────────────────────────────────╮
-│GitLab                ││ create a group or add a repository                   │
-│  ├─ connection       ││ ◆  github.com/acme                                   │
-│  └─ projects         ││   ├─ api                                             │
-│Slack ⋯               ││   └─ docs                                            │
+│GitLab                ││create a group or add a repository                    │
+│  ├─ connection       ││◆ github.com/acme                                     │
+│  └─ projects         ││  ├─ api                                              │
+│Slack ⋯               ││  └─ docs                                             │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -934,16 +934,16 @@ exports[`recorded view fixtures through the whole App > github_settings-reposito
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   q ✕ quit   x ≡ menu                    gitlab github jira slack"
+ REPOSITORIES   ≡ extra actions   ~ notices            gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > github_settings-repositories_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ repositories ──────────────────────────────────────────────────────────────────╮╭ create a group or add a repository ────────────────╮
-│GitLab                ││ create a group or add a repository                                             ││ Create groups and choose repositories. Press a to  │
-│  ├─ connection       ││ ◆  github.com/acme                                                             ││ browse, e to edit, d to remove, or m to move a     │
-│  └─ projects         ││   ├─ api                                                                       ││ repository.                                        │
-│Slack ⋯               ││   └─ docs                                                                      ││                                                    │
+│GitLab                ││create a group or add a repository                                              ││ Create groups and choose repositories. Press a to  │
+│  ├─ connection       ││◆ github.com/acme                                                               ││ browse, e to edit, d to remove, or m to move a     │
+│  └─ projects         ││  ├─ api                                                                        ││ repository.                                        │
+│Slack ⋯               ││  └─ docs                                                                       ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
@@ -977,23 +977,23 @@ exports[`recorded view fixtures through the whole App > github_settings-reposito
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                               gitlab github jira slack"
+ REPOSITORIES   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                              gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
 │ ⇄ Everything         ││ OPENED BY ⚇ everyone · 4 repos  ⋮ STATE              │
-│ ◎ Needs my action  2 ││▌ ◆ B team-b                                          │
-│ ☻ Opened by me       ││▌ └─ ▤ worker                                         │
-│ ⚇ Opened by teammate ││▌    └─ ◌ !342 change 342  ☻ you ◌ draft              │
-│ ◙ Opened by bots     ││▌ ◆ A team-a   main red in 1                          │
-│                      ││▌ ├─ ⌂ api  ⎇ alice/ABC-12       ✓ passed             │
-│                      ││▌ │  └─ ⇄ !263 ABC-12: Add a sta ◎ needs 1 approval   │
-│                      ││▌ ├─ ⌂ web  ⎇ main               ✗ failed             │
-│                      ││▌ │  ├─ ⇄ !187 change 187  ☻ you ✓ ready to merge     │
-│                      ││▌ │  └─ ⇄ !198 change 198  ◙ gro ◎ needs 1 approval   │
-│                      ││▌ └─ ▤ docs                      ✓ passed             │
+│ ◎ Needs my action  2 ││◆ B team-b                                            │
+│ ☻ Opened by me       ││  └─ ▤ worker                                         │
+│ ⚇ Opened by teammate ││     └─ ◌ !342 change 342  ☻ you ◌ draft              │
+│ ◙ Opened by bots     ││◆ A team-a   main red in 1                            │
+│                      ││  ├─ ⌂ api  ⎇ alice/ABC-12       ✓ passed             │
+│                      ││  │  └─ ⇄ !263 ABC-12: Add a sta ◎ needs 1 approval   │
+│                      ││  ├─ ⌂ web  ⎇ main               ✗ failed             │
+│                      ││  │  ├─ ⇄ !187 change 187  ☻ you ✓ ready to merge     │
+│                      ││  │  └─ ⇄ !198 change 198  ◙ gro ◎ needs 1 approval   │
+│                      ││  └─ ▤ docs                      ✓ passed             │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -1004,23 +1004,23 @@ exports[`recorded view fixtures through the whole App > gitlab_repos_80x24.json 
 │                      ││ every open merge request · listing every repo, also  │
 │                      ││ those without                                        │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -1047,12 +1047,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos_160x40.json
 │                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
 │                        ││ every open merge request · listing every repo, also those without                  ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge-requests-pipelines-on-main_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Repositories › a › web
+ Repositories / a / web
  ▤ acme/team-a/web                              ⎇ main ✗ failed · active 4d ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
  ⇄ Merge requests  [⋮ Pipelines on main]
@@ -1074,12 +1074,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge-requests-pipelines-on-main_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Repositories › a › web
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Repositories / a / web
  ▤ acme/team-a/web                                                                                                              ⎇ main ✗ failed · active 4d ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
  ⇄ Merge requests  [⋮ Pipelines on main]
@@ -1117,12 +1117,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-merge
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Repositories › a › web › !198
+ Repositories / a / web / !198
  ⇄ change 198                                          ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
  [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
@@ -1144,12 +1144,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 │ │ ☺ Bob Example · 1h ago                                                     │
 │ │ Should this read from the cached view? The dashboard polls every 30s.      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Repositories › a › web › !198
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Repositories / a / web / !198
  ⇄ change 198                                                                                                      ◙ group_1_bot_abc · ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
  [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
@@ -1187,12 +1187,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Repositories › b
+ Repositories / b
  ◆ acme/team-b                                       0 repos · 0 merge requests
  [▤ Repos]
 ╭ repos ───────────────────────────────────────────────────────────────────────╮
@@ -1214,12 +1214,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos
 │                                                                              │
 │ No repos hidden. Settings › tenancies hides the ones you never need.         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Repositories › b
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Repositories / b
  ◆ acme/team-b                                                                                                                       0 repos · 0 merge requests
  [▤ Repos]
 ╭ repos ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -1257,12 +1257,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-repos
 │                                                                                                                                                              │
 │ No repos hidden. Settings › tenancies hides the ones you never need.                                                                                         │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Repositories › a › web › unit-test
+ Repositories / a / web / unit-test
  ▸ unit-test                                 test · 1m 14s · it ran out of time
  [≣ Log]
 ╭ log ─────────────────────────────────────────────────────────────────────────╮
@@ -1284,12 +1284,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_8
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ ⋯ 878 KB earlier in the log, loaded when you reach the top                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Repositories › a › web › unit-test
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Repositories / a / web / unit-test
  ▸ unit-test                                                                                                ✗ failed · stage test · 1m 14s · it ran out of time
  [≣ Log]
 ╭ log ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -1327,12 +1327,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-log_1
 │─ shows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
 │ ⋯ 878 KB earlier in the log, loaded when you reach the top                                                                                                   │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge-requests-pipelines-on-main_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Repositories › a › api
+ Repositories / a / api
  ▤ acme/team-a/api                          ◦ a22afd6f ☺ Alice Example · 2h ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/api · java · ⎇ on alice/ABC-12 ·
  [⇄ Merge requests]  ⋮ Pipelines on main
@@ -1354,12 +1354,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge-requests-pipelines-on-main_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Repositories › a › api
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Repositories / a / api
  ▤ acme/team-a/api                                                                            ⎇ main ✓ passed · last commit ◦ a22afd6f ☺ Alice Example · 2h ago
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/api · java · ⎇ on alice/ABC-12 · 1 more
  [⇄ Merge requests]  ⋮ Pipelines on main
@@ -1397,12 +1397,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-merge
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Repositories › a › web › !198
+ Repositories / a / web / !198
  ⇄ change 198                                          ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
  [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
@@ -1424,12 +1424,12 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 │ │ ☺ Bob Example · 1h ago                                                     │
 │ │ Should this read from the cached view? The dashboard polls every 30s.      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Repositories › a › web › !198
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Repositories / a / web / !198
  ⇄ change 198                                                                                                      ◙ group_1_bot_abc · ⎇ feature/ABC-198 → main
  ⌂ checkout  $ terminal  ✎ editor  /work/acme/web · node · ⎇ on main
  [ℹ Overview]  ▫ Changes  ❝ Threads ●  ⋮ Pipeline  ◦ Commits  Ticket
@@ -1467,7 +1467,7 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────╯
- REPOS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ REPOS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-connection_80x24.json at 80x24 1`] = `
@@ -1494,11 +1494,11 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-connecti
 │                      ││                                                      ║
 │                      ││ ACCEPTS                                              ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- CONNECTION   q ✕ quit   x ≡ menu                      gitlab github jira slack"
+ CONNECTION   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ server ────────────────────────────────────────────╮
 │GitLab                ││  server          https://gitlab.com                                            ││ CHECKED                                            │
 │  ├─ connection       ││  base group      acme                                                          ││ not checked yet                                    │
@@ -1515,7 +1515,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-connecti
 │                      ││  FOLLOW  groups and repositories                                               ││                                                    │
 │                      ││  + add a group or repository   paste a link or a path                          ││ ⇌ GET A GITLAB TOKEN ───────────────────────────── │
 │                      ││    ◆ b     acme/team-b   0 repos · 1 open MR                                   ││   1 Open GitLab's new-token page:                  │
-│                      ││    ◆ a     acme/team-a   4 repos · 3 open MRs                                  ││   gitlab.com / new token   o opens · y copies      │
+│                      ││    ◆ a     acme/team-a   4 repos · 3 open MRs                                  ││   gitlab.com / new token   open · copy             │
 │                      ││                                                                                ││     name radar · scope from access: read_api       │
 │                      ││                                                                                ││   2 Pick an expiry date, then Create personal      │
 │                      ││                                                                                ││   access token.                                    │
@@ -1537,7 +1537,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-connecti
 │                      ││                                                                                ││   GitLab docs: access tokens                       │
 │                      ││                                                                                ││   radar guide: connect GitLab                      │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- CONNECTION   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
+ CONNECTION   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-look_80x24.json at 80x24 1`] = `
@@ -1564,11 +1564,11 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-look_80x
 │                      ││ emphasis  bold                                       ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- LOOK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ LOOK   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-look_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ review ────────────────────────────────────────────╮
 │GitLab                ││ MERGE REQUEST STATES                                                           ││ How a merge request open for your review is drawn. │
 │  ├─ connection       ││    review   a merge request open for your review                warning · bold ││                                                    │
@@ -1607,19 +1607,19 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-look_160
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- LOOK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ LOOK   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-tenancies_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ tenancies ───────────────────────────────────────────╮
 │GitLab                ││ + add a tenancy   paste a GitLab group or repo link  │
-│  ├─ connection       ││▌ ● b    team-b   0 repos · 0 hidden                  │
-│  └─ projects         ││▌ ● a    team-a   4 repos · 1 hidden                  │
-│Slack ⋯               ││▌ ├─ api                                      shown   │
-│                      ││▌ ├─ docs                                     shown   │
-│                      ││▌ ├─ tools/renovate                           hidden  │
-│                      ││▌ └─ web                                      shown   │
+│  ├─ connection       ││● b    team-b   0 repos · 0 hidden                    │
+│  └─ projects         ││● a    team-a   4 repos · 1 hidden                    │
+│Slack ⋯               ││  ├─ api                                      shown   │
+│                      ││  ├─ docs                                     shown   │
+│                      ││  ├─ tools/renovate                           hidden  │
+│                      ││  └─ web                                      shown   │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
@@ -1634,19 +1634,19 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-tenancie
 │                      ││   a repo's link, or <group>/<repo>                   ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- TENANCIES   q ✕ quit   x ≡ menu                       gitlab github jira slack"
+ TENANCIES   ✕ quit   ≡ extra actions   ~ notices      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-tenancies_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ tenancies ─────────────────────────────────────────────────────────────────────╮╭ add a tenancy ─────────────────────────────────────╮
 │GitLab                ││ + add a tenancy   paste a GitLab group or repo link, or its path               ││ Track another GitLab group (every repo in it), or  │
-│  ├─ connection       ││▌ ● b    team-b   0 repos · 0 hidden                                            ││ one repo on its own.                               │
-│  └─ projects         ││▌ ● a    team-a   4 repos · 1 hidden                                            ││                                                    │
-│Slack ⋯               ││▌ ├─ api                                                                shown   ││ PASTE OR TYPE ANY OF                               │
-│                      ││▌ ├─ docs                                                               shown   ││   https://gitlab.com/<base>/tenants/<group>/       │
-│                      ││▌ ├─ tools/renovate                                                     hidden  ││   /<part of base>/tenants/<group>/                 │
-│                      ││▌ └─ web                                                                shown   ││   tenants/<group>                                  │
+│  ├─ connection       ││● b    team-b   0 repos · 0 hidden                                              ││ one repo on its own.                               │
+│  └─ projects         ││● a    team-a   4 repos · 1 hidden                                              ││                                                    │
+│Slack ⋯               ││  ├─ api                                                                shown   ││ PASTE OR TYPE ANY OF                               │
+│                      ││  ├─ docs                                                               shown   ││   https://gitlab.com/<base>/tenants/<group>/       │
+│                      ││  ├─ tools/renovate                                                     hidden  ││   /<part of base>/tenants/<group>/                 │
+│                      ││  └─ web                                                                shown   ││   tenants/<group>                                  │
 │                      ││                                                                                ││   a repo's link, or <group>/<repo>                 │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ Paths are taken under the base group acme.         │
@@ -1677,7 +1677,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-tenancie
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- TENANCIES   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                  gitlab github jira slack"
+ TENANCIES   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                 gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-views_80x24.json at 80x24 1`] = `
@@ -1704,11 +1704,11 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-views_80
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- VIEWS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ VIEWS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > gitlab_settings-views_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ views ─────────────────────────────────────────────────────────────────────────╮╭ new view ──────────────────────────────────────────╮
 │GitLab                ││  + new view   starts from everything; add conditions after                     ││ Make another view for the merge requests nav pane. │
 │  ├─ connection       ││  Everything    everything                                                    4 ││                                                    │
@@ -1747,7 +1747,7 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-views_16
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- VIEWS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ VIEWS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > host_chrome_80x24.json at 80x24 1`] = `
@@ -1774,11 +1774,11 @@ exports[`recorded view fixtures through the whole App > host_chrome_80x24.json a
 
 
 
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > host_chrome_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 
 
 
@@ -1817,7 +1817,7 @@ exports[`recorded view fixtures through the whole App > host_chrome_160x40.json 
 
 
 
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-connection_80x24.json at 80x24 1`] = `
@@ -1844,11 +1844,11 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 │                      ││ radar stores only the variables' names (env:NAME)    ║
 │                      ││ and reads their values each time it starts. It never ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- CONNECTION   q ✕ quit   x ≡ menu                      gitlab github jira slack"
+ CONNECTION   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
 │GitLab                ││  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL ││ radar found a Jira site in /work/acme/.mcp.json.   █
 │  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, J ││ Do you want to use it?                             █
@@ -1876,18 +1876,18 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 │                      ││                                                                                ││ ⊕ SITE ─────────────────────────────────────────── █
 │                      ││                                                                                ││   The address you use for Jira, like               █
 │                      ││                                                                                ││   ankh-morpork.atlassian.net.                      █
-│                      ││                                                                                ││   Paste any Jira link; radar keeps the site part.  ║
+│                      ││                                                                                ││   Paste any Jira link; radar keeps the site part.  █
 │                      ││                                                                                ││ ☺ EMAIL ────────────────────────────────────────── ║
 │                      ││                                                                                ││   The email you sign in to Atlassian with, on your ║
 │                      ││                                                                                ││   profile:                                         ║
 │                      ││                                                                                ││   id.atlassian.com / profile                       ║
 │                      ││                                                                                ││ ⇌ API TOKEN  about a minute ────────────────────── ║
 │                      ││                                                                                ││   1 Open Atlassian's API token page:               ║
-│                      ││                                                                                ││   id.atlassian.com / api tokens   o opens · y      ║
-│                      ││                                                                                ││   copies                                           ║
+│                      ││                                                                                ││   id.atlassian.com / api tokens   open · copy      ║
 │                      ││                                                                                ││   2 Create API token, label it radar, pick an      ║
+│                      ││                                                                                ││   expiry, then Create.                             ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- CONNECTION   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
+ CONNECTION   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-look_80x24.json at 80x24 1`] = `
@@ -1914,11 +1914,11 @@ exports[`recorded view fixtures through the whole App > jira_settings-look_80x24
 │                      ││ emphasis  none                                       ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- LOOK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ LOOK   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-look_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ to do ─────────────────────────────────────────────╮
 │GitLab                ││ STATUSES                                                                       ││ How a ticket not started is drawn.                 │
 │  ├─ connection       ││    to do    a ticket not started                                secondary text ││                                                    │
@@ -1957,21 +1957,21 @@ exports[`recorded view fixtures through the whole App > jira_settings-look_160x4
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- LOOK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ LOOK   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-projects_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ projects ────────────────────────────────────────────╮
-│GitLab                ││▌ ⊕ acme  acme.atlassian.net                          │
-│  ├─ connection       ││▌ ├─ + watch a project   its key, or a link to it or  │
-│  └─ projects         ││▌ ├─ colour          ██ blue                          │
-│Slack ⋯               ││▌ ├─ ▪ ABC     Acme ABC                               │
-│                      ││▌ └─ ▪ DEF     Acme DEF                               │
-│                      ││▌ ⊕ beta  beta.atlassian.net                          │
-│                      ││▌ ├─ + watch a project   its key, or a link to it or  │
-│                      ││▌ ├─ colour          ██ green                         │
-│                      ││▌ └─ ▪ XYZ     Acme XYZ                               │
+│GitLab                ││⊕ acme  acme.atlassian.net                            │
+│  ├─ connection       ││  ├─ + watch a project   its key, or a link to it or  │
+│  └─ projects         ││  ├─ colour          ██ blue                          │
+│Slack ⋯               ││  ├─ ▪ ABC     Acme ABC                               │
+│                      ││  └─ ▪ DEF     Acme DEF                               │
+│                      ││⊕ beta  beta.atlassian.net                            │
+│                      ││  ├─ + watch a project   its key, or a link to it or  │
+│                      ││  ├─ colour          ██ green                         │
+│                      ││  └─ ▪ XYZ     Acme XYZ                               │
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ watch a project ─────────────────────────────────────╮
 │                      ││ Watch another project on acme.                       │
@@ -1984,21 +1984,21 @@ exports[`recorded view fixtures through the whole App > jira_settings-projects_8
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- PROJECTS   q ✕ quit   x ≡ menu                        gitlab github jira slack"
+ PROJECTS   ✕ quit   ≡ extra actions   ~ notices       gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-projects_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ projects ──────────────────────────────────────────────────────────────────────╮╭ watch a project ───────────────────────────────────╮
-│GitLab                ││▌ ⊕ acme  acme.atlassian.net                                                    ││ Watch another project on acme.                     │
-│  ├─ connection       ││▌ ├─ + watch a project   its key, or a link to it or a ticket                   ││                                                    │
-│  └─ projects         ││▌ ├─ colour          ██ blue                                                    ││ PASTE OR TYPE ANY OF                               │
-│Slack ⋯               ││▌ ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050                ││   ABC                                              │
-│                      ││▌ └─ ▪ DEF     Acme DEF   acceptance criteria: not set                          ││   a ticket's key or link: ABC-12                   │
-│                      ││▌ ⊕ beta  beta.atlassian.net                                                    ││   a board or project link                          │
-│                      ││▌ ├─ + watch a project   its key, or a link to it or a ticket                   ││                                                    │
-│                      ││▌ ├─ colour          ██ green                                                   ││                                                    │
-│                      ││▌ └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set                          ││                                                    │
+│GitLab                ││⊕ acme  acme.atlassian.net                                                      ││ Watch another project on acme.                     │
+│  ├─ connection       ││  ├─ + watch a project   its key, or a link to it or a ticket                   ││                                                    │
+│  └─ projects         ││  ├─ colour          ██ blue                                                    ││ PASTE OR TYPE ANY OF                               │
+│Slack ⋯               ││  ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050                ││   ABC                                              │
+│                      ││  └─ ▪ DEF     Acme DEF   acceptance criteria: not set                          ││   a ticket's key or link: ABC-12                   │
+│                      ││⊕ beta  beta.atlassian.net                                                      ││   a board or project link                          │
+│                      ││  ├─ + watch a project   its key, or a link to it or a ticket                   ││                                                    │
+│                      ││  ├─ colour          ██ green                                                   ││                                                    │
+│                      ││  └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set                          ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
@@ -2027,7 +2027,7 @@ exports[`recorded view fixtures through the whole App > jira_settings-projects_1
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- PROJECTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                   gitlab github jira slack"
+ PROJECTS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                  gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-views_80x24.json at 80x24 1`] = `
@@ -2054,11 +2054,11 @@ exports[`recorded view fixtures through the whole App > jira_settings-views_80x2
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- VIEWS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu      gitlab github jira slack"
+ VIEWS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_settings-views_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ views ─────────────────────────────────────────────────────────────────────────╮╭ new view ──────────────────────────────────────────╮
 │GitLab                ││  + new view   starts from your tickets; add conditions after                   ││ Make another view for the Jira nav pane.           │
 │  ├─ connection       ││  My tickets        assigned to you, not done                                   ││                                                    │
@@ -2097,25 +2097,25 @@ exports[`recorded view fixtures through the whole App > jira_settings-views_160x
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- VIEWS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                      gitlab github jira slack"
+ VIEWS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ My tickets ──────────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO ⚇ everyone        TYPE      STATUS          CODE        ↺ UPDAT  │
-│▌ ⊕ acme  acme.atlassian.net                                                  │
-│▌ ├─ ◐ In Progress                                                            │
-│▌ │  └─ ✦ ABC-1 = Dashboard fo Epic      ◐ In Progress               2w       │
-│▌ │     ├─ ▣ ABC-12 = Add a st Story     ◐ In Progress   !263 review 1h       │
-│▌ │     └─ ↳ ABC-13 = Count re Sub-task  ◐ In Progress               1h       │
-│▌ ├─ ◐ In Review                                                              │
-│▌ │  └─ ▣ DEF-3 = Rename the e Story     ◐ In Review                 1h       │
-│▌ └─ ○ To Do                                                                  │
-│▌    └─ ✱ ABC-20 = Stats page  Bug       ○ To Do                     9w       │
-│▌ ⊕ beta  beta.atlassian.net                                                  │
-│▌ └─ ○ To Do                                                                  │
-│▌    └─ ▣ XYZ-7 = Move the nig Story     ○ To Do                     1h       │
+│⊕ acme  acme.atlassian.net                                                    │
+│  ├─ ◐ In Progress                                                            │
+│  │  └─ ✦ ABC-1 = Dashboard fo Epic      ◐ In Progress               2w       │
+│  │     ├─ ▣ ABC-12 = Add a st Story     ◐ In Progress   !263 review 1h       │
+│  │     └─ ↳ ABC-13 = Count re Sub-task  ◐ In Progress               1h       │
+│  ├─ ◐ In Review                                                              │
+│  │  └─ ▣ DEF-3 = Rename the e Story     ◐ In Review                 1h       │
+│  └─ ○ To Do                                                                  │
+│     └─ ✱ ABC-20 = Stats page  Bug       ○ To Do                     9w       │
+│⊕ beta  beta.atlassian.net                                                    │
+│  └─ ○ To Do                                                                  │
+│     └─ ▣ XYZ-7 = Move the nig Story     ○ To Do                     1h       │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -2124,25 +2124,25 @@ exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json 
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ assigned to you · not done                                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu    gitlab github jira slack"
+ TICKETS   ✕ quit   ≡ extra actions   ~ notices        gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ My tickets ────────────────────────────────────────────────────────────────────────╮╭ acme ────────────────────────────────────────╮
 │ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone              TYPE      STATUS          CODE        ↺ UPDAT  ││ ▌ ⊕ acme  acme.atlassian.net                 │
-│ ⊟ This sprint          ││▌ ⊕ acme  acme.atlassian.net                                                        ││                                              │
-│ ◇ Recently updated     ││▌ ├─ ◐ In Progress                                                                  ││ signed in   Alice Example                    │
-│                        ││▌ │  └─ ✦ ABC-1 = Dashboard for the  Epic      ◐ In Progress               2w       ││ watching    ABC, DEF                         │
-│                        ││▌ │     ├─ ▣ ABC-12 = Add a stats en Story     ◐ In Progress   !263 review 1h       ││                                              │
-│                        ││▌ │     └─ ↳ ABC-13 = Count requests Sub-task  ◐ In Progress               1h       ││ IN THIS VIEW ─────────────────────────────── │
-│                        ││▌ ├─ ◐ In Review                                                                    ││   ◐ doing 4                                  │
-│                        ││▌ │  └─ ▣ DEF-3 = Rename the export  Story     ◐ In Review                 1h       ││   ○ to do 1                                  │
-│                        ││▌ └─ ○ To Do                                                                        ││                                              │
-│                        ││▌    └─ ✱ ABC-20 = Stats page shows  Bug       ○ To Do                     9w       ││                                              │
-│                        ││▌ ⊕ beta  beta.atlassian.net                                                        ││                                              │
-│                        ││▌ └─ ○ To Do                                                                        ││                                              │
-│                        ││▌    └─ ▣ XYZ-7 = Move the nightly b Story     ○ To Do                     1h       ││                                              │
+│ ⊟ This sprint          ││⊕ acme  acme.atlassian.net                                                          ││                                              │
+│ ◇ Recently updated     ││  ├─ ◐ In Progress                                                                  ││ signed in   Alice Example                    │
+│                        ││  │  └─ ✦ ABC-1 = Dashboard for the  Epic      ◐ In Progress               2w       ││ watching    ABC, DEF                         │
+│                        ││  │     ├─ ▣ ABC-12 = Add a stats en Story     ◐ In Progress   !263 review 1h       ││                                              │
+│                        ││  │     └─ ↳ ABC-13 = Count requests Sub-task  ◐ In Progress               1h       ││ IN THIS VIEW ─────────────────────────────── │
+│                        ││  ├─ ◐ In Review                                                                    ││   ◐ doing 4                                  │
+│                        ││  │  └─ ▣ DEF-3 = Rename the export  Story     ◐ In Review                 1h       ││   ○ to do 1                                  │
+│                        ││  └─ ○ To Do                                                                        ││                                              │
+│                        ││     └─ ✱ ABC-20 = Stats page shows  Bug       ○ To Do                     9w       ││                                              │
+│                        ││⊕ beta  beta.atlassian.net                                                          ││                                              │
+│                        ││  └─ ○ To Do                                                                        ││                                              │
+│                        ││     └─ ▣ XYZ-7 = Move the nightly b Story     ○ To Do                     1h       ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -2167,12 +2167,12 @@ exports[`recorded view fixtures through the whole App > jira_tickets_160x40.json
 │                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
 │                        ││ assigned to you · not done                                                         ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                    gitlab github jira slack"
+ TICKETS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                   gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Jira › acme › ABC › ABC-1
+ Jira / acme / ABC / ABC-1
  ✦ Dashboard for the stats                         ◐ In Progress · Epic · ☻ you
  Acme ABC · ↺ updated 2w ago
  [ℹ Overview]  ❝ Comments  ↗ Links
@@ -2194,12 +2194,12 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 │ DESCRIPTION                                                                  ║
 │ What ABC-1 is about.                                                         ║
 ╰──────────────────────────────────────────────────────────────────────────────╯
- TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu    gitlab github jira slack"
+ TICKETS   ✕ quit   ≡ extra actions   ~ notices        gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Jira › acme › ABC › ABC-1
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Jira / acme / ABC / ABC-1
  ✦ Dashboard for the stats                                                                                                         ◐ In Progress · Epic · ☻ you
  Acme ABC · ↺ updated 2w ago
  [ℹ Overview]  ❝ Comments  ↗ Links
@@ -2237,12 +2237,12 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 │                                                                                                                      ││                                      │
 │                                                                                                                      ││                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯
- TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                    gitlab github jira slack"
+ TICKETS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                   gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links-code-slack-notes_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Jira › acme › ABC › ABC-12
+ Jira / acme / ABC / ABC-12
  ▣ Add a stats endpoint for the dashboard         ◐ In Progress · Story · ☻ you
  parent ABC-1 Dashboard for the stats · Acme ABC · ↺ updated 1h ago
  [ℹ Overview]  ❝ Comments  ↗ Links  ⇄ Code  Slack  Notes
@@ -2264,12 +2264,12 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 │                                                                              ║
 │ DESCRIPTION                                                                  ║
 ╰──────────────────────────────────────────────────────────────────────────────╯
- TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu    gitlab github jira slack"
+ TICKETS   ✕ quit   ≡ extra actions   ~ notices        gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > jira_tickets-page1-overview-comments-links-code-slack-notes_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Jira › acme › ABC › ABC-12
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Jira / acme / ABC / ABC-12
  ▣ Add a stats endpoint for the dashboard                                                                                         ◐ In Progress · Story · ☻ you
  parent ABC-1 Dashboard for the stats · Acme ABC · ↺ updated 1h ago
  [ℹ Overview]  ❝ Comments  ↗ Links  ⇄ Code  Slack  Notes
@@ -2307,7 +2307,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets-page1-overv
 │                                                                                                                      ││                                      │
 │                                                                                                                      ││                                      │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯
- TICKETS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                    gitlab github jira slack"
+ TICKETS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                   gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > sessions_settings-agents_80x24.json at 80x24 1`] = `
@@ -2325,59 +2325,59 @@ exports[`recorded view fixtures through the whole App > sessions_settings-agents
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ install and sign in ─────────────────────────────────╮
 │                      ││ Each agent is its own program with its own sign-in.  █
-│                      ││ radar finds it on your PATH; r looks again.          █
+│                      ││ radar finds it on your PATH; read its status again.  █
 │                      ││                                                      █
 │                      ││ ◙ COPILOT  checking ──────────────────────────────── ║
 │                      ││   $ npm i -g @github/copilot                         ║
-│                      ││   $ copilot login                                [y] ║
+│                      ││   copy command · $ copilot login                     ║
 │                      ││   Needs a Copilot plan on GitHub.                    ║
-│                      ││   ↗  GitHub: install Copilot CLI                 [o] ║
-│                      ││ ◙ CODEX  checking ────────────────────────────────── ║
+│                      ││   ↗  open documentation · GitHub: install Copilot    ║
+│                      ││   CLI                                                ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- AGENTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ AGENTS   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > sessions_settings-agents_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ agents ────────────────────────────────────────────────────────────────────────╮╭ install and sign in ───────────────────────────────╮
 │GitLab                ││ COMMAND LINE TOOLS                                                             ││ Each agent is its own program with its own         │
-│  ├─ connection       ││                                                                                ││ sign-in. radar finds it on your PATH; r looks      │
-│  └─ projects         ││ ◷ Copilot       checking                                                       ││ again.                                             │
+│  ├─ connection       ││                                                                                ││ sign-in. radar finds it on your PATH; read its     │
+│  └─ projects         ││ ◷ Copilot       checking                                                       ││ status again.                                      │
 │Slack ⋯               ││ ◷ Codex         checking                                                       ││                                                    │
 │                      ││ ◷ Claude Agent  checking                                                       ││ ◙ COPILOT  checking ────────────────────────────── │
 │                      ││  + add a command   aider, opencode, …                                          ││   $ npm i -g @github/copilot                       │
-│                      ││                                                                                ││   $ copilot login                              [y] │
+│                      ││                                                                                ││   copy command · $ copilot login                   │
 │                      ││ NEW SESSIONS · FOR EVERY WORKSPACE                                             ││   Needs a Copilot plan on GitHub.                  │
-│                      ││                                                                                ││   ↗  GitHub: install Copilot CLI               [o] │
-│                      ││ provider              Copilot                                                  ││ ◙ CODEX  checking ──────────────────────────────── │
-│                      ││ model                 the provider's own                                       ││   $ npm i -g @openai/codex                         │
-│                      ││ working folder        where radar was started                                  ││   $ codex login                                    │
-│                      ││ permitted folders     none                                                     ││   ↗  Codex: install and sign in                    │
-│                      ││ skill folders         none                                                     ││ ◙ CLAUDE AGENT  checking ───────────────────────── │
-│                      ││ CLI's own config      yes                                                      ││   $ npm i -g @anthropic-ai/claude-code             │
-│                      ││ always allow          none                                                     ││   $ claude auth login                              │
-│                      ││ always deny           none                                                     ││   radar runs your own claude and offers no sign-in │
-│                      ││ local only            yes                                                      ││   of its own.                                      │
-│                      ││ reviewer commands     yes                                                      ││   Anthropic does not allow a claude.ai login in a  │
-│                      ││                                                                                ││   product: for one it asks for an API key          │
-│                      ││ RECIPES AND REVIEWS                                                            ││   (ANTHROPIC_API_KEY).                             │
-│                      ││                                                                                ││   ↗  Claude Code: set up                           │
-│                      ││ recipes folder        ~/.config/radar/recipes                                  ││ $ ANY OTHER CLI ────────────────────────────────── │
-│                      ││ recipe ask            v2 · built-in                                            ││   add a command takes what you would type in a     │
-│                      ││ recipe review-mr      v2 · built-in                                            ││   terminal; radar runs it in a tab of the dock.    │
-│                      ││ reviews folder        radar's state folder                                     ││ ⚠ NOTHING IS APPROVED FOR YOU ──────────────────── │
-│                      ││                                                                                ││   A request waits in the dock for your answer:     │
-│                      ││ WHILE YOU ARE AWAY                                                             ││   a approve · s session · d deny · v view diff     │
-│                      ││                                                                                ││   alt-a switches the agent new sessions start as.  │
-│                      ││ desktop notifications no                                                       ││ ↗ MORE ─────────────────────────────────────────── │
+│                      ││                                                                                ││   ↗  open documentation · GitHub: install Copilot  │
+│                      ││ provider              Copilot                                                  ││   CLI                                              │
+│                      ││ model                 the provider's own                                       ││ ◙ CODEX  checking ──────────────────────────────── │
+│                      ││ working folder        where radar was started                                  ││   $ npm i -g @openai/codex                         │
+│                      ││ permitted folders     none                                                     ││   $ codex login                                    │
+│                      ││ skill folders         none                                                     ││   ↗  Codex: install and sign in                    │
+│                      ││ CLI's own config      yes                                                      ││ ◙ CLAUDE AGENT  checking ───────────────────────── │
+│                      ││ always allow          none                                                     ││   $ npm i -g @anthropic-ai/claude-code             │
+│                      ││ always deny           none                                                     ││   $ claude auth login                              │
+│                      ││ local only            yes                                                      ││   radar runs your own claude and offers no sign-in │
+│                      ││ reviewer commands     yes                                                      ││   of its own.                                      │
+│                      ││                                                                                ││   Anthropic does not allow a claude.ai login in a  │
+│                      ││ RECIPES AND REVIEWS                                                            ││   product: for one it asks for an API key          │
+│                      ││                                                                                ││   (ANTHROPIC_API_KEY).                             │
+│                      ││ recipes folder        ~/.config/radar/recipes                                  ││   ↗  Claude Code: set up                           │
+│                      ││ recipe ask            v2 · built-in                                            ││ $ ANY OTHER CLI ────────────────────────────────── │
+│                      ││ recipe review-mr      v2 · built-in                                            ││   add a command takes what you would type in a     │
+│                      ││ reviews folder        radar's state folder                                     ││   terminal; radar runs it in a tab of the dock.    │
+│                      ││                                                                                ││ ⚠ NOTHING IS APPROVED FOR YOU ──────────────────── │
+│                      ││ WHILE YOU ARE AWAY                                                             ││   A request waits in the dock for your answer:     │
+│                      ││                                                                                ││   approve · session · deny · view diff             │
+│                      ││ desktop notifications no                                                       ││   alt-a switches the agent new sessions start as.  │
+│                      ││                                                                                ││ ↗ MORE ─────────────────────────────────────────── │
 │                      ││                                                                                ││   ↗  radar guide: agents                           │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- AGENTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ AGENTS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at 80x24 1`] = `
@@ -2389,8 +2389,8 @@ exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at
 │@ direct messages                                                             │
 │  └─ • #D0000CAROL Carol C.  hi @Alice Example, quick que          1h         │
 │❝ threads you are in                                                          │
-│  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main ↩ 1      1d         │
-│  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stat ↩ 2      2d         │
+│  ├─ • #team Carol C.  Anyone seen ABC-12 failing on  ⋯ 1 ↩ 1      1d         │
+│  └─ • #team Bob B.  @review-squad :gitlab: mr Add a  ⋯ 2 ↩ 2      2d         │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -2404,20 +2404,21 @@ exports[`recorded view fixtures through the whole App > slack_feed_80x24.json at
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ mentions, messages and new replies in the last 7 days                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- FEED   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ FEED   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
-│ @ For you            4 ││ last 7 days                                                    ↩ REPLIE ◷ WHEN     ││ ── #team · yesterday ──                      │
-│ ❝ Discussions          ││@ mentions you                                                                      ││ ● 09:11  Bob Builder                         │
-│ ▌ # #team        6 NEW ││  └─ • #team Bob B.  @Alice Example could you take this one?             1d         ││     @Alice Example could you take this one?  │
+│ @ For you            4 ││ last 7 days                                                    ↩ REPLIE ◷ WHEN     ││ Acme / # #team                               │
+│ ❝ Discussions          ││@ mentions you                                                                      ││ @Alice Example could you take this one?      │
+│ ▌ # #team        6 NEW ││  └─ • #team Bob B.  @Alice Example could you take this one?             1d         ││                       ☺ Bob Builder · 1d ago │
 │ ▌ # #svc         1 NEW ││@ direct messages                                                                   ││                                              │
-│                        ││  └─ • #D0000CAROL Carol C.  hi @Alice Example, quick question           1h         ││                                              │
+│                        ││  └─ • #D0000CAROL Carol C.  hi @Alice Example, quick question           1h         ││ thread  thread start                         │
 │                        ││❝ threads you are in                                                                ││                                              │
-│                        ││  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main? pipe ↩ 1      1d         ││                                              │
-│                        ││  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats endp ↩ 2      2d         ││                                              │
+│                        ││  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main?  ⋯ 1 ↩ 1      1d         ││ ❝ THREAD  yesterday ──────────────────────── │
+│                        ││  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats  ⋯ 2 ↩ 2      2d         ││   • 07:11  Bob Builder                       │
+│                        ││                                                                                    ││   @Alice Example could you take this one?    │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -2443,21 +2444,20 @@ exports[`recorded view fixtures through the whole App > slack_feed_160x40.json a
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ mentions, messages and new replies in the last 7 days                              ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ mentions, messages and new replies in the last 7 days                              ││⏎ thread  open  copy  mark read  extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- FEED   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ FEED   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-links_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
- Slack › #svc › Carol Coder: The service is being upg…
+ Slack / #svc / Carol Coder: The service is being upg…
  The service is being upgraded at noon    ☺ Carol Coder · 5h ago · ↩ no replies
  [❝ Thread]  ↗ Links
 ╭ thread ──────────────────────────────────────────────────────────────────────╮
 │ ── today ──                                                                  │
-│ 04:16  Carol Coder  The service is being upgraded at noon                    │
+│ 02:16  Carol Coder  The service is being upgraded at noon                    │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -2474,17 +2474,17 @@ exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- FEED   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ FEED   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-links_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
- Slack › #svc › Carol Coder: The service is being upg…
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
+ Slack / #svc / Carol Coder: The service is being upg…
  The service is being upgraded at noon                                                                                    ☺ Carol Coder · 5h ago · ↩ no replies
  [❝ Thread]  ↗ Links
 ╭ thread ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ── today ──                                                                                                                                                  │
-│ 04:16  Carol Coder  The service is being upgraded at noon                                                                                                    │
+│ 02:16  Carol Coder  The service is being upgraded at noon                                                                                                    │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
@@ -2517,7 +2517,7 @@ exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- FEED   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ FEED   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-alerts_80x24.json at 80x24 1`] = `
@@ -2544,11 +2544,11 @@ exports[`recorded view fixtures through the whole App > slack_settings-alerts_80
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- ALERTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ ALERTS   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-alerts_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
 │GitLab                ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
 │  ├─ connection       ││ keep resolved    24 hours                                                      ││                                                    │
@@ -2587,7 +2587,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-alerts_16
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- ALERTS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ ALERTS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-channels_80x24.json at 80x24 1`] = `
@@ -2614,11 +2614,11 @@ exports[`recorded view fixtures through the whole App > slack_settings-channels_
 │                      ││ Slack is asked which channel it is; it is added as a █
 │                      ││ team channel, watched, called by its name in Slack.  ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- CHANNELS   q ✕ quit   x ≡ menu                        gitlab github jira slack"
+ CHANNELS   ✕ quit   ≡ extra actions   ~ notices       gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-channels_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ channels ──────────────────────────────────────────────────────────────────────╮╭ add a channel ─────────────────────────────────────╮
 │GitLab                ││ + add a channel   paste a link to it, or type #name                            ││ Read another channel.                              │
 │  ├─ connection       ││ ▌ #team   #acme-team · team · watched                                          ││                                                    │
@@ -2657,7 +2657,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-channels_
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- CHANNELS   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                   gitlab github jira slack"
+ CHANNELS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                  gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-connection_80x24.json at 80x24 1`] = `
@@ -2684,11 +2684,11 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 │                      ││ belongs to one. The check finds it.                  ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- CONNECTION   q ✕ quit   x ≡ menu                      gitlab github jira slack"
+ CONNECTION   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-connection_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ workspace ─────────────────────────────────────────╮
 │GitLab                ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
 │  ├─ connection       ││  api             https://slack.com                                             ││ not checked yet                                    │
@@ -2702,16 +2702,15 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 │                      ││                ├─ for you                                                    ● ││ ⇌ MAKE A USER TOKEN  about two minutes, once ───── │
 │                      ││                ├─ names                                                      ● ││   1 Open Slack's new-app page, radar's manifest    │
 │                      ││                ├─ user groups                                                ● ││   filled in:                                       │
-│                      ││                ├─ asking and replying                                        ● ││   api.slack.com / new app   o opens · m copies the │
-│                      ││                ├─ reacting        needs reactions:write                      ✗ ││   manifest                                         │
-│                      ││                └─ pictures                                                   ● ││     user scopes only: 10                           │
-│                      ││                                                                                ││   2 Pick your workspace, Next, Create.             │
-│                      ││  CHANNELS  the registry; watched ones are read                                 ││   3 Install to Workspace, then Allow.              │
-│                      ││  + add a channel   paste its link, a message link, or its id                   ││   4 OAuth & Permissions shows the User OAuth       │
-│                      ││    # #team   team · watched                                                    ││   Token, xoxp-…: paste it into token, or:          │
-│                      ││    # #svc   service · watched                                                  ││   $ export SLACK_TOKEN=xoxp-…                      │
-│                      ││    # #try   test · not watched                                                 ││     then the token is env:SLACK_TOKEN              │
-│                      ││                                                                                ││   api.slack.com / your apps                        │
+│                      ││                ├─ asking and replying                                        ● ││   api.slack.com / new app   open · copy manifest   │
+│                      ││                ├─ reacting        needs reactions:write                      ✗ ││     user scopes only: 10                           │
+│                      ││                └─ pictures                                                   ● ││   2 Pick your workspace, Next, Create.             │
+│                      ││                                                                                ││   3 Install to Workspace, then Allow.              │
+│                      ││  CHANNELS  the registry; watched ones are read                                 ││   4 OAuth & Permissions shows the User OAuth       │
+│                      ││  + add a channel   paste its link, a message link, or its id                   ││   Token, xoxp-…: paste it into token, or:          │
+│                      ││    # #team   team · watched                                                    ││   $ export SLACK_TOKEN=xoxp-…                      │
+│                      ││    # #svc   service · watched                                                  ││     then the token is env:SLACK_TOKEN              │
+│                      ││    # #try   test · not watched                                                 ││   api.slack.com / your apps                        │
 │                      ││                                                                                ││ ⚇ NEEDS AN ADMIN? ──────────────────────────────── │
 │                      ││                                                                                ││   If Slack says Request to Install, your admin     │
 │                      ││                                                                                ││   approves it first.                               │
@@ -2726,8 +2725,9 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- CONNECTION   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
+ CONNECTION   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-look_80x24.json at 80x24 1`] = `
@@ -2754,11 +2754,11 @@ exports[`recorded view fixtures through the whole App > slack_settings-look_80x2
 │                      ││ marks a new day, and a thread's replies sit under    ║
 │                      ││ one divider. In a narrow panel the author and time   ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- LOOK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ LOOK   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-look_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ look ──────────────────────────────────────────────────────────────────────────╮╭ density ───────────────────────────────────────────╮
 │GitLab                ││ MESSAGES                                                                       ││ How the messages of a thread, the detail pane and  │
 │  ├─ connection       ││   density  how a thread's messages are laid out                        compact ││ a direct message are laid out.                     │
@@ -2797,7 +2797,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-look_160x
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- LOOK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ LOOK   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-review_80x24.json at 80x24 1`] = `
@@ -2824,11 +2824,11 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_80
 │                      ││ team                                                 ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REVIEW   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu     gitlab github jira slack"
+ REVIEW   ✕ quit   ≡ extra actions   ~ notices         gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > slack_settings-review_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ channel ───────────────────────────────────────────╮
 │GitLab                ││ channel          team                                                          ││ Where review asks go. The user group is mentioned  │
 │  ├─ connection       ││ user group       @review-squad                                                 ││ only here.                                         │
@@ -2867,7 +2867,7 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_16
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- REVIEW   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                     gitlab github jira slack"
+ REVIEW   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                    gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > workbench_work_80x24.json at 80x24 1`] = `
@@ -2894,23 +2894,23 @@ exports[`recorded view fixtures through the whole App > workbench_work_80x24.jso
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK   ✕ quit   ≡ extra actions   ~ notices           gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > workbench_work_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
-│ All items             ││ Ship explicit work-item navigation                                             task ││ Exact sources · j/k select · x actions       │
+│ All items             ││ Ship explicit work-item navigation                                             task ││ Exact sources · ↑↓ select · extra actions    │
 │ release candidate     ││ pull-request · acme/api/7                                              pull-request ││ pull-request · acme/api/7                    │
 │                       ││ ticket · ABC-12                                                              ticket ││ authored                                     │
 │                       ││ checkout · /home/user/projects/api                                         checkout ││ Local work saved.                            │
 │                       ││ workflow-run · acme/api/42/1                                           workflow-run ││ Ship explicit work-item navigation           │
 │                       ││                                                                                     ││ Local groups: release candidate              │
 │                       ││                                                                                     ││ Selected pull-request: acme/api/7            │
-│                       ││                                                                                     ││ authored link · c copy locator · x actions   │
+│                       ││                                                                                     ││ authored link · copy locator · extra actions │
 │                       ││                                                                                     ││ Locator event in this page: source.selected  │
 │                       ││                                                                                     ││ · requested                                  │
-│                       ││                                                                                     ││ v history: original claims and outcomes ·    │
+│                       ││                                                                                     ││ view history: original claims and outcomes · │
 │                       ││                                                                                     ││ completeness not guaranteed                  │
 │                       ││                                                                                     ││ Titles and groups are authored locally.      │
 │                       ││                                                                                     ││ Relations do not imply identity, permission  │
@@ -2937,13 +2937,13 @@ exports[`recorded view fixtures through the whole App > workbench_work_160x40.js
 │                       ││                                                                                     ││ Observations only. Relations grant no        │
 │ Groups · page 1       ││                                                                                     ││ identity, permission or completion.          │
 ╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_local-repositories_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ local repositories ──────────────────────────────────────────────────────────╮
-│ acme                                                                         │
+│acme                                                                          │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -2964,13 +2964,13 @@ exports[`recorded view fixtures through the whole App > workspace_local-reposito
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- LOCAL-REPOSITORIES   q ✕ quit   x ≡ menu              gitlab github jira slack"
+ LOCAL-REPOSITORIES   ≡ extra actions   ~ notices      gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_local-repositories_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ local repositories ──────────────────────────────────────────────────────────────────────────────────────────╮╭ details ─────────────────────────────────────╮
-│ acme                                                                                                         ││ /work/acme                                   │
+│acme                                                                                                          ││ /work/acme                                   │
 │                                                                                                              ││                                              │
 │                                                                                                              ││ Repositories are read from this workspace's  │
 │                                                                                                              ││ clones folder.                               │
@@ -3007,7 +3007,7 @@ exports[`recorded view fixtures through the whole App > workspace_local-reposito
 │                                                                                                              ││                                              │
 │                                                                                                              ││                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- LOCAL-REPOSITORIES   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                         gitlab github jira slack"
+ LOCAL-REPOSITORIES   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                        gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_settings-workspaces_80x24.json at 80x24 1`] = `
@@ -3034,11 +3034,11 @@ exports[`recorded view fixtures through the whole App > workspace_settings-works
 │                      ││ A git repo whose folder holds other clones. Using it ║
 │                      ││ makes it a workspace: its tickets' notes are read    ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORKSPACES   q ✕ quit   x ≡ menu                      gitlab github jira slack"
+ WORKSPACES   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`recorded view fixtures through the whole App > workspace_settings-workspaces_160x40.json at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ workspaces ────────────────────────────────────────────────────────────────────╮╭ found in /work/other ──────────────────────────────╮
 │GitLab                ││  ? Found in /work/other: a workspace with 3 clones. Use it?                    ││ radar found a workspace at /work/other. Do you     │
 │  ├─ connection       ││  + add a workspace   a folder of clones                                        ││ want to use it?                                    │
@@ -3077,5 +3077,5 @@ exports[`recorded view fixtures through the whole App > workspace_settings-works
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- WORKSPACES   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                 gitlab github jira slack"
+ WORKSPACES   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;

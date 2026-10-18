@@ -642,7 +642,29 @@
             },
             {
               "ink": "muted",
-              "text": "   o opens · y copies"
+              "text": "   "
+            },
+            {
+              "look": "text.muted underline",
+              "text": "o"
+            },
+            {
+              "key_hint": "o",
+              "look": "text.muted",
+              "text": "pen"
+            },
+            {
+              "ink": "muted",
+              "text": " · "
+            },
+            {
+              "look": "text.muted",
+              "text": "cop"
+            },
+            {
+              "key_hint": "y",
+              "look": "text.muted underline",
+              "text": "y"
             }
           ]
         },

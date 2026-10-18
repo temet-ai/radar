@@ -134,7 +134,20 @@ export class Engine {
       this.last = undefined;
       this.message = undefined;
       this.settle = false;
+    } else if (this.level_ !== "full" && this.discardLoading()) {
+      // Loading belongs to full motion; leave one clean frame without
+      // restarting any ordinary effects that survive the policy change.
+      this.settle = true;
     }
+  }
+
+  /** Forget loading whose owner is gone. The caller already has a clean frame,
+   * so only a previously owed ordinary settling frame is retained. */
+  discardLoading(): boolean {
+    if (!this.running_.some((r) => r.shimmer)) return false;
+    this.running_ = this.running_.filter((r) => !r.shimmer);
+    if (this.running_.length === 0) this.last = undefined;
+    return true;
   }
 
   /** Whether to draw again soon: an effect runs, or the plain frame after one is still to come. */

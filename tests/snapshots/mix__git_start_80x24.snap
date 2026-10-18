@@ -1,9 +1,10 @@
 ---
 source: tests/mix.rs
+assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    Branches   History   Settings (,)   not synced yet · every 1m  ✎ edit
-╭ all ─────────────────────────────────────────────────────────────────────────╮
+╭ 2 all ───────────────────────────────────────────────────────────────────────╮
 │ No clones known yet. Press , for settings, then add a folder under git ›     │
 │ checkouts.                                                                   │
 │                                                                              │
@@ -25,4 +26,4 @@ expression: "to_text(&started(), 80, 24)"
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ every clone, its worktrees and its local branches                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCHES   b bulk   +/- expand/collapse   q quit   x menu
+ BRANCHES   bulk   +/- expand/collapse   quit   extra actions   ~ notices

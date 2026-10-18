@@ -14,6 +14,9 @@ pub(super) fn view(
     iid: u64,
     cx: &v::ViewCx<'_>,
 ) -> Option<v::ScreenView> {
+    // A previous wide render must not leave a jump to a file pane when the
+    // current projection is loading, empty, or no longer has a page frame.
+    page.tree_shown.set(false);
     let mut view = super::neutral::mr_commits_view(p, page, project_path, iid, cx)?;
     let frame = view.page.as_mut()?;
     frame.tab = mr::CHANGES;

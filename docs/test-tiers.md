@@ -33,6 +33,29 @@ rendering, storage and contracts, so linking core is not unit-lane isolation.
 
 ## Tier ownership
 
+Notice coverage uses narrow owner modules. `core-notice-model` is pure bounded
+ledger logic with injected monotonic samples. `core-notice-kit` classifies local
+buffer/layout tests as unit and the actual native cell exporter as a contract;
+serialization and an explicit output directory are part of that exporter.
+`core-notice-shell` separates pure geometry from real shell/motion composition.
+`core-notice-host` requires production routing to prove input, confirmation and
+session-history ownership. Explicit producer severity tests in Jira and Slack
+are contracts because they exercise and restore the existing thread-local icon
+pack; GitHub and Sessions reducer cases use owned synthetic results without
+running a provider task. Compiled discovery and actual execution remain separate
+requirements; these declarations alone do not qualify the reconstruction.
+
+Key-in-word coverage uses narrow `mnemonic` modules. Pure host projections,
+wire defaults, Unicode/grapheme matching and local caption/buffer geometry are
+unit cases; they construct no Host or complete application frame. Owner action
+factories use fixed owned state rather than production constructors that read
+clocks, generate identifiers or register redaction tokens. Git question/settings
+and Workspace settings producers still resolve the home directory, and three
+Sessions producers still inspect the recipe path; those are integration cases,
+run with owned HOME/XDG and explicit synthetic paths. Compiled inventory must
+confirm all names. The existing general-view and key-intent journeys additionally
+check actual first-party mnemonic metadata, without adding a Host per action.
+
 The `core-focus-ramp-kit` scope classifies the color sampler, clockwise perimeter,
 protected-title geometry and wordmark helpers. These use explicit themes and
 caller-owned local buffers, without a Host or full application frame. Its three
@@ -43,6 +66,15 @@ page/work-area dock eligibility and exact lower-tier preservation. The
 `core-focus-ramp-shell` unit cases cover pure chrome eligibility and wordmark
 span/clipping behavior. Cross-renderer App parity requires separate execution
 evidence.
+
+The `core-loading-policy` scope contains four narrow engine lifecycle integration
+cases. They use the production thread-local mark ledger, local 30-by-8 buffers
+and manual clocks to protect full-to-subtle shimmer removal, retained cue clocks,
+repeated settings, clean settlement, off reset and sticky slow-terminal policy.
+They construct no Host or full application frame and perform no I/O. The ledger's
+mutable thread-local state is why these are not classified as pure units. No
+special feature is required; Ink controller and real-App loading ownership need
+their own separate execution evidence.
 
 - **Unit:** one component's pure model, parsing or effect-envelope behavior. No
   real host, full frame, wall-clock reads, network, credential lookup, filesystem/database, process
@@ -57,7 +89,8 @@ evidence.
   explicitly documented; avoid growing them for assertions available at unit
   speed. A transport contract need not be slow.
 - **E2E:** a minimal real process/feature-mix journey. Feature compilation coverage
-  is separate from scenario coverage; retain full `scripts/check-mixes` at merge.
+  is separate from scenario coverage: `scripts/check-mixes` (none, each part alone,
+  all), which CI runs.
 - **Live:** explicitly ignored real-service checks, outside offline execution.
   Do not use `--run-ignored all` or `--include-ignored` for inventory validation.
 
@@ -249,6 +282,9 @@ scripts/check-test-tiers --nextest /tmp/provider-tests.json --scope github-journ
 cargo nextest list --locked -p radar-core --lib --features test-support --message-format json > /tmp/core-tests.json
 scripts/check-test-tiers --nextest /tmp/core-tests.json --scope core-completion --scope core-scenarios
 
+# Loading policy needs no extra feature; the same unfiltered core discovery works:
+scripts/check-test-tiers --nextest /tmp/core-tests.json --scope core-loading-policy
+
 # Names-only tabs: the same unfiltered core discovery checks all four narrow scopes:
 scripts/check-test-tiers --nextest /tmp/core-tests.json \
   --scope core-tab-attention-host --scope core-tab-attention-shell \
@@ -321,8 +357,7 @@ binary itself. Test execution remains a separate command, e.g.
 
 The existing nextest configuration is unchanged: slow at 2 seconds and terminate
 at 20 seconds; only the already named `key_intent_parity` and `ratatui_cells`
-binaries use 10/60 seconds. Keep roughly 10 seconds per crate and 3 minutes for
-warm mix checks. Cargo test alone does not enforce nextest hard timeouts. This
+binaries use 10/60 seconds. Keep roughly 10 seconds per crate. Cargo test alone does not enforce nextest hard timeouts. This
 inventory gate measures no runtime and supplies no new timeout exemptions.
 
 Before calling an area “fast” or isolated, measure repeated warmed execution with
@@ -353,3 +388,12 @@ and search checkpoints at 80×24 and 160×40: real Ratatui SVG/text and Bridge J
 Ordinary checks write nothing. Replay the JSON through the existing Ink App test
 harness to inspect the actual frontend; these artifacts do not establish live
 terminal/PTY behavior or pixel equivalence.
+
+The `general-view-fixtures` scope owns the complete dedicated root test binary.
+Twenty pure helper cases validate first-party mnemonic metadata and structural captured-target normalization,
+identity bijection, reference consistency, direct expected-side comparison and
+inventory failure paths. Two contracts cover the actual composed view fixtures
+and a real zero-selection child-harness negative control. The fixture child has
+an owned temporary home/config/state, fixed UTC and no ambient fake-provider
+state. This does not claim that Cargo dependencies provide physical unit-lane
+isolation or that all production dependencies are sandboxed.

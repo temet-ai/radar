@@ -166,7 +166,7 @@ fn a_ticket_outside_the_view_is_checked_by_its_updated_on_the_cycle_and_read_onl
 
 #[test]
 fn the_tick_checks_the_open_page_of_a_ticket_outside_the_view() {
-    let mut p = sample();
+    let mut p = sample_without_provider_ids();
     let every = p.cfg.refresh_secs as i64;
     page::open(&mut p, SITE, "ABC-99");
     complete_detail(&mut p, SITE, "ABC-99", Ok(outside("ABC-99")));

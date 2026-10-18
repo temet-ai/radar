@@ -1,21 +1,21 @@
 ---
 source: crates/radar-jira/src/tests.rs
-assertion_line: 1825
+assertion_line: 1792
 expression: "text(&host, 80, 24)"
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
-╭ settings ────────────╮╭ projects ────────────────────────────────────────────╮
-│General               ││▌ acme  acme.atlassian.net                            │
-│  ├─ parts            ││▌ ├─ + watch a project                                │
-│  ├─ mode             ││▌ ├─ colour          ██ blue                          │
-│  ├─ appearance       ││▌ ├─ ABC     Acme ABC                                 │
-│  ├─ colours          ││▌ └─ DEF     Acme DEF   acceptance criteria: not set  │
-│  └─ icons            ││▌ beta  beta.atlassian.net                            │
-│Jira                  ││▌ ├─ + watch a project                                │
-│  ├─ connection       ││▌ ├─ colour          ██ green                         │
-│  ├─ projects         ││▌ └─ XYZ     Acme XYZ   acceptance criteria: not set  │
+╭ 1 settings ──────────╮╭ 2 projects ──────────────────────────────────────────╮
+│General               ││acme  acme.atlassian.net                              │
+│  ├─ parts            ││  ├─ + watch a project                                │
+│  ├─ mode             ││  ├─ colour          ██ blue                          │
+│  ├─ appearance       ││  ├─ ABC     Acme ABC                                 │
+│  ├─ colours          ││  └─ DEF     Acme DEF   acceptance criteria: not set  │
+│  └─ icons            ││beta  beta.atlassian.net                              │
+│Jira                  ││  ├─ + watch a project                                │
+│  ├─ connection       ││  ├─ colour          ██ green                         │
+│  ├─ projects         ││  └─ XYZ     Acme XYZ   acceptance criteria: not set  │
 │  ├─ views            │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ watch a project ─────────────────────────────────────╮
+│  └─ look             │╭ 3 watch a project ───────────────────────────────────╮
 │                      ││ Watch another project on acme.                       │
 │                      ││                                                      │
 │                      ││ PASTE OR TYPE ANY OF                                 │
@@ -26,4 +26,4 @@ expression: "text(&host, 80, 24)"
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                       jira
+ SETTINGS   bulk   +/- expand/collapse   extra actions   ~ notices         jira

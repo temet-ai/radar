@@ -27,6 +27,12 @@ link?: string | null,
  */
 target?: Target | null, 
 /**
+ * Presentation-only shortcut after this phrase in a plain-text reader.
+ * Visual drawers use its supplied underline styling and ignore this field;
+ * this does not name an action or grant any input-routing authority.
+ */
+key_hint?: string | null, 
+/**
  * A look the part names for its own domain instead of an ink: a style
  * spec in the theme's words (`<part>.blue bold`, a look the user set),
  * which the frontend resolves in its theme.

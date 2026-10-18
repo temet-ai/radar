@@ -126,7 +126,7 @@ impl Fixture {
                         queue.extend(effects)
                     }
                 }
-                Effect::Focus(_) | Effect::Notify(_) => {}
+                Effect::Focus(_) | Effect::Notify(_) | Effect::Notice(_) => {}
                 other => panic!("unexpected effect {other:?}"),
             }
         }
@@ -2308,6 +2308,13 @@ fn partial_conflicting_and_unreadable_inspection_retain_ids_and_block_replacemen
 
 #[test]
 fn optional_source_owner_controls_open_but_preserves_copy_and_context() {
+    fn source_words(view: &ScreenView) -> String {
+        let detail = view.panes.iter().find(|pane| pane.pane == PaneId::Detail).unwrap();
+        let Node::Entries { rows, .. } = &detail.body else { panic!("linked source entries") };
+        rows.iter().flat_map(|row| row.before.iter().chain(std::iter::once(&row.head)).chain(&row.body))
+            .map(|line| line.words()).collect::<Vec<_>>().join(" ")
+    }
+
     let mut f = Fixture::new();
     f.start();
     f.link_new("Keep exact local context", vec![source("ticket", "ABC-12")]);
@@ -2324,11 +2331,7 @@ fn optional_source_owner_controls_open_but_preserves_copy_and_context() {
             .iter()
             .any(|action| action.id == "work.copy-source")
     );
-    assert!(
-        serde_json::to_string(&absent)
-            .unwrap()
-            .contains("Source owner unavailable here")
-    );
+    assert!(source_words(&absent).contains("Source owner unavailable here; copy its exact locator."));
     let parts: Vec<Box<dyn Plugin>> = vec![Box::new(SourcePart)];
     let present = screen::view(
         &f.p,
@@ -2354,11 +2357,7 @@ fn optional_source_owner_controls_open_but_preserves_copy_and_context() {
             .iter()
             .any(|action| action.id == "work.copy-source")
     );
-    assert!(
-        !serde_json::to_string(&present)
-            .unwrap()
-            .contains("Source owner unavailable here")
-    );
+    assert!(!source_words(&present).contains("Source owner unavailable here"));
 }
 
 #[test]
@@ -2370,4 +2369,197 @@ fn headless_lists_the_screens_actions_under_their_stable_ids() {
     assert_eq!(id_of("n").as_deref(), Some("work.new"));
     assert!(actions.iter().filter(|a| a.heading).all(|a| a.id.is_empty()));
     assert!(actions.iter().all(|a| a.id.is_empty() || a.id.starts_with("work.")));
+}
+
+mod mnemonic_tests {
+    use super::*;
+    use radar_core::view::ActionSpec;
+
+    fn assert_rail_metadata(panes: &[radar_core::view::PaneView], actions: &[ActionSpec]) {
+        let rows = panes.iter().find_map(|pane| match &pane.body {
+            Node::Extension { capability, data, .. } if capability == "work.rail" => data["actions"].as_array(),
+            _ => None,
+        }).expect("offered actions have a rail");
+        let offered: Vec<_> = actions.iter().filter(|action| !action.id.is_empty()).collect();
+        assert_eq!(rows.len(), offered.len());
+        for (row, action) in rows.iter().zip(offered) {
+            let source = serde_json::to_value(action).unwrap();
+            assert_eq!(row["key"], serde_json::json!(action.key), "{}: key", action.id);
+            for field in ["id", "label", "mnemonic_at", "mnemonic_shift"] {
+                assert_eq!(row.get(field), source.get(field), "{}: {field}", action.id);
+            }
+        }
+    }
+
+    fn source_detail(item: &ItemId, basis: radar_core::journal::work_map::Basis) -> DetailResponse {
+        use radar_core::journal::{ActionKind, EventId, Metadata, SessionOrigin};
+        use radar_core::journal::work_map::{ActionSource, ChangeId, ChangeRecord, ChangeRequest, EvidenceSource, HandoffRecord, Mutation, Provenance};
+        let action = ActionSource {
+            action_id: ActionId::parse("10000000-0000-4000-8000-000000000002").unwrap(),
+            session_id: SessionId::parse("10000000-0000-4000-8000-000000000003").unwrap(),
+            origin: Origin::Host, kind: ActionKind::new("source.selected"),
+            build_version: "test".into(), session_origin: SessionOrigin::Tui,
+        };
+        let event = EventId::parse("10000000-0000-4000-8000-000000000004").unwrap();
+        DetailResponse {
+            selected: item.clone(), related: None, expansion_truncated: false,
+            primary: Handoff {
+                version: 1,
+                snapshot: serde_json::from_value(serde_json::json!({
+                    "database_id": "10000000-0000-4000-8000-000000000005",
+                    "event_sequence": 1, "map_sequence": 1, "gap_sequence": 0,
+                })).unwrap(),
+                selection: Selection { items: vec![item.clone()], actions: vec![] },
+                records: vec![HandoffRecord::Map { change: Box::new(ChangeRecord {
+                    version: 1, sequence: 1, recorded_at_ms: 1000, retracted: false,
+                    request: ChangeRequest {
+                        id: ChangeId::parse("10000000-0000-4000-8000-000000000006").unwrap(),
+                        provenance: Provenance { recording_action_id: action.action_id.clone(), evidence_event_id: event.clone(), basis },
+                        observed_at_ms: 1000,
+                        mutation: Mutation::BindSubject {
+                            item_id: item.clone(), from_sequence: 1, through_sequence: None,
+                            subject: SubjectKey { provider: "forge".into(), instance: "forge.example".into(), kind: "ticket".into(), id: "WATCH-44/e\u{301}/界".into() },
+                        },
+                    },
+                    recording: action.clone(),
+                    evidence: EvidenceSource {
+                        event_version: 1, metadata: Metadata::default(), event_id: event,
+                        sequence: 1, outcome: radar_core::journal::Outcome::Succeeded,
+                        observed_at_ms: 1000, recorded_at_ms: 1000,
+                        observation_time_estimated: false, action,
+                    },
+                }) }],
+                truncated: false, next: None, authority: "observations_only",
+                task_instruction: "unspecified", execution_authorization: "unspecified",
+                known_recording_gaps: false, completeness_not_guaranteed: true,
+            },
+        }
+    }
+
+    fn check_context_wrapping() {
+        use radar_core::view::{Ink, Seg, Text};
+        assert!(screen::wrap_context(&Text::new(), 8).is_empty());
+        let mut link = Seg::styled("cafe\u{301} 界 👩‍💻 repeated repeated", "status.info italic").linked("https://example.test/exact");
+        link.target = Some(Target::new("retained-exact-target"));
+        link.key_hint = Some("c".into());
+        let text = Text::new().push(Seg::new("  prefix\t", Ink::Muted)).push(link.clone())
+            .push(Seg::new("\n\n unchanged   tail  ", Ink::Warn));
+        for width in [0, 8, 12, 20, 80] {
+            let rows = screen::wrap_context(&text, width);
+            assert_eq!(rows.iter().map(Text::words).collect::<Vec<_>>(), radar_core::ui::wrap_words(&text.words(), width, 0));
+            let segments: Vec<_> = rows.iter().flat_map(|row| &row.0).collect();
+            assert_eq!(segments.iter().filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), ["c"]);
+            let linked: Vec<_> = segments.iter().filter(|seg| seg.link.is_some()).collect();
+            assert!(!linked.is_empty());
+            assert!(linked.iter().all(|seg| seg.link == link.link && seg.target == link.target && seg.look == link.look));
+            assert!(segments.iter().filter(|seg| seg.link.is_none()).all(|seg| seg.target.is_none() && seg.look.is_none()));
+            assert!(rows.iter().any(|row| row.words().contains("cafe\u{301}")));
+            assert!(rows.iter().any(|row| row.words().contains("👩‍💻")));
+        }
+        let mut tail = Seg::new(" \t", Ink::Muted);
+        tail.key_hint = Some("v".into());
+        let whitespace_tail = Text::plain("view history").push(tail);
+        let rows = screen::wrap_context(&whitespace_tail, 8);
+        assert_eq!(rows.iter().map(Text::plain_words).collect::<Vec<_>>(), ["view", "history [v]"]);
+        let mut first = Seg::new("copy", Ink::Muted);
+        first.key_hint = Some("c".into());
+        let mut second = Seg::new("  ", Ink::Muted);
+        second.key_hint = Some("x".into());
+        for text in [Text::new().push(first).push(second.clone()), Text::new().push(second)] {
+            let rows = screen::wrap_context(&text, 8);
+            assert_eq!(rows.iter().map(Text::words).collect::<Vec<_>>(), radar_core::ui::wrap_words(&text.words(), 8, 0));
+            let expected: Vec<_> = text.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect();
+            assert_eq!(rows.iter().flat_map(|row| &row.0).filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), expected);
+            assert_eq!(rows[0].plain_words(), if text.words().starts_with("copy") { "copy [c] [x]" } else { " [x]" });
+        }
+    }
+
+    #[test]
+    fn workbench_action_producers_keep_meaningful_mnemonics_and_ids() {
+        let item = ItemId::parse("10000000-0000-4000-8000-000000000044").unwrap();
+        let mut p = WorkbenchPlugin {
+            seed: "10000000-0000-4000-8000-000000000001".into(),
+            serial: 0, request: 0, pending: None, started: false,
+            items: None, cursors: vec![None], page: 0, snapshot: None,
+            selected: None, source_at: 0, detail: None, evidence: None,
+            filter: None, text_filter: String::new(), groups: vec![], group_catalog: None,
+            group_cursors: vec![None], group_page: 0, group_revision: 0, group_error: None,
+            notice: None, error: None, link: None, prepared: None, capture: None,
+            origin: None, verifying: false,
+        };
+        let destinations = p.screens();
+        assert_eq!((destinations[0].id, destinations[0].name, destinations[0].key), ("work", "work items", 'I'));
+        assert_eq!(radar_core::mnemonic::at("I", destinations[0].name), Some(5));
+        for selected in [None, Some(item.clone())] {
+            p.selected = selected;
+            for pane in [Pane::Nav, Pane::Middle, Pane::Detail] {
+                let bindings = p.bindings(pane);
+                assert!(bindings.iter().any(|binding| binding.keys == "n" && binding.what == "new local task…"));
+                assert_eq!(bindings.iter().any(|binding| binding.keys == "t"), p.selected.is_some());
+                for binding in bindings {
+                    if radar_core::mnemonic::letter(&binding.keys).is_some() {
+                        assert!(radar_core::mnemonic::at(&binding.keys, &binding.what).is_some(),
+                            "{} / {}", binding.keys, binding.what);
+                    }
+                }
+                let screen = view(&p, pane);
+                assert_rail_metadata(&screen.panes, &screen.actions);
+                for action in screen.actions {
+                    if action.key.as_ref().is_some_and(|chord| matches!(chord.key, radar_core::view::Key::Char(c) if c.is_alphabetic()) && !chord.ctrl && !chord.alt) {
+                        assert!(action.mnemonic_at.is_some(), "{}", action.id);
+                    }
+                    if action.id == "work.new" { assert_eq!(action.mnemonic_at, Some(0)); }
+                    if action.id == "work.group" { assert_eq!(action.mnemonic_at, Some(2)); }
+                }
+            }
+        }
+        // Projection also preserves an explicitly shifted incoming action; it
+        // does not derive another mnemonic or change the retained identity/key.
+        let mut shifted = view(&p, Pane::Middle).actions.into_iter()
+            .find(|action| action.id == "work.new").unwrap();
+        shifted.key = Chord::parse("N");
+        shifted.mnemonic_shift = true;
+        let actions = [shifted];
+        let panes = work_area::sections(&p, &ViewCx {
+            now: 1000, focus: PaneId::Middle, width: 160, height: 40,
+            parts: Parts::none(), icon_lead: 0, setup: false,
+        }, &actions);
+        assert_rail_metadata(&panes, &actions);
+        check_context_wrapping();
+        for basis in [radar_core::journal::work_map::Basis::Observed, radar_core::journal::work_map::Basis::UserAsserted, radar_core::journal::work_map::Basis::Inferred] {
+            p.detail = Some(source_detail(&item, basis));
+            for width in [80, 120, 160] {
+                let screen = screen::view(&p, &ViewCx {
+                    now: 1000, focus: PaneId::Detail, width, height: 40,
+                    parts: Parts::none(), icon_lead: 0, setup: false,
+                });
+                let detail = screen.panes.iter().find(|pane| pane.pane == PaneId::Detail).unwrap();
+                let Node::Entries { rows, selected, .. } = &detail.body else { panic!("linked source entries") };
+                assert_eq!(*selected, Some(0));
+                assert_eq!(rows.len(), 1);
+                let row = &rows[0];
+                assert_eq!(row.target.as_str(), screen::source_target(&p, &p.sources()[0]));
+                assert_eq!(row.head.words(), "ticket · WATCH-44/e\u{301}/界");
+                assert_eq!(row.before[0].words(), "Exact sources · ↑↓ select · extra actions");
+                assert_eq!(row.before[0].plain_words(), "Exact sources · ↑↓ select · extra actions [x]");
+                let segments: Vec<_> = row.body.iter().flat_map(|line| &line.0).collect();
+                assert_eq!(segments.iter().filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), ["c", "c", "x", "v"]);
+                assert_eq!(segments.iter().filter(|seg| seg.look.as_deref().is_some_and(|look| look.contains("underline"))).map(|seg| seg.text.as_str()).collect::<Vec<_>>(), ["c", "c", "x", "v"]);
+                assert!(segments.iter().all(|seg| seg.target.is_none() && seg.link.is_none()));
+                let words = row.body.iter().map(|line| line.words()).collect::<Vec<_>>().join(" ");
+                assert!(words.contains(&format!("{} link · copy locator · extra actions", model::basis(basis))));
+                assert!(words.contains("view history: original claims and outcomes · completeness not guaranteed"));
+                assert!(words.contains("Source owner unavailable here; copy its exact locator."));
+            }
+        }
+        let mut duplicate = source_detail(&item, radar_core::journal::work_map::Basis::Observed).primary;
+        let radar_core::journal::work_map::HandoffRecord::Map { change } = &mut duplicate.records[0] else { panic!("source binding") };
+        change.request.id = radar_core::journal::work_map::ChangeId::parse("10000000-0000-4000-8000-000000000007").unwrap();
+        p.detail.as_mut().unwrap().related = Some(duplicate);
+        let screen = view(&p, Pane::Detail);
+        let notes = &screen.panes.iter().find(|pane| pane.pane == PaneId::Detail).unwrap().notes;
+        let warning = notes.iter().find(|line| line.words().starts_with("Multiple binding claims")).expect("actual ambiguous-binding warning");
+        assert_eq!(warning.words(), "Multiple binding claims for the same source; intervals may differ. View history.");
+        assert_eq!(warning.plain_words(), "Multiple binding claims for the same source; intervals may differ. View history [v].");
+    }
 }

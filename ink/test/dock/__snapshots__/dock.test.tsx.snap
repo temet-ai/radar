@@ -24,23 +24,23 @@ exports[`the dock, every state, both sizes > answered at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > answered at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -67,7 +67,7 @@ exports[`the dock, every state, both sizes > answered at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > approval at 80x24 1`] = `
@@ -94,23 +94,23 @@ exports[`the dock, every state, both sizes > approval at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5… esc stop · alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > approval at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -137,7 +137,7 @@ exports[`the dock, every state, both sizes > approval at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens esc stop · alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > approval-write at 80x24 1`] = `
@@ -164,23 +164,23 @@ exports[`the dock, every state, both sizes > approval-write at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > approval-write at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -207,7 +207,7 @@ exports[`the dock, every state, both sizes > approval-write at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > empty at 80x24 1`] = `
@@ -234,23 +234,23 @@ exports[`the dock, every state, both sizes > empty at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > empty at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -277,7 +277,7 @@ exports[`the dock, every state, both sizes > empty at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > error at 80x24 1`] = `
@@ -304,23 +304,23 @@ exports[`the dock, every state, both sizes > error at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > error at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -347,7 +347,7 @@ exports[`the dock, every state, both sizes > error at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > no-sessions at 80x24 1`] = `
@@ -374,23 +374,23 @@ exports[`the dock, every state, both sizes > no-sessions at 80x24 1`] = `
 │                      ││ no session · ctrl-t starts one                       │
 │                      ││                                           alt-f full │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > no-sessions at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -417,7 +417,7 @@ exports[`the dock, every state, both sizes > no-sessions at 160x40 1`] = `
 │                        ││ no session · ctrl-t starts one                                                     ││                                              │
 │                        ││                                                                         alt-f full ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > picker-model at 80x24 1`] = `
@@ -444,23 +444,23 @@ exports[`the dock, every state, both sizes > picker-model at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > picker-model at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -487,7 +487,7 @@ exports[`the dock, every state, both sizes > picker-model at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > pty at 80x24 1`] = `
@@ -514,23 +514,23 @@ exports[`the dock, every state, both sizes > pty at 80x24 1`] = `
 │                      ││connection lost (connect ENOENT /tmp/x.sock)  ctrl-] …│
 │                      ││ copilot · gpt-5 · ~/radar · main · 1.2… ctrl-] leave │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > pty at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -557,7 +557,7 @@ exports[`the dock, every state, both sizes > pty at 160x40 1`] = `
 │                        ││connection lost (connect ENOENT /tmp/x.sock)  ctrl-] leave                          ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens                        ctrl-] leave ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > question at 80x24 1`] = `
@@ -584,23 +584,23 @@ exports[`the dock, every state, both sizes > question at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gp… esc decline · alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > question at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -627,7 +627,7 @@ exports[`the dock, every state, both sizes > question at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k to… esc decline · alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > question-answered at 80x24 1`] = `
@@ -654,23 +654,23 @@ exports[`the dock, every state, both sizes > question-answered at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > question-answered at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -697,7 +697,7 @@ exports[`the dock, every state, both sizes > question-answered at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > question-several at 80x24 1`] = `
@@ -724,23 +724,23 @@ exports[`the dock, every state, both sizes > question-several at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gp… esc decline · alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > question-several at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -767,7 +767,7 @@ exports[`the dock, every state, both sizes > question-several at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k to… esc decline · alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > slash-commands at 80x24 1`] = `
@@ -794,23 +794,23 @@ exports[`the dock, every state, both sizes > slash-commands at 80x24 1`] = `
 │                      ││> /co                                                 │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > slash-commands at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -837,7 +837,7 @@ exports[`the dock, every state, both sizes > slash-commands at 160x40 1`] = `
 │                        ││> /co                                                                               ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > stopped at 80x24 1`] = `
@@ -864,23 +864,23 @@ exports[`the dock, every state, both sizes > stopped at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > stopped at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -907,7 +907,7 @@ exports[`the dock, every state, both sizes > stopped at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > streaming at 80x24 1`] = `
@@ -934,23 +934,23 @@ exports[`the dock, every state, both sizes > streaming at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5… esc stop · alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > streaming at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -977,7 +977,7 @@ exports[`the dock, every state, both sizes > streaming at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens esc stop · alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > tool-folded at 80x24 1`] = `
@@ -1004,23 +1004,23 @@ exports[`the dock, every state, both sizes > tool-folded at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > tool-folded at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -1047,7 +1047,7 @@ exports[`the dock, every state, both sizes > tool-folded at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > tool-open at 80x24 1`] = `
@@ -1074,23 +1074,23 @@ exports[`the dock, every state, both sizes > tool-open at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > tool-open at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -1117,7 +1117,7 @@ exports[`the dock, every state, both sizes > tool-open at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > two-tabs at 80x24 1`] = `
@@ -1144,23 +1144,23 @@ exports[`the dock, every state, both sizes > two-tabs at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar … alt-f full · alt-w close │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > two-tabs at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -1187,7 +1187,7 @@ exports[`the dock, every state, both sizes > two-tabs at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens            alt-f full · alt-w close ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > unfocused at 80x24 1`] = `
@@ -1214,23 +1214,23 @@ exports[`the dock, every state, both sizes > unfocused at 80x24 1`] = `
 │                      ││>                                                     │
 │                      ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens       │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`the dock, every state, both sizes > unfocused at 160x40 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ team-b ──────────────────────────────────────╮
 │ ⇄ Everything           ││ OPENED BY ⚇ everyone · 4 repos               ⋮ STATE             ↺ UPDAT ☻ FOR YO  ││ ◆ b acme/team-b                              │
-│ ◎ Needs my action    2 ││▌ ◆ B team-b                                                                        ││                                              │
-│ ☻ Opened by me         ││▌ └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
-│ ⚇ Opened by teammates  ││▌    └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
-│ ◙ Opened by bots       ││▌ ◆ A team-a   main red in 1                                                        ││ open MRs    1                                │
-│                        ││▌ ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
-│                        ││▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
-│                        ││▌ ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
-│                        ││▌ │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
-│                        ││▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
-│                        ││▌ └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
+│ ◎ Needs my action    2 ││◆ B team-b                                                                          ││                                              │
+│ ☻ Opened by me         ││  └─ ▤ worker                                                     —       ⇄ 1 MR    ││ repos       1 shown · 0 hidden               │
+│ ⚇ Opened by teammates  ││     └─ ◌ !342 change 342  ☻ you              ◌ draft             16m     draft     ││ with MRs    1 repos, in this view            │
+│ ◙ Opened by bots       ││◆ A team-a   main red in 1                                                          ││ open MRs    1                                │
+│                        ││  ├─ ⌂ api  ⎇ alice/ABC-12                    ✓ passed            4d      ⇄ 1 MR    ││                                              │
+│                        ││  │  └─ ⇄ !263 ABC-12: Add a stats endpoint f ◎ needs 1 approval  16m     review    ││                                              │
+│                        ││  ├─ ⌂ web  ⎇ main                            ✗ failed            4d      ⇄ 2 MRs   ││                                              │
+│                        ││  │  ├─ ⇄ !187 change 187  ☻ you              ✓ ready to merge    16m     ready     ││                                              │
+│                        ││  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc  ◎ needs 1 approval  16m     bot       ││                                              │
+│                        ││  └─ ▤ docs                                   ✓ passed            4d      —         ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -1257,5 +1257,5 @@ exports[`the dock, every state, both sizes > unfocused at 160x40 1`] = `
 │                        ││>                                                                                   ││                                              │
 │                        ││ copilot · gpt-5 · ~/radar · main · 1.2k tokens                                     ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;

@@ -113,7 +113,7 @@ pub(crate) async fn complete_task(
                     },
                 })
                 .collect(),
-            event: Event::Notice("background action stopped; its outcome is unknown".into()),
+            event: Event::ErrorNotice("background action stopped; its outcome is unknown".into()),
         },
     }
 }
@@ -251,7 +251,7 @@ mod tests {
                     },
                 );
             }
-            assert!(matches!(completion.event, Event::Notice(note)
+            assert!(matches!(completion.event, Event::ErrorNotice(note)
                 if note == "background action stopped; its outcome is unknown"));
         }
     }

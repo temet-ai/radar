@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Waiting
+ Gallery / Waiting
  The kit: every element on sample data                            colours: none
  Diff  Motion  Colours  Tones  Row states  Grid states  [Waiting]  Long text  …
 ╭ loading, and what fetching says ────────────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 ╰─────────────────────────────────────────────────────────────────────────────╯║
 ╭ empty ──────────────────────────────────────────────────────────────────────╮║
 │ No shelves yet. Press , for settings, then add one under shelves.           │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

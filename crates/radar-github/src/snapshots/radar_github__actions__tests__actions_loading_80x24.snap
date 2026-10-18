@@ -1,12 +1,13 @@
 ---
 source: crates/radar-github/src/actions_tests.rs
+assertion_line: 363
 expression: text
 ---
  radar    Repositories   History   Settings (,)      ⠷ loading Actions…  ✎ edit
- GitHub › acme/api
+ GitHub / acme/api
  acme/api
  Overview  Pull requests  [Actions]
-╭ Actions ─────────────────────────────────────────────────────────────────────╮
+╭ 1 Actions ───────────────────────────────────────────────────────────────────╮
 │ Loading workflow runs…                                                       │
 │ Recent workflow runs · read-only · a run is not overall repository health.   │
 │ Workflow runs are unavailable.                                               │
@@ -25,4 +26,4 @@ expression: text
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             github
+ GITHUB   PgUp/PgDn scroll   quit   extra actions   ~ notices            github

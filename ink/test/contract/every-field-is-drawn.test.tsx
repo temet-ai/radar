@@ -9,6 +9,8 @@
 // A field known to be undrawn today is in KNOWN_UNDRAWN with the name of the defect. Its case then
 // asserts that nothing differs (`expect(on).toBe(off)`), so the suite is green now and goes red, with the
 // message "now drawn: remove it from KNOWN_UNDRAWN", the day the renderer draws it.
+// INTENTIONALLY_UNDRAWN also keeps a paired on/off case, but asserts a deliberate compatibility invariant rather
+// than a live defect: restoring deprecated drawing would violate the shared visual contract.
 import { describe, expect, it, vi } from "vitest";
 
 // Colour on, so a field that changes only a style (an ink slot, bold, inverse) changes the frame.
@@ -16,6 +18,9 @@ vi.hoisted(() => {
   process.env.FORCE_COLOR = "3";
 });
 
+import { Motion } from "../../src/motion/motion.js";
+import { noticePresentation } from "../../src/notices/paint.js";
+import { NOTICE_CASES, NOTICE_INVISIBLE } from "./cases-notices.js";
 import { chromeOf, fieldsOf, mount, nodeKinds, plain, unionOf, viewFields } from "./support.js";
 import { SCREEN_CASES, SCREEN_INVISIBLE, SCREEN_KNOWN_UNDRAWN } from "./cases-screen.js";
 import { DOCK_CASES, DOCK_INVISIBLE, DOCK_KNOWN_UNDRAWN } from "./cases-dock.js";
@@ -34,6 +39,15 @@ const docScreen = (lines = ["BODYLINE"]) => ({
   panes: [{ pane: "middle", title: "doc", body: { node: "document", lines: lines.map((l) => text(l)) } }],
   actions: [],
 });
+/** Footer scenes exercise actual frame paint rather than declaring new fields invisible. */
+const footer = (change: (foot: any, on: boolean) => void): Case => (on) => {
+  const foot: any = {
+    actions: [{ action: { id: "watch.approve", label: "approve", change: "edit", key: { key: { char: "a" } }, mnemonic_at: 0 }, target: "detail-foot:1:0" }],
+    menu: { action: { id: "detail.extra_actions", label: "extra actions", key: { key: { char: "x" } }, mnemonic_at: 1 }, target: "detail-foot:1:menu" },
+  };
+  change(foot, on);
+  return { chrome: chromeOf(W, H, { write_mode: "edit" }), screen: { ...docScreen(), panes: [{ pane: "detail", title: "Watch report", body: { node: "document", lines: [text("BODYLINE")] }, foot_actions: foot }] } };
+};
 const section = { version: 1, scope: "connection", body: { node: "document", lines: [text("SECTIONBODY")] }, detail_title: "detail", detail: [text("DETAILBODY")] };
 
 // ---- the scenes, one builder per object the chrome holds ------------------------------------------------
@@ -158,6 +172,23 @@ const attentionChip = () => ({ text: "review needs you", icon: "warning", ink: "
 
 const CASES: Record<string, Case> = {
   // ChromeView
+  "ChromeView.pane_jumps": (on) => ({ chrome: chromeOf(W, H, { pane_jumps: on ? [{ pane: "middle", key: "2" }] : [] }), screen: docScreen(), ...(on ? { needle: "2 doc" } : {}) }),
+  "ChromeView.write_mode": (on) => {
+    const scene = footer(() => {})(on);
+    scene.chrome.write_mode = on ? "edit" : "read_only";
+    return scene;
+  },
+  "PaneJump.pane": (on) => ({ chrome: chromeOf(W, H, { pane_jumps: [{ pane: on ? "middle" : "nav", key: "2" }] }), screen: docScreen() }),
+  "PaneJump.key": (on) => ({ chrome: chromeOf(W, H, { pane_jumps: [{ pane: "middle", key: on ? "2" : "9" }] }), screen: docScreen() }),
+  "PaneView.foot_actions": (on) => {
+    const scene = footer(() => {})(on);
+    if (!on) delete scene.screen.panes[0].foot_actions;
+    return scene;
+  },
+  "FootActions.actions": footer((foot, on) => { if (!on) foot.actions = []; }),
+  "FootActions.menu": footer((foot, on) => { foot.menu.action.label = on ? "extra actions" : "options"; }),
+  "FootAction.action": footer((foot, on) => { foot.actions[0].action.label = on ? "approve" : "allow"; }),
+  "FootAction.disabled": footer((foot, on) => { if (on) foot.actions[0].disabled = "waiting for review"; }),
   "ChromeView.top_bar": (on) => ({ chrome: chromeOf(W, H, { top_bar: { brand: on ? "ZZBRAND" : "", tabs: [], mode: { text: "", ink: "plain", target: "chrome:mode" } } }), screen: docScreen() }),
   "ChromeView.sources": (on) => ({ chrome: chromeOf(W, H, { sources: on ? [{ label: "ZZSRC", target: "chrome:source:0" }] : [] }), screen: docScreen() }),
   "ChromeView.status": (on) => ({ chrome: chromeOf(W, H, { status: { scope: on ? "ZZSTATUS" : "" } }), screen: docScreen() }),
@@ -218,6 +249,8 @@ const CASES: Record<string, Case> = {
   "Hint.keys": hint((h, on) => (h.keys = pick(on, "q", "ZZK"))),
   "Hint.label": hint((h, on) => (h.label = pick(on, "quit", "ZZLABEL"))),
   "Hint.icon": hint((h, on) => (h.icon = on ? "settings" : null)),
+  "Hint.mnemonic_at": hint((h, on) => { h.keys = "q"; h.label = "quit"; h.mnemonic_at = on ? 0 : null; }),
+  "Hint.mnemonic_shift": hint((h, on) => { h.keys = "Q"; h.label = "quit"; h.mnemonic_at = 0; h.mnemonic_shift = on; }),
   // Message
   "Message.text": status((s, on) => (s.message = { text: pick(on, "one", "ZZTWO"), ink: "warn" })),
   "Message.icon": status((s, on) => (s.message = { text: "one", icon: on ? "settings" : null, ink: "warn" })),
@@ -259,6 +292,8 @@ const CASES: Record<string, Case> = {
   "Choice.sample": choice((c, on) => (c.sample = on ? "ZZSAMPLE" : null)),
   "Choice.shown_only": choice((c, on) => (c.shown_only = on)),
   "Choice.muted": choice((c, on) => (c.muted = on)),
+  "Choice.mnemonic_at": choice((c, on) => (c.mnemonic_at = on ? 0 : null)),
+  "Choice.mnemonic_shift": choice((c, on) => { c.key = "B"; c.mnemonic_at = 0; c.mnemonic_shift = on; }),
 
   // SettingsNav
   "SettingsNav.groups": nav((n, on) => (n.groups = on ? n.groups : [])),
@@ -340,6 +375,7 @@ const CASES: Record<string, Case> = {
  * its own terminal's room.
  */
 const INVISIBLE: Record<string, string> = {
+  "FootAction.target": "opaque host-admitted pointer identity; exact complete control hit rectangles and disabled/noncontrol exclusion are checked in detail-native-cells and detail-foot",
   "ChromeView.version": "view contract version, checked at Hello/Welcome",
   "ChromeView.width": "the room the host made the view for; the renderer draws in its own terminal's room",
   "ChromeView.height": "the room the host made the view for; the renderer draws in its own terminal's room",
@@ -389,29 +425,40 @@ const INVISIBLE: Record<string, string> = {
 const KNOWN_UNDRAWN: Record<string, string> = {
 };
 
+/** Compatibility fields that deliberately must not affect the frame, still covered by their paired cases. */
+const INTENTIONALLY_UNDRAWN: Record<string, string> = {
+  "TreeRow.stripe": "#45 retains this legacy wire field but removes root and descendant stripes in both renderers; semantic foregrounds and shared row-state grounds carry meaning instead",
+};
+
 // ---- the tests --------------------------------------------------------------------------------------------
 
 // Every field of every object type reachable from what the host sends for a view, walked from the
 // generated files' imports (support.tsx viewFields): nothing here is a list of types.
 const allFields = viewFields();
-const ALL_CASES: Record<string, Case> = { ...CASES, ...SCREEN_CASES, ...DOCK_CASES };
+const ALL_CASES: Record<string, Case> = { ...CASES, ...SCREEN_CASES, ...DOCK_CASES, ...NOTICE_CASES };
 const ALL_KNOWN: Record<string, string> = { ...KNOWN_UNDRAWN, ...SCREEN_KNOWN_UNDRAWN, ...DOCK_KNOWN_UNDRAWN };
-const ALL_INVISIBLE: Record<string, string> = { ...INVISIBLE, ...SCREEN_INVISIBLE, ...DOCK_INVISIBLE };
+const ALL_INVISIBLE: Record<string, string> = { ...INVISIBLE, ...SCREEN_INVISIBLE, ...DOCK_INVISIBLE, ...NOTICE_INVISIBLE };
 
 async function frameOf(scene: Scene): Promise<string> {
   const [w, h] = scene.size ?? [W, H];
-  const m = mount(w, h);
+  const m = mount(w, h, scene.plainText);
   m.snapshot(scene);
   for (const msg of scene.extra ?? []) m.conn.receive(msg);
   await m.settle();
-  const f = m.out.last();
+  let f = m.out.last();
+  // A local compositor avoids the process-global motion controller shared by concurrent contract cases.
+  if (m.session.noticeStore.throughId > 0) {
+    const layer = new Motion("off", () => 0);
+    layer.setPresentation(noticePresentation(m.session, { columns: w, rows: h }, () => true));
+    f = layer.apply(f, w, h); layer.reset();
+  }
   m.stop();
   return f;
 }
 
 describe("the generated types are read", () => {
   it("finds ChromeView's fields in the generated file", () => {
-    expect(fieldsOf("ChromeView")).toEqual(["version", "width", "height", "top_bar", "sources", "status", "menu", "settings", "keys_at", "history", "screen_keys", "setup", "tour"]);
+    expect(fieldsOf("ChromeView")).toEqual(["version", "width", "height", "top_bar", "sources", "status", "menu", "settings", "keys_at", "history", "screen_keys", "setup", "tour", "notices", "notice_history", "notices_visible", "pane_jumps", "write_mode"]);
   });
 });
 
@@ -419,10 +466,11 @@ describe("every field of what the host sends for the chrome is drawn", () => {
   it("every field has a case, or is invisible with a reason (a new field fails here until it has one)", () => {
     const missing = allFields.filter((f) => !(f in ALL_CASES) && !(f in ALL_INVISIBLE));
     expect(missing.join(", "), "add a case in CASES for each, or a reason in INVISIBLE").toBe("");
-    const stale = [...Object.keys(ALL_CASES), ...Object.keys(ALL_INVISIBLE), ...Object.keys(ALL_KNOWN)].filter((f) => !allFields.includes(f));
+    const stale = [...Object.keys(ALL_CASES), ...Object.keys(ALL_INVISIBLE), ...Object.keys(ALL_KNOWN), ...Object.keys(INTENTIONALLY_UNDRAWN)].filter((f) => !allFields.includes(f));
     expect(stale, "no longer in the generated types").toEqual([]);
     const both = Object.keys(ALL_INVISIBLE).filter((f) => f in ALL_CASES);
     expect(both).toEqual([]);
+    expect(Object.keys(INTENTIONALLY_UNDRAWN).filter((f) => !(f in ALL_CASES) || f in ALL_KNOWN || f in ALL_INVISIBLE), "intentional no-drawing invariants keep a paired case and are not live defects or skipped fields").toEqual([]);
   });
 
   // Each case mounts two apps and waits for each to settle on the clock; at a load of 50 and more (the gate, many seats)
@@ -432,7 +480,9 @@ describe("every field of what the host sends for the chrome is drawn", () => {
     const onScene = ALL_CASES[name]!(true);
     const [off, on] = await Promise.all([frameOf(offScene), frameOf(onScene)]);
     const known = name in ALL_KNOWN;
-    if (onScene.needle) {
+    if (name in INTENTIONALLY_UNDRAWN) {
+      expect(on, `${name} must stay undrawn: ${INTENTIONALLY_UNDRAWN[name]}`).toBe(off);
+    } else if (onScene.needle) {
       // The field's text is what must appear (a layout shift alone does not count as drawn).
       const shown = plain(on).includes(onScene.needle);
       if (known) expect(shown, `${name} is now drawn: remove it from the known-undrawn lists (${ALL_KNOWN[name]})`).toBe(false);

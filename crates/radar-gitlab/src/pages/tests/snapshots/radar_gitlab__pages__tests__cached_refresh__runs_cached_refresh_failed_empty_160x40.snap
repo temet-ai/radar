@@ -1,12 +1,13 @@
 ---
 source: crates/radar-gitlab/src/pages/tests/cached_refresh.rs
+assertion_line: 120
 expression: shown
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
- Repositories › a › api
+ Repositories / a / api
  acme/team-a/api                                                                                    main ✓ passed · last commit a22afd6f Alice Example · 2h ago
  Merge requests  [Pipelines on main]
-╭ pipelines on main ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 pipelines on main ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ✗ could not load: GitLab refresh unavailable                                                                                                                 │
 │ No pipelines on main lately.                                                                                                                                 │
 │                                                                                                                                                              │
@@ -41,4 +42,4 @@ expression: shown
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                       4 open · 1 to review · 1 ready  gitlab
+ REPOSITORIES   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                      4 open · 1 to review · 1 ready  gitlab

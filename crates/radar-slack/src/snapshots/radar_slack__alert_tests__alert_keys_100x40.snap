@@ -1,9 +1,10 @@
 ---
 source: crates/radar-slack/src/alert_tests.rs
+assertion_line: 320
 expression: "to_text(&host, 100, 40)"
 ---
  radar    Slack ●   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
-╭ feed ────────────────╮╭ Alerts ──────────────────────────────────────────────────────────────────╮
+╭ 1 feed ──────────────╮╭ 2 Alerts ────────────────────────────────────────────────────────────────╮
 │ For you            5 ││ firing first, then what resolved              PRIORITY NOTIFIED FOR      │
 │ Discussions          ││firing                                                                    │
 │ Alerts             2 ││  ├─ api  prod                                                            │
@@ -13,19 +14,21 @@ expression: "to_text(&host, 100, 40)"
 │ ▌ #jobs        1 NEW ││failed jobs                                                               │
 │                      ││  └─ unmapped  prod                                                       │
 │                      ││     └─ ✗ Nightly export                                2h       —        │
-│                      ││recently resolved                                                         │
 │                   ╭ api-HighErrorRate ───────────────────────────────────────╮                   │
-│                   │ ⏎       open its thread                                  │ 5h       40m 00s  │
-│                   │ o       open its console link                            │                   │
-│                   │ y       copy its console link                            │                   │
+│                   │ ⏎       open its thread                                  │                   │
+│                   │         open its console link                            │ 5h       40m 00s  │
+│                   │         copy its console link                            │                   │
 │                   │ LIST                                                     │                   │
 │                   │ ctrl-r  kept replies…                                    │                   │
-│                   │ r       refresh                                          │                   │
+│                   │         refresh                                          │                   │
 │                   │ /       filter the list by words                         │                   │
+│                   │ space   toggle the group                                 │                   │
 │                   │ +       expand the group                                 │                   │
 │                   │ -       collapse the group, or the one this row is in    │                   │
+│                   │ =       expand every held group                          │                   │
+│                   │ ~       recent notices (this session)                    │                   │
 │                   │ HISTORY                                                  │                   │
-│                   │ H       recent activity (last 24 hours)                  │                   │
+│                   │         shift recent activity (last 24 hours)            │                   │
 │                   │         all activity history                             │                   │
 │                   │         history for selected item                        │                   │
 │                   ╰──────────────────────────────────────────────────────────╯                   │
@@ -36,9 +39,7 @@ expression: "to_text(&host, 100, 40)"
 │                      ││                                                                          │
 │                      ││                                                                          │
 │                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
 │                      ││─ shows ──────────────────────────────────────────────────────────────────│
 │                      ││ 1 bot message not read as alerts: the log says why.                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
- SLACK   j/k move   ⏎ choose   esc close                        7 new · 5 for you · 2 firing  slack
+ SLACK   ↑↓ move   ⏎ choose   esc close                         7 new · 5 for you · 2 firing  slack

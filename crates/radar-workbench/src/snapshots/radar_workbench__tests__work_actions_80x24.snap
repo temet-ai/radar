@@ -1,28 +1,29 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
  radar    I   History   Settings (,)  local annotations · observations … ✎ edit
-╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+╭ 2 work items · page 1 ───────────────────────────────────────────────────────╮
 │ Ship explicit work-item navigation                                      task │
 │ pull-request · acme/api/7                                       pull-request │
 │ ticket · ABC-12                                                       ticket │
 │ checkout · /home/user/projects/api                                  checkout │
-│ workflow-run · acme/api/42/1                                    workflow-run │
-│                  ╭ Ship explicit work-item navigation ───╮                   │
-│                  │ n  create a local task…               │                   │
-│                  │ r  refresh local work                 │                   │
-│                  │ /  filter this item page…             │                   │
-│                  │ t  apply local group label…           │                   │
-│                  │ v  inspect bounded evidence…          │                   │
-│                  │ HISTORY                               │                   │
-│                  │ H  recent activity (last 24 hours)    │                   │
-│                  │    all activity history               │                   │
-│                  ╰───────────────────────────────────────╯                   │
+│ workflow-run ·╭ Ship explicit work-item navigation ─────────╮   workflow-run │
+│               │    new local task…                          │                │
+│               │    refresh local work                       │                │
+│               │ /  filter this item page…                   │                │
+│               │    set local group label…                   │                │
+│               │    inspect bounded evidence…                │                │
+│               │ ~  recent notices (this session)            │                │
+│               │ HISTORY                                     │                │
+│               │    shift recent activity (last 24 hours)    │                │
+│               │    all activity history                     │                │
+│               ╰─────────────────────────────────────────────╯                │
 │                                                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   j/k move   ⏎ choose   esc close
+ WORK ITEMS   ↑↓ move   ⏎ choose   esc close

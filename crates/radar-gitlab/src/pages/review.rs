@@ -194,7 +194,7 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page) -> Vec<crate::Row> {
         b.push(act("gitlab.mr.open_thread_in_diff", Binding::new("⏎", format!("open it in the diff of {file}, at its line"))));
     }
     match &here {
-        Some(x) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("reply in the thread on {}…", place(x, iid))).adds())),
+        Some(x) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment in the thread on {}…", place(x, iid))).adds())),
         None if page.tab == mr::THREADS => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment on !{iid}…")).adds())),
         None => match line_at(p, page, project, iid) {
             Ok(at) => b.push(act("gitlab.mr.comment", Binding::new("c", format!("comment on {}…", at.words())).adds())),

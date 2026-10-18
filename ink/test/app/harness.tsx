@@ -64,14 +64,22 @@ export function freezeClock(): () => void {
 
 export const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 
-export function mount(columns: number, rows: number, props: Partial<AppProps> = {}, renderOptions: Record<string, unknown> = {}) {
+export function mount(
+  columns: number,
+  rows: number,
+  props: Partial<AppProps> = {},
+  renderOptions: Record<string, unknown> = {},
+  noticeClock?: () => number,
+  beforeRender?: (setup: { out: Out; mouse: MouseBus; conn: FakeConnection; session: Session }) => void,
+) {
   const out = new Out(columns, rows);
   const stdin = new In();
   const conn = new FakeConnection();
   const mouse = new MouseBus();
   tapMouse(stdin, mouse);
-  const session = new Session(conn, capabilitiesFrom({}, out));
+  const session = new Session(conn, capabilitiesFrom({}, out), undefined, false, noticeClock);
   session.start();
+  beforeRender?.({ out, mouse, conn, session });
   const exits: Array<{ code: number; message?: string }> = [];
   const instance = render(<App session={session} mouse={mouse} onExit={(code, message) => exits.push({ code, message })} {...props} />, {
     stdout: out as any,
@@ -85,7 +93,7 @@ export function mount(columns: number, rows: number, props: Partial<AppProps> = 
   const snapshot = (over: Record<string, unknown> = {}, cursor = 1) =>
     conn.receive({ type: "snapshot", cursor, chrome: booksChrome({ width: columns, height: rows }), screen: null, section: null, focus: "middle", ...over });
   return {
-    out, stdin, conn, session, exits, snapshot,
+    out, stdin, mouse, conn, session, exits, snapshot,
     welcome: () => conn.receive({ type: "welcome", protocol: 1, view: 1, cursor: 0 }),
     sent: (type: string) => (conn.sent as any[]).filter((m) => m.type === type),
     intents: () => (conn.sent as any[]).filter((m) => m.type === "intent"),

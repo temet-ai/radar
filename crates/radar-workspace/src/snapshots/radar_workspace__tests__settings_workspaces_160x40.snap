@@ -4,7 +4,7 @@ assertion_line: 305
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
-╭ settings ────────────╮╭ workspaces ────────────────────────────────────────────────────────────────────╮╭ found in /work/other ──────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 workspaces ──────────────────────────────────────────────────────────────────╮╭ 3 found in /work/other ────────────────────────────╮
 │General               ││  ? Found in /work/other: a workspace with 3 clones. Use it?                    ││ radar found a workspace at /work/other. Do you     │
 │  ├─ parts            ││  + add a workspace   a folder of clones                                        ││ want to use it?                                    │
 │  ├─ mode             ││ acme        /work/acme                                               14 clones ││                                                    │
@@ -42,4 +42,4 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate

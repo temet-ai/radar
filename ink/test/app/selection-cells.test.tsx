@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { mount, tick, until } from "./harness.js";
-import { applyLook, defaultLook } from "../../src/text/look.js";
+import { applyHostLook, applyLook, defaultLook, type HostLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
 
 // Ratatui's styled buffer with text selected by a drag across two rows (tests/ratatui_cells.rs, scene
@@ -20,7 +20,7 @@ type Pt = { x: number; y: number };
 interface Scene {
   canvas: { fg: string; bg: string };
   colours: Record<string, { hex: string }>;
-  view: { screen: any; selection: { anchor: Pt; head: Pt; bound: Pt & { width: number; height: number } } };
+  view: { screen: any; chrome: any; focus: string; look: HostLook; selection: { anchor: Pt; head: Pt; bound: Pt & { width: number; height: number } } };
   rows: Array<Array<{ ch?: string; bg?: string }>>;
 }
 
@@ -38,17 +38,17 @@ describe("a drag across two rows of text against Ratatui's cells", () => {
   for (const size of ["80x24", "160x40"]) {
     it(`selects the same cells at ${size}`, async () => {
       const scene = JSON.parse(fs.readFileSync(path.resolve(here, `../cells/highlight_selection-${size}.json`), "utf8")) as Scene;
-      applyLook(defaultLook());
+      applyHostLook(scene.view.look);
       const [cols, rowsN] = size.split("x").map(Number) as [number, number];
-      const chrome = JSON.parse(fs.readFileSync(path.resolve(here, `../fixtures/host_chrome_${size}.json`), "utf8"));
+      const chrome = scene.view.chrome;
       const { anchor, head, bound } = scene.view.selection;
       const m = mount(cols, rowsN);
       live.push(m.stop);
       m.welcome();
-      m.snapshot({ chrome, screen: scene.view.screen, focus: "middle" }, 1);
+      m.snapshot({ chrome, screen: scene.view.screen, focus: scene.view.focus }, 1);
       await tick(60);
 
-      // The chrome's rows differ from the scene's (it has a sources row): rows are matched by the pane's top edge.
+      // Use the exact captured chrome/focus/look, and match the same pane frame.
       const ch = (c: { ch?: string } | undefined) => (c?.ch === undefined || c.ch === "" ? " " : c.ch);
       const before = parseAnsi(m.frame());
       const topOf = (rows: Array<Array<{ ch?: string }>>) => rows.findIndex((r, y) => y > 0 && ch(r[bound.x - 1]) === "╭" && ch(r[bound.x + bound.width]) === "╮");

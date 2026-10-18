@@ -1,13 +1,14 @@
 ---
 source: crates/radar-jira/src/page_cached_refresh_tests.rs
+assertion_line: 91
 expression: shown
 ---
  radar    Jira   History   Settings (,)       not synced yet · every 2m  ✎ edit
- Jira › acme › ABC › ABC-12
+ Jira / acme / ABC / ABC-12
  Add a stats endpoint for the dashboard             ◐ In Progress · Story · you
  parent ABC-1 Dashboard for the stats · Acme ABC · updated 1h ago
  Overview  Comments  [Links]  Code
-╭ links ───────────────────────────────────────────────────────────────────────╮
+╭ 1 links ─────────────────────────────────────────────────────────────────────╮
 │ ✗ could not load: Jira refresh unavailable                                   │
 │ No parent, children or links.                                                │
 │                                                                              │
@@ -25,4 +26,4 @@ expression: shown
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- JIRA   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                 jira
+ JIRA   PgUp/PgDn scroll   quit   extra actions   ~ notices                jira

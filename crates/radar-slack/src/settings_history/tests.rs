@@ -208,7 +208,7 @@ fn local_refusal_has_no_task_started_or_auth_result_and_keeps_ui_error() {
     assert!(
         effects
             .iter()
-            .any(|effect| matches!(effect, Effect::Notify(_)))
+            .any(|effect| matches!(effect, Effect::Notice(message) if message.tone == radar_core::view::chrome::NoticeTone::Error))
     );
     assert!(matches!(
         p.checks.get("workspace"),

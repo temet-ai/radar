@@ -28,7 +28,8 @@
           "char": "o"
         }
       },
-      "label": "open the site in Jira"
+      "label": "open the site in Jira",
+      "mnemonic_at": 0
     },
     {
       "id": "jira.tickets.copy_link",
@@ -37,7 +38,8 @@
           "char": "y"
         }
       },
-      "label": "copy the site's link"
+      "label": "copy the site's link",
+      "mnemonic_at": 3
     },
     {
       "id": "jira.tickets.filter",
@@ -55,7 +57,8 @@
           "char": "r"
         }
       },
-      "label": "refresh now"
+      "label": "refresh now",
+      "mnemonic_at": 0
     },
     {
       "heading": true,
@@ -70,7 +73,8 @@
           "char": "n"
         }
       },
-      "label": "new ticket on acme…"
+      "label": "new ticket on acme…",
+      "mnemonic_at": 0
     },
     {
       "id": "jira.tickets.goto",
@@ -88,7 +92,8 @@
           "char": "a"
         }
       },
-      "label": "show one assignee's tickets…"
+      "label": "show one assignee's tickets…",
+      "mnemonic_at": 9
     },
     {
       "id": "jira.tickets.kept_text",

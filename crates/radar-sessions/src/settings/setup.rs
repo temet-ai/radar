@@ -8,6 +8,7 @@
 //! host may ask about (existence only); the state of each CLI is what its own
 //! adapter says of it.
 
+use radar_core::mnemonic;
 use radar_core::plugin::{SetupFinds, SetupGroup, SetupOption, SetupStep};
 use radar_core::ui::icon::Icon;
 use radar_core::view::{Block, Ink, Seg, Text};
@@ -167,10 +168,16 @@ fn line(words: &str, ink: Ink) -> Block {
     Block::line(Text::of(words, ink))
 }
 
-/// A `$ command` line; clicking it copies it. `key` at the right edge.
+/// A `$ command` line; clicking it copies it. A keyed line has an action
+/// caption so its mnemonic never edits or relies on the literal command.
 fn command(kind: &str, h: &Help, key: Option<&str>) -> Block {
     let cmd = if kind == "install" { h.install } else { h.login };
-    let text = Text::new().push(Seg::new("$ ", Ink::Muted)).push(Seg::new(cmd, Ink::Primary));
+    let mut text = Text::new();
+    if key.is_some() {
+        text.add(Seg::new("copy command · ", Ink::Secondary));
+    }
+    text.add(Seg::new("$ ", Ink::Muted));
+    text.add(Seg::new(cmd, Ink::Primary));
     let target = copy_target(kind, h.id);
     match key {
         Some(key) => Block::keyed(target, text, key),
@@ -178,10 +185,13 @@ fn command(kind: &str, h: &Help, key: Option<&str>) -> Block {
     }
 }
 
-/// A link: its words, opened when clicked; `key` at the right edge.
+/// A link: its original words and URL, with a keyed action caption when selected.
 fn link(words: &str, url: &str, key: Option<&str>) -> Block {
-    let text = Text::new().push(Seg::icon(Icon::Link)).push(Seg::new(format!(" {words}"), Ink::Accent).linked(url));
-    Block::Line { text, target: None, key: key.map(Into::into) }
+    let caption = if key.is_some() { "open documentation · " } else { "" };
+    let text = Text::new().push(Seg::icon(Icon::Link)).push(Seg::new(format!(" {caption}{words}"), Ink::Accent).linked(url));
+    let mnemonic_at = key.and_then(|key| mnemonic::at_text(key, &text));
+    let mnemonic_shift = mnemonic_at.is_some() && key.is_some_and(mnemonic::shifted);
+    Block::Line { text, target: None, key: key.map(Into::into), mnemonic_at, mnemonic_shift }
 }
 
 /// The sheet of a CLI row (or the add row): a sign-in under way, what is
@@ -199,7 +209,10 @@ pub(crate) fn sheet(s: &AgentsSettings, login: Vec<Text>, selected: Option<&str>
             blocks.push(Block::line(Text::new()));
         }
     }
-    blocks.push(line("Each agent is its own program with its own sign-in. radar finds it on your PATH; r looks again.", Ink::Muted));
+    let mut refresh = Text::of("Each agent is its own program with its own sign-in. radar finds it on your PATH; ", Ink::Muted);
+    refresh.extend(mnemonic::text("r", "read its status again", "text.muted"));
+    refresh.add(Seg::new(".", Ink::Muted));
+    blocks.push(Block::line(refresh));
     blocks.push(Block::line(Text::new()));
     for h in &HELP {
         let name = s.name_of(h.id);
@@ -216,9 +229,16 @@ pub(crate) fn sheet(s: &AgentsSettings, login: Vec<Text>, selected: Option<&str>
     blocks.push(Block::section(Some(Icon::Terminal), "any other CLI", None, vec![
         line("add a command takes what you would type in a terminal; radar runs it in a tab of the dock.", Ink::Secondary),
     ]));
+    let mut permissions = Text::new();
+    for (key, words) in [("a", "approve"), ("s", "session"), ("d", "deny"), ("v", "view diff")] {
+        if !permissions.is_empty() {
+            permissions.add(Seg::new(" · ", Ink::Muted));
+        }
+        permissions.extend(mnemonic::text(key, words, "text.muted"));
+    }
     blocks.push(Block::section(Some(Icon::Warning), "nothing is approved for you", None, vec![
         line("A request waits in the dock for your answer:", Ink::Secondary),
-        line("a approve · s session · d deny · v view diff", Ink::Muted),
+        Block::line(permissions),
         line("alt-a switches the agent new sessions start as.", Ink::Muted),
     ]));
     blocks.push(Block::section(Some(Icon::Link), "more", None, vec![link("radar guide: agents", GUIDE, None)]));
@@ -480,6 +500,83 @@ mod tests {
         assert_eq!(copy_of("cli:claude"), None);
     }
 
+    mod mnemonic_tests {
+        use super::*;
+
+        #[test]
+        fn command_and_documentation_captions_carry_mnemonics_without_changing_literal_payloads() {
+            let original = [
+                ("copilot", "npm i -g @github/copilot", "copilot login", "https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli"),
+                ("codex", "npm i -g @openai/codex", "codex login", "https://github.com/openai/codex"),
+                ("claude", "npm i -g @anthropic-ai/claude-code", "claude auth login", "https://docs.claude.com/en/docs/claude-code/setup"),
+            ];
+            let mut s = two_ready();
+            // CLI selection in setup does not discover recipes or inspect PATH.
+            s.setup_card.set(true);
+            for (h, (id, install, login, url)) in HELP.iter().zip(original) {
+                assert_eq!((h.id, h.install, h.login, h.page), (id, install, login, url));
+                for (kind, cmd) in [("install", install), ("login", login)] {
+                    for shown_key in [None, Some("y")] {
+                        let Block::Line { text, target, key, mnemonic_at, mnemonic_shift } = command(kind, h, shown_key) else { panic!("a command line") };
+                        assert_eq!(text.0.last().unwrap().text, cmd, "the literal command stays its own unmodified segment");
+                        assert_eq!(text.words(), format!("{}$ {cmd}", if shown_key.is_some() { "copy command · " } else { "" }));
+                        assert_eq!(target.as_ref().map(Target::as_str), Some(format!("copy:{kind}:{id}").as_str()));
+                        assert_eq!(key.as_deref(), shown_key);
+                        assert_eq!(mnemonic_at, shown_key.map(|_| 3), "y is in copy, never manufactured inside the command");
+                        assert!(!mnemonic_shift);
+                        let fx = s.intent(SECTION, &Intent::Activate { target: target.unwrap() });
+                        assert!(matches!(fx, Outcome::Handled(ref fx) if matches!(&fx[..], [Effect::Notify(_), Effect::Copy(value)] if value == cmd)));
+                    }
+                }
+                for shown_key in [None, Some("o")] {
+                    let Block::Line { text, target, key, mnemonic_at, mnemonic_shift } = link(h.page_words, url, shown_key) else { panic!("a documentation line") };
+                    let linked = text.0.iter().find(|seg| seg.link.is_some()).unwrap();
+                    assert_eq!(linked.link.as_deref(), Some(url));
+                    assert_eq!(linked.text, format!(" {}{}", if shown_key.is_some() { "open documentation · " } else { "" }, h.page_words));
+                    assert_eq!(key.as_deref(), shown_key);
+                    assert_eq!(mnemonic_at, shown_key.map(|_| 1), "the icon has no source words; o starts the caption after one space");
+                    assert!(!mnemonic_shift && target.is_none());
+                }
+                select(&mut s, &format!("cli:{id}"));
+                for (installed, cmd) in [(false, install), (true, login)] {
+                    s.set_status(id, status(installed, AuthStatus::SignedOut));
+                    for intent in [Intent::Key { chord: Chord::char('y') }, Intent::Invoke { action: "sessions.agents.copy".into() }] {
+                        assert!(matches!(s.intent(SECTION, &intent), Outcome::Handled(ref fx) if matches!(&fx[..], [Effect::Notify(_), Effect::Copy(value)] if value == cmd)));
+                    }
+                }
+                for intent in [Intent::Key { chord: Chord::char('o') }, Intent::Invoke { action: "sessions.agents.open".into() }] {
+                    assert!(matches!(s.intent(SECTION, &intent), Outcome::Handled(ref fx) if matches!(&fx[..], [Effect::Open(value)] if value == url)));
+                }
+            }
+            let Block::Line { text, key, mnemonic_at, .. } = link("radar guide: agents", GUIDE, None) else { panic!("guide line") };
+            assert_eq!(text.0.last().unwrap().link.as_deref(), Some("https://github.com/temet-ai/radar/blob/main/docs/user-guide/agents.md"));
+            assert!(key.is_none() && mnemonic_at.is_none());
+            assert!(s.take_requests().is_empty(), "copy/open effects do not invoke a provider");
+        }
+
+        #[test]
+        fn handwritten_setup_controls_use_host_styled_words_and_keep_the_named_chord() {
+            let blocks = sheet(&two_ready(), vec![], None);
+            let Block::Line { text: refresh, .. } = &blocks[0] else { panic!("refresh instruction") };
+            assert_eq!(refresh.words(), "Each agent is its own program with its own sign-in. radar finds it on your PATH; read its status again.");
+            let underlined = |text: &Text| text.0.iter().filter(|seg| seg.look.as_ref().is_some_and(|look| look.split_whitespace().any(|word| word == "underline")))
+                .map(|seg| seg.text.clone()).collect::<Vec<_>>();
+            assert_eq!(underlined(refresh), ["r"]);
+            assert_eq!(refresh.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), ["r"]);
+            let controls = blocks.iter().find_map(|block| match block {
+                Block::Section { title, blocks, .. } if title == "NOTHING IS APPROVED FOR YOU" => Some(blocks),
+                _ => None,
+            }).expect("permission instructions");
+            let Block::Line { text, .. } = &controls[1] else { panic!("permission controls") };
+            assert_eq!(text.words(), "approve · session · deny · view diff");
+            assert_eq!(underlined(text), ["a", "s", "d", "v"]);
+            assert_eq!(text.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect::<Vec<_>>(), ["a", "s", "d", "v"]);
+            assert!(text.0.iter().filter_map(|seg| seg.look.as_deref()).all(|look| look.starts_with("text.muted")));
+            let Block::Line { text, .. } = &controls[2] else { panic!("agent-switch instruction") };
+            assert_eq!(text.words(), "alt-a switches the agent new sessions start as.");
+        }
+    }
+
     fn setup_target(kind: &str, id: &str) -> String {
         copy_target(kind, id)
     }
@@ -540,7 +637,7 @@ mod tests {
         // The same name twice, a native one, and a token are refused and change nothing.
         for bad in ["aider", "codex --x", "x sk-abcdefghijklmnop"] {
             let fx = s.on_menu("agents.pty_add", bad).unwrap();
-            assert!(matches!(&fx[..], [Effect::Notify(w)] if w.contains("not saved")), "{bad}: {fx:?}");
+            assert!(matches!(&fx[..], [Effect::Notice(w)] if w.tone == radar_core::view::chrome::NoticeTone::Error && w.contains("not saved")), "{bad}: {fx:?}");
         }
         assert_eq!(s.pty_clis().len(), 1);
         assert!(s.on_menu("agents.pty_add", "  ").unwrap().is_empty());

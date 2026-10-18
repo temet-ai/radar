@@ -128,10 +128,16 @@ fn tree_item_at(p: &GithubPlugin, path: &[String]) -> Option<TreeItem> {
 fn fold(p: &mut GithubPlugin, target: &v::Target, open: bool) -> Outcome {
     let path = v::TreeRow::path_of(target);
     let Some(item) = tree_item_at(p, &path) else { return Outcome::Ignored };
-    // GitHub's legacy keys fold only the selected group/repository. The
-    // shared tree router may propose its parent for '-' on a PR or an
-    // already-closed repository; keep those inputs from folding an ancestor.
-    if selected_item(p) != Some(item) {
+    // Shared '-' may address the selected row's parent. Opening a group
+    // must leave selection alone, including the host's parent-first open-all.
+    let selected_item = selected_item(p);
+    let selected = selected_item.and_then(|item| tree_path(p, item));
+    let has_children = match item {
+        TreeItem::Group(group) => !group_repos(p, group).is_empty(),
+        TreeItem::Repo(repo) => p.repos[repo].pulls.as_ref().is_some_and(|pulls| !pulls.items.is_empty()),
+        TreeItem::Pull(..) => false,
+    };
+    if !has_children {
         return Outcome::Ignored;
     }
     let folded = match item {
@@ -143,6 +149,12 @@ fn fold(p: &mut GithubPlugin, target: &v::Target, open: bool) -> Outcome {
         folded.0.remove(&folded.1);
     } else {
         folded.0.insert(folded.1);
+    }
+    if open {
+        // Freeze the visible selection even when it was the default fallback.
+        p.tree_at = selected_item;
+    } else if selected.is_some_and(|selected| selected.starts_with(&path) && selected.len() > path.len()) {
+        select_item(p, item);
     }
     // Match press/point: an accepted input expires previously rendered actions.
     p.action_epoch = p.action_epoch.wrapping_add(1);
@@ -407,40 +419,11 @@ pub(crate) fn key(p: &mut GithubPlugin, pane: Pane, key: Chord) -> Outcome {
         }
         _ => {}
     }
-    if p.pages.is_empty()
-        && pane == Pane::Middle
-        && matches!(key.key, Key::Char(' ' | '+' | '-'))
+    if p.pages.is_empty() && pane == Pane::Middle
+        && matches!(key.key, Key::Left | Key::Right | Key::Char(' ' | '+' | '-'))
+        && let v::Node::Tree(tree) = neutral::middle_pane(p).body
     {
-        match selected_item(p) {
-            Some(TreeItem::Group(index)) => match key.key {
-                Key::Char('+') => {
-                    p.folded_groups.remove(&index);
-                }
-                Key::Char('-') => {
-                    p.folded_groups.insert(index);
-                }
-                _ => {
-                    if !p.folded_groups.insert(index) {
-                        p.folded_groups.remove(&index);
-                    }
-                }
-            },
-            Some(TreeItem::Repo(index)) => match key.key {
-                Key::Char('+') => {
-                    p.folded_repos.remove(&index);
-                }
-                Key::Char('-') => {
-                    p.folded_repos.insert(index);
-                }
-                _ => {
-                    if !p.folded_repos.insert(index) {
-                        p.folded_repos.remove(&index);
-                    }
-                }
-            },
-            _ => return Outcome::Ignored,
-        }
-        return Outcome::done();
+        return v::tree_step(&tree, key).map_or(Outcome::Ignored, |step| neutral::intent(p, pane, &step));
     }
     if matches!(key.key, Key::PageDown | Key::PageUp)
         && p.pages.is_empty()
@@ -566,7 +549,8 @@ pub(crate) fn click(p: &mut GithubPlugin, id: &str) -> Outcome {
         .strip_prefix("pull:")
         .and_then(|v| v.parse::<usize>().ok())
         .filter(|i| {
-            p.repository()
+            p.pages.last().is_some_and(|page| matches!(page.target, Target::Repository(_)) && page.tab == 1)
+                && p.repository()
                 .and_then(|r| r.pulls.as_ref())
                 .is_some_and(|p| *i < p.items.len())
         })
@@ -747,10 +731,14 @@ mod tests {
             Some(Target::Repository(p.repos[1].id.clone()))
         );
         assert_eq!(p.target(Pane::Nav), None);
+        // A repository without held pulls is a leaf: space cannot fold it.
         assert!(matches!(
             key(&mut p, Pane::Middle, Chord::char(' ')),
-            Outcome::Handled(_)
+            Outcome::Ignored
         ));
+        assert_eq!(selected_item(&p), Some(TreeItem::Repo(1)));
+        assert!(!p.folded_repos.contains(&1));
+        assert!(p.pages.is_empty());
         assert_eq!(tree_items(&p), vec![TreeItem::Group(1), TreeItem::Repo(1)]);
         select_item(&mut p, TreeItem::Group(1));
         key(&mut p, Pane::Middle, Chord::char(' '));

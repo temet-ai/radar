@@ -232,15 +232,21 @@ impl Gallery {
         let hints: &[(&str, &str)] = if self.tab == MOTION_TAB {
             &[
                 ("[ ]", "tabs"),
-                ("s m g p n t l", "effects"),
-                ("f", "level"),
+                ("s", "screen"),
+                ("m", "menu"),
+                ("g", "glow"),
+                ("p", "page"),
+                ("n", "new"),
+                ("t", "toast"),
+                ("l", "load"),
+                ("f", "effects"),
                 ("c", "colours"),
                 ("q", "quit"),
             ]
         } else {
             &[
                 ("[ ]", "tabs"),
-                ("j k", "move"),
+                ("↑↓", "move"),
                 ("space", "fold"),
                 ("PgUp/PgDn", "scroll"),
                 ("c", "colours"),
@@ -250,8 +256,8 @@ impl Gallery {
         let hints: Vec<Span> = hints
             .iter()
         .flat_map(|(k, l)| {
-            let mut h = widgets::key_hint(theme, k, l);
-            h.push(Span::raw("   "));
+            let mut h = widgets::key_hint(theme, k, l, crate::mnemonic::at(k, l), crate::mnemonic::at(k, l).is_some() && crate::mnemonic::shifted(k));
+            h.push(Span::raw(if self.tab == MOTION_TAB { "  " } else { "   " }));
             h
         })
         .collect();
@@ -806,4 +812,58 @@ pub(crate) fn settings_rows(theme: &Theme, width: u16) -> Vec<ListRow> {
         ListRow::new(add_row(theme, "add a shelf", "paste a link to a shelf, or its path", width)),
         ListRow::new(Line::from(Span::styled(" a hidden shelf", Style::default()))).right(Span::styled("hidden", theme.s(Slot::TextMuted))),
     ]
+}
+
+/// Shared detail states, rendered from the same contract as real owner previews.
+pub(super) fn detail_story(theme: &Theme, area: Rect, buf: &mut Buffer, _frame: usize) -> u16 {
+    use crate::view::{ActionSpec, Block, ScreenView, Text};
+    use crate::view::detail::{DetailContent, DetailFact, DetailHeader, FootAction, FootActions, pane};
+    let wide = area.width >= 100;
+    let used = if wide { 22 } else { 34 };
+    let area = Rect { height: area.height.min(used), ..area };
+    let cells = if wide {
+        Layout::horizontal([Constraint::Percentage(65), Constraint::Fill(1)]).split(area)
+    } else {
+        Layout::vertical([Constraint::Length(18), Constraint::Fill(1)]).split(area)
+    };
+    let mut header = DetailHeader::new("Ankh-Morpork / Watch / supplies", "Keep the lanterns burning at every gate");
+    header.branch = Some(Text::plain("lantern-stock"));
+    header.author = Some(Text::plain("Sam Vimes"));
+    header.age = Some(Text::plain("2d"));
+    let facts = vec![
+        DetailFact::new("State", "Ready"), DetailFact::new("Missing", "0"),
+        DetailFact::new("Next delivery", "Night Watch\nNorth gate"),
+        DetailFact::new("場所", "Ankh-Morpork stores"),
+    ];
+    let content = DetailContent::new(header, facts, vec![
+        Block::section(None, "description", None, vec![Block::line("Count the lanterns, check the oil, and leave a spare at each gate.")]),
+        Block::section(None, "notes", None, vec![Block::line("The long identity and all shortcuts remain readable in the fallback.")]),
+    ]);
+    let mut edit = ActionSpec::named("watch.edit", &crate::Binding::new("e", "edit"));
+    edit.change = Some(crate::view::Change::Edit);
+    let foot = FootActions::new(vec![
+        FootAction::new(ActionSpec::named("watch.open", &crate::Binding::new("⏎", "open"))),
+        FootAction::new(edit),
+        FootAction::new(ActionSpec::named("watch.drop", &crate::Binding::new("d", "drop"))).disabled("waiting for count"),
+    ]);
+    let mut missing = DetailContent::new(DetailHeader::new("Watch / stores", "Missing optional facts"), vec![
+        DetailFact::new("Absent", ""), DetailFact::new("Count", "0"),
+    ], vec![Block::section(None, "notes", None, vec![Block::line("Only held information is shown.")])]);
+    missing.header.age = Some("5m".into());
+    for (index, (content, title)) in [(content, "shared identity and pinned actions"), (missing, "missing facts / narrow")].into_iter().enumerate() {
+        let view = ScreenView::new("gallery", vec![pane(title, content, foot.clone())]);
+        let cursor = std::cell::Cell::new(None);
+        let hits = RefCell::new(vec![]);
+        let parts = vec![];
+        let cx = crate::view_tui::Cx {
+            theme, now: 0, focused: false, focus: crate::Pane::Detail,
+            bar: false, tabs: false, cursor: &cursor, hits: &hits,
+            parts: crate::compose::Parts::new(&parts, None),
+        };
+        let fe = crate::view_tui::Frontend::default();
+        fe.set_mode(crate::writes::Mode::ReadOnly);
+        // Gallery digits select its tabs; these examples claim no pane jumps.
+        crate::view_tui::render_screen_with_ramp(&fe, &view, cells[index], buf, &cx, false);
+    }
+    used
 }

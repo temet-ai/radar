@@ -1,9 +1,10 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
  radar    I   History   Settings (,)  local annotations · observations … ✎ edit
-╭ work items · page 1 ─────────────────────────────────────────────────────────╮
+╭ 2 work items · page 1 ───────────────────────────────────────────────────────╮
 │ Press r to load local work.                                                  │
 │                                                                              │
 │                                                                              │
@@ -25,4 +26,4 @@ expression: text
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   j/k move   ⏎ choose   esc close
+ WORK ITEMS   ↑↓ move   ⏎ choose   esc close

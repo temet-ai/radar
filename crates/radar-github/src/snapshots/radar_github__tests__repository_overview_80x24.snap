@@ -1,12 +1,13 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)          synced 25s ago  ✎ edit
- GitHub › acme/api
+ GitHub / acme/api
  acme/api
  [Overview]  Pull requests  Actions
-╭ Overview ────────────────────────────────────────────────────────────────────╮
+╭ 1 Overview ──────────────────────────────────────────────────────────────────╮
 │ visibility  public                                                           │
 │ default branch  main                                                         │
 │ archived  no                                                                 │
@@ -25,4 +26,4 @@ expression: text
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             github
+ GITHUB   PgUp/PgDn scroll   quit   extra actions   ~ notices            github

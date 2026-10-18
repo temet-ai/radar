@@ -131,9 +131,9 @@ fn line(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Chip> {
 fn actions(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Action> {
     let Some(c) = checkout(p, project) else {
         let what = if p.cfg.roots.is_empty() {
-            "look for a checkout · no folders set yet"
+            "scan for a checkout · no folders set yet"
         } else {
-            "look for a checkout again"
+            "scan for a checkout again"
         };
         return vec![
             Action::new('s', what, "scan").icon(Icon::Search),
@@ -145,7 +145,7 @@ fn actions(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Action> {
         let what = if p.local.switching.contains(&c.dir) {
             format!("check out {b} · checking out…")
         } else if c.branch == b {
-            format!("update {b} from origin…")
+            format!("update checkout {b} from origin…")
         } else {
             format!("check out {b}…")
         };
@@ -176,7 +176,7 @@ fn actions(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Action> {
     } else {
         base
     };
-    let rebase = format!("rebase on {onto}…");
+    let rebase = format!("update by rebasing onto {onto}…");
     out.push(if branch.is_some() {
         keyless(rebase, "rebase", Icon::Branch)
     } else {
@@ -301,5 +301,35 @@ pub(crate) fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<
             Some(local::switch_branch(p, dir, branch))
         }
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn contributed_actions_have_mnemonics_for_arbitrary_branches() {
+        let mut p = crate::demo::sample();
+        let checkout = &mut p.local.index.as_mut().unwrap().checkouts[0];
+        checkout.branch = "zzz".into();
+        let project = checkout.project.clone();
+        for branch in [None, Some("zzz"), Some("qqq")] {
+            for action in actions(&p, &project, branch) {
+                if let Some(key) = action.key.filter(|key| key.is_alphabetic()) {
+                    assert!(radar_core::mnemonic::at(&key.to_string(), &action.what).is_some(),
+                        "{}: {key} / {}", action.id, action.what);
+                    if action.id == "checkout" { assert_eq!(key, 'c'); }
+                    if action.id == "rebase" { assert_eq!(key, 'u'); }
+                }
+            }
+        }
+        for roots in [true, false] {
+            if !roots { p.cfg.roots.clear(); }
+            let offered = actions(&p, "ankh-morpork/unlinked", None);
+            let scan = offered.iter().find(|action| action.id == "scan").unwrap();
+            assert_eq!(scan.key, Some('s'));
+            assert_eq!(radar_core::mnemonic::at("s", &scan.what), Some(0));
+        }
     }
 }

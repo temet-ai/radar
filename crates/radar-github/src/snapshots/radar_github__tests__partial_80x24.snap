@@ -1,9 +1,10 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    R   History   Settings (,)     GitHub connection check failed  ✎ edit
-╭ views ───────────────╮╭ repositories ────────────────────────────────────────╮
+╭ 1 views ─────────────╮╭ 2 repositories ──────────────────────────────────────╮
 │ Everything   2 repos ││github.com/acme                              2 repos  │
 │ acme         2 repos ││  ├─ acme/api                                2 PRs    │
 │                      ││  │  ├─ #42  Keep background refreshes tied  open     │
@@ -25,4 +26,4 @@ expression: text
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             github
+ GITHUB   +/- expand/collapse   quit   extra actions   ~ notices         github

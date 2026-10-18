@@ -69,6 +69,8 @@ export interface WorkAreaProps {
   panels?: "all" | "pending";
   /** Where pointer targets are registered (the app's), so a press on a map item reaches the host. */
   registry?: HitSink;
+  /** Active-surface pane digits come from the host, including the legacy three-pane area. */
+  paneJumps?: NodeCx["paneJumps"];
 }
 
 /** Rows a section wants inside its frame: its lines (wrapped at the inner width) and the frame's two edges. */
@@ -150,7 +152,7 @@ function rowsFor(wants: number[], room: number, ranks: number[] = wants.map((_, 
  * one column, a pending question first. Plain-text mode: labelled lines in reading order. Focus is
  * the section's target, so a snapshot that changes other sections never moves it.
  */
-export function WorkArea({ screen, capabilities, focus, weights, renderNode, registry, height, panels = "all" }: WorkAreaProps) {
+export function WorkArea({ screen, capabilities, focus, weights, renderNode, registry, height, panels = "all", paneJumps }: WorkAreaProps) {
   const sections = sectionsOf(screen);
   const render = renderNode ?? placeholderRenderNode;
   if (capabilities.plain_text) {
@@ -170,7 +172,7 @@ export function WorkArea({ screen, capabilities, focus, weights, renderNode, reg
   // The panes register where text is selected in them (issue #51); their rows' hits come from the nodes themselves.
   const sink = registry as SelectSink | undefined;
   const selects = sink?.addSelect ? { add: () => {}, addSelect: (a: Parameters<NonNullable<SelectSink["addSelect"]>>[0]) => sink.addSelect!(a) } : undefined;
-  const appCx: NodeCx = { width: W, height: H, actions: [], plainText: false, focused: true, registry: selects };
+  const appCx: NodeCx = { width: W, height: H, actions: [], plainText: false, focused: true, registry: selects, paneJumps };
   const appRender: AppRenderNode = (node, c) => render(node, { columns: c.width, focused: !!c.focused });
   const panesAt = (h: number) =>
     panes.length ? (

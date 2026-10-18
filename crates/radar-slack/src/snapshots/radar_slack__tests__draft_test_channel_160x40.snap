@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1419
 expression: text
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
- Slack › ask for review
+ Slack / ask for review
  Ask for review in #try                                                                                                                           posted as you
  not the review channel: the user group is not mentioned here
-╭ as it will post in #try ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 as it will post in #try ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ :gitlab:                                                                                                                                                     █
 │ • api !263 Add a stats endpoint for the dashboard                                                                                                            █
 │ • api !270 Tidy the README                                                                                                                                   █
@@ -39,6 +40,6 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
-│                                                                                                                                                              │
+│                                                                                               info api !270 added to the review ask                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                            7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 4 for you  slack

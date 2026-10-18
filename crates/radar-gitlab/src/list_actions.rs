@@ -2,10 +2,10 @@
 //! row, without opening its page: rebase, merge and approve, as the page's
 //! `u`, `m` and `a` do (the same questions, asked first, the same switch
 //! for writes, the same progress and refresh after), and open, copy and
-//! the pipeline. They are keys on the row, rows of its `x` menu, lines of
-//! the detail pane (clickable), the keys on the status line, and a click on the
-//! row's STATE. The detail pane lists the actions other parts add too (a
-//! checkout here), a click pressing their key.
+//! the pipeline. They are keys on the row, rows of its `x` menu, controls at
+//! the detail pane's foot, the keys on the status line, and a click on the
+//! row's STATE. Contributed actions remain in the `x` menu. Pinned controls
+//! use the host's current-detail admission before the original key resolver.
 //!
 //! The tree keeps `a` for "show one author's merge requests", so approving
 //! is [`APPROVE_KEY`] there.
@@ -13,7 +13,6 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::ui::icon::Icon;
 
 use crate::model::{Mr, MrState, Pipeline};
 use crate::mr_actions::{self, Acting};
@@ -64,21 +63,10 @@ impl Do {
         Self::ALL.into_iter().find(|d| d.key() == c)
     }
 
-    pub(crate) const fn icon(self) -> Icon {
-        match self {
-            Self::Rebase => Icon::Rebase,
-            Self::Merge => Icon::Merged,
-            Self::Approve => Icon::Approved,
-            Self::Open => Icon::Link,
-            Self::Copy => Icon::Copy,
-            Self::Pipeline => Icon::Pipeline,
-        }
-    }
-
     /// What it is called when it cannot be done.
     const fn name(self) -> &'static str {
         match self {
-            Self::Rebase => "rebase",
+            Self::Rebase => "update by rebasing",
             Self::Merge => "merge",
             Self::Approve => "approve",
             Self::Open => "open",
@@ -97,7 +85,7 @@ impl Do {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Row {
     pub what: Do,
-    /// What it will do, said for this merge request (`rebase onto main`).
+    /// What it will do, said for this merge request (`update by rebasing onto main`).
     pub label: String,
     /// Why it is not offered now.
     pub why: Option<String>,
@@ -112,7 +100,7 @@ impl Row {
         Self { what, label: what.name().to_string(), why: Some(why.into()) }
     }
 
-    /// `rebase onto main`, or `rebase · GitLab does not see it behind main`.
+    /// `update by rebasing onto main`, or the same action followed by its blocker.
     pub(crate) fn words(&self) -> String {
         match &self.why {
             Some(why) => format!("{} · {why}", self.label),
@@ -137,7 +125,7 @@ pub(crate) fn rows(p: &GitlabPlugin, mr: &Mr) -> Vec<Row> {
     } else if let Some(why) = mr_actions::rebase_blocker(mr) {
         Row::off(Do::Rebase, why)
     } else {
-        Row::on(Do::Rebase, format!("rebase onto {target}"))
+        Row::on(Do::Rebase, format!("update by rebasing onto {target}"))
     };
     let merge = if busy(p, mr, "merge") {
         Row::off(Do::Merge, "asked, waiting for GitLab")
@@ -184,15 +172,6 @@ pub(crate) fn act(p: &mut GitlabPlugin, what: Do, mr: &Mr) -> Vec<Effect> {
             None => vec![Effect::Notify(format!("!{} has no pipeline", mr.iid))],
         },
     }
-}
-
-/// Do the action whose letter is `c` (`u`, `m`, `e`) to the selected merge
-/// request; ignored when none is selected.
-pub(crate) fn do_selected(p: &mut GitlabPlugin, c: char) -> Outcome {
-    let (Some(what), Some(mr)) = (Do::of_key(c), selected(p)) else {
-        return Outcome::Ignored;
-    };
-    Outcome::Handled(act(p, what, &mr))
 }
 
 /// The merge request selected in the tree.
@@ -242,8 +221,8 @@ pub(crate) fn bindings(p: &GitlabPlugin, mr: &Mr) -> Vec<crate::Row> {
 }
 
 /// The status line's keys for the selected merge request: only those that
-/// apply, so `u rebase` shows when it needs one and `m merge` when GitLab
-/// would take it, `e approve` when it waits for approvals.
+/// apply: updating by rebasing when it needs that, merging when GitLab
+/// would take it, and approving when it waits for approvals.
 pub(crate) fn hints(p: &GitlabPlugin, pane: Pane) -> Vec<KeyHint<'static>> {
     if !p.pages.is_empty() || !matches!(pane, Pane::Middle | Pane::Detail) {
         return vec![];
@@ -253,7 +232,7 @@ pub(crate) fn hints(p: &GitlabPlugin, pane: Pane) -> Vec<KeyHint<'static>> {
     let on = |d: Do| rows.iter().any(|r| r.what == d && r.why.is_none());
     let mut out = Vec::new();
     if on(Do::Rebase) {
-        out.push(KeyHint::new("u", "rebase"));
+        out.push(KeyHint::new("u", "update by rebasing"));
     }
     if on(Do::Merge) {
         out.push(KeyHint::new("m", "merge"));

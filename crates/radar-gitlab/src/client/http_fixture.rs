@@ -464,7 +464,7 @@ fn truncated_write_sends_once_is_unknown_and_keeps_original_comment_uncertain() 
         "Could not confirm the result of asking GitLab to post a comment on !263: {ERROR} Check GitLab before trying again."
     );
     assert!(
-        matches!(&effects[1], Effect::Notify(words) if words == &format!("✗ {expected} · c has your text"))
+        matches!(&effects[1], Effect::Notice(words) if words.tone == radar_core::view::chrome::NoticeTone::Error && words.text == format!("✗ {expected} · c has your text"))
     );
     assert_eq!(
         p.acting[&change.key()].state,
@@ -526,7 +526,7 @@ fn action_completion_notice_and_page_distinguish_unknown_from_known_failure_and_
             "GitLab did not rebase !263: fixture reason"
         };
         assert!(matches!(effects[0], Effect::Report(got) if got == outcome));
-        assert!(matches!(&effects[1], Effect::Notify(got) if got == &format!("✗ {words}")));
+        assert!(matches!(&effects[1], Effect::Notice(got) if got.tone == radar_core::view::chrome::NoticeTone::Error && got.text == format!("✗ {words}")));
         let acting = &p.acting[&format!("{PROJECT}!263")];
         let shown = match &acting.state {
             crate::mr_actions::Acting::Failed(shown) | crate::mr_actions::Acting::Done(shown) => {

@@ -7,9 +7,10 @@ import { StateView } from "../../src/text/StateView";
 import { TableNode } from "../../src/nodes/lists";
 import type { Tree } from "../../src/protocol/generated/Tree";
 import type { ChromeView } from "../../src/chrome/types";
-import { BodyWithMenu, InPane, StatusLine } from "../support/frames";
+import { BodyWithMenu, InPane } from "../support/frames";
 import { paneOf } from "../support/stories";
 import type { RatatuiScene } from "../support/ratatui";
+import { NoticeSurfaces } from "./NoticeReplay";
 import repos80 from "../../test/fixtures/gitlab_repos_80x24.json";
 import menu80Cells from "../../test/cells/highlight_menu-80x24.json";
 import chrome80 from "../../test/fixtures/host_chrome_80x24.json";
@@ -19,7 +20,7 @@ import reposPage80 from "../../test/fixtures/gitlab_repos-page1-repos_80x24.json
 /**
  * Surfaces and layers (board 06): the focused panel, overlays over a scrim, notices, and the panel states. Today's
  * real component sits beside each canvas proposal. Targets: the focus ramp #31, the scrim and shadow #29 with the
- * command palette #35, notices #41; the panel states are shipped and redrawn on the canvas with loading outlines
+ * command palette #35; notices #41 and the panel states are shipped and redrawn on the canvas with loading outlines
  * (#42).
  *
  * A shadow dims what is under it and never erases it; no left stripes; no pill shapes.
@@ -66,18 +67,8 @@ export const PaletteOverScrim: Story = {
   },
 };
 
-/** Notices: today a write's news is the status line's message; the target is a row at the bottom right of the panel
- * whose tinted ground drains. */
-export const Notices: Story = {
-  render: (_args, { globals }) => (
-    <Row>
-      <Today globals={globals} cols={80} rows={1} caption="The status line (host_chrome_80x24; no recorded notice)">
-        <StatusLine chrome={chrome80 as ChromeView} width={80} height={24} />
-      </Today>
-      <Target board="Surfaces" picks={[section("Notices")]} issues={[41]} />
-    </Row>
-  ),
-};
+/** Production stacked notices and the separate session-only history surface. */
+export const Notices: Story = { render: (_args, { globals }) => <NoticeSurfaces globals={globals} /> };
 
 /** Panel states: loading, empty and broken, each said in the panel's own space. Today: the recorded empty state and an
  * empty table. */

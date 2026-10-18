@@ -93,7 +93,7 @@ mod unit {
                 .any(|i| i.note && i.label == "GitLab rewrites the branch on top of main")
         );
         let no = menu.items.iter().find(|i| i.key == Some('n')).unwrap();
-        assert_eq!(no.hint, "leave it as it is");
+        assert_eq!(no.hint, "no, leave it as it is");
         let effects = crate::pages::act::on_menu(&mut p, &menu.id, &no.value).unwrap();
         assert!(matches!(
             effects.as_slice(),
@@ -125,7 +125,7 @@ mod unit {
         assert!(
             menu.items
                 .iter()
-                .any(|i| i.key == Some('y') && i.hint == "merge it")
+                .any(|i| i.key == Some('y') && i.hint == "yes, merge it")
         );
         assert!(menu.items.iter().any(|i| i.note && i.label == "GitLab checks it once more, then merges that commit"));
         assert!(p.acting.is_empty());

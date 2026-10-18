@@ -27,11 +27,17 @@ import {
   cellsOf,
   clipCells,
   lineCells,
+  mnemonicLineCells,
+  paragraphCells,
   padCells,
   widthOfCells,
   wrapCells,
   type Cell,
 } from "../text/cells.js";
+import type { Mnemonic } from "../text/mnemonic.js";
+import { decodeDetail } from "./detail.js";
+import { detailBodyRows } from "./detailRows.js";
+import { DetailNode } from "./DetailNode.js";
 import { slotStyle, specStyle } from "../text/look.js";
 
 /** ui::scroll::Scroll for a Document or Rich pane: how far it is scrolled and how far it can be, as of the last frame.
@@ -97,7 +103,7 @@ export function thumbOf(
 
 /** scroll::scrollbar: ║ track in bg.overlay, █ thumb in accent.muted, one cell wide; nothing when everything fits. */
 /** Where a scrolled node reports how far it can scroll and where it is (null: it left), for a frame to draw the bar. */
-export type ScrollReport = { max: number; at: number } | null;
+export type ScrollReport = { max: number; at: number; bodyTop?: number; bodyHeight?: number } | null;
 export const ScrollSink = createContext<((r: ScrollReport) => void) | null>(
   null,
 );
@@ -151,7 +157,7 @@ export function ScrollBar({
 /** A body taller than its pane: shows `room` rows from the scroll's offset and the scrollbar in the last column.
  * `total` is the content's height when the caller knows it; otherwise it is measured after layout. The offset is kept
  * across frames while the content stays the same (`id`), as Ratatui keeps a panel's Scroll; new content starts at the top. */
-function Scrolled({
+export function Scrolled({
   kind,
   id,
   total,
@@ -160,7 +166,11 @@ function Scrolled({
   focused,
   plain,
   children,
+  fullWidth,
+  reportBounds,
 }: {
+  fullWidth?: boolean;
+  reportBounds?: boolean;
   kind: Scroller["kind"];
   id: string;
   total?: number;
@@ -265,9 +275,9 @@ function Scrolled({
   // the bar is drawn here, in the node's last column.
   const sink = useContext(ScrollSink);
   useLayoutEffect(() => {
-    sink?.({ max: s.max, at: s.at });
-    return () => sink?.(null);
-  }, [sink, s.max, s.at]);
+    sink?.({ max: s.max, at: s.at, ...((fullWidth || reportBounds) && s.rect ? { bodyTop: s.rect.y, bodyHeight: room } : {}) });
+  });
+  useLayoutEffect(() => () => sink?.(null), [sink]);
   // Everything fits and a frame owns the bar: no row, no clip, no bar column (the common case draws as it did before).
   if (sink && s.max <= 0 && total !== undefined) {
     return (
@@ -280,7 +290,7 @@ function Scrolled({
     <Box ref={outer} flexDirection="row" width={width} height={room}>
       <Box
         flexDirection="column"
-        width={Math.max(1, width - 1)}
+        width={Math.max(0, width - (fullWidth && sink ? 0 : 1))}
         height={room}
         overflow="hidden"
       >
@@ -297,7 +307,7 @@ function Scrolled({
           </Box>
         )}
       </Box>
-      <ScrollBar rows={room} max={sink ? 0 : s.max} at={at} plain={plain} />
+      {fullWidth && sink ? null : <ScrollBar rows={room} max={sink ? 0 : s.max} at={at} plain={plain} />}
     </Box>
   );
 }
@@ -337,7 +347,8 @@ function DocumentNode({
   return (
     <Scrolled
       kind="document"
-      id={docId(lines)}
+      id={ctx.scrollIdentity ?? docId(lines)}
+      reportBounds={ctx.bodyTrack}
       total={ctx.scrolls ? rows.length : Math.min(rows.length, height)}
       room={height}
       width={ctx.width}
@@ -409,26 +420,33 @@ export * from "./view.js";
 export { visibleRows } from "./tree.js";
 
 /** The capabilities this renderer draws itself; any other Extension shows its fallback and says so. */
-export const OWN_CAPABILITIES: readonly string[] = ["editor"];
+export const OWN_CAPABILITIES: readonly string[] = ["editor", "detail"];
 
-/** view_tui keyed_line: the line, and its key as ` [k]` in muted words at the right edge of `room` when both fit
- * there (one row, never wrapped); otherwise the line broken between words at `wrapAt`. */
-function lineRows(
-  block: { text: Text; key?: string | null },
+/** view_tui keyed_line: supplied letter mnemonics stay inside their word, other keys lead it.
+ * An invalid/missing letter mnemonic retains its discoverable muted ` [k]` suffix, aligned when it fits. */
+export function lineRows(
+  block: { text: Text; key?: string | null } & Mnemonic,
   room: number,
   wrapAt: number,
   plain?: boolean,
 ): Cell[][] {
-  const cells = lineCells(block.text, plain);
-  if (block.key) {
+  const shown = mnemonicLineCells(block.text, block.key ?? "", block, plain);
+  let cells = shown.cells;
+  if (block.key && !/^\p{Alphabetic}$/u.test(block.key)) {
+    cells = [...cellsOf(`${block.key} `, plain ? {} : { ...slotStyle("accent.secondary"), bold: true }), ...cells];
+    return paragraphCells(cells, Math.max(1, wrapAt));
+  }
+  if (shown.valid && !plain && block.mnemonic_shift) cells = [...cellsOf("shift ", { ...slotStyle("accent.secondary"), bold: true }), ...cells];
+  if (block.key && (!shown.valid || plain)) {
     const shortcut = cellsOf(
       ` [${block.key}]`,
       plain ? {} : slotStyle("text.muted"),
     );
     if (widthOfCells(cells) + widthOfCells(shortcut) <= room)
       return [[...padCells(cells, room - widthOfCells(shortcut)), ...shortcut]];
+    cells = [...cells, ...shortcut];
   }
-  return wrapCells(cells, Math.max(1, wrapAt));
+  return paragraphCells(cells, Math.max(1, wrapAt));
 }
 
 /** ui::card::section: `mark`, the title in muted capitals, `detail` in secondary words when it fits with them, then a
@@ -571,13 +589,16 @@ function blockRows(block: Block, width: number): number {
 
 /** The rows a detail node (a sheet) takes at `width`: a rich node's blocks laid in two cells less, a document's lines
  * wrapped to the same room as DocumentNode. `width` is the node's, as the sheet gives it. */
-export function detailRows(node: { node: string; blocks?: Block[]; lines?: Text[] }, width: number): number {
+export function detailRows(node: Node, width: number): number {
+  const detail = decodeDetail(node);
+  if (detail) return detailBodyRows(detail, width).rows.length;
+  if (node.node === "extension" && node.fallback) return detailRows(node.fallback, width);
   if (node.node === "rich") {
     const w = Math.max(1, width - 2);
     return (node.blocks ?? []).reduce((n, b) => n + blockRows(b, w), 0);
   }
   const room = Math.max(1, width - 2);
-  return (node.lines ?? []).reduce((n, l) => n + wrapCells(lineCells(l), room).length, 0);
+  return (node.node === "document" ? node.lines : []).reduce((n, l) => n + wrapCells(lineCells(l), room).length, 0);
 }
 
 const MARK_SYMBOL = {
@@ -604,7 +625,7 @@ export function UnknownNode({
       <Box borderStyle="round" borderColor="yellow" paddingX={1}>
         <InkText>{`shown simply: this renderer does not draw ${type}`}</InkText>
       </Box>
-      <ActionList actions={ctx?.actions ?? []} />
+      <ActionList actions={ctx?.actions ?? []} plain={ctx?.plainText} />
     </Box>
   );
 }
@@ -625,7 +646,7 @@ function ExtensionFallback({
         {...(ctx.plainText ? {} : textProps(slotStyle("text.muted")))}
       >{`shown simply: this needs ${capability}`}</InkText>
       <NodeView node={fallback} ctx={ctx} />
-      <ActionList actions={ctx.actions ?? []} />
+      <ActionList actions={ctx.actions ?? []} plain={ctx.plainText} />
     </Box>
   );
 }
@@ -673,7 +694,8 @@ export function NodeView({
       return (
         <Scrolled
           kind="rich"
-          id={richId(node.blocks)}
+          id={ctx.scrollIdentity ?? richId(node.blocks)}
+          reportBounds={ctx.bodyTrack}
           room={Math.max(1, ctx.height)}
           width={ctx.width}
           focused={ctx.focused}
@@ -742,6 +764,11 @@ export function NodeView({
       const own = (ctx.capabilities ?? OWN_CAPABILITIES).includes(
         node.capability,
       );
+      const detail = own ? decodeDetail(node) : null;
+      // Plain readers and unsupported detail versions use the complete shared fallback.
+      // No extra warning row steals height from its scroller or hides its final line.
+      if (node.capability === "detail" && (ctx.plainText || !detail)) return <NodeView node={node.fallback} ctx={ctx} />;
+      if (detail) return <DetailNode data={detail} ctx={ctx} />;
       if (
         own &&
         node.capability === "editor" &&
@@ -770,6 +797,8 @@ export function NodeView({
 
 /** The entry T10 imports: one element for any node. */
 export function renderNode(node: Node, ctx: NodeContext): React.ReactElement {
+  // Zero is a legal pane body: never register offscreen rows or force a minimum line.
+  if (ctx.width <= 0 || ctx.height === 0) return <></>;
   // The node never draws outside the room it was given, whatever its columns want: a pane beside it stays whole.
   return (
     <HitRegion node={node} ctx={ctx}>

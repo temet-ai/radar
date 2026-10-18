@@ -20,7 +20,8 @@
           "char": "r"
         }
       },
-      "label": "read the clones again"
+      "label": "read the clones again",
+      "mnemonic_at": 0
     }
   ],
   "dock": {

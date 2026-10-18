@@ -545,7 +545,7 @@
       "name": "TreeNode",
       "path": "./stories/nodes/TreeNode.stories.tsx",
       "jsDocTags": {},
-      "description": "The banded tree (`Node::Tree`, Ratatui `ui::tree::BandedTree`): the one tree every part uses for nested data\n(groups, then sources, then items). Each row has a name, cells in the tree's columns (aligned at every depth and\ndropped by `keep` rank as the width shrinks), optional chips after the name, and a `detail` shown whole or not at\nall.\n\n**Use it** when rows group under others and folding helps (a tenancy, its repositories, their merge requests). Use\na table when the rows are one kind.\n\n**States:** open (tree lines `├─ └─ │` show what is open), folded (the row ends in `⋯ n`, the count of rows it\nholds), selected (the selection background across the whole row, bold emphasis text), selected without focus (a\nquieter background when another pane has the keys), group rows on the heading band.\n\n**Rules:** no chevrons (▸ ▾ › ⌄) and no `[+]`/`[-]` for folding: the tree lines and `⋯ n` say it. No left-edge\nstripes for new work (the group stripe `▌` is on its way out, #45). Selection is the background across the row,\nnever a marker glyph. Keys: `space` toggles a fold, `+`/`=` open, `-` closes or goes to the parent.\n\nWidth and height in `ctx` come from the pane the story draws it in.",
+      "description": "The banded tree (`Node::Tree`, Ratatui `ui::tree::BandedTree`): the one tree every part uses for nested data\n(groups, then sources, then items). Each row has a name, cells in the tree's columns (aligned at every depth and\ndropped by `keep` rank as the width shrinks), optional chips after the name, and a `detail` shown whole or not at\nall.\n\n**Use it** when rows group under others and folding helps (a tenancy, its repositories, their merge requests). Use\na table when the rows are one kind.\n\n**States:** open (tree lines `├─ └─ │` show what is open), folded (the row ends in `⋯ n`, the count of rows it\nholds recursively in the current view, including hidden descendants), selected (the selection background across\nthe whole row), selected without focus (the overlay background when another pane has the keys), hover and change\nglow. Semantic foregrounds and modifiers stay intact in every state. Group rows use the heading band. Mono/plain\noutput supplements unavailable grounds with underline, and bold for the focused selection.\n\n**Rules:** no chevrons (▸ ▾ › ⌄) and no `[+]`/`[-]` for folding: the tree lines and `⋯ n` say it. No left-edge\nstripes. Selection is the background across the row, never a marker glyph. The reserved count is held descendants,\nnever a server's uncached total; at tiny widths a bare `⋯` replaces a count that cannot fit whole. Keys: `space`\ntoggles, `+` opens the selected group, `-` closes it or closes/selects its parent, right opens or enters, left closes\nor selects its parent, and `=` opens every held group. Tab, h/l and pane digits still move between panes.\n\nWidth and height in `ctx` come from the pane the story draws it in.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/nodes/tree.tsx",
@@ -604,9 +604,9 @@
         {
           "id": "nodes-treenode--folded",
           "name": "Folded",
-          "snippet": "const Folded = (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={undefined} missing={\"tests/ratatui_cells.rs records no folded tree. A `highlight_folded-row` scene there would give one.\"} />;",
-          "description": "team-a folded: its row keeps its cells and ends in `⋯ n`; no chevron, no `[+]`.",
-          "warning": "Incomplete snippet: `...tree80`, `tree80` could not be resolved statically."
+          "snippet": "const Folded = (args, { globals }) => <Figure args={args} globals={globals} pane={foldedPane} scene={foldedCells as RatatuiScene} />;",
+          "description": "A loaded group folded by the host: `⋯ 2` counts its child and nested descendant, both still held in the view.",
+          "warning": "Incomplete snippet: `foldedPane` could not be resolved statically."
         },
         {
           "id": "nodes-treenode--unfocused",
@@ -1737,6 +1737,23 @@
             "type": {
               "name": "number"
             }
+          },
+          "plain": {
+            "defaultValue": {
+              "value": "false"
+            },
+            "description": "",
+            "name": "plain",
+            "declarations": [
+              {
+                "fileName": "ink/src/chrome/Chrome.tsx",
+                "name": "TypeLiteral"
+              }
+            ],
+            "required": false,
+            "type": {
+              "name": "boolean"
+            }
           }
         },
         "exportName": "TourCardBox"
@@ -1982,7 +1999,7 @@
             ],
             "required": false,
             "type": {
-              "name": "{ add(hit: { x: number; y: number; w: number; h: number; target: string; }): void; addPane?(area: { x: number; y: number; w: number; h: number; pane: string; }): void; addSelect?(area: SelectArea): void; }"
+              "name": "{ add(hit: { x: number; y: number; w: number; h: number; target: string; }): void; replace?(owner: string, hits: { x: number; y: number; w: number; h: number; target: string; }[]): void; remove?(owner: string): void; addPane?(area: { x: number; y: number; w: number; h: number; pane: string; }): void; addSelect?(area: SelectArea): void; }"
             }
           },
           "base": {
@@ -2473,11 +2490,11 @@
         {
           "id": "design-motion--notice-drain",
           "name": "Notice Drain",
-          "snippet": "const NoticeDrain = (args) => <Target board=\"Motion\" picks={[card(\"Notice\")]} issues={[41]} props={boardSpeed(args)} width={720} />;",
+          "snippet": "const NoticeDrain = () => <NoticeDrainReplay globals={globals} speed=\"real\" />;",
           "description": "Notice drain: a notice's tinted ground drains as its time runs out."
         }
       ],
-      "import": "import { InteractionReplay, MotionReference, MotionReplay, Row, ShippedLabel, Target } from 'radar-ink';"
+      "import": "import {\n  InteractionReplay,\n  MotionReference,\n  MotionReplay,\n  NoticeDrainReplay,\n  Row,\n  ShippedLabel,\n  Target,\n} from 'radar-ink';"
     },
     "design-screen": {
       "id": "design-screen",
@@ -2529,8 +2546,8 @@
         {
           "id": "design-surfaces--notices",
           "name": "Notices",
-          "snippet": "const Notices = (_args, { globals }) => (\n  <Row>\n    <Today globals={globals} cols={80} rows={1} caption=\"The status line (host_chrome_80x24; no recorded notice)\">\n      <StatusLine chrome={chrome80 as ChromeView} width={80} height={24} />\n    </Today>\n    <Target board=\"Surfaces\" picks={[section(\"Notices\")]} issues={[41]} />\n  </Row>\n);",
-          "description": "Notices: today a write's news is the status line's message; the target is a row at the bottom right of the panel\nwhose tinted ground drains."
+          "snippet": "const Notices = (_args, { globals }) => <NoticeSurfaces globals={globals} />;",
+          "description": "Production stacked notices and the separate session-only history surface."
         },
         {
           "id": "design-surfaces--panel-states",
@@ -2539,7 +2556,7 @@
           "description": "Panel states: loading, empty and broken, each said in the panel's own space. Today: the recorded empty state and an\nempty table."
         }
       ],
-      "import": "import {\n  Board,\n  BodyWithMenu,\n  InPane,\n  Row,\n  StateView,\n  StatusLine,\n  TableNode,\n  Target,\n  Today,\n  TreeNode,\n} from 'radar-ink';"
+      "import": "import {\n  Board,\n  BodyWithMenu,\n  InPane,\n  NoticeSurfaces,\n  Row,\n  StateView,\n  TableNode,\n  Target,\n  Today,\n  TreeNode,\n} from 'radar-ink';"
     },
     "dock-dock": {
       "id": "dock-dock",
@@ -3242,6 +3259,6 @@
   },
   "meta": {
     "docgen": "react-docgen-typescript",
-    "durationMs": 1896
+    "durationMs": 4523
   }
 }

@@ -14,6 +14,7 @@ import type { ScreenLike, ViewNode } from "../../src/workarea/model.js";
 import { renderNode } from "../../src/nodes/index.js";
 import { applyLook, defaultLook } from "../../src/text/look.js";
 import { panels } from "./panels.js";
+import type { PaneJump } from "../../src/protocol/generated/PaneJump.js";
 
 const read = (rel: string) =>
   readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
@@ -49,6 +50,7 @@ for (const view of ["work_view", "work_view_pending"]) {
       const r = render(
         <WorkArea
           screen={screen}
+          paneJumps={JSON.parse(read(`${FIX}${view}_pane_jumps_${columns}x${rows}.json`)) as PaneJump[]}
           capabilities={{ columns, rows, plain_text: false }}
           renderNode={(node, c) =>
             renderNode(

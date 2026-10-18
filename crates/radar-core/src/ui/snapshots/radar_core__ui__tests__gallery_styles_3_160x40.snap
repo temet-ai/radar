@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1326
 expression: "gallery_styles(160, 40, tab)"
 ---
-00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Meters" fg:text.secondary bold
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Meters" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
 02 _1 | "Tree  Table  Card  " fg:text.secondary | "[Meters]" fg:accent.primary/glow.purple bold | "  Rows & states  Entries & log  Markdown…" fg:text.secondary
 03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " meters " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
@@ -41,4 +42,4 @@ expression: "gallery_styles(160, 40, tab)"
 36 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
 37 "│" fg:accent.primary/glow.purple bg:bg.surface | _158 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
 38 "╰───────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
-39 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted
+39 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

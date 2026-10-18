@@ -1,10 +1,10 @@
 ---
 source: crates/radar-jira/src/tests.rs
-assertion_line: 1862
+assertion_line: 1813
 expression: "text(&host, 80, 24)"
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
-╭ settings ────────────╮╭ views ───────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 views ─────────────────────────────────────────────╮
 │General               ││  + new view                                          │
 │  ├─ parts            ││  My tickets        assigned to you, not done         │
 │  ├─ mode             ││  This sprint       in an open sprint, in your watche │
@@ -15,7 +15,7 @@ expression: "text(&host, 80, 24)"
 │  ├─ connection       ││                                                      │
 │  ├─ projects         ││                                                      │
 │  ├─ views            │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ new view ────────────────────────────────────────────╮
+│  └─ look             │╭ 3 new view ──────────────────────────────────────────╮
 │                      ││ Make another view for the Jira nav pane.             │
 │                      ││                                                      │
 │                      ││ Give it a name; it starts with your open tickets.    │
@@ -26,4 +26,4 @@ expression: "text(&host, 80, 24)"
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate                                jira
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate               jira

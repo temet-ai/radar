@@ -1,6 +1,8 @@
 // Joins the motion engine to the app: the host's cues and level (Snapshot.motion), the user's input, the places the
 // effects run in (body, popup, status message: worked out from the same view data the app draws from), the frame tick,
 // and the hook on Ink's output. Called once from the renderer's entry; nothing else in the app knows of motion.
+import { RawNoticeInput } from "../notices/raw-input.js";
+import { noticePresentation } from "../notices/paint.js";
 import type { MotionCue } from "../protocol/generated/MotionCue.js";
 import type { MotionView } from "../protocol/generated/MotionView.js";
 import { cellWidth } from "../chrome/width.js";
@@ -51,7 +53,7 @@ export function shellMarks(
     : null;
   const menu =
     menuShowing(state.questions[0]?.menu, snap.chrome.menu) ?? requestMenu;
-  const history = snap.chrome.history != null;
+  const history = snap.chrome.history != null || snap.chrome.notice_history != null;
   const frame = frameOf(chrome, history ? null : menu, columns, rows);
   const marks: Marks = {
     body: { x: 0, y: 1, w: columns, h: Math.max(0, rows - 2) },
@@ -92,9 +94,11 @@ export function attachMotion(
   m: Motion = theMotion,
 ): () => void {
   installMotionOutput(m);
+  m.setPresentation(noticePresentation(session, stdout, () => m.engine.level !== "off"));
   let seen: unknown;
   let seenLook = session.state.look;
   const take = () => {
+    m.refreshPresentation();
     const state = session.state;
     if (state.look !== seenLook || state.phase === "closed" || state.phase === "refused" || (!state.snapshot?.chrome.history && (state.inputRequest || state.questions.length))) {
       m.invalidate();
@@ -112,7 +116,8 @@ export function attachMotion(
   const offSession = session.subscribe(take);
   const offInput = session.onInput(() => m.input());
   const offIntent = session.onIntent((seq, cursor) => m.intent(seq, cursor));
-  const offRaw = mouse.onRawInput((text) => { if (isInput(text)) m.input(); });
+  const rawNotices = new RawNoticeInput((escape) => session.noticeInput(escape));
+  const offRaw = mouse.onRawInput((text) => { if (isInput(text)) m.input(); rawNotices.take(text); });
   m.marksFrom(() =>
     shellMarks(session, stdout.columns ?? 80, stdout.rows ?? 24),
   );
@@ -126,6 +131,7 @@ export function attachMotion(
     offInput();
     offIntent();
     offRaw();
+    rawNotices.reset();
     offTick();
     m.reset();
   };

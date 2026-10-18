@@ -51,7 +51,7 @@ From GUIDE.md and the operator's design decisions (October 2026).
 | Both renderers, same picture | While Ratatui is the reference, every look change lands in both renderers. A difference between them is a defect. | operator |
 | **No chevrons for folding** | No ▸ ▾ › ⌄, nerd chevrons, `[+]` or `[-]` as fold marks. The tree lines show open; a folded row ends in `⋯ n`. | GUIDE 2.12, operator |
 | **No pill shapes** | Chips, counts, keys, buttons and tags are square: a ground and one space each side. No round caps. | operator |
-| **No left-edge stripes** | No coloured bar down the left of rows or cards. Groups are marked by the heading shade. (The tree's group stripe `▌` is on the way out: #45.) | operator |
+| **No left-edge stripes** | No coloured bar down the left of rows or cards. Groups are marked by the heading shade. | operator |
 | **Keys live inside their word** | Hint, button and tab keys are the word's letter, underlined (b̲ulk, q̲uit). A key with no letter (↑↓ ⏎ esc) is a glyph before the word. No "b bulk". | operator, #44 |
 | **Breadcrumbs join with /** | `acme / api / !263`, not `›`. | operator, #46 |
 | **Tabs show names, not counts** | One attention dot when something there waits for you. | operator, #33 |
@@ -102,7 +102,8 @@ Those two lists are the live parity backlog.
 | `FieldBar` | `draw_field_bar` → `input::TextInput` | `chrome/filter.tsx` | none (cell-compared) |
 | `SectionView` (settings) | `render_section`, `shell::settings` | `app/App.tsx` `SectionBody` | `actions` drawn by neither (the menu owns them) |
 | `ChromeView`, `TopBar`, `BarTab`, `Badge`, `ModeChip`, `SourceTab` | `shell::top_bar`, `tabs`, `source_tabs` | `chrome/layout.ts`, `chrome/Chrome.tsx` | none known |
-| `StatusLine`, `Hint`, `HintKey`, `Message` | `shell::status_line`, `key_hits` | `chrome/layout.ts` `layoutStatus` | Ink wraps host notices as Info messages |
+| `StatusLine`, `Hint`, `HintKey` | `shell::status_line`, `key_hits` | `chrome/layout.ts` `layoutStatus` | Status hints remain visible while notices show |
+| `NoticeView`, `NoticeStateView`, `NoticeHistoryView` | `ui/notices.rs`, `shell/notices.rs` | `notices/layout.ts`, `paint.ts`, `text.ts`, `History.tsx` | Actual native cells are compared at 80/160, narrow Unicode and all tiers |
 | `MenuView`, `Choice` | `shell/menu.rs` | `chrome/layout.ts` `layoutMenu`, `Chrome.tsx` `MenuBox` | `change` deliberately undrawn |
 | `SettingsNav` | `shell::settings` | `chrome/layout.ts` `layoutNav` | none known |
 | `HistoryView` | `history.rs` | `chrome/history.ts` | `pending` deliberately undrawn |
@@ -157,8 +158,42 @@ Stories: `Dock/Dock` (`ink/stories/dock/Dock.stories.tsx`) and `Dock/TerminalVie
 All Rust paths are under `crates/radar-core/src/`. "Gallery" names the tab in the kit
 gallery: the 9 element tabs (Tree, Table, Card, Meters, Rows & states, Entries & log,
 Markdown, Diff, Motion) plus the stories (Colours, Tones, Row states, Grid states,
-Waiting, Long text, Icons). The Motion tab (`ui/motion_demo.rs`, `MotionDemo`) starts each
+Waiting, Long text, Icons, Notices). The Motion tab (`ui/motion_demo.rs`, `MotionDemo`) starts each
 effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and runs only in full colour.
+
+### Session notices
+
+The host records distinct occurrences for this run only. Info expires at 5 seconds;
+errors expire at 10 seconds or on input. Escape clears active occurrences but keeps
+recent history. `~` opens the explicit recent-notice overlay; `H` still opens the
+separate durable action journal. History is inert: selecting a row never repeats
+an action. Its newest-first list retains up to 256 summaries of 120 characters;
+the selected detail carries the full message, bounded at 2,048 characters, wraps
+by complete graphemes, and scrolls with PgUp/PgDn. Omitted older entries are counted.
+
+Transient rows sit bottom-right inside the content border, above status. Up to
+four are visible, newest lowest and older rows dimmed. An additional summary
+shows the hidden count and opens history. Short panes reserve a summary row;
+a one-row pane puts the count in the newest notice. Rows are at most 64 cells.
+Icons use the active pack, with severity words when icons are off. Truecolor
+uses primary text and 18% severity tint over `bg.overlay`, channel-rounded
+half-up; the tint's width is `ceil(width × remaining / lifetime)`, kept whole
+at wide-grapheme boundaries. Motion off uses static tint and unchanged expiry.
+Lower color tiers keep static overlay ground and severity text; mono is reversed.
+
+Both renderers paint notices after fold/focus motion and exclude them from
+retained clean frames. Menus, modals, editors, splash, setup, tour, either
+history overlay and focused raw PTY input suppress transient rows while expiry
+continues. Notice clicks consume their rectangles and dismiss by stable occurrence
+ID. History rows and status commands also capture stable identities, so a stale
+click cannot act on a replacement provider control. Ordinary dock composers
+remain visible and hit-safe.
+
+The Notices gallery draws timed, static and history states. The
+`ui::notices::tests::captures::native_notice_cells` contract records the actual
+production native buffer into `ink/test/fixtures/notices/`; both renderers compare
+the same glyphs, wide tails, styles and rectangles. Capture generation is opt-in
+with `RADAR_NOTICE_CELLS_DIR`; snapshots still require review before acceptance.
 
 ### 3.1 Primitives
 
@@ -168,7 +203,7 @@ effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and
 | `widgets::panel` | widgets.rs | Rounded, titled block | focused or not | AccentPrimary or AccentMuted border, TextEmphasis or TextSecondary title, BgSurface | `╭─╮│╰╯` | all |
 | `widgets::heading` | widgets.rs | Muted bold capitals | | TextMuted b | | Meters, Card |
 | `widgets::chip` | widgets.rs / `text/chips.ts` | A label on its tone's tint | by tone; the ground is the tone 16% over BgOverlay in truecolour (`chip_ground`, #30), the flat BgOverlay on 256, 16 and mono | tone + BgOverlay | ` text ` | Card, Tones |
-| `widgets::key_hint` | widgets.rs | `key label` pair | key-in-word form planned (#44) | AccentSecondary b, TextMuted | | gallery footer |
+| `widgets::key_hint` | widgets.rs / `text/mnemonic.ts` | Host-positioned underlined letter inside the action word | Unicode graphemes, explicit Shift for uppercase, named/glyph/numeric prefixes; invalid legacy metadata retains its key (#44) | TextMuted underline; AccentSecondary b for explicit prefixes | | gallery footer |
 | `widgets::row`, `row_style` | widgets.rs | Selected row with a right-hand word | selected focused or unfocused, plain | see drift 6.2 | | |
 | `widgets::Button`, `buttons` | widgets.rs | Three-row raised button row | focused, unfocused, muted, icon | AccentPrimary, BgSelection, BgBase | `▔ ▁` | **missing** |
 | `widgets::kv`, `empty`, `paragraph`, `padded` | widgets.rs | Small helpers | | | | |
@@ -187,7 +222,7 @@ effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and
 
 | Element | Where | Does | States and variants | Keys | Gallery |
 |---|---|---|---|---|---|
-| `BandedTree`, `Node`, `TreeLook` | ui/tree.rs | Grouped hierarchy with bands and inline input. **The one tree for every part (#45).** | selected, unfocused, folded (`⋯ n`), input row | `+`/`=` open, `-` close or go to the parent, `space` toggle, `↑` at top to the bar | Tree, Grid states |
+| `BandedTree`, `Node`, `TreeLook` | ui/tree.rs | Grouped hierarchy with bands and inline input. **The one tree for every part (#45).** | selected, unfocused, folded (`⋯ n`), input row | `+` open selected, `=` open all held groups, `-` close group/parent, `←`/`→` navigate, `space` toggle, `↑` at top to the bar | Tree, Grid states |
 | `Columns`, `Column` | ui/columns.rs | Aligned right-hand columns, dropped by rank as width shrinks | | | Tree, Table |
 | `Table` | ui/table.rs | Flat list with headings and cursor | empty, cut with `…` | | Table |
 | `RowList`, `ListRow` | ui/rows.rs | Selectable rows, headings stepped over | heading, detail dropped whole | `↓ ↑ Home End PgDn PgUp` | Rows & states |
@@ -222,7 +257,7 @@ effect of `motion` with a key (`s m g p n t l`; `f` steps full, subtle, off) and
 | Status line | `shell::status_line`, `key_hits` / `layoutStatus` | Mode chip, key hints or a message, counts at the right | notices planned (#41) |
 | Menu and question | `shell/menu.rs` / `layoutMenu`, `MenuBox` | Menus with key, label, line; questions as dialogs with buttons | over a scrim with a one-cell shadow (`ui::scrim`, #29); nothing behind is lit; Ctrl-P palette with scalar-indexed match highlights, right-side keys and match/total count (`MenuView.palette`); cached targets, no query-time requests |
 | Field bar | `view_tui::draw_field_bar` / `chrome/filter.tsx` | Filter (`/`) and go-to (`:`) at the top of a pane | |
-| Panes and frames | `shell`, `view_tui::draw_pane` / `app/Panes.tsx` | Nav, middle, detail; focused frame | Truecolor ramp on the keyboard-owning pane, including active inline fields; background panes stay flat under menus, overlays and visible focused docks (#31). Jump numbers/detail skeleton (#46) and animated lap (#32) remain planned |
+| Panes and frames | `shell`, `view_tui::draw_pane` / `app/Panes.tsx` | Nav, middle, detail; focused frame | Truecolor ramp on the keyboard-owning pane, including active inline fields; background panes stay flat under menus, overlays and visible focused docks (#31). Host-owned jump numbers match the active logical pane mapping, including responsive layouts and setup exclusions (#46). The focus perimeter follows the shared motion policy (#32) |
 | Settings | `shell::settings` / `layoutNav`, `SectionBody` | Settings nav and sections | |
 | Setup | `shell/setup.rs` / `app/SetupBody.tsx` | `radar  setup / <step>` with `step n of m` and the mode; at most 140×40, centred; the sheet ("about this step", the step's help) on top as high as its text, then the card (heading, lead, then the step's settings section or a host step's rows) under it, each a filled panel under its tab; no rail; the key bar is the status line scoped `SETUP` | from `ChromeView.setup` (`SetupChrome`) and `Snapshot.section`; no tabs, no settings nav |
 | History | `history.rs` / `chrome/history.ts` | Action history overlay | |
@@ -240,9 +275,9 @@ the "today" column lists what has to change. Paths are under `crates/`.
 | Concept | Canonical form | Today | Issue |
 |---|---|---|---|
 | Breadcrumbs | Segments joined by a muted ` / `, last one bold. First crumb is the part name. | ` › ` (`radar-core/src/ui/page.rs`); first crumb is the screen name in GitLab, the part name elsewhere; GitHub's is Muted, the others Secondary; GitHub keeps `owner/repo` as one crumb | #46 |
-| Nested data | The shared tree, in every part | GitHub group → repo → PR is a flat list with manual indent and private fold state (`radar-github/src/screen.rs`); Workspace is a flat list with `"  name"`; the Workbench is flat | #45 |
-| Fold signal | Tree lines; folded row ends `⋯ n` | GitHub's folded rows show no mark | #45 |
-| Run and state marks | `Mark` and `Icon`, one meaning per glyph | `●` means running (GitLab), done (Jira), in use (Git), unread (Slack); GitLab `ready::blocks`, Jira category marks, GitHub plain words | #45 |
+| Nested data | The shared tree, in every part | Shared tree navigation and fold admission cover nested owner data, including GitHub repository settings and Workspace's Local repositories screen. Jira assembles arbitrary-depth ancestry from loaded tickets; the Workbench's genuinely flat view stays flat. | #45 |
+| Fold signal | Tree lines; folded row ends `⋯ n` | Both renderers reserve the folded marker and count held descendants, including GitHub. This is a loaded-view count, not an unfetched provider total; very narrow rows retain the marker without inventing a shortened number. | #45 |
+| Run and state marks | `Mark` and `Icon`, one meaning per glyph | `●` means running (GitLab), done (Jira), in use (Git), unread (Slack); GitLab `ready::blocks`, Jira category marks, GitHub plain words | Separate glyph-semantics follow-up; not the #45 row-state contract |
 | State chips | `widgets::chip` by tone, tinted ground (the kit draws it since #30) | GitHub uses a bare word in Secondary; Slack builds its own | |
 | People | person or `you` icon + short name; avatar when pictures work | GitLab `person_icon`, Jira `assignee_segs`, Slack `who()`, GitHub none | #38 |
 | Ages | `time::ago` (`5m`, `3d`) in cells; `N ago` in details | local wrappers (Jira `ago`, Slack `age`, Slack `demo::ago`) beside core's `time::ago_str` (`crates/radar-core/src/time.rs`); only Jira tints by age | |
@@ -257,7 +292,7 @@ the "today" column lists what has to change. Paths are under `crates/`.
 | Colour swatch, tenancy bullet | one kit element | `"██ "` and `"● "` in GitLab and Jira settings | |
 | Editor titles | `Icon::Comment` + words | literal `"✎ …"` in GitLab and Slack | |
 | Site and tenancy colours | one shared slot table | copied three times in `lib.rs`: `TENANT_SLOTS` (GitLab), `SITE_SLOTS` (Jira), `CHANNEL_SLOTS` (Slack) | |
-| Detail pane | Head on the heading shade, aligned facts, sections under named rules, actions with keys in words | sections under named rules are shared (`view::Block::section`, rows two cells in; GitLab's actions `Block::keyed`, `[k]` at the edge); the head and facts each part arranges its own | #46 |
+| Detail pane | Head on the heading shade, aligned facts, sections under named rules, pinned actions with keys in words | GitLab MR, Jira ticket and Slack message previews use `view::detail`: three-row shaded identity, nonempty aligned facts, existing named sections and a pinned foot. The typed extension includes a complete ordinary Rich fallback. Live single-press controls are stamped and revalidated by the displayed host; raw views contain no runnable foot targets. | #46 |
 
 ---
 
@@ -269,8 +304,8 @@ mean the same thing in every part.
 | Place | Key | Means | Today's drift |
 |---|---|---|---|
 | Any tree | `space` | toggle the fold | consistent |
-| Any tree | `+` / `=` / `-` | open / open every node / close | GitHub handles them privately, not through the tree, so the status line and `x` menu don't list them |
-| Any tree | `→` / `←` | open or go in / close or go up | not handled today: arrows move panes and page tabs |
+| Any tree | `+` / `=` / `-` | open / open every node / close | shared host routing and hints; existing owner Enter actions remain separate |
+| Any tree | `→` / `←` | open or go in / close or go up | focused trees own unmodified horizontal arrows; h/l, Tab and digits retain pane movement |
 | A group row (tenancy, site, status, heading) | `⏎` | **to decide**: open its page, or toggle the fold | GitLab opens a page; Jira and Slack fold; GitHub opens a page; Git means "use it" |
 | An item row | `⏎` | open its page | consistent |
 | Any row | `x` | actions menu | consistent |

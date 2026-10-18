@@ -14,8 +14,10 @@ use crate::client::Found;
 use crate::model::{Thread, ts_key};
 use crate::{Row, SlackPlugin, act, head, page};
 
+mod detail;
 mod neutral;
 pub use neutral::{intent, view};
+pub(crate) use detail::identity as detail_identity;
 
 /// A row of the nav pane.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -655,23 +657,9 @@ pub fn on_bulk(p: &mut SlackPlugin, value: &str) -> Option<Vec<Effect>> {
 
 /// A message's title in the detail pane and the menu: whose it is, `Bob's message`.
 fn message_title(p: &SlackPlugin, item: &Item) -> Option<String> {
-    let (channel, ts, thread) = item.message(p)?;
-    let who = p
-        .data
-        .thread(&channel, &thread)
-        .and_then(|th| {
-            if ts == thread {
-                Some(th.parent)
-            } else {
-                th.replies.iter().find(|r| r.ts == ts)
-            }
-        })
-        .map(|m| p.data.author(m))
-        .or_else(|| match item {
-            Item::Found(i) => p.data.for_you.get(*i).map(|f| p.data.author(&f.message)),
-            _ => None,
-        })
+    let who = detail::resolve(p, item).map(|selected| p.data.author(selected.message))
         .unwrap_or_else(|| "message".into());
+    item.message(p)?;
     Some(format!("{who}'s message"))
 }
 
@@ -686,7 +674,7 @@ pub(crate) fn message_keys(p: &SlackPlugin, item: &Item, b: &mut Vec<Row>) {
             b.push(act("slack.feed.mark_read", Binding::new("m", "mark read up to here, in radar only")));
         }
         b.push(head(Binding::heading("on Slack")));
-        b.push(act("slack.feed.reply", Binding::new("c", "reply in its thread…").adds()));
+        b.push(act("slack.feed.reply", Binding::new("c", "comment in its thread…").adds()));
         b.push(act("slack.feed.react", Binding::new("e", "react to it…").adds()));
     }
 }

@@ -1,19 +1,20 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
  radar    I   History   Settings (,)  local annotations · observations … ✎ edit
-╭ linked sources and context ──────────────────────────────────────────────────╮
+╭ 3 linked sources and context ────────────────────────────────────────────────╮
 │ pull-request · acme/api/7                                                    ║
 │ authored                                                                     █
-│ Source owner unavailable here; c copies its exact locator.                   █
+│ Source owner unavailable here; copy its exact locator.                       █
 │ Local work saved.                                                            █
 │ Ship explicit work-item navigation                                           █
 │ Local groups: release candidate                                              █
 │ Selected pull-request: acme/api/7                                            █
-│ authored link · c copy locator · x actions                                   █
+│ authored link · copy locator · extra actions                                 █
 │ Locator event in this page: source.selected · requested                      █
-│ v history: original claims and outcomes · completeness not guaranteed        █
+│ view history: original claims and outcomes · completeness not guaranteed     █
 │ Partial one-hop map: more relation evidence may exist. Inspect task evidence █
 │ with v.                                                                      █
 │ Recording degraded: known history gaps.                                      █
@@ -25,4 +26,4 @@ expression: text
 │ Recording degraded: known history gaps.                                      ║
 │ Observations only. Relations grant no identity, permission or completion.    ║
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices

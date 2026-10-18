@@ -60,7 +60,7 @@ fn blocked(fx: &[Effect]) {
     assert!(
         matches!(
             fx,
-            [Effect::Report(JournalOutcome::Blocked), Effect::Notify(_)]
+            [Effect::Report(JournalOutcome::Blocked), Effect::Notice(message)] if message.tone == radar_core::view::chrome::NoticeTone::Error
         ),
         "a stale confirmation must not create a removal task: {fx:?}"
     );
@@ -95,7 +95,7 @@ fn successful_refresh_from_clean_to_dirty_requires_fresh_removal_confirmation() 
     );
     let fx = on_menu(&mut p, &original.id, "yes").unwrap();
     blocked(&fx);
-    assert!(matches!(&fx[1], Effect::Notify(why) if why == CHANGED));
+    assert!(matches!(&fx[1], Effect::Notice(why) if why.tone == radar_core::view::chrome::NoticeTone::Error && why.text == CHANGED));
     assert!(p.branches.changing.is_empty());
     assert!(p.branches.removal.pending.is_none());
     let updated = question(&mut p);
@@ -199,7 +199,7 @@ fn pending_removal_cannot_remove_the_clone_itself_or_change_an_inflight_clone() 
         .borrow_mut()
         .select(vec![clone_id(CLONE), tree_id(CLONE)]);
     assert!(
-        matches!(&delete(&mut p)[..], [Effect::Notify(why)] if why == "that is the clone itself")
+        matches!(&delete(&mut p)[..], [Effect::Notice(why)] if why.tone == radar_core::view::chrome::NoticeTone::Error && why.text == "that is the clone itself")
     );
     assert!(p.branches.removal.pending.is_none());
     let mut p = sample(0);

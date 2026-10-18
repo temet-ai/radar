@@ -5,6 +5,7 @@ export type KeyOwnerSnapshot = {
   chrome?: {
     keys_at?: string;
     history?: { focus?: string; help?: boolean } | null;
+    notice_history?: unknown;
     setup?: unknown;
     tour?: unknown;
   };
@@ -45,6 +46,7 @@ export function dockShown(snapshot: KeyOwnerSnapshot | undefined): any {
 export function resolveKeyOwner({ snapshot, pendingDock, menuOpen = false, editorOpen = false, inputRequested = false }: KeyOwnerInput): KeyOwner {
   const none = (blocked: boolean): KeyOwner => ({ body: false, dock: false, blocked });
   if (!snapshot || snapshot.splash || snapshot.chrome?.tour) return none(true);
+  if (snapshot.chrome?.notice_history) return none(true);
   const history = snapshot.chrome?.history;
   // History replaces the entire body, including menus and requests waiting underneath it.
   if (history) return { body: false, dock: false, pane: history.help ? undefined : history.focus, blocked: !!history.help };

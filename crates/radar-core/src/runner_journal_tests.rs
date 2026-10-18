@@ -1036,7 +1036,7 @@ async fn panicked_task_records_unknown_without_panic_payload() {
     );
     // No deadline of its own: the task's answer comes when it is done.
     let event = rx.recv().await.unwrap();
-    assert!(matches!(event, Event::Notice(ref note) if note.contains("outcome is unknown")));
+    assert!(matches!(event, Event::ErrorNotice(ref note) if note.contains("outcome is unknown")));
     recording.finish();
     assert_eq!(recording.sink.take_warning(), None);
     let journal = Journal::open(&temp.path()).unwrap();

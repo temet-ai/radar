@@ -47,7 +47,7 @@ fn say(words: &str) -> Seg {
 
 /// A line of a key then what it does.
 fn keyed(k: &str, words: &str) -> Text {
-    Text::new().push(key(k)).push(say(&format!("  {words}")))
+    crate::mnemonic::text(k, words, "text.secondary")
 }
 
 impl Host {
@@ -122,7 +122,7 @@ impl Host {
             }
             KeyCode::Left => {
                 if at == 0 {
-                    self.message = Some("this is the first stop".into());
+                    self.notify("this is the first stop".into());
                 } else {
                     self.tour_go(at - 1);
                 }
@@ -151,8 +151,11 @@ impl Host {
                 for row in tabs.chunks(4) {
                     let mut line = Text::new();
                     for t in row {
-                        line.add(key(&t.mnemonic.to_string()));
-                        line.add(say(&format!(" {:<14}", t.label.to_lowercase())));
+                        let words = t.label.to_lowercase();
+                        let keyed = crate::mnemonic::text(&t.mnemonic.to_string(), &words, "text.secondary");
+                        let width = crate::ui::width(&keyed.words());
+                        line.extend(keyed);
+                        line.add(say(&" ".repeat(18usize.saturating_sub(width).max(2))));
                     }
                     lines.push(line);
                 }
@@ -168,7 +171,7 @@ impl Host {
                     Text::new(),
                     keyed("tab", "next pane"),
                     keyed("1 2 3", "jump to one"),
-                    keyed("↑↓ j k", "move"),
+                    keyed("↑↓", "move"),
                     keyed("+/-", "open and fold a tree; a folded row ends in ⋯ n"),
                 ],
             ),
@@ -176,16 +179,16 @@ impl Host {
                 "The bottom line holds the keys for here.",
                 vec![
                     Text::of("each one can be clicked", Ink::Secondary),
-                    keyed("x", "the menu: every key here, with a filter; a row presses its key"),
-                    Text::new().push(say("a key sits inside its word: ")).push(key("b")).push(say("ulk; symbol keys come first")),
-                    Text::new()
-                        .push(say("same key, same thing, same kind of place: "))
-                        .push(key("r"))
-                        .push(say(" refresh "))
-                        .push(key("o"))
-                        .push(say(" open "))
-                        .push(key("y"))
-                        .push(say(" copy link")),
+                    keyed("x", "extra actions: every key here, with a filter; a row presses its key"),
+                    { let mut text = Text::new().push(say("a key sits inside its word: ")); text.extend(keyed("b", "bulk")); text.push(say("; symbol keys come first")) },
+                    {
+                        let mut text = Text::new().push(say("same key, same thing, same kind of place: "));
+                        for (index, (key, words)) in [("r", "refresh"), ("o", "open"), ("y", "copy link")].iter().enumerate() {
+                            if index > 0 { text.add(say(" ")); }
+                            text.extend(keyed(key, words));
+                        }
+                        text
+                    },
                 ],
             ),
             Stop::Dock => (
@@ -211,7 +214,7 @@ impl Host {
                     Text::of("it still asks every time", Ink::Secondary),
                     Text::new(),
                     Text::new().push(Seg::new("THREE KEYS TO KEEP", Ink::Muted).strong()),
-                    keyed("x", "the menu of every key, wherever you are"),
+                    keyed("x", "extra actions: every key, wherever you are"),
                     keyed(",", "settings: everything from setup"),
                 ];
                 if tour.stops.contains(&Stop::Dock) {

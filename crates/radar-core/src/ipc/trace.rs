@@ -96,7 +96,7 @@ impl Trace {
             Event::Wake(_) => "event wake",
             Event::Msg { .. } => "event msg",
             Event::Tracked { .. } => "event tracked",
-            Event::Notice(_) => "event notice",
+            Event::Notice(_) | Event::ErrorNotice(_) => "event notice",
             _ => "event",
         };
         self.pending.get_or_insert_with(|| Cause::now(word.into()));

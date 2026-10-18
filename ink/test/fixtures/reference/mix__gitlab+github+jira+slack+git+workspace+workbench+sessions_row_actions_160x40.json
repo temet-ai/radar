@@ -2,6 +2,21 @@
   "chrome": {
     "height": 40,
     "keys_at": "body",
+    "notices_visible": true,
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "nav"
+      },
+      {
+        "key": "2",
+        "pane": "middle"
+      },
+      {
+        "key": "3",
+        "pane": "detail"
+      }
+    ],
     "screen_keys": [
       "R",
       "G",
@@ -42,7 +57,8 @@
               "target": "chrome:key:0:0"
             }
           ],
-          "label": "rebase"
+          "label": "update by rebasing",
+          "mnemonic_at": 0
         },
         {
           "icon": "scroll",
@@ -79,7 +95,8 @@
               "target": "chrome:key:2:0"
             }
           ],
-          "label": "bulk"
+          "label": "bulk",
+          "mnemonic_at": 0
         },
         {
           "icon": "fold",
@@ -120,7 +137,8 @@
               "target": "chrome:key:4:0"
             }
           ],
-          "label": "quit"
+          "label": "quit",
+          "mnemonic_at": 0
         },
         {
           "icon": "menu",
@@ -136,7 +154,23 @@
               "target": "chrome:key:5:0"
             }
           ],
-          "label": "menu"
+          "label": "extra actions",
+          "mnemonic_at": 1
+        },
+        {
+          "keys": "~",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "~"
+                }
+              },
+              "label": "~",
+              "target": "chrome:key:6:0"
+            }
+          ],
+          "label": "notices"
         },
         {
           "keys": "←→↑↓",
@@ -146,28 +180,28 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:6:0"
+              "target": "chrome:key:7:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:6:1"
+              "target": "chrome:key:7:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:6:2"
+              "target": "chrome:key:7:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:6:3"
+              "target": "chrome:key:7:3"
             }
           ],
           "label": "navigate"
@@ -203,7 +237,7 @@
           "target": "chrome:tab:4"
         },
         {
-          "label": "work",
+          "label": "work items",
           "mnemonic": "I",
           "target": "chrome:tab:6"
         },
@@ -226,7 +260,8 @@
       }
     },
     "version": 1,
-    "width": 160
+    "width": 160,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 40,
@@ -252,7 +287,8 @@
             "char": "o"
           }
         },
-        "label": "open it in GitLab"
+        "label": "open it in GitLab",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.repos.copy_link",
@@ -261,7 +297,8 @@
             "char": "y"
           }
         },
-        "label": "copy its link"
+        "label": "copy its link",
+        "mnemonic_at": 3
       },
       {
         "heading": true,
@@ -276,7 +313,8 @@
             "char": "u"
           }
         },
-        "label": "rebase onto main…"
+        "label": "update by rebasing onto main…",
+        "mnemonic_at": 0
       },
       {
         "change": "edit",
@@ -286,7 +324,8 @@
             "char": "m"
           }
         },
-        "label": "merge · needs rebase"
+        "label": "merge · needs rebase",
+        "mnemonic_at": 0
       },
       {
         "change": "edit",
@@ -296,7 +335,8 @@
             "char": "e"
           }
         },
-        "label": "approve !263…"
+        "label": "approve !263…",
+        "mnemonic_at": 6
       },
       {
         "id": "gitlab.repos.filter",
@@ -323,7 +363,8 @@
             "char": "r"
           }
         },
-        "label": "refresh now"
+        "label": "refresh now",
+        "mnemonic_at": 0
       },
       {
         "heading": true,
@@ -338,7 +379,9 @@
             "char": "A"
           }
         },
-        "label": "ask an agent about it…"
+        "label": "ask an agent about it…",
+        "mnemonic_at": 0,
+        "mnemonic_shift": true
       },
       {
         "id": "agent.review_locally",
@@ -347,7 +390,8 @@
             "char": "i"
           }
         },
-        "label": "review it locally…"
+        "label": "review it locally…",
+        "mnemonic_at": 3
       },
       {
         "id": "gitlab.repos.goto",
@@ -365,7 +409,8 @@
             "char": "a"
           }
         },
-        "label": "show one author's merge requests…"
+        "label": "show one author's merge requests…",
+        "mnemonic_at": 9
       },
       {
         "id": "gitlab.repos.kept_comments",
@@ -738,30 +783,88 @@
       },
       {
         "body": {
-          "blocks": [
-            {
-              "block": "line",
-              "text": [
+          "capability": "detail",
+          "data": {
+            "facts": [
+              {
+                "label": "project",
+                "value": [
+                  {
+                    "ink": "secondary",
+                    "text": "api"
+                  }
+                ]
+              },
+              {
+                "label": "state",
+                "value": [
+                  {
+                    "look": "text.secondary",
+                    "text": "open"
+                  }
+                ]
+              },
+              {
+                "label": "approvals",
+                "value": [
+                  {
+                    "ink": "number",
+                    "text": "1 required · 0 left"
+                  }
+                ]
+              }
+            ],
+            "header": {
+              "age": [
+                {
+                  "ink": "muted",
+                  "text": "16m ago"
+                }
+              ],
+              "author": [
+                {
+                  "icon": "person"
+                },
+                {
+                  "ink": "secondary",
+                  "text": "Alice Example"
+                }
+              ],
+              "branch": [
+                {
+                  "icon": "branch"
+                },
+                {
+                  "ink": "accent_secondary",
+                  "text": "stats → main"
+                }
+              ],
+              "path": [
                 {
                   "icon": "repo"
                 },
                 {
                   "look": "tenant.green bold",
-                  "text": "a "
+                  "text": "a"
                 },
                 {
                   "ink": "secondary",
-                  "text": "api"
+                  "text": " / "
+                },
+                {
+                  "ink": "secondary",
+                  "text": "acme/team-a/api"
+                },
+                {
+                  "ink": "secondary",
+                  "text": " / "
                 },
                 {
                   "ink": "accent_secondary",
-                  "text": "  !263"
+                  "text": "!263"
                 }
-              ]
-            },
-            {
-              "block": "line",
-              "text": [
+              ],
+              "title": [
                 {
                   "icon": "change"
                 },
@@ -772,231 +875,451 @@
                 }
               ]
             },
+            "sections": [
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "a teammate's"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "icon": "rebase",
+                        "icon_lead": true,
+                        "ink": "warn",
+                        "text": "▷ "
+                      },
+                      {
+                        "ink": "warn",
+                        "text": "needs rebase"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "info",
+                "title": "STATE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "meter",
+                    "stages": []
+                  }
+                ],
+                "detail": "passed",
+                "mark": "pipeline",
+                "title": "PIPELINE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "primary",
+                        "text": "1 file  "
+                      },
+                      {
+                        "ink": "added",
+                        "text": "+10"
+                      },
+                      {
+                        "ink": "removed",
+                        "text": " −2"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "file",
+                "title": "CHANGES"
+              },
+              {
+                "block": "section",
+                "blocks": [],
+                "detail": "none",
+                "mark": "thread",
+                "title": "THREADS"
+              }
+            ]
+          },
+          "fallback": {
+            "blocks": [
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "repo"
+                  },
+                  {
+                    "look": "tenant.green bold",
+                    "text": "a"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": " / "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "acme/team-a/api"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": " / "
+                  },
+                  {
+                    "ink": "accent_secondary",
+                    "text": "!263"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "change"
+                  },
+                  {
+                    "ink": "emphasis",
+                    "strong": true,
+                    "text": "Add a stats endpoint"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "accent_secondary",
+                    "text": "stats → main"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "person"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "Alice Example"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "16m ago"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "project: "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "api"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "state: "
+                  },
+                  {
+                    "look": "text.secondary",
+                    "text": "open"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "approvals: "
+                  },
+                  {
+                    "ink": "number",
+                    "text": "1 required · 0 left"
+                  }
+                ]
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "muted",
+                        "text": "a teammate's"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "icon": "rebase",
+                        "icon_lead": true,
+                        "ink": "warn",
+                        "text": "▷ "
+                      },
+                      {
+                        "ink": "warn",
+                        "text": "needs rebase"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "info",
+                "title": "STATE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "meter",
+                    "stages": []
+                  }
+                ],
+                "detail": "passed",
+                "mark": "pipeline",
+                "title": "PIPELINE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "primary",
+                        "text": "1 file  "
+                      },
+                      {
+                        "ink": "added",
+                        "text": "+10"
+                      },
+                      {
+                        "ink": "removed",
+                        "text": " −2"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "file",
+                "title": "CHANGES"
+              },
+              {
+                "block": "section",
+                "blocks": [],
+                "detail": "none",
+                "mark": "thread",
+                "title": "THREADS"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "key": "u",
+                    "mnemonic_at": 0,
+                    "text": [
+                      {
+                        "text": "update"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "m",
+                    "mnemonic_at": 0,
+                    "text": [
+                      {
+                        "text": "merge"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": " (needs rebase)"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "e",
+                    "mnemonic_at": 6,
+                    "text": [
+                      {
+                        "text": "approve"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "o",
+                    "mnemonic_at": 0,
+                    "text": [
+                      {
+                        "text": "open"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "y",
+                    "mnemonic_at": 3,
+                    "text": [
+                      {
+                        "text": "copy link"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "⏎",
+                    "text": [
+                      {
+                        "text": "page"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "x",
+                    "mnemonic_at": 1,
+                    "text": [
+                      {
+                        "text": "extra actions"
+                      }
+                    ]
+                  }
+                ],
+                "title": "ACTIONS"
+              }
+            ],
+            "node": "rich"
+          },
+          "node": "extension",
+          "version": 1
+        },
+        "foot_actions": {
+          "actions": [
             {
-              "block": "line",
-              "text": [
-                {
-                  "icon": "person"
+              "action": {
+                "change": "edit",
+                "id": "gitlab.repos.rebase",
+                "key": {
+                  "key": {
+                    "char": "u"
+                  }
                 },
-                {
-                  "ink": "secondary",
-                  "text": "Alice Example"
-                },
-                {
-                  "ink": "muted",
-                  "text": " · "
-                },
-                {
-                  "icon": "branch"
-                },
-                {
-                  "ink": "accent_secondary",
-                  "text": "stats → main"
-                },
-                {
-                  "ink": "muted",
-                  "text": " · "
-                },
-                {
-                  "icon": "updated"
-                },
-                {
-                  "ink": "muted",
-                  "text": "16m ago"
-                }
-              ]
+                "label": "update",
+                "mnemonic_at": 0
+              },
+              "target": "detail-foot:1:0"
             },
             {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "line",
-              "text": [
-                {
-                  "ink": "muted",
-                  "text": " a teammate's"
-                }
-              ]
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "icon": "rebase",
-                      "icon_lead": true,
-                      "ink": "warn",
-                      "text": "▷ "
-                    },
-                    {
-                      "ink": "warn",
-                      "text": "needs rebase"
-                    }
-                  ]
-                }
-              ],
-              "mark": "info",
-              "title": "STATE"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "key": "u",
-                  "target": "act:u",
-                  "text": [
-                    {
-                      "icon": "rebase"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "rebase onto main"
-                    }
-                  ]
+              "action": {
+                "change": "edit",
+                "id": "gitlab.repos.merge",
+                "key": {
+                  "key": {
+                    "char": "m"
+                  }
                 },
-                {
-                  "block": "line",
-                  "key": "m",
-                  "target": "act:m",
-                  "text": [
-                    {
-                      "icon": "merged"
-                    },
-                    {
-                      "ink": "muted",
-                      "text": "merge · needs rebase"
-                    }
-                  ]
+                "label": "merge",
+                "mnemonic_at": 0
+              },
+              "disabled": "needs rebase"
+            },
+            {
+              "action": {
+                "change": "edit",
+                "id": "gitlab.repos.approve",
+                "key": {
+                  "key": {
+                    "char": "e"
+                  }
                 },
-                {
-                  "block": "line",
-                  "key": "e",
-                  "target": "act:e",
-                  "text": [
-                    {
-                      "icon": "approved"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "approve"
-                    }
-                  ]
+                "label": "approve",
+                "mnemonic_at": 6
+              },
+              "target": "detail-foot:1:2"
+            },
+            {
+              "action": {
+                "id": "gitlab.repos.open_link",
+                "key": {
+                  "key": {
+                    "char": "o"
+                  }
                 },
-                {
-                  "block": "line",
-                  "key": "o",
-                  "target": "act:o",
-                  "text": [
-                    {
-                      "icon": "link"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "open in GitLab"
-                    }
-                  ]
+                "label": "open",
+                "mnemonic_at": 0
+              },
+              "target": "detail-foot:1:3"
+            },
+            {
+              "action": {
+                "id": "gitlab.repos.copy_link",
+                "key": {
+                  "key": {
+                    "char": "y"
+                  }
                 },
-                {
-                  "block": "line",
-                  "key": "y",
-                  "target": "act:y",
-                  "text": [
-                    {
-                      "icon": "copy"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "copy link"
-                    }
-                  ]
+                "label": "copy link",
+                "mnemonic_at": 3
+              },
+              "target": "detail-foot:1:4"
+            },
+            {
+              "action": {
+                "id": "gitlab.repos.open",
+                "key": {
+                  "key": "enter"
                 },
-                {
-                  "block": "line",
-                  "key": "s",
-                  "target": "act:s",
-                  "text": [
-                    {
-                      "icon": "search"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "look for a checkout · no folders set yet"
-                    }
-                  ]
-                }
-              ],
-              "mark": "menu",
-              "title": "ACTIONS"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "meter",
-                  "stages": []
-                }
-              ],
-              "detail": "passed",
-              "mark": "pipeline",
-              "title": "PIPELINE"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "ink": "primary",
-                      "text": "1 file  "
-                    },
-                    {
-                      "ink": "added",
-                      "text": "+10"
-                    },
-                    {
-                      "ink": "removed",
-                      "text": " −2"
-                    }
-                  ]
-                }
-              ],
-              "mark": "file",
-              "title": "CHANGES"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [],
-              "detail": "none",
-              "mark": "thread",
-              "title": "THREADS"
+                "label": "page"
+              },
+              "target": "detail-foot:1:5"
             }
           ],
-          "node": "rich"
+          "menu": {
+            "action": {
+              "id": "detail.extra_actions",
+              "key": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "extra actions",
+              "mnemonic_at": 1
+            },
+            "target": "detail-foot:1:menu"
+          }
         },
         "pane": "detail",
         "title": "api !263"

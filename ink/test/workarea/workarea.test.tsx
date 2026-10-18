@@ -21,6 +21,17 @@ const raw = (el: React.ReactElement) => {
 };
 
 describe("work area layout", () => {
+  it("passes host pane digits to the legacy area without inventing numbers for other panels", () => {
+    const screen = { ...workScreen(), panes: [{ pane: "middle", title: "Watch tasks", body: { node: "document", lines: [[{ text: "Patrol the bridge" }]] } }, ...workScreen().panes!] };
+    const shown = frame(<WorkArea screen={screen} capabilities={caps(160, 40)} paneJumps={[{ pane: "middle", key: "2" }]} />);
+    expect(shown).toContain("╭ 2 Watch tasks");
+    expect(shown).toContain("╭ Map");
+    expect(shown).not.toMatch(/╭ [123] (Map|Timeline|Overview|Agent|Next)/);
+    const absent = frame(<WorkArea screen={screen} capabilities={caps(160, 40)} />);
+    expect(absent).toContain("╭ Watch tasks");
+    expect(absent).not.toContain("╭ 2 Watch tasks");
+  });
+
   it("wide: map and timeline, tabs, agent and rail side by side (160x40)", () => {
     const f = frame(<WorkArea screen={workScreen()} capabilities={caps(160, 40)} focus="pane:tabs" />);
     expect(f).toMatchSnapshot();

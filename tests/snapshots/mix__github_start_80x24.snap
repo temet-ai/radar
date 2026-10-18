@@ -4,7 +4,7 @@ assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    History   Settings (,)                                         ✎ edit
-╭ set up GitHub ───────────────────────────────────────────────────────────────╮
+╭ 1 set up GitHub ─────────────────────────────────────────────────────────────╮
 │ GitHub is not set up yet.                                                    │
 │                                                                              │
 │ Create a GitHub group under repositories in settings. Public repositories    │
@@ -26,4 +26,4 @@ expression: "to_text(&started(), 80, 24)"
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   q quit   x menu   ←→↑↓ navigate
+ GITHUB   quit   extra actions   ~ notices   ←→↑↓ navigate

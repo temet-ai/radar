@@ -143,9 +143,9 @@ fn the_chips_give_way_last_when_the_line_is_narrow() {
     // Room for the keys and the chips.
     let wide = crate::shell::to_text(&host, 80, 24);
     assert!(wide.lines().nth(23).unwrap().ends_with("lab 1/2 vault"), "{wide}");
-    // Too narrow: the chips go, `x menu` stays.
+    // Too narrow: the chips go, the extra-actions word stays.
     let narrow = crate::shell::to_text(&host, 30, 24);
     let last = narrow.lines().nth(23).unwrap();
     assert!(!last.contains("vault"), "{last:?}");
-    assert!(last.contains("menu"), "{last:?}");
+    assert!(last.contains("extra actions"), "{last:?}");
 }

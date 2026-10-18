@@ -4,7 +4,7 @@ assertion_line: 2825
 expression: "shot(\"branches\", 80, 24)"
 ---
  radar    Branches   History   Settings (,)                              ✎ edit
-╭ settings ────────────╮╭ branches ────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 branches ──────────────────────────────────────────╮
 │General               ││  + add a convention for a repo                       │
 │  ├─ parts            ││ acme/team-b → {type}/{key}-{slug}       from develop │
 │  ├─ mode             ││ …ments-gateway → {type}/{key}-{slug}    from develop │
@@ -15,7 +15,7 @@ expression: "shot(\"branches\", 80, 24)"
 │  ├─ checkouts        ││ types      story=feature                             │
 │  ├─ terminal         ││                                                      │
 │  ├─ editors          │╰──────────────────────────────────────────────────────╯
-│  ├─ links            │╭ me ──────────────────────────────────────────────────╮
+│  ├─ links            │╭ 3 me ────────────────────────────────────────────────╮
 │  └─ branches         ││ Your name in branch names: {me}.                     │
 │                      ││                                                      │
 │                      ││ ACCEPTS                                              │
@@ -26,4 +26,4 @@ expression: "shot(\"branches\", 80, 24)"
 │                      ││                                                      │
 │                      ││ config: [git] me                                     │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate

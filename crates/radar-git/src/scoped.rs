@@ -783,7 +783,7 @@ pub(crate) fn on_msg(p: &mut GitPlugin, message: Message) -> Vec<Effect> {
             }
             vec![
                 Effect::Report(radar_core::journal::Outcome::Unknown),
-                Effect::Notify("local-folder scan failed; try scanning again".into()),
+                Effect::error(None, "local-folder scan failed; try scanning again"),
             ]
         }
         Message::Scanned {
@@ -856,7 +856,7 @@ pub(crate) fn on_msg(p: &mut GitPlugin, message: Message) -> Vec<Effect> {
             p.scoped.pending = None;
             let c = match result {
                 Ok(c) => c,
-                Err(why) => return vec![Effect::Notify(why.into())],
+                Err(why) => return vec![Effect::error(None, why)],
             };
             if repository(&key).is_none()
                 || remote(&c.remote) != repository(&key)
@@ -1524,7 +1524,7 @@ mod tests {
         no_canary(&p, &effects);
         assert!(
             effects.iter().any(
-                |e| matches!(e, Effect::Notify(text) if text.contains("origin does not match"))
+                |e| matches!(e, Effect::Notice(text) if text.tone == radar_core::view::chrome::NoticeTone::Error && text.contains("origin does not match"))
             )
         );
     }

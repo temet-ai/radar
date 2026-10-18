@@ -1,10 +1,10 @@
 ---
 source: crates/radar-gitlab/src/lib.rs
-assertion_line: 2451
+assertion_line: 2530
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                                        ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in your environment ─────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 found in your environment ───────────────────────╮
 │General               ││  ? Found in your environment: a GitLab token (GITLAB_TOKEN). Use it?           ││ radar found a GitLab token in your environment. Do █
 │  ├─ parts            ││  server          https://gitlab.com                                            ││ you want to use it?                                █
 │  ├─ mode             ││  base group      acme                                                          ││                                                    █
@@ -23,7 +23,7 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │                      ││    b     acme/team-b   0 repos · 1 open MR                                     ││                                                    █
 │                      ││    a     acme/team-a   4 repos · 3 open MRs                                    ││ GET A GITLAB TOKEN ─────────────────────────────── █
 │                      ││                                                                                ││   1 Open GitLab's new-token page:                  █
-│                      ││                                                                                ││   gitlab.com / new token   o opens · y copies      █
+│                      ││                                                                                ││   gitlab.com / new token   open · copy             █
 │                      ││                                                                                ││     name radar · scope from access: read_api       █
 │                      ││                                                                                ││   2 Pick an expiry date, then Create personal      █
 │                      ││                                                                                ││   access token.                                    █
@@ -42,4 +42,4 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │                      ││                                                                                ││   with the link.                                   ║
 │                      ││                                                                                ││   radar shows GitLab's own reason.                 ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                  gitlab
+ SETTINGS   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                   gitlab

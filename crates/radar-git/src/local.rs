@@ -1124,12 +1124,12 @@ pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
             }
             let mut fx = vec![Effect::Report(outcome)];
             fx.extend(copy.map(Effect::Copy));
-            fx.push(Effect::Notify(said));
+            fx.push(if outcome == JournalOutcome::Succeeded { Effect::Notify(said) } else { Effect::error(None, said) });
             fx
         }
         LocalMsg::Failed(why) => vec![
             Effect::Report(JournalOutcome::Unknown),
-            Effect::Notify(radar_core::writes::failed_line(&why)),
+            Effect::error(None, radar_core::writes::failed_line(&why)),
         ],
         LocalMsg::PickEditor {
             dir,
@@ -1141,7 +1141,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
             if installed.is_empty() {
                 return vec![
                     Effect::Report(JournalOutcome::Blocked),
-                    Effect::Notify(format!(
+                    Effect::error(None, format!(
                         "{why}, and radar found no editor installed: set one in settings, git › editors"
                     )),
                 ];
@@ -1195,7 +1195,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
                         launch = Some((what, c));
                     }
                 }
-                Err(e) => fx.push(Effect::Notify(radar_core::writes::failed_line(&format!("no worktree made: {e}")))),
+                Err(e) => fx.push(Effect::error(None, radar_core::writes::failed_line(&format!("no worktree made: {e}")))),
             }
             if let Some(parked) = parked {
                 fx.extend(crate::act::journal_worktree(&parked));
@@ -1238,7 +1238,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
                     let also = if then.is_some() { " · w in its question opens it in a worktree instead" } else { "" };
                     vec![
                         Effect::Report(JournalOutcome::Unknown),
-                        Effect::Notify(radar_core::writes::failed_line(&format!("not checked out: {e}{also}"))),
+                        Effect::error(None, radar_core::writes::failed_line(&format!("not checked out: {e}{also}"))),
                     ]
                 }
             }
@@ -1363,9 +1363,12 @@ mod tests {
                 fx.iter().filter(|e| matches!(e, Effect::Copy(_))).count(),
                 usize::from(copy)
             );
-            assert!(
-                matches!(fx.last(), Some(Effect::Notify(said)) if said.ends_with(" · SECRET_CONFIG"))
-            );
+            if expected == JournalOutcome::Succeeded {
+                assert!(matches!(fx.last(), Some(Effect::Notify(said)) if said.ends_with(" · SECRET_CONFIG")));
+            } else {
+                assert!(matches!(fx.last(), Some(Effect::Notice(message))
+                    if message.tone == radar_core::view::chrome::NoticeTone::Error && message.ends_with(" · SECRET_CONFIG")));
+            }
             assert!(!fx.iter().any(|e| matches!(e, Effect::Journal(_))));
         }
         assert!(matches!(

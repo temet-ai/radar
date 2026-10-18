@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Entries & log
+ Gallery / Entries & log
  The kit: every element on sample data                            colours: none
  Tree  Table  Card  Meters  Rows & states  [Entries & log]  Markdown  Diff  Mo…
 ╭ why the sort stopped ────────────────────────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │ │ the drawer holds 0 of 40 labels; the long line runs on and on so that it w █
 │ │ raps at the narrow width of the panel                                      █
 ╰──────────────────────────────────────────────────────────────────────────────╯
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

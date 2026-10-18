@@ -2,12 +2,16 @@
 import type { HistoryView } from "./HistoryView.js";
 import type { KeysAt } from "./KeysAt.js";
 import type { MenuView } from "./MenuView.js";
+import type { NoticeHistoryView } from "./NoticeHistoryView.js";
+import type { NoticeStateView } from "./NoticeStateView.js";
+import type { PaneJump } from "./PaneJump.js";
 import type { SettingsNav } from "./SettingsNav.js";
 import type { SetupChrome } from "./SetupChrome.js";
 import type { SourceTab } from "./SourceTab.js";
 import type { StatusLine } from "./StatusLine.js";
 import type { TopBar } from "./TopBar.js";
 import type { TourCard } from "./TourCard.js";
+import type { WriteMode } from "./WriteMode.js";
 
 /**
  * The host's chrome for one frame.
@@ -49,4 +53,4 @@ setup?: SetupChrome | null,
 /**
  * The tour's card, while the tour shows.
  */
-tour?: TourCard | null, };
+tour?: TourCard | null, notices?: NoticeStateView, notice_history?: NoticeHistoryView | null, notices_visible?: boolean, pane_jumps?: Array<PaneJump>, write_mode: WriteMode, };

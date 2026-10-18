@@ -107,6 +107,8 @@ pub enum Action {
     SaveNote(Box<ReviewNote>),
     /// Say it in the dock's notice line.
     Notice(String),
+    /// A failed operation, independent of its icon or wording.
+    Error(String),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -214,7 +216,7 @@ impl Journey {
 
     fn fail(&mut self, why: String) -> Vec<Action> {
         self.enter(Step::Failed(why));
-        vec![Action::Notice(self.step.say(self.title()))]
+        vec![Action::Error(self.step.say(self.title()))]
     }
 
     fn tick(&mut self) -> Vec<Action> {

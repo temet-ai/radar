@@ -140,6 +140,39 @@ mod view_tests {
         assert_eq!(back, view);
     }
 
+    mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn history_mnemonics_and_targeted_phrases_survive_wrap_and_scroll() {
+        use ratatui::style::Modifier;
+        let history = loaded();
+        let controls = detail_controls(history.drawn);
+        assert_eq!(controls.words(), "causal events · action events · all activity");
+        let theme = Theme::new(crate::design::theme::Tier::TrueColor);
+        for width in [8, 18, 80] {
+            let area = Rect::new(0, 0, width, 12);
+            let mut buf = Buffer::empty(area);
+            Paragraph::new(line(&theme, &controls)).wrap(Wrap { trim: false }).render(area, &mut buf);
+            let hits = targeted_viewport(&theme, std::slice::from_ref(&controls), area, 0);
+            for key in ["c", "i", "a"] {
+                assert!(hits.iter().any(|(_, target)| target == &history.key_target(key)), "{width}: {key}");
+            }
+            assert!(hits.iter().all(|(hit, _)| hit.right() <= width && hit.bottom() <= 12));
+            let underlined: String = buf.content.iter().filter(|cell| cell.modifier.contains(Modifier::UNDERLINED)).map(|cell| cell.symbol()).collect();
+            assert_eq!(underlined, "cia", "{width}");
+            let clipped = targeted_viewport(&theme, std::slice::from_ref(&controls), Rect::new(0, 0, width, 1), 1);
+            assert!(clipped.iter().all(|(hit, _)| hit.y == 0 && hit.right() <= width));
+        }
+        let footer = history.footer();
+        for hint in footer.iter().filter(|hint| crate::mnemonic::letter(&hint.keys).is_some()) {
+            assert!(hint.mnemonic_at.is_some(), "{} {}", hint.keys, hint.label);
+        }
+        assert_eq!(hint_key(history.drawn, "↑").chord, Chord::new(Key::Up));
+    }
+
+    }
+
     #[test]
     fn history_paints_its_scroll_from_the_view() {
         let mut history = loaded();
@@ -215,7 +248,7 @@ mod view_tests {
 }
 
 pub const RECORDS_PER_PAGE: usize = 50;
-const DETAIL_KEYS: &str = "c causal events · i action events · a all activity";
+
 
 /// Errors intentionally carry no raw database path, SQL, or error payload.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
@@ -900,25 +933,30 @@ impl History {
     }
 
     fn render_footer(&self, view: &HistoryView, area: Rect, buf: &mut Buffer, theme: &Theme) {
-        let mut x = area.x + 1;
+        let available = usize::from(area.width.saturating_sub(1));
+        let mut hints: Vec<_> = view.footer.iter().collect();
+        let cost = |hints: &[&Hint]| hints.iter().map(|hint| {
+            widgets::key_hint(theme, &hint.keys, &hint.label, hint.mnemonic_at, hint.mnemonic_shift).iter().map(Span::width).sum::<usize>()
+        }).sum::<usize>() + hints.len().saturating_sub(1) * 3;
+        for label in ["previous page", "next page", "refresh", "page", "details", "events", "move", "scroll"] {
+            if cost(&hints) <= available { break; }
+            hints.retain(|hint| hint.label != label);
+        }
+        if cost(&hints) > available { hints.retain(|hint| hint.keys == "esc"); }
+        if cost(&hints) > available { hints.clear(); }
         let mut spans = vec![Span::raw(" ")];
-        for (index, hint) in view.footer.iter().enumerate() {
-            if index > 0 {
-                spans.push(Span::raw(" · "));
-                x += 3;
+        for hint in hints {
+            let mut hint_spans = widgets::key_hint(theme, &hint.keys, &hint.label, hint.mnemonic_at, hint.mnemonic_shift);
+            let used: usize = spans.iter().map(Span::width).sum();
+            let width: usize = hint_spans.iter().map(Span::width).sum();
+            let gap = usize::from(used > 1) * 3;
+            if used + gap + width > usize::from(area.width) { break; }
+            if gap > 0 { spans.push(Span::raw(" · ")); }
+            let x = area.x + (used + gap) as u16;
+            for (rect, target) in crate::shell::key_hits(hint, Rect::new(x, area.y, width.saturating_add(3) as u16, 1)) {
+                self.hit(rect.intersection(area), target);
             }
-            for (n, key) in hint.keys_of.iter().enumerate() {
-                if n > 0 {
-                    x += 1;
-                }
-                let width = crate::ui::width(&key.label) as u16;
-                if x + width <= area.right() {
-                    self.hit(Rect::new(x, area.y, width, 1), &key.target);
-                }
-                x += width;
-            }
-            spans.extend(widgets::key_hint(theme, &hint.keys, &hint.label));
-            x += 1 + crate::ui::width(&hint.label) as u16;
+            spans.append(&mut hint_spans);
         }
         buf.set_line(area.x, area.y, &Line::from(spans), area.width);
     }
@@ -1055,32 +1093,12 @@ impl History {
             crate::ui::frame::Focus { focused, owns_keys: focused },
         )));
         let lines: Vec<_> = view.detail.iter().map(|text| line(theme, text)).collect();
-        let keys_line = view.detail_keys_line.filter(|n| *n < lines.len());
-        let hint_offset = keys_line.map(|n| {
-            Paragraph::new(lines[..n].to_vec())
-                .wrap(Wrap { trim: false })
-                .line_count(inner.width)
-        });
-        let keys_words = keys_line
-            .map(|n| view.detail[n].words())
-            .unwrap_or_default();
         let detail = scrolled(view.detail_scroll);
         scroll::paragraph(theme, &detail, area, inner, buf, lines);
         adopt(&self.detail_scroll, &detail);
-        let at = usize::from(detail.at());
-        if let Some(offset) = hint_offset
-            && crate::ui::width(&keys_words) <= usize::from(inner.width)
-            && offset >= at
-            && offset < at + usize::from(inner.height)
-        {
-            let y = inner.y + (offset - at) as u16;
-            for key in &view.detail_keys {
-                let Some(at) = key_at(&keys_words, &key.label) else {
-                    continue;
-                };
-                let x = inner.x + crate::ui::width(&keys_words[..at]) as u16;
-                let width = crate::ui::width(&key.label) as u16;
-                self.hit(Rect::new(x, y, width, 1), &key.target);
+        for (rect, target) in targeted_viewport(theme, &view.detail, inner, detail.at()) {
+            if view.detail_keys.iter().any(|key| key.target == target) {
+                self.hit(rect, &target);
             }
         }
     }
@@ -1258,15 +1276,15 @@ impl History {
     fn footer(&self) -> Vec<Hint> {
         let groups: Vec<(&str, &str)> = if self.help {
             vec![
-                ("j/k", "scroll"),
+                ("↑↓", "scroll"),
                 ("PgUp/PgDn", "page"),
-                ("x/?", "back"),
+                ("x", "exit keys"),
                 ("esc", "back"),
             ]
         } else {
             vec![
                 (
-                    "j/k",
+                    "↑↓",
                     if self.focus == Focus::Detail {
                         "scroll"
                     } else {
@@ -1278,19 +1296,22 @@ impl History {
                 } else {
                     ("enter", "details")
                 },
-                ("n/p", "pages"),
+                ("n", "next page"),
+                ("p", "previous page"),
                 ("r", "refresh"),
-                ("x/?", "keys"),
+                ("x", "extra keys"),
                 ("esc", "close"),
             ]
         };
         groups
             .into_iter()
             .map(|(keys, label)| Hint {
+                mnemonic_at: crate::mnemonic::at(keys, label),
+                mnemonic_shift: crate::mnemonic::at(keys, label).is_some() && crate::mnemonic::shifted(keys),
                 keys: keys.into(),
                 label: label.into(),
                 icon: None,
-                keys_of: keys.split('/').map(|k| hint_key(self.drawn, k)).collect(),
+                keys_of: crate::host::hint_labels(keys).into_iter().map(|k| hint_key(self.drawn, k)).collect(),
             })
             .collect()
     }
@@ -1327,7 +1348,7 @@ impl History {
             ]),
             Text::of(event.outcome.as_str(), outcome_ink(event.outcome)),
             Text::plain(crate::ui::fit(&brief, 48).trim_end().to_owned()),
-            Text::of(DETAIL_KEYS, Ink::AccentSecondary),
+            detail_controls(self.drawn),
             Text::new(),
         ];
         let mut field = |label: &str, value: String| lines.push(kv(label, value));
@@ -1432,15 +1453,16 @@ impl History {
         let mut lines = vec![heading("browse recorded observations")];
         for (key, what) in [
             (
-                "j/k, ↑/↓",
+                "↑↓",
                 "move in the event list; scroll the focused detail",
             ),
             ("Home/End", "first/last event, or top/bottom of the detail"),
             ("tab", "switch between the event list and detail"),
-            ("h/l, ←/→", "focus the event list or detail"),
+            ("←→", "focus the event list or detail"),
             ("enter", "show the selected event's detail"),
             ("PgUp/PgDn", "scroll the event detail from either pane"),
-            ("n/p", "next/previous page in this fixed snapshot"),
+            ("n", "next page in this fixed snapshot"),
+            ("p", "previous page in this fixed snapshot"),
             ("r", "refresh this scope from its first page"),
             ("a", "show all recorded events"),
             ("t", "show recent activity from the last 24 hours"),
@@ -1449,10 +1471,11 @@ impl History {
                 "show events with the selected event's exact causal root",
             ),
             ("i", "show events for the selected exact action ID"),
-            ("x/?", "show or hide these history keys"),
+            ("x", "extra history keys"),
+            ("?", "show or hide these history keys"),
             ("esc", "back from keys; then close history"),
         ] {
-            lines.push(kv(key, what.into()));
+            lines.push(crate::mnemonic::text(key, what, "text.primary"));
         }
         lines.push(Text::new());
         lines.push(Text::plain("Pages contain at most 50 original observations, ordered by recording sequence (oldest first). Times are UTC; clocks can differ from sequence order."));
@@ -1475,6 +1498,10 @@ fn hint_key(drawn: targets::Drawn, label: &str) -> HintKey {
         "esc" => Key::Esc,
         "PgUp" => Key::PageUp,
         "PgDn" => Key::PageDown,
+        "↑" => Key::Up,
+        "↓" => Key::Down,
+        "←" => Key::Left,
+        "→" => Key::Right,
         _ => Key::Char(label.chars().next().expect("nonempty key")),
     };
     HintKey {
@@ -1498,14 +1525,57 @@ fn heading(text: &str) -> Text {
     Text::from(vec![Seg::new(text.to_uppercase(), Ink::Muted).strong()])
 }
 
-/// Where key `label` starts in a line of key hints (`c causal events · i …`):
-/// at a word's start, followed by its words.
-fn key_at(words: &str, label: &str) -> Option<usize> {
-    let needle = format!("{label} ");
-    words
-        .match_indices(&needle)
-        .map(|(at, _)| at)
-        .find(|at| *at == 0 || words[..*at].ends_with(' '))
+/// Each phrase keeps its generation-scoped target on every styled segment.
+fn detail_controls(drawn: targets::Drawn) -> Text {
+    let mut text = Text::new();
+    for (index, (key, words)) in [("c", "causal events"), ("i", "action events"), ("a", "all activity")].iter().enumerate() {
+        if index > 0 { text.add(Seg::new(" · ", Ink::AccentSecondary)); }
+        let mut phrase = crate::mnemonic::text(key, words, "accent.secondary");
+        for seg in &mut phrase.0 { seg.target = Some(targets::key(drawn, key)); }
+        text.extend(phrase);
+    }
+    text
+}
+
+/// Ask the same paragraph layout that paints the text for the visible target
+/// cells. The offscreen colour indices are ownership markers, never UI colours;
+/// this bounded viewport mask preserves its exact wrapping, scroll and clipping.
+fn targeted_viewport(theme: &Theme, text: &[Text], area: Rect, scroll: u16) -> Vec<(Rect, Target)> {
+    use ratatui::style::{Color, Style};
+    if area.is_empty() { return vec![]; }
+    let mut targets: Vec<Target> = Vec::new();
+    let lines: Vec<_> = text.iter().map(|text| {
+        let mut runs = Vec::new();
+        for seg in &text.0 {
+            let marker = if let Some(target) = &seg.target {
+                let index = targets.iter().position(|t| t == target).unwrap_or_else(|| {
+                    targets.push(target.clone());
+                    targets.len() - 1
+                });
+                u8::try_from(index).ok().map(Color::Indexed).unwrap_or(Color::Reset)
+            } else { Color::Reset };
+            for mut span in crate::view_tui::spans(theme, &Text::from(vec![seg.clone()])) {
+                span.style = Style::default().fg(marker);
+                runs.push(span);
+            }
+        }
+        Line::from(runs)
+    }).collect();
+    if targets.is_empty() { return vec![]; }
+    let mut mask = Buffer::empty(area);
+    Paragraph::new(lines).wrap(Wrap { trim: false }).scroll((scroll, 0)).render(area, &mut mask);
+    let mut hits = Vec::new();
+    for y in area.y..area.bottom() {
+        let mut x = area.x;
+        while x < area.right() {
+            let Color::Indexed(index) = mask[(x, y)].fg else { x += 1; continue };
+            let Some(target) = targets.get(usize::from(index)) else { x += 1; continue };
+            let from = x;
+            while x < area.right() && mask[(x, y)].fg == Color::Indexed(index) { x += 1; }
+            hits.push((Rect::new(from, y, x - from, 1), target.clone()));
+        }
+    }
+    hits
 }
 
 /// A scroll at the view's offset, for painting one panel from the view.

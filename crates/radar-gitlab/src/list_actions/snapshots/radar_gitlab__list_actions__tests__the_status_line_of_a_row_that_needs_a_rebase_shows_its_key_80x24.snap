@@ -1,22 +1,23 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
+assertion_line: 525
 expression: text
 ---
  radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
-╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
+╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────╮
 │ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
-│ Needs my action    4 ││▌ B team-b                                            │
-│ Opened by me         ││▌ └─ worker                                           │
-│ Opened by teammates  ││▌    └─ !342 change 342  you     ⊘ draft              │
-│ Opened by bots       ││▌ A team-a   main red in 1                            │
-│                      ││▌ ├─ api                         ✓ passed             │
-│                      ││▌ │  ├─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
-│                      ││▌ │  └─ !410 ABC-410: Page the s ▷ needs rebase       │
-│                      ││▌ ├─ web                         ✗ failed             │
-│                      ││▌ │  ├─ !411 ABC-411: Retry the  ✗ pipeline failed    │
-│                      ││▌ │  ├─ !187 change 187  you     ✓ ready to merge     │
-│                      ││▌ │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
-│                      ││▌ └─ docs                        ✓ passed             │
+│ Needs my action    4 ││B team-b                                              │
+│ Opened by me         ││  └─ worker                                           │
+│ Opened by teammates  ││     └─ !342 change 342  you     ⊘ draft              │
+│ Opened by bots       ││A team-a   main red in 1                              │
+│                      ││  ├─ api                         ✓ passed             │
+│                      ││  │  ├─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
+│                      ││  │  └─ !410 ABC-410: Page the s ▷ needs rebase       │
+│                      ││  ├─ web                         ✗ failed             │
+│                      ││  │  ├─ !411 ABC-411: Retry the  ✗ pipeline failed    │
+│                      ││  │  ├─ !187 change 187  you     ✓ ready to merge     │
+│                      ││  │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
+│                      ││  └─ docs                        ✓ passed             │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -25,4 +26,4 @@ expression: text
 │                      ││ every open merge request · listing every repo, also  │
 │                      ││ those without                                        │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   u rebase   b bulk   +/- expand/collapse   x menu         gitlab
+ REPOSITORIES   update by rebasing   bulk   extra actions   ~ notices    gitlab

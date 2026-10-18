@@ -4,7 +4,7 @@ assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ channel ───────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 review ──────────────────────────────────────────────────────────────────────╮╭ 3 channel ─────────────────────────────────────────╮
 │General               ││ channel          team                                                          ││ Where review asks go. The user group is mentioned  │
 │  ├─ parts            ││ user group       @review-squad                                                 ││ only here.                                         │
 │  ├─ mode             ││ template         {group} :gitlab: {mrs}                                        ││                                                    │
@@ -42,4 +42,4 @@ expression: "to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                               slack
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                              slack

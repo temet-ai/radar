@@ -564,7 +564,10 @@ impl AgentsSettings {
             Row::Provider => {
                 let mut ids: Vec<(String, String)> = NATIVE.iter().map(|(i, n)| ((*i).into(), (*n).into())).collect();
                 ids.extend(self.cfg.pty.iter().map(|c| (c.id.clone(), c.name.clone())));
-                let keys = ['c', 'x', 'l', 'a', 'b', 'd', 'e', 'f', 'g', 'h'];
+                // Native names have stable letter mnemonics. Custom names are
+                // arbitrary, so use numbers instead of the old a/b/d/e/f/g/h.
+                // Keep the same seven custom rows, order and provider values.
+                let keys = ['c', 'x', 'l', '1', '2', '3', '4', '5', '6', '7'];
                 let items = ids
                     .iter()
                     .zip(keys)
@@ -723,7 +726,7 @@ impl AgentsSettings {
         };
         for n in names {
             if let Err(e) = self.own_recipe(n) {
-                return vec![Effect::Notify(e)];
+                return vec![Effect::error(None, e)];
             }
         }
         let Some(dir) = self.recipes_dir() else { return vec![] };
@@ -732,11 +735,11 @@ impl AgentsSettings {
 
     fn cli_field(&mut self, native: &str, field: &str, value: &str) -> Vec<Effect> {
         if looks_like_token(value) {
-            return vec![Effect::Notify("that looks like a token; not saved".into())];
+            return vec![Effect::error(None, "that looks like a token; not saved")];
         }
         let path_like = !matches!(field, "agent");
         if path_like && !value.is_empty() && config::expand(value).is_none() {
-            return vec![Effect::Notify("give the whole path (or ~/…); not saved".into())];
+            return vec![Effect::error(None, "give the whole path (or ~/…); not saved")];
         }
         let p = self.cfg.providers.entry(native.to_string()).or_default();
         let one = |v: &str| (!v.is_empty()).then(|| v.to_string());
@@ -781,11 +784,11 @@ impl AgentsSettings {
     fn recipe_field(&mut self, name: &str, field: &str, value: &str) -> Vec<Effect> {
         let path = match self.own_recipe(name) {
             Ok(p) => p,
-            Err(e) => return vec![Effect::Notify(e)],
+            Err(e) => return vec![Effect::error(None, e)],
         };
-        let Ok(text) = std::fs::read_to_string(&path) else { return vec![Effect::Notify(format!("could not read {}", path.display()))] };
+        let Ok(text) = std::fs::read_to_string(&path) else { return vec![Effect::error(None, format!("could not read {}", path.display()))] };
         let Ok(now) = crate::brief::Recipe::parse(&text) else {
-            return vec![Effect::Notify(format!("{} is not a valid recipe: fix it in your editor first", path.display()))];
+            return vec![Effect::error(None, format!("{} is not a valid recipe: fix it in your editor first", path.display()))];
         };
         let (agent, skills) = match field {
             "agent" => (Some(value.to_string()), now.skills.clone()),
@@ -794,7 +797,7 @@ impl AgentsSettings {
         let out = crate::brief::Recipe::with_agent_and_skills(&text, agent.as_deref(), &skills);
         match std::fs::write(&path, out) {
             Ok(()) => vec![Effect::Notify(format!("saved in {}", path.display()))],
-            Err(e) => vec![Effect::Notify(format!("could not write {}: {e}", path.display()))],
+            Err(e) => vec![Effect::error(None, format!("could not write {}: {e}", path.display()))],
         }
     }
 
@@ -980,7 +983,7 @@ impl AgentsSettings {
         let path_ok = |v: &str| v.is_empty() || config::expand(v).is_some();
         match menu {
             "agents.work_dir" | "agents.recipes_dir" | "agents.reviews_dir" if !path_ok(value) || looks_like_token(value) => {
-                return Some(vec![Effect::Notify("give the whole path (or ~/…); not saved".into())]);
+                return Some(vec![Effect::error(None, "give the whole path (or ~/…); not saved")]);
             }
             "agents.work_dir" => {
                 self.editing().work_dir = (!value.is_empty()).then(|| value.to_string());
@@ -1016,7 +1019,7 @@ impl AgentsSettings {
                     return Some(vec![]);
                 }
                 Some(match self.pty_from(value) {
-                    Err(why) => vec![Effect::Notify(format!("{why}; not saved"))],
+                    Err(why) => vec![Effect::error(None, format!("{why}; not saved"))],
                     Ok(cli) => {
                         let (id, found) = (cli.id.clone(), cli.command.clone());
                         self.add_pty(cli);
@@ -1028,14 +1031,14 @@ impl AgentsSettings {
             "agents.provider" => {
                 let known = NATIVE.iter().any(|(i, _)| *i == value) || self.cfg.pty.iter().any(|c| c.id == value);
                 if !known {
-                    return Some(vec![Effect::Notify("no such provider; not saved".into())]);
+                    return Some(vec![Effect::error(None, "no such provider; not saved")]);
                 }
                 self.editing().provider = value.to_string();
                 Some(vec![Effect::Notify(format!("new sessions start with {}", self.name_of(value)))])
             }
             "agents.model" => {
                 if looks_like_token(value) {
-                    return Some(vec![Effect::Notify("that looks like a token; not saved".into())]);
+                    return Some(vec![Effect::error(None, "that looks like a token; not saved")]);
                 }
                 self.editing().model = (!value.is_empty()).then(|| value.to_string());
                 Some(vec![Effect::Notify("saved".into())])
@@ -1063,7 +1066,7 @@ impl AgentsSettings {
                 }
                 let text = value.strip_prefix("remove\t").or_else(|| value.strip_prefix("add\t")).unwrap_or(value);
                 let Ok(rule) = Rule::parse(text) else {
-                    return Some(vec![Effect::Notify("not a rule; not saved".into())]);
+                    return Some(vec![Effect::error(None, "not a rule; not saved")]);
                 };
                 let words = rule_words(&rule);
                 let said = self.toggle_rule(menu, rule);
@@ -1077,7 +1080,7 @@ impl AgentsSettings {
                     return Some(self.rules_menu(list));
                 }
                 let Ok(rule) = Rule::parse(&format!("{kind}({value})")) else {
-                    return Some(vec![Effect::Notify("that looks like a token; not saved".into())]);
+                    return Some(vec![Effect::error(None, "that looks like a token; not saved")]);
                 };
                 let words = rule_words(&rule);
                 let said = self.toggle_rule(list, rule);
@@ -1120,8 +1123,8 @@ impl AgentsSettings {
 pub(crate) const RULE_WAYS: [(char, &str, &str, &str); 5] = [
     ('c', "shell", "a command", "type the command's start: git diff, cargo test, npm run *"),
     ('r', "read", "reading files", "type a file or folder: src/*, /home/me/notes/*"),
-    ('w', "write", "changing files", "type a file or folder: docs/*, CHANGELOG.md"),
-    ('u', "url", "a website", "type a site: github.com, docs.rs"),
+    ('w', "write", "writing files", "type a file or folder: docs/*, CHANGELOG.md"),
+    ('u', "url", "URL access", "type a site: github.com, docs.rs"),
     ('m', "mcp", "an MCP tool", "type a server, or server/tool: github, github/get_issue"),
 ];
 
@@ -1180,7 +1183,7 @@ impl AgentsSettings {
         let path = dir.join(format!("{name}.md"));
         match std::fs::rename(&path, dir.join(format!("{name}.md.bak"))) {
             Ok(()) => vec![Effect::Notify(format!("the built-in {name} is used again; yours is {name}.md.bak"))],
-            Err(e) => vec![Effect::Notify(format!("could not move {}: {e}", path.display()))],
+            Err(e) => vec![Effect::error(None, format!("could not move {}: {e}", path.display()))],
         }
     }
 }

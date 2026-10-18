@@ -1,36 +1,37 @@
 ---
 source: crates/radar-gitlab/src/lib.rs
+assertion_line: 2598
 expression: "radar_core::shell::to_text(&host, 80, 40)"
 ---
  radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
-╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
+╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────╮
 │ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
-│ Needs my action    2 ││▌ B team-b                                            │
-│ Opened by me         ││▌ └─ worker                                           │
-│ Opened by teammates  ││▌    └─ !342 change 342  you     ⊘ draft              │
-│ Opened by bots       ││▌ A team-a   main red in 1                            │
-│                      ││▌ ├─ api                         ✓ passed             │
-│                      ││▌ │  └─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
-│                      ││▌ ├─ web                         ✗ failed             │
-│                      ││▌ │  ├─ !187 change 187  you     ✓ ready to merge     │
-│                      ││▌ │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
-│        ╭ team-b ────────────────────────────────────────────────────╮        │
-│        │ ⏎       open its page                                      │        │
+│ Needs my action    2 ││B team-b                                              │
+│ Opened by me         ││  └─ worker                                           │
+│ Opened by teammates  ││     └─ !342 change 342  you     ⊘ draft              │
+│ Opened by bots       ││A team-a   main red in 1                              │
+│                      ││  ├─ api                         ✓ passed             │
+│                      ││  │  └─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
+│                      ││  ├─ web                         ✗ failed             │
+│        ╭ team-b ────────────────────────────────────────────────────╮rge     │
+│        │ ⏎       open its page                                      │roval   │
 │        │ space   hide its repos                                     │        │
-│        │ o       open the group in GitLab                           │        │
-│        │ y       copy the group's link                              │        │
+│        │         open the group in GitLab                           │        │
+│        │         copy the group's link                              │        │
 │        │ /       filter the view by words                           │        │
 │        │ .       show only repos with merge requests in the view    │        │
-│        │ r       refresh now                                        │        │
+│        │         refresh now                                        │        │
 │        │ :       go to a tenancy, repo or merge request…            │        │
-│        │ a       show one author's merge requests…                  │        │
+│        │         show one author's merge requests…                  │        │
 │        │ ctrl-r  kept comments…                                     │        │
-│        │ -       collapse this group                                │        │
+│        │ +       expand the group                                   │        │
+│        │ -       collapse the group, or the one this row is in      │        │
+│        │ =       expand every held group                            │        │
+│        │ ~       recent notices (this session)                      │        │
 │        │ HISTORY                                                    │        │
-│        │ H       recent activity (last 24 hours)                    │        │
+│        │         shift recent activity (last 24 hours)              │        │
 │        │         all activity history                               │        │
 │        ╰────────────────────────────────────────────────────────────╯        │
-│                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -41,4 +42,4 @@ expression: "radar_core::shell::to_text(&host, 80, 40)"
 │                      ││ every open merge request · listing every repo, also  │
 │                      ││ those without                                        │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   j/k move   ⏎ choose   esc close                          gitlab
+ REPOSITORIES   ↑↓ move   ⏎ choose   esc close                           gitlab

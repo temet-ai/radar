@@ -9,6 +9,9 @@ import { Selector, type RowCells, type SelectArea, type Selection } from "./sele
 
 /** What the controller needs to know about the frame showing. */
 export interface InputView {
+  noticeInput?(escape: boolean): void;
+  noticeAt?(x: number, y: number): Hit | undefined;
+  noticeActivate?(target: string): void;
   /** The menu or question open, if one is. */
   menu(): MenuView | null;
   /** The host is capturing text (an input request or a menu's field): every key goes to it. */
@@ -92,7 +95,8 @@ export class InputController {
     // handled then, as the Ratatui runner does: runner.rs Pointer::Up).
     this.selector = new Selector(
       {
-        areaAt: (x, y) => this.view.selectAt?.(x, y),
+        // Footer rectangles are controls even inside a Rich/Extension text selection area.
+        areaAt: (x, y) => hitAt(this.view.hits(), x, y)?.target.startsWith("detail-foot:") ? undefined : this.view.selectAt?.(x, y),
         row: (y) => this.view.frameRow?.(y) ?? [],
         show: (sel, dragging) => this.view.showSelection?.(sel, dragging),
         copy: (text) => this.sendRaw({ intent: "copy", text }),
@@ -123,7 +127,7 @@ export class InputController {
       }
       return;
     }
-    this.keyChord(chord);
+    this.keyChord(chord, key.shift);
   }
 
   /**
@@ -136,7 +140,8 @@ export class InputController {
     for (const c of [...cleaned]) this.keyChord({ key: { char: c } });
   }
 
-  keyChord(chord: Chord, shift = false) {
+  keyChord(chord: Chord, shift = false, physical = true) {
+    if (physical) this.view.noticeInput?.(chord.key === "esc");
     // With a selection showing, shift+arrows extend it and ctrl+c copies it again; any other key clears it and is
     // handled as usual (issue #51). A press still held is a click, before the key.
     if (this.selector.key(chord, shift, this.view.capturing() || !!this.view.menu()) === "took") return;
@@ -159,6 +164,10 @@ export class InputController {
       return;
     }
     if (this.view.dock?.(chord)) return;
+    // The editor and mouse-selection handlers above own Shift movement first. Otherwise retain it on the wire
+    // so the host does not mistake a modified arrow for the focused tree's plain navigation.
+    if (shift && typeof chord.key === "string" && ["left", "right", "up", "down", "home", "end"].includes(chord.key))
+      chord = { ...chord, shift: true };
     // An uppercase letter is the host's first (on_key: a screen or source key such as G for GitHub switches
     // there); only when no screen has it does it reach the part, where `G` is "last row". The host makes that
     // choice, so the letter goes to it as a key, not as the Select the body's own movement would be.
@@ -246,7 +255,21 @@ export class InputController {
     for (const ev of parseMouse(data)) this.mouseEvent(ev);
   }
 
+  private noticePress: { target: string; button: MouseEvent["button"] } | undefined;
   mouseEvent(ev: MouseEvent) {
+    const notice = this.view.noticeAt?.(ev.x, ev.y);
+    if (this.noticePress) {
+      // A press retains the original occurrence identity across expiry, replacement and relayout.
+      if (ev.kind === "release") {
+        const press = this.noticePress; this.noticePress = undefined;
+        if (press.button === "left" && notice?.target === press.target) this.view.noticeActivate?.(press.target);
+      }
+      this.hover(null); return;
+    }
+    if (notice) {
+      if (ev.kind === "press") this.noticePress = { target: notice.target, button: ev.button };
+      this.hover(null); return;
+    }
     // The selection first: a left press in a pane's text, the moves and release after it, and any press clears it.
     // The wheel ends a selection showing (runner.rs) and scrolls as before.
     if (ev.kind === "wheel_up" || ev.kind === "wheel_down") this.selector.wheel();
@@ -269,12 +292,12 @@ export class InputController {
           // An overflowing palette is read one line at a time, without moving its
           // selected command or editing its query (host.rs on_mouse).
           this.sendRaw({ intent: "invoke", action: up ? "chrome.palette.scroll_up" : "chrome.palette.scroll_down" });
-        } else this.keyChord({ key: up ? "up" : "down" });
+        } else this.keyChord({ key: up ? "up" : "down" }, false, false);
         return;
       }
       // What is under the pointer scrolls, and nothing else: not the pane that has the keys, not the dock's composer.
       const pane = this.view.paneAt?.(ev.x, ev.y) ?? paneOfTarget(hitAt(this.view.hits(), ev.x, ev.y)?.target);
-      if (!this.view.wheel?.(pane, up, ev.x, ev.y)) this.keyChord({ key: { char: up ? "k" : "j" } });
+      if (!this.view.wheel?.(pane, up, ev.x, ev.y)) this.keyChord({ key: { char: up ? "k" : "j" } }, false, false);
       return;
     }
     if (ev.kind === "motion" || ev.kind === "press") this.pointerAt = { x: ev.x, y: ev.y };
@@ -323,6 +346,12 @@ export class InputController {
     // Typing goes on until ⏎ or esc: a click elsewhere does not drop it. The status line's keys and a menu's own
     // rows are still pressed (host.rs on_mouse).
     if (typing && !statusKeyTarget(target) && !target.startsWith("chrome:menu:")) return;
+    if (target.startsWith("detail-foot:")) {
+      this.lastClick = undefined;
+      if (!menu && ev.button === "left") this.sendRaw({ intent: "activate", target });
+      return;
+    }
+    if (target.startsWith("chrome:notices:id:") && ev.button !== "left") return;
     if (ev.button === "right") {
       this.ui.select(target);
       this.pointer(ev.x, ev.y);

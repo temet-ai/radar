@@ -69,7 +69,8 @@ pub(crate) struct State {
     /// The selected row of the workspaces section.
     pub row: usize,
     pub edit: Option<(settings::Field, TextInput)>,
-    pub screen_row: usize,
+    pub screen_selected: Vec<String>,
+    pub screen_folded: BTreeSet<String>,
     /// Start work on a ticket, while it runs.
     pub(crate) start: start::State,
 }
@@ -544,16 +545,16 @@ impl WorkspacePlugin {
                 fx.extend(read_gaps(&action, observed));
                 fx.push(Effect::PersistCache);
                 if say {
-                    fx.push(Effect::Notify(if index.missing {
-                        format!("{} is not a folder here", config::tilde(&dir))
+                    fx.push(if index.missing {
+                        Effect::error(None, format!("{} is not a folder here", config::tilde(&dir)))
                     } else {
-                        format!(
+                        Effect::Notify(format!(
                             "found {} note{} in {} files",
                             index.notes.len(),
                             if index.notes.len() == 1 { "" } else { "s" },
                             index.files
-                        )
-                    }));
+                        ))
+                    });
                 }
                 self.state.indexes.insert(dir, index);
                 fx
@@ -602,7 +603,7 @@ impl WorkspacePlugin {
                         action,
                         outcome: JournalOutcome::Unknown,
                     },
-                    Effect::Notify(radar_core::writes::failed_line(&why)),
+                    Effect::error(None, radar_core::writes::failed_line(&why)),
                 ]
             }
             WorkMsg::Launched { result, what } => {
@@ -623,12 +624,12 @@ impl WorkspacePlugin {
                 };
                 let mut fx = vec![Effect::Report(outcome)];
                 fx.extend(copy.map(Effect::Copy));
-                fx.push(Effect::Notify(said));
+                fx.push(if outcome == JournalOutcome::Succeeded { Effect::Notify(said) } else { Effect::error(None, said) });
                 fx
             }
             WorkMsg::Failed(why) => vec![
                 Effect::Report(JournalOutcome::Unknown),
-                Effect::Notify(radar_core::writes::failed_line(&why)),
+                Effect::error(None, radar_core::writes::failed_line(&why)),
             ],
             WorkMsg::PickEditor {
                 menu,
@@ -639,7 +640,7 @@ impl WorkspacePlugin {
                 if installed.is_empty() {
                     return vec![
                         Effect::Report(JournalOutcome::Blocked),
-                        Effect::Notify(format!(
+                        Effect::error(None, format!(
                             "{why}, and radar found no editor installed: set one in settings, workspace › workspaces"
                         )),
                     ];
@@ -840,6 +841,10 @@ impl Plugin for WorkspacePlugin {
 
     fn view(&self, screen: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::ScreenView> {
         (screen == screen::SCREEN.id).then(|| screen::view(self, cx))
+    }
+
+    fn folds(&self, scope: &str, pane: Pane) -> bool {
+        scope == screen::SCREEN.id && pane == Pane::Middle
     }
 
     fn keys(&self, _: &str, pane: Pane) -> Vec<Binding> {

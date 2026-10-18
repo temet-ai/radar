@@ -1,51 +1,34 @@
 #!/usr/bin/env bash
-# Check radar in its mixes of parts and run tests/mix.rs in each; run every
-# crate's own tests once.
+# Check radar in its mixes of parts and run tests/mix.rs in each: no parts,
+# each part alone, all parts, each adapter with its part, and the shipped mix
+# (every part and adapter).
 #
-#   scripts/check-mixes --quick      per commit: no parts, each alone and
-#                                    all, checked; their recordings. No
-#                                    crate's own suite: its session runs it
-#   scripts/check-mixes              at the close: every crate's suite once,
-#                                    every mix built as shipped, and its
-#                                    smoke and icon packs
-#   scripts/check-mixes --reference  writes tests/reference/: every screen
-#                                    in every mix, size and icon pack
+#   scripts/check-mixes              per commit and at merge (`--quick` is
+#                                    the same run, kept for callers)
 #
-# The testing pyramid (GUIDE 3): at the close each crate's own suite (unit
-# and integration tests, the guard in tests/parts.rs) runs once, with every
-# part compiled in; per mix only tests/mix.rs runs, with the parts' sample
-# data (the `demo` feature). Uses cargo-nextest when installed.
-# Works with bash 3.2 (macOS) and GNU or BSD tools.
+# Not here: a crate's own suite (its session runs `-p <crate>`, CI runs the
+# workspace once) and the 2^n combinations of parts. The guard in
+# tests/parts.rs keeps parts from naming each other, so a part that works
+# alone and with all the others has no pair of its own to test (GUIDE 1.14).
+# A mix whose check fails does not run its tests.
+# Uses cargo-nextest when installed. Works with bash 3.2 (macOS) and GNU or
+# BSD tools.
 
 # Not -u: bash 3.2 calls an empty array unbound.
 set -e
 
 cd "$(dirname "$0")/.."
 
-mode=close
 case "${1:-}" in
-    --quick) mode=quick ;;
-    --reference) mode=reference ;;
-    "") ;;
-    *) echo "usage: $0 [--quick | --reference]" >&2; exit 2 ;;
+    --quick | "") ;;
+    *) echo "usage: $0 [--quick]" >&2; exit 2 ;;
 esac
 
-# tests/mix.rs's tiers: per commit its plain tests; at the close the ignored
-# ones too (the smoke, the icon packs); the reference library on its own.
 if cargo nextest --version >/dev/null 2>&1; then
     test_cmd="cargo nextest run"
-    close_args="--run-ignored all -E not(test(=the_reference_library))"
-    reference_args="--run-ignored only -E test(=the_reference_library)"
 else
     test_cmd="cargo test --no-fail-fast"
-    close_args="-- --include-ignored --skip the_reference_library"
-    reference_args="-- --ignored --exact the_reference_library"
 fi
-case "$mode" in
-    quick) mix_args="" ;;
-    close) mix_args="$close_args" ;;
-    reference) mix_args="$reference_args" ;;
-esac
 
 # The parts: the features in the root Cargo.toml that name a part crate
 # (`dep:radar-<name>`), not `default` nor the tooling ones (`shots`, `png`, `demo`, `test-support`).
@@ -65,8 +48,8 @@ $(awk '
 EOF
 
 # A feature named `<part>-<x>`, where `<part>` is a part, is an adapter of that
-# part (`sessions-codex`), not a part: it is not a bit of the mixes below, it is
-# built once with its part alone and once in the shipped mix with every adapter.
+# part (`sessions-codex`), not a part: it is checked once with its part alone
+# and once in the shipped mix with every adapter.
 is_part() {
     for p in "${parts[@]}"; do
         [ "$p" = "$1" ] && return 0
@@ -85,72 +68,42 @@ for f in "${parts[@]}"; do
 done
 parts=("${plain[@]}")
 
-n=${#parts[@]}
 echo "parts: ${parts[*]:-none}"
 echo "adapters: ${adapters[*]:-none}"
 
 failed=()
-run() {
-    echo
-    echo "== $*"
-    if ! "$@"; then
-        failed+=("$*")
-    fi
-}
-
 started=$(date +%s)
 
-# Every crate's own tests, once, at the close: radar-core, each part, and radar
-# (the guard and the full mix's tests).
-if [ "$mode" = close ]; then
-    # shellcheck disable=SC2086
-    run $test_cmd --workspace --all-features
-fi
-
-# Every mix: a bit per part. Per commit only no parts, each alone and all,
-# checked; at the close every mix, built as shipped. Then tests/mix.rs with
-# the parts' sample data.
-total=$((1 << n))
-mask=0
-while [ "$mask" -lt "$total" ]; do
-    set_=""
-    count=0
-    i=0
-    while [ "$i" -lt "$n" ]; do
-        if [ $(((mask >> i) & 1)) -eq 1 ]; then
-            set_="${set_:+$set_,}${parts[$i]}"
-            count=$((count + 1))
-        fi
-        i=$((i + 1))
-    done
-    if [ "$mode" != quick ] || [ "$count" -le 1 ] || [ "$count" -eq "$n" ]; then
-        case "$mode" in
-            quick) run cargo check --no-default-features --features "$set_" ;;
-            close) run cargo build --no-default-features --features "$set_" ;;
-        esac
-        # shellcheck disable=SC2086
-        run $test_cmd -p radar --no-default-features --features "${set_:+$set_,}demo,test-support" --test mix $mix_args
-    fi
-    mask=$((mask + 1))
-done
-
-# Each adapter with its part alone, then every part with every adapter (the
-# shipped mix). tests/mix.rs records nothing for these; it runs the smoke.
+# One mix: its check, then tests/mix.rs with the parts' sample data. The
+# tests are skipped when the check fails; the build would fail the same way.
 mix() {
-    case "$mode" in
-        quick) run cargo check --no-default-features --features "$1" ;;
-        close) run cargo build --no-default-features --features "$1" ;;
-    esac
+    echo
+    echo "== $test_cmd mix [${1:-no parts}]"
+    if ! cargo check --no-default-features --features "$1"; then
+        failed+=("cargo check --no-default-features --features \"$1\"")
+        return
+    fi
     # shellcheck disable=SC2086
-    run $test_cmd -p radar --no-default-features --features "$1,demo,test-support" --test mix $mix_args
+    if ! $test_cmd -p radar --no-default-features --features "${1:+$1,}demo,test-support" --test mix; then
+        failed+=("$test_cmd -p radar --no-default-features --features \"${1:+$1,}demo,test-support\" --test mix")
+    fi
 }
+
+mix ""
+for p in "${parts[@]}"; do
+    mix "$p"
+done
+all=""
+for p in "${parts[@]}"; do
+    all="${all:+$all,}$p"
+done
+[ "${#parts[@]}" -gt 1 ] && mix "$all"
 if [ "${#adapters[@]}" -gt 0 ]; then
     for a in "${adapters[@]}"; do
         mix "${a%%-*},$a"
     done
-    all=""
-    for f in "${parts[@]}" "${adapters[@]}"; do
-        all="${all:+$all,}$f"
+    for a in "${adapters[@]}"; do
+        all="${all:+$all,}$a"
     done
     mix "$all"
 fi

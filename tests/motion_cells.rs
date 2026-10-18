@@ -6,7 +6,7 @@
 //! Without RADAR_MOTION_CELLS_DIR the committed files in ink/test/fixtures/motion
 //! are compared and drift fails the test.
 //!
-//! The demo host is drawn through the Ratatui shell at 80x24 (true colour,
+//! The demo host or gallery is drawn at 80x24 (true colour,
 //! radar's default theme), then `radar_core::motion::Engine` runs over the frame
 //! with a `ManualClock`: the cue is raised, and the same frame is drawn at
 //! the start (t=0), the middle and the end of the effect. One file per
@@ -43,7 +43,6 @@ use radar_core::headless::{Headless, offered};
 use radar_core::host::View;
 use radar_core::ipc::{MotionCue, MotionLevel, MotionSlots, MotionTimings};
 use radar_core::motion::{self, Changes, Cue, Engine, Level, ManualClock};
-use radar_core::plugin::Message;
 use radar_core::ratatui::Terminal;
 use radar_core::ratatui::backend::TestBackend;
 use radar_core::ratatui::buffer::Buffer;
@@ -68,12 +67,12 @@ fn theme_of(head: &Headless) -> Theme {
     head.host().build_theme(Tier::TrueColor)
 }
 
-/// The host drawn once by the Ratatui shell; the marks it made come with it.
+/// The host or gallery drawn once; the marks it made come with it.
 fn paint(scene: &Scene, theme: &Theme) -> (Buffer, motion::Marks) {
     let mut term = Terminal::new(TestBackend::new(W, H)).expect("test backend");
     term.draw(|f| match scene {
         Scene::Host(head) => render(head.host(), theme, f),
-        Scene::Waiting(demo) => {
+        Scene::Gallery(demo) => {
             motion::begin();
             let area = f.area();
             demo.render(theme, area, f.buffer_mut());
@@ -181,11 +180,11 @@ fn bridge_cue(cue: &Cue) -> MotionCue {
     }
 }
 
-/// What is drawn: the demo host, or the gallery's sample panels where one
-/// waits for data (no screen of the demo host does).
+/// What is drawn: the demo host, or the gallery's sample messages and waiting
+/// panels. Host notices are composited after motion, outside its retained marks.
 enum Scene {
     Host(Box<Headless>),
-    Waiting(MotionDemo),
+    Gallery(MotionDemo),
 }
 
 impl From<Headless> for Scene {
@@ -214,6 +213,10 @@ fn run(case: Case) -> Vec<(String, String)> {
     let clock = ManualClock::default();
     let mut engine = Engine::new(level, Box::new(clock.clone()));
     let (before_buf, before_marks) = paint(&before, &theme);
+    if matches!(cue.as_ref(), Some(Cue::MessageGone)) {
+        assert!(before_marks.message.is_some_and(|area| !area.is_empty()),
+            "the departing message must be drawn and marked before priming");
+    }
     if prime {
         engine.draw(&mut before_buf.clone(), &theme);
     } else {
@@ -240,7 +243,19 @@ fn run(case: Case) -> Vec<(String, String)> {
         clock.advance(t - at);
         at = t;
         let (mut buf, marks) = paint(&after, &theme);
+        if effect == "message" {
+            assert!(marks.message.is_some_and(|area| !area.is_empty()),
+                "the arriving message must be drawn and marked for motion");
+        }
+        let plain = (effect == "message_gone").then(|| buf.clone());
         engine.draw(&mut buf, &theme);
+        if let Some(plain) = plain {
+            let message = before_marks.message.expect("primed message mark");
+            for position in buf.area.positions().filter(|position| !message.contains(*position)) {
+                assert_eq!(buf[position], plain[position],
+                    "the departing message cannot replace fresh content outside its mark");
+            }
+        }
         frames.push((moment, t, rows_of(&buf), marks_json(&marks)));
     }
     // `after`: the scene drawn with no effect, what radar shows once the effect is
@@ -277,7 +292,6 @@ fn run(case: Case) -> Vec<(String, String)> {
             "settle_follows": settle_running,
             "rows": rows,
         });
-        let _ = &before_marks;
         let name = if moment.is_empty() {
             format!("{effect}.json")
         } else {
@@ -311,12 +325,24 @@ fn with_menu() -> Headless {
     panic!("no screen of the demo host opens a menu");
 }
 
-fn with_message() -> Headless {
-    let mut head = demo();
-    // Shorter than the keys it gives way to at 80 cells beside the
-    // services' chips, so the frame after it differs past its cells.
-    head.host_mut().message = Some(Message::new(None, "copied"));
-    head
+fn with_message() -> MotionDemo {
+    // Exercise the live gallery's message primitive. Host notices no longer
+    // enter the retained motion frame, so setting host.message has no target.
+    let mut demo = MotionDemo::default();
+    let key = radar_core::ratatui::crossterm::event::KeyEvent::from(radar_core::ratatui::crossterm::event::KeyCode::Char('t'));
+    assert!(demo.key(&key));
+    assert_eq!(demo.take_cues(), [Cue::Message]);
+    demo
+}
+
+fn after_message() -> MotionDemo {
+    let mut demo = MotionDemo::default();
+    // The old host scene revealed longer status hints when its message left.
+    // Use a real new gallery row to keep fresh content outside the fading mark;
+    // the whole before frame must never be restored over this replacement.
+    let key = radar_core::ratatui::crossterm::event::KeyEvent::from(radar_core::ratatui::crossterm::event::KeyCode::Char('n'));
+    assert!(demo.key(&key));
+    demo
 }
 
 /// The gallery's sample panels with the "waiting" panel on.
@@ -360,8 +386,8 @@ fn cases() -> Vec<Case> {
         level: Level::Full,
         cue: Some(Cue::Message),
         duration_ms: motion::MESSAGE_MS as u64,
-        before: demo().into(),
-        after: with_message().into(),
+        before: Scene::Gallery(MotionDemo::default()),
+        after: Scene::Gallery(with_message()),
         prime: false,
     });
     out.push(Case {
@@ -369,8 +395,8 @@ fn cases() -> Vec<Case> {
         level: Level::Full,
         cue: Some(Cue::MessageGone),
         duration_ms: motion::MESSAGE_GONE_MS as u64,
-        before: with_message().into(),
-        after: demo().into(),
+        before: Scene::Gallery(with_message()),
+        after: Scene::Gallery(after_message()),
         prime: true,
     });
     // Changed rows: the first row the frame marks is changed, the second added.
@@ -391,8 +417,8 @@ fn cases() -> Vec<Case> {
         level: Level::Full,
         cue: None,
         duration_ms: motion::SHIMMER_MS as u64,
-        before: Scene::Waiting(waiting()),
-        after: Scene::Waiting(waiting()),
+        before: Scene::Gallery(waiting()),
+        after: Scene::Gallery(waiting()),
         prime: false,
     });
     // Off: nothing changes.

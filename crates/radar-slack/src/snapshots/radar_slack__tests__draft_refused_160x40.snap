@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1644
 expression: text
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
- Slack › ask for review
+ Slack / ask for review
  Ask for review in #team                                                                                                                          posted as you
  mentions @review-squad · the review channel
-╭ as it will post in #team ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 as it will post in #team ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ @review-squad :gitlab: mr Add a stats endpoint for the dashboard                                                                                             │
 │ ✗ Slack did not take it: Slack is busy (rate limited): it was not sent, and radar does not send it again; try again in 30s                                   │
 │                                                                                                                                                              │
@@ -35,10 +36,10 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
+│                                                                                              +3 earlier notices · ~ history                                  │
+│                                                                                               info ✓ review asked · its thread is followed on the merge req… │
+│                                                                                               info review ask for api !263: nothing is sent until you post … │
+│                                                                                               info asking Slack to post the review ask in #team…             │
+│                                                                                               error ✗ Slack did not post the review ask in #team: Slack is … │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   ✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent, and radar does not send it again 7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 4 for you  slack

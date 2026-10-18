@@ -232,7 +232,8 @@ impl Plugin for Probe {
                 .push(PaneView::new(PaneId::Nav, "hidden root", Node::Tree(root)));
         }
         view.actions.push(crate::view::ActionSpec {
-            id: "watch.toggle".into(),
+                mnemonic_at: None,
+                mnemonic_shift: false,            id: "watch.toggle".into(),
             label: "toggle group".into(),
             key: Some(Chord::char(' ')),
             heading: false,
@@ -572,6 +573,12 @@ mod contract {
             views,
             "no additional views while disabled"
         );
+        // The real safety wrapper must also avoid projections for an
+        // unrelated raw key; tree admission does not make every key a view.
+        let unrelated = Intent::Key { chord: Chord::char('v') };
+        host.shared_part_input(0, "watch", Pane::Middle, &unrelated, None);
+        assert_eq!(state.lock().unwrap().views, views);
+        assert_eq!(state.lock().unwrap().calls.last(), Some(&unrelated));
         host.set_motion_enabled(true);
         let raw = Intent::Key {
             chord: Chord::parse(" ").unwrap(),

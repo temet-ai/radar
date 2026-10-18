@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1012
+assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
-00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Long text" fg:text.secondary bold
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Long text" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Colours  Tones  Row states  Grid states …" fg:text.secondary | "[Long text]" fg:accent.primary/glow.purple bold | "  Icons          " fg:text.secondary
+02 _1 | "Colours  Tones  Row states  Grid states …" fg:text.secondary | "[Long text]" fg:accent.primary/glow.purple bold | "  Icons  Notices " fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " cut with … (fit) " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "60 " fg:text.muted bg:bg.surface | "move the globes to the top shelf once th…" bg:bg.surface | "|" fg:text.muted bg:bg.surface | _12 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "40 " fg:text.muted bg:bg.surface | "move the globes to the top shelf once t…" bg:bg.surface | "|" fg:text.muted bg:bg.surface | _32 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
@@ -26,4 +26,4 @@ expression: "gallery_styles(80, 24, tab)"
 20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "else." bg:bg.surface | _69 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 21 "│" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 22 "│" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted
+23 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

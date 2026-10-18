@@ -57,7 +57,10 @@ function checkInside(r: Awaited<ReturnType<typeof areasOf>>, label: string) {
       expect(EDGE.has(at(a.x - 1, y)), `${name}: the cell left of row ${y} is its frame, not ${JSON.stringify(at(a.x - 1, y))}`).toBe(true);
       expect(EDGE.has(at(a.x + a.w, y)), `${name}: the cell right of row ${y} is its frame or scrollbar, not ${JSON.stringify(at(a.x + a.w, y))}`).toBe(true);
     }
-    if (a.id.startsWith("pane:")) {
+    if (a.id.endsWith(":body")) {
+      // A structured detail excludes its pinned rule and controls from selectable prose.
+      expect(at(a.x, a.y + a.h), `${name}: the next row is the footer rule`).toBe("─");
+    } else if (a.id.startsWith("pane:")) {
       expect(at(a.x - 1, a.y - 1), `${name}: the row above is the title row`).toBe("╭");
       expect(at(a.x - 1, a.y + a.h), `${name}: the row below is the bottom border`).toBe("╰");
     }

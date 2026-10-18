@@ -682,7 +682,7 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     ));
     host.terminal = Some(terminal_host::State::new(terminal_host::Stack::detect()));
     if journal.is_none() {
-        host.message = Some("action recording unavailable for this session".into());
+        host.notify_error("action recording unavailable for this session");
     }
     let (columns, rows) = ratatui::crossterm::terminal::size().unwrap_or((80, 24));
     let (tx, mut rx) = unbounded_channel::<Event>();
@@ -725,7 +725,7 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
         // could not be opened, a write that failed) says so in the status line.
         if let Some(warning) = clip.as_ref().and_then(Sink::take_warning) {
             log::warn(warning);
-            bridge.host_mut().message = Some(warning.into());
+            bridge.host_mut().notify_error(warning);
         }
         let (plain, action, semantic) = match event {
             Event::Tracked { action, semantic, event } => (*event, Some(action), semantic),
@@ -768,7 +768,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     if journal.is_some() {
         host.enable_journal();
     } else {
-        host.message = Some("action recording unavailable for this session".into());
+        host.notify_error("action recording unavailable for this session");
     }
     let detected = Tier::detect();
     let mut theme = host.build_theme(detected);
@@ -793,6 +793,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     let mut splash = crate::splash::Splash::new(crate::splash::Setting::parse(&theme_cfg.splash), motion.level());
     splash.roll(motion.level() == crate::motion::Level::Full, theme.icons().width == 2, host.start_facts());
     let splash_clock = std::time::Instant::now();
+    let notice_clock_base = host.notices.now_ms();
     let (tx, mut rx) = unbounded_channel::<Event>();
     // The left button, kept by the runner: a press that does not move is a
     // click for the host, a drag selects text (crate::select).
@@ -979,6 +980,8 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     }
     // The left button, the selection it makes and the presses counted.
     let mut gesture = select::Gesture::default();
+    let mut notice_gesture = NoticeGesture::default();
+    let mut detail_gesture = DetailGesture::default();
     let bypass = select::bypass_key(std::env::var("TERM_PROGRAM").ok().as_deref());
     let mut shown = ratatui::buffer::Buffer::empty(ratatui::layout::Rect::ZERO);
     let mut shown_area = shown.area;
@@ -991,6 +994,8 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     let mut pictured = false;
     let result = async {
         loop {
+            host.set_ui_clock_ms(notice_clock_base.saturating_add(splash_clock.elapsed().as_millis() as u64));
+            host.set_notice_motion_enabled(motion.level() != motion::Level::Off);
             if redraw {
                 let started = std::time::Instant::now();
                 // The splash: its frame now, or the hand-off to the first
@@ -1023,6 +1028,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     shown = f.buffer_mut().clone();
                     if over.is_some() { motion::frames::context(None, None); }
                     motion.draw(f.buffer_mut(), &theme);
+                    if over.is_none() { crate::shell::render_notices(&host, &theme, f.buffer_mut()); }
                     // Over everything: the screen under it keeps its click
                     // targets, so a click acts on it.
                     if let Some(frame) = &over {
@@ -1053,7 +1059,9 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                 // The screen changed size: what was selected is not there.
                 if shown.area != shown_area {
                     shown_area = shown.area;
-                    gesture.clear();
+                    detail_gesture.cancel(&mut gesture);
+                    gesture = select::Gesture::default();
+                    host.selecting = None;
                 }
                 if let Some(why) = motion.drew_in(started.elapsed()) {
                     host.set_motion_enabled(false);
@@ -1080,7 +1088,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                 Some(p) => Input::Pointer(p),
                 None => tokio::select! {
                     // Only while an effect runs: redraw, then wait again.
-                    () = frame_tick(motion.next_frame().or(splash.next_frame())) => continue,
+                    () = frame_tick(motion.next_frame().or(splash.next_frame()).or_else(|| (host.notice_frame_needed(shown_area) && !splash.active()).then_some(motion::FRAME))) => continue,
                     e = rx.recv() => match e {
                         Some(e) => Input::Event(e),
                         None => break,
@@ -1091,6 +1099,8 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                     },
                 },
             };
+            host.set_ui_clock_ms(notice_clock_base.saturating_add(splash_clock.elapsed().as_millis() as u64));
+            if let Input::Event(Event::Key(key)) = &input { host.notice_input(key.code == ct::KeyCode::Esc); }
             // Cancel before local selection handlers or clipboard conversion can
             // consume this input. Pointer motion alone remains decorative.
             let actionable = match &input {
@@ -1125,14 +1135,30 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                             continue;
                         }
                         Pointer::Gone => {
+                            detail_gesture.cancel(&mut gesture);
+                            host.selecting = gesture.selecting().then_some(bypass);
                             redraw = host.hover(None);
                             continue;
                         }
                         Pointer::Down(at, ms) => {
-                            gesture.down(at, ms, &host.frontend.selectable());
-                            continue;
+                            let hit = host.hit_at(at.x, at.y);
+                            // A new press supersedes an unfinished control gesture.
+                            detail_gesture.cancel(&mut gesture);
+                            if notice_gesture.press(hit.clone()) {
+                                gesture.clear();
+                                host.selecting = None;
+                                continue;
+                            }
+                            if let Some(intent) = detail_gesture.press(hit.as_ref(), &mut gesture) {
+                                host.selecting = None;
+                                Event::Intent(intent)
+                            } else {
+                                gesture.down(at, ms, &host.frontend.selectable());
+                                continue;
+                            }
                         }
                         Pointer::Drag(head) => {
+                            if notice_gesture.owns_pointer() || detail_gesture.owns_pointer() { continue; }
                             gesture.drag(head);
                             // While a drag selects, the status line names the
                             // key that selects with the terminal instead.
@@ -1141,18 +1167,22 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
                         }
                         Pointer::Up => {
                             host.selecting = None;
-                            match gesture.up(&shown) {
+                            if detail_gesture.release() { continue; }
+                            if let Some(intent) = notice_gesture.release() { Event::Intent(intent) }
+                            else { match gesture.up(&shown) {
                                 select::Released::Copy(text) => {
                                     Event::Intent(crate::view::Intent::Copy { text })
                                 }
-                                select::Released::Click(at, at_ms) => Event::Mouse {
-                                    kind: crate::host::MouseKind::Press,
-                                    column: at.x,
-                                    row: at.y,
-                                    at_ms,
+                                select::Released::Click(at, at_ms) => {
+                                    // Only a physical Down can activate a foot. A redraw
+                                    // may have put one beneath an ordinary row's old press.
+                                    let Some(event) = DetailGesture::row_release(
+                                        at, at_ms, host.hit_at(at.x, at.y).as_ref(),
+                                    ) else { continue; };
+                                    event
                                 },
                                 select::Released::Nothing => continue,
-                            }
+                            } }
                         }
                     }
                 }
@@ -1209,7 +1239,7 @@ async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
             }
             if let Some(warning) = journal.as_ref().and_then(Sink::take_warning) {
                 log::warn(warning);
-                host.message = Some(warning.into());
+                host.notify_error(warning);
             }
             // Theme edits apply on the next frame, before they are saved.
             if host.colours.cfg != theme_cfg {
@@ -1265,6 +1295,61 @@ fn restore_pointer() {
 }
 
 /// What the loop waits for: the host's events, or the mouse.
+/// Captured notice ownership survives expiry, replacement and drag until release.
+#[derive(Default)]
+struct NoticeGesture { captured: Option<crate::view::Intent> }
+impl NoticeGesture {
+    fn press(&mut self, hit: Option<crate::host::Hit>) -> bool {
+        use crate::host::{Hit, Host};
+        use crate::view::{Intent, Target};
+        self.captured = match hit {
+            Some(Hit::Notice(id)) => Some(Intent::DismissNotice { id }),
+            Some(Hit::NoticeHistoryOpen) => Some(Intent::Activate { target: Target::new("chrome:notices:open") }),
+            Some(Hit::NoticeHistory(id)) => Some(Intent::Activate { target: Target::new(format!("chrome:notices:id:{id}")) }),
+            Some(Hit::NoticeHistoryKey(key)) => Host::notice_history_key_target(key).map(|target| Intent::Activate { target }),
+            _ => None,
+        };
+        self.owns_pointer()
+    }
+    fn owns_pointer(&self) -> bool { self.captured.is_some() }
+    fn release(&mut self) -> Option<crate::view::Intent> { self.captured.take() }
+}
+
+/// Foot controls activate at physical Down, while their exact displayed target
+/// is still under the pointer. Drag/Up cannot re-hit a replacement frame.
+#[derive(Default)]
+struct DetailGesture { pressed: bool }
+
+impl DetailGesture {
+    fn target(hit: Option<&crate::host::Hit>) -> Option<crate::view::Target> {
+        match hit {
+            Some(crate::host::Hit::Plugin { id, .. })
+                if id.starts_with(crate::view::detail::TARGET_PREFIX) => Some(crate::view::Target::new(id.clone())),
+            _ => None,
+        }
+    }
+
+    fn press(&mut self, hit: Option<&crate::host::Hit>, gesture: &mut select::Gesture) -> Option<crate::view::Intent> {
+        let target = Self::target(hit)?;
+        // `clear` leaves pending presses and multi-click history behind.
+        *gesture = select::Gesture::default();
+        self.pressed = true;
+        Some(crate::view::Intent::Activate { target })
+    }
+
+    fn owns_pointer(&self) -> bool { self.pressed }
+    fn release(&mut self) -> bool { std::mem::take(&mut self.pressed) }
+
+    fn cancel(&mut self, gesture: &mut select::Gesture) {
+        if self.release() { *gesture = select::Gesture::default(); }
+    }
+
+    fn row_release(at: ratatui::layout::Position, at_ms: u64, hit: Option<&crate::host::Hit>) -> Option<Event> {
+        if Self::target(hit).is_some() { return None; }
+        Some(Event::Mouse { kind: crate::host::MouseKind::Press, column: at.x, row: at.y, at_ms })
+    }
+}
+
 enum Input {
     Event(Event),
     Pointer(Pointer),
@@ -1335,7 +1420,7 @@ fn open_web(
             },
             text: url,
         },
-        Err(e) => Event::Notice(format!("could not open the link: {e}")),
+        Err(e) => Event::ErrorNotice(format!("could not open the link: {e}")),
     };
     let _ = tx.send(tracked_event(event, action, semantic));
 }
@@ -1404,7 +1489,7 @@ fn copy_through(
         Err(e) => {
             record_outcome(journal, action.as_ref(), JournalOutcome::Failed, None);
             let _ = tx.send(tracked_event(
-                Event::Notice(format!("could not copy: {e}")),
+                Event::ErrorNotice(format!("could not copy: {e}")),
                 action,
                 semantic,
             ));
@@ -1606,6 +1691,116 @@ pub(crate) fn write_atomic(path: &std::path::Path, text: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    mod detail_pointer_tests {
+        use super::super::{DetailGesture, NoticeGesture};
+        use crate::host::{Event, Hit};
+        use crate::plugin::Pane;
+        use crate::select::{Area, Gesture, Released};
+        use crate::view::{Intent, Target};
+        use ratatui::buffer::Buffer;
+        use ratatui::layout::{Position, Rect};
+
+        fn foot(serial: u64) -> Hit {
+            Hit::Plugin { plugin: 0, scope: "books", pane: Pane::Detail, id: format!("detail-foot:{serial}:0") }
+        }
+
+        #[test]
+        fn physical_down_activates_once_and_release_cannot_retarget_a_newer_frame() {
+            let mut selection = Gesture::default();
+            let mut control = DetailGesture::default();
+            let old = foot(1);
+            let newer = foot(2);
+            let intent = control.press(Some(&old), &mut selection).unwrap();
+            assert_eq!(intent, Intent::Activate { target: Target::new("detail-foot:1:0") });
+            // Background replacement at the same cell has no role in Drag/Up.
+            assert!(control.owns_pointer(), "drag stays with the already-activated control");
+            assert!(control.release(), "Up is consumed, never resolved against the newer hit");
+            assert!(!control.release(), "a repeated Up cannot fire again");
+            let shown = Buffer::empty(Rect::new(0, 0, 20, 2));
+            assert!(matches!(selection.up(&shown), Released::Nothing));
+            assert_eq!(control.press(Some(&newer), &mut selection), Some(Intent::Activate { target: Target::new("detail-foot:2:0") }));
+            assert!(control.release(), "a second physical press is exactly one new activation");
+        }
+
+        #[test]
+        fn foot_press_cancels_pending_selection_and_word_double_click_history() {
+            let shown = Buffer::with_lines(["watch books"]);
+            let at = Position::new(1, 0);
+            let areas = [Area { rect: shown.area, text: true }];
+            let mut selection = Gesture::default();
+            selection.down(at, 1, &areas);
+            assert!(matches!(selection.up(&shown), Released::Click(..)));
+            selection.down(at, 2, &areas);
+            selection.drag(Position::new(5, 0));
+            assert!(selection.selecting());
+            let mut control = DetailGesture::default();
+            assert!(control.press(Some(&foot(1)), &mut selection).is_some());
+            assert!(!selection.selecting() && selection.selection.is_none());
+            assert!(control.release());
+            assert!(matches!(selection.up(&shown), Released::Nothing));
+            selection.down(at, 3, &areas);
+            assert!(matches!(selection.up(&shown), Released::Click(..)), "the old text click history was reset too");
+        }
+
+        #[test]
+        fn cancel_resize_and_row_release_never_activate_a_new_footer() {
+            let mut control = DetailGesture::default();
+            let mut selection = Gesture::default();
+            let at = Position::new(2, 0);
+            let before = Buffer::with_lines(["before"]);
+            let after = Buffer::empty(Rect::new(0, 0, 3, 2));
+            control.press(Some(&foot(1)), &mut selection);
+            control.cancel(&mut selection);
+            assert!(!control.release());
+            assert!(matches!(selection.up(&after), Released::Nothing));
+            selection.down(at, 10, &[]);
+            let Released::Click(at, ms) = selection.up(&before) else { panic!("ordinary row press"); };
+            assert!(DetailGesture::row_release(at, ms, Some(&foot(2))).is_none(), "new footer at an old row cell is inert");
+            assert!(matches!(DetailGesture::row_release(at, ms, Some(&Hit::Pane(Pane::Middle))), Some(Event::Mouse { .. })));
+        }
+
+        #[test]
+        fn notice_ownership_and_unrelated_text_selection_remain_independent() {
+            let mut control = DetailGesture::default();
+            let mut notice = NoticeGesture::default();
+            let mut selection = Gesture::default();
+            let shown = Buffer::with_lines(["watch books"]);
+            let areas = [Area { rect: shown.area, text: true }];
+            selection.down(Position::new(0, 0), 1, &areas);
+            selection.drag(Position::new(4, 0));
+            assert!(control.press(Some(&Hit::Pane(Pane::Middle)), &mut selection).is_none());
+            control.cancel(&mut selection);
+            assert!(selection.selecting(), "non-control cancellation leaves ordinary selection alone");
+            let hit = Hit::Notice(7);
+            assert!(notice.press(Some(hit.clone())));
+            assert!(control.press(Some(&hit), &mut selection).is_none());
+            assert!(!control.owns_pointer());
+            assert_eq!(notice.release(), Some(Intent::DismissNotice { id: 7 }));
+        }
+    }
+    mod notice_pointer_tests {
+        #[test]
+        fn notice_pointer_capture_survives_expiry_replacement_and_drag_without_retargeting() {
+            let mut notices = crate::notices::Notices::default(); let old = notices.enqueue("old".into());
+            let mut gesture = crate::runner::NoticeGesture::default();
+            assert!(gesture.press(Some(crate::host::Hit::Notice(old.id))));
+            notices.advance_clock(crate::notices::INFO_MS); let new = notices.enqueue("new".into());
+            assert!(gesture.owns_pointer());
+            assert_eq!(gesture.release(), Some(crate::view::Intent::DismissNotice { id: old.id }));
+            assert!(!notices.dismiss(old.id)); assert_eq!(notices.view().active, [new]); assert!(gesture.release().is_none());
+        }
+        #[test]
+        fn history_hint_press_captures_its_stable_command_until_release() {
+            use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+            for (code, target) in [(KeyCode::PageUp, "details_up"), (KeyCode::PageDown, "details_down"), (KeyCode::Esc, "close"), (KeyCode::Down, "older"), (KeyCode::Up, "newer")] {
+                let mut gesture = crate::runner::NoticeGesture::default();
+                assert!(gesture.press(Some(crate::host::Hit::NoticeHistoryKey(KeyEvent::new(code, KeyModifiers::NONE)))));
+                assert!(gesture.owns_pointer());
+                assert_eq!(gesture.release(), Some(crate::view::Intent::Activate { target: crate::view::Target::new(format!("chrome:notices:{target}")) }));
+                assert!(gesture.release().is_none());
+            }
+        }
+    }
     use super::{move_folders_from_gg, resolve_config_home, write_atomic};
     use std::path::{Path, PathBuf};
 
@@ -1799,7 +1994,7 @@ mod tests {
         let none = [crate::system::Way::Run("radar-no-such-program".into(), vec![])];
         assert!(matches!(
             &copy(&none, true)[..],
-            [Event::Notice(note)] if note.starts_with("could not copy: ")
+            [Event::ErrorNotice(note)] if note.starts_with("could not copy: ")
         ));
     }
 }

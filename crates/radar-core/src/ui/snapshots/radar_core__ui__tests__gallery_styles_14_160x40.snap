@@ -1,10 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1326
 expression: "gallery_styles(160, 40, tab)"
 ---
-00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Long text" fg:text.secondary bold
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Long text" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Card  Meters  Rows & states  Entries & l…" fg:text.secondary | "[Long text]" fg:accent.primary/glow.purple bold | "  Icons                      " fg:text.secondary
+02 _1 | "Card  Meters  Rows & states  Entries & l…" fg:text.secondary | "[Long text]" fg:accent.primary/glow.purple bold | "  Icons  Notices  Detail     " fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " cut with … (fit) " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface | " wrapped behind a prefix " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "60 " fg:text.muted bg:bg.surface | "move the globes to the top shelf once th…" bg:bg.surface | "|" fg:text.muted bg:bg.surface | _13 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "The decades from 1900 to 1950 are done. …" bg:bg.surface | _31 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "40 " fg:text.muted bg:bg.surface | "move the globes to the top shelf once t…" bg:bg.surface | "|" fg:text.muted bg:bg.surface | _33 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "rest wait for the new dividers, which co…" bg:bg.surface | _32 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "█" fg:accent.muted
@@ -41,4 +42,4 @@ expression: "gallery_styles(160, 40, tab)"
 36 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | "a code line that is longer" fg:accent.secondary/glow.cyan bg:bg.surface | _49 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 37 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | " than the card is wide" fg:accent.secondary/glow.cyan bg:bg.surface | _53 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 38 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-39 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted
+39 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

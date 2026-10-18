@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/page_polish_tests.rs
+assertion_line: 168
 expression: empty
 ---
  radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
- Slack › #team › thread
+ Slack / #team / thread
  thread
  [Thread]  Links
-╭ thread ──────────────────────────────────────────────────────────────────────╮
+╭ 1 thread ────────────────────────────────────────────────────────────────────╮
 │ Slack returned no messages for this thread.                                  │
 │ Press r to try again. Use , for connection settings or Esc to go back.       │
 │                                                                              │
@@ -23,6 +24,6 @@ expression: empty
 │                                                                              │
 │                                                                              │
 │                                                                              │
-│                                                                              │
+│               info already reading this thread                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate               slack
+ SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices              slack

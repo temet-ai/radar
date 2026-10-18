@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1372
 expression: "to_text(&host, 100, 40)"
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)       synced 40s ago · every 2m  ✎ edit
- Slack › ask for review
+ Slack / ask for review
  Ask for review in #team                                                              posted as you
  mentions @review-squad · the review channel
-╭ as it will post in #team ────────────────────────────────────────────────────────────────────────╮
+╭ 1 as it will post in #team ──────────────────────────────────────────────────────────────────────╮
 │ @review-squad :gitlab: mr Add a stats endpoint for the dashboard                                 │
 │                                                                                                  │
 │ THE TEXT SENT                                                                                    │
@@ -14,21 +15,21 @@ expression: "to_text(&host, 100, 40)"
 │ a stats endpoint for the dashboard                                                               │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭ merge requests in it ────────────────────────────────────────────────────────────────────────────╮
-│ api !263  Add a stats endpoint for the dashboard                                                 │
-│                          ╭ review ask ────────────────────────────────╮                          │
-│                          │ p       post it in #team…                  │                          │
-│                          │ e       edit the words for api !263        │                          │
-│                          │ d       take api !263 out                  │                          │
-│                          │ c       post it in another channel…        │                          │
-│                          │ y       copy the review ask text           │                          │
-│                          │ n       drop the review ask…               │                          │
-│                          │ ctrl-r  kept replies…                      │                          │
-│                          │ r       refresh this page                  │                          │
-│                          │ esc     back to code                       │                          │
-│                          │ HISTORY                                    │                          │
-│                          │ H       recent activity (last 24 hours)    │                          │
-│                          │         all activity history               │                          │
-│                          ╰────────────────────────────────────────────╯                          │
+│ api !263  Add a stats ╭ review ask ──────────────────────────────────────╮                       │
+│                       │         post it in #team…                        │                       │
+│                       │         edit the words for api !263              │                       │
+│                       │         drop api !263                            │                       │
+│                       │         post it in another channel…              │                       │
+│                       │         copy the review ask text                 │                       │
+│                       │         cancel the review ask…                   │                       │
+│                       │ ctrl-r  kept replies…                            │                       │
+│                       │         refresh this page                        │                       │
+│                       │ esc     back to code                             │                       │
+│                       │ ~       recent notices (this session)            │                       │
+│                       │ HISTORY                                          │                       │
+│                       │         shift recent activity (last 24 hours)    │                       │
+│                       │         all activity history                     │                       │
+│                       ╰──────────────────────────────────────────────────╯                       │
 │                                                                                                  │
 │                                                                                                  │
 │                                                                                                  │
@@ -41,4 +42,4 @@ expression: "to_text(&host, 100, 40)"
 │                                                                                                  │
 │                                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   j/k move   ⏎ choose   esc close                                   7 new · 4 for you  slack
+ SLACK   ↑↓ move   ⏎ choose   esc close                                    7 new · 4 for you  slack

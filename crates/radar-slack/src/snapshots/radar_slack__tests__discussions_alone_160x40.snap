@@ -1,15 +1,20 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 291
 expression: text
 ---
  radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
-╭ feed ──────────────────╮╭ Discussions ───────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
-│ For you              4 ││ THE MOST ACTIVE FIRST                                          REPLIES  WHEN       ││ ── #team · today ──                          │
-│ Discussions            ││general                                                                             ││ ● 06:46  Bob Builder                         │
-│ ▌ #team          6 NEW ││  ├─ ● #team Bob B.  Lunch at 12:30? 🍕                                  30m        ││     Lunch at 12:30? 🍕                       │
+╭ 1 feed ────────────────╮╭ 2 Discussions ─────────────────────────────────────────────────────────────────────╮╭ 3 Bob Builder's message ─────────────────────╮
+│ For you              4 ││ THE MOST ACTIVE FIRST                                          REPLIES  WHEN       ││ Acme / #team                                 │
+│ Discussions            ││general                                                                             ││ Lunch at 12:30? 🍕                           │
+│ ▌ #team          6 NEW ││  ├─ ● #team Bob B.  Lunch at 12:30? 🍕                                  30m        ││                        Bob Builder · 30m ago │
 │ ▌ #svc           1 NEW ││  ├─ ● #svc Carol C.  The service is being upgraded at noon              5h         ││                                              │
-│                        ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipe 1        1d         ││                                              │
-│                        ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats endp 2        2d         ││                                              │
+│                        ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main?  ⋯ 1 1        1d         ││ thread   thread start                        │
+│                        ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats  ⋯ 2 2        2d         ││ replies  0                                   │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ THREAD  today ────────────────────────────── │
+│                        ││                                                                                    ││   ● 06:46  Bob Builder                       │
+│                        ││                                                                                    ││   Lunch at 12:30? 🍕                         │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -34,11 +39,7 @@ expression: text
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ threads in watched channels, grouped by linked work                                ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ threads in watched channels, grouped by linked work                                ││⏎ thread  open  copy  mark read  extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                   7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                    7 new · 4 for you  slack

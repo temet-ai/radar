@@ -1,9 +1,10 @@
 ---
 source: crates/radar-slack/src/alert_tests.rs
+assertion_line: 566
 expression: "to_text(&host, 160, 40)"
 ---
  radar    ✉ Slack ●   ≣ History   ⚙ Settings (,)                                                                              synced 40s ago · every 2m  ✎ edit
-╭ feed ──────────────────╮╭ Alerts ────────────────────────────────────────────────────────────────────────────╮╭ alert ───────────────────────────────────────╮
+╭ 1 feed ────────────────╮╭ 2 Alerts ──────────────────────────────────────────────────────────────────────────╮╭ 3 alert ─────────────────────────────────────╮
 │ @ For you            5 ││ firing first, then what resolved                        PRIORITY NOTIFIED ◷ FOR    ││ api-HighErrorRate                            │
 │ ❝ Discussions          ││firing                                                                              ││ ▲ firing for 3h 07m · since 04:09            │
 │ ▲ Alerts             2 ││  ├─ api  prod                                                                      ││ notified 2 times, the last 1h 00m ago        │
@@ -41,4 +42,4 @@ expression: "to_text(&host, 160, 40)"
 │                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
 │                        ││ 1 bot message not read as alerts: the log says why.                                ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- SLACK   PgUp/PgDn ↕ scroll   b ◫ bulk   +/- ± expand/collapse   q ✕ quit   x ≡ menu   ←→↑↓ navigate                            7 new · 5 for you · 2 firing  #
+ SLACK   PgUp/PgDn ↕ scroll   ◫ bulk   +/- ± expand/collapse   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate             7 new · 5 for you · 2 firing  #

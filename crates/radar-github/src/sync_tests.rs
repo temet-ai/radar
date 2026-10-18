@@ -21,7 +21,7 @@ fn persists(effects: &[Effect]) -> bool {
 fn notifies(effects: &[Effect]) -> bool {
     effects
         .iter()
-        .any(|e| matches!(e, Effect::Notify(_) | Effect::NotifyWith(..)))
+        .any(|e| matches!(e, Effect::Notify(_) | Effect::NotifyWith(..) | Effect::Notice(_)))
 }
 
 fn marker(open: u64, at: &str) -> Marker {

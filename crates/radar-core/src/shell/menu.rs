@@ -73,6 +73,25 @@ fn row_style(theme: &Theme, item: &MenuItem, selected: bool) -> Style {
     }
 }
 
+fn mnemonic_at(item: &MenuItem) -> Option<usize> {
+    item.mnemonic_at.filter(|_| crate::mnemonic::valid_at(&item.keys, &item.label, item.mnemonic_at))
+}
+
+fn separate_key(item: &MenuItem) -> &str {
+    if mnemonic_at(item).is_some() { "" } else { &item.keys }
+}
+
+fn shift_width(item: &MenuItem) -> usize {
+    if mnemonic_at(item).is_some() && item.mnemonic_shift { 6 } else { 0 }
+}
+
+fn label_spans(theme: &Theme, item: &MenuItem, width: usize, row: Style) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    if shift_width(item) > 0 { spans.push(Span::styled("shift ", theme.bold(Slot::AccentSecondary).patch(row.bg.map_or(Style::new(), |c| Style::new().bg(c))))); }
+    spans.extend(widgets::mnemonic_word(&ui::pad(&item.label, width.saturating_sub(shift_width(item))), mnemonic_at(item), row));
+    spans
+}
+
 fn compact_line(
     theme: &Theme,
     item: &MenuItem,
@@ -86,7 +105,7 @@ fn compact_line(
         if key_w == 0 {
             " ".to_string()
         } else {
-            format!(" {} ", ui::pad(&item.keys, key_w))
+            format!(" {} ", ui::pad(separate_key(item), key_w))
         },
         theme.bold(Slot::AccentSecondary).patch(bg),
     )];
@@ -99,12 +118,12 @@ fn compact_line(
             icon.style = icon.style.patch(bg);
             spans.push(Span::styled(" ", row));
             spans.push(icon);
-            spans.push(Span::styled(ui::pad(&item.label, w), row));
+            spans.extend(label_spans(theme, item, w, row));
         }
-        None => spans.push(Span::styled(
-            format!(" {}", ui::pad(&item.label, label_w)),
-            row,
-        )),
+        None => {
+            spans.push(Span::styled(" ", row));
+            spans.extend(label_spans(theme, item, label_w, row));
+        },
     }
     spans.push(Span::styled(
         format!("   {} ", item.hint),
@@ -140,6 +159,27 @@ fn palette_label(
             Line::from(spans)
         })
         .collect()
+}
+
+/// Add a supplied scalar underline to already styled lines. Palette matches
+/// retain their colour/bold while their containing mnemonic grapheme underlines.
+fn underline_lines(lines: &mut [Line<'static>], at: Option<usize>, source: &str) {
+    let Some(at) = at else { return };
+    let mut offset = 0;
+    for (line, raw) in lines.iter_mut().zip(source.split('\n')) {
+        let start = offset;
+        let mut spans = Vec::new();
+        for g in line.styled_graphemes(Style::default()) {
+            let end = offset + g.symbol.chars().count();
+            let style = if (offset..end).contains(&at) {
+                g.style.add_modifier(ratatui::style::Modifier::UNDERLINED)
+            } else { g.style };
+            spans.push(Span::styled(g.symbol.to_owned(), style));
+            offset = end;
+        }
+        line.spans = spans;
+        offset = start + raw.chars().count() + 1;
+    }
 }
 
 /// Palette rows have the same explicit grapheme wrapping in both renderers. A
@@ -178,6 +218,8 @@ fn palette_lines(
     let matched = theme.bold(Slot::AccentPrimary).patch(bg);
     let key_style = theme.bold(Slot::AccentSecondary).patch(bg);
     let mut labels = palette_label(&item.label, highlights, row, matched);
+    underline_lines(&mut labels, mnemonic_at(item), &item.label);
+    if shift_width(item) > 0 { labels[0].spans.insert(0, Span::styled("shift ", key_style)); }
     if let Some(first) = labels.first_mut() {
         if let Some(mut icon) = lead(theme, item) {
             icon.style = icon.style.patch(bg);
@@ -213,7 +255,7 @@ fn palette_lines(
         line.spans
             .push(Span::styled(" ".repeat(text_w.saturating_sub(used)), row));
         if side_keys {
-            let key = if i == 0 { item.keys.as_str() } else { "" };
+            let key = if i == 0 { separate_key(item) } else { "" };
             line.spans.push(Span::styled(
                 format!(
                     "  {}{}",
@@ -225,8 +267,8 @@ fn palette_lines(
         }
         line.spans.push(Span::styled(" ", row));
     }
-    if !side_keys && !item.keys.is_empty() {
-        for mut key in palette_wrap(text_lines(&item.keys, key_style), inner) {
+    if !side_keys && !separate_key(item).is_empty() {
+        for mut key in palette_wrap(text_lines(separate_key(item), key_style), inner) {
             let padding = inner.saturating_sub(key.width()) + 1;
             key.spans.insert(0, Span::styled(" ".repeat(padding), row));
             key.spans.push(Span::styled(" ", row));
@@ -345,11 +387,11 @@ impl Layout {
             theme.bold(Slot::TextEmphasis),
         ));
         let title = Line::from(title);
-        let key_w = items.iter().map(|i| ui::width(&i.keys)).max().unwrap_or(0);
+        let key_w = items.iter().map(|i| ui::width(separate_key(i))).max().unwrap_or(0);
         let label_w = items
             .iter()
             .filter(|i| !i.heading)
-            .map(|i| ui::width(&i.label) + lead(theme, i).map_or(0, |s| s.width()))
+            .map(|i| ui::width(&i.label) + shift_width(i) + lead(theme, i).map_or(0, |s| s.width()))
             .max()
             .unwrap_or(0);
         // Measure before padding. One exceptionally long label must not
@@ -359,6 +401,7 @@ impl Layout {
             .map(|item| {
                 if view.palette.is_some() {
                     return item.label.split('\n').map(ui::width).max().unwrap_or(0)
+                        + shift_width(item)
                         + lead(theme, item).map_or(0, |s| s.width())
                         + if item.sample.is_some() { 3 } else { 0 }
                         + if item.hint.is_empty() {
@@ -391,11 +434,9 @@ impl Layout {
                         widgets::Button {
                             keys: item.keys.clone(),
                             icon: lead(theme, item),
-                            words: if item.hint.is_empty() {
-                                item.label.clone()
-                            } else {
-                                item.hint.clone()
-                            },
+                            words: crate::mnemonic::choice_words(true, &item.label, &item.hint).into(),
+                            mnemonic_at: item.mnemonic_at,
+                            mnemonic_shift: item.mnemonic_shift,
                             focused: i == sel,
                             muted: item.muted,
                         },
@@ -532,14 +573,14 @@ impl Layout {
                             if key_w == 0 {
                                 "  ".to_string()
                             } else {
-                                format!(" {}  ", ui::pad(&item.keys, key_w))
+                                format!(" {}  ", ui::pad(separate_key(item), key_w))
                             },
                             key_style,
                         )
                     };
-                    if inset == 0 && !item.keys.is_empty() {
+                    if inset == 0 && !separate_key(item).is_empty() {
                         content.push(
-                            vec![Line::styled(item.keys.clone(), key_style)],
+                            vec![Line::styled(separate_key(item).to_owned(), key_style)],
                             0,
                             Line::default(),
                             Some(i),
@@ -547,6 +588,8 @@ impl Layout {
                         );
                     }
                     let mut lines = text_lines(&item.label, row);
+                    underline_lines(&mut lines, mnemonic_at(item), &item.label);
+                    if shift_width(item) > 0 { lines[0].spans.insert(0, Span::styled("shift ", key_style)); }
                     if let Some(first) = lines.first_mut() {
                         if let Some(mut icon) = lead(theme, item) {
                             icon.style = icon.style.patch(bg);
@@ -904,6 +947,8 @@ mod tests {
 
         fn palette_choice(label: &str, key: &str, index: usize) -> MenuItem {
             MenuItem {
+                mnemonic_at: crate::mnemonic::at(key, label),
+                mnemonic_shift: crate::mnemonic::at(key, label).is_some() && crate::mnemonic::shifted(key),
                 value: format!("command:{index}"),
                 label: label.into(),
                 hint: String::new(),
@@ -917,6 +962,28 @@ mod tests {
                 muted: false,
                 target: Some(Target(format!("chrome:menu:{index}"))),
             }
+        }
+
+        #[test]
+        fn mnemonic_menu_rows_have_no_letter_column_and_shift_stays_with_word() {
+            use ratatui::style::Modifier;
+            let theme = Theme::build(&crate::theme::ThemeConfig { icons: "off".into(), ..Default::default() }, crate::design::theme::Tier::TrueColor, &[]);
+            let ask = palette_choice("ask an agent", "A", 0);
+            let refresh = palette_choice("refresh", "r", 1);
+            assert_eq!(separate_key(&ask), "");
+            assert_eq!(separate_key(&refresh), "");
+            let line = compact_line(&theme, &ask, true, 0, 18);
+            assert!(line.to_string().starts_with("  shift ask an agent"));
+            assert!(!line.to_string().contains(" A "));
+            let letter = line.spans.iter().find(|span| span.content == "a").unwrap();
+            assert!(letter.style.add_modifier.contains(Modifier::UNDERLINED));
+            assert_eq!(letter.style.bg, theme.bg(Slot::BgSelection).bg);
+            let lines = palette_lines(&theme, &refresh, true, &[0, 1], 20, 0, &[]);
+            let first = lines.iter().flat_map(|line| &line.spans).find(|span| span.content == "r").unwrap();
+            assert!(first.style.add_modifier.contains(Modifier::UNDERLINED | Modifier::BOLD));
+            assert_eq!(first.style.fg, theme.s(Slot::AccentPrimary).fg);
+            let words = lines.iter().map(Line::to_string).collect::<String>();
+            assert_eq!(words.trim(), "refresh");
         }
 
         #[test]

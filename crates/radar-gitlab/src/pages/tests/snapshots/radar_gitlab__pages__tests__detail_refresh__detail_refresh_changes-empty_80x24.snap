@@ -1,13 +1,14 @@
 ---
 source: crates/radar-gitlab/src/pages/tests/detail_refresh.rs
+assertion_line: 234
 expression: shown
 ---
  radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
- Repositories › a › api › !263
+ Repositories / a / api / !263
  ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
  Overview  [Changes]  Threads  Pipeline  Commits
  ✗ merge request details refresh failed: details unavailable
-╭ changes ─────────────────────────────────────────────────────────────────────╮
+╭ 1 changes ───────────────────────────────────────────────────────────────────╮
 │  This merge request changes no files.                                        │
 │                                                                              │
 │                                                                              │
@@ -25,4 +26,4 @@ expression: shown
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate       gitlab
+ REPOSITORIES   PgUp/PgDn scroll   quit   extra actions   ~ notices      gitlab

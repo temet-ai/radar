@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
-00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Colours" fg:text.secondary bold
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Colours" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
 02 _1 | "Rows & states  Entries & log  Markdown  …" fg:text.secondary | "[Colours]" fg:accent.primary/glow.purple bold | "  Tones  Row s…" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " slots " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
@@ -25,4 +26,4 @@ expression: "gallery_styles(80, 24, tab)"
 20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "STATUS" fg:text.muted bg:bg.surface bold | _70 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 21 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "██████ " fg:status.success/diff.added bg:bg.surface | "status.success   " bg:bg.surface | "#50fa7b  " fg:data.number bg:bg.surface | "things that are fine: passed, ready, sho…" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 22 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "██████ " fg:status.warning bg:bg.surface | "status.warning   " bg:bg.surface | "#f1fa8c  " fg:data.number bg:bg.surface | "things that want you: review, unsaved" fg:text.muted bg:bg.surface | _6 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-23 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted
+23 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

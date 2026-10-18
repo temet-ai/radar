@@ -264,7 +264,7 @@ impl<W: Write> Supervisor<W> {
             match run {
                 Run::Quit => return Ok(Ended::Quit),
                 Run::Refused(why) => {
-                    bridge.host_mut().message = Some(crate::plugin::Message::new(None, why.clone()));
+                    bridge.host_mut().notify_error(why.clone());
                     return Ok(Ended::FallBack(why));
                 }
                 Run::Crashed(why) if !bridge.host().quit => {
@@ -275,13 +275,10 @@ impl<W: Write> Supervisor<W> {
                             "the Ink renderer stopped {} times in a minute ({why}); using the Ratatui renderer",
                             self.policy.max + 1
                         );
-                        bridge.host_mut().message = Some(crate::plugin::Message::new(None, why.clone()));
+                        bridge.host_mut().notify_error(why.clone());
                         return Ok(Ended::FallBack(why));
                     }
-                    bridge.host_mut().message = Some(crate::plugin::Message::new(
-                        None,
-                        "the renderer stopped and was started again",
-                    ));
+                    bridge.host_mut().notify_error("the renderer stopped and was started again");
                 }
                 _ => return Ok(Ended::Quit),
             }

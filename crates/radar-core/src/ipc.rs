@@ -351,7 +351,17 @@ pub struct Notice {
     #[ts(type = "number")]
     pub cursor: u64,
     pub text: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub occurrence: Option<crate::view::chrome::NoticeView>,
+    #[serde(default, skip_serializing_if = "notice_zero")]
+    #[ts(type = "number")]
+    pub revision: u64,
+    #[serde(default, skip_serializing_if = "notice_zero")]
+    #[ts(type = "number")]
+    pub now_ms: u64,
 }
+
+fn notice_zero(value: &u64) -> bool { *value == 0 }
 
 /// Host → renderer.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]

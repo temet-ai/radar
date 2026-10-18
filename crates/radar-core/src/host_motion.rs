@@ -255,7 +255,7 @@ impl Host {
         outcome
     }
 
-    fn motion_node(&self, p: usize, scope: &str, pane: Pane) -> Option<Node> {
+    pub(super) fn motion_node(&self, p: usize, scope: &str, pane: Pane) -> Option<Node> {
         if self.view == View::Settings {
             return Some(self.section_view(p, scope)?.body);
         }
@@ -281,7 +281,7 @@ fn fold_candidate(intent: &Intent) -> bool {
         Intent::Key { chord } => {
             !chord.ctrl
                 && !chord.alt
-                && matches!(chord.key, Key::Enter | Key::Char(' ' | '+' | '=' | '-'))
+                && matches!(chord.key, Key::Enter | Key::Left | Key::Right | Key::Char(' ' | '+' | '-'))
         }
         _ => false,
     }
@@ -312,7 +312,7 @@ fn fold_target(tree: &Tree, intent: &Intent) -> Option<(Vec<String>, Option<bool
                 (TreeRow::path_of(&target), Some(open))
             } else {
                 let requested = match chord.key {
-                    Key::Char('+' | '=') => Some(true),
+                    Key::Char('+') => Some(true),
                     Key::Char('-') => Some(false),
                     _ => None,
                 };

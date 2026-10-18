@@ -1,20 +1,21 @@
 ---
 source: crates/radar-gitlab/src/stand_in.rs
+assertion_line: 233
 expression: narrow
 ---
  radar    R ●   T   History   Settings (,)               not synced yet  ✎ edit
-╭ views ───────────────╮╭ Everything ──────────────────────────────────────────╮
+╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────╮
 │ Everything           ││ OPENED BY everyone · 4 repos    STATE                │
-│ Needs my action    2 ││▌ B team-b                                            │
-│ Opened by me         ││▌ └─ worker                                           │
-│ Opened by teammates  ││▌    └─ !342 change 342  you     ⊘ draft              │
-│ Opened by bots       ││▌ A team-a   main red in 1                            │
-│                      ││▌ ├─ api                         ✓ passed             │
-│                      ││▌ │  └─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
-│                      ││▌ ├─ web                         ✗ failed             │
-│                      ││▌ │  ├─ !187 change 187  you     ✓ ready to merge     │
-│                      ││▌ │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
-│                      ││▌ └─ docs                        ✓ passed             │
+│ Needs my action    2 ││B team-b                                              │
+│ Opened by me         ││  └─ worker                                           │
+│ Opened by teammates  ││     └─ !342 change 342  you     ⊘ draft              │
+│ Opened by bots       ││A team-a   main red in 1                              │
+│                      ││  ├─ api                         ✓ passed             │
+│                      ││  │  └─ !263 ABC-12: Add a stats ◷ needs 1 approval   │
+│                      ││  ├─ web                         ✗ failed             │
+│                      ││  │  ├─ !187 change 187  you     ✓ ready to merge     │
+│                      ││  │  └─ !198 change 198  group_1 ◷ needs 1 approval   │
+│                      ││  └─ docs                        ✓ passed             │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
@@ -25,4 +26,4 @@ expression: narrow
 │                      ││ every open merge request · listing every repo, also  │
 │                      ││ those without                                        │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   b bulk   +/- expand/collapse   q quit   x menu           gitlab
+ REPOSITORIES   bulk   extra actions   ~ notices                         gitlab

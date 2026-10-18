@@ -48,8 +48,11 @@ async function open(dock: DockView, cols = 160, rows = 40, screen = `gitlab_repo
   const all = () => m.intents().map((i) => i.intent);
   const docks = () => all().filter((i) => i.intent === "dock");
   const others = () => all().filter((i) => i.intent !== "dock");
+  // Modern hosts receive presentation metadata once per physical key, even when the dock consumes that key.
+  // Keep it in `others`: exact assertions below must still catch duplicate notices or a key escaping its owner.
+  const noticeInput = (escape = false) => ({ intent: "notice_input", escape, through_id: shown.chrome.notices.through_id });
   const text = () => plain(m.frame());
-  return { m, all, docks, others, text, shown };
+  return { m, all, docks, others, noticeInput, text, shown };
 }
 
 /** Where things are on a 160-wide gitlab_repos frame: the columns the panes start at, the dock's title row. */
@@ -63,6 +66,25 @@ function layout(rows: string[]) {
 const composerLine = (rows: string[]) => rows.find((r) => /│> /.test(r)) ?? "";
 
 describe("keys go to what has the focus, and nothing else", () => {
+  it("an empty modern notice state still receives one watermark per physical key without taking dock ownership", async () => {
+    const o = await open(many());
+    const notices = { ...o.shown.chrome.notices, active: [], hidden: 0, revision: o.shown.chrome.notices.revision + 1 };
+    o.m.snapshot({ ...o.shown, chrome: { ...o.shown.chrome, notices } }, 2);
+    await tick(30);
+    expect(o.m.session.noticeStore.active()).toEqual([]);
+    o.m.type(KEY.down);
+    await until(() => o.all().length >= 1);
+    expect(o.all()).toEqual([o.noticeInput()]);
+    o.m.type("`x");
+    await until(() => o.all().length >= 5);
+    expect(o.all()).toEqual([
+      o.noticeInput(),
+      o.noticeInput(), { intent: "dock", dock: "hide" },
+      o.noticeInput(), { intent: "key", chord: { key: { char: "x" } } },
+    ]);
+    expect(o.m.session.noticeStore.active()).toEqual([]);
+  });
+
   it("with the dock focused, ↑ ↓ PgUp PgDn Home End move nothing outside the dock", async () => {
     const o = await open(many());
     for (const k of [KEY.down, KEY.up, KEY.pageUp, KEY.pageDown, KEY.home, KEY.end, KEY.down, KEY.down]) {
@@ -70,7 +92,7 @@ describe("keys go to what has the focus, and nothing else", () => {
       await tick(15);
     }
     await tick(60);
-    expect(o.others()).toEqual([]);
+    expect(o.all()).toEqual(Array.from({ length: 8 }, () => o.noticeInput()));
   });
 
   it("↓ past the end of the sent history stays in the composer", async () => {
@@ -81,7 +103,7 @@ describe("keys go to what has the focus, and nothing else", () => {
     await tick(30);
     o.m.type(KEY.down);
     await tick(60);
-    expect(o.others()).toEqual([]);
+    expect(o.all()).toEqual(Array.from({ length: 3 }, () => o.noticeInput()));
   });
 
   it("with the dock unfocused, ↓ moves the focused pane and PgUp leaves the transcript where it is", async () => {
@@ -89,12 +111,16 @@ describe("keys go to what has the focus, and nothing else", () => {
     const dockRows = () => o.text().filter((r) => r.includes("line "));
     const before = dockRows();
     o.m.type(KEY.down);
-    await until(() => o.others().length > 0);
-    expect(o.others()[0]).toMatchObject({ intent: "select" });
+    await until(() => o.others().length >= 2);
+    expect(o.others()).toEqual([o.noticeInput(), expect.objectContaining({ intent: "select" })]);
     o.m.type(KEY.pageUp);
     await tick(80);
     expect(dockRows()).toEqual(before);
     expect(o.docks()).toEqual([]);
+    expect(o.all()).toEqual([
+      o.noticeInput(), expect.objectContaining({ intent: "select" }),
+      o.noticeInput(), { intent: "key", chord: { key: "page_up" } },
+    ]);
   });
 
   it("keys after an esc in the same read go to the pane, not back into the dock", async () => {
@@ -104,8 +130,11 @@ describe("keys go to what has the focus, and nothing else", () => {
     expect(o.docks()).toEqual([{ intent: "dock", dock: "blur" }]);
     // The host has not answered yet: Ink already knows the dock gave the keys back.
     o.m.type("x");
-    await until(() => o.others().length > 0, 1000);
-    expect(o.others()[0]).toEqual({ intent: "key", chord: { key: { char: "x" } } });
+    await until(() => o.all().length >= 4, 1000);
+    expect(o.all()).toEqual([
+      o.noticeInput(true), { intent: "dock", dock: "blur" },
+      o.noticeInput(), { intent: "key", chord: { key: { char: "x" } } },
+    ]);
     expect(composerLine(o.text())).not.toContain("x");
   });
 
@@ -124,8 +153,8 @@ describe("keys go to what has the focus, and nothing else", () => {
     const o = await open(many(), 160, 40, "gitlab_repos-page2-overview-changes-threads-pipeline-commits-ticket_160x40.json");
     expect(o.text().join("\n")).not.toContain("agents");
     o.m.type("x");
-    await until(() => o.others().length > 0, 1000);
-    expect(o.others()[0]).toEqual({ intent: "key", chord: { key: { char: "x" } } });
+    await until(() => o.others().length >= 2, 1000);
+    expect(o.others()).toEqual([o.noticeInput(), { intent: "key", chord: { key: { char: "x" } } }]);
     expect(o.docks()).toEqual([]);
   });
 });

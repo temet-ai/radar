@@ -4,8 +4,18 @@
 journeys in `tests/slack_scenarios.rs`, `tests/provider_scenarios.rs`,
 `tests/local_scenarios.rs`, `tests/agent_scenarios.rs` and `tests/review_scenarios.rs`.
 It selects a scripted test and replays it through the real host, reducer, task
-completion path and disposable SQLite journal. Python 3.9+ and the repository's
-working Rust/Cargo toolchain are required; no Python packages are needed.
+completion path and disposable SQLite journal. The launcher targets Python 3.9+
+with the repository's working Rust/Cargo toolchain and POSIX process groups;
+no Python packages are needed. It runs as a standalone, single-threaded process
+with the default child-signal handler and no other child reaper. Unsupported
+process-control configurations fail before launching a build.
+
+The private supervisor uses pipes and `waitpid`, avoiding the `waitid` dependency
+that Python exposes on macOS only from 3.13. Native macOS execution and its
+dynamic-loader environment propagation have not been validated here. Linux
+checks, including a waitid-absent control, do not constitute macOS qualification.
+Windows launcher support remains unresolved; these developer-launcher limits do
+not redefine the product's supported platforms.
 
 ```sh
 scripts/scenarios --list
@@ -27,7 +37,8 @@ In the text menu, enter a listed number or name. `r` or Enter replays the previo
 selection, and `q` or EOF exits. Invalid input launches nothing. Every replay
 starts a new test process, host, strict provider fixture and scratch journal;
 there is no persistent scenario session to reset. The menu exits nonzero if any
-replay failed, even if a later replay succeeds. Ctrl-C exits with status 130.
+replay failed, even if a later replay succeeds. Ctrl-C exits with status 130;
+SIGTERM exits with status 143 rather than returning to the menu.
 
 ## Named recipes
 
@@ -51,7 +62,8 @@ layout or a real provider's behavior.
 
 ## Execution and diagnostics
 
-The command is printed before execution. A replay uses the equivalent of:
+Each command is printed before execution. A replay first compiles the selected
+minimal test target with `cargo test --no-run`, then uses the equivalent of:
 
 ```sh
 cargo test --locked --offline --color never --target-dir /path/to/gg/target \
@@ -102,11 +114,36 @@ Cargo's positive exit status. Missing Cargo produces an actionable error. A zero
 Cargo exit is accepted only if the harness reports exactly one passing,
 non-ignored test, so a stale name matching no tests cannot look successful.
 
-The launcher does not set or loosen test timeouts. It uses `cargo test`, which
-does not apply nextest's runtime budgets, and imposes no command wall timeout
-that would conflate compilation with execution. The scenarios retain their own
-bounded scheduling/settle steps. Those steps are not an OS sandbox and cannot
-bound arbitrary synchronous reducer code.
+The compile-only phase has a 900-second wall deadline. The exact test invocation
+has a separate 20-second wall deadline, including Cargo startup, lock acquisition
+and source revalidation. This is a conservative command deadline, not a pure
+libtest runtime measurement or nextest execution. A concurrent source change that
+triggers another build can exhaust the execution deadline; that remains a failure,
+not a reason to bypass Cargo's checks. There is no command-line timeout opt-out.
+
+Each phase starts a private Python supervisor as its session/process-group
+leader. It launches the unchanged Cargo command with the inherited environment,
+reaps Cargo, reports its result through a fixed-size private pipe, and stays alive
+until cleanup. Helper startup consumes the existing phase budget. Cargo cannot
+inherit the private report descriptor, and its stdout is not the status channel.
+Missing, malformed or oversized status reports fail rather than implying success.
+
+The launcher retains the supervisor without polling or reaping it until cleanup
+has attempted TERM, waited up to one second, then attempted KILL on that owned
+group. It then performs a bounded final reap. This also removes same-group
+stragglers after ordinary Cargo completion. Under the standalone sole-reaper
+contract, a dead but unreaped supervisor still reserves its PID; the status pipe
+itself is not a kernel ownership handle. Known ownership loss fails closed, and
+no group signal is sent after reaping. Arbitrary embedding with another reaper
+is unsupported. Cleanup failure cannot produce a successful replay.
+
+The launcher does not search for or stop unrelated processes. Deliberately
+detached descendants, uninterruptible kernel tasks and a controller killed with
+SIGKILL are outside its cleanup guarantee. Diagnostics distinguish compilation
+and execution deadlines. Cleanup can extend elapsed wall time beyond the phase
+deadline by its bounded grace and reap periods. The scenarios retain their own
+scheduling/settle budgets; neither those budgets nor process cleanup constitutes
+an operating-system sandbox.
 
 ## Isolation and coverage
 

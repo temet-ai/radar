@@ -37,7 +37,7 @@ jobs:
       - name: Tests
         run: cargo nextest run --workspace --all-features --locked
       - name: Each part alone, none, and all together
-        run: scripts/check-mixes --quick
+        run: scripts/check-mixes
 
   ink:
     runs-on: ubuntu-22.04

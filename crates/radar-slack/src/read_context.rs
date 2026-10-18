@@ -11,6 +11,11 @@ use crate::{SlackPlugin, client::Me};
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub(crate) struct ReadStamp(u64);
 
+impl ReadStamp {
+    /// Opaque local connection incarnation, never a credential fingerprint.
+    pub(crate) fn generation(self) -> u64 { self.0 }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct CheckStamp {
     read: ReadStamp,

@@ -423,6 +423,7 @@ impl SessionsPlugin {
         for t in todo {
             match t {
                 Todo::Notice(text) => self.review_fx.push(Effect::Notify(text)),
+                Todo::Error(text) => self.review_fx.push(Effect::error(None, text)),
                 Todo::StopSession(radar) => self.stop_session(&radar),
                 Todo::StartSession { run, spec } => self.start_review_session(run, spec),
             }
@@ -1025,7 +1026,7 @@ impl SessionsPlugin {
                 Inbound::CatalogFailed { provider, key, why } => {
                     if self.cache.catalog(&key).is_none() {
                         self.settings.set_catalog(&provider, Catalog::default());
-                        self.review_fx.push(Effect::Notify(format!("{provider} could not list its agents and skills: {why}")));
+                        self.review_fx.push(Effect::error(None, format!("{provider} could not list its agents and skills: {why}")));
                     }
                 }
                 Inbound::Login(provider, event) => self.settings.login_event(&provider, event),
@@ -1931,7 +1932,7 @@ impl Plugin for SessionsPlugin {
         let brief = Brief::build(&BriefRequest { recipe: &recipe, task: String::new(), contexts });
         // The prompt goes to a new session as its first message, at once.
         self.new_session_with(None, None, Some(brief.text), Some(recipe));
-        Outcome::Handled(broken.map(|why| vec![Effect::Notify(format!("your ask recipe is not used: {why}"))]).unwrap_or_default())
+        Outcome::Handled(broken.map(|why| vec![Effect::error(None, format!("your ask recipe is not used: {why}"))]).unwrap_or_default())
     }
 
     fn review_start(

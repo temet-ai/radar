@@ -3,8 +3,8 @@ source: tests/mix.rs
 assertion_line: 262
 expression: text
 ---
- radar    Branches   Work (I)   History   Settings (,)                                                           ✎ edit
-╭ settings ────────────╮╭ parts ─────────────────────────────────────────────────╮╭ GitLab ────────────────────────────╮
+ radar    Branches   Work items   History   Settings (,)                                                         ✎ edit
+╭ 1 settings ──────────╮╭ 2 parts ───────────────────────────────────────────────╮╭ 3 GitLab ──────────────────────────╮
 │General              █││ COMPILED INTO THIS RADAR                               ││ ○ not set up: Add a tenancy: a     █
 │  ├─ parts           █││                                                        ││ GitLab group or repo whose merge   █
 │  ├─ mode            █││ ○ GitLab      not set up                               ││ requests to follow.                █
@@ -32,4 +32,4 @@ expression: text
 │  └─ look            ║││                                                        ││ · a line on the repo page, under   ║
 │Git                  ║││                                                        ││ its title                          ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────╯╰────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate

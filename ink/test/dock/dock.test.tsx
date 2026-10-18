@@ -21,6 +21,12 @@ afterEach(() => {
 
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../fixtures");
 const load = (f: string) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+// These dock views borrow generic chrome from another host state, so its pane routing map is not evidence.
+// Actual paired native captures retain and verify their host-supplied pane_jumps separately.
+const viewOnlyChrome = (cols: number, rows: number) => {
+  const { pane_jumps: _unrelatedPaneJumps, ...chrome } = load(`host_chrome_${cols}x${rows}.json`);
+  return chrome;
+};
 const SIZES: Array<[number, number]> = [
   [80, 24],
   [160, 40],
@@ -32,7 +38,7 @@ async function draw(name: string, cols: number, rows: number) {
   const m = mount(cols, rows);
   live.push(m.stop);
   m.welcome();
-  const chrome = load(`host_chrome_${cols}x${rows}.json`);
+  const chrome = viewOnlyChrome(cols, rows);
   const screen = { ...load(`gitlab_repos_${cols}x${rows}.json`), dock: STATES[name] };
   m.snapshot({ chrome, screen }, 1);
   await tick(40);
@@ -75,7 +81,7 @@ describe("the dock, every state, both sizes", () => {
     const m = mount(160, 40);
     live.push(m.stop);
     m.welcome();
-    m.snapshot({ chrome: load("host_chrome_160x40.json"), screen: { ...load("gitlab_repos_160x40.json"), dock: { ...STATES.empty, visible: false } } }, 1);
+    m.snapshot({ chrome: viewOnlyChrome(160, 40), screen: { ...load("gitlab_repos_160x40.json"), dock: { ...STATES.empty, visible: false } } }, 1);
     await tick(40);
     expect(plain(m.frame()).join("\n")).not.toContain("agents");
   });

@@ -118,7 +118,7 @@ fn compact_settings_keep_scroll_and_navigation_hints_when_bulk_and_folds_compete
     let text = draw(&host, 80, 24);
     let bar = text.lines().last().unwrap();
     assert!(bar.contains("PgUp/PgDn scroll"), "{bar}");
-    assert!(bar.contains("←→↑↓ navigate") && bar.contains("x menu"), "{bar}");
+    assert!(bar.contains("←→↑↓ navigate") && bar.contains("extra actions"), "{bar}");
 }
 
 #[test]

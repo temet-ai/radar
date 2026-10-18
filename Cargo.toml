@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "3"
 
 [workspace.package]
-version = "0.1.0-alpha.9"
+version = "0.1.0-alpha.10"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT"
@@ -125,6 +125,7 @@ anyhow.workspace = true
 tokio.workspace = true
 
 [dev-dependencies]
+uuid.workspace = true
 radar-core = { workspace = true, features = ["test-support"] }
 insta.workspace = true
 portable-pty = "0.9.0"

@@ -1,9 +1,10 @@
 ---
 source: crates/radar-slack/src/alert_tests.rs
+assertion_line: 179
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
-╭ Alerts ──────────────────────────────────────────────────────────────────────╮
+╭ 2 Alerts ────────────────────────────────────────────────────────────────────╮
 │ firing first, then what resolved                  PRIORITY NOTIFIED FOR      │
 │firing                                                                        │
 │  ├─ api  prod                                                                │
@@ -25,4 +26,4 @@ expression: "to_text(&host, 80, 24)"
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ 1 bot message not read as alerts: the log says why.                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   b bulk   +/- expand/collapse   q quit   x menu                   slack
+ SLACK   bulk   +/- expand/collapse   quit   extra actions   ~ notices    slack

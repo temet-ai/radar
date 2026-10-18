@@ -4,9 +4,21 @@ import type { Target } from "./Target.js";
 /**
  * One row of a menu, or one button of a question.
  */
-export type Choice = { value: string, label: string, hint: string, key?: string | null, 
+export type Choice = { 
 /**
- * What its key column shows (`d`, `space`, `⏎`); empty on a heading.
+ * Zero-based Unicode scalar position in the effective action words: nonempty hint
+ * for question buttons, otherwise label (including ordinary/palette rows). Underline the complete
+ * containing grapheme; never search for a letter in the renderer.
+ */
+mnemonic_at?: number | null, 
+/**
+ * Show the named Shift modifier before a valid keyed word.
+ */
+mnemonic_shift?: boolean, value: string, label: string, hint: string, key?: string | null, 
+/**
+ * The original displayed shortcut (`d`, `space`, `⏎`); empty on a heading.
+ * Valid letter mnemonics use the action words without a separate key
+ * column. Named keys, legacy metadata and plain readers retain this label.
  */
 keys?: string, icon?: string | null, 
 /**

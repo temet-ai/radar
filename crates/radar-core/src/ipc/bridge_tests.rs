@@ -479,8 +479,14 @@ fn a_message_comes_and_goes_as_two_cues_at_full() {
     );
     settle(&mut bridge, &out);
     bridge.update(Event::Notice("copied 12 characters".into()));
-    assert!(snapshots(&bridge.outgoing()).is_empty(), "the same message again");
+    let repeated = bridge.outgoing();
+    assert_eq!(motion_of(&repeated)[0].cues, [MotionCue::Message { region: MotionRegion::Message }]);
+    settle(&mut bridge, &repeated);
     bridge.update(key(KeyCode::Char('a')));
+    let retained = bridge.outgoing();
+    assert!(motion_of(&retained).iter().all(|m| m.cues.is_empty()));
+    settle(&mut bridge, &retained);
+    bridge.update(key(KeyCode::Esc));
     let gone = bridge.outgoing();
     assert_eq!(
         motion_of(&gone)[0].cues,
@@ -618,4 +624,48 @@ fn a_traced_snapshot_names_the_intent_it_answers() {
     quiet.set_trace(false);
     quiet.receive(hello(PROTOCOL));
     assert!(snapshots(&quiet.outgoing()).iter().all(|s| s.trace.is_none()));
+}
+
+mod notice_history_tests {
+    use super::*;
+    #[test]
+    fn identical_notice_occurrences_cross_backpressure_and_reconnect_without_replay() {
+        let mut bridge = Bridge::new(fixture::host(), 80, 24);
+        bridge.set_clock_ms(0); bridge.receive(hello(PROTOCOL));
+        let initial = bridge.outgoing(); let first_cursor = snapshots(&initial)[0].cursor;
+        bridge.update(Event::Notice("same".into())); bridge.update(Event::Notice("same".into()));
+        let immediate = bridge.outgoing();
+        let ids: Vec<_> = immediate.iter().filter_map(|message| match message { ToRenderer::Notice(n) => Some(n.occurrence.as_ref().unwrap().id), _ => None }).collect();
+        assert_eq!(ids, [1, 2]); assert!(snapshots(&immediate).is_empty());
+        bridge.set_clock_ms(crate::notices::INFO_MS); bridge.receive(ToHost::Ack { cursor: first_cursor });
+        let expired = bridge.outgoing();
+        assert!(snapshots(&expired)[0].chrome.notices.active.is_empty()); assert_eq!(snapshots(&expired)[0].chrome.notices.through_id, 2);
+        bridge.reconnect(); bridge.receive(hello(PROTOCOL)); let reconnected = bridge.outgoing();
+        assert!(reconnected.iter().all(|m| !matches!(m, ToRenderer::Notice(_))));
+        assert!(snapshots(&reconnected)[0].chrome.notices.active.is_empty()); assert_eq!(bridge.host().notices.len(), 2);
+    }
+    #[test]
+    fn an_open_notice_history_freezes_the_wire_clock_but_expiry_remains_authoritative() {
+        let mut bridge = Bridge::new(fixture::host(), 80, 24);
+        bridge.set_clock_ms(0); bridge.receive(hello(PROTOCOL)); let initial = bridge.outgoing(); settle(&mut bridge, &initial);
+        bridge.update(Event::Notice("read this session notice".into()));
+        bridge.send(Intent::Key { chord: crate::view::Chord::new(crate::view::Key::Char('~')) });
+        let opened = bridge.outgoing(); assert!(snapshots(&opened)[0].chrome.notice_history.is_some());
+        assert_eq!(snapshots(&opened)[0].chrome.notices.now_ms, 0); settle(&mut bridge, &opened);
+        bridge.set_clock_ms(1_000); assert!(snapshots(&bridge.outgoing()).is_empty(), "hidden progress never republishes history");
+        bridge.set_clock_ms(crate::notices::INFO_MS); let expired = bridge.outgoing();
+        assert!(snapshots(&expired)[0].chrome.notices.active.is_empty());
+        assert_eq!(snapshots(&expired)[0].chrome.notice_history.as_ref().unwrap().entries.len(), 1);
+    }
+    #[test]
+    fn native_fallback_resets_notice_input_capability_for_captured_back_clicks() {
+        let mut bridge = Bridge::new(fixture::host(), 80, 24); bridge.set_clock_ms(0);
+        bridge.update(Event::Notice("still active".into())); let through_id = bridge.host().notices.through_id();
+        bridge.send(Intent::NoticeInput { escape: false, through_id });
+        bridge.send(Intent::Key { chord: crate::view::Chord::new(crate::view::Key::Char('~')) });
+        assert!(bridge.host().chrome_view(80, 24).notice_history.is_some());
+        let mut host = bridge.into_host();
+        host.update(Event::Intent(Intent::Activate { target: crate::view::Target::new("chrome:notices:close") }));
+        assert!(host.chrome_view(80, 24).notice_history.is_none()); assert!(!host.notices.has_active()); assert_eq!(host.notices.len(), 1);
+    }
 }

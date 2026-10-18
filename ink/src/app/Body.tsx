@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Text } from "ink";
 import { renderNode as drawNode, type NodeContext } from "../nodes/index.js";
 import type { ActionSpec } from "./actions.js";
+import { ActionList as ActionRows } from "../nodes/actions.js";
 
 /** What the shell gives every node: the room, who has the keys, and the actions of the focused place. */
 export type NodeCx = {
@@ -18,6 +19,11 @@ export type NodeCx = {
   registry?: NodeContext["registry"];
   /** The page's tab row has the keys (ChromeView.keys_at is page_tabs). */
   tabsFocused?: boolean;
+  /** Host-owned active-surface digit routing, including logically hidden panes. */
+  paneJumps?: readonly { pane: string; key: string }[];
+  scrollIdentity?: string;
+  bodyTrack?: boolean;
+  writeMode?: import("../nodes/detail.js").WriteMode;
 };
 
 export type RenderNode = (node: any, cx: NodeCx) => React.ReactNode;
@@ -39,33 +45,21 @@ export const shellRenderNode: RenderNode = (node, cx) => {
     sheet: cx.sheet,
     onIntent: cx.onIntent,
     registry: cx.registry,
+    scrollIdentity: cx.scrollIdentity,
+    bodyTrack: cx.bodyTrack,
   };
   const body = drawNode(node, ctx);
   if (node && typeof node === "object" && KNOWN.has(String(node.node))) return body;
   return (
     <Box flexDirection="column">
       {body}
-      <ActionList actions={cx.actions} />
+      <ActionList actions={cx.actions} plain={cx.plainText} />
     </Box>
   );
 };
 
-export function ActionList({ actions }: { actions: ActionSpec[] }) {
+export function ActionList({ actions, plain }: { actions: ActionSpec[]; plain?: boolean }) {
   const runnable = actions.filter((a) => !a.heading);
   if (runnable.length === 0) return <Text dimColor>no actions here</Text>;
-  return (
-    <Box flexDirection="column" paddingX={1}>
-      {runnable.map((a) => (
-        <Text key={a.id}>
-          <Text color="cyan">{(a.key ? chordLabel(a.key) : "").padEnd(8)}</Text>
-          {a.label}
-        </Text>
-      ))}
-    </Box>
-  );
-}
-
-function chordLabel(chord: NonNullable<ActionSpec["key"]>): string {
-  const k = typeof chord.key === "string" ? chord.key : chord.key.char;
-  return (chord.ctrl ? "ctrl-" : "") + (k === " " ? "space" : k === "enter" ? "⏎" : k);
+  return <ActionRows actions={runnable} plain={plain} />;
 }

@@ -6,6 +6,7 @@ import type { Snapshot } from "../../src/protocol/generated/Snapshot.js";
 import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 import { freezeClock, mount, until } from "../app/harness.js";
 import { plain } from "../contract/support.js";
+import { attachMotion } from "../../src/motion/attach.js";
 
 // A production hosted-provider refresh, reduced by Scenario, supplies this checkpoint.
 // tests/provider_scenarios.rs checks these files against a fresh journey and renders
@@ -67,17 +68,35 @@ describe("scenario-derived renderer checkpoint", () => {
     const expected = rows(fs.readFileSync(ratatui, "utf8"));
     expect(expected.join("\n")).toContain("Patrol the Brass Bridge");
 
-    const renderer = mount(view.width, view.height);
-    stop = renderer.stop;
+    // Production attaches the output compositor before rendering App; it paints notices after layout.
+    // This replay attaches before delivering the captured snapshot, using the same input bus.
+    // Hold the notice clock at the captured host time until the initial frame is compared.
+    let now = 0;
+    const renderer = mount(view.width, view.height, {}, {}, () => now);
+    const detach = attachMotion(renderer.session, renderer.mouse, renderer.out);
+    stop = () => { renderer.stop(); detach(); };
+    let actual = "";
     try {
       renderer.welcome();
       renderer.snapshot({ chrome: view.chrome, screen: view.screen, section: view.section, focus: view.focus });
       await until(() => plain(renderer.frame()).includes("Patrol the Brass Bridge"));
-      expect(rows(renderer.frame())).toEqual(expected);
+      actual = renderer.frame();
+      expect(rows(actual)).toEqual(expected);
+      const notices = view.chrome?.notices;
+      if (notices?.active.length) {
+        for (const notice of notices.active) expect(plain(actual)).toContain(notice.text);
+        // Expiry must clear the presentation without leaving notice pixels or targets behind.
+        now = Math.max(...notices.active.map((notice) => notice.created_ms + notice.lifetime_ms)) - notices.now_ms;
+        renderer.snapshot({ chrome: view.chrome, screen: view.screen, section: view.section, focus: view.focus }, 2);
+        await until(() => notices.active.every((notice) => !plain(renderer.frame()).includes(notice.text)));
+        for (const notice of notices.active) expect(plain(renderer.frame())).not.toContain(notice.text);
+        expect(renderer.session.noticeHits).toEqual([]);
+        expect(plain(renderer.frame())).toContain("Patrol the Brass Bridge");
+      }
     } finally {
       // Preserve what Ink really drew on success or mismatch. No synthetic frame
       // is substituted when mount/replay fails before producing output.
-      captureActual(renderer.frame());
+      captureActual(actual || renderer.frame());
     }
   });
 });

@@ -1,6 +1,6 @@
 ---
 source: crates/radar-core/src/setup/tests.rs
-assertion_line: 598
+assertion_line: 602
 expression: "screen(&host, 160, 40)"
 ---
  radar  setup / choose                                                                                                                                   ✎ edit
@@ -42,4 +42,4 @@ expression: "screen(&host, 160, 40)"
 
 
 
- SETUP   ⏎ start here   space tick   a all   n none   esc not now   ← back                                                                           shelf talk
+ SETUP   ⏎ start here   space tick   all   none   esc not now   ← back                                                                               shelf talk

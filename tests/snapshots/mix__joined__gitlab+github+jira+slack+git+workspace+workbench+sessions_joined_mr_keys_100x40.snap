@@ -1,45 +1,45 @@
 ---
 source: tests/mix.rs
-assertion_line: 947
+assertion_line: 964
 expression: "to_text(&host, 100, 40)"
 ---
  radar    R ●   J   B   I   History   Settings (,)                           not synced yet  ✎ edit
-╭ views ───────────────╮╭ Everything ──────────────────────────────────────────────────────────────╮
-│ Everything           ││ OPENED BY everyone · 1 repo        STATE               UPDATED FOR YOU   │
-│ Needs my action    2 ││▌ A team-a                                                                │
-│ Opened by me         ││▌ └─ api                            — no recent run     —       3 MRs     │
-│ Opened by teammat╭ api !263 ──────────────────────────────────────────────────╮16m     review    │
-│ Opened by bots   │ ⏎       open its page                                      │16m     review    │
-│                  │ o       open it in GitLab                                  │16m     team      │
-│                  │ y       copy its link                                      │                  │
-│                  │ ON GITLAB                                                  │                  │
-│                  │ u       rebase · not behind main                           │                  │
-│                  │ m       merge · needs 1 approval                           │                  │
-│                  │ e       approve !263…                                      │                  │
+╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────────────────────────╮
+│ Everything       ╭ api !263 ──────────────────────────────────────────────────╮UPDATED FOR YOU   │
+│ Needs my action  │ ⏎       open its page                                      │                  │
+│ Opened by me     │         open it in GitLab                                  │—       3 MRs     │
+│ Opened by teammat│         copy its link                                      │16m     review    │
+│ Opened by bots   │ ON GITLAB                                                  │16m     review    │
+│                  │         update by rebasing · not behind main               │16m     team      │
+│                  │         merge · needs 1 approval                           │                  │
+│                  │         approve !263…                                      │                  │
 │                  │ /       filter the view by words                           │                  │
 │                  │ .       show only repos with merge requests in the view    │                  │
-│                  │ r       refresh now                                        │                  │
+│                  │         refresh now                                        │                  │
 │                  │ WITH AN AGENT                                              │                  │
-│                  │ A       ask an agent about it…                             │                  │
-│                  │ i       review it locally…                                 │                  │
+│                  │         shift ask an agent about it…                       │                  │
+│                  │         review it locally…                                 │                  │
 │                  │ :       go to a tenancy, repo or merge request…            │                  │
-│                  │ a       show one author's merge requests…                  │                  │
+│                  │         show one author's merge requests…                  │                  │
 │                  │ ctrl-r  kept comments…                                     │                  │
+│                  │ space   toggle the group                                   │                  │
+│                  │ +       expand the group                                   │                  │
+│                  │ -       collapse the group, or the one this row is in      │                  │
+│                  │ =       expand every held group                            │                  │
 │                  │ JIRA                                                       │                  │
-│                  │ v       open ABC-12                                        │                  │
+│                  │         view ABC-12                                        │                  │
 │                  │ >       move ABC-12 to …                                   │                  │
 │                  │ GIT                                                        │                  │
-│                  │ s       look for a checkout · no folders set yet           │                  │
+│                  │         scan for a checkout · no folders set yet           │                  │
 │                  │         link to a local folder…                            │                  │
 │                  │ WORK                                                       │                  │
 │                  │         add to work item…                                  │                  │
+│                  │ ~       recent notices (this session)                      │                  │
 │                  │ HISTORY                                                    │                  │
-│                  │ H       recent activity (last 24 hours)                    │                  │
+│                  │         shift recent activity (last 24 hours)              │                  │
 │                  │         all activity history                               │                  │
 │                  │         history for selected item                          │                  │
-│                  ╰────────────────────────────────────────────────────────────╯                  │
-│                      ││                                                                          │
-│                      ││─ shows ──────────────────────────────────────────────────────────────────│
+│                  ╰────────────────────────────────────────────────────────────╯──────────────────│
 │                      ││ every open merge request · listing every repo, also those without        │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   j/k move   ⏎ choose   esc close                   3 open · 2 to review  gitlab jira
+ REPOSITORIES   ↑↓ move   ⏎ choose   esc close                    3 open · 2 to review  gitlab jira

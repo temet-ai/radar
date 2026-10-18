@@ -482,7 +482,9 @@ fn finish_later_keeps_the_answers_and_says_where_setup_paused() {
     let fx = press(&mut host, KeyCode::Char('f'));
     assert!(host.setup.is_none());
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Save(_))), "{fx:?}");
-    let message = host.chrome_view(160, 40).status.message.unwrap().text;
+    let chrome = host.chrome_view(160, 40);
+    assert!(chrome.status.message.is_none(), "status hints stay visible");
+    let message = &chrome.notices.active.last().unwrap().text;
     assert!(message.starts_with("setup paused at look & terminal"), "{message}");
 }
 

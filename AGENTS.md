@@ -25,7 +25,7 @@ Ink/React (`ink/`, the default). Read this file first; it points to the rest.
 ```bash
 cargo nextest run -p radar-<crate>     # test only the crate you changed (cargo test -p if no nextest)
 cargo clippy --workspace --all-features --all-targets -- -D warnings
-scripts/check-mixes --quick         # per commit; the full run at merge
+scripts/check-mixes                 # none, each part alone, all; when features, src/lib.rs or tests/mix.rs change (CI runs it)
 scripts/shots --compare main        # when a colour, style or layout changed
 cargo run -p radar-core --example gallery   # every kit element live
 cd ink && npm run typecheck && npm test  # Ink
@@ -38,10 +38,11 @@ RADAR_RENDERER=ratatui radar              # the Ratatui renderer, for side-by-si
 ```
 
 - **Testing pyramid:** unit-heavy, a few integration tests per part, a tiny end-to-end per
-  mix. No loops that draw a full frame per row. A crate's suite stays under ~10 s,
-  `scripts/check-mixes` under ~3 min. Details: GUIDE section 3.
-- **Read a snapshot diff before accepting it.** `tests/mix.rs` wipes the environment, so
-  regenerate those with `cargo insta accept` per mix.
+  mix. No loops that draw a full frame per row, no runs over every combination of parts.
+  A crate's suite stays under ~10 s. A session tests the crates it changed, not the
+  workspace. Details: GUIDE section 3.
+- **Read a snapshot diff before accepting it.** `tests/mix.rs` keeps `INSTA_UPDATE`, so
+  `INSTA_UPDATE=always` rewrites a mix's recordings in one run; read the `git diff` after.
 - **Build folders:** use the repo's `target/`, never a per-task target dir.
 - **Tests are sandboxed:** cargo sets `RADAR_SANDBOX`, so no test opens a browser, the
   clipboard, a notification or a real agent CLI. `RADAR_SANDBOX= cargo run` for a live run.

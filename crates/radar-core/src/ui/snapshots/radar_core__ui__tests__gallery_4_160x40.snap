@@ -1,10 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Rows & states
+ Gallery / Rows & states
  The kit: every element on sample data                                                                                                            colours: none
- Tree  Table  Card  Meters  [Rows & states]  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons
+ Tree  Table  Card  Meters  [Rows & states]  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons  Notices
 ╭ settings rows ───────────────────────────────────────────────────────────────╮╭ server ──────────────────────────────────────────────────────────────────────╮
 │  ? Found in your environment: a shelf token (SHELF_TOKEN). Use it?           ││ Where the shelves are kept.                                                  │
 │  server          https://shelves.example                                     ││                                                                              │
@@ -41,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 │ The selected row, in words: what it holds and what it accepts.               ││                                      ││                                      │
 │                                                                              ││                                      ││                                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────╯╰──────────────────────────────────────╯
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

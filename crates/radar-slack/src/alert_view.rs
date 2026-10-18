@@ -170,7 +170,7 @@ pub(crate) fn map_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
         }
         Edit::Typing => Outcome::done(),
         Edit::Submit(text) => match rule_for(&m.name, &text) {
-            Err(why) => Outcome::Handled(vec![Effect::Notify(format!("not yet: {why}"))]),
+            Err(why) => Outcome::Handled(vec![Effect::error(None, format!("not yet: {why}"))]),
             Ok(rule) => {
                 p.mapping = None;
                 let said = match (&rule.repo, &rule.service) {

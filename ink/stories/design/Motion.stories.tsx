@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { card } from "./Board";
 import { Row, ShippedLabel, Target } from "./parts";
 import { MotionReference, MotionReplay, InteractionReplay } from "./MotionReplay";
+import { NoticeDrainReplay } from "./NoticeReplay";
 import type { Cue } from "../../src/motion/engine";
 
 type Args = { name: string; speed: "real" | "slow" };
@@ -30,7 +31,7 @@ function Shipped({ args, base, cue, what }: { args: Args; base: string; cue?: Cu
  * Ratatui's cells at the start, middle and end of the same effect sit beside it.
  *
  * Fold open/reverse close and focus lap/drain run the production integer cell compositor against Rust fixtures.
- * Assemble/loading outlines (#42) and notice drain (#41) remain canvas targets.
+ * Notice drain runs production row layout with a controlled clock. Assemble/loading outlines (#42) remain canvas targets.
  *
  * `speed`: real time, or four times slower to watch an effect. Motion never delays a key; any key cancels it; it is
  * off over SSH and on slow terminals.
@@ -93,4 +94,4 @@ export const LoadingOutlines: Story = {
 };
 
 /** Notice drain: a notice's tinted ground drains as its time runs out. */
-export const NoticeDrain: Story = { render: (args) => <Target board="Motion" picks={[card("Notice")]} issues={[41]} props={boardSpeed(args)} width={720} /> };
+export const NoticeDrain: Story = { render: (args, { globals }) => <NoticeDrainReplay globals={globals} speed={args.speed} /> };

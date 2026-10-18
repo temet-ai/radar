@@ -1062,7 +1062,7 @@ pub(crate) fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<crate::Row> {
             "r",
             match &page.kind {
                 Kind::Mr { .. } => "refresh this page",
-                Kind::Job { .. } => "load its log again",
+                Kind::Job { .. } => "reread its log",
                 _ => "refresh this page and its tenancy",
             },
         ),

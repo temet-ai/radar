@@ -1,10 +1,10 @@
 ---
 source: crates/radar-core/src/host.rs
-assertion_line: 6744
+assertion_line: 7108
 expression: "crate::shell::to_text(&host, 80, 24)"
 ---
  radar    A   History   Settings (,)                                ◉ read only
-╭ settings ────────────╮╭ mode ────────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 mode ──────────────────────────────────────────────╮
 │General               ││ WHAT RADAR MAY CHANGE                                │
 │  ├─ parts            ││                                                      │
 │  ├─ mode             ││ mode    read only                                    │
@@ -15,7 +15,7 @@ expression: "crate::shell::to_text(&host, 80, 24)"
 │  └─ a                ││ pause if idle after 30 minutes                       │
 │                      ││                                                      │
 │                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ the modes ───────────────────────────────────────────╮
+│                      │╭ 3 the modes ─────────────────────────────────────────╮
 │                      ││ ● read only                                          █
 │                      ││     changes nothing anywhere: every write is shown   █
 │                      ││ and asked, and none is sent                          █
@@ -26,4 +26,4 @@ expression: "crate::shell::to_text(&host, 80, 24)"
 │                      ││     may also change what is there: approve, resolve, ║
 │                      ││ move, assign, rebase, merge                          ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices   ←→↑↓ navigate

@@ -27,7 +27,7 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
         let screen = render(&host, "setup", width, height);
         assert!(!screen.contains("Active reply stays here."));
         let footer = screen.lines().last().unwrap();
-        assert!(footer.contains("x menu"), "{footer}");
+        assert!(footer.contains("extra actions"), "{footer}");
         for ghost in [
             "new line",
             "review and send",
@@ -61,13 +61,20 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
             .expect("advertised menu opens")
             .menu
             .items;
-        assert_eq!(items.len(), 4);
-        assert_eq!(items[0].label, "set up Slack in settings");
-        assert_eq!(items[0].keys, "⏎");
-        assert_eq!(items[1].label, "History");
-        assert_eq!(items[2].label, "recent activity (last 24 hours)");
-        assert_eq!(items[2].keys, "H");
-        assert_eq!(items[3].label, "all activity history");
+        assert_eq!(
+            items
+                .iter()
+                .map(|item| (item.label.as_str(), item.keys.as_str()))
+                .collect::<Vec<_>>(),
+            [
+                ("set up Slack in settings", "⏎"),
+                ("recent notices (this session)", "~"),
+                ("History", ""),
+                ("recent activity (last 24 hours)", "H"),
+                ("all activity history", ""),
+            ]
+        );
+        assert!(items[2].heading);
         render(&host, "setup-menu", width, height);
         press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
         assert_eq!(state(&host), before);

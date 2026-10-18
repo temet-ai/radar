@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen/removal_tests.rs
+assertion_line: 378
 expression: stale
 ---
  radar    Branches   History   Settings (,)                                                                                   synced 20s ago · every 1m  ✎ edit
-╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api-hotfix ──────────────────────────────────╮
+╭ 1 views ───────────────╮╭ 2 all ─────────────────────────────────────────────────────────────────────────────╮╭ 3 api-hotfix ────────────────────────────────╮
 │ all                    ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  DIRTY      STASH  UPDATED  ││ folder   /work/acme/api-hotfix               │
 │ dirty                1 ││api  on main  ● in use                    —      —       clean      —      2961w    ││ clone    /work/acme/api                      │
 │ ahead of remote        ││  ├─ api-hotfix  on hotfix                —      —       2 changed  —      2961w    ││ on       hotfix                              │
@@ -39,6 +40,6 @@ expression: stale
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ every clone, its worktrees and its local branches                                  ││                                              │
+│                        ││ every clone, its worktrees and its local branches                   error worktree changed: press d to review removal again        │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- BRANCHES   worktree changed: press d to review removal again                                                                                           1 dirty
+ BRANCHES   ⏎ use it   delete   shift ask an agent   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate

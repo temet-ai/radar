@@ -4,7 +4,7 @@ assertion_line: 143
 expression: "to_text(&started(), 160, 40)"
 ---
  radar    History   Settings (,)                                                                                                                         ✎ edit
-╭ set up Workspace ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 set up Workspace ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Workspace is not set up yet.                                                                                                                                 │
 │                                                                                                                                                              │
 │ no workspace yet: add one in settings, workspace › workspaces                                                                                                │
@@ -42,4 +42,4 @@ expression: "to_text(&started(), 160, 40)"
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- LOCAL WORKSPACES   q quit   x menu   ←→↑↓ navigate
+ LOCAL WORKSPACES   quit   extra actions   ~ notices   ←→↑↓ navigate

@@ -1,29 +1,29 @@
 ---
 source: tests/mix.rs
-assertion_line: 1203
+assertion_line: 1217
 expression: "to_text(&host, 80, 24)"
 ---
  radar    R   B   I   History   Settings (,)             not synced yet  ✎ edit
-╭ views ───────────────╮╭ api !263 ────────────────────────────────────────────╮
-│ Everything           ││ a api  !263                                          █
-│ Needs my action      ││ Add a stats endpoint                                 █
-│ Opened by me         ││ Alice Example · stats → main · 16m ago               █
-│ Opened by teammates  ││                                                      █
-│ Opened by bots       ││  a teammate's                                        █
-│                      ││                                                      █
-│                      ││ STATE ────────────────────────────────────────────── █
-│                      ││   ▷ needs rebase                                     █
-│                      ││                                                      █
-│                      ││ ACTIONS ──────────────────────────────────────────── █
-│                      ││   rebase onto main                               [u] █
-│                      ││   merge · needs rebase                           [m] █
-│                      ││   approve                                        [e] █
-│                      ││   open in GitLab                                 [o] █
-│                      ││   copy link                                      [y] █
-│                      ││   look for a checkout · no folders set yet       [s] █
-│                      ││                                                      █
-│                      ││ PIPELINE  passed ─────────────────────────────────── ║
-│                      ││                                                      ║
-│                      ││ CHANGES ──────────────────────────────────────────── ║
+╭ 1 views ─────────────╮╭ 3 api !263 ──────────────────────────────────────────╮
+│ Everything           ││ a / acme/team-a/api / !263                           │
+│ Needs my action      ││ Add a stats endpoint                                 │
+│ Opened by me         ││ stats → main                 Alice Example · 16m ago │
+│ Opened by teammates  ││                                                      │
+│ Opened by bots       ││ project    api                                       │
+│                      ││ state      open                                      │
+│                      ││ approvals  1 required · 0 left                       │
+│                      ││                                                      │
+│                      ││ STATE ────────────────────────────────────────────── │
+│                      ││   a teammate's                                       │
+│                      ││   ▷ needs rebase                                     │
+│                      ││                                                      │
+│                      ││ PIPELINE  passed ─────────────────────────────────── │
+│                      ││                                                      │
+│                      ││ CHANGES ──────────────────────────────────────────── │
+│                      ││   1 file  +10 −2                                     │
+│                      ││                                                      │
+│                      ││ THREADS  none ────────────────────────────────────── │
+│                      ││──────────────────────────────────────────────────────│
+│                      ││update  merge  approve  open  copy link  extra actions│
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   u rebase   b bulk   q quit   x menu                      gitlab
+ REPOSITORIES   update by rebasing   bulk   extra actions   ~ notices    gitlab

@@ -289,7 +289,15 @@ fn uncertain_status_survives_restore_edits_decline_and_local_mode_refusal() {
         writes::set_mode(Mode::ReadOnly, None);
         let refused = choose(&mut p, if decline { "no" } else { "yes" });
         no_spawn(&refused);
-        assert!(refused.iter().any(|e| matches!(e, Effect::Notify(text) | Effect::NotifyWith(_, text) if text.contains("current attempt not sent") && text.contains("outcome uncertain"))));
+        let mut notices = refused.iter().filter(|e| matches!(e, Effect::Notify(_) | Effect::NotifyWith(_, _) | Effect::Notice(_)));
+        let text = match (decline, notices.next(), notices.next()) {
+            (true, Some(Effect::Notify(text)), None) => text.as_str(),
+            (false, Some(Effect::Notice(message)), None)
+                if message.tone == radar_core::view::chrome::NoticeTone::Error => message.text.as_str(),
+            other => panic!("decline stays informational; mode refusal is an error: {other:?}"),
+        };
+        assert!(text.contains("current attempt not sent"), "{text}");
+        assert!(text.contains("outcome uncertain"), "{text}");
         assert_eq!(first(&p).status, Status::Uncertain);
     }
 }

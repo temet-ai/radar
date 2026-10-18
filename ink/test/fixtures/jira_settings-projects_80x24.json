@@ -19,7 +19,8 @@
           "char": "p"
         }
       },
-      "label": "pick from Jira…"
+      "label": "pick from Jira…",
+      "mnemonic_at": 0
     },
     {
       "id": "jira.projects.kept_text",
@@ -50,10 +51,10 @@
     "node": "tree",
     "open": [
       [
-        "0"
+        "s:acme"
       ],
       [
-        "1"
+        "s:beta"
       ]
     ],
     "rows": [
@@ -140,8 +141,7 @@
             ]
           }
         ],
-        "heading": true,
-        "id": "0",
+        "id": "s:acme",
         "name": [
           {
             "icon": "site"
@@ -218,8 +218,7 @@
             ]
           }
         ],
-        "heading": true,
-        "id": "1",
+        "id": "s:beta",
         "name": [
           {
             "icon": "site"
@@ -237,7 +236,7 @@
       }
     ],
     "selected": [
-      "0",
+      "s:acme",
       "add"
     ]
   },

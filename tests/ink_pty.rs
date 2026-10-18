@@ -722,14 +722,14 @@ fn journey(run: &mut Run) {
     run.press("\x1b");
     run.until("menu closed", |r| !r.shows(&["open the group in GitLab"]) && r.shows(&["OPENED BY"]));
     run.press("\r");
-    run.until("group page", |r| r.shows(&["Repositories › a", "acme/team-a"]));
+    run.until("group page", |r| r.shows(&["Repositories / a", "acme/team-a"]));
     run.press("\x1b");
-    run.until("back on the list", |r| r.shows(&["OPENED BY"]) && !r.shows(&["Repositories › a"]));
+    run.until("back on the list", |r| r.shows(&["OPENED BY"]) && !r.shows(&["Repositories / a"]));
     // Three keys in one write, as fast typing or a key held down sends them.
     run.press("\x1b[B\x1b[B\r");
-    run.until("merge request page", |r| r.shows(&["Repositories › a › api › !263", "Pipeline", "Commits"]));
+    run.until("merge request page", |r| r.shows(&["Repositories / a / api / !263", "Pipeline", "Commits"]));
     run.press("\x1b");
-    run.until("back from the page", |r| r.shows(&["OPENED BY"]) && !r.shows(&["› !263"]));
+    run.until("back from the page", |r| r.shows(&["OPENED BY"]) && !r.shows(&["/ !263"]));
     run.press("I");
     run.until("work screen", |r| top_bar(r) && r.shows(&["WORK", "work items"]));
     run.resize(160, 40);
@@ -741,9 +741,9 @@ fn journey(run: &mut Run) {
     run.press("\x1b");
     run.until("menu closed at 160x40", |r| !r.shows(&["refresh now"]));
     run.press("\r");
-    run.until("merge request page at 160x40", |r| r.shows(&["Repositories › a › api › !263", "Pipeline", "Commits"]));
+    run.until("merge request page at 160x40", |r| r.shows(&["Repositories / a / api / !263", "Pipeline", "Commits"]));
     run.press("\x1b");
-    run.until("back on the list at 160x40", |r| r.shows(&["OPENED BY"]) && !r.shows(&["› !263"]));
+    run.until("back on the list at 160x40", |r| r.shows(&["OPENED BY"]) && !r.shows(&["/ !263"]));
     run.press(",");
     run.until("settings at 160x40", |r| r.shows(&["SETTINGS", "GitLab", "Jira"]));
     run.press("R");

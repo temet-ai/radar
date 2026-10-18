@@ -4,7 +4,7 @@ assertion_line: 2810
 expression: "shot(\"links\", 80, 24)"
 ---
  radar    Branches   History   Settings (,)                              ✎ edit
-╭ settings ────────────╮╭ links ───────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 links ─────────────────────────────────────────────╮
 │General               ││  + link a repo to your clone                         │
 │  ├─ parts            ││ acme/team-a/api → /work/acme/api              ✓ main │
 │  ├─ mode             ││ acme/team-b/web → /radar/no/suc…    ✗ no such folder │
@@ -15,7 +15,7 @@ expression: "shot(\"links\", 80, 24)"
 │  ├─ checkouts        ││                                                      │
 │  ├─ terminal         ││                                                      │
 │  ├─ editors          │╰──────────────────────────────────────────────────────╯
-│  ├─ links            │╭ acme/team-b/web ─────────────────────────────────────╮
+│  ├─ links            │╭ 3 acme/team-b/web ───────────────────────────────────╮
 │  └─ branches         ││ CHECKED                                              █
 │                      ││ ⚠ no such folder                                     █
 │                      ││                                                      █
@@ -26,4 +26,4 @@ expression: "shot(\"links\", 80, 24)"
 │                      ││ worktrees 0 known                                    ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices   ←→↑↓ navigate

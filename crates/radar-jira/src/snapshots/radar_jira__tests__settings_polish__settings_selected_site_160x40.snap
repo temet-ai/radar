@@ -4,7 +4,7 @@ assertion_line: 33
 expression: "text(&host, 160, 40)"
 ---
  radar    Jira   History   Settings (,)                                                                                                                  ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ site ──────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 site ────────────────────────────────────────────╮
 │General               ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?               ││ CHECKED                                            █
 │  ├─ parts            ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?         ││ not checked yet                                    █
 │  ├─ mode             ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    █
@@ -29,17 +29,17 @@ expression: "text(&host, 160, 40)"
 │                      ││                                                                                ││   id.atlassian.com / profile                       █
 │                      ││                                                                                ││ API TOKEN  about a minute ──────────────────────── █
 │                      ││                                                                                ││   1 Open Atlassian's API token page:               █
-│                      ││                                                                                ││   id.atlassian.com / api tokens   o opens · y      █
-│                      ││                                                                                ││   copies                                           █
+│                      ││                                                                                ││   id.atlassian.com / api tokens   open · copy      █
 │                      ││                                                                                ││   2 Create API token, label it radar, pick an      █
 │                      ││                                                                                ││   expiry, then Create.                             █
 │                      ││                                                                                ││   3 Copy it now: Atlassian shows it once. Paste it █
 │                      ││                                                                                ││   into token, or:                                  █
 │                      ││                                                                                ││   $ export JIRA_TOKEN=…                            █
 │                      ││                                                                                ││     then the token is env:JIRA_TOKEN               █
-│                      ││                                                                                ││ IF IT IS REFUSED ───────────────────────────────── ║
-│                      ││                                                                                ││   401: the email and token don't match, or the     ║
+│                      ││                                                                                ││ IF IT IS REFUSED ───────────────────────────────── █
+│                      ││                                                                                ││   401: the email and token don't match, or the     █
 │                      ││                                                                                ││   token expired.                                   ║
 │                      ││                                                                                ││   Company login (SSO)? An API token still works;   ║
+│                      ││                                                                                ││   ask your admin if API tokens are switched off.   ║
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                    jira
+ SETTINGS   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                     jira

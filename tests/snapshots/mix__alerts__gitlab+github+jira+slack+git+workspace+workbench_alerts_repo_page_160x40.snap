@@ -1,14 +1,14 @@
 ---
 source: tests/mix.rs
-assertion_line: 1551
+assertion_line: 1578
 expression: shown
 ---
- radar    Repositories ●   Slack   Branches   Work (I)   History   Settings (,)                                                        ⠷ not synced yet  ✎ edit
- Repositories › a › api
+ radar    Repositories ●   Slack   Branches   Work items   History   Settings (,)                                                      ⠷ not synced yet  ✎ edit
+ Repositories / a / api
  acme/team-a/api                                                                                                                       firing · 1   main — none
  checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
  Merge requests  Pipelines on main  [Alerts]
-╭ alerts ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 alerts ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ▲ api-HighErrorRate · prod · P1 · firing #h ##m · #team-alerts                                                                                               │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
@@ -42,4 +42,4 @@ expression: shown
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                           1 open · 1 to review  gitlab slack
+ REPOSITORIES   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                          1 open · 1 to review  gitlab slack

@@ -84,7 +84,16 @@
           ],
           [
             {
-              "text": "v history: original claims and outcomes · completeness not guaranteed",
+              "text": "v",
+              "look": "status.info underline"
+            },
+            {
+              "text": "iew history",
+              "key_hint": "v",
+              "look": "status.info"
+            },
+            {
+              "text": ": original claims and outcomes · completeness not guaranteed",
               "ink": "info"
             }
           ],
@@ -261,7 +270,8 @@
                   "char": "n"
                 }
               },
-              "label": "create a local task…"
+              "label": "new local task…",
+              "mnemonic_at": 0
             },
             {
               "id": "work.refresh",
@@ -270,7 +280,8 @@
                   "char": "r"
                 }
               },
-              "label": "refresh local work"
+              "label": "refresh local work",
+              "mnemonic_at": 0
             },
             {
               "id": "work.filter",
@@ -288,7 +299,8 @@
                   "char": "t"
                 }
               },
-              "label": "apply local group label…"
+              "label": "set local group label…",
+              "mnemonic_at": 2
             },
             {
               "id": "work.evidence",
@@ -297,7 +309,8 @@
                   "char": "v"
                 }
               },
-              "label": "inspect bounded evidence…"
+              "label": "inspect bounded evidence…",
+              "mnemonic_at": 17
             }
           ],
           "pending": false,
@@ -308,7 +321,7 @@
           "lines": [
             [
               {
-                "text": "create a local task…"
+                "text": "new local task…"
               }
             ],
             [
@@ -323,7 +336,7 @@
             ],
             [
               {
-                "text": "apply local group label…"
+                "text": "set local group label…"
               }
             ],
             [
@@ -343,8 +356,9 @@
       "heading": true
     },
     {
+      "mnemonic_at": 0,
       "id": "work.new",
-      "label": "create a local task…",
+      "label": "new local task…",
       "key": {
         "key": {
           "char": "n"
@@ -353,6 +367,7 @@
       "change": "add"
     },
     {
+      "mnemonic_at": 0,
       "id": "work.refresh",
       "label": "refresh local work",
       "key": {
@@ -371,8 +386,9 @@
       }
     },
     {
+      "mnemonic_at": 2,
       "id": "work.group",
-      "label": "apply local group label…",
+      "label": "set local group label…",
       "key": {
         "key": {
           "char": "t"
@@ -381,6 +397,7 @@
       "change": "add"
     },
     {
+      "mnemonic_at": 17,
       "id": "work.evidence",
       "label": "inspect bounded evidence…",
       "key": {

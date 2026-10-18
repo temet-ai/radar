@@ -1,7 +1,7 @@
 import React, { useId, useLayoutEffect, useRef, useContext } from "react";
 import { Box, type DOMElement } from "ink";
 import type { Node, NodeContext } from "./view.js";
-import { visibleRows, treeLayout } from "./tree.js";
+import { visibleRows, treeLayout, treeRowHasColumns } from "./tree.js";
 import { textWords } from "../text/TextLine.js";
 import { cellWidth } from "../chrome/width.js";
 import { useScrollReport } from "./index.js";
@@ -43,6 +43,7 @@ export function hitSpecs(
   node: Node,
   width: number,
   win: Window | null = null,
+  plain = false,
 ): HitSpec[] {
   const out: HitSpec[] = [];
   const f0 = win?.first ?? 0;
@@ -62,15 +63,12 @@ export function hitSpecs(
       break;
     case "entries": {
       // lines, not rows: a head and its body are one target; a window cuts them to the lines that show
-      let y = 0;
-      for (const r of node.rows) {
-        y += (r.before ?? []).length;
-        const body = (r.body ?? []).length;
-        const top = Math.max(y, f0);
-        const end = Math.min(y + 1 + body, win ? win.first + win.count : Infinity);
-        if (end > top) row(top - f0, r.target, end - top);
-        y += 1 + body;
-      }
+      const { spans } = entryLines(node.rows, width, plain);
+      spans.forEach(([start, stop], i) => {
+        const top = Math.max(start, f0);
+        const end = Math.min(stop, win ? win.first + win.count : Infinity);
+        if (end > top) row(top - f0, node.rows[i]!.target, end - top);
+      });
       break;
     }
     case "log":
@@ -81,7 +79,7 @@ export function hitSpecs(
         !node.note &&
         ((node.header ?? []).length > 0 || Boolean(node.header_target));
       const top = (hasHeader ? 1 : 0) + (node.note ? 1 : 0);
-      const { fitted, namesWidth } = treeLayout(node, width);
+      const { fitted, namesWidth, row: rowWidth } = treeLayout(node, width);
       const shown = visibleRows(node);
       shown.forEach(({ path, row: r }, i) => {
         if (!r.heading && inWin(i))
@@ -101,8 +99,10 @@ export function hitSpecs(
         );
         out.push({ ...padded(0, w, width), dy: 0, h: 1, target: node.header_target });
       }
-      shown.forEach(({ row: r }, i) => {
+      shown.forEach(({ row: r, path }, i) => {
         if (!inWin(i)) return;
+        const open = (node.open ?? []).some((p) => p.length === path.length && p.every((id, at) => id === path[at]));
+        if (!treeRowHasColumns(r, path.length - 1, open, fitted, rowWidth)) return;
         for (const cell of r.cells ?? []) {
           if (!cell.target) continue;
           let x = namesWidth;
@@ -135,6 +135,7 @@ function scrollOf(
   node: Node,
   width: number,
   height: number | undefined,
+  plain = false,
 ): { total: number; cursor: number; room: number; spans?: [number, number][] } | null {
   if (height === undefined) return null;
   switch (node.node) {
@@ -168,7 +169,7 @@ function scrollOf(
       };
     }
     case "entries": {
-      const { lines, spans } = entryLines(node.rows);
+      const { lines, spans } = entryLines(node.rows, width, plain);
       return {
         total: lines.length,
         cursor: node.selected ?? -1,
@@ -195,7 +196,7 @@ export function HitRegion({
 }) {
   const ref = useRef<DOMElement>(null);
   const first = useRef(0);
-  const sc = scrollOf(node, ctx.width, ctx.height);
+  const sc = scrollOf(node, ctx.width, ctx.height, ctx.plainText);
   let win: Window | null = null;
   if (sc && sc.room > 0 && sc.total > sc.room) {
     first.current = sc.spans
@@ -215,11 +216,15 @@ export function HitRegion({
   const scene = useContext(MotionSceneContext);
   const pane = useContext(MotionPaneContext);
   useLayoutEffect(() => {
+    // The wrapper survives body-kind changes. Every committed layout replaces its marks,
+    // including nonloading bodies and a measurement that is no longer usable.
+    motion.markNode(markId, [], [], scene);
+    if (scene) motion.markTree(markId, scene);
     if ((node.node !== "tree" && node.node !== "state") || motion.engine.level === "off" || !ref.current) return;
     const at = screenRect(ref.current);
-    if (!at) return;
+    if (!at || !Object.values(at).every(Number.isSafeInteger) || at.w <= 0 || at.h <= 0) return;
     const m = nodeMarks(node, at.x, at.y, at.w, at.h, win);
-    motion.markNode(markId, m.rows, m.loading);
+    motion.markNode(markId, m.rows, m.loading, scene);
     if (scene && pane && !pane.startsWith("work:") && motion.engine.level === "full") motion.markTree(markId, scene, treeMark(node, pane, at.x, at.y, ctx.width, ctx.height ?? at.h, win));
   });
   useLayoutEffect(() => () => motion.markNode(markId, [], []), [markId]);
@@ -237,7 +242,7 @@ export function HitRegion({
     } catch {
       return; // a node torn down mid-commit has no layout to register
     }
-    for (const s of hitSpecs(node, ctx.width, win))
+    for (const s of hitSpecs(node, ctx.width, win, ctx.plainText))
       registry.add({
         x: x + s.dx,
         y: y + s.dy,

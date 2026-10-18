@@ -1,18 +1,27 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1209
 expression: text
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)                                                                                                           synced 40s ago · every 2m  ✎ edit
-╭ feed ──────────────────╮╭ Discussions ───────────────────────────────────────────────────────────────────────────────────────────────────╮╭ Carol Coder's message ───────────────────────────────────╮
-│ For you              4 ││ BY WHAT THEY ARE ABOUT                                                                     REPLIES  WHEN       ││ ── #team · yesterday ──                                  │
-│ Discussions            ││api !263  Add a stats endpoint for the dashboard                                                                ││ ● 07:06  Carol Coder                                     │
-│ ▌ #team          6 NEW ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯        1        1d         ││     Anyone seen ABC-12 failing on main? pipeline and     │
-│ ▌ #svc           1 NEW ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard ⋯     2        2d         ││ make check                                               │
-│                        ││ABC-12  Stats on the dashboard                                                                                  ││ ● 07:16  Alice Example                                   │
-│                        ││  └─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯        1        1d         ││     @Bob Builder can you look? see                       │
-│                        ││general                                                                                                         ││ https://git.example/acme/team-a/api/-/merge_requests/263 │
-│                        ││  ├─ ● #team Bob B.  Lunch at 12:30? 🍕                                                              30m        ││                                                          │
-│                        ││  └─ ● #svc Carol C.  The service is being upgraded at noon                                          5h         ││ 1 reply · last 1d ago                                    │
+╭ 1 feed ────────────────╮╭ 2 Discussions ─────────────────────────────────────────────────────────────────────────────────────────────────╮╭ 3 Carol Coder's message ─────────────────────────────────╮
+│ For you              4 ││ BY WHAT THEY ARE ABOUT                                                                     REPLIES  WHEN       ││ Acme / #team                                             │
+│ Discussions            ││api !263  Add a stats endpoint for the dashboard                                                                ││ Anyone seen ABC-12 failing on main? pipeline and make c… │
+│ ▌ #team          6 NEW ││  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯ 1      1        1d         ││                                     Carol Coder · 1d ago │
+│ ▌ #svc           1 NEW ││  └─ ● #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard ⋯ 2   2        2d         ││                                                          │
+│                        ││ABC-12  Stats on the dashboard                                                                                  ││ thread   thread start                                    │
+│                        ││  └─ ● #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯ 1      1        1d         ││ replies  1                                               │
+│                        ││general                                                                                                         ││                                                          │
+│                        ││  ├─ ● #team Bob B.  Lunch at 12:30? 🍕                                                              30m        ││ THREAD  yesterday ────────────────────────────────────── │
+│                        ││  └─ ● #svc Carol C.  The service is being upgraded at noon                                          5h         ││   ● 07:06  Carol Coder                                   │
+│                        ││                                                                                                                ││   Anyone seen ABC-12 failing on main? pipeline and make  │
+│                        ││                                                                                                                ││   check                                                  │
+│                        ││                                                                                                                ││   ● 07:16  Alice Example                                 │
+│                        ││                                                                                                                ││   @Bob Builder can you look? see                         │
+│                        ││                                                                                                                ││   https://git.example/acme/team-a/api/-/merge_requests/2 │
+│                        ││                                                                                                                ││   63                                                     │
+│                        ││                                                                                                                ││                                                          │
+│                        ││                                                                                                                ││   1 reply · last 1d ago                                  │
 │                        ││                                                                                                                ││                                                          │
 │                        ││                                                                                                                ││ LINKS ────────────────────────────────────────────────── │
 │                        ││                                                                                                                ││   pipeline                                               │
@@ -30,15 +39,7 @@ expression: text
 │                        ││                                                                                                                ││                                                          │
 │                        ││                                                                                                                ││                                                          │
 │                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││                                                                                                                ││                                                          │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────────────────────────────────││                                                          │
-│                        ││ threads in watched channels, grouped by linked work                                                            ││                                                          │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────────────────│
+│                        ││ threads in watched channels, grouped by linked work                                                            ││⏎ thread  open  copy  mark read  comment     extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                           7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                            7 new · 4 for you  slack

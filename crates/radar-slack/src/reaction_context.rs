@@ -116,7 +116,7 @@ impl SlackPlugin {
         let id = self.reaction_intent("react", Intent::Pick(target));
         let items = page::REACTIONS
             .iter()
-            .map(|(key, name, says)| MenuItem::new(*key, format!(":{name}:"), *says, *name))
+            .map(|(key, name, says)| MenuItem::new(*key, *says, format!(":{name}:"), *name))
             .collect();
         vec![Effect::Menu(Menu::new(id, title, items))]
     }
@@ -262,5 +262,46 @@ impl SlackPlugin {
             }
         }
         fx
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn reaction_producer_uses_human_words_and_preserves_provider_payloads() {
+        for (key, provider) in [('e', "eyes"), ('d', "white_check_mark"), ('p', "+1"), ('t', "pray"), ('r', "raised_hands")] {
+            let mut p = SlackPlugin {
+                cfg: crate::demo::settings(),
+                now: radar_core::plugin::DEMO_NOW,
+                env: Some(vec![]),
+                app_running: Some(false),
+                ..Default::default()
+            };
+            p.data.me = Some(crate::client::Me {
+                user_id: "UVIMES".into(), user: "vimes".into(), team_id: "TWATCH".into(),
+                ..Default::default()
+            });
+            p.session_owner = p.data.me.as_ref().and_then(crate::cache::AccountOwner::of);
+            let effects = p.pick_reaction("CWATCH", "44.000001", "Vimes's message".into());
+            let menu = effects.iter().find_map(|effect| match effect { Effect::Menu(menu) => Some(menu), _ => None }).unwrap();
+            let item = menu.items.iter().find(|item| item.key == Some(key)).unwrap();
+            assert_eq!(item.value, provider);
+            assert_eq!(item.hint, format!(":{provider}:"));
+            assert_eq!(radar_core::mnemonic::at(&item.keys, &item.label), Some(0));
+            let menu_id = menu.id.clone();
+            let result = p.answer_reaction(&menu_id, provider).unwrap();
+            let confirm = result.iter().find_map(|effect| match effect { Effect::Menu(menu) => Some(menu), _ => None }).unwrap();
+            assert!(confirm.question);
+            for item in confirm.items.iter().filter(|item| !item.note && !item.heading) {
+                let words = radar_core::mnemonic::choice_words(true, &item.label, &item.hint);
+                assert!(radar_core::mnemonic::at(&item.keys, words).is_some());
+            }
+            let Some((_, Intent::Send { payload, .. })) = &p.reaction_context.pending else { panic!("retained reaction payload") };
+            assert_eq!((&*payload.channel, &*payload.ts, &*payload.name), ("CWATCH", "44.000001", provider));
+            assert_eq!(payload.thread, "44.000001");
+            assert!(p.reaction_context.active.is_empty(), "picking only prepares the existing confirmation");
+        }
     }
 }

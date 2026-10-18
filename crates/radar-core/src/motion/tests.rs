@@ -258,6 +258,139 @@ fn a_waiting_panel_shimmers_at_full_while_it_is_marked_and_input_does_not_stop_i
     assert!(!subtle.running());
 }
 
+/// Loading policy composes the real mark ledger and engine over small owned buffers,
+/// with a manual clock and no host, terminal, I/O or full application frame.
+mod loading_policy {
+    use super::*;
+
+    #[test]
+    fn leaving_full_drops_every_shimmer_and_subtle_never_rediscovers_loading() {
+        let t = theme();
+        let (mut e, clock) = engine(Level::Full);
+        let wait = || {
+            loading(row_rect(1));
+            loading(row_rect(5));
+        };
+        let _ = draw(&mut e, &t, wait);
+        clock.advance(300);
+        assert_ne!(draw(&mut e, &t, wait), plain(&t));
+
+        e.set_level(Level::Subtle);
+        e.set_level(Level::Subtle);
+        assert_eq!(e.next_frame(), Some(FRAME), "one clean frame is still owed");
+        assert_eq!(draw(&mut e, &t, wait), plain(&t));
+        assert!(!e.running());
+        assert_eq!(e.next_frame(), None);
+        for areas in [vec![], vec![row_rect(2)], vec![row_rect(1), row_rect(5)]] {
+            clock.advance(300);
+            e.set_level(Level::Subtle);
+            let b = draw(&mut e, &t, || {
+                for &area in &areas {
+                    loading(area);
+                }
+            });
+            assert_eq!(b, plain(&t));
+            assert_eq!(e.next_frame(), None, "neither old nor new loading restarts subtle");
+        }
+    }
+
+    #[test]
+    fn leaving_full_preserves_compatible_cues_and_their_elapsed_time() {
+        let t = theme();
+        let mut changes = Changes::default();
+        changes.changed.insert("row:3".into());
+        for cue in [Cue::Screen, Cue::Popup, Cue::Changed(changes)] {
+            let (mut actual, actual_clock) = engine(Level::Full);
+            let (mut expected, expected_clock) = engine(Level::Full);
+            let wait = || {
+                popup_marks();
+                loading(row_rect(7));
+            };
+            actual.cue(cue.clone(), &t);
+            expected.cue(cue.clone(), &t);
+            let _ = draw(&mut actual, &t, wait);
+            let _ = draw(&mut expected, &t, popup_marks);
+            actual_clock.advance(30);
+            expected_clock.advance(30);
+            let _ = draw(&mut actual, &t, wait);
+            let _ = draw(&mut expected, &t, popup_marks);
+
+            actual.set_level(Level::Subtle);
+            actual.set_level(Level::Subtle);
+            for elapsed in [30, 30, 360, 30] {
+                actual_clock.advance(elapsed);
+                expected_clock.advance(elapsed);
+                assert_eq!(
+                    draw(&mut actual, &t, wait),
+                    draw(&mut expected, &t, popup_marks),
+                    "{cue:?} keeps its original elapsed time"
+                );
+                assert_eq!(actual.running(), expected.running());
+            }
+            assert_eq!(actual.next_frame(), None);
+        }
+    }
+
+    #[test]
+    fn repeated_full_preserves_shimmer_phase_and_off_clears_pending_settle() {
+        let t = theme();
+        let (mut actual, actual_clock) = engine(Level::Full);
+        let (mut expected, expected_clock) = engine(Level::Full);
+        let wait = || loading(AREA);
+        let _ = draw(&mut actual, &t, wait);
+        let _ = draw(&mut expected, &t, wait);
+        for elapsed in [100, 200, 300] {
+            actual_clock.advance(elapsed);
+            expected_clock.advance(elapsed);
+            actual.set_level(Level::Full);
+            assert_eq!(draw(&mut actual, &t, wait), draw(&mut expected, &t, wait));
+        }
+        actual.set_level(Level::Subtle);
+        assert!(actual.running(), "the removed shimmer owes a clean frame");
+        actual_clock.advance(400);
+        actual.set_level(Level::Full);
+        let (mut fresh, _) = engine(Level::Full);
+        assert_eq!(
+            draw(&mut actual, &t, wait),
+            draw(&mut fresh, &t, wait),
+            "a downgrade discards the old shimmer clock"
+        );
+        actual.set_level(Level::Subtle);
+        actual.set_level(Level::Off);
+        assert_eq!(actual.next_frame(), None, "off drops even a pending settling frame");
+        assert_eq!(draw(&mut actual, &t, wait), plain(&t));
+
+        actual_clock.advance(1000);
+        actual.set_level(Level::Full);
+        assert!(!actual.running(), "a level change cannot revive discarded loading");
+        let (mut fresh, _) = engine(Level::Full);
+        assert_eq!(
+            draw(&mut actual, &t, wait),
+            draw(&mut fresh, &t, wait),
+            "fresh discovery starts at zero elapsed time"
+        );
+        assert!(actual.running());
+    }
+
+    #[test]
+    fn slow_terminal_off_policy_cannot_be_raised_while_loading_is_marked() {
+        let t = theme();
+        let (mut e, _) = engine(Level::Full);
+        let wait = || loading(AREA);
+        let _ = draw(&mut e, &t, wait);
+        let slow = Duration::from_millis(100);
+        assert_eq!(e.drew_in(slow), None);
+        assert_eq!(e.drew_in(slow), None);
+        assert!(e.drew_in(slow).is_some());
+        for level in [Level::Subtle, Level::Full, Level::Off, Level::Full] {
+            e.set_level(level);
+            assert_eq!(e.level(), Level::Off);
+            assert_eq!(draw(&mut e, &t, wait), plain(&t));
+            assert_eq!(e.next_frame(), None);
+        }
+    }
+}
+
 #[test]
 fn a_message_that_leaves_fades_out_from_what_was_shown() {
     let t = theme();

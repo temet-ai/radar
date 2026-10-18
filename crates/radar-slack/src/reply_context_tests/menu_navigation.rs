@@ -138,7 +138,7 @@ fn host_recovery_keep_shortcut_is_explicit_and_single_use_without_credentials() 
             (keep.key, keep.keys.as_str(), keep.value.as_str()),
             (Some('s'), "s", "keep")
         );
-        assert_eq!(keep.label, "keep current draft");
+        assert_eq!(keep.label, "stay with current draft");
         to_text(&host, 80, 24);
         press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
         assert!(!slack(&host).capturing());
@@ -301,7 +301,7 @@ fn host_recovery_keep_menu_shows_its_non_navigation_shortcut_at_both_sizes() {
     press(&mut host, KeyCode::Down, KeyModifiers::NONE);
     for (width, height) in [(80, 24), (160, 40)] {
         let screen = to_text(&host, width, height);
-        assert!(screen.contains("s  keep current draft"), "{screen}");
+        assert!(screen.contains("stay with current draft"), "{screen}");
         insta::assert_snapshot!(format!("kept_reply_menu_{width}x{height}"), screen);
         if let Some(dir) = std::env::var_os("RADAR_SLACK_REPLY_MENU_SHOTS") {
             let dir = std::path::Path::new(&dir);

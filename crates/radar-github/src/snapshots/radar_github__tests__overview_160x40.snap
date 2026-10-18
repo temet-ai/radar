@@ -1,12 +1,13 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                                                                                          synced 25s ago  ✎ edit
- GitHub › acme/api › #42
+ GitHub / acme/api / #42
  Keep background refreshes tied to their request
  [Overview]  Checks  Actions
-╭ Overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 Overview ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Keep background refreshes tied to their request                                                                                                              │
 │                                                                                                                                                              │
 │ state  open                                                                                                                                                  │
@@ -41,4 +42,4 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                             github
+ GITHUB   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                            github

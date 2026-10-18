@@ -1,12 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1367
 expression: "to_text(&host, 80, 24)"
 ---
  radar    C   T   S ●   History   Settings (,)  synced 40s ago · every … ✎ edit
- Slack › ask for review
+ Slack / ask for review
  Ask for review in #team                                          posted as you
  mentions @review-squad · the review channel
-╭ as it will post in #team ────────────────────────────────────────────────────╮
+╭ 1 as it will post in #team ──────────────────────────────────────────────────╮
 │ @review-squad :gitlab: mr Add a stats endpoint for the dashboard             █
 │                                                                              █
 │ THE TEXT SENT                                                                █
@@ -23,6 +24,6 @@ expression: "to_text(&host, 80, 24)"
 │                                                                              │
 │                                                                              │
 │                                                                              │
-│                                                                              │
+│               info review ask for api !263: nothing is sent until you post … │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   review ask for api !263: nothing is sent unti 7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices              slack

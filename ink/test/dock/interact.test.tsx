@@ -324,10 +324,15 @@ describe("dock composer after a send", () => {
   it("keys written after the dock key hides the dock go to the host, not into the hidden composer", async () => {
     const { m, docks } = await open(STATES.empty!);
     m.type("`ab");
-    await until(() => m.intents().length >= 3, 1500);
+    await until(() => m.intents().length >= 6, 1500);
     expect(docks()).toEqual([{ intent: "dock", dock: "hide" }]);
-    expect(m.intents().map((i) => i.intent).filter((i: any) => i.intent !== "dock")).toEqual([
+    const noticeInput = { intent: "notice_input", escape: false, through_id: load("host_chrome_160x40.json").notices.through_id };
+    expect(m.intents().map((i) => i.intent)).toEqual([
+      noticeInput,
+      { intent: "dock", dock: "hide" },
+      noticeInput,
       { intent: "key", chord: { key: { char: "a" } } },
+      noticeInput,
       { intent: "key", chord: { key: { char: "b" } } },
     ]);
   });

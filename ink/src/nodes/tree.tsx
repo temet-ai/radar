@@ -40,8 +40,6 @@ interface Shown {
   continues: boolean[];
   /** Position among its siblings (the bands alternate by it). */
   index: number;
-  /** The top-level row it sits under (its stripe is the group's). */
-  root: TreeRow;
 }
 
 /** The rows a frontend shows: the roots and the children of the open groups (Tree::visible). */
@@ -54,25 +52,49 @@ export function visibleRows(tree: Tree): Shown[] {
     rows: TreeRow[],
     prefix: string[],
     continues: boolean[],
-    root: TreeRow | null,
   ) => {
     rows.forEach((row, i) => {
       const path = [...prefix, row.id];
       const last = i === rows.length - 1;
-      const top = root ?? row;
-      out.push({ path, row, last, continues, index: i, root: top });
+      out.push({ path, row, last, continues, index: i });
       // A level's line runs on past its children while that row has siblings after it (the top level has no line).
       if ((row.children?.length ?? 0) > 0 && isOpen(path))
         walk(
           row.children!,
           path,
           prefix.length === 0 ? continues : [...continues, !last],
-          top,
         );
     });
   };
-  walk(tree.rows, [], [], null);
+  walk(tree.rows, [], []);
   return out;
+}
+
+/** One postorder pass over held rows, including hidden descendants; no repeated subtree walk per cached row. */
+export function heldDescendantCounts(rows: TreeRow[]): Map<TreeRow, number> {
+  const counts = new Map<TreeRow, number>();
+  const stack: Array<[TreeRow, boolean]> = rows.map((row) => [row, false]);
+  while (stack.length) {
+    const [row, visited] = stack.pop()!;
+    if (visited) counts.set(row, (row.children ?? []).reduce((n, child) => n + 1 + counts.get(child)!, 0));
+    else {
+      stack.push([row, true]);
+      for (const child of row.children ?? []) stack.push([child, false]);
+    }
+  }
+  return counts;
+}
+
+/** Descendants actually held in this view, regardless of which ancestors are open. */
+export function heldDescendantCount(row: TreeRow): number {
+  return heldDescendantCounts([row]).get(row)!;
+}
+
+/** Reserve an honest folded signal: never clip an exact count into a different number. */
+export function foldedMarker(count: number, room: number): string {
+  if (count === 0 || room < 1) return "";
+  const full = ` ⋯ ${count}`;
+  return cellWidth(full) <= room ? full : "⋯";
 }
 
 /** ui::tree::joint: nothing at the top; under it one space less than the depth, then `├─ ` or `└─ `. */
@@ -92,7 +114,7 @@ const total = (cs: { width: number }[]) => cs.reduce((n, c) => n + c.width, 0);
 /** The tree's cells and where they go in `width` cells (the pane's inner width): the last cell holds the scrollbar,
  * so the rows use `width - 1`; the columns take their declared widths (ui::Columns::fit) and the names the rest. */
 export function treeLayout(tree: Tree, width: number) {
-  const row = Math.max(1, width - 1);
+  const row = Math.max(0, width - 1);
   const fitted = fitTreeColumns(
     tree.columns,
     Boolean(tree.ordered_columns),
@@ -122,6 +144,20 @@ export function selectedStyle(focused: boolean, plain?: boolean): Style {
   return { ...base, backgroundColor: bgOf("bg.selection") };
 }
 
+/** Tree states change the ground only, keeping each icon/name/cell's semantic foreground and modifiers. */
+export function treeSelectedStyle(focused: boolean, plain?: boolean): Style {
+  if (plain || monoTier())
+    return focused ? { bold: true, underline: true } : { underline: true };
+  return { backgroundColor: bgOf(focused ? "bg.selection" : "bg.overlay") };
+}
+
+/** Fold signals have priority over columns only when a narrow row leaves no cell for its name. */
+export function treeRowHasColumns(row: TreeRow, depth: number, open: boolean, fitted: Placed[], width: number): boolean {
+  const room = Math.max(0, width - depth * 2 - cellWidth(joint(depth, true)));
+  const folded = !open && (row.children?.length ?? 0) > 0;
+  return (row.cells?.length ?? 0) > 0 && !(folded && room <= total(fitted) + 1);
+}
+
 /** A name's runs and the room to cut them in, as ui::tree item() makes the row's line. */
 function nameRuns(row: TreeRow, plain: boolean | undefined) {
   return row.name.map((seg) => {
@@ -132,7 +168,7 @@ function nameRuns(row: TreeRow, plain: boolean | undefined) {
 
 /** One tree row as Ratatui's buffer holds it after BandedTree::render: the tree widget's indent and line, the name
  * cut to the room the columns leave, the cells under their headings, then the highlight or band over the row, the
- * group's stripe and the lines running down past parents. */
+ * lines running down past parents. */
 function rowCells(
   tree: Tree,
   shown: Shown,
@@ -141,29 +177,28 @@ function rowCells(
   open: boolean,
   selected: boolean,
   focused: boolean,
+  heldCount: number,
   plain?: boolean,
 ): Cell[] {
   const { row, path, last, continues, index } = shown;
   const depth = path.length - 1;
   const look = lookOf(tree);
-  const stripeSpec = shown.root.stripe;
-  const stripe = stripeSpec ? specStyle(stripeSpec) : undefined;
-  const lead =
-    depth === 0 && stripe
-      ? cellsOf("▌ ", stripe)
-      : cellsOf(joint(depth, last), look.lines);
+  const lead = cellsOf(joint(depth, last), look.lines);
   const indent = cellsOf(" ".repeat(depth * 2));
   const leadW = widthOfCells(lead);
   const room = Math.max(0, width - depth * 2 - leadW);
-  const hasCells = (row.cells?.length ?? 0) > 0;
+  const count = open ? 0 : heldCount;
+  const hasCells = treeRowHasColumns(row, depth, open, fitted, width);
   const colsW = hasCells ? total(fitted) : 0;
+  const namesW = Math.max(0, room - colsW);
+  const capacity = count > 0 && namesW === 1 ? 1 : Math.max(0, namesW - 1);
+  const marker = foldedMarker(count, capacity);
+  const markerW = cellWidth(marker);
+  const nameRoom = Math.max(0, capacity - markerW);
   let runs = nameRuns(row, plain);
   if (tree.cut_names) {
-    const l = depth === 0 ? 2 : depth + 2;
-    const budget = Math.max(0, width - (depth * 2 + l) - (total(fitted) + 1));
-    runs = shrinkRuns(runs, budget);
+    runs = shrinkRuns(runs, nameRoom);
   }
-  const nameRoom = Math.max(0, room - (colsW + 1));
   if (row.detail) {
     const d = lineCells(row.detail, plain);
     const used = runs.reduce((n, r) => n + widthOfCells(r), 0);
@@ -191,21 +226,15 @@ function rowCells(
       }
     }
   }
-  const folded = (row.children?.length ?? 0) > 0 && !open;
-  if (folded)
-    runs = [
-      ...runs,
-      cellsOf(" ⋯", look.lines.color ? specStyle("text.muted") : {}),
-    ];
   // line_of: the name is cut at one cell under its room, then padded to it; the cells follow under their headings.
-  const namesW = Math.max(0, room - colsW);
   const name: Cell[] = [];
   let used = 0;
   for (const r of runs) {
-    const cut = clipCells(r, Math.max(0, namesW - (used + 1)));
+    const cut = clipCells(r, Math.max(0, nameRoom - used));
     used += widthOfCells(cut);
     name.push(...cut);
   }
+  name.push(...cellsOf(marker, plain ? {} : specStyle("text.muted")));
   const line: Cell[] = [...padCells(name, namesW)];
   if (hasCells) {
     for (const { column, width: w } of fitted) {
@@ -220,10 +249,10 @@ function rowCells(
   }
   let cells = padCells(clipCells([...indent, ...lead, ...line], width), width);
   if (plain) {
-    if (selected) cells = patchCells(cells, selectedStyle(focused, true));
+    if (selected) cells = patchCells(cells, treeSelectedStyle(focused, true));
     return cells;
   }
-  if (selected) cells = patchCells(cells, selectedStyle(focused));
+  if (selected) cells = patchCells(cells, treeSelectedStyle(focused));
   else {
     const bg =
       depth === 0
@@ -234,8 +263,6 @@ function rowCells(
     if (bg) cells = patchCells(cells, { backgroundColor: bg });
   }
   void index;
-  if (depth >= 1 && stripe && cells.length)
-    cells[0] = { ch: "▌", w: 1, s: patch(cells[0]!.s, stripe) };
   continues.forEach((goesOn, k) => {
     const level = k + 1;
     const x = 3 * level - 1;
@@ -289,7 +316,7 @@ function withScrollCell(
   if (!selected) return bar ? [...cells, bar] : cells;
   return [
     ...cells,
-    { ch, w: 1, s: patch(base, selectedStyle(focused, plain)) },
+    { ch, w: 1, s: patch(base, treeSelectedStyle(focused, plain)) },
   ];
 }
 
@@ -316,6 +343,7 @@ function barCell(
 
 export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
   const all = visibleRows(tree);
+  const counts = heldDescendantCounts(tree.rows);
   const window = useWindow();
   const cached = useRowCache();
   const win = windowOf(all, window);
@@ -399,10 +427,8 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
           if (editing) {
             flush();
             const depth = s.path.length - 1;
-            const prefix = padCells(
-              cellsOf(" ".repeat(depth * 2) + joint(depth, s.last)),
-              depth * 2 + joint(depth, s.last).length,
-            );
+            const prefixW = Math.min(width, depth * 2 + cellWidth(joint(depth, s.last)) + editing.at);
+            const prefix = padCells(clipCells(rowCells(tree, s, fitted, width, isOpen, isSel, ctx.focused, counts.get(s.row)!, ctx.plainText), prefixW), prefixW);
             out.push(
               <Box key={s.path.join("/")}>
                 <CellLine cells={prefix} plain={ctx.plainText} />
@@ -424,12 +450,11 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
             s.path.join("\u001f"),
             s.last ? 1 : 0,
             s.continues.map(Number).join(""),
-            s.root.stripe ?? "",
             isOpen ? 1 : 0,
             isSel ? 1 : 0,
             bandOf(tree, s, look.bandLevel) ? 1 : 0,
             bar ? `${bar.ch}${bar.s.color ?? ""}` : "",
-            children?.length ?? 0,
+            counts.get(s.row)!,
             JSON.stringify(own),
           ].join("|");
           block.push(
@@ -443,6 +468,7 @@ export function TreeNode({ tree, ctx }: { tree: Tree; ctx: NodeContext }) {
                   isOpen,
                   isSel,
                   ctx.focused,
+                  counts.get(s.row)!,
                   ctx.plainText,
                 ),
                 isSel,

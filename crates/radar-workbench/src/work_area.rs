@@ -225,7 +225,16 @@ fn rail(actions: &[ActionSpec]) -> Option<PaneView> {
     }
     let rows: Vec<_> = offered
         .iter()
-        .map(|a| json!({ "id": a.id, "label": a.label, "key": a.key }))
+        .map(|a| {
+            let mut row = json!({ "id": a.id, "label": a.label, "key": a.key });
+            if let Some(at) = a.mnemonic_at {
+                row["mnemonic_at"] = json!(at);
+            }
+            if a.mnemonic_shift {
+                row["mnemonic_shift"] = json!(true);
+            }
+            row
+        })
         .collect();
     let lines = offered
         .iter()

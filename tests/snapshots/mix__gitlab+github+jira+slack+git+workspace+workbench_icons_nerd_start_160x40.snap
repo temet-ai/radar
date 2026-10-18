@@ -3,8 +3,8 @@ source: tests/mix.rs
 assertion_line: 189
 expression: "to_text(&host, 160, 40)"
 ---
- radar     Branches   Work (I)    History    Settings (,)                                                                                              edit
-╭ set up GitLab ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+ radar     Branches   Work items    History    Settings (,)                                                                                            edit
+╭ 1 set up GitLab ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │  GitLab is not set up yet.                                                                                                                                  │
 │                                                                                                                                                              │
 │ Add a tenancy: a GitLab group or repo whose merge requests to follow.                                                                                        │
@@ -42,4 +42,4 @@ expression: "to_text(&host, 160, 40)"
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   q  quit   x  menu   ←→↑↓ navigate
+ REPOSITORIES    quit    extra actions   ~ notices   ←→↑↓ navigate

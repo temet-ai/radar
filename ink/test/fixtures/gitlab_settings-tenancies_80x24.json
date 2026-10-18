@@ -34,17 +34,17 @@
     "look": {
       "band": "",
       "band_level": 1,
-      "heading": "",
+      "heading": "bg.overlay",
       "lines": "text.muted"
     },
     "name_width": 71,
     "node": "tree",
     "open": [
       [
-        "t0"
+        "tenancy:0:[\"acme\",\"team-b\"]"
       ],
       [
-        "t1"
+        "tenancy:0:[\"acme\",\"team-a\"]"
       ]
     ],
     "rows": [
@@ -74,7 +74,7 @@
             "text": "   0 repos · 0 hidden"
           }
         ],
-        "id": "t0",
+        "id": "tenancy:0:[\"acme\",\"team-b\"]",
         "name": [
           {
             "look": "tenant.cyan bold",
@@ -181,7 +181,7 @@
             "text": "   4 repos · 1 hidden"
           }
         ],
-        "id": "t1",
+        "id": "tenancy:0:[\"acme\",\"team-a\"]",
         "name": [
           {
             "look": "tenant.green bold",

@@ -4,6 +4,7 @@ import type { ChromeView } from "../../src/chrome/types.js";
 export function booksChrome(over: Partial<ChromeView> = {}): ChromeView {
   return {
     version: 1,
+    write_mode: "read_only",
     width: 80,
     height: 24,
     top_bar: {

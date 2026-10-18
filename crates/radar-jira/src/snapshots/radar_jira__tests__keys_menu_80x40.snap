@@ -1,44 +1,45 @@
 ---
 source: crates/radar-jira/src/tests.rs
+assertion_line: 1117
 expression: "text(&host, 80, 40)"
 ---
  radar    Jira   History   Settings (,)       not synced yet · every 2m  ✎ edit
-╭ My tickets ──────────────────────────────────────────────────────────────────╮
+╭ 2 My tickets ────────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO everyone                      TYPE      STATUS          UPDATED  │
-│▌ acme  acme.atlassian.net                                                    │
-│▌ ├─ ◐ In Progress                                                            │
-│▌ │  └─ ABC-1 Dashboard for the stats  you Epic      ◐ In Progress   2w       │
-│▌ │     ├─ ABC-12 Add a stats endpoint for Story     ◐ In Progress   1h       │
-│▌ │     └─ ABC-13 Count requests per route Sub-task  ◐ In Progress   1h       │
-│▌ ├─ ◐ In╭ ABC-12 ──────────────────────────────────────────────────╮         │
-│▌ │  └─ D│ ⏎       open its page                                    │1h       │
-│▌ └─ ○ To│ o       open it in Jira                                  │         │
-│▌    └─ A│ y       copy its link                                    │9w       │
-│▌ beta  b│ Y       copy ABC-12                                      │         │
-│▌ └─ ○ To│ /       filter the view by words                         │         │
-│▌    └─ X│ r       refresh now                                      │1h       │
-│         │ ON JIRA                                                  │         │
-│         │ t       move ABC-12 to another status…                   │         │
-│         │ c       comment on ABC-12…                               │         │
-│         │ i       assign to me · ABC-12 is already yours           │         │
-│         │ n       new ticket in ABC…                               │         │
+│acme  acme.atlassian.net                                                      │
+│  ├─ ◐ In Progress                                                            │
+│  │  └─ ABC-1 Dashboard for the stats  you Epic      ◐ In Progress   2w       │
+│  │     ├─ ABC-12 Add a stats endpoint for Story     ◐ In Progress   1h       │
+│  │     └╭ ABC-12 ──────────────────────────────────────────────────╮1h       │
+│  ├─ ◐ In│ ⏎       open its page                                    │         │
+│  │  └─ D│         open it in Jira                                  │1h       │
+│  └─ ○ To│         copy its link                                    │         │
+│     └─ A│         shift copy ABC-12                                │9w       │
+│beta  bet│ /       filter the view by words                         │         │
+│  └─ ○ To│         refresh now                                      │         │
+│     └─ X│ ON JIRA                                                  │1h       │
+│         │         move ABC-12 to another status…                   │         │
+│         │         comment on ABC-12…                               │         │
+│         │         assign to me · ABC-12 is already yours           │         │
+│         │         new ticket in ABC…                               │         │
 │         │ :       go to a ticket by its key or words…              │         │
-│         │ A       ask an agent about it…                           │         │
-│         │ a       show one assignee's tickets…                     │         │
+│         │         shift ask an agent about it…                     │         │
+│         │         show one assignee's tickets…                     │         │
 │         │ ctrl-r  kept Jira text…                                  │         │
+│         │ space   toggle the group                                 │         │
 │         │ +       expand the group                                 │         │
 │         │ -       collapse the group, or the one this row is in    │         │
+│         │ =       expand every held group                          │         │
+│         │ ~       recent notices (this session)                    │         │
 │         │ HISTORY                                                  │         │
-│         │ H       recent activity (last 24 hours)                  │         │
+│         │         shift recent activity (last 24 hours)            │         │
 │         │         all activity history                             │         │
 │         │         history for selected item                        │         │
 │         ╰──────────────────────────────────────────────────────────╯         │
 │                                                                              │
 │                                                                              │
 │                                                                              │
-│                                                                              │
-│                                                                              │
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ assigned to you · not done                                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- JIRA   j/k move   ⏎ choose   esc close               6 tickets · 4 doing  jira
+ JIRA   ↑↓ move   ⏎ choose   esc close                6 tickets · 4 doing  jira

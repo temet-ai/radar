@@ -186,6 +186,7 @@ pub(crate) fn read_result(
             .rev()
             .find_map(|effect| match effect {
                 Effect::Notify(message) | Effect::NotifyWith(_, message) => Some(message),
+                Effect::Notice(message) => Some(&mut message.text),
                 _ => None,
             })
         {

@@ -1,0 +1,45 @@
+---
+source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1326
+expression: "gallery_styles(160, 40, tab)"
+---
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Notices" fg:text.secondary bold
+01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
+02 _1 | "Rows & states  Entries & log  Markdown  …" fg:text.secondary | "[Notices]" fg:accent.primary/glow.purple bold | "  Detail                   " fg:text.secondary
+03 "╭" fg:accent.muted bg:bg.surface | " timed ground · older notice dimmed " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface | " motion off · same expiry " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+04 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+05 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+06 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+07 "│" fg:accent.muted bg:bg.surface | _14 bg:bg.surface | _1 bg:#2d3150 dim | "info " fg:status.info bg:#2d3150 dim | "Copied the Watch link     " bg:#2d3150 dim | _32 bg:bg.overlay dim | "││" fg:accent.muted bg:bg.surface | _13 bg:bg.surface | _1 bg:#2d3150 dim | "info " fg:status.info bg:#2d3150 dim | "Copied the Watch link                   …" bg:#2d3150 dim | "│" fg:accent.muted bg:bg.surface
+08 "│" fg:accent.muted bg:bg.surface | _14 bg:bg.surface | _1 bg:#432434 bold | "error " fg:status.error/diff.removed bg:#432434 bold | "The Watch request failed. Try again when…" bg:#432434 bold | "nection… " bg:bg.overlay bold | "││" fg:accent.muted bg:bg.surface | _13 bg:bg.surface | _1 bg:#432434 bold | "error " fg:status.error/diff.removed bg:#432434 bold | "The Watch request failed. Try again when…" bg:#432434 bold | "│" fg:accent.muted bg:bg.surface
+09 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+10 "╭" fg:accent.muted bg:bg.surface | " recent notices · session only " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+11 "│" fg:accent.muted bg:bg.surface | _1 | "Recent notices" fg:text.emphasis bold | _142 | "│" fg:accent.muted bg:bg.surface
+12 "│" fg:accent.muted bg:bg.surface | _1 | "This session only · 2 retained · 3 older…" fg:text.muted | _108 | "│" fg:accent.muted bg:bg.surface
+13 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+14 "│" fg:accent.muted bg:bg.surface | _1 | _1 fg:text.emphasis bg:bg.selection bold | "error " fg:status.error/diff.removed bg:bg.selection bold | "The Watch request failed. Try again when…" fg:text.emphasis bg:bg.selection bold | _1 | "│" fg:accent.muted bg:bg.surface
+15 "│" fg:accent.muted bg:bg.surface | _2 | "info " fg:status.info | "Copied the Watch link                   …" | "│" fg:accent.muted bg:bg.surface
+16 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+17 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+18 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+19 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+20 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+21 "│" fg:accent.muted bg:bg.surface | _1 | "Notice details · error" fg:text.secondary | _134 | "│" fg:accent.muted bg:bg.surface
+22 "│" fg:accent.muted bg:bg.surface | " The Watch request failed. Try again whe…" | "│" fg:accent.muted bg:bg.surface
+23 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+24 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+25 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+26 "│" fg:accent.muted bg:bg.surface | _157 | "│" fg:accent.muted bg:bg.surface
+27 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

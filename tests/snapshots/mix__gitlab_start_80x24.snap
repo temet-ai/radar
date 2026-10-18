@@ -4,7 +4,7 @@ assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    History   Settings (,)                                         ✎ edit
-╭ set up GitLab ───────────────────────────────────────────────────────────────╮
+╭ 1 set up GitLab ─────────────────────────────────────────────────────────────╮
 │ GitLab is not set up yet.                                                    │
 │                                                                              │
 │ Add a tenancy: a GitLab group or repo whose merge requests to follow.        │
@@ -26,4 +26,4 @@ expression: "to_text(&started(), 80, 24)"
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   q quit   x menu   ←→↑↓ navigate
+ REPOSITORIES   quit   extra actions   ~ notices   ←→↑↓ navigate

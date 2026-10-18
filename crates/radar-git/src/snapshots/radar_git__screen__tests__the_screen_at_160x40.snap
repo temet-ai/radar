@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen.rs
+assertion_line: 2178
 expression: "radar_core::shell::to_text(&hosted(), 160, 40)"
 ---
  radar    Branches   History   Settings (,)                                                                                   synced 20s ago · every 1m  ✎ edit
-╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api ─────────────────────────────────────────╮
+╭ 1 views ───────────────╮╭ 2 all ─────────────────────────────────────────────────────────────────────────────╮╭ 3 api ───────────────────────────────────────╮
 │ all                    ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  DIRTY      STASH  UPDATED  ││ folder   /work/acme/api                      │
 │ dirty                1 ││api  on alice/ABC-12  ● in use            ↑2     —       3 changed  1      3h       ││ origin   git@example.com:acme/team-a/api.git │
 │ ahead of remote      2 ││  ├─ api-hotfix  on alice/ABC-14          ↑1     ↓3      clean      —      1d       ││ repo     acme/team-a/api                     │
@@ -41,4 +42,4 @@ expression: "radar_core::shell::to_text(&hosted(), 160, 40)"
 │                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
 │                        ││ every clone, its worktrees and its local branches                                  ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- BRANCHES   ⏎ use it   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                      1 dirty · 2 ahead
+ BRANCHES   ⏎ use it   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                       1 dirty · 2 ahead

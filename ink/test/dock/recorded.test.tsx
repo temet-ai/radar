@@ -36,7 +36,8 @@ describe("host-recorded dock states", () => {
     const rows = Number(r);
     it(`${f}`, async () => {
       const screen = JSON.parse(fs.readFileSync(path.join(dock, f), "utf8"));
-      const chrome = JSON.parse(fs.readFileSync(path.join(fixtures, `host_chrome_${cols}x${rows}.json`), "utf8"));
+      // This recorded ScreenView has no paired ChromeView. A generic map cannot assert its actual digit routing.
+      const { pane_jumps: _unrelatedPaneJumps, ...chrome } = JSON.parse(fs.readFileSync(path.join(fixtures, `host_chrome_${cols}x${rows}.json`), "utf8"));
       const m = mount(cols, rows);
       live.push(m.stop);
       m.welcome();

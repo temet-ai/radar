@@ -2,6 +2,13 @@
   "chrome": {
     "height": 24,
     "keys_at": "body",
+    "notices_visible": true,
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "middle"
+      }
+    ],
     "screen_keys": [
       "R",
       "G",
@@ -108,7 +115,8 @@
               "target": "chrome:key:1:0"
             }
           ],
-          "label": "quit"
+          "label": "quit",
+          "mnemonic_at": 0
         },
         {
           "icon": "menu",
@@ -124,7 +132,23 @@
               "target": "chrome:key:2:0"
             }
           ],
-          "label": "menu"
+          "label": "extra actions",
+          "mnemonic_at": 1
+        },
+        {
+          "keys": "~",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "~"
+                }
+              },
+              "label": "~",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "notices"
         },
         {
           "keys": "←→↑↓",
@@ -134,28 +158,28 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:3:0"
+              "target": "chrome:key:4:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:3:1"
+              "target": "chrome:key:4:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:3:2"
+              "target": "chrome:key:4:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:3:3"
+              "target": "chrome:key:4:3"
             }
           ],
           "label": "navigate"
@@ -205,7 +229,7 @@
           "target": "chrome:tab:4"
         },
         {
-          "label": "work",
+          "label": "work items",
           "mnemonic": "I",
           "target": "chrome:tab:6"
         },
@@ -228,7 +252,8 @@
       }
     },
     "version": 1,
-    "width": 80
+    "width": 80,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 24,
@@ -247,7 +272,8 @@
             "char": "o"
           }
         },
-        "label": "open it in GitLab"
+        "label": "open it in GitLab",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.page.copy_link",
@@ -256,7 +282,8 @@
             "char": "y"
           }
         },
-        "label": "copy its link"
+        "label": "copy its link",
+        "mnemonic_at": 3
       },
       {
         "id": "gitlab.page.refresh",
@@ -265,7 +292,8 @@
             "char": "r"
           }
         },
-        "label": "refresh this page"
+        "label": "refresh this page",
+        "mnemonic_at": 0
       },
       {
         "heading": true,
@@ -280,7 +308,8 @@
             "char": "u"
           }
         },
-        "label": "rebase onto main…"
+        "label": "update by rebasing onto main…",
+        "mnemonic_at": 0
       },
       {
         "change": "edit",
@@ -290,7 +319,8 @@
             "char": "m"
           }
         },
-        "label": "merge · needs 1 approval"
+        "label": "merge · needs 1 approval",
+        "mnemonic_at": 0
       },
       {
         "change": "edit",
@@ -300,7 +330,8 @@
             "char": "a"
           }
         },
-        "label": "approve !263…"
+        "label": "approve !263…",
+        "mnemonic_at": 0
       },
       {
         "change": "add",
@@ -310,7 +341,8 @@
             "char": "c"
           }
         },
-        "label": "comment on README.md line 2…"
+        "label": "comment on README.md line 2…",
+        "mnemonic_at": 0
       },
       {
         "heading": true,
@@ -324,7 +356,8 @@
             "char": "f"
           }
         },
-        "label": "collapse the files"
+        "label": "collapse the files",
+        "mnemonic_at": 13
       },
       {
         "id": "gitlab.mr.toggle_side_by_side",
@@ -333,7 +366,8 @@
             "char": "v"
           }
         },
-        "label": "show the diff side by side"
+        "label": "view the diff side by side",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.mr.next_file",
@@ -342,7 +376,8 @@
             "char": "n"
           }
         },
-        "label": "next file: StatsController.java"
+        "label": "next file: StatsController.java",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.mr.next_hunk",
@@ -398,7 +433,9 @@
             "char": "A"
           }
         },
-        "label": "ask an agent about it…"
+        "label": "ask an agent about it…",
+        "mnemonic_at": 0,
+        "mnemonic_shift": true
       },
       {
         "id": "agent.review_locally",
@@ -407,7 +444,8 @@
             "char": "i"
           }
         },
-        "label": "review it locally…"
+        "label": "review it locally…",
+        "mnemonic_at": 3
       },
       {
         "id": "gitlab.page.back",

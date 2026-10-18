@@ -19,6 +19,7 @@ mod log_refresh;
 mod cached_refresh;
 mod detail_refresh;
 mod held;
+mod detail_pane_map;
 
 fn press(p: &mut GitlabPlugin, code: KeyCode) -> Vec<Effect> {
     press_in(p, Pane::Middle, code)
@@ -127,7 +128,7 @@ fn enter_opens_a_merge_requests_page_and_fetches_what_it_shows() {
     );
     assert!(p.busy("repos"), "busy while the page loads");
     let text = draw(&p, 160, 40);
-    assert!(text.contains("Repositories › a › api › !263"), "{text}");
+    assert!(text.contains("Repositories / a / api / !263"), "{text}");
     assert!(text.contains("loading…"), "{text}");
     assert_eq!(p.panes("repos"), vec![Pane::Middle], "a page is one pane");
 }
@@ -417,7 +418,7 @@ fn space_folds_a_folder_and_n_and_n_skip_folders() {
         !text.contains("StatsService.java"),
         "the folder is folded:\n{text}"
     );
-    assert!(text.contains("main/java/acme/stats ⋯"), "{text}");
+    assert!(text.contains("main/java/acme/stats ⋯ 2"), "the two held files: {text}");
     press_in(&mut p, Pane::Nav, KeyCode::Enter);
     assert!(
         draw_in(&p, Pane::Nav, 160, 40).contains("StatsService.java"),
@@ -459,6 +460,83 @@ fn space_folds_a_folder_and_n_and_n_skip_folders() {
 }
 
 #[test]
+fn neutral_changes_fold_selects_the_collapsed_parent_without_changing_the_file() {
+    // One real owner projection establishes the valid loaded file hierarchy;
+    // the rest exercises intents without additional frame rendering.
+    let mut p = changes_page();
+    draw(&p, 160, 40);
+    let selected = p.pages[0].tree.borrow().selected().to_vec();
+    assert!(selected.len() > 1);
+    let parent = selected[..selected.len() - 1].to_vec();
+    let file = p.pages[0].file.get();
+    let target = radar_core::view::TreeRow::target_of(&parent);
+    let _ = neutral::intent(&mut p, Pane::Nav, &radar_core::view::Intent::Fold {
+        target: target.clone(), open: false,
+    });
+    assert_eq!(p.pages[0].tree.borrow().selected(), parent.as_slice());
+    assert_eq!(p.pages[0].file.get(), file, "folding does not open another file");
+    let _ = neutral::intent(&mut p, Pane::Nav, &radar_core::view::Intent::Fold {
+        target, open: true,
+    });
+    assert_eq!(p.pages[0].tree.borrow().selected(), parent.as_slice());
+    assert_eq!(p.pages[0].file.get(), file);
+}
+
+#[test]
+fn host_open_all_expands_nested_changes_folders_without_changing_selection_or_file() {
+    use radar_core::host::Event;
+    use radar_core::view::{Intent, Node, PaneId};
+
+    let p = changes_page();
+    p.pages[0].tree.borrow_mut().close_all();
+    p.pages[0].tree.borrow_mut().select(vec!["d:src".into()]);
+    let now = p.now;
+    let mut host = radar_core::Host::new(vec![Box::new(p)], now).unwrap();
+    host.focus = Pane::Nav;
+    host.set_view_room(160, 40);
+    let page = |host: &radar_core::Host| {
+        host.screen_view(0, "repos")
+            .expect("the GitLab screen")
+            .page
+            .expect("the Changes page")
+    };
+    let before = page(&host);
+    assert_eq!(before.panes[0].pane, PaneId::Nav);
+    let Node::Tree(before_tree) = &before.panes[0].body else {
+        panic!("Changes has a files tree")
+    };
+    let mut groups = before_tree.groups();
+    assert_eq!(groups.len(), 4, "all loaded folders, including nested ones");
+    assert!(groups.iter().any(|path| path.len() > 1));
+    assert!(before_tree.open.is_empty());
+    assert_eq!(before_tree.selected, ["d:src"]);
+    for path in &groups {
+        assert_eq!(before_tree.row(path).unwrap().name.0[0].icon, Some(Icon::Folder));
+    }
+    assert_eq!(before.panes[1].pane, PaneId::Middle);
+    assert!(before.panes[1].title.contains("StatsController.java"));
+    let subject = host.plugins[0].subject("repos", Pane::Nav).expect("the merge request");
+    let context = host.motion_context().expect("the Changes page identity");
+
+    host.update(Event::Intent(Intent::OpenAll));
+
+    let after = page(&host);
+    let Node::Tree(after_tree) = &after.panes[0].body else {
+        panic!("Changes keeps its files tree")
+    };
+    groups.sort();
+    assert_eq!(after_tree.open, groups, "opening the first folder must not stop the rest");
+    assert_eq!(after_tree.selected, before_tree.selected);
+    for path in &groups {
+        assert_eq!(after_tree.row(path).unwrap().name.0[0].icon, Some(Icon::FolderOpen));
+    }
+    assert_eq!(after.panes[1], before.panes[1], "the open file and diff stay unchanged");
+    assert_eq!(host.plugins[0].subject("repos", Pane::Nav), Some(subject));
+    assert_eq!(host.motion_context(), Some(context));
+    assert_eq!(host.focus, Pane::Nav);
+}
+
+#[test]
 fn plus_and_minus_fold_the_files_folders_in_the_files_pane() {
     let mut p = changes_page();
     draw(&p, 160, 40);
@@ -470,7 +548,7 @@ fn plus_and_minus_fold_the_files_folders_in_the_files_pane() {
     // On the open file: `-` folds its folder and lands on it.
     press_in(&mut p, Pane::Nav, KeyCode::Char('-'));
     let text = draw(&p, 160, 40);
-    assert!(text.contains("main/java/acme/stats ⋯"), "{text}");
+    assert!(text.contains("main/java/acme/stats ⋯ 2"), "the two held files: {text}");
     assert!(
         p.pages[0]
             .tree
@@ -486,8 +564,27 @@ fn plus_and_minus_fold_the_files_folders_in_the_files_pane() {
     );
     press_in(&mut p, Pane::Nav, KeyCode::Char('-'));
     draw(&p, 160, 40);
-    press_in(&mut p, Pane::Nav, KeyCode::Char('='));
-    assert!(draw(&p, 160, 40).contains("StatsService.java"), "= too");
+    // '=' belongs to the shared host contract, including the files pane.
+    let now = p.now;
+    let mut host = radar_core::Host::new(vec![Box::new(p)], now).unwrap();
+    host.focus = Pane::Nav;
+    host.set_view_room(160, 40);
+    let before = host.screen_view(0, "repos").unwrap().page.unwrap();
+    assert!(host.update(radar_core::host::Event::Key(KeyEvent::new(
+        KeyCode::Char('='), KeyModifiers::NONE,
+    ))).is_empty(), "opening folders has no external effects");
+    let after = host.screen_view(0, "repos").unwrap().page.unwrap();
+    let radar_core::view::Node::Tree(tree) = &after.panes[0].body else {
+        panic!("files tree")
+    };
+    assert!(tree.groups().iter().all(|path| tree.open.contains(path)),
+        "= opens every held folder");
+    let radar_core::view::Node::Tree(before_tree) = &before.panes[0].body else {
+        panic!("files tree before opening")
+    };
+    assert_eq!(tree.selected, before_tree.selected);
+    assert_eq!(after.panes[1], before.panes[1], "opening keeps the selected file and diff");
+    assert!(radar_core::shell::to_text(&host, 160, 40).contains("StatsService.java"), "= too");
 }
 
 #[test]
@@ -555,7 +652,7 @@ fn v_shows_the_diff_side_by_side_and_is_kept_in_the_config() {
     let keys = radar_core::Plugin::keys(&p, "repos", Pane::Middle);
     assert!(
         keys.iter()
-            .any(|b| b.keys == "v" && b.what == "show the diff in one column"),
+            .any(|b| b.keys == "v" && b.what == "view the diff in one column"),
         "{keys:?}"
     );
     press(&mut p, KeyCode::Char('v'));
@@ -849,7 +946,7 @@ fn a_comment_on_a_line_is_shown_exactly_asked_first_and_sent_once() {
         },
     );
     assert!(
-        matches!(&fx[..], [Effect::Report(radar_core::journal::Outcome::Unknown), Effect::Notify(m)] if m == "✗ Could not confirm the result of asking GitLab to post a comment on StatsController.java line 3: GitLab says this token may not do that here (403) Check GitLab before trying again. · c has your text"),
+        matches!(&fx[..], [Effect::Report(radar_core::journal::Outcome::Unknown), Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.text == "✗ Could not confirm the result of asking GitLab to post a comment on StatsController.java line 3: GitLab says this token may not do that here (403) Check GitLab before trying again. · c has your text"),
         "{fx:?}"
     );
     p.compose = None;
@@ -952,6 +1049,7 @@ fn each_mode_sends_only_the_writes_it_allows_and_the_merge_says_what_it_will_do(
         fx.iter()
             .find_map(|e| match e {
                 Effect::Notify(m) => Some(m.clone()),
+                Effect::Notice(m) => Some(m.text.clone()),
                 _ => None,
             })
             .unwrap_or_default()
@@ -1165,7 +1263,7 @@ fn a_repo_page_opens_a_merge_request_and_esc_comes_back_to_it() {
     // Its main is red, so it opens on the pipelines: back to the first tab.
     press(&mut p, KeyCode::Char('['));
     let text = draw(&p, 160, 40);
-    assert!(text.contains("Repositories › a › web"), "{text}");
+    assert!(text.contains("Repositories / a / web"), "{text}");
     assert!(text.contains("[Merge requests]"), "{text}");
     assert!(text.contains("Pipelines on main"), "{text}");
     assert!(text.contains("!187") && text.contains("!198"), "{text}");
@@ -1175,7 +1273,7 @@ fn a_repo_page_opens_a_merge_request_and_esc_comes_back_to_it() {
     press(&mut p, KeyCode::Enter);
     assert_eq!(p.pages.len(), 2);
     assert!(matches!(p.pages[1].kind, Kind::Mr { iid, .. } if iid == want));
-    assert!(draw(&p, 160, 40).contains(&format!("Repositories › a › web › !{want}")));
+    assert!(draw(&p, 160, 40).contains(&format!("Repositories / a / web / !{want}")));
     let fx = press(&mut p, KeyCode::Esc);
     assert!(fx.is_empty(), "back to the repo page, not the tree");
     assert_eq!(p.pages.len(), 1);
@@ -1248,7 +1346,7 @@ fn a_tenancy_page_is_a_table_of_its_repos_and_opens_one() {
     press(&mut p, KeyCode::Enter);
     let text = draw(&p, 160, 40);
     for want in [
-        "Repositories › a",
+        "Repositories / a",
         "acme/team-a",
         "3 repos · 3 merge requests",
         "[Repos]",
@@ -1309,7 +1407,7 @@ fn the_actions_menu_is_the_pages_titled_with_the_item() {
         "follow a link on this page… (1 link)"
     );
     let what = |k: &str| b.iter().find(|b| b.keys == k).unwrap().what.clone();
-    assert_eq!(what("u"), "rebase onto main…");
+    assert_eq!(what("u"), "update by rebasing onto main…");
     assert_eq!(what("m"), "merge · needs 1 approval");
     assert_eq!(what("]"), "next tab: Changes");
     assert_eq!(what("["), "previous tab: Commits");
@@ -1426,7 +1524,7 @@ fn a_jobs_page_shows_its_log_at_the_first_error_and_its_sections() {
     );
     let text = draw(&p, 160, 40);
     for want in [
-        "Repositories › b › worker › !342 › unit-test",
+        "Repositories / b / worker / !342 / unit-test",
         "✗ failed · stage test · 1m 14s · the script failed",
         "[Log]",
         "Running with gitlab-runner 17.0",
@@ -1473,6 +1571,10 @@ fn a_jobs_page_searches_its_log_and_esc_clears_the_search_before_going_back() {
         b.iter()
             .any(|b| b.keys == "N" && b.what == "previous line with TASK")
     );
+    let previous = b.iter().find(|binding| binding.keys == "N").unwrap();
+    let action = radar_core::view::ActionSpec::named("gitlab.job.previous_match", previous);
+    assert_eq!(action.mnemonic_at, Some(11));
+    assert!(action.mnemonic_shift);
     assert_eq!(b.last().map(|b| b.what.as_str()), Some("clear the search"));
     press(&mut p, KeyCode::Esc);
     assert_eq!(p.pages.len(), 2, "esc cleared the search first");
@@ -1837,4 +1939,58 @@ fn choose_recovery(p: &mut GitlabPlugin, effects: &[Effect], value: &str) -> Vec
         })
         .expect("recovery menu");
     p.on_menu(&menu.id, value)
+}
+
+mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn page_action_producers_have_mnemonics_across_review_and_diff_states() {
+        let (mut p, fixture) = crate::test_support::hosted_plugin(vec![]).unwrap();
+        let item = crate::test_support::MrBuilder::default().build();
+        let detail = crate::model::fixtures::detail();
+        let head = detail.refs.as_ref().unwrap().head.clone();
+        let key = mr_key(&item.project_path, item.iid);
+        p.mr_pages.insert(key.clone(), crate::pages::Fetched {
+            value: Some((item.clone(), detail)), at: p.now, ..Default::default()
+        });
+        p.diffs.insert(key, crate::pages::changes::Diffs {
+            head,
+            files: crate::model::fixtures::diffs().into_iter().map(|file| (file.new_path.clone(), file)).collect(),
+            asked: [1].into(), ended: Some(1), ..Default::default()
+        });
+        p.pages.push(Page::new(Kind::Mr { project: item.project_path.clone(), iid: item.iid }));
+        let mut checked = 0;
+        let mut shifted = false;
+        for split in [false, true] {
+            p.cfg.side_by_side = split;
+            for tab in 0..mr::TABS.len() {
+                p.pages.last_mut().unwrap().tab = tab;
+                for file in 0..3 {
+                    p.pages.last().unwrap().file.set(file);
+                    for pane in [Pane::Nav, Pane::Middle, Pane::Detail] {
+                        for (id, binding) in crate::pages::keys(&p, pane) {
+                            if radar_core::mnemonic::letter(&binding.keys).is_some() {
+                                assert!(radar_core::mnemonic::at(&binding.keys, &binding.what).is_some(),
+                                    "{id}: {} / {}", binding.keys, binding.what);
+                                let action = radar_core::view::ActionSpec::named(id, &binding);
+                                assert_eq!(action.mnemonic_shift, radar_core::mnemonic::shifted(&binding.keys));
+                                shifted |= binding.keys == "N";
+                                checked += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert!(checked > 20);
+        assert!(shifted, "exercise the previous-file uppercase binding");
+        p.acting.insert(mr_key(&item.project_path, item.iid), crate::mr_actions::Act {
+            what: "rebase", state: crate::mr_actions::Acting::Running, at: p.now,
+        });
+        let bindings = crate::pages::act::bindings(&p, p.pages.last().unwrap());
+        let (_, rebase) = bindings.iter().find(|(id, _)| id == "gitlab.mr.rebase").unwrap();
+        assert_eq!((&*rebase.keys, &*rebase.what), ("u", "update by rebasing · asked, waiting for GitLab"));
+        fixture.assert_finished();
+    }
 }

@@ -430,7 +430,7 @@ jql = "project = ABC ORDER BY updated DESC"
         // a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back
         let mut host = both();
         key(&mut host, KeyCode::Char('J'));
-        down_to(&mut host, "ABC-12", "╭ ABC-12 ");
+        down_to(&mut host, "ABC-12", "╭ 3 ABC-12 ");
         key(&mut host, KeyCode::Enter);
         key(&mut host, KeyCode::Char('['));
         out.push(record(name("ticket_code_tab_160x40"), &mut host, 160, 40, plain));

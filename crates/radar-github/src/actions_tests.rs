@@ -581,10 +581,10 @@ fn every_listed_action_has_its_own_named_id() {
     for row in 0..4 {
         let mut p = demo::sample();
         p.connection_row = row;
-        p.repository_row = row;
+        crate::settings::select_repository_row(&mut p, row);
         connection.push(p);
         let mut p = demo::sample();
-        p.repository_row = row;
+        crate::settings::select_repository_row(&mut p, row);
         repositories.push(p);
     }
     seen.push(("connection", connection, true));

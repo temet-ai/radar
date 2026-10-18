@@ -1,9 +1,10 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1227
 expression: text
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)                                                                                              ✎ edit
-╭ tickets ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 2 tickets ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ ticket page ABC-12 · Overview  [Slack]                                                                                                                       │
 │ > #team · Carol Coder · 1d ago · 1 reply  Anyone seen ABC-12 failing on main? pipeline and make check                                                        │
 │                                                                                                                                                              │
@@ -41,4 +42,4 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- TICKETS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                             slack
+ TICKETS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                            slack

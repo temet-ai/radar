@@ -1000,3 +1000,15 @@ fn a_part_that_wakes_the_host_is_asked_at_the_next_wake_and_the_others_are_not()
     assert_eq!(*a_woken.lock().unwrap(), vec![7]);
     assert!(b_woken.lock().unwrap().is_empty());
 }
+
+mod notice_history_tests {
+    use super::*;
+    #[test]
+    fn focused_raw_terminal_suppresses_notices_without_pausing_their_lifetimes() {
+        let content = states().remove("pty").unwrap(); let (mut host, _) = host_with(content, true);
+        host.notify("session information".into()); host.dock.visible = true; host.dock.focused = true;
+        assert!(!host.notices_visible()); host.dock.focused = false; assert!(host.notices_visible());
+        host.dock.focused = true; host.set_ui_clock_ms(crate::notices::INFO_MS);
+        assert!(!host.notices.has_active()); assert_eq!(host.notices.len(), 1);
+    }
+}

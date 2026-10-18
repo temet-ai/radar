@@ -166,6 +166,15 @@ fn notice(fx: &[Effect]) -> &str {
     }
 }
 
+fn error_notice(fx: &[Effect]) -> &str {
+    let mut visible = fx.iter().filter(|e| !matches!(e, Effect::Journal(_) | Effect::Report(_)));
+    match (visible.next(), visible.next()) {
+        (Some(Effect::Notice(message)), None)
+            if message.tone == radar_core::view::chrome::NoticeTone::Error => &message.text,
+        other => panic!("not one error notice: {other:?}"),
+    }
+}
+
 fn sends(fx: &[Effect]) -> bool {
     fx.iter().any(|e| matches!(e, Effect::Spawn(_)))
 }
@@ -189,10 +198,49 @@ fn u_asks_to_rebase_a_merge_request_gitlab_says_is_behind_and_sends_it_once_on_a
     let again = p.on_menu(&m.id, "yes");
     assert_eq!(notice(&again), "already asked GitLab for a rebase");
     let row = rows(&p, &selected(&p).unwrap()).remove(0);
-    assert_eq!(row.words(), "rebase · asked, waiting for GitLab");
-    // The detail pane says it as the page does.
-    let (text, _) = draw(&p, 160, 40);
-    assert!(text.contains("rebase · asked, waiting for GitLab"), "{text}");
+    assert_eq!(row.words(), "update by rebasing · asked, waiting for GitLab");
+    // The pinned caption stays compact; the original action and reason survive.
+    let cx = radar_core::view::ViewCx {
+        now: p.now,
+        focus: radar_core::view::PaneId::Detail,
+        width: 160,
+        height: 40,
+        parts: radar_core::Parts::none(),
+        icon_lead: 0,
+        setup: false,
+    };
+    let view = p.view("repos", &cx).unwrap();
+    let detail = view.pane(radar_core::view::PaneId::Detail).unwrap();
+    let update = detail.foot_actions.as_ref().unwrap().actions.iter()
+        .find(|control| control.action.id == "gitlab.repos.rebase").unwrap();
+    let original = crate::actions(&p.rows(Pane::Detail)).into_iter()
+        .find(|action| action.id == "gitlab.repos.rebase").unwrap();
+    assert_eq!(update.action.id, original.id);
+    assert_eq!(update.action.key, original.key);
+    assert_eq!(update.action.key.unwrap().name(), "u");
+    assert_eq!(update.action.change, original.change);
+    assert_eq!(update.action.change, Some(radar_core::view::Change::Edit));
+    assert_eq!(update.action.label, "update");
+    assert_eq!(update.disabled.as_deref(), Some("asked, waiting for GitLab"));
+    assert!(update.target.is_none(), "an in-flight control has no hit target");
+    let radar_core::view::Node::Extension { fallback, .. } = &detail.body else {
+        panic!("the shared detail has a readable fallback")
+    };
+    let radar_core::view::Node::Rich { blocks, .. } = fallback.as_ref() else {
+        panic!("the shared detail fallback is rich text")
+    };
+    let actions = blocks.iter().find_map(|block| match block {
+        radar_core::view::Block::Section { title, blocks, .. } if title == "ACTIONS" => Some(blocks),
+        _ => None,
+    }).unwrap();
+    assert!(actions.iter().any(|block| matches!(block,
+        radar_core::view::Block::Line { text, key, target, .. }
+            if text.words() == "update (asked, waiting for GitLab)"
+                && key.as_deref() == Some("u") && target.is_none()
+    )), "fallback retains the disabled reason without an activation target");
+    assert!(p.keys("repos", Pane::Detail).iter().any(|binding|
+        binding.keys == "u" && binding.what == "update by rebasing · asked, waiting for GitLab"
+    ));
     // GitLab answers: the answer is shown and the tree is refreshed.
     let done = mr_actions::ActMsg { connection: p.connection_stamp(), key: "acme/team-a/api!410".into(), what: "rebase", result: Ok("rebase requested".into()), outcome: radar_core::journal::Outcome::Succeeded };
     let fx = p.on_msg(Box::new(done));
@@ -229,7 +277,7 @@ fn read_only_or_write_mode_a_yes_sends_nothing_and_says_so() {
             ["GitLab rewrites the branch on top of main", "yes", "no"]
         );
         let fx = p.on_menu(&m.id, "yes");
-        assert_eq!(notice(&fx), format!("✗ GitLab did not rebase !410: {why}"));
+        assert_eq!(error_notice(&fx), format!("✗ GitLab did not rebase !410: {why}"));
         // The merge.
         select(&mut p, 187);
         let fx = press(&mut p, 'm');
@@ -244,7 +292,7 @@ fn read_only_or_write_mode_a_yes_sends_nothing_and_says_so() {
         assert_eq!(m.change, Some(radar_core::writes::Change::Edit));
         let fx = p.on_menu(&m.id, "yes");
         assert!(!sends(&fx), "{fx:?}");
-        assert_eq!(notice(&fx), format!("✗ GitLab did not approve !263: {why}"));
+        assert_eq!(error_notice(&fx), format!("✗ GitLab did not approve !263: {why}"));
         // The row menu lists them, marked as writes that edit.
         let b = crate::bindings_of(bindings(&p, &crate::pages::find_mr(&p, "acme/team-a/api", 263).unwrap().clone()));
         assert!(b.iter().filter(|r| r.keys == "e").all(|r| r.change == Some(radar_core::writes::Change::Edit)));
@@ -349,7 +397,7 @@ fn the_actions_menu_of_a_row_lists_them_with_why_for_the_ones_not_offered() {
     select(&mut p, 410);
     let b = p.keys("repos", Pane::Middle);
     let what = |k: &str| b.iter().find(|b| b.keys == k).map(|b| b.what.clone());
-    assert_eq!(what("u").as_deref(), Some("rebase onto main…"));
+    assert_eq!(what("u").as_deref(), Some("update by rebasing onto main…"));
     assert_eq!(what("m").as_deref(), Some("merge · needs rebase"));
     assert_eq!(what("e").as_deref(), Some("approve !410…"));
     assert_eq!(
@@ -368,7 +416,7 @@ fn the_actions_menu_of_a_row_lists_them_with_why_for_the_ones_not_offered() {
     select(&mut p, 263);
     let b = p.keys("repos", Pane::Middle);
     let what = |k: &str| b.iter().find(|b| b.keys == k).map(|b| b.what.clone());
-    assert_eq!(what("u").as_deref(), Some("rebase · not behind main"));
+    assert_eq!(what("u").as_deref(), Some("update by rebasing · not behind main"));
     assert_eq!(what("m").as_deref(), Some("merge · needs 1 approval"));
     // The detail pane's menu has them too.
     let b = p.keys("repos", Pane::Detail);
@@ -397,9 +445,12 @@ fn the_status_line_names_only_the_main_actions_that_apply() {
     let mut p = plugin();
     let hint = |p: &mut GitlabPlugin, iid| {
         select(p, iid);
-        hints(p, Pane::Middle).iter().map(|h| format!("{} {}", h.keys, h.action)).collect::<Vec<_>>()
+        hints(p, Pane::Middle).iter().map(|h| {
+            assert!(radar_core::mnemonic::at(h.keys, h.action).is_some());
+            format!("{} {}", h.keys, h.action)
+        }).collect::<Vec<_>>()
     };
-    assert_eq!(hint(&mut p, 410), ["u rebase"]);
+    assert_eq!(hint(&mut p, 410), ["u update by rebasing"]);
     assert_eq!(hint(&mut p, 187), ["m merge"]);
     assert_eq!(hint(&mut p, 263), ["e approve"]);
     assert!(hint(&mut p, 342).is_empty(), "a draft: nothing to offer");
@@ -436,13 +487,32 @@ fn preview_actions_use_the_same_surface_as_the_other_details() {
     select(&mut p, 410);
     let mut host = host_of(p, "");
     host.focus = Pane::Detail;
-    let styles = radar_core::shell::to_styles(&host, 160, 40);
-    let action = styles.lines().find(|line| line.contains("rebase onto main")).unwrap();
-    assert!(action.contains("bg:bg.surface") && !action.contains("bg:bg.selection"), "{action}");
-    let heading = styles.lines().find(|line| line.contains("ACTIONS")).unwrap();
-    assert!(heading.contains("bg:bg.surface"), "{heading}");
-    let context = styles.lines().find(|line| line.contains("needs rebase") && !line.contains("[m]")).unwrap();
-    assert!(context.contains("bg:bg.surface"), "{context}");
+    use radar_core::design::theme::{Slot, Tier};
+    use radar_core::ratatui::{Terminal, backend::TestBackend, style::Modifier};
+
+    let theme = host.build_theme(Tier::TrueColor);
+    let mut terminal = Terminal::new(TestBackend::new(160, 40)).unwrap();
+    terminal.draw(|frame| radar_core::shell::render(&host, &theme, frame)).unwrap();
+    let buffer = terminal.backend().buffer();
+    let (y, footer) = (0..40).map(|y| (y, radar_core::shell::row_text(buffer, y)))
+        .find(|(_, line)| line.contains("extra actions")).expect("pinned footer");
+    let menu_x = radar_core::ui::width(&footer[..footer.rfind("extra actions").unwrap()]) as u16;
+    let left = footer[..footer.rfind("extra actions").unwrap()].rfind('│').unwrap();
+    let start = radar_core::ui::width(&footer[..left]) as u16 + 1;
+    let end = radar_core::ui::width(&footer[..footer.rfind('│').unwrap()]) as u16;
+    for x in start..end {
+        let cell = &buffer[(x, y)];
+        assert_eq!(Some(cell.bg), theme.bg(Slot::BgSurface).bg, "footer cell ({x}, {y})");
+        assert_ne!(Some(cell.bg), theme.bg(Slot::BgSelection).bg, "footer cell ({x}, {y})");
+    }
+    assert!(buffer[(menu_x + 1, y)].modifier.contains(Modifier::UNDERLINED), "x remains underlined");
+    let (y, context) = (0..y).map(|y| (y, radar_core::shell::row_text(buffer, y)))
+        .find(|(_, line)| line.rsplit('│').nth(1).is_some_and(|detail| detail.contains("needs rebase")))
+        .expect("detail state context");
+    let x = radar_core::ui::width(&context[..context.rfind("needs rebase").unwrap()]) as u16;
+    for x in x..x + radar_core::ui::width("needs rebase") as u16 {
+        assert_eq!(Some(buffer[(x, y)].bg), theme.bg(Slot::BgSurface).bg, "state cell ({x}, {y})");
+    }
 }
 
 #[test]
@@ -451,7 +521,7 @@ fn the_status_line_of_a_row_that_needs_a_rebase_shows_its_key_80x24() {
     select(&mut p, 410);
     let text = shown(p, 80, 24);
     let bar = text.lines().last().unwrap();
-    assert!(bar.contains("u rebase"), "{bar}");
+    assert!(bar.contains("update by rebasing"), "{bar}");
     insta::assert_snapshot!(text);
 }
 
@@ -513,7 +583,7 @@ fn click_at(host: &mut Host, at: Position) -> Vec<radar_core::host::HostEffect> 
 fn a_click_on_a_line_of_the_previews_actions_does_what_its_key_does() {
     // The detail pane is not the pane in focus, yet one click acts.
     for (line, id) in [
-        ("rebase onto main", "act-rebase:acme/team-a/api!410"),
+        ("update", "act-rebase:acme/team-a/api!410"),
         ("approve", "gl-write"),
     ] {
         let mut p = plugin();
@@ -524,7 +594,8 @@ fn a_click_on_a_line_of_the_previews_actions_does_what_its_key_does() {
         let at = text
             .lines()
             .enumerate()
-            .find_map(|(y, l)| l.rfind(line).map(|i| Position { x: l[..i].chars().count() as u16, y: y as u16 }))
+            .filter(|(_, l)| l.contains("extra actions"))
+            .find_map(|(y, l)| l.rfind(line).map(|i| Position { x: radar_core::ui::width(&l[..i]) as u16, y: y as u16 }))
             .unwrap_or_else(|| panic!("no {line:?} in:\n{text}"));
         click_at(&mut host, at);
         let open = host.menu.as_ref().unwrap_or_else(|| panic!("{line}: no question\n{text}"));
@@ -533,7 +604,7 @@ fn a_click_on_a_line_of_the_previews_actions_does_what_its_key_does() {
 }
 
 #[test]
-fn a_click_on_a_muted_line_says_why_and_a_click_on_open_in_gitlab_opens_it() {
+fn a_disabled_foot_has_no_hit_and_open_still_uses_its_original_action() {
     let mut p = plugin();
     select(&mut p, 410);
     let mut host = host_of(p, "");
@@ -541,15 +612,19 @@ fn a_click_on_a_muted_line_says_why_and_a_click_on_open_in_gitlab_opens_it() {
     let at = text
         .lines()
         .enumerate()
-        .find_map(|(y, l)| l.rfind("merge · needs rebase").map(|i| Position { x: l[..i].chars().count() as u16, y: y as u16 }))
+        .filter(|(_, l)| l.contains("extra actions"))
+        .find_map(|(y, l)| l.rfind("merge").map(|i| Position { x: radar_core::ui::width(&l[..i]) as u16, y: y as u16 }))
         .unwrap_or_else(|| panic!("no muted merge line in:\n{text}"));
     click_at(&mut host, at);
     assert!(host.menu.is_none());
-    assert_eq!(host.message.as_deref(), Some("cannot merge !410 yet: needs rebase"));
+    assert!(host.message.is_none(), "disabled controls perform no action");
+    let reasons = gitlab(&host).rows(Pane::Detail);
+    assert!(reasons.iter().any(|(id, row)| id == "gitlab.repos.merge" && row.what.contains("needs rebase")));
     let at = text
         .lines()
         .enumerate()
-        .find_map(|(y, l)| l.rfind("open in GitLab").map(|i| Position { x: l[..i].chars().count() as u16, y: y as u16 }))
+        .filter(|(_, l)| l.contains("extra actions"))
+        .find_map(|(y, l)| l.rfind("open").map(|i| Position { x: radar_core::ui::width(&l[..i]) as u16, y: y as u16 }))
         .unwrap();
     let fx = click_at(&mut host, at);
     assert!(
@@ -618,7 +693,7 @@ fn a_click_on_the_state_of_a_red_pipeline_opens_why_it_is_red() {
     let Outcome::Handled(fx) = p.click("repos", &target) else { panic!("ignored") };
     assert!(fx.iter().any(|e| matches!(e, Effect::Focus(Pane::Middle))), "{fx:?}");
     let (text, _) = draw(&p, 160, 40);
-    assert!(text.contains("Repositories › a › web › !411"), "{text}");
+    assert!(text.contains("Repositories / a / web / !411"), "{text}");
     assert!(text.contains("[Pipeline"), "on the page's Pipeline tab:\n{text}");
 }
 
@@ -707,4 +782,99 @@ fn i_on_an_open_merge_request_row_starts_its_review_and_a_merged_one_offers_none
     }
     assert!(!ids(&p).contains(&REVIEW_LOCALLY_ACTION.to_string()));
     assert!(invoke(&p, REVIEW_LOCALLY_ACTION).is_none());
+}
+
+mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn action_producers_have_mnemonics_in_enabled_blocked_and_busy_states() {
+        let (mut p, fixture) = crate::test_support::hosted_plugin(vec![]).unwrap();
+        let mut item = mr(44, "vimes", "ankh-morpork/watch");
+        item.target_branch = "trunk".into();
+        item.source_branch = "watch/changes".into();
+        item.pipeline_url = Some("https://gitlab.example/ankh-morpork/watch/-/pipelines/44".into());
+        for state in 0..4 {
+            item.rebase = state == 0;
+            item.merge_status = if state == 0 { "NEED_REBASE" } else { "MERGEABLE" }.into();
+            item.state = if state == 2 { MrState::Closed } else { MrState::Opened };
+            p.acting.clear();
+            if state == 3 {
+                p.acting.insert(mr_key(&item.project_path, item.iid), crate::mr_actions::Act {
+                    what: "rebase", state: Acting::Running, at: p.now,
+                });
+            }
+            let offered = rows(&p, &item);
+            for row in &offered {
+                let key = row.what.key().to_string();
+                assert!(radar_core::mnemonic::at(&key, &row.words()).is_some(),
+                    "{state}: {key} / {}", row.words());
+            }
+            let rebase = offered.iter().find(|row| row.what == Do::Rebase).unwrap();
+            assert!(rebase.label.starts_with("update by rebasing"));
+            assert_eq!(rebase.why.is_none(), state == 0);
+            let bindings = bindings(&p, &item);
+            let (_, rebase) = bindings.iter().find(|(id, _)| id == "gitlab.repos.rebase").unwrap();
+            assert_eq!(rebase.keys, "u");
+            assert!(rebase.change.is_some());
+            let action = radar_core::view::ActionSpec::named("gitlab.repos.rebase", rebase);
+            assert_eq!(action.mnemonic_at, Some(0));
+            assert!(!action.mnemonic_shift);
+        }
+        fixture.assert_finished();
+    }
+
+    #[test]
+    fn rich_detail_action_producer_carries_mnemonics_and_original_targets() {
+        fn check(blocks: &[radar_core::view::Block], count: &mut usize) {
+            use radar_core::view::Block;
+            for block in blocks {
+                match block {
+                    Block::Section { blocks, .. } => check(blocks, count),
+                    Block::Line { text, key: Some(key), target, mnemonic_at, .. }
+                        if radar_core::mnemonic::letter(key).is_some() => {
+                        assert!(target.is_none(), "fallback captions do not bypass host admission");
+                        assert!(mnemonic_at.is_some(), "{key}: {}", text.words());
+                        // Disabled reasons are suffixes; the caption's underline stays valid.
+                        assert_eq!(*mnemonic_at, radar_core::mnemonic::at_text(key, text));
+                        if key == "u" { assert!(text.words().starts_with("update")); }
+                        *count += 1;
+                    }
+                    _ => {}
+                }
+            }
+        }
+        let (mut p, fixture) = crate::test_support::hosted_plugin(vec![]).unwrap();
+        p.me = "vimes".into();
+        p.cfg.sources.push(crate::config::Source {
+            group: "ankh-morpork".into(), code: "watch".into(), color: "cyan".into(), hide: vec![],
+        });
+        let mut item = crate::test_support::MrBuilder::default()
+            .identity("https://gitlab.example", "ankh-morpork/watch", 410).build();
+        item.rebase = true;
+        item.merge_status = "NEED_REBASE".into();
+        p.data.insert("ankh-morpork".into(), GroupData { mrs: vec![item], ..Default::default() });
+        select(&mut p, 410);
+        let view = crate::screen::neutral::view(&p, &radar_core::view::ViewCx {
+            now: p.now, focus: radar_core::view::PaneId::Detail, width: 160, height: 40,
+            parts: radar_core::compose::Parts::none(), icon_lead: 2, setup: false,
+        });
+        let pane = view.pane(radar_core::view::PaneId::Detail).unwrap();
+        let canonical = crate::actions(&p.rows(Pane::Detail));
+        let foot = pane.foot_actions.as_ref().expect("shared pinned actions");
+        for control in &foot.actions {
+            let original = canonical.iter().find(|action| action.id == control.action.id).unwrap();
+            assert_eq!(control.action.key, original.key);
+            assert_eq!(control.action.change, original.change);
+            assert!(control.target.is_none(), "owner never issues live targets");
+            let key = original.key.unwrap().name();
+            assert_eq!(control.action.mnemonic_at, radar_core::mnemonic::at(&key, &control.action.label));
+        }
+        let radar_core::view::Node::Extension { fallback, .. } = &pane.body else { panic!("shared MR detail") };
+        let radar_core::view::Node::Rich { blocks, .. } = fallback.as_ref() else { panic!("complete rich fallback") };
+        let mut count = 0;
+        check(blocks, &mut count);
+        assert!(count >= 5);
+        fixture.assert_finished();
+    }
 }

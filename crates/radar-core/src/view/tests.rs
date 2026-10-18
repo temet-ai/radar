@@ -1,5 +1,39 @@
 use super::*;
 
+mod mnemonic_tests {
+use super::*;
+
+#[test]
+fn mnemonic_fields_default_on_legacy_data_and_fresh_producers_keep_real_keys() {
+    let action = ActionSpec::named("watch.copy", &crate::Binding::new("Y", "copy item key"));
+    assert_eq!(action.mnemonic_at, Some(3));
+    assert!(action.mnemonic_shift);
+    assert_eq!(action.key, Some(Chord::char('Y')));
+    let mut wire = serde_json::to_value(&action).unwrap();
+    assert_eq!(wire["mnemonic_at"], 3);
+    assert_eq!(wire["mnemonic_shift"], true);
+    wire.as_object_mut().unwrap().remove("mnemonic_at");
+    wire.as_object_mut().unwrap().remove("mnemonic_shift");
+    let old: ActionSpec = serde_json::from_value(wire).unwrap();
+    assert_eq!(old.mnemonic_at, None);
+    assert!(!old.mnemonic_shift);
+    let text = Text::new().push(Seg::icon_or(Icon::Link, "open ", Ink::Muted)).push(Seg::new("refresh", Ink::Plain));
+    let block = Block::keyed("watch.refresh", text, "r");
+    assert!(matches!(block, Block::Line { mnemonic_at: Some(5), mnemonic_shift: false, .. }));
+    assert!(matches!(Block::keyed("watch.open", Text::from(vec![Seg::icon_or(Icon::Link, "open", Ink::Muted)]), "o"), Block::Line { mnemonic_at: None, .. }));
+    let plain = Text::plain("ordinary text");
+    assert_eq!(plain.words(), plain.plain_words());
+    assert!(serde_json::to_value(&plain).unwrap()[0].get("key_hint").is_none());
+    let old: Seg = serde_json::from_str(r#"{"text":"old words"}"#).unwrap();
+    assert_eq!(old.key_hint, None);
+    let keyed = crate::mnemonic::text("A", "ask an agent", "text.secondary");
+    assert_eq!(keyed.words(), "shift ask an agent");
+    assert_eq!(keyed.plain_words(), "shift ask an agent [A]");
+    assert_eq!(serde_json::from_str::<Text>(&serde_json::to_string(&keyed).unwrap()).unwrap(), keyed);
+}
+
+}
+
 #[test]
 fn the_contract_names_no_terminal_library() {
     for (file, source) in [
@@ -203,4 +237,79 @@ mod tab_attention {
         ).unwrap();
         assert!(!old.attention);
     }
+}
+
+#[test]
+fn shared_tree_horizontal_navigation_and_open_all_have_distinct_meanings() {
+    let mut tree = Tree {
+        rows: vec![TreeRow::new("watch", "Watch").child(
+            TreeRow::heading("cases", "Cases").child(TreeRow::new("WATCH-12", "Case twelve"))
+        )],
+        selected: vec!["watch".into()],
+        open: vec![vec!["watch".into(), "cases".into()]],
+        ..Tree::default()
+    };
+    let fold = |ids: &[&str], open| Intent::Fold {
+        target: TreeRow::target_of(&ids.iter().map(|id| (*id).to_string()).collect::<Vec<_>>()), open,
+    };
+    assert_eq!(tree_step(&tree, Chord::char('=')), Some(Intent::OpenAll));
+    assert_eq!(tree_step(&tree, Chord::char('+')), Some(fold(&["watch"], true)));
+    assert_eq!(tree_step(&tree, Chord::new(Key::Right)), Some(fold(&["watch"], true)));
+    tree.open.push(vec!["watch".into()]);
+    let child = vec!["watch".into(), "cases".into(), "WATCH-12".into()];
+    assert_eq!(tree_step(&tree, Chord::new(Key::Right)), Some(Intent::Select { target: TreeRow::target_of(&child) }));
+    tree.selected = child;
+    assert_eq!(tree_step(&tree, Chord::new(Key::Left)), Some(Intent::Select { target: Target::new("watch") }));
+    assert_eq!(tree_step(&tree, Chord::char('-')), Some(fold(&["watch"], false)));
+    assert_eq!(tree_step(&tree, Chord::new(Key::Right)), None, "leaf boundary is owned but does not mutate");
+    assert!(tree_key(Chord::new(Key::Right)));
+}
+
+#[test]
+fn tree_stale_selection_does_not_redirect_a_fold_and_empty_open_all_is_explicit() {
+    let mut tree = sample();
+    tree.selected = vec!["missing".into()];
+    for key in [Key::Left, Key::Right, Key::Char(' '), Key::Char('+'), Key::Char('-')] {
+        assert_eq!(tree_step(&tree, Chord::new(key)), None, "{key:?}");
+    }
+    assert_eq!(tree_step(&tree, Chord::new(Key::Down)), Some(Intent::Select { target: Target::new("a") }));
+    assert_eq!(tree_step(&Tree::default(), Chord::char('=')), Some(Intent::OpenAll));
+    assert_eq!(serde_json::to_value(Intent::OpenAll).unwrap(), serde_json::json!({"intent": "open_all"}));
+}
+
+#[test]
+fn held_groups_are_parent_first_and_ambiguous_paths_are_never_addressable() {
+    let mut tree = Tree {
+        rows: vec![TreeRow::new("watch", "Watch").child(
+            TreeRow::new("cases", "Cases").child(TreeRow::new("WATCH-12", "Case twelve"))
+        )],
+        ..Tree::default()
+    };
+    assert_eq!(tree.groups(), vec![vec!["watch".to_string()], vec!["watch".to_string(), "cases".to_string()]]);
+    assert!(!tree.selectable(&["watch".into(), "cases".into()]));
+    tree.rows.push(tree.rows[0].clone());
+    assert!(tree.row(&["watch".into()]).is_none());
+    assert!(tree.groups().is_empty());
+}
+
+#[test]
+fn tree_nav_sync_prunes_removed_groups_and_never_selects_headings() {
+    let mut nav = TreeNav::default();
+    let rows = vec![TreeRow::heading("watch", "Watch").child(TreeRow::new("vimes", "Sam Vimes"))];
+    nav.sync(&rows);
+    assert_eq!(nav.selected, ["watch", "vimes"]);
+    nav.sync(&[TreeRow::heading("empty", "Empty")]);
+    assert!(nav.selected.is_empty());
+    assert!(nav.open.is_empty());
+}
+
+#[test]
+fn shifted_navigation_is_additive_on_the_wire_and_not_tree_owned() {
+    let old: Chord = serde_json::from_str(r#"{"key":"right"}"#).unwrap();
+    assert_eq!(old, Chord::new(Key::Right));
+    assert_eq!(serde_json::to_value(old).unwrap(), serde_json::json!({"key": "right"}));
+    let shifted = Chord { shift: true, ..old };
+    assert!(!tree_key(shifted));
+    assert_eq!(tree_step(&sample(), shifted), None);
+    assert_eq!(serde_json::to_value(shifted).unwrap(), serde_json::json!({"key": "right", "shift": true}));
 }

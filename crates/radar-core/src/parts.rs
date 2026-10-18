@@ -247,8 +247,9 @@ pub(crate) fn detail_lines(host: &Host, t: &Theme) -> Vec<Line<'static>> {
 pub(crate) fn setup_page(host: &Host, p: usize, t: &Theme, area: Rect, buf: &mut Buffer, owns_keys: bool) {
     let plugin: &dyn Plugin = host.plugins[p].as_ref();
     let name = plugin.name();
+    let title = crate::view::chrome::pane_title(&host.pane_jumps(), crate::view::PaneId::Middle, &format!("set up {name}"));
     let inner = crate::motion::frames::with_frame(crate::view::PaneId::Middle, "body", || crate::ui::card::panel_owned(
-        t, area, buf, &format!("set up {name}"),
+        t, area, buf, &title,
         crate::ui::frame::Focus { focused: true, owns_keys },
     ));
     host.frontend.mark_selectable(inner, true);

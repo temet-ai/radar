@@ -1,9 +1,9 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
-assertion_line: 1412
+assertion_line: 1831
 expression: "draw(&p, 80, 24)"
 ---
- Repositories › a › api › !263
+ Repositories / a / api / !263
  ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
  [Overview]  Changes  Threads ●  Pipeline  Commits
 ╭ can it merge? ───────────────────────────────────────────────────────────────╮

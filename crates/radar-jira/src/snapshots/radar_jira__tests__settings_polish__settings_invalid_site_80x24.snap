@@ -4,7 +4,7 @@ assertion_line: 49
 expression: shown
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
-╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ────────────────────────────────────────╮
 │General               ││  ? Found: a Jira site. Use it?                       █
 │  ├─ parts            ││  ? Found: a Jira site (JIRA_OTHER_URL, …). Use it?   █
 │  ├─ mode             ││  + add a site                                        █
@@ -15,7 +15,7 @@ expression: shown
 │  ├─ connection       ││    ├─ signed in as    Alice Example                  ║
 │  ├─ projects         ││    ├─ check           not checked yet                ║
 │  ├─ views            │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ site ────────────────────────────────────────────────╮
+│  └─ look             │╭ 3 site ──────────────────────────────────────────────╮
 │                      ││ AS YOU TYPE                                          █
 │                      ││ ✗ not a web address: a host like acme.atlassian.net  █
 │                      ││                                                      ║

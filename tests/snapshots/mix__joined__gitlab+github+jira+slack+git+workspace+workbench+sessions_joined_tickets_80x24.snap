@@ -1,17 +1,17 @@
 ---
 source: tests/mix.rs
-assertion_line: 744
+assertion_line: 761
 expression: "to_text(&host, 80, 24)"
 ---
  radar    R ●   J   B   I   History   Settings (,)  not synced yet · ev… ✎ edit
-╭ Our project ─────────────────────────────────────────────────────────────────╮
+╭ 2 Our project ───────────────────────────────────────────────────────────────╮
 │ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
-│▌ acme  acme.atlassian.net                                                    │
-│▌ ├─ ◐ In Review                                                              │
-│▌ │  └─ ABC-12 Add a stats end Story     ◐ In Review     !263 review 1h       │
-│▌ └─ ○ To Do                                                                  │
-│▌    ├─ ABC-20 Stats page show Story     ○ To Do         !264 team   1h       │
-│▌    └─ ABC-21 Nothing written Story     ○ To Do                     1h       │
+│acme  acme.atlassian.net                                                      │
+│  ├─ ◐ In Review                                                              │
+│  │  └─ ABC-12 Add a stats end Story     ◐ In Review     !263 review 1h       │
+│  └─ ○ To Do                                                                  │
+│     ├─ ABC-20 Stats page show Story     ○ To Do         !264 team   1h       │
+│     └─ ABC-21 Nothing written Story     ○ To Do                     1h       │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -26,4 +26,4 @@ expression: "to_text(&host, 80, 24)"
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ what its JQL asks for (settings, views)                                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- JIRA   b bulk   +/- expand/collapse   q quit   x menu              gitlab jira
+ JIRA   bulk   +/- expand/collapse   extra actions   ~ notices      gitlab jira

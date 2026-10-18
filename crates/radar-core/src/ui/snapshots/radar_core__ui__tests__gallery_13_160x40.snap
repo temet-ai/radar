@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1000
+assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Waiting
+ Gallery / Waiting
  The kit: every element on sample data                                                                                                            colours: none
- Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  [Waiting]  Long text  Icons
+ Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  [Waiting]  Long text  Icons  Notices  Det…
 ╭ loading, and what fetching says ─────────────────────────────────────────────╮╭ failed ─────────────────────────────────────────────────────────────────────╮
 │ loading               loading…                                               ││ ✗ could not load: the server did not answer                                 │
 │ busy                  ⠷ asking the server…                                   ││ ✗ could not load: 401: the token was refused, so nothing could be listed an │
@@ -42,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 
 
 
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

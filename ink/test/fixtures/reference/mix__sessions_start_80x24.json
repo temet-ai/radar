@@ -2,6 +2,21 @@
   "chrome": {
     "height": 24,
     "keys_at": "body",
+    "notices_visible": true,
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "nav"
+      },
+      {
+        "key": "2",
+        "pane": "middle"
+      },
+      {
+        "key": "3",
+        "pane": "detail"
+      }
+    ],
     "settings": {
       "detail_title": "install and sign in",
       "groups": [
@@ -97,7 +112,8 @@
               "target": "chrome:key:1:0"
             }
           ],
-          "label": "quit"
+          "label": "quit",
+          "mnemonic_at": 0
         },
         {
           "icon": "menu",
@@ -113,7 +129,23 @@
               "target": "chrome:key:2:0"
             }
           ],
-          "label": "menu"
+          "label": "extra actions",
+          "mnemonic_at": 1
+        },
+        {
+          "keys": "~",
+          "keys_of": [
+            {
+              "chord": {
+                "key": {
+                  "char": "~"
+                }
+              },
+              "label": "~",
+              "target": "chrome:key:3:0"
+            }
+          ],
+          "label": "notices"
         },
         {
           "keys": "←→↑↓",
@@ -123,28 +155,28 @@
                 "key": "left"
               },
               "label": "←",
-              "target": "chrome:key:3:0"
+              "target": "chrome:key:4:0"
             },
             {
               "chord": {
                 "key": "right"
               },
               "label": "→",
-              "target": "chrome:key:3:1"
+              "target": "chrome:key:4:1"
             },
             {
               "chord": {
                 "key": "up"
               },
               "label": "↑",
-              "target": "chrome:key:3:2"
+              "target": "chrome:key:4:2"
             },
             {
               "chord": {
                 "key": "down"
               },
               "label": "↓",
-              "target": "chrome:key:3:3"
+              "target": "chrome:key:4:3"
             }
           ],
           "label": "navigate"
@@ -182,7 +214,8 @@
       ]
     },
     "version": 1,
-    "width": 80
+    "width": 80,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 24,
@@ -201,7 +234,8 @@
             "char": "i"
           }
         },
-        "label": "sign in"
+        "label": "sign in",
+        "mnemonic_at": 1
       },
       {
         "id": "sessions.agents.copy",
@@ -210,7 +244,8 @@
             "char": "y"
           }
         },
-        "label": "copy the install or sign-in command"
+        "label": "copy the install or sign-in command",
+        "mnemonic_at": 3
       },
       {
         "id": "sessions.agents.open",
@@ -219,7 +254,8 @@
             "char": "o"
           }
         },
-        "label": "open its install page"
+        "label": "open its install page",
+        "mnemonic_at": 0
       },
       {
         "id": "sessions.agents.add",
@@ -228,7 +264,8 @@
             "char": "a"
           }
         },
-        "label": "add a command"
+        "label": "add a command",
+        "mnemonic_at": 0
       },
       {
         "id": "sessions.agents.refresh",
@@ -237,7 +274,8 @@
             "char": "r"
           }
         },
-        "label": "read its status again"
+        "label": "read its status again",
+        "mnemonic_at": 0
       },
       {
         "id": "sessions.agents.paths",
@@ -246,7 +284,8 @@
             "char": "p"
           }
         },
-        "label": "paths, agent and folders"
+        "label": "paths, agent and folders",
+        "mnemonic_at": 0
       }
     ],
     "body": {
@@ -629,7 +668,20 @@
         "text": [
           {
             "ink": "muted",
-            "text": "Each agent is its own program with its own sign-in. radar finds it on your PATH; r looks again."
+            "text": "Each agent is its own program with its own sign-in. radar finds it on your PATH; "
+          },
+          {
+            "look": "text.muted underline",
+            "text": "r"
+          },
+          {
+            "key_hint": "r",
+            "look": "text.muted",
+            "text": "ead its status again"
+          },
+          {
+            "ink": "muted",
+            "text": "."
           }
         ]
       },
@@ -657,8 +709,13 @@
           {
             "block": "line",
             "key": "y",
+            "mnemonic_at": 3,
             "target": "copy:login:copilot",
             "text": [
+              {
+                "ink": "secondary",
+                "text": "copy command · "
+              },
               {
                 "ink": "muted",
                 "text": "$ "
@@ -681,6 +738,7 @@
           {
             "block": "line",
             "key": "o",
+            "mnemonic_at": 1,
             "text": [
               {
                 "icon": "link"
@@ -688,7 +746,7 @@
               {
                 "ink": "accent",
                 "link": "https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli",
-                "text": " GitHub: install Copilot CLI"
+                "text": " open documentation · GitHub: install Copilot CLI"
               }
             ]
           }
@@ -845,8 +903,52 @@
             "block": "line",
             "text": [
               {
+                "look": "text.muted underline",
+                "text": "a"
+              },
+              {
+                "key_hint": "a",
+                "look": "text.muted",
+                "text": "pprove"
+              },
+              {
                 "ink": "muted",
-                "text": "a approve · s session · d deny · v view diff"
+                "text": " · "
+              },
+              {
+                "look": "text.muted underline",
+                "text": "s"
+              },
+              {
+                "key_hint": "s",
+                "look": "text.muted",
+                "text": "ession"
+              },
+              {
+                "ink": "muted",
+                "text": " · "
+              },
+              {
+                "look": "text.muted underline",
+                "text": "d"
+              },
+              {
+                "key_hint": "d",
+                "look": "text.muted",
+                "text": "eny"
+              },
+              {
+                "ink": "muted",
+                "text": " · "
+              },
+              {
+                "look": "text.muted underline",
+                "text": "v"
+              },
+              {
+                "key_hint": "v",
+                "look": "text.muted",
+                "text": "iew diff"
               }
             ]
           },

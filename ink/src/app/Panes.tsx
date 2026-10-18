@@ -16,6 +16,8 @@ import type { TabView } from "../protocol/generated/TabView.js";
 import { bottomFieldRow, fieldRows, FIELD_ROWS } from "../chrome/filter.js";
 import { splitDock } from "../dock/layout.js";
 import { BgBox, CellLine, cellsOf, clipCells, lineCells, padCells, widthOfCells, wrapCells, type Cell } from "../text/cells.js";
+import type { FootActions } from "../nodes/view.js";
+import { footActionLayout, type FootLayout } from "../nodes/detail.js";
 import { insideOf, selectKindOf, type SelectArea, type SelectKind } from "../input/selection.js";
 
 /**
@@ -32,6 +34,7 @@ type Pane = {
   body: any;
   notes?: any[];
   footer?: any[] | null;
+  foot_actions?: FootActions | null;
   head?: any[] | null;
   /** The filter boxes above the body (the '/' input) and the one below it (chrome/filter.tsx draws them). */
   fields?: any[];
@@ -109,7 +112,12 @@ export function Framed({ title, width, height, focused, plain, pane, motionPane,
   const frameRef = useRef<DOMElement>(null);
   const framePane = rampOwner === "dock" ? "dock" : motionPane ?? pane;
   const [bar, setBar] = useState<ScrollReport>(null);
-  const report = useCallback((r: ScrollReport) => setBar((p) => (p === r || (p && r && p.max === r.max && p.at === r.at) ? p : r)), []);
+  const report = useCallback((r: ScrollReport) => setBar((p) => (p === r || (p && r && p.max === r.max && p.at === r.at && p.bodyTop === r.bodyTop && p.bodyHeight === r.bodyHeight) ? p : r)), []);
+  const frameY = screenAt(frameRef.current)?.y;
+  // card::above keeps the original frame top but ends its track at the body bottom.
+  const trackRows = bar?.bodyTop != null && bar.bodyHeight != null && frameY != null
+    ? Math.max(0, Math.min(height - 2, bar.bodyTop + bar.bodyHeight - frameY - 1))
+    : Math.max(0, height - 2);
   useLayoutEffect(() => {
     if (!scene || registry || !framePane || rampOwner === false || width < 4 || height < 2 || motion.engine.level !== "full") return;
     const at = screenAt(frameRef.current);
@@ -118,11 +126,11 @@ export function Framed({ title, width, height, focused, plain, pane, motionPane,
     motion.markPane(markId, scene, {
       pane: framePane, owns: !!owned, area: { x: at.x, y: at.y, w: width, h: height },
       title: { x: at.x + 1, y: at.y, w: labelWidth, h: 1 },
-      keep: bar && bar.max > 0 ? [{ x: at.x + width - 1, y: at.y + 1, w: 1, h: height - 2 }] : [],
+      keep: bar && bar.max > 0 ? [{ x: at.x + width - 1, y: at.y + 1, w: 1, h: trackRows }] : [],
     });
   });
   useLayoutEffect(() => () => { if (scene) motion.markPane(markId, scene); }, [markId, scene]);
-  if (width < 4 || height < 2) return null;
+  if (width < 3 || height < 2) return null;
   if (pane && registry) {
     return (
       <PaneArea pane={pane} registry={registry} width={width} height={height} select={select}>
@@ -137,7 +145,7 @@ export function Framed({ title, width, height, focused, plain, pane, motionPane,
   const borderFocus = currentLook().tier === "truecolor" && rampOwner !== false ? owned : focused;
   const border = slotStyle(borderFocus ? "accent.primary" : "accent.muted").color;
   const surface = bgOf("bg.surface");
-  const label = ` ${fit(title, Math.max(0, width - 6))} `;
+  const label = width === 3 ? " " : ` ${fit(title, Math.max(0, width - 6))} `;
   const rest = `${"─".repeat(Math.max(0, width - 2 - cellWidth(label)))}╮`;
   const titleStyle = focused ? { ...slotStyle("text.emphasis"), bold: true } : slotStyle("text.secondary");
   const edge = (text: string, x: number, y: number) => frameRuns(text, width, height, x, y, { color: border, backgroundColor: surface }, ramp).map((r, i) => <Text key={i} {...textProps(r.style)}>{r.text}</Text>);
@@ -174,7 +182,7 @@ export function Framed({ title, width, height, focused, plain, pane, motionPane,
       {bar && bar.max > 0 ? (
         // on the border's bg.surface, as Ratatui's bar is
         <BgBox position="absolute" top={1} left={width - 1} backgroundColor={surface}>
-          <ScrollBar rows={height - 2} max={bar.max} at={bar.at} plain={plain} />
+          <ScrollBar rows={trackRows} max={bar.max} at={bar.at} plain={plain} />
         </BgBox>
       ) : null}
     </Box>
@@ -220,7 +228,14 @@ function PaneContent({ pane, width, height, cx, renderNode }: { pane: Pane; widt
     return r;
   });
   const bottom = pane.bottom_field && room - used - tail > 1 ? bottomFieldRow(pane.bottom_field, inner) : null;
-  const bodyH = Math.max(1, room - used - tail - (bottom ? 1 : 0) - (pane.head && pane.head.length > 0 ? 1 : 0));
+  const available = Math.max(0, room - used - tail - (bottom ? 1 : 0) - (pane.head && pane.head.length > 0 ? 1 : 0));
+  const foot = footActionLayout(pane.foot_actions, inner, available, cx.plainText, cx.writeMode);
+  const bodyH = available - foot.rows.length;
+  const bodyRef = useRef<DOMElement>(null);
+  useLayoutEffect(() => {
+    const at = screenAt(bodyRef.current);
+    if (pane.foot_actions && at && bodyH > 0 && inner > 0) cx.registry?.addSelect?.({ ...at, w: inner, h: bodyH, id: `pane:${pane.pane}:body`, kind: selectKindOf(pane.body) });
+  });
   return (
     <>
       {tops.map((r, i) => (
@@ -228,12 +243,13 @@ function PaneContent({ pane, width, height, cx, renderNode }: { pane: Pane; widt
       ))}
       {/* view_tui draw_pane: the head sits a cell in from the left, clipped to the width less two */}
       {pane.head && pane.head.length > 0 ? <CellLine cells={padCells([...cellsOf(" "), ...clipCells(lineCells(pane.head, cx.plainText), Math.max(0, inner - 2))], inner)} plain={cx.plainText} /> : null}
-      <Box flexDirection="column" flexGrow={1} flexShrink={1} overflow="hidden" width={inner} height={bodyH}>
+      <Box ref={bodyRef} flexDirection="column" flexGrow={1} flexShrink={1} overflow="hidden" width={inner} height={bodyH}>
         {/* PaneView.inset: the rows sit a cell in from each side (widgets::padded) */}
         <Box flexDirection="column" flexShrink={0} width={inner} paddingLeft={(pane as any).inset ? 1 : 0}>
-          {renderNode(pane.body, { ...cx, width: (pane as any).inset ? Math.max(0, inner - 2) : inner, height: bodyH, focused: cx.focused })}
+          {bodyH > 0 ? renderNode(pane.body, { ...cx, width: (pane as any).inset ? Math.max(0, inner - 2) : inner, height: bodyH, focused: cx.focused, bodyTrack: !!pane.foot_actions }) : null}
         </Box>
       </Box>
+      <DetailFoot layout={foot} width={inner} cx={cx} />
       {bottom ? <CellLine cells={bottom} plain={cx.plainText} /> : null}
       {footerRow ? <Text> </Text> : null}
       {footerRow ? <CellLine cells={footerRow} plain={cx.plainText} /> : null}
@@ -244,15 +260,35 @@ function PaneContent({ pane, width, height, cx, renderNode }: { pane: Pane; widt
   );
 }
 
-/** view_tui draw_pane: the title with the pane's icon before it (icon::with: the glyph and a space, nothing with icons off). */
-export const paneTitle = (pane: { title: string; title_icon?: string | null }) => {
+/** Registers only complete control words, after the body has reserved exactly these rows. */
+function DetailFoot({ layout, width, cx }: { layout: FootLayout; width: number; cx: NodeCx }) {
+  const ref = useRef<DOMElement>(null);
+  const owner = useId();
+  useLayoutEffect(() => {
+    const at = screenAt(ref.current);
+    if (!cx.registry) return;
+    const hits = at ? layout.hits.map((hit) => ({ x: at.x + hit.dx, y: at.y + hit.dy, w: hit.w, h: hit.h, target: hit.target })) : [];
+    if (cx.registry.replace) cx.registry.replace(owner, hits);
+    else hits.forEach((hit) => cx.registry!.add(hit));
+  });
+  useLayoutEffect(() => () => cx.registry?.remove?.(owner), [cx.registry, owner]);
+  if (!layout.rows.length) return null;
+  return <Box ref={ref} flexDirection="column" width={width} height={layout.rows.length} flexShrink={0}>
+    {layout.rows.map((cells, i) => <CellLine key={i} cells={cells} plain={cx.plainText} />)}
+  </Box>;
+}
+
+/** Numbers come solely from the host's actual routing map; absence never guesses an ordinal. */
+export const paneTitle = (pane: { pane?: string; title: string; title_icon?: string | null }, jumps: NodeCx["paneJumps"] = []) => {
   const glyph = iconOf(pane.title_icon)?.glyph;
-  return glyph ? `${glyph} ${pane.title}` : pane.title;
+  const title = glyph ? `${glyph} ${pane.title}` : pane.title;
+  const key = jumps.find((j) => j.pane === pane.pane)?.key;
+  return key ? `${key} ${title}` : title;
 };
 
 export function PaneFrame({ pane, width, height, focused, cx, renderNode }: { pane: Pane; width: number; height: number; focused: boolean; cx: NodeCx; renderNode: RenderNode }) {
   return (
-    <Framed title={paneTitle(pane)} width={width} height={height} focused={focused} plain={cx.plainText} pane={pane.pane} registry={cx.registry} select={selectKindOf(pane.body)}>
+    <Framed title={paneTitle(pane, cx.paneJumps)} width={width} height={height} focused={focused} plain={cx.plainText} pane={pane.pane} registry={cx.registry} select={pane.foot_actions ? undefined : selectKindOf(pane.body)}>
       <PaneContent pane={pane} width={width} height={height} cx={{ ...cx, focused }} renderNode={renderNode} />
     </Framed>
   );
@@ -261,9 +297,18 @@ export function PaneFrame({ pane, width, height, focused, cx, renderNode }: { pa
 /** The agent dock under the middle pane (src/dock): drawn by `render` in the room the split leaves it. */
 export type DockSlot = { rows?: number | null; full?: boolean; render: (w: number, h: number) => React.ReactNode; onEdge?: (top: number) => void };
 
+/** Existing selected row target plus scope, independent of colliding item captions. */
+export function detailScrollIdentity(screen: any): string {
+  const body = screen.panes?.find((pane: any) => pane.pane === "middle")?.body;
+  const selected = body?.node === "tree" ? (body.selected ?? []).join("/")
+    : ["list", "table", "entries"].includes(body?.node) ? body.rows?.[body.selected]?.target ?? "" : "";
+  return JSON.stringify([screen.scope ?? "", selected]);
+}
+
 /** The screen's own panes in the universal layout (view_tui.rs render_panes). */
 export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock }: { screen: any; focus?: string; width: number; height: number; cx: NodeCx; renderNode: RenderNode; dock?: DockSlot }) {
   const panes: Pane[] = screen.panes ?? [];
+  const paneCx = (pane: Pane) => pane.pane === "detail" ? { ...cx, scrollIdentity: detailScrollIdentity(screen) } : cx;
   const get = (id: string) => panes.find((p) => p.pane === id);
   const nav = get("nav");
   const mid = get("middle");
@@ -281,11 +326,11 @@ export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock
         {list.map(({ pane, w }) =>
           dock && split && split.dock > 0 && host?.pane === pane ? (
             <Box key={pane.pane} flexDirection="column" width={w} height={height} flexShrink={0}>
-              {split.full ? null : <PaneFrame pane={pane} width={w} height={split.above} focused={focusId === pane.pane} cx={cx} renderNode={renderNode} />}
+              {split.full ? null : <PaneFrame pane={pane} width={w} height={split.above} focused={focusId === pane.pane} cx={paneCx(pane)} renderNode={renderNode} />}
               {dock.render(w, split.dock)}
             </Box>
           ) : (
-            <PaneFrame key={pane.pane} pane={pane} width={w} height={height} focused={focusId === pane.pane} cx={cx} renderNode={renderNode} />
+            <PaneFrame key={pane.pane} pane={pane} width={w} height={height} focused={focusId === pane.pane} cx={paneCx(pane)} renderNode={renderNode} />
           ),
         )}
       </Box>
@@ -328,7 +373,7 @@ export function PageBody({ page, focus, width, height, cx, renderNode }: { page:
       {" "}
       {crumbs.map((c, i) => (
         <Text key={i}>
-          {i > 0 ? <Text {...textProps(slotStyle("text.muted"))}>{" › "}</Text> : null}
+          {i > 0 ? <Text {...textProps(slotStyle("text.muted"))}>{" / "}</Text> : null}
           <SegRun seg={{ ...c, strong: c.strong || i === crumbs.length - 1 }} plain={cx.plainText} />
         </Text>
       ))}

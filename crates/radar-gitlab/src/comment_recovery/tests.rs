@@ -366,7 +366,7 @@ fn uncertain_status_survives_edit_decline_and_mode_refusal_without_retry() {
     writes::set_mode(writes::Mode::ReadOnly, None);
     let fx = p.on_menu("gl-write", "yes");
     assert!(!spawned(&fx));
-    assert!(matches!(fx.last(), Some(Effect::Notify(_))));
+    assert!(matches!(fx.last(), Some(Effect::Notice(message)) if message.tone == radar_core::view::chrome::NoticeTone::Error));
     let r = p.recovery.records.values().next().unwrap();
     assert_eq!(r.status, Status::Uncertain);
     assert_eq!(r.original, format!("{FIRST}edited "));

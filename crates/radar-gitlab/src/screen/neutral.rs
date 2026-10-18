@@ -4,6 +4,7 @@
 use super::*;
 use radar_core::view::{
     self as v, Block, ColumnSpec, Ink, Node as ViewNode, PaneId, PaneView, Seg, Text, TreeRow,
+    detail::{self, DetailContent, DetailFact, DetailHeader, FootAction, FootActions},
 };
 
 pub fn view(p: &GitlabPlugin, cx: &v::ViewCx<'_>) -> v::ScreenView {
@@ -79,24 +80,6 @@ pub fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             }
             Outcome::Handled(fx)
         }
-        v::Intent::Select { target } | v::Intent::Activate { target }
-            if target.as_str().starts_with("act:") =>
-        {
-            let Some(key) = target
-                .as_str()
-                .strip_prefix("act:")
-                .and_then(|s| s.chars().next())
-            else {
-                return Outcome::Ignored;
-            };
-            match key {
-                'o' => open_link(p, false),
-                'p' => open_link(p, true),
-                'y' => copy_link(p),
-                'u' | 'm' | 'e' => crate::list_actions::do_selected(p, key),
-                _ => Outcome::Handled(vec![Effect::Press(key)]),
-            }
-        }
         v::Intent::Select { target }
         | v::Intent::Context { target }
         | v::Intent::Activate { target } => {
@@ -157,7 +140,7 @@ pub fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } => Outcome::Ignored,
+        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } | v::Intent::OpenAll => Outcome::Ignored,
     }
 }
 
@@ -639,7 +622,9 @@ fn detail_pane(p: &GitlabPlugin, cx: &v::ViewCx<'_>) -> PaneView {
     let blocks = match selected {
         Some(Selected::Tenancy(i)) => tenancy_detail(p, i).into_iter().map(Block::line).collect(),
         Some(Selected::Repo(ref repo, ref mrs)) => repo_detail(p, repo, mrs, cx.now),
-        Some(Selected::Mr(ref item)) => mr_detail(p, item, cx),
+        Some(Selected::Mr(ref item)) => {
+            return detail::pane(title, mr_detail(p, item, cx), mr_foot(p, item.mr));
+        }
         None => {
             let mut blocks = vec![Block::line(Text::of(
                 "Select a tenancy, repo or merge request.",
@@ -647,7 +632,10 @@ fn detail_pane(p: &GitlabPlugin, cx: &v::ViewCx<'_>) -> PaneView {
             ))];
             for (group, err) in &p.sync.errors {
                 blocks.push(Block::line(Text::new()));
-                blocks.push(Block::line(v::kit::sync_failed(group, &p.sync_failure(group, err))));
+                blocks.push(Block::line(v::kit::sync_failed(
+                    group,
+                    &p.sync_failure(group, err),
+                )));
             }
             blocks
         }
@@ -800,65 +788,141 @@ fn repo_detail(p: &GitlabPlugin, repo: &Project, mrs: &[Item<'_>], now: i64) -> 
     blocks
 }
 
-fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> Vec<Block> {
+/// Controls come from the actual Detail menu, even while another pane has focus.
+/// Contributed actions remain in that menu; they do not have direct owner IDs.
+fn mr_foot(p: &GitlabPlugin, mr: &Mr) -> FootActions {
+    let offered = crate::actions(&p.rows(Pane::Detail));
+    let mut controls = Vec::new();
+    for row in crate::list_actions::rows(p, mr) {
+        use crate::list_actions::Do;
+        let (id, caption) = match row.what {
+            Do::Rebase => ("gitlab.repos.rebase", "update"),
+            Do::Merge => ("gitlab.repos.merge", "merge"),
+            Do::Approve if mr.approved_by.contains(&p.me) => {
+                ("gitlab.repos.approve", "take back approval")
+            }
+            Do::Approve => ("gitlab.repos.approve", "approve"),
+            Do::Open => ("gitlab.repos.open_link", "open"),
+            Do::Copy => ("gitlab.repos.copy_link", "copy link"),
+            Do::Pipeline => ("gitlab.repos.open_pipeline", "pipeline"),
+        };
+        if let Some(action) = offered.iter().find(|action| action.id == id) {
+            let mut control = FootAction::new(action.clone()).caption(caption);
+            if let Some(reason) = row.why {
+                control = control.disabled(reason);
+            }
+            controls.push(control);
+        }
+    }
+    if let Some(action) = offered
+        .into_iter()
+        .find(|action| action.id == "gitlab.repos.open")
+    {
+        controls.push(FootAction::new(action).caption("page"));
+    }
+    FootActions::new(controls)
+}
+
+fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailContent {
     let mr = item.mr;
-    let who = if mr.author.username == p.me {
+    let who = if mr.author.username == p.me && !p.me.is_empty() {
         "you".into()
-    } else if mr.author.name.is_empty() {
-        mr.author.username.clone()
     } else {
-        mr.author.name.clone()
+        crate::author_name(mr)
     };
-    let mut lines = vec![
-        Text::from(vec![
-            Seg::icon(Icon::Repo),
-            Seg::styled(
-                format!("{} ", item.tenant.code),
-                format!("tenant.{} {}", item.tenant.color, p.cfg.style_for("tenant")),
-            ),
-            Seg::new(mr.project_name.clone(), Ink::Secondary),
-            Seg::new(format!("  !{}", mr.iid), Ink::AccentSecondary),
-        ]),
+    let mut path = Text::from(vec![Seg::icon(Icon::Repo)]);
+    let mut has_component = false;
+    for component in [
+        Seg::styled(item.tenant.code.clone(), format!("tenant.{} {}", item.tenant.color, p.cfg.style_for("tenant"))),
+        Seg::new(mr.project_path.clone(), Ink::Secondary),
+        Seg::new(if mr.iid > 0 { format!("!{}", mr.iid) } else { String::new() }, Ink::AccentSecondary),
+    ] {
+        if component.text.trim().is_empty() { continue; }
+        if has_component { path.add(Seg::new(" / ", Ink::Secondary)); }
+        path.add(component);
+        has_component = true;
+    }
+    let mut header = DetailHeader::new(
+        path,
         Text::from(vec![
             Seg::icon(mr_icon(mr)),
             Seg::new(mr.title.clone(), Ink::Emphasis).strong(),
         ]),
-        Text::from(vec![
+    );
+    let branch = match (
+        mr.source_branch.trim().is_empty(),
+        mr.target_branch.trim().is_empty(),
+    ) {
+        (false, false) => format!("{} → {}", mr.source_branch, mr.target_branch),
+        (false, true) => mr.source_branch.clone(),
+        (true, false) => format!("into {}", mr.target_branch),
+        (true, true) => String::new(),
+    };
+    if !branch.is_empty() {
+        header.branch = Some(Text::from(vec![
+            Seg::icon(Icon::Branch),
+            Seg::new(branch, Ink::AccentSecondary),
+        ]));
+    }
+    if !who.trim().is_empty() {
+        header.author = Some(Text::from(vec![
             Seg::icon(person_icon(p, &mr.author.username)),
             Seg::new(who, Ink::Secondary),
-            Seg::new(" · ", Ink::Muted),
-            Seg::icon(Icon::Branch),
-            Seg::new(
-                format!("{} → {}", mr.source_branch, mr.target_branch),
-                Ink::AccentSecondary,
-            ),
-            Seg::new(" · ", Ink::Muted),
-            Seg::icon(Icon::Updated),
-            Seg::new(
-                format!("{} ago", time::ago_str(&mr.updated_at, cx.now)),
-                Ink::Muted,
-            ),
-        ]),
-        Text::new(),
-    ];
-    if mr.state == MrState::Opened {
-        lines.extend([
-            Text::of(
-                format!(" {}", item.role.sentence()),
-                Ink::from(match item.role {
-                    Role::Review => Tone::Warn,
-                    Role::Fix => Tone::Bad,
-                    Role::Ready => Tone::Good,
-                    Role::Waiting => Tone::Info,
-                    _ => Tone::Muted,
-                }),
-            ),
-            Text::new(),
-        ]);
+        ]));
     }
-    let mut blocks: Vec<Block> = lines.into_iter().map(Block::line).collect();
+    if !mr.updated_at.trim().is_empty() {
+        header.age = Some(Text::of(
+            format!("{} ago", time::ago_str(&mr.updated_at, cx.now)),
+            Ink::Muted,
+        ));
+    }
+    let mut facts = vec![
+        DetailFact::new("project", Text::of(mr.project_name.clone(), Ink::Secondary)),
+        DetailFact::new(
+            "state",
+            Text::from(vec![Seg::styled(
+                mr.state.word(),
+                p.cfg.style_for(item.word()),
+            )]),
+        ),
+        DetailFact::new(
+            "approvals",
+            Text::of(
+                format!(
+                    "{} required · {} left",
+                    mr.approvals_required, mr.approvals_left
+                ),
+                Ink::Number,
+            ),
+        ),
+        DetailFact::new(
+            "reviewers",
+            Text::of(mr.reviewers.join(", "), Ink::Secondary),
+        ),
+        DetailFact::new(
+            "approved by",
+            Text::of(mr.approved_by.join(", "), Ink::Secondary),
+        ),
+    ];
+    if !mr.labels.is_empty() {
+        facts.push(DetailFact::new(
+            "labels",
+            Text::from(vec![
+                Seg::icon(Icon::Label),
+                Seg::styled(
+                    mr.labels
+                        .iter()
+                        .map(|label| format!("#{label}"))
+                        .collect::<Vec<_>>()
+                        .join(" · "),
+                    p.cfg.style_for("label"),
+                ),
+            ]),
+        ));
+    }
+    let mut blocks = Vec::new();
     // What stands between it and merging, or how it ended.
-    let state = if mr.state == MrState::Opened {
+    let mut state = if mr.state == MrState::Opened {
         let blockers = crate::ready::blocks(mr);
         if blockers.is_empty() {
             vec![Text::from(vec![
@@ -890,66 +954,29 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> Vec<Block
             Ink::Secondary,
         )]
     };
-    blocks.push(Block::section_of(Some(Icon::Info), "state", None, state));
-    let subject = join::of_mr(mr);
-    if !mr.labels.is_empty() {
-        blocks.push(Block::line(Text::from(vec![
-            Seg::icon(Icon::Label),
-            Seg::styled(
-                mr.labels
-                    .iter()
-                    .map(|label| format!("#{label}"))
-                    .collect::<Vec<_>>()
-                    .join(" · "),
-                p.cfg.style_for("label"),
+    if mr.state == MrState::Opened {
+        state.insert(
+            0,
+            Text::of(
+                item.role.sentence(),
+                Ink::from(match item.role {
+                    Role::Review => Tone::Warn,
+                    Role::Fix => Tone::Bad,
+                    Role::Ready => Tone::Good,
+                    Role::Waiting => Tone::Info,
+                    _ => Tone::Muted,
+                }),
             ),
-        ])));
+        );
     }
-    for chip in cx.parts.chips(&subject) {
-        blocks.push(Block::line(Text::from(vec![Seg::chip(&chip)])));
-    }
-    // What can be done to it from here, each with its key; a click acts.
-    let mut actions = Vec::new();
-    for action in crate::list_actions::rows(p, mr) {
-        let key = action.what.key();
-        actions.push(Block::keyed(
-            format!("act:{key}"),
-            Text::from(vec![
-                Seg::icon(action.what.icon()),
-                Seg::new(
-                    action.words(),
-                    if action.why.is_some() {
-                        Ink::Muted
-                    } else {
-                        Ink::Primary
-                    },
-                ),
-            ]),
-            key.to_string(),
-        ));
-    }
-    let taken: Vec<char> = radar_core::Plugin::keys(p, crate::SCREEN.id, Pane::Middle)
-        .iter()
-        .filter_map(|binding| match radar_core::plugin::parse_key(&binding.keys) {
-            Some(KeyEvent {
-                code: KeyCode::Char(key),
-                ..
-            }) => Some(key),
-            _ => None,
-        })
-        .collect();
-    for (_, contributed) in cx.parts.actions(&subject, &taken) {
-        for action in contributed {
-            if let Some(key) = action.key {
-                let mut text = Text::new();
-                text.add(Seg::icon(action.icon.unwrap_or(Icon::Action)));
-                text.add(Seg::new(action.what.trim_end_matches('…'), Ink::Primary));
-                actions.push(Block::keyed(format!("act:{key}"), text, key.to_string()));
-            }
-        }
-    }
-    blocks.push(Block::line(Text::new()));
-    blocks.push(Block::section(Some(Icon::Menu), "actions", None, actions));
+    let subject = join::of_mr(mr);
+    state.extend(
+        cx.parts
+            .chips(&subject)
+            .iter()
+            .map(|chip| Text::from(vec![Seg::chip(chip)])),
+    );
+    blocks.push(Block::section_of(Some(Icon::Info), "state", None, state));
     let pipeline = mr.pipeline.map_or_else(
         || "none".to_string(),
         |pipeline| pipeline.word().to_string(),
@@ -977,9 +1004,12 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> Vec<Block
     {
         run.push(Block::line(Text::of(format!("✗ {words}"), Ink::Bad)));
     }
-    blocks.push(Block::line(Text::new()));
-    blocks.push(Block::section(Some(Icon::Pipeline), "pipeline", Some(pipeline), run));
-    blocks.push(Block::line(Text::new()));
+    blocks.push(Block::section(
+        Some(Icon::Pipeline),
+        "pipeline",
+        Some(pipeline),
+        run,
+    ));
     blocks.push(Block::section_of(
         Some(Icon::File),
         "changes",
@@ -1020,11 +1050,17 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> Vec<Block
             ink: Ink::Primary,
         });
     }
-    blocks.push(Block::line(Text::new()));
-    blocks.push(Block::section(Some(Icon::Thread), "threads", Some(thread_detail), threads));
+    blocks.push(Block::section(
+        Some(Icon::Thread),
+        "threads",
+        Some(thread_detail),
+        threads,
+    ));
     for (title, section) in cx.parts.sections(&subject) {
-        blocks.push(Block::line(Text::new()));
         blocks.push(Block::section_of(None, &title, None, section));
     }
-    blocks
+    DetailContent::new(header, facts, blocks)
 }
+
+#[cfg(test)]
+mod detail_tests;

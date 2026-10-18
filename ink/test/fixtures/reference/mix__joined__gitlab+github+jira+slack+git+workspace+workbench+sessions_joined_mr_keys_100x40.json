@@ -18,6 +18,7 @@
           "key": "o",
           "keys": "o",
           "label": "open it in GitLab",
+          "mnemonic_at": 0,
           "target": "chrome:menu:1",
           "value": "1"
         },
@@ -26,6 +27,7 @@
           "key": "y",
           "keys": "y",
           "label": "copy its link",
+          "mnemonic_at": 3,
           "target": "chrome:menu:2",
           "value": "2"
         },
@@ -40,7 +42,8 @@
           "hint": "",
           "key": "u",
           "keys": "u",
-          "label": "rebase · not behind main",
+          "label": "update by rebasing · not behind main",
+          "mnemonic_at": 0,
           "target": "chrome:menu:4",
           "value": "4"
         },
@@ -49,6 +52,7 @@
           "key": "m",
           "keys": "m",
           "label": "merge · needs 1 approval",
+          "mnemonic_at": 0,
           "target": "chrome:menu:5",
           "value": "5"
         },
@@ -57,6 +61,7 @@
           "key": "e",
           "keys": "e",
           "label": "approve !263…",
+          "mnemonic_at": 6,
           "target": "chrome:menu:6",
           "value": "6"
         },
@@ -81,6 +86,7 @@
           "key": "r",
           "keys": "r",
           "label": "refresh now",
+          "mnemonic_at": 0,
           "target": "chrome:menu:9",
           "value": "9"
         },
@@ -97,6 +103,8 @@
           "key": "A",
           "keys": "A",
           "label": "ask an agent about it…",
+          "mnemonic_at": 0,
+          "mnemonic_shift": true,
           "target": "chrome:menu:11",
           "value": "11"
         },
@@ -105,6 +113,7 @@
           "key": "i",
           "keys": "i",
           "label": "review it locally…",
+          "mnemonic_at": 3,
           "target": "chrome:menu:12",
           "value": "12"
         },
@@ -121,6 +130,7 @@
           "key": "a",
           "keys": "a",
           "label": "show one author's merge requests…",
+          "mnemonic_at": 9,
           "target": "chrome:menu:14",
           "value": "14"
         },
@@ -130,6 +140,38 @@
           "label": "kept comments…",
           "target": "chrome:menu:15",
           "value": "15"
+        },
+        {
+          "hint": "",
+          "key": " ",
+          "keys": "space",
+          "label": "toggle the group",
+          "target": "chrome:menu:16",
+          "value": "16"
+        },
+        {
+          "hint": "",
+          "key": "+",
+          "keys": "+",
+          "label": "expand the group",
+          "target": "chrome:menu:17",
+          "value": "17"
+        },
+        {
+          "hint": "",
+          "key": "-",
+          "keys": "-",
+          "label": "collapse the group, or the one this row is in",
+          "target": "chrome:menu:18",
+          "value": "18"
+        },
+        {
+          "hint": "",
+          "key": "=",
+          "keys": "=",
+          "label": "expand every held group",
+          "target": "chrome:menu:19",
+          "value": "19"
         },
         {
           "heading": true,
@@ -143,9 +185,10 @@
           "icon": "issue",
           "key": "v",
           "keys": "v",
-          "label": "open ABC-12",
-          "target": "chrome:menu:17",
-          "value": "17"
+          "label": "view ABC-12",
+          "mnemonic_at": 0,
+          "target": "chrome:menu:21",
+          "value": "21"
         },
         {
           "hint": "",
@@ -153,8 +196,8 @@
           "key": ">",
           "keys": ">",
           "label": "move ABC-12 to …",
-          "target": "chrome:menu:18",
-          "value": "18"
+          "target": "chrome:menu:22",
+          "value": "22"
         },
         {
           "heading": true,
@@ -168,16 +211,17 @@
           "icon": "search",
           "key": "s",
           "keys": "s",
-          "label": "look for a checkout · no folders set yet",
-          "target": "chrome:menu:20",
-          "value": "20"
+          "label": "scan for a checkout · no folders set yet",
+          "mnemonic_at": 0,
+          "target": "chrome:menu:24",
+          "value": "24"
         },
         {
           "hint": "",
           "icon": "link",
           "label": "link to a local folder…",
-          "target": "chrome:menu:21",
-          "value": "21"
+          "target": "chrome:menu:25",
+          "value": "25"
         },
         {
           "heading": true,
@@ -188,9 +232,18 @@
         },
         {
           "hint": "",
+          "icon": "action",
           "label": "add to work item…",
-          "target": "chrome:menu:23",
-          "value": "23"
+          "target": "chrome:menu:27",
+          "value": "27"
+        },
+        {
+          "hint": "",
+          "key": "~",
+          "keys": "~",
+          "label": "recent notices (this session)",
+          "target": "chrome:menu:28",
+          "value": "28"
         },
         {
           "heading": true,
@@ -204,28 +257,44 @@
           "key": "H",
           "keys": "H",
           "label": "recent activity (last 24 hours)",
-          "target": "chrome:menu:25",
-          "value": "25"
+          "mnemonic_at": 25,
+          "mnemonic_shift": true,
+          "target": "chrome:menu:30",
+          "value": "30"
         },
         {
           "hint": "",
           "label": "all activity history",
-          "target": "chrome:menu:26",
-          "value": "26"
+          "target": "chrome:menu:31",
+          "value": "31"
         },
         {
           "hint": "",
           "label": "history for selected item",
-          "target": "chrome:menu:27",
-          "value": "27"
+          "target": "chrome:menu:32",
+          "value": "32"
         }
       ],
-      "lines": 28,
+      "lines": 33,
       "question": false,
       "selected": 0,
-      "shown": 28,
+      "shown": 33,
       "title": "api !263"
     },
+    "pane_jumps": [
+      {
+        "key": "1",
+        "pane": "nav"
+      },
+      {
+        "key": "2",
+        "pane": "middle"
+      },
+      {
+        "key": "3",
+        "pane": "detail"
+      }
+    ],
     "screen_keys": [
       "R",
       "G",
@@ -265,24 +334,20 @@
       ],
       "hints": [
         {
-          "keys": "j/k",
+          "keys": "↑↓",
           "keys_of": [
             {
               "chord": {
-                "key": {
-                  "char": "j"
-                }
+                "key": "up"
               },
-              "label": "j",
+              "label": "↑",
               "target": "chrome:key:0:0"
             },
             {
               "chord": {
-                "key": {
-                  "char": "k"
-                }
+                "key": "down"
               },
-              "label": "k",
+              "label": "↓",
               "target": "chrome:key:0:1"
             }
           ],
@@ -352,7 +417,7 @@
           "target": "chrome:tab:4"
         },
         {
-          "label": "work",
+          "label": "work items",
           "mnemonic": "I",
           "target": "chrome:tab:6"
         },
@@ -375,7 +440,8 @@
       }
     },
     "version": 1,
-    "width": 100
+    "width": 100,
+    "write_mode": "edit"
   },
   "focus": "middle",
   "height": 40,
@@ -401,7 +467,8 @@
             "char": "o"
           }
         },
-        "label": "open it in GitLab"
+        "label": "open it in GitLab",
+        "mnemonic_at": 0
       },
       {
         "id": "gitlab.repos.copy_link",
@@ -410,7 +477,8 @@
             "char": "y"
           }
         },
-        "label": "copy its link"
+        "label": "copy its link",
+        "mnemonic_at": 3
       },
       {
         "heading": true,
@@ -425,7 +493,8 @@
             "char": "u"
           }
         },
-        "label": "rebase · not behind main"
+        "label": "update by rebasing · not behind main",
+        "mnemonic_at": 0
       },
       {
         "change": "edit",
@@ -435,7 +504,8 @@
             "char": "m"
           }
         },
-        "label": "merge · needs 1 approval"
+        "label": "merge · needs 1 approval",
+        "mnemonic_at": 0
       },
       {
         "change": "edit",
@@ -445,7 +515,8 @@
             "char": "e"
           }
         },
-        "label": "approve !263…"
+        "label": "approve !263…",
+        "mnemonic_at": 6
       },
       {
         "id": "gitlab.repos.filter",
@@ -472,7 +543,8 @@
             "char": "r"
           }
         },
-        "label": "refresh now"
+        "label": "refresh now",
+        "mnemonic_at": 0
       },
       {
         "heading": true,
@@ -487,7 +559,9 @@
             "char": "A"
           }
         },
-        "label": "ask an agent about it…"
+        "label": "ask an agent about it…",
+        "mnemonic_at": 0,
+        "mnemonic_shift": true
       },
       {
         "id": "agent.review_locally",
@@ -496,7 +570,8 @@
             "char": "i"
           }
         },
-        "label": "review it locally…"
+        "label": "review it locally…",
+        "mnemonic_at": 3
       },
       {
         "id": "gitlab.repos.goto",
@@ -514,7 +589,8 @@
             "char": "a"
           }
         },
-        "label": "show one author's merge requests…"
+        "label": "show one author's merge requests…",
+        "mnemonic_at": 9
       },
       {
         "id": "gitlab.repos.kept_comments",
@@ -1074,30 +1150,88 @@
       },
       {
         "body": {
-          "blocks": [
-            {
-              "block": "line",
-              "text": [
+          "capability": "detail",
+          "data": {
+            "facts": [
+              {
+                "label": "project",
+                "value": [
+                  {
+                    "ink": "secondary",
+                    "text": "api"
+                  }
+                ]
+              },
+              {
+                "label": "state",
+                "value": [
+                  {
+                    "look": "status.warning bold",
+                    "text": "open"
+                  }
+                ]
+              },
+              {
+                "label": "approvals",
+                "value": [
+                  {
+                    "ink": "number",
+                    "text": "1 required · 1 left"
+                  }
+                ]
+              }
+            ],
+            "header": {
+              "age": [
+                {
+                  "ink": "muted",
+                  "text": "16m ago"
+                }
+              ],
+              "author": [
+                {
+                  "icon": "person"
+                },
+                {
+                  "ink": "secondary",
+                  "text": "Alice Example"
+                }
+              ],
+              "branch": [
+                {
+                  "icon": "branch"
+                },
+                {
+                  "ink": "accent_secondary",
+                  "text": "feature/abc-12-stats → main"
+                }
+              ],
+              "path": [
                 {
                   "icon": "repo"
                 },
                 {
                   "look": "tenant.green bold",
-                  "text": "a "
+                  "text": "a"
                 },
                 {
                   "ink": "secondary",
-                  "text": "api"
+                  "text": " / "
+                },
+                {
+                  "ink": "secondary",
+                  "text": "acme/team-a/api"
+                },
+                {
+                  "ink": "secondary",
+                  "text": " / "
                 },
                 {
                   "ink": "accent_secondary",
-                  "text": "  !263"
+                  "text": "!263"
                 }
-              ]
-            },
-            {
-              "block": "line",
-              "text": [
+              ],
+              "title": [
                 {
                   "icon": "change"
                 },
@@ -1108,301 +1242,526 @@
                 }
               ]
             },
+            "sections": [
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "warn",
+                        "text": "waiting for your review"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "icon": "needs_approval",
+                        "icon_lead": true,
+                        "ink": "warn",
+                        "text": "◷ "
+                      },
+                      {
+                        "ink": "warn",
+                        "text": "needs 1 approval"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "info",
+                "title": "STATE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "meter",
+                    "stages": []
+                  }
+                ],
+                "detail": "passed",
+                "mark": "pipeline",
+                "title": "PIPELINE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "primary",
+                        "text": "1 file  "
+                      },
+                      {
+                        "ink": "added",
+                        "text": "+10"
+                      },
+                      {
+                        "ink": "removed",
+                        "text": " −2"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "file",
+                "title": "CHANGES"
+              },
+              {
+                "block": "section",
+                "blocks": [],
+                "detail": "none",
+                "mark": "thread",
+                "title": "THREADS"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "ABC-12 · ◐ In Review · Story"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "Add a stats endpoint for the dashboard"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "assigned to you"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "What ABC-12 is about."
+                      }
+                    ]
+                  }
+                ],
+                "title": "TICKET"
+              }
+            ]
+          },
+          "fallback": {
+            "blocks": [
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "repo"
+                  },
+                  {
+                    "look": "tenant.green bold",
+                    "text": "a"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": " / "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "acme/team-a/api"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": " / "
+                  },
+                  {
+                    "ink": "accent_secondary",
+                    "text": "!263"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "change"
+                  },
+                  {
+                    "ink": "emphasis",
+                    "strong": true,
+                    "text": "ABC-12: Add a stats endpoint for the dashboard"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "branch"
+                  },
+                  {
+                    "ink": "accent_secondary",
+                    "text": "feature/abc-12-stats → main"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "icon": "person"
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "Alice Example"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "16m ago"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "project: "
+                  },
+                  {
+                    "ink": "secondary",
+                    "text": "api"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "state: "
+                  },
+                  {
+                    "look": "status.warning bold",
+                    "text": "open"
+                  }
+                ]
+              },
+              {
+                "block": "line",
+                "text": [
+                  {
+                    "ink": "muted",
+                    "text": "approvals: "
+                  },
+                  {
+                    "ink": "number",
+                    "text": "1 required · 1 left"
+                  }
+                ]
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "warn",
+                        "text": "waiting for your review"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "icon": "needs_approval",
+                        "icon_lead": true,
+                        "ink": "warn",
+                        "text": "◷ "
+                      },
+                      {
+                        "ink": "warn",
+                        "text": "needs 1 approval"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "info",
+                "title": "STATE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "meter",
+                    "stages": []
+                  }
+                ],
+                "detail": "passed",
+                "mark": "pipeline",
+                "title": "PIPELINE"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "ink": "primary",
+                        "text": "1 file  "
+                      },
+                      {
+                        "ink": "added",
+                        "text": "+10"
+                      },
+                      {
+                        "ink": "removed",
+                        "text": " −2"
+                      }
+                    ]
+                  }
+                ],
+                "mark": "file",
+                "title": "CHANGES"
+              },
+              {
+                "block": "section",
+                "blocks": [],
+                "detail": "none",
+                "mark": "thread",
+                "title": "THREADS"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "ABC-12 · ◐ In Review · Story"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "Add a stats endpoint for the dashboard"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "assigned to you"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "text": [
+                      {
+                        "text": "What ABC-12 is about."
+                      }
+                    ]
+                  }
+                ],
+                "title": "TICKET"
+              },
+              {
+                "block": "section",
+                "blocks": [
+                  {
+                    "block": "line",
+                    "key": "u",
+                    "mnemonic_at": 0,
+                    "text": [
+                      {
+                        "text": "update"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": " (not behind main)"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "m",
+                    "mnemonic_at": 0,
+                    "text": [
+                      {
+                        "text": "merge"
+                      },
+                      {
+                        "ink": "muted",
+                        "text": " (needs 1 approval)"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "e",
+                    "mnemonic_at": 6,
+                    "text": [
+                      {
+                        "text": "approve"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "o",
+                    "mnemonic_at": 0,
+                    "text": [
+                      {
+                        "text": "open"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "y",
+                    "mnemonic_at": 3,
+                    "text": [
+                      {
+                        "text": "copy link"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "⏎",
+                    "text": [
+                      {
+                        "text": "page"
+                      }
+                    ]
+                  },
+                  {
+                    "block": "line",
+                    "key": "x",
+                    "mnemonic_at": 1,
+                    "text": [
+                      {
+                        "text": "extra actions"
+                      }
+                    ]
+                  }
+                ],
+                "title": "ACTIONS"
+              }
+            ],
+            "node": "rich"
+          },
+          "node": "extension",
+          "version": 1
+        },
+        "foot_actions": {
+          "actions": [
             {
-              "block": "line",
-              "text": [
-                {
-                  "icon": "person"
+              "action": {
+                "change": "edit",
+                "id": "gitlab.repos.rebase",
+                "key": {
+                  "key": {
+                    "char": "u"
+                  }
                 },
-                {
-                  "ink": "secondary",
-                  "text": "Alice Example"
-                },
-                {
-                  "ink": "muted",
-                  "text": " · "
-                },
-                {
-                  "icon": "branch"
-                },
-                {
-                  "ink": "accent_secondary",
-                  "text": "feature/abc-12-stats → main"
-                },
-                {
-                  "ink": "muted",
-                  "text": " · "
-                },
-                {
-                  "icon": "updated"
-                },
-                {
-                  "ink": "muted",
-                  "text": "16m ago"
-                }
-              ]
+                "label": "update",
+                "mnemonic_at": 0
+              },
+              "disabled": "not behind main"
             },
             {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "line",
-              "text": [
-                {
-                  "ink": "warn",
-                  "text": " waiting for your review"
-                }
-              ]
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "icon": "needs_approval",
-                      "icon_lead": true,
-                      "ink": "warn",
-                      "text": "◷ "
-                    },
-                    {
-                      "ink": "warn",
-                      "text": "needs 1 approval"
-                    }
-                  ]
-                }
-              ],
-              "mark": "info",
-              "title": "STATE"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "key": "u",
-                  "target": "act:u",
-                  "text": [
-                    {
-                      "icon": "rebase"
-                    },
-                    {
-                      "ink": "muted",
-                      "text": "rebase · not behind main"
-                    }
-                  ]
+              "action": {
+                "change": "edit",
+                "id": "gitlab.repos.merge",
+                "key": {
+                  "key": {
+                    "char": "m"
+                  }
                 },
-                {
-                  "block": "line",
-                  "key": "m",
-                  "target": "act:m",
-                  "text": [
-                    {
-                      "icon": "merged"
-                    },
-                    {
-                      "ink": "muted",
-                      "text": "merge · needs 1 approval"
-                    }
-                  ]
-                },
-                {
-                  "block": "line",
-                  "key": "e",
-                  "target": "act:e",
-                  "text": [
-                    {
-                      "icon": "approved"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "approve"
-                    }
-                  ]
-                },
-                {
-                  "block": "line",
-                  "key": "o",
-                  "target": "act:o",
-                  "text": [
-                    {
-                      "icon": "link"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "open in GitLab"
-                    }
-                  ]
-                },
-                {
-                  "block": "line",
-                  "key": "y",
-                  "target": "act:y",
-                  "text": [
-                    {
-                      "icon": "copy"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "copy link"
-                    }
-                  ]
-                },
-                {
-                  "block": "line",
-                  "key": "v",
-                  "target": "act:v",
-                  "text": [
-                    {
-                      "icon": "issue"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "open ABC-12"
-                    }
-                  ]
-                },
-                {
-                  "block": "line",
-                  "key": ">",
-                  "target": "act:>",
-                  "text": [
-                    {
-                      "icon": "navigate"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "move ABC-12 to "
-                    }
-                  ]
-                },
-                {
-                  "block": "line",
-                  "key": "s",
-                  "target": "act:s",
-                  "text": [
-                    {
-                      "icon": "search"
-                    },
-                    {
-                      "ink": "primary",
-                      "text": "look for a checkout · no folders set yet"
-                    }
-                  ]
-                }
-              ],
-              "mark": "menu",
-              "title": "ACTIONS"
+                "label": "merge",
+                "mnemonic_at": 0
+              },
+              "disabled": "needs 1 approval"
             },
             {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "meter",
-                  "stages": []
-                }
-              ],
-              "detail": "passed",
-              "mark": "pipeline",
-              "title": "PIPELINE"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "ink": "primary",
-                      "text": "1 file  "
-                    },
-                    {
-                      "ink": "added",
-                      "text": "+10"
-                    },
-                    {
-                      "ink": "removed",
-                      "text": " −2"
-                    }
-                  ]
-                }
-              ],
-              "mark": "file",
-              "title": "CHANGES"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [],
-              "detail": "none",
-              "mark": "thread",
-              "title": "THREADS"
-            },
-            {
-              "block": "line",
-              "text": []
-            },
-            {
-              "block": "section",
-              "blocks": [
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "text": "ABC-12 · ◐ In Review · Story"
-                    }
-                  ]
+              "action": {
+                "change": "edit",
+                "id": "gitlab.repos.approve",
+                "key": {
+                  "key": {
+                    "char": "e"
+                  }
                 },
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "text": "Add a stats endpoint for the dashboard"
-                    }
-                  ]
+                "label": "approve",
+                "mnemonic_at": 6
+              }
+            },
+            {
+              "action": {
+                "id": "gitlab.repos.open_link",
+                "key": {
+                  "key": {
+                    "char": "o"
+                  }
                 },
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "text": "assigned to you"
-                    }
-                  ]
+                "label": "open",
+                "mnemonic_at": 0
+              }
+            },
+            {
+              "action": {
+                "id": "gitlab.repos.copy_link",
+                "key": {
+                  "key": {
+                    "char": "y"
+                  }
                 },
-                {
-                  "block": "line",
-                  "text": [
-                    {
-                      "text": "What ABC-12 is about."
-                    }
-                  ]
-                }
-              ],
-              "title": "TICKET"
+                "label": "copy link",
+                "mnemonic_at": 3
+              }
+            },
+            {
+              "action": {
+                "id": "gitlab.repos.open",
+                "key": {
+                  "key": "enter"
+                },
+                "label": "page"
+              }
             }
           ],
-          "node": "rich"
+          "menu": {
+            "action": {
+              "id": "detail.extra_actions",
+              "key": {
+                "key": {
+                  "char": "x"
+                }
+              },
+              "label": "extra actions",
+              "mnemonic_at": 1
+            }
+          }
         },
         "pane": "detail",
         "title": "api !263"

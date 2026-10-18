@@ -1750,12 +1750,12 @@ fn channel_menu(p: &SlackPlugin, i: usize) -> Menu {
             // Not w: the host keeps it (it writes config.toml).
             MenuItem::new(
                 'v',
-                if c.watched { "stop watching" } else { "watch it" },
+                if c.watched { "leave unwatched" } else { "receive updates" },
                 if c.watched { "kept in the registry, not read" } else { "read on every refresh" },
                 "watch",
             ),
             MenuItem::new('a', "add a channel", "paste a link to it, or type #name", "add"),
-            MenuItem::new('d', "remove…", "take it out of the registry", "remove"),
+            MenuItem::new('d', "drop it…", "take it out of the registry", "remove"),
         ],
     )
 }
@@ -1856,9 +1856,9 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
                     ChField::Watched => vec![MenuItem::new(
                         'e',
                         if p.cfg.channels[i].watched {
-                            "stop watching"
+                            "leave unwatched"
                         } else {
-                            "watch it"
+                            "receive updates"
                         },
                         "read on every refresh, or not",
                         "watch",
@@ -1875,9 +1875,9 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
             let r = rv_row(p);
             let item = match r {
                 RvRow::Channel | RvRow::Test => {
-                    MenuItem::new('e', "pick it…", "from the channels in the registry", "pick")
+                    MenuItem::new('e', "select it…", "from the channels in the registry", "pick")
                 }
-                RvRow::Group => MenuItem::new('e', "pick it…", "from Slack's user groups", "pick"),
+                RvRow::Group => MenuItem::new('e', "select it…", "from Slack's user groups", "pick"),
                 _ => MenuItem::new('e', "change it", "type it", "edit"),
             };
             let mut items = vec![item];
@@ -1890,7 +1890,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
             if changed {
                 items.push(MenuItem::new(
                     'r',
-                    "back to the default",
+                    "restore the default",
                     "the team's format",
                     "reset",
                 ));
@@ -1937,7 +1937,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
                 )
                 .chain([MenuItem::new(
                     'd',
-                    "remove…",
+                    "drop it…",
                     "alerts it placed become unmapped, unless another rule does",
                     "remove",
                 )])
@@ -1962,7 +1962,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
                     name,
                     vec![MenuItem::new(
                         'e',
-                        "map it…",
+                        "set its mapping…",
                         "a repo's path or a service's name",
                         "map",
                     )],
@@ -1974,7 +1974,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
             "density",
             vec![MenuItem::new(
                 'e',
-                format!("switch to {}", p.cfg.density.other().word()),
+                format!("change to {} layout", p.cfg.density.other().word()),
                 "compact is one line a message, cozy the roomier layout",
                 "toggle",
             )],
@@ -2007,7 +2007,7 @@ fn row_menu(p: &SlackPlugin, section: &str) -> Option<Menu> {
             if default_styles().get(w).is_some_and(|d| *d != spec) {
                 items.push(MenuItem::new(
                     'r',
-                    "back to default",
+                    "restore default",
                     look_summary(&default_styles()[w]),
                     "reset",
                 ));
@@ -2597,7 +2597,7 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
             Edit::Submit(text) => match validate(p, &target, &text) {
                 Err(why) => {
                     p.edit = Some((target, input));
-                    Outcome::Handled(vec![Effect::Notify(format!("not yet: {why}"))])
+                    Outcome::Handled(vec![Effect::error(None, format!("not yet: {why}"))])
                 }
                 Ok(_) => Outcome::Handled(commit(p, target, text.trim().to_string())),
             },
@@ -3173,7 +3173,9 @@ mod tests {
                 !fx.iter()
                     .any(|e| matches!(e, Effect::Spawn(_) | Effect::SpawnAction { .. }))
             );
-            assert!(fx.iter().any(|e| matches!(e, Effect::Notify(message) if message.contains("check the Slack connection"))));
+            assert!(fx.iter().any(|e| matches!(e, Effect::Notice(message)
+                if message.tone == radar_core::view::chrome::NoticeTone::Error
+                    && message.contains("check the Slack connection first, then try again"))));
         }
         assert_eq!((p.data, p.cfg), before);
         assert!(recorded.requests().is_empty());
@@ -3360,5 +3362,75 @@ mod tests {
             p.section_rows[at], 1,
             "the density row, under the first heading"
         );
+    }
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    fn check_menu(menu: &Menu) -> usize {
+        let mut checked = 0;
+        for item in &menu.items {
+            if !item.heading && !item.note && radar_core::mnemonic::letter(&item.keys).is_some() {
+                let words = radar_core::mnemonic::choice_words(menu.question, &item.label, &item.hint);
+                assert!(radar_core::mnemonic::at(&item.keys, words).is_some(),
+                    "{}: {:?} has no mnemonic in {:?}", menu.id, item.keys, words);
+                checked += 1;
+            }
+        }
+        checked
+    }
+
+
+    fn check_setup_link(blocks: &[radar_core::view::Block], url: &str, copy: &str, key: &str) {
+        use radar_core::view::{Block, Text};
+        fn find<'a>(blocks: &'a [Block], url: &str) -> Option<&'a Text> {
+            blocks.iter().find_map(|block| match block {
+                Block::Line { text, .. } if text.0.iter().any(|seg| seg.link.as_deref() == Some(url)) => Some(text),
+                Block::Section { blocks, .. } => find(blocks, url),
+                _ => None,
+            })
+        }
+        let text = find(blocks, url).expect("actual setup token link");
+        assert_eq!(text.0[0].link.as_deref(), Some(url));
+        assert!(text.words().ends_with(&format!("   open · {copy}")));
+        assert!(text.plain_words().ends_with(&format!("   open [o] · {copy} [{key}]")));
+        let underlined: Vec<_> = text.0.iter().filter(|seg| seg.look.as_deref().is_some_and(|look| look.contains("underline"))).map(|seg| seg.text.as_str()).collect();
+        assert_eq!(underlined, ["o", key]);
+        let hints: Vec<_> = text.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect();
+        assert_eq!(hints, ["o", key]);
+        assert!(text.0[1..].iter().all(|seg| seg.link.is_none() && seg.target.is_none()));
+    }
+
+    #[test]
+    fn settings_producers_embed_every_letter_in_action_words() {
+        check_setup_link(&crate::setup::token_help(), &crate::manifest::new_app_url(), "copy manifest", "m");
+        let mut checked = 0;
+        for changed in [false, true] {
+            let mut p = SlackPlugin {
+                cfg: crate::demo::settings(),
+                now: radar_core::plugin::DEMO_NOW,
+                env: Some(vec![]),
+                app_running: Some(false),
+                ..Default::default()
+            };
+            if changed {
+                for style in p.cfg.style.values_mut() { *style = "text.primary italic".into(); }
+            }
+            for channel in &mut p.cfg.channels { channel.watched = changed; }
+            if changed {
+                p.cfg.density = config::Density::Cozy;
+                p.cfg.review.template = "Review {link}".into();
+                p.cfg.review.link = "branch".into();
+            }
+            for section in ["connection", "channels", "review", "alerts", "look"] {
+                for row in 0..row_count(&p, section) {
+                    p.section_rows[index(section)] = row;
+                    if let Some(menu) = row_menu(&p, section) { checked += check_menu(&menu); }
+                }
+            }
+        }
+        assert!(checked > 20, "exercise real settings rows, including reset variants");
     }
 }

@@ -3,7 +3,7 @@
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Outcome};
 use radar_core::ui::{connection, rows::Move, status::Check};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{self as v, Chord, Key};
 
 use crate::{GithubPlugin, auth, config, model::RepositoryId};
 pub(crate) mod neutral;
@@ -13,14 +13,45 @@ pub(crate) struct Editor {
     pub input: TextInput,
     field: Field,
 }
+/// Group/remove and move menus retain their existing wire ids, but only
+/// the exact configuration that produced a menu can consume its choice.
+pub(crate) struct MenuLease {
+    generation: u64,
+    id: String,
+    groups: Vec<config::Group>,
+}
+
+fn lease_menu(p: &mut GithubPlugin, id: String) {
+    p.settings_menu = Some(MenuLease { generation: p.generation, id, groups: p.cfg.groups.clone() });
+}
+
+fn consume_menu(p: &mut GithubPlugin, id: &str) -> bool {
+    p.settings_menu.take().is_some_and(|lease| {
+        lease.generation == p.generation && lease.id == id && lease.groups == p.cfg.groups
+    })
+}
+
 #[derive(Clone)]
 enum Field {
     Api,
     Token,
     Add,
-    RenameGroup(usize),
-    Repository(usize, usize),
+    RenameGroup(String),
+    Repository(String, String),
     MoveToNewGroup(String),
+}
+
+/// Configuration refreshes can remove the row an editor captured. Cancel that
+/// editor rather than retain invisible keyboard capture or paint over a fallback.
+/// Reordering preserves valid identity-based edits.
+pub(crate) fn reconcile_editor(p: &mut GithubPlugin) {
+    let valid = p.editor.as_ref().is_none_or(|editor| match &editor.field {
+        Field::RenameGroup(name) => p.cfg.groups.iter().any(|group| group.name == *name),
+        Field::Repository(name, repo) => p.cfg.groups.iter().any(|group| group.name == *name && group.repositories.contains(repo)),
+        Field::MoveToNewGroup(repo) => p.cfg.groups.iter().any(|group| group.repositories.contains(repo)),
+        Field::Api | Field::Token | Field::Add => true,
+    });
+    if !valid { p.editor = None; }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -30,7 +61,7 @@ enum Row {
     Repository(usize, usize),
 }
 
-fn order(p: &GithubPlugin) -> Vec<Row> {
+fn all_rows(p: &GithubPlugin) -> Vec<Row> {
     let mut rows = vec![Row::Add];
     for (group, item) in p.cfg.groups.iter().enumerate() {
         rows.push(Row::Group(group));
@@ -39,8 +70,62 @@ fn order(p: &GithubPlugin) -> Vec<Row> {
     rows
 }
 
+fn group_id(name: &str) -> String {
+    format!("group:{}", name.replace('%', "%25").replace(v::PATH_SEP, "%1F"))
+}
+
+fn path(p: &GithubPlugin, row: Row) -> Vec<String> {
+    match row {
+        Row::Add => vec!["add".into()],
+        Row::Group(g) => vec![group_id(&p.cfg.groups[g].name)],
+        Row::Repository(g, r) => vec![group_id(&p.cfg.groups[g].name), format!("repo:{}", p.cfg.groups[g].repositories[r])],
+    }
+}
+
+fn order(p: &GithubPlugin) -> Vec<Row> {
+    all_rows(p).into_iter().filter(|row| match row {
+        Row::Repository(g, _) => !p.repository_folded.contains(&group_id(&p.cfg.groups[*g].name)),
+        _ => true,
+    }).collect()
+}
+
+fn row_at(p: &GithubPlugin, target: &[String]) -> Option<Row> {
+    order(p).into_iter().find(|row| path(p, *row) == target)
+}
+
 fn selected(p: &GithubPlugin) -> Row {
-    order(p).get(p.repository_row).copied().unwrap_or(Row::Add)
+    let mut target = p.repository_selected.clone();
+    while !target.is_empty() {
+        if let Some(row) = row_at(p, &target) { return row; }
+        target.pop();
+    }
+    Row::Add
+}
+
+fn select(p: &mut GithubPlugin, row: Row) {
+    p.repository_selected = path(p, row);
+    if let Row::Repository(g, _) = row {
+        p.repository_folded.remove(&group_id(&p.cfg.groups[g].name));
+    }
+}
+
+#[cfg(test)]
+pub(crate) fn select_repository_row(p: &mut GithubPlugin, index: usize) {
+    if let Some(row) = order(p).get(index).copied() { select(p, row); }
+}
+
+fn fold(p: &mut GithubPlugin, target: &v::Target, open: bool) -> Outcome {
+    let target = v::TreeRow::path_of(target);
+    let Some(Row::Group(g)) = row_at(p, &target) else { return Outcome::Ignored; };
+    if p.cfg.groups[g].repositories.is_empty() { return Outcome::Ignored; }
+    if open {
+        p.repository_folded.remove(&target[0]);
+    } else {
+        let current = path(p, selected(p));
+        p.repository_folded.insert(target[0].clone());
+        if current.starts_with(&target) { p.repository_selected = target; }
+    }
+    Outcome::done()
 }
 
 fn target_group(p: &GithubPlugin) -> Option<usize> {
@@ -304,9 +389,9 @@ fn start_edit(p: &mut GithubPlugin, section: &str) -> Outcome {
     } else {
         match selected(p) {
             Row::Add => (Field::Add, String::new()),
-            Row::Group(g) => (Field::RenameGroup(g), p.cfg.groups[g].name.clone()),
+            Row::Group(g) => (Field::RenameGroup(p.cfg.groups[g].name.clone()), p.cfg.groups[g].name.clone()),
             Row::Repository(g, r) => (
-                Field::Repository(g, r),
+                Field::Repository(p.cfg.groups[g].name.clone(), p.cfg.groups[g].repositories[r].clone()),
                 p.cfg.groups[g].repositories[r].clone(),
             ),
         }
@@ -324,7 +409,7 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
     };
     if let Err(reason) = validate(&editor.field, &value) {
         p.editor = Some(editor);
-        return Outcome::Handled(vec![Effect::Notify(format!("not yet: {reason}"))]);
+        return Outcome::Handled(vec![Effect::error(None, format!("not yet: {reason}"))]);
     }
     let field = editor.field.clone();
     let mut cfg = p.cfg.clone();
@@ -338,6 +423,7 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
     if !connection_edit {
         cfg.repositories.clear();
     }
+    let mut edited_row = None;
     match editor.field {
         Field::Api => cfg.api = value.trim().into(),
         Field::Token => cfg.token = value.trim().into(),
@@ -369,9 +455,13 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
                 });
             }
         }
-        Field::RenameGroup(g) => {
+        Field::RenameGroup(name) => {
+            let Some(g) = cfg.groups.iter().position(|group| group.name == name) else {
+                return Outcome::Handled(vec![Effect::Notify("group changed; reopen edit".into())]);
+            };
             cfg.groups[g].name = value.trim().into();
             cfg.groups[g].owner = typed_owner(&value);
+            edited_row = Some(Row::Group(g));
         }
         Field::MoveToNewGroup(repo) => {
             let Some(from) = cfg
@@ -390,8 +480,14 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
                 repositories: vec![repo],
             });
         }
-        Field::Repository(g, r) => {
-            cfg.groups[g].repositories[r] = config::repository(&value).unwrap().full_name()
+        Field::Repository(group, repo) => {
+            let Some((g, r)) = cfg.groups.iter().enumerate().find_map(|(g, item)| {
+                (item.name == group).then(|| item.repositories.iter().position(|name| *name == repo)).flatten().map(|r| (g, r))
+            }) else {
+                return Outcome::Handled(vec![Effect::Notify("repository changed; reopen edit".into())]);
+            };
+            cfg.groups[g].repositories[r] = config::repository(&value).unwrap().full_name();
+            edited_row = Some(Row::Repository(g, r));
         }
     }
     let cfg = match cfg.validated() {
@@ -401,27 +497,35 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
                 input: TextInput::new(&value),
                 field,
             });
-            return Outcome::Handled(vec![Effect::Notify(error.to_string())]);
+            return Outcome::Handled(vec![Effect::error(None, error.to_string())]);
         }
     };
     if cfg == p.cfg {
         return Outcome::done();
     }
     let new_group = adding && cfg.groups.len() > p.cfg.groups.len();
+    let renamed_fold = match &field {
+        Field::RenameGroup(name) if p.repository_folded.contains(&group_id(name)) => Some(group_id(name)),
+        _ => None,
+    };
     p.apply_config(cfg);
+    if let Some(old) = renamed_fold {
+        p.repository_folded.remove(&old);
+        p.repository_folded.insert(group_id(value.trim()));
+    }
     p.started = true;
-    p.repository_row = p.repository_row.min(order(p).len() - 1);
-    if let Some(repo) = added_repo {
-        p.repository_row = order(p)
-            .iter()
-            .position(|row| match row {
-                Row::Repository(g, r) => p.cfg.groups[*g].repositories[*r] == repo,
-                _ => false,
-            })
-            .unwrap_or(0);
+    if let Some(row) = edited_row { select(p, row); }
+    if let Some(repo) = added_repo
+        && let Some(row) = all_rows(p).into_iter().find(|row| match row {
+            Row::Repository(g, r) => p.cfg.groups[*g].repositories[*r] == repo,
+            _ => false,
+        })
+    {
+        select(p, row);
     }
     if moving_to_new {
-        p.repository_row = order(p).len() - 1;
+        let row = all_rows(p).last().copied().unwrap_or(Row::Add);
+        select(p, row);
         Outcome::Handled(vec![Effect::Notify(
             "repository moved into new group".into(),
         )])
@@ -429,10 +533,7 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
         Outcome::Handled(p.check_connection())
     } else if new_group {
         let group = p.cfg.groups.len() - 1;
-        p.repository_row = order(p)
-            .iter()
-            .position(|r| *r == Row::Group(group))
-            .unwrap_or(0);
+        select(p, Row::Group(group));
         if let Some(owner) = p.cfg.groups[group].owner.clone() {
             p.discovery_group = Some(group);
             Outcome::Handled(p.discover_repositories(Some(owner)))
@@ -468,6 +569,11 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
     }
     if key.ctrl || key.alt {
         return Outcome::Ignored;
+    }
+    if section == "repositories"
+        && let Some(step) = v::tree_step(&neutral::repositories(p), key)
+    {
+        return neutral::intent(p, section, &step);
     }
     if section == "connection" {
         match (key.key, conn_row(p)) {
@@ -507,7 +613,7 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
             return Outcome::Handled(p.discover_repositories(owner));
         }
         Key::Enter | Key::Char('e') => return start_edit(p, section),
-        Key::Char('d') if section == "repositories" && p.repository_row > 0 => {
+        Key::Char('d') if section == "repositories" && selected(p) != Row::Add => {
             return match selected(p) {
                 Row::Group(g) => Outcome::Handled(vec![remove_group(p, g)]),
                 Row::Repository(g, r) => {
@@ -542,8 +648,10 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
                     "name a group and move this repository into it",
                     "new",
                 ));
+                let menu = format!("move:{from}:{repo}");
+                lease_menu(p, menu.clone());
                 return Outcome::Handled(vec![Effect::Menu(Menu::new(
-                    format!("move:{from}:{repo}"),
+                    menu,
                     "Move repository to group",
                     items,
                 ))]);
@@ -564,7 +672,7 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
     let current = if section == "connection" {
         conn_at(p)
     } else {
-        p.repository_row
+        self::order(p).iter().position(|row| *row == selected(p)).unwrap_or(0)
     };
     let at = order.iter().position(|row| *row == current).unwrap_or(0);
     let to = radar_core::ui::rows::select(order.len(), at, movement, |_| true);
@@ -574,7 +682,8 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
         if section == "connection" {
             p.connection_row = order[to];
         } else {
-            p.repository_row = order[to];
+            let row = self::order(p)[order[to]];
+            select(p, row);
         }
         Outcome::done()
     }
@@ -585,9 +694,11 @@ fn run_check(p: &mut GithubPlugin) -> Outcome {
 }
 
 /// Asks before a group and its repositories go.
-fn remove_group(p: &GithubPlugin, g: usize) -> Effect {
+fn remove_group(p: &mut GithubPlugin, g: usize) -> Effect {
+    let menu = format!("remove-group:{g}");
+    lease_menu(p, menu.clone());
     Effect::Menu(Menu::confirm(
-        format!("remove-group:{g}"),
+        menu,
         format!("remove group {} and its repositories?", p.cfg.groups[g].name),
         "remove group",
         "keep it",
@@ -625,6 +736,12 @@ fn choose_grant(p: &mut GithubPlugin, access: config::TokenAccess) -> Outcome {
 }
 
 pub(crate) fn click(p: &mut GithubPlugin, section: &str, id: &str) -> Outcome {
+    if section == "repositories" {
+        let target = v::TreeRow::path_of(&v::Target::new(id));
+        let Some(row) = row_at(p, &target) else { return Outcome::Ignored; };
+        select(p, row);
+        return Outcome::done();
+    }
     let Some(index) = id
         .strip_prefix("setting:")
         .and_then(|v| v.parse::<usize>().ok())
@@ -633,9 +750,6 @@ pub(crate) fn click(p: &mut GithubPlugin, section: &str, id: &str) -> Outcome {
     };
     if section == "connection" && conn_rows(p).get(index).is_some_and(|r| r.selectable()) {
         p.connection_row = index;
-        Outcome::done()
-    } else if section == "repositories" && index < order(p).len() {
-        p.repository_row = index;
         Outcome::done()
     } else {
         Outcome::Ignored
@@ -684,7 +798,7 @@ pub(crate) fn keys(p: &GithubPlugin, section: &str) -> Vec<crate::Act> {
             Binding::new("a", "browse repositories this token can access"),
         ));
     }
-    if section == "repositories" && p.repository_row > 0 {
+    if section == "repositories" && selected(p) != Row::Add {
         rows.push(act(
             "remove",
             Binding::new("d", "remove selected group or repository…"),
@@ -809,12 +923,17 @@ pub(crate) fn on_menu(p: &mut GithubPlugin, menu: &str, value: &str) -> Vec<Effe
             // Removing a row is a settings edit, not a request to read the
             // remaining repositories again on the next tick.
             p.started = true;
-            p.repository_row = p.repository_row.min(order(p).len() - 1);
+            let row = selected(p);
+            select(p, row);
             vec![Effect::Notify("repository removed from radar".into())]
         }
         other if other.starts_with("remove-group:") => {
+            let valid = consume_menu(p, other);
             if value != "yes" {
                 return vec![];
+            }
+            if !valid {
+                return vec![Effect::Notify("settings changed; reopen the group action".into())];
             }
             let Some(group) = other
                 .strip_prefix("remove-group:")
@@ -830,10 +949,14 @@ pub(crate) fn on_menu(p: &mut GithubPlugin, menu: &str, value: &str) -> Vec<Effe
             cfg.repositories.clear();
             p.apply_config(cfg.validated().unwrap());
             p.started = true;
-            p.repository_row = p.repository_row.min(order(p).len() - 1);
+            let row = selected(p);
+            select(p, row);
             vec![Effect::Notify("group removed from radar".into())]
         }
         other if other.starts_with("move:") => {
+            if !consume_menu(p, other) {
+                return vec![Effect::Notify("settings changed; reopen move".into())];
+            }
             let Some((from, repo)) = other
                 .strip_prefix("move:")
                 .and_then(|s| s.split_once(':'))
@@ -877,10 +1000,7 @@ pub(crate) fn on_menu(p: &mut GithubPlugin, menu: &str, value: &str) -> Vec<Effe
             };
             p.apply_config(cfg);
             p.started = true;
-            p.repository_row = order(p)
-                .iter()
-                .position(|r| *r == Row::Group(to))
-                .unwrap_or(0);
+            select(p, Row::Group(to));
             vec![Effect::Notify("repository moved".into())]
         }
         _ => vec![],
@@ -935,4 +1055,51 @@ pub(crate) fn discovery_menu(p: &GithubPlugin) -> Option<Menu> {
         "GitHub repositories you can access",
         items,
     ))
+}
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+
+    fn check_setup_link(blocks: &[radar_core::view::Block], url: &str, copy: &str, key: &str) {
+        use radar_core::view::{Block, Text};
+        fn find<'a>(blocks: &'a [Block], url: &str) -> Option<&'a Text> {
+            blocks.iter().find_map(|block| match block {
+                Block::Line { text, .. } if text.0.iter().any(|seg| seg.link.as_deref() == Some(url)) => Some(text),
+                Block::Section { blocks, .. } => find(blocks, url),
+                _ => None,
+            })
+        }
+        let text = find(blocks, url).expect("actual setup token link");
+        assert_eq!(text.0[0].link.as_deref(), Some(url));
+        assert!(text.words().ends_with(&format!("   open · {copy}")));
+        assert!(text.plain_words().ends_with(&format!("   open [o] · {copy} [{key}]")));
+        let underlined: Vec<_> = text.0.iter().filter(|seg| seg.look.as_deref().is_some_and(|look| look.contains("underline"))).map(|seg| seg.text.as_str()).collect();
+        assert_eq!(underlined, ["o", key]);
+        let hints: Vec<_> = text.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect();
+        assert_eq!(hints, ["o", key]);
+        assert!(text.0[1..].iter().all(|seg| seg.link.is_none() && seg.target.is_none()));
+    }
+
+    #[test]
+    fn github_settings_action_producers_have_mnemonics() {
+        let mut p = crate::demo::sample();
+        check_setup_link(&crate::setup::access_help(&p), &crate::setup::token_page(&p), "copy", "y");
+        let mut checked = 0;
+        for section in ["connection", "repositories"] {
+            let count = if section == "connection" { conn_rows(&p).len() } else { order(&p).len() };
+            for row in 0..count {
+                if section == "connection" { p.connection_row = row; } else { select_repository_row(&mut p, row); }
+                for (_, binding) in keys(&p, section) {
+                    if radar_core::mnemonic::letter(&binding.keys).is_some() {
+                        assert!(radar_core::mnemonic::at(&binding.keys, &binding.what).is_some(),
+                            "{section}: {} / {}", binding.keys, binding.what);
+                        checked += 1;
+                    }
+                }
+            }
+        }
+        assert!(checked > 10);
+    }
 }

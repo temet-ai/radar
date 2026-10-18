@@ -233,7 +233,7 @@ pub fn done(words: &str) -> Effect {
 /// icon in its colour when icons are on.
 pub fn failed(words: &str) -> Effect {
     let (icon, mark) = icon::plain_or(Icon::Error, "✗");
-    Effect::notify(icon, format!("{mark}{words}"))
+    Effect::error(icon, format!("{mark}{words}"))
 }
 
 /// [`done`]'s words as one line of text, for a page that records it.
@@ -337,7 +337,7 @@ mod tests {
         assert_eq!(ACME.did_not("post a note on #12", "busy"), "Acme did not post a note on #12: busy");
         assert_eq!(
             format!("{:?}", failed(&ACME.did_not("post a note on #12", "busy"))),
-            "Notify(✗ Acme did not post a note on #12: busy)"
+            "Notice(Error: ✗ Acme did not post a note on #12: busy)"
         );
         assert_eq!(done_line("posted"), "✓ posted");
         assert_eq!(failed_line("refused"), "✗ refused");
@@ -348,7 +348,7 @@ mod tests {
             host.load_config(Some("[theme]\nicons = \"unicode\"\n")).unwrap();
             let _ = host.build_theme(crate::design::theme::Tier::Mono);
             assert!(matches!(done("posted"), Effect::NotifyWith(Icon::RunPassed, ref w) if w == "posted"));
-            assert!(matches!(failed("refused"), Effect::NotifyWith(Icon::Error, ref w) if w == "refused"));
+            assert!(matches!(failed("refused"), Effect::Notice(ref n) if n.icon == Some(Icon::Error) && n.text == "refused" && n.tone == crate::view::chrome::NoticeTone::Error));
         })
         .join()
         .unwrap();
@@ -377,9 +377,9 @@ mod tests {
                 "|   indented, kept as typed".into(),
                 format!("| {}", "x".repeat(72)),
                 format!("| {}", "x".repeat(8)),
-                "y yes · post it".into(),
+                "y yes · yes, post it".into(),
                 "e edit · keep writing".into(),
-                "n no · drop it".into(),
+                "n no · no, drop it".into(),
             ]
         );
         assert_eq!(m.items.iter().filter(|i| !i.note).map(|i| i.value.as_str()).collect::<Vec<_>>(), ["yes", "edit", "no"]);
@@ -398,8 +398,8 @@ mod tests {
             [
                 "| as you",
                 "| radar is read only: nothing will be sent",
-                "y yes · approve it",
-                "n no · leave it as it is",
+                "y yes · yes, approve it",
+                "n no · no, leave it as it is",
             ]
         );
         let on = crate::Menu::write_plain("w", "approve #12?", vec![], "approve it", "no").noting(None);

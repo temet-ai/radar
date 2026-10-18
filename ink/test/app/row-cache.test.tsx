@@ -60,6 +60,27 @@ async function fresh(cols: number, rows: number, over: Record<string, unknown>) 
 }
 
 describe("a row that did not change is not drawn again", () => {
+  it("invalidates a folded row when a nested held-descendant count changes", async () => {
+    const body = { node: "tree", columns: [], open: [], selected: ["watch"], rows: [
+      { id: "watch", name: [{ text: "Watch" }], children: [
+        { id: "cases", name: [{ text: "Cases" }], children: [{ id: "patrol", name: [{ text: "Patrol" }] }] },
+      ] },
+    ] };
+    const screen = { id: "watch", scope: "watch", panes: [{ pane: "middle", title: "Watch", body }], actions: [] };
+    const m = mount(80, 24); live.push(m.stop); m.welcome();
+    m.snapshot({ screen }, 1);
+    await tick(40);
+    expect(m.frame()).toContain("⋯ 2");
+    const made = rowCacheStats.made;
+    const next = structuredClone(screen);
+    next.panes[0]!.body.rows[0]!.children[0]!.children.push({ id: "clues", name: [{ text: "Clues" }] });
+    m.snapshot({ screen: next }, 2);
+    await tick(40);
+    expect(rowCacheStats.made - made).toBeGreaterThan(0);
+    expect(m.frame()).toContain("⋯ 3");
+    expect(m.frame()).toBe(await fresh(80, 24, { screen: next }));
+  });
+
   it("there are screens with rows", () => {
     expect(screens.length).toBeGreaterThan(20);
   });

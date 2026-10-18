@@ -4,7 +4,7 @@ assertion_line: 134
 expression: "to_text(&started(), 80, 24)"
 ---
  radar    History   Settings (,)                                         ✎ edit
-╭ set up Jira ─────────────────────────────────────────────────────────────────╮
+╭ 1 set up Jira ───────────────────────────────────────────────────────────────╮
 │ Jira is not set up yet.                                                      │
 │                                                                              │
 │ Add a site: the Jira address, your email and an API token.                   │
@@ -26,4 +26,4 @@ expression: "to_text(&started(), 80, 24)"
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- JIRA   q quit   x menu   ←→↑↓ navigate
+ JIRA   quit   extra actions   ~ notices   ←→↑↓ navigate

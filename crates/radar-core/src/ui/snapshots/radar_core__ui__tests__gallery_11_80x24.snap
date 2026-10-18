@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Row states
+ Gallery / Row states
  The kit: every element on sample data                            colours: none
  Markdown  Diff  Motion  Colours  Tones  [Row states]  Grid states  Waiting  L…
 ╭ list, focused (cursor on the fourth row) ───────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │  + add a shelf   paste a link to a shelf, or its path                       │║
 │  日本語の長い行 with wide characters in it, cut at the edge                 │║
 │                                                                             │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

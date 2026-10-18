@@ -77,7 +77,12 @@ fn launch_results_preserve_notifications_and_never_report_clipboard_success() {
             fx.iter().filter(|e| matches!(e, Effect::Copy(_))).count(),
             usize::from(copy)
         );
-        assert!(matches!(fx.last(), Some(Effect::Notify(said)) if said == notification));
+        if expected == JournalOutcome::Succeeded {
+            assert!(matches!(fx.last(), Some(Effect::Notify(said)) if said == notification));
+        } else {
+            assert!(matches!(fx.last(), Some(Effect::Notice(message))
+                if message.tone == radar_core::view::chrome::NoticeTone::Error && message.text == notification));
+        }
         assert_eq!(
             fx.iter().filter(|e| matches!(e, Effect::Report(_))).count(),
             1

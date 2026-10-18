@@ -54,8 +54,10 @@ impl World {
 
     fn take(&mut self, fx: Vec<Effect>) {
         for e in fx {
-            if let Effect::Notify(m) = e {
-                self.notices.push(m.to_string());
+            match e {
+                Effect::Notify(m) => self.notices.push(m),
+                Effect::Notice(m) => self.notices.push(m.text),
+                _ => {}
             }
         }
     }
@@ -303,4 +305,26 @@ fn the_reviewers_tab_keeps_the_policy_after_the_review_is_saved() {
         p.dock().is_some_and(|d| d.transcript.iter().any(|i| matches!(i, DockItem::Assistant { text, .. } if text == "Done.")))
     });
     assert!(permission(&p).is_none(), "no approval box for a read the policy allows");
+}
+
+mod notice_severity_tests {
+    use super::*;
+
+    #[test]
+    fn review_failure_reaches_the_host_as_an_error_without_an_icon() {
+        let provider = FakeProvider::new();
+        let mut p = SessionsPlugin::new();
+        p.add_adapter(Box::new(provider.adapter()));
+        assert!(matches!(p.review_start(None, key()), Outcome::Handled(_)));
+        let (run, ask) = p.review_asks().pop().expect("resolve request");
+        assert!(matches!(ask, ReviewAsk::Resolve(_)));
+        let Outcome::Handled(effects) = p.review_answer(
+            run,
+            ReviewAnswer::Resolved(Resolve::Failed("request unavailable".into())),
+        ) else { panic!("handled failure"); };
+        assert!(matches!(&effects[..], [Effect::Notice(message)]
+            if message.tone == radar_core::view::chrome::NoticeTone::Error
+                && message.icon.is_none()
+                && message.contains("request unavailable")));
+    }
 }

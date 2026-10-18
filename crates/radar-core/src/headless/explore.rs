@@ -95,6 +95,17 @@ pub fn offered(view: &ScreenView) -> Vec<Offered> {
     }
 }
 
+/// Live controls are an explicit inventory, separate from the row/page walker.
+/// Activate each requested target once; never Select it or recursively walk it.
+pub fn foot_controls(view: &ScreenView) -> Vec<Offered> {
+    let panes = view.page.as_ref().map_or(view.panes.as_slice(), |page| page.panes.as_slice());
+    panes.iter().flat_map(|pane| pane.foot_actions.iter().flat_map(move |foot| {
+        foot.actions.iter().chain(std::iter::once(&foot.menu))
+            .filter(|control| control.disabled.is_none())
+            .filter_map(move |control| control.target.clone().map(|target| Offered { pane: pane.pane, target }))
+    })).collect()
+}
+
 fn depth_of(view: &ScreenView) -> usize {
     view.page.as_ref().map_or(0, |p| p.crumbs.len())
 }

@@ -1,10 +1,10 @@
  radar    R ●   J   S ●   B   I   History   Settings (,)  not synced ye… ✎ edit
   GitLab    GitHub    Local workspaces
- Repositories › a › api › !263
+ Repositories / a / api / !263
  ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
  checkout  terminal  editor  /work/acme/api · java · on alice/ABC-12 · 1 more
  Overview  [Changes]  Threads ●  Pipeline  Commits  Tickets
-╭ 4 of 5 · docs/README.md ─────────────────────────────────────────────────────╮
+╭ 1 4 of 5 · docs/README.md ───────────────────────────────────────────────────╮
 │ @@ -1,3 +1,8 @@                                                              │
 │ 1 1   # Stats                                                                │
 │ 2   - Numbers.                                                               │

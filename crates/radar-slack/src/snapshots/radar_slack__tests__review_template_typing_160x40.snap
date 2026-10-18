@@ -4,7 +4,7 @@ assertion_line: 790
 expression: text
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ settings ────────────╮╭ review ────────────────────────────────────────────────────────────────────────╮╭ template ──────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 review ──────────────────────────────────────────────────────────────────────╮╭ 3 template ────────────────────────────────────────╮
 │General               ││ channel          team                                                          ││ AS YOU TYPE                                        │
 │  ├─ parts            ││ user group       @review-squad                                                 ││ ✓ mentions the group picked under user group (in   │
 │  ├─ mode             ││ template         Review please {group}: {mrs}                                  ││ the review channel); posts: Review please          │

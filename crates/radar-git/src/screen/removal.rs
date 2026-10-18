@@ -89,7 +89,7 @@ pub(super) fn ask(p: &mut GitPlugin) -> Vec<Effect> {
     }
     let (checkout, tree) = match current(p, &detail.dir, &selected.dir) {
         Ok(target) => target,
-        Err(why) => return vec![Effect::Notify(why.into())],
+        Err(why) => return vec![Effect::error(None, why)],
     };
     let Some(serial) = p.branches.removal.serial.checked_add(1) else {
         return vec![Effect::Notify(EXPIRED.into())];
@@ -125,7 +125,7 @@ pub(super) fn ask(p: &mut GitPlugin) -> Vec<Effect> {
 fn blocked(why: &str) -> Vec<Effect> {
     vec![
         Effect::Report(JournalOutcome::Blocked),
-        Effect::Notify(why.into()),
+        Effect::error(None, why),
     ]
 }
 

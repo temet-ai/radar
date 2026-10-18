@@ -19,7 +19,8 @@
           "char": "r"
         }
       },
-      "label": "look for repositories again"
+      "label": "look for repositories again",
+      "mnemonic_at": 7
     }
   ],
   "dock": {
@@ -35,11 +36,18 @@
   "panes": [
     {
       "body": {
-        "node": "list",
+        "columns": [],
+        "name_width": 0,
+        "node": "tree",
+        "open": [
+          [
+            "workspace:/work/acme"
+          ]
+        ],
         "rows": [
           {
-            "target": "row:0",
-            "text": [
+            "id": "workspace:/work/acme",
+            "name": [
               {
                 "ink": "emphasis",
                 "text": "acme"
@@ -47,7 +55,9 @@
             ]
           }
         ],
-        "selected": 0
+        "selected": [
+          "workspace:/work/acme"
+        ]
       },
       "pane": "middle",
       "title": "local repositories"

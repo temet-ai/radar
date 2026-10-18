@@ -4,7 +4,7 @@ assertion_line: 231
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Branches   History   Settings (,)                                                                                                              ✎ edit
-╭ settings ────────────╮╭ checkouts ─────────────────────────────────────────────────────────────────────╮╭ add a folder ──────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 checkouts ───────────────────────────────────────────────────────────────────╮╭ 3 add a folder ────────────────────────────────────╮
 │General               ││  + add a folder to look in   paste or type a folder                            ││ Another folder to look for git checkouts in. radar │
 │  ├─ parts            ││ folder     /work                                                       1 found ││ matches each checkout to its repo by its origin    │
 │  ├─ mode             ││ look down  4 folders                                                           ││ remote.                                            │
@@ -42,4 +42,4 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate

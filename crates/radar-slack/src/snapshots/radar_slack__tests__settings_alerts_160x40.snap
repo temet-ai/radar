@@ -4,7 +4,7 @@ assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 alerts ──────────────────────────────────────────────────────────────────────╮╭ 3 add a mapping ───────────────────────────────────╮
 │General               ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
 │  ├─ parts            ││ keep resolved    24 hours                                                      ││                                                    │
 │  ├─ mode             ││                                                                                ││ Type the start of its name; the repo it belongs to │
@@ -42,4 +42,4 @@ expression: "to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   q quit   x menu   ←→↑↓ navigate                                                                                                               slack
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                              slack

@@ -1,9 +1,10 @@
 ---
 source: crates/radar-git/src/screen/removal_tests.rs
+assertion_line: 386
 expression: updated
 ---
  radar    Branches   History   Settings (,)                                                                                   synced 20s ago · every 1m  ✎ edit
-╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api-hotfix ──────────────────────────────────╮
+╭ 1 views ───────────────╮╭ 2 all ─────────────────────────────────────────────────────────────────────────────╮╭ 3 api-hotfix ────────────────────────────────╮
 │ all                    ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  DIRTY      STASH  UPDATED  ││ folder   /work/acme/api-hotfix               │
 │ dirty                1 ││api  on main  ● in use                    —      —       clean      —      2961w    ││ clone    /work/acme/api                      │
 │ ahead of remote        ││  ├─ api-hotfix  on hotfix                —      —       2 changed  —      2961w    ││ on       hotfix                              │
@@ -22,9 +23,9 @@ expression: updated
 │                        ││                              │ the folder /work/acme/api-hotfix is removed│        ││                                              │
 │                        ││                              │ its branch hotfix stays                    │        ││                                              │
 │                        ││                              │                                            │        ││                                              │
-│                        ││                              │                  ▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔│        ││                                              │
-│                        ││                              │                   y remove it    n keep it │        ││                                              │
-│                        ││                              │                  ▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁│        ││                                              │
+│                        ││                              │             ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔│        ││                                              │
+│                        ││                              │              yes, remove it    no, keep it │        ││                                              │
+│                        ││                              │             ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁│        ││                                              │
 │                        ││                              ╰────────────────────────────────────────────╯        ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │

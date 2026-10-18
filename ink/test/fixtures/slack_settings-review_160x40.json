@@ -12,7 +12,8 @@
           "char": "e"
         }
       },
-      "label": "pick it…"
+      "label": "select it…",
+      "mnemonic_at": 1
     },
     {
       "id": "slack.review.clear",
@@ -21,7 +22,8 @@
           "char": "c"
         }
       },
-      "label": "clear it"
+      "label": "clear it",
+      "mnemonic_at": 0
     },
     {
       "id": "slack.review.kept_replies",

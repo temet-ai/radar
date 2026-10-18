@@ -371,7 +371,7 @@ fn duplicate_confirmation_and_completion_cannot_send_record_or_notify_twice() {
         assert!(
             effects.iter().all(|effect| !matches!(
                 effect,
-                Effect::Notify(_) | Effect::NotifyWith(_, _) | Effect::PersistCache
+                Effect::Notify(_) | Effect::NotifyWith(_, _) | Effect::Notice(_) | Effect::PersistCache
             )),
             "{effects:?}"
         );

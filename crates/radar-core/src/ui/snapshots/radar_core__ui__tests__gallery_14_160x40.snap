@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1000
+assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Long text
+ Gallery / Long text
  The kit: every element on sample data                                                                                                            colours: none
- Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  [Long text]  Icons
+ Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  [Long text]  Icons  Notices  Detail
 ╭ cut with … (fit) ────────────────────────────────────────────────────────────╮╭ wrapped behind a prefix ────────────────────────────────────────────────────╮
 │ 60 move the globes to the top shelf once the new brackets are …|             ││ │ The decades from 1900 to 1950 are done. The                               │█
 │ 40 move the globes to the top shelf once t…|                                 ││ │ rest wait for the new dividers, which come                                │█
@@ -42,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 │   a code line that is longer                                                 ││                                                                             │║
 │    than the card is wide                                                     ││                                                                             │║
 │                                                                              ││                                                                             │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

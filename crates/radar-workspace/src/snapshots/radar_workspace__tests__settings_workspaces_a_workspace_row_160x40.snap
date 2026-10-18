@@ -4,7 +4,7 @@ assertion_line: 316
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories   History   Settings (,)                                                                                                          ✎ edit
-╭ settings ────────────╮╭ workspaces ────────────────────────────────────────────────────────────────────╮╭ acme ──────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 workspaces ──────────────────────────────────────────────────────────────────╮╭ 3 acme ────────────────────────────────────────────╮
 │General               ││  ? Found in /work/other: a workspace with 3 clones. Use it?                    ││ CHECKED                                            │
 │  ├─ parts            ││  + add a workspace   a folder of clones                                        ││ ✓ 14 clones found                                  │
 │  ├─ mode             ││ acme        /work/acme                                               14 clones ││ ✓ .okf.yaml read: knowledge in artifacts, docs     │
@@ -42,4 +42,4 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate
+ SETTINGS   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate

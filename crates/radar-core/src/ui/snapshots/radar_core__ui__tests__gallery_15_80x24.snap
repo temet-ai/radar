@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 999
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Icons
+ Gallery / Icons
  The kit: every element on sample data                            colours: none
- Tones  Row states  Grid states  Waiting  Long text  [Icons]
+ Tones  Row states  Grid states  Waiting  Long text  [Icons]  Notices  Detail
 ╭ nerd: Nerd Font symbols: needs a Nerd Font, or a terminal that brings its sy╮
 │  group                repo                 branch                        │█
 │  commit               change               draft                         │█
@@ -26,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │  private_channel      direct               reply                         │║
 │  mention              reaction             unread                        │║
 │  alert                alert_firing         alert_resolved                │
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

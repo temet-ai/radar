@@ -1374,3 +1374,20 @@ mod page_identity_tests {
         assert_eq!(page.identity(), identity);
     }
 }
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    #[test]
+    fn ticket_page_copy_key_keeps_uppercase_display_metadata() {
+        let (mut p, fixture) = crate::test_support::hosted_plugin(vec![]).unwrap();
+        p.pages.push(Page::new("watch", "WATCH-44"));
+        let binding = keys(&p).into_iter().find(|binding| binding.keys == "Y").unwrap();
+        let action = radar_core::view::ActionSpec::named("jira.page.copy_key", &binding);
+        assert_eq!(binding.what, "copy WATCH-44");
+        assert_eq!(action.mnemonic_at, Some(3));
+        assert!(action.mnemonic_shift);
+        fixture.assert_finished();
+    }
+}

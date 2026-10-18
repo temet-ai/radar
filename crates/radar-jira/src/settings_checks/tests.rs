@@ -116,6 +116,13 @@ fn accepted(fx: &[Effect]) {
     );
     assert!(!fx.iter().any(|e| matches!(e, Effect::Observe { action, .. } if action.kind.as_str().ends_with("application.skipped"))));
 }
+fn accepted_error(fx: &[Effect]) {
+    let mut notices = fx.iter().filter(|e| matches!(e, Effect::Notify(_) | Effect::NotifyWith(_, _) | Effect::Notice(_)));
+    assert!(matches!((notices.next(), notices.next()),
+        (Some(Effect::Notice(message)), None)
+            if message.tone == radar_core::view::chrome::NoticeTone::Error));
+    assert!(!fx.iter().any(|e| matches!(e, Effect::Observe { action, .. } if action.kind.as_str().ends_with("application.skipped"))));
+}
 fn configure(p: &mut JiraPlugin, cfg: &config::Settings) {
     p.configure(Some(&toml::Value::try_from(cfg).unwrap()))
         .unwrap();
@@ -304,7 +311,7 @@ fn newer_local_setup_failure_supersedes_older_success_before_any_client_work() {
                 ..
             })
         ));
-        accepted(&p.on_msg(msg));
+        accepted_error(&p.on_msg(msg));
         let before = state(&p);
         skipped(
             &success(&mut p, &old, "old"),
@@ -329,7 +336,7 @@ fn newer_invalid_project_failure_supersedes_older_owner_without_http() {
     ));
     assert!(matches!(&invalid, Err(CheckError::InvalidProject(_))));
     assert!(transport.paths().is_empty());
-    accepted(&receive(&mut p, &new, invalid));
+    accepted_error(&receive(&mut p, &new, invalid));
     let before = state(&p);
     skipped(
         &receive(
@@ -492,7 +499,7 @@ fn typed_targets_prevent_colon_status_or_owner_collisions() {
     let b = launch(&mut p, invalid.clone());
     assert_ne!(a.request, b.request);
     assert_eq!(p.check_owners.pending.len(), 2);
-    accepted(&receive(&mut p, &b, recorded(&invalid, "ignored")));
+    accepted_error(&receive(&mut p, &b, recorded(&invalid, "ignored")));
     assert!(matches!(p.checks[&good].0, Check::Running));
     assert!(matches!(p.checks[&invalid].0, Check::Failed(_)));
     accepted(&success(&mut p, &a, "good"));

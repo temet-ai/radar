@@ -616,10 +616,8 @@
             "key": "right"
           },
           "intent": {
-            "chord": {
-              "key": "right"
-            },
-            "intent": "key"
+            "intent": "select",
+            "target": "g2\u001fc"
           }
         },
         {
@@ -644,12 +642,7 @@
             }
           },
           "intent": {
-            "chord": {
-              "key": {
-                "char": "="
-              }
-            },
-            "intent": "key"
+            "intent": "open_all"
           }
         },
         {
@@ -803,17 +796,6 @@
         },
         {
           "chord": {
-            "key": "right"
-          },
-          "intent": {
-            "chord": {
-              "key": "right"
-            },
-            "intent": "key"
-          }
-        },
-        {
-          "chord": {
             "key": {
               "char": "+"
             }
@@ -834,12 +816,7 @@
             }
           },
           "intent": {
-            "chord": {
-              "key": {
-                "char": "="
-              }
-            },
-            "intent": "key"
+            "intent": "open_all"
           }
         },
         {

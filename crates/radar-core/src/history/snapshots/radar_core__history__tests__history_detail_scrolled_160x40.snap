@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/history/tests.rs
+assertion_line: 169
 expression: screen
 ---
  History · read only · UTC · snapshot through #100
@@ -41,4 +42,4 @@ expression: screen
 │                                                                                              ││ Snapshot through event sequence 100. Refresh starts a new    █
 │                                                                                              ││ snapshot.                                                    █
 ╰──────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────╯
- j/k scroll · tab events · n/p pages · r refresh · x/? keys · esc close
+ ↑↓ scroll · tab events · next page · previous page · refresh · extra keys · esc close

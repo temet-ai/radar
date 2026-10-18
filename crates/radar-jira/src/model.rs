@@ -60,7 +60,7 @@ impl Category {
 /// before them when icons are on.
 pub fn failed_notice(words: &str) -> radar_core::Effect {
     let (icon, mark) = radar_core::ui::icon::plain_or(Icon::Error, "✗");
-    radar_core::Effect::notify(icon, format!("{mark}{words}"))
+    radar_core::Effect::error(icon, format!("{mark}{words}"))
 }
 
 /// A category's icon to name when icons are on, else its old symbol and a
@@ -547,6 +547,32 @@ pub mod fixtures {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    mod notice_severity_tests {
+        use super::*;
+
+        #[test]
+        fn failed_notice_keeps_error_tone_with_icons_on_and_off() {
+            use radar_core::ui::icon as packs;
+            // Restore the thread-local pack even if this helper contract fails.
+            struct Restore(packs::Icons);
+            impl Drop for Restore {
+                fn drop(&mut self) { packs::set_current(&self.0); }
+            }
+            let _restore = Restore(packs::current());
+            for pack in ["off", "unicode"] {
+                let (icons, warnings) = packs::resolve(pack, &[], &Default::default());
+                assert!(warnings.is_empty());
+                packs::set_current(&icons);
+                let radar_core::Effect::Notice(message) = failed_notice("request refused") else {
+                    panic!("failure must carry semantic error severity");
+                };
+                assert_eq!(message.tone, radar_core::view::chrome::NoticeTone::Error);
+                assert_eq!(message.icon, (pack != "off").then_some(Icon::Error));
+                assert_eq!(message.text, if pack == "off" { "✗ request refused" } else { "request refused" });
+            }
+        }
+    }
 
     #[test]
     fn a_kind_and_a_priority_pick_their_icons() {

@@ -188,10 +188,10 @@ mod unit {
         let abc12 = child_path();
         // Prove the fixture still puts ABC-12 under ABC-1 in the same status.
         let nodes = screen::nodes(&p);
-        let (epic, children) = &nodes[0].groups[0].tops[0];
-        assert_eq!(epic.key, "ABC-1");
+        let epic = &nodes[0].groups[0].tops[0];
+        assert_eq!(epic.ticket.key, "ABC-1");
         assert_eq!(
-            children.iter().map(|t| t.key.as_str()).collect::<Vec<_>>(),
+            epic.children.iter().map(|t| t.ticket.key.as_str()).collect::<Vec<_>>(),
             ["ABC-12", "ABC-13"]
         );
         p.tree.borrow_mut().select(abc12.clone());
@@ -202,8 +202,8 @@ mod unit {
         assert_eq!(visible_keys(&p), ["ABC-12"]);
         assert_eq!(
             p.tree.borrow().selected(),
-            abc12.as_slice(),
-            "still shown: it stays"
+            ["s:acme", "g:acme:In Progress", "t:acme:ABC-12"],
+            "still shown: its identity stays while the filtered-out parent is removed"
         );
         // A second edit hides the selected child, so Enter chooses the first match.
         assert!(key(&mut p, Pane::Middle, KeyCode::Char('/')).is_empty());
@@ -260,7 +260,7 @@ mod integration {
         assert!(!scenario.host().capturing());
         assert_eq!(
             super::super::jira(scenario.host()).tree.borrow().selected(),
-            abc12.as_slice()
+            ["s:acme", "g:acme:In Progress", "t:acme:ABC-12"]
         );
 
         press(&mut scenario, KeyCode::Esc);

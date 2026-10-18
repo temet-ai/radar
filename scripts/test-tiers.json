@@ -619,6 +619,14 @@
           ],
           "boundary": "Whole-app key/action intent parity across configured surfaces.",
           "why_not_unit": "Cross-renderer host navigation and contributed actions cannot be established by one part alone; existing exhaustive sweep retained."
+        },
+        {
+          "name": "mnemonic_acceptance::detail_footer_tests::wrapped_footer_actions_and_menu_keep_the_mnemonic_guard",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized footer action/menu guard; malformed IDs and missing mnemonic metadata remain rejected."
         }
       ]
     },
@@ -1902,6 +1910,14 @@
             "core"
           ],
           "boundary": "Isolated palette row layout and Unicode highlight helpers preserve cells, shortcuts and viewport selection without a host or full application frame."
+        },
+        {
+          "name": "shell::menu::tests::palette_tests::mnemonic_menu_rows_have_no_letter_column_and_shift_stays_with_word",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local menu geometry keeps shifted mnemonic captions beside icons without reserving a duplicate letter column."
         }
       ]
     },
@@ -2263,6 +2279,50 @@
             "core"
           ],
           "boundary": "Explicit keyboard ownership and exact lower-tier styles for focused frames and wordmark padding."
+        }
+      ]
+    },
+    {
+      "id": "core-loading-policy",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "motion::tests::loading_policy::",
+      "cases": [
+        {
+          "name": "motion::tests::loading_policy::leaving_full_drops_every_shimmer_and_subtle_never_rediscovers_loading",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Full-to-subtle discards all active loading shimmer, owes exactly one clean frame, and never rediscovers old or new loading at subtle.",
+          "why_not_unit": "Exercises production thread-local loading marks and engine lifecycle over caller-owned small buffers with a manual clock; no host, full application frame, terminal, filesystem or network."
+        },
+        {
+          "name": "motion::tests::loading_policy::leaving_full_preserves_compatible_cues_and_their_elapsed_time",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Removing loading shimmer retains ordinary screen, popup and changed-row effects with their existing elapsed time and clean settlement.",
+          "why_not_unit": "Exercises production thread-local loading marks and engine lifecycle over caller-owned small buffers with a manual clock; no host, full application frame, terminal, filesystem or network."
+        },
+        {
+          "name": "motion::tests::loading_policy::repeated_full_preserves_shimmer_phase_and_off_clears_pending_settle",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Repeated full policy does not restart shimmer; off clears pending settlement and later full discovery starts with a fresh clock.",
+          "why_not_unit": "Exercises production thread-local loading marks and engine lifecycle over caller-owned small buffers with a manual clock; no host, full application frame, terminal, filesystem or network."
+        },
+        {
+          "name": "motion::tests::loading_policy::slow_terminal_off_policy_cannot_be_raised_while_loading_is_marked",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "The slow-terminal fallback remains off through subsequent level requests and continuing loading marks.",
+          "why_not_unit": "Exercises production thread-local loading marks and engine lifecycle over caller-owned small buffers with a manual clock; no host, full application frame, terminal, filesystem or network."
         }
       ]
     },
@@ -2991,6 +3051,1812 @@
             "slack"
           ],
           "boundary": "Owned thread/draft incarnation identity independent of cursor and text edits."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-model",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "notices::tests::",
+      "cases": [
+        {
+          "name": "notices::tests::exact_text_bounds_show_truncation_and_neutralize_controls",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::bounded_summary_and_selected_detail_have_a_fixed_wire_byte_budget",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::a_key_watermark_cannot_dismiss_a_newer_unseen_error",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::occurrences_are_distinct_and_keep_order_even_for_identical_words",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::lifetimes_use_monotonic_injected_time_and_exact_boundaries",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::ordinary_keys_dismiss_errors_and_escape_preserves_history",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::bounded_history_active_and_text_report_omissions",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        },
+        {
+          "name": "notices::tests::stale_dismissal_cannot_affect_a_later_identical_occurrence",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure bounded session-only ledger with injected monotonic time, occurrence identity, dismissal watermarks and bounded sanitized wire text."
+        }
+      ]
+    },
+    {
+      "id": "jira-notice-severity",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "model::tests::notice_severity_tests::",
+      "cases": [
+        {
+          "name": "model::tests::notice_severity_tests::failed_notice_keeps_error_tone_with_icons_on_and_off",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Explicit failure severity is selected by the producer, independent of display icon availability.",
+          "why_not_unit": "Exercises the existing thread-local icon-pack boundary and restores it with a guard; no Host, filesystem, network or process setup."
+        }
+      ]
+    },
+    {
+      "id": "slack-notice-severity",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "view::tests::notice_severity_tests::",
+      "cases": [
+        {
+          "name": "view::tests::notice_severity_tests::failed_notice_keeps_error_tone_with_icons_on_and_off",
+          "tier": "contract",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Explicit failure severity is selected by the producer, independent of display icon availability.",
+          "why_not_unit": "Exercises the existing thread-local icon-pack boundary and restores it with a guard; no Host, filesystem, network or process setup."
+        }
+      ]
+    },
+    {
+      "id": "github-notice-severity",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "tests::notice_severity_tests::",
+      "cases": [
+        {
+          "name": "tests::notice_severity_tests::connection_result_selects_notice_severity_before_icon_rendering",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Explicit failure severity is selected by the producer, independent of display icon availability."
+        }
+      ]
+    },
+    {
+      "id": "sessions-notice-severity",
+      "package": "radar-sessions",
+      "binary": "radar_sessions",
+      "prefix": "review::plugin_tests::notice_severity_tests::",
+      "cases": [
+        {
+          "name": "review::plugin_tests::notice_severity_tests::review_failure_reaches_the_host_as_an_error_without_an_icon",
+          "tier": "unit",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Explicit failure severity is selected by the producer, independent of display icon availability."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-kit",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ui::notices::tests::",
+      "cases": [
+        {
+          "name": "ui::notices::tests::stack_is_inside_content_newest_bottom_and_expiry_is_exact",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::bounded_stack_exposes_overflow_and_narrow_rows_stay_safe",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::complete_graphemes_are_clipped_and_wrapped_without_spilling",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::tint_is_host_theme_derived_dimmed_and_static_below_truecolor",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::overlay_clears_split_underlying_wide_glyph_and_never_splits_its_drain",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::history_is_inert_and_selected_full_detail_is_independent_of_summary",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::overflow_summary_clips_to_buffer_and_ignores_empty_or_outside_geometry",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure notice geometry, grapheme clipping, theme-derived color and local cell-buffer painting."
+        },
+        {
+          "name": "ui::notices::tests::captures::native_notice_cells",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual native notice cell export contract used for independent Ink parity.",
+          "why_not_unit": "Serializes real production painter cell output across explicit tiers, sizes and lifetime/history states."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-shell",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "shell::notices::tests::",
+      "cases": [
+        {
+          "name": "shell::notices::tests::notices_keep_panel_border_and_status_visible",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Content geometry and production shell/motion late-composition ownership."
+        },
+        {
+          "name": "shell::notices::tests::late_composite_keeps_retained_frames_clean_and_clicks_consume_the_occurrence",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Content geometry and production shell/motion late-composition ownership.",
+          "why_not_unit": "Composes production host/shell or motion engine and notice layer to protect retained-frame and input ownership boundaries."
+        },
+        {
+          "name": "shell::notices::tests::explicit_history_preserves_status_and_blocks_transient_notices",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Content geometry and production shell/motion late-composition ownership.",
+          "why_not_unit": "Composes production host/shell or motion engine and notice layer to protect retained-frame and input ownership boundaries."
+        },
+        {
+          "name": "shell::notices::tests::fold_reversal_never_retains_or_overpaints_a_late_notice",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Content geometry and production shell/motion late-composition ownership.",
+          "why_not_unit": "Composes production host/shell or motion engine and notice layer to protect retained-frame and input ownership boundaries."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-host",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::notice_support::tests::",
+      "cases": [
+        {
+          "name": "host::notice_support::tests::every_effect_occurrence_is_retained_without_recording_raw_text",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::notice_history_is_session_only_and_h_keeps_durable_history",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::history_status_clicks_and_topbar_navigation_match_their_keys",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::history_escape_preserves_newer_unseen_errors_for_keys_and_clicks",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::history_selection_stays_on_its_occurrence_until_evicted",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::notice_route_respects_editor_menu_and_dock_ownership",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::stale_history_hint_targets_never_choose_a_replacement_confirmation",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::background_questions_and_editors_replace_inert_notice_history",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::key_dismissal_preserves_history_and_dispatches_the_key_once",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::covered_notice_click_dismisses_only_its_id_and_never_the_underlying_row",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        },
+        {
+          "name": "host::notice_support::tests::suppressed_notices_expire_and_no_notice_frame_timer_survives",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real host notice routing, session history, input ownership, stable selection and confirmation preservation.",
+          "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-pointer",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "runner::tests::notice_pointer_tests::",
+      "cases": [
+        {
+          "name": "runner::tests::notice_pointer_tests::notice_pointer_capture_survives_expiry_replacement_and_drag_without_retargeting",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Stable pointer target capture across occurrence expiry, replacement and history commands."
+        },
+        {
+          "name": "runner::tests::notice_pointer_tests::history_hint_press_captures_its_stable_command_until_release",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Stable pointer target capture across occurrence expiry, replacement and history commands."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-ipc",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ipc::bridge_tests::notice_history_tests::",
+      "cases": [
+        {
+          "name": "ipc::bridge_tests::notice_history_tests::identical_notice_occurrences_cross_backpressure_and_reconnect_without_replay",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real renderer protocol delivery, backpressure, reconnection and native fallback capability handoff.",
+          "why_not_unit": "Requires host state and production Bridge to establish delivery and renderer capability ownership."
+        },
+        {
+          "name": "ipc::bridge_tests::notice_history_tests::an_open_notice_history_freezes_the_wire_clock_but_expiry_remains_authoritative",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real renderer protocol delivery, backpressure, reconnection and native fallback capability handoff.",
+          "why_not_unit": "Requires host state and production Bridge to establish delivery and renderer capability ownership."
+        },
+        {
+          "name": "ipc::bridge_tests::notice_history_tests::native_fallback_resets_notice_input_capability_for_captured_back_clicks",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real renderer protocol delivery, backpressure, reconnection and native fallback capability handoff.",
+          "why_not_unit": "Requires host state and production Bridge to establish delivery and renderer capability ownership."
+        }
+      ]
+    },
+    {
+      "id": "core-notice-raw-terminal",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::dock_tests::notice_history_tests::",
+      "cases": [
+        {
+          "name": "host::dock_tests::notice_history_tests::focused_raw_terminal_suppresses_notices_without_pausing_their_lifetimes",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host raw-terminal ownership suppresses transient overlay without stopping notice lifetime.",
+          "why_not_unit": "Requires host dock focus and notice visibility/timer ownership together."
+        }
+      ]
+    },
+    {
+      "id": "core-chip-tone-acceptance",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "widgets::tests::chip_tone_acceptance::",
+      "cases": [
+        {
+          "name": "widgets::tests::chip_tone_acceptance::named_tones_keep_square_padding_and_exact_rgb_tints",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure chip styling and padding across explicit theme tiers and supported slot overrides."
+        },
+        {
+          "name": "widgets::tests::chip_tone_acceptance::lower_tiers_keep_flat_overlay_and_tone_modifiers",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure chip styling and padding across explicit theme tiers and supported slot overrides."
+        },
+        {
+          "name": "widgets::tests::chip_tone_acceptance::custom_rgb_slots_and_non_rgb_inputs_obey_the_same_ground_rule",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure chip styling and padding across explicit theme tiers and supported slot overrides."
+        },
+        {
+          "name": "widgets::tests::chip_tone_acceptance::icon_spans_keep_the_words_ground_and_the_icons_own_foreground",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Shared chip renderer and icon-resolution contract, with actual native cells for cross-renderer parity.",
+          "why_not_unit": "Uses the icon pack registry or serialized native Buffer capture to establish the renderer boundary."
+        },
+        {
+          "name": "widgets::tests::chip_tone_acceptance::native_chip_cells_match_the_reviewed_capture",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Shared chip renderer and icon-resolution contract, with actual native cells for cross-renderer parity.",
+          "why_not_unit": "Uses the icon pack registry or serialized native Buffer capture to establish the renderer boundary."
+        }
+      ]
+    },
+    {
+      "id": "general-view-fixtures",
+      "package": "radar",
+      "binary": "view_fixtures",
+      "prefix": "",
+      "cases": [
+        {
+          "name": "view_fixture_contract::tests::all_seventeen_references_keep_one_canonical_identity",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::distinct_demo_identities_are_stable_in_size_encounter_order",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::size_demos_cannot_reuse_one_raw_database_identity",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::mixed_database_references_are_rejected_without_partial_changes",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::database_ids_must_be_canonical_uuids",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::malformed_and_extra_tuple_fields_are_rejected",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::captured_target_fields_reject_wrong_wire_types",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::snapshot_missing_unknown_and_duplicate_fields_are_rejected",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::negative_or_wrongly_typed_snapshot_sequences_are_rejected",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::missing_extra_or_unrecognized_target_collections_are_rejected",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::unrelated_uuid_strings_and_opaque_source_identity_are_untouched",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::item_target_nonidentity_semantics_remain_visible",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::group_target_nonidentity_semantics_remain_visible",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::source_target_nonidentity_semantics_remain_visible",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::corrupted_expected_database_identity_fails_direct_comparison",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::surface_inventory_requires_both_exact_sizes_and_safe_names",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::inventory_rejects_missing_extra_wrong_size_and_changed_manifest_files",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::handwritten_and_nested_fixture_sets_stay_outside_generated_inventory",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "view_fixture_contract::tests::comparison_reports_the_filename_and_escaped_json_path",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure structural fixture identity normalization, inventory and comparison with semantic negative controls."
+        },
+        {
+          "name": "the_general_views_match_committed_fixtures_or_are_written",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab",
+            "github",
+            "jira",
+            "slack",
+            "git",
+            "workspace",
+            "workbench",
+            "sessions"
+          ],
+          "boundary": "Generated general-view protocol fixtures and exact child-harness execution under isolated timezone and home.",
+          "why_not_unit": "Requires actual composed host view data, committed fixture files and an isolated process to establish the generated protocol boundary."
+        },
+        {
+          "name": "an_unmatched_fixture_child_cannot_report_success",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual test-harness zero-selection behavior must not qualify a fixture run.",
+          "why_not_unit": "Spawns the actual test binary with an unmatched selection; no host or page journey is constructed."
+        },
+        {
+          "name": "the_producer_guard_rejects_missing_wrong_and_hidden_mnemonics",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "First-party producer guard rejects missing, wrong, shifted, composite and hidden-icon mnemonic metadata without a host."
+        },
+        {
+          "name": "mnemonic_acceptance::detail_footer_tests::wrapped_footer_actions_and_menu_keep_the_mnemonic_guard",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized footer action/menu guard; malformed IDs and missing mnemonic metadata remain rejected."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-model",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "mnemonic::tests::",
+      "cases": [
+        {
+          "name": "mnemonic::tests::first_matching_scalar_uses_palette_case_expansion_without_normalizing",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure scalar/grapheme matching, source offsets and explicit shortcut metadata."
+        },
+        {
+          "name": "mnemonic::tests::question_words_and_exact_position_validation_do_not_guess",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure scalar/grapheme matching, source offsets and explicit shortcut metadata."
+        },
+        {
+          "name": "mnemonic::tests::rich_offsets_count_hidden_fallback_but_only_visible_words_supply_keys",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure scalar/grapheme matching, source offsets and explicit shortcut metadata."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-projection",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::mnemonic_projection_tests::",
+      "cases": [
+        {
+          "name": "host::mnemonic_projection_tests::host_projects_effective_words_display_only_keys_and_shift_without_changing_routes",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Owned menu projection preserves effective captions, display-only keys and routing fields without constructing a Host."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-wire",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "view::tests::mnemonic_tests::mnemonic_fields_default_on_legacy_data_and_fresh_producers_keep_real_keys",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure backward-compatible wire defaults and first-party metadata, including plain shortcut annotations."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-widgets",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "widgets::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "widgets::tests::mnemonic_tests::key_words_use_authoritative_scalar_graphemes_and_preserve_styles",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local span/button geometry and caller-owned buffer styling without a Host or full frame."
+        },
+        {
+          "name": "widgets::tests::mnemonic_tests::keyed_button_measurement_matches_painted_caption_and_underlined_zero",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local span/button geometry and caller-owned buffer styling without a Host or full frame."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-rich",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view_tui::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "view_tui::tests::mnemonic_tests::rich_mnemonics_keep_source_offsets_hidden_icons_chips_and_segment_styles",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local rich-line composition preserves complete graphemes, layered style, original shortcuts and bounded traversal."
+        },
+        {
+          "name": "view_tui::tests::mnemonic_tests::rich_wrapping_keeps_emoji_graphemes_and_legacy_shortcuts_visible",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local rich-line composition preserves complete graphemes, layered style, original shortcuts and bounded traversal."
+        },
+        {
+          "name": "view_tui::tests::mnemonic_tests::long_multi_style_captions_coalesce_linearly_and_shift_keeps_named_key_style",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local rich-line composition preserves complete graphemes, layered style, original shortcuts and bounded traversal."
+        },
+        {
+          "name": "view_tui::tests::mnemonic_tests::skipped_controls_keep_the_final_mnemonic_source_position",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Source scalar offsets survive skipped control characters and CRLF while the painted complete grapheme retains underline."
+        },
+        {
+          "name": "view_tui::tests::mnemonic_tests::padded_rich_mnemonics_match_paragraph_cells_and_continuation_hits",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Local rich-line wrapping matches actual Paragraph cells and per-row target hits for padded and emoji captions."
+        },
+        {
+          "name": "view_tui::tests::mnemonic_tests::rich_glyph_named_and_modifier_keys_precede_words_and_keep_wrapped_hits",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Caller-owned buffer verifies nonletter prefixes, legacy invalid-letter fallback, wrapping and whole-line targets without a Host."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-history",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "history::view_tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "history::view_tests::mnemonic_tests::history_mnemonics_and_targeted_phrases_survive_wrap_and_scroll",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Owned in-memory history page layout preserves mnemonic source offsets and targeted phrases across wrapping."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-tour",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "tour::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "tour::tests::mnemonic_tests::tour_key_words_supply_whole_grapheme_styles_and_plain_shortcuts",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure host-authored tour caption styling and explicit original shortcut text."
+        }
+      ]
+    },
+    {
+      "id": "git-mnemonic-questions",
+      "package": "radar-git",
+      "binary": "radar_git",
+      "prefix": "act::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "act::mnemonic_tests::custom_questions_use_visible_hints_and_keep_dispatch_values",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "Real dirty/existing-branch and checkout-location question producers retain visible mnemonic words, dispatch values and exact synthetic target arguments.",
+          "why_not_unit": "Production question titles call local::tilde, which resolves the ambient home directory. Owned fixed-time plugin state and synthetic paths avoid real repositories, tasks and subprocess execution; controlled HOME is still required."
+        }
+      ]
+    },
+    {
+      "id": "git-mnemonic-contributions",
+      "package": "radar-git",
+      "binary": "radar_git",
+      "prefix": "join::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "join::mnemonic_tests::contributed_actions_have_mnemonics_for_arbitrary_branches",
+          "tier": "unit",
+          "parts": [
+            "git"
+          ],
+          "boundary": "Owned cached checkout models drive real contribution factories across selected/other/arbitrary branches and missing checkout states; keys and action IDs remain stable."
+        }
+      ]
+    },
+    {
+      "id": "git-mnemonic-settings",
+      "package": "radar-git",
+      "binary": "radar_git",
+      "prefix": "settings::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::mnemonic_tests::settings_producers_embed_every_letter_in_action_words",
+          "tier": "integration",
+          "parts": [
+            "git"
+          ],
+          "boundary": "Real settings menu producers cover links, conventions, commands, path templates, resets and scan-folder rows without altering supplied configuration.",
+          "why_not_unit": "Root-row menu titles call local::tilde and therefore resolve the ambient home directory. All configuration and path inputs are owned synthetic values; no folder scan or command is executed."
+        }
+      ]
+    },
+    {
+      "id": "github-mnemonic-settings",
+      "package": "radar-github",
+      "binary": "radar_github",
+      "prefix": "settings::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::mnemonic_tests::github_settings_action_producers_have_mnemonics",
+          "tier": "unit",
+          "parts": [
+            "github"
+          ],
+          "boundary": "Actual connection/repository settings bindings use an owned fixed-time sample and unresolved env credential reference; no credential lookup, provider request or host is involved."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-mnemonic-settings",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "settings::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::mnemonic_tests::settings_producers_embed_every_letter_in_action_words",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Fixed-time fail-closed owner factory and synthetic source configuration exercise actual settings menus and changed-style reset variants without the production constructor or token-redaction registration."
+        },
+        {
+          "name": "settings::mnemonic_tests::condition_sign_producer_keeps_the_original_values",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Pure condition-sign menu producer preserves include/exclude values and letter-bearing labels."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-mnemonic-list-actions",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "list_actions::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "list_actions::tests::mnemonic_tests::action_producers_have_mnemonics_in_enabled_blocked_and_busy_states",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owned merge-request variants and fixed-time owner factory drive real row/binding producers and ActionSpec projection across enabled, blocked, closed and busy states."
+        },
+        {
+          "name": "list_actions::tests::mnemonic_tests::rich_detail_action_producer_carries_mnemonics_and_original_targets",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Owned one-merge-request state drives the real shared detail producer; compact foot mnemonics retain canonical IDs, keys and write kinds while owner data and the readable fallback have no live control targets. No renderer, host, provider execution or production new()."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-mnemonic-page-actions",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "pages::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "pages::tests::mnemonic_tests::page_action_producers_have_mnemonics_across_review_and_diff_states",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Pure owned MR/detail/diff fixtures and fixed-time owner factory drive real page bindings across panes, tabs, file positions, split modes and busy rebase; uppercase metadata remains explicit."
+        }
+      ]
+    },
+    {
+      "id": "jira-mnemonic-settings",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "settings::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::mnemonic_tests::settings_producers_embed_every_letter_in_action_words",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Existing fixed-time fail-closed owner factory drives actual settings rows and changed-style reset variants; explicit empty env/MCP state prevents ambient discovery."
+        },
+        {
+          "name": "settings::mnemonic_tests::condition_producers_keep_values_and_meaningful_mnemonics",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Pure condition/sign menu factories preserve unassigned/text-condition values and mnemonic wording."
+        }
+      ]
+    },
+    {
+      "id": "jira-mnemonic-page-actions",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "page::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "page::mnemonic_tests::ticket_page_copy_key_keeps_uppercase_display_metadata",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Existing fixed-time owner factory and an owned page drive the actual Y copy-key binding and ActionSpec metadata without reading a provider or ambient state."
+        }
+      ]
+    },
+    {
+      "id": "slack-mnemonic-settings",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "settings::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::mnemonic_tests::settings_producers_embed_every_letter_in_action_words",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owned explicit plugin state, pure settings values, fixed time, empty env and disabled app lookup drive real menus across channel-watch, review, density and style variants."
+        }
+      ]
+    },
+    {
+      "id": "slack-mnemonic-draft-actions",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "page::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "page::mnemonic_tests::draft_action_producer_does_not_depend_on_the_items_name",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owned explicit plugin/draft models drive actual draft bindings while preserving arbitrary item text and stable drop/cancel IDs; no production constructor or app lookup runs."
+        }
+      ]
+    },
+    {
+      "id": "slack-mnemonic-reactions",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "reaction_context::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "reaction_context::mnemonic_tests::reaction_producer_uses_human_words_and_preserves_provider_payloads",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Owned authenticated synthetic account state drives real reaction choice and pending-confirmation reducers, checking every human label against exact retained provider IDs and payloads; no send task runs."
+        }
+      ]
+    },
+    {
+      "id": "workbench-mnemonic-actions",
+      "package": "radar-workbench",
+      "binary": "radar_workbench",
+      "prefix": "tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "tests::mnemonic_tests::workbench_action_producers_keep_meaningful_mnemonics_and_ids",
+          "tier": "unit",
+          "parts": [
+            "workbench"
+          ],
+          "boundary": "Explicit fixed-seed owned plugin state drives actual screens, bindings and neutral view actions across panes and selection states; no UUID generation, journal, host or rendering occurs."
+        }
+      ]
+    },
+    {
+      "id": "workspace-mnemonic-settings",
+      "package": "radar-workspace",
+      "binary": "radar_workspace",
+      "prefix": "settings::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::mnemonic_tests::workspace_and_discovery_producers_keep_keyed_action_words",
+          "tier": "integration",
+          "parts": [
+            "workspace"
+          ],
+          "boundary": "Real discovery/configured-workspace menu producers preserve mnemonic words, use/pass choices and unchanged synthetic workspace configuration.",
+          "why_not_unit": "Discovery titles use config::tilde and unnamed workspaces use Space::label/top/expand, resolving the ambient home directory. All paths/offers are owned synthetic data; no discovery or filesystem mutation runs."
+        }
+      ]
+    },
+    {
+      "id": "sessions-settings-mnemonics",
+      "package": "radar-sessions",
+      "binary": "radar_sessions",
+      "prefix": "settings::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::tests::mnemonic_tests::provider_mnemonics_keep_native_keys_and_number_arbitrary_custom_names_without_changing_dispatch",
+          "tier": "integration",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Actual provider chooser offers and menu-value reducer preserve native keys, numeric custom keys, names, order, capacity and selected provider.",
+          "why_not_unit": "The real chooser uses selected() and rows(), which invokes recipe discovery; the test pins recipes_dir to the owned src/lib.rs regular file so discovery fails deterministically without reading user recipes. A pure constructor/row-input boundary does not yet exist."
+        },
+        {
+          "name": "settings::tests::mnemonic_tests::rule_kind_mnemonics_use_actual_offers_and_keep_permission_values_and_dispatch",
+          "tier": "unit",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Owned settings rules_menu producer and typed-rule reducers preserve keys, mnemonic offsets, rule kinds and payloads without selecting rows or discovering recipes."
+        },
+        {
+          "name": "settings::tests::mnemonic_tests::cli_field_mnemonics_keep_field_names_values_order_and_typed_menu_dispatch",
+          "tier": "unit",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Owned setup-card CLI selection and field menu/reducer preserve field keys, scalar offsets, values and typed menu identities; catalog requests are captured, never executed."
+        },
+        {
+          "name": "settings::tests::mnemonic_tests::settings_action_mnemonics_preserve_stable_ids_and_chords_for_actual_row_states",
+          "tier": "integration",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Actual settings SectionView and selected-row actions retain stable action IDs, chords, mnemonic positions and named-key fallbacks across CLI/default/recipe states.",
+          "why_not_unit": "SectionView composes row selection and built-in recipe discovery/loading. The owned src/lib.rs non-directory forces the built-in fallback while retaining the filesystem call boundary; no host, provider, full frame or global fixture state is constructed."
+        },
+        {
+          "name": "settings::tests::mnemonic_tests::recipe_help_uses_the_same_styled_words_and_keeps_shift_visible_for_ask",
+          "tier": "integration",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Production recipe detail text carries the correct underline and accessibility key_hint, with visible Shift for the existing uppercase ask binding.",
+          "why_not_unit": "The detail path runs real selected-row recipe discovery/loading. It is pinned to the owned src/lib.rs non-directory instead of ambient HOME/XDG recipes; a pure recipe-input view boundary is not exposed."
+        }
+      ]
+    },
+    {
+      "id": "sessions-setup-mnemonics",
+      "package": "radar-sessions",
+      "binary": "radar_sessions",
+      "prefix": "settings::setup::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "settings::setup::tests::mnemonic_tests::command_and_documentation_captions_carry_mnemonics_without_changing_literal_payloads",
+          "tier": "unit",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Production command/link block builders and owned setup-card reducers preserve exact command/URL payloads, copy/open targets, key/Invoke effects and mnemonic offsets; effects are inspected, not executed."
+        },
+        {
+          "name": "settings::setup::tests::mnemonic_tests::handwritten_setup_controls_use_host_styled_words_and_keep_the_named_chord",
+          "tier": "unit",
+          "parts": [
+            "sessions"
+          ],
+          "boundary": "Production setup sheet over fixed owned status data emits underlined action words and accessibility key hints while retaining the named alt-a chord; no row discovery, host or renderer is used."
+        }
+      ]
+    },
+    {
+      "id": "core-mnemonic-status",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "shell::tests::mnemonic_tests::",
+      "cases": [
+        {
+          "name": "shell::tests::mnemonic_tests::mandatory_actions_keep_their_word_and_click_target_when_other_hints_overflow",
+          "tier": "integration",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Host status projection and native status-row painting preserve mandatory actions wording, underline and original per-phrase click targets at80/40 columns.",
+          "why_not_unit": "Constructs one in-memory probe Host to exercise production chrome and status-row hit layout; no whole-frame loop or external effects."
+        }
+      ]
+    },
+    {
+      "id": "slack-message-detail",
+      "package": "radar-slack",
+      "binary": "radar_slack",
+      "prefix": "screen::detail::tests::",
+      "cases": [
+        {
+          "name": "screen::detail::tests::both_densities_keep_selected_reply_identity_content_and_actual_detail_actions",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::found_dm_without_cached_thread_omits_unknown_counts_and_keeps_bot_and_links",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::cached_zero_and_missing_optional_fields_are_distinct_from_unknown_found_total",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::found_reply_newer_than_cached_thread_stays_in_compact_body_and_link_list",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::compact_read_markers_track_existing_local_marks",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::identity_uses_resolved_subject_account_incarnation_and_destination_never_found_index",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::no_identity_or_footer_on_pages_missing_messages_subjects_headings_alerts_or_empty",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        },
+        {
+          "name": "screen::detail::tests::alert_states_and_mapping_guidance_keep_their_existing_ordinary_detail",
+          "tier": "unit",
+          "parts": [
+            "slack"
+          ],
+          "boundary": "Fixed held owner state, exact message/account identity and real detail projection retain density-specific body, optional facts and existing action metadata without a Host, constructor clock, credentials, filesystem or provider execution."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-wire",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view::detail::tests::",
+      "cases": [
+        {
+          "name": "view::detail::tests::missing_facts_are_omitted_but_zero_and_unicode_survive",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized detail contract: filtering, mnemonic authority, complete fallback and invalid extension decoding."
+        },
+        {
+          "name": "view::detail::tests::compact_caption_recomputes_metadata_without_changing_authority",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized detail contract: filtering, mnemonic authority, complete fallback and invalid extension decoding."
+        },
+        {
+          "name": "view::detail::tests::complete_fallback_is_readable_and_has_no_action_targets",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized detail contract: filtering, mnemonic authority, complete fallback and invalid extension decoding."
+        },
+        {
+          "name": "view::detail::tests::unknown_and_malformed_extensions_are_not_decoded_as_detail",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized detail contract: filtering, mnemonic authority, complete fallback and invalid extension decoding."
+        },
+        {
+          "name": "view::detail::tests::footer_omits_heading_and_empty_authority_and_owns_its_menu",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure serialized detail contract: filtering, mnemonic authority, complete fallback and invalid extension decoding."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-layout",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ui::detail::tests::",
+      "cases": [
+        {
+          "name": "ui::detail::tests::header_fills_all_three_rows_and_keeps_identity_separate_from_metadata",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::header_age_wins_when_branch_and_author_do_not_fit",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::facts_align_wrapped_values_and_stack_below_twelve_content_cells",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::empty_and_zero_width_detail_does_not_invent_facts_or_trailing_rows",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::unicode_labels_values_and_header_clip_without_splitting_graphemes",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::section_rows_and_inline_hit_offsets_share_wrapping_and_insets",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::footer_reserves_only_two_rows_after_a_body_row_exists",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::footer_menu_and_whole_prefix_fit_without_separator_or_disabled_hits",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::write_mode_mutes_but_keeps_the_original_enabled_control_and_mnemonic",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::footer_glyph_shift_and_invalid_letter_keys_remain_discoverable",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::multiline_facts_keep_blank_lines_and_aligned_continuations",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::media_and_later_action_hits_use_the_same_exact_laid_out_row_offsets",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure native detail layout: dimensions, styled cells, Unicode, multiline facts, pinned controls, write-mode display, media and hit offsets; no host."
+        },
+        {
+          "name": "ui::detail::tests::fact_labels_do_not_mute_plain_first_values_or_their_continuations",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Owned-cell style regression for muted labels, plain first values, continuation rows, zero and explicit semantic ink."
+        },
+        {
+          "name": "ui::detail::tests::actual_gallery_initial_view_shows_footer_without_claiming_digit_jumps",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Real gallery rendering at 80x24 and 160x40 proves initial pinned footer visibility and no unsupported pane digit claims; no host."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-native",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "view_tui::detail_tests::",
+      "cases": [
+        {
+          "name": "view_tui::detail_tests::native_footer_stays_pinned_while_detail_scrolls_and_never_belongs_to_text_selection",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::tiny_native_panes_omit_footer_hits_instead_of_covering_the_body",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::explicit_jump_map_keeps_hidden_logical_numbers_and_missing_jumps_unlabelled",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::extension_picture_discovery_is_recursive_and_deduplicated",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::unknown_or_malformed_detail_uses_readable_fallback_and_scrolls",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::reserved_footer_targets_never_become_owner_select_or_context",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::unrelated_extensions_keep_their_existing_owner_movement_keys",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native frontend rendering and routing: footer scroll/selection, tiny panes, explicit jump map, picture recursion, fallback behavior and reserved targets; no host."
+        },
+        {
+          "name": "view_tui::detail_tests::ordinary_rich_panes_keep_their_existing_full_frame_scrollbar_with_notes",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Focused native buffer regression keeping existing non-detail Rich scrollbar framing while typed detail reserves its footer."
+        },
+        {
+          "name": "view_tui::detail_tests::overflowing_detail_keeps_complete_age_cells_clear_of_the_scrollbar",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Owned native cells under real detail overflow retain complete age glyphs/styles inside the header inset, separate from the scrollbar."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-admission-unit",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::detail_actions::tests::unit::",
+      "cases": [
+        {
+          "name": "host::detail_actions::tests::unit::exact_targets_fail_closed_and_never_round_trip_alternate_spellings",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure lease parsing, subject generation and canonical control reconciliation without a Host or external effects."
+        },
+        {
+          "name": "host::detail_actions::tests::unit::repeated_projection_is_stable_and_subject_or_connection_aba_is_retired",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure lease parsing, subject generation and canonical control reconciliation without a Host or external effects."
+        },
+        {
+          "name": "host::detail_actions::tests::unit::canonical_semantics_and_availability_are_part_of_the_lease",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure lease parsing, subject generation and canonical control reconciliation without a Host or external effects."
+        },
+        {
+          "name": "host::detail_actions::tests::unit::ambiguous_missing_heading_or_rebound_actions_are_inert_and_menu_is_host_owned",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure lease parsing, subject generation and canonical control reconciliation without a Host or external effects."
+        },
+        {
+          "name": "host::detail_actions::tests::unit::serial_exhaustion_revokes_instead_of_wrapping_or_reusing_a_target",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure lease parsing, subject generation and canonical control reconciliation without a Host or external effects."
+        },
+        {
+          "name": "host::detail_actions::tests::unit::frame_prefixes_keep_logical_numbers_and_missing_panes_unadorned",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure lease parsing, subject generation and canonical control reconciliation without a Host or external effects."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-admission-contract",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "host::detail_actions::tests::contract::",
+      "cases": [
+        {
+          "name": "host::detail_actions::tests::contract::native_controls_and_renderer_intents_share_admission_and_never_synthesize_enter",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual Host displayed projection and input routing, native hit rectangles, stale identity/configuration/surface rejection, responsive digits and existing write confirmation.",
+          "why_not_unit": "Protects the collaborating host/native-input and displayed-view boundary; synthetic owner effects and held state, no live provider or process."
+        },
+        {
+          "name": "host::detail_actions::tests::contract::events_revoke_selection_config_surface_and_capture_aba_before_any_intermediate_paint",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual Host displayed projection and input routing, native hit rectangles, stale identity/configuration/surface rejection, responsive digits and existing write confirmation.",
+          "why_not_unit": "Protects the collaborating host/native-input and displayed-view boundary; synthetic owner effects and held state, no live provider or process."
+        },
+        {
+          "name": "host::detail_actions::tests::contract::pane_numbers_follow_responsive_dispatch_and_exclude_setup_and_auxiliary_panes",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual Host displayed projection and input routing, native hit rectangles, stale identity/configuration/surface rejection, responsive digits and existing write confirmation.",
+          "why_not_unit": "Protects the collaborating host/native-input and displayed-view boundary; synthetic owner effects and held state, no live provider or process."
+        },
+        {
+          "name": "host::detail_actions::tests::contract::fresh_semantics_overlay_and_original_write_confirmation_are_checked_before_dispatch",
+          "tier": "contract",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Actual Host displayed projection and input routing, native hit rectangles, stale identity/configuration/surface rejection, responsive digits and existing write confirmation.",
+          "why_not_unit": "Protects the collaborating host/native-input and displayed-view boundary; synthetic owner effects and held state, no live provider or process."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-shared-detail",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "screen::neutral::detail_tests::",
+      "cases": [
+        {
+          "name": "screen::neutral::detail_tests::common_structure_keeps_mr_role_blockers_pipeline_changes_and_whole_comment",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::neutral::detail_tests::missing_optional_identity_and_facts_are_omitted_but_zero_is_retained",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::neutral::detail_tests::foot_uses_detail_rows_with_truthful_inverse_and_disabled_reasons",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::neutral::detail_tests::identity_is_selected_mr_only_and_tracks_destinations_branches_and_connection_aba",
+          "tier": "unit",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        }
+      ]
+    },
+    {
+      "id": "jira-shared-detail",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "screen::detail_tests::",
+      "cases": [
+        {
+          "name": "screen::detail_tests::common_structure_keeps_reporter_parent_metadata_feedback_and_preview_limits",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::detail_tests::missing_fields_are_omitted_and_unassigned_and_ac_guidance_remain_explicit",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::detail_tests::foot_uses_actual_detail_actions_and_preserves_keys_changes_and_assign_blocker",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::detail_tests::identity_requires_selected_ticket_and_changes_for_provider_id_and_connection_aba",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        },
+        {
+          "name": "screen::detail_tests::shared_missing_id_ticket_is_still_refused_a_detail_identity",
+          "tier": "unit",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Fixed owned selected provider model and connection incarnation; actual detail projection, optional fields, preserved content, canonical footer and identity refusal without a Host, renderer, constructor clock or provider execution."
+        }
+      ]
+    },
+    {
+      "id": "gitlab-detail-pane-map",
+      "package": "radar-gitlab",
+      "binary": "radar_gitlab",
+      "prefix": "pages::tests::detail_pane_map::",
+      "cases": [
+        {
+          "name": "pages::tests::detail_pane_map::loading_and_empty_changes_retire_the_previous_file_pane_jump",
+          "tier": "integration",
+          "parts": [
+            "gitlab"
+          ],
+          "boundary": "One existing held Changes fixture is projected through populated, loading, empty and narrow states; actual owner pane routing must match each projection.",
+          "why_not_unit": "Existing Changes fixture includes native buffer draws while establishing the cached page. No live provider task is executed."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-pointer",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "runner::tests::detail_pointer_tests::",
+      "cases": [
+        {
+          "name": "runner::tests::detail_pointer_tests::physical_down_activates_once_and_release_cannot_retarget_a_newer_frame",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure physical-pointer ownership and captured target sequencing, selection reset and stale coordinate refusal; no terminal, Host, process or provider."
+        },
+        {
+          "name": "runner::tests::detail_pointer_tests::foot_press_cancels_pending_selection_and_word_double_click_history",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure physical-pointer ownership and captured target sequencing, selection reset and stale coordinate refusal; no terminal, Host, process or provider."
+        },
+        {
+          "name": "runner::tests::detail_pointer_tests::cancel_resize_and_row_release_never_activate_a_new_footer",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure physical-pointer ownership and captured target sequencing, selection reset and stale coordinate refusal; no terminal, Host, process or provider."
+        },
+        {
+          "name": "runner::tests::detail_pointer_tests::notice_ownership_and_unrelated_text_selection_remain_independent",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Pure physical-pointer ownership and captured target sequencing, selection reset and stale coordinate refusal; no terminal, Host, process or provider."
+        }
+      ]
+    },
+    {
+      "id": "core-detail-meter-width",
+      "package": "radar-core",
+      "binary": "radar_core",
+      "prefix": "ui::meter::tests::",
+      "cases": [
+        {
+          "name": "ui::meter::tests::stage_labels_clip_and_pad_display_cells_without_extra_wrapped_rows",
+          "tier": "unit",
+          "parts": [
+            "core"
+          ],
+          "boundary": "Tiny owned-buffer primitive regression for wide, combining and ASCII stage labels, preserving the two-row meter height without a host."
+        }
+      ]
+    },
+    {
+      "id": "jira-demo-detail-identity",
+      "package": "radar-jira",
+      "binary": "radar_jira",
+      "prefix": "demo::identity_tests::",
+      "cases": [
+        {
+          "name": "demo::identity_tests::sample_tickets_have_stable_detail_identities_without_media_preload",
+          "tier": "contract",
+          "parts": [
+            "jira"
+          ],
+          "boundary": "Actual demo sample initialization supplies stable provider IDs and held connection generations to owner identity admission.",
+          "why_not_unit": "Demo construction reads the clock; no Host, frame, provider execution or network is involved."
         }
       ]
     }

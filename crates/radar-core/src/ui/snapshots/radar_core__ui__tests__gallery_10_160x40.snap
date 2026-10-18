@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1000
+assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Tones
+ Gallery / Tones
  The kit: every element on sample data                                                                                                            colours: none
- Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  [Tones]  Row states  Grid states  Waiting  Long text  Icons
+ Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  [Tones]  Row states  Grid states  Waiting  Long text  Icons  Notices
 ╭ tones: text, chip ───────────────────────────────────────────────────────────╮╭ marks: symbol, tone ────────────────────────────────────────────────────────╮
 │ plain   sorting 12 items   plain   bold                                      ││ done     ✓ box 17 done                                                      │
 │ muted   sorting 12 items   muted   bold                                      ││ failed   ✗ box 17 failed                                                    │
@@ -25,7 +25,7 @@ expression: "gallery_text(160, 40, tab)"
 │                                                                              ││                                                                             │
 ╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
 ╭ stage bar: each mark in a run ───────────────────────────────────────────────╮╭ key hints ──────────────────────────────────────────────────────────────────╮
-│ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ││ j k move   space fold   ⏎ open   x actions   q quit                         │
+│ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ││ ↑↓ move   space fold   ⏎ open   extra actions   quit                        │
 │ ✓ fetch        ✓ sort          ✓ label        ● check         ◷ file         ││                                                                             │
 │                                                                              ││                                                                             │
 │                                                                              ││                                                                             │
@@ -42,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 
 
 
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

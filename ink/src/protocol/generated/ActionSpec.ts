@@ -7,7 +7,15 @@ import type { Chord } from "./Chord.js";
  * actions menu, as data. The id is stable for the scope and is what
  * [`Intent::Invoke`] names; the journal records what running it does.
  */
-export type ActionSpec = { id: string, label: string, 
+export type ActionSpec = { 
+/**
+ * Zero-based Unicode scalar position in label; underline its complete grapheme.
+ */
+mnemonic_at?: number | null, 
+/**
+ * Show the named Shift modifier before a valid keyed word.
+ */
+mnemonic_shift?: boolean, id: string, label: string, 
 /**
  * The key that runs it, when it has one.
  */

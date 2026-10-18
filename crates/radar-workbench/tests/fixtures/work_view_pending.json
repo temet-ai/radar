@@ -213,7 +213,8 @@
                   "char": "n"
                 }
               },
-              "label": "create a local task…"
+              "label": "new local task…",
+              "mnemonic_at": 0
             },
             {
               "id": "work.refresh",
@@ -222,7 +223,8 @@
                   "char": "r"
                 }
               },
-              "label": "review retained change…"
+              "label": "review retained change…",
+              "mnemonic_at": 0
             },
             {
               "id": "work.filter",
@@ -240,7 +242,8 @@
                   "char": "y"
                 }
               },
-              "label": "copy retained local batch for inspection"
+              "label": "copy retained local batch for inspection",
+              "mnemonic_at": 3
             }
           ],
           "pending": false,
@@ -251,7 +254,7 @@
           "lines": [
             [
               {
-                "text": "create a local task…"
+                "text": "new local task…"
               }
             ],
             [
@@ -281,8 +284,9 @@
       "heading": true
     },
     {
+      "mnemonic_at": 0,
       "id": "work.new",
-      "label": "create a local task…",
+      "label": "new local task…",
       "key": {
         "key": {
           "char": "n"
@@ -291,6 +295,7 @@
       "change": "add"
     },
     {
+      "mnemonic_at": 0,
       "id": "work.refresh",
       "label": "review retained change…",
       "key": {
@@ -309,6 +314,7 @@
       }
     },
     {
+      "mnemonic_at": 3,
       "id": "work.copy-retained",
       "label": "copy retained local batch for inspection",
       "key": {

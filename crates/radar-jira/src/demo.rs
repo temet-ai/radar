@@ -59,10 +59,14 @@ pub(crate) fn sample() -> JiraPlugin {
         site("acme", "acme.atlassian.net", "blue", &[("ABC", "customfield_10050"), ("DEF", "")]),
         site("beta", "beta.atlassian.net", "green", &[("XYZ", "")]),
     ];
+    // The demo has provider identities even when tests skip media preloading.
+    p.connections.reconcile(&p.cfg.sites);
     let mut epic = ticket("ABC-1", "Dashboard for the stats", "In Progress", Category::Doing);
+    epic.id = "10001".into();
     epic.kind = "Epic".into();
     epic.updated = "2026-09-20T09:00:00.000+0000".into();
     let mut story = ticket("ABC-12", "Add a stats endpoint for the dashboard", "In Progress", Category::Doing);
+    story.id = "10012".into();
     story.parent = Some(Parent {
         key: "ABC-1".into(),
         summary: "Dashboard for the stats".into(),
@@ -72,18 +76,22 @@ pub(crate) fn sample() -> JiraPlugin {
     story.labels = vec!["backend".into()];
     story.ac = doc("- GET /stats answers within 200 ms\n- counts are per day");
     let mut sub = ticket("ABC-13", "Count requests per route", "In Progress", Category::Doing);
+    sub.id = "10013".into();
     sub.kind = "Sub-task".into();
     sub.subtask = true;
     sub.assignee = "Bob Example".into();
     sub.assignee_id = "acc-bob".into();
     sub.parent = story.parent.clone();
     let mut bug = ticket("ABC-20", "Stats page shows yesterday twice", "To Do", Category::Todo);
+    bug.id = "10020".into();
     bug.kind = "Bug".into();
     bug.assignee.clear();
     bug.assignee_id.clear();
     bug.updated = "2026-08-01T09:00:00.000+0000".into();
-    let review = ticket("DEF-3", "Rename the export job", "In Review", Category::Doing);
-    let other = ticket("XYZ-7", "Move the nightly build", "To Do", Category::Todo);
+    let mut review = ticket("DEF-3", "Rename the export job", "In Review", Category::Doing);
+    review.id = "20003".into();
+    let mut other = ticket("XYZ-7", "Move the nightly build", "To Do", Category::Todo);
+    other.id = "30007".into();
     let acme: Vec<Ticket> = vec![story, sub, epic, bug, review];
     let beta: Vec<Ticket> = vec![other];
     for v in p.cfg.views.clone() {
@@ -102,6 +110,36 @@ pub(crate) fn sample() -> JiraPlugin {
     #[cfg(not(test))]
     preload_media_page(&mut p);
     p
+}
+
+/// This demo contract constructs no host or frame. `sample` still uses the
+/// production constructor, so it is not a pure fixture-builder test.
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+
+    #[test]
+    fn sample_tickets_have_stable_detail_identities_without_media_preload() {
+        let p = sample();
+        assert!(p.details.is_empty(), "tests do not preload a page");
+        assert_eq!(p.next_page_read, 0);
+        for (site, key, id) in [
+            ("acme", "ABC-1", "10001"),
+            ("acme", "ABC-12", "10012"),
+            ("acme", "ABC-13", "10013"),
+            ("acme", "ABC-20", "10020"),
+            ("acme", "DEF-3", "20003"),
+            ("beta", "XYZ-7", "30007"),
+        ] {
+            assert_eq!(p.data[site].tickets[key].id, id);
+            p.tree.borrow_mut().select(vec![screen::ticket_id(site, key)]);
+            let identity = p
+                .detail_identity(SCREEN.id, Pane::Detail)
+                .expect("demo ticket identity");
+            assert_eq!(identity.subject, [site, key, id]);
+            assert_eq!(Some(identity.connection), p.connections.generation(site));
+        }
+    }
 }
 
 /// ABC-13's page already read, so it opens offline (`radar shot`, the demo
@@ -168,7 +206,7 @@ mod media_fixtures {
         let mut host = radar_core::Host::new(vec![Box::new(p)], NOW).unwrap();
         for downs in 0..30 {
             let shown = radar_core::shell::to_text(&host, 160, 40);
-            if shown.lines().nth(1).is_some_and(|l| l.contains("╭ ABC-13 ")) {
+            if shown.lines().nth(1).is_some_and(|l| l.contains("╭ 3 ABC-13 ")) {
                 press(&mut host, KeyCode::Enter);
                 return (host, downs);
             }

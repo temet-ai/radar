@@ -13,7 +13,8 @@
           "char": "n"
         }
       },
-      "label": "create a local task…"
+      "label": "new local task…",
+      "mnemonic_at": 0
     },
     {
       "id": "work.refresh",
@@ -22,7 +23,8 @@
           "char": "r"
         }
       },
-      "label": "refresh local work"
+      "label": "refresh local work",
+      "mnemonic_at": 0
     },
     {
       "id": "work.filter",
@@ -41,7 +43,8 @@
           "char": "t"
         }
       },
-      "label": "apply local group label…"
+      "label": "set local group label…",
+      "mnemonic_at": 2
     },
     {
       "id": "work.evidence",
@@ -50,7 +53,8 @@
           "char": "v"
         }
       },
-      "label": "inspect bounded evidence…"
+      "label": "inspect bounded evidence…",
+      "mnemonic_at": 17
     }
   ],
   "dock": {
@@ -69,7 +73,7 @@
         "node": "list",
         "rows": [
           {
-            "target": "[\"group\",\"all\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]",
+            "target": "[\"group\",\"all\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]",
             "text": [
               {
                 "text": "All items"
@@ -77,7 +81,7 @@
             ]
           },
           {
-            "target": "[\"group\",\"10000000-0000-4000-8000-000000000016\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]",
+            "target": "[\"group\",\"10000000-0000-4000-8000-000000000016\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]",
             "text": [
               {
                 "text": "release candidate"
@@ -108,7 +112,7 @@
                 "text": "task"
               }
             ],
-            "target": "[\"item\",\"10000000-0000-4000-8000-000000000001\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "target": "[\"item\",\"10000000-0000-4000-8000-000000000001\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
             "text": [
               {
                 "text": "Ship explicit work-item navigation"
@@ -122,7 +126,7 @@
                 "text": "pull-request"
               }
             ],
-            "target": "[\"item\",\"10000000-0000-4000-8000-000000000006\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "target": "[\"item\",\"10000000-0000-4000-8000-000000000006\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
             "text": [
               {
                 "text": "pull-request · acme/api/7"
@@ -136,7 +140,7 @@
                 "text": "ticket"
               }
             ],
-            "target": "[\"item\",\"10000000-0000-4000-8000-00000000000a\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "target": "[\"item\",\"10000000-0000-4000-8000-00000000000a\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
             "text": [
               {
                 "text": "ticket · ABC-12"
@@ -150,7 +154,7 @@
                 "text": "checkout"
               }
             ],
-            "target": "[\"item\",\"10000000-0000-4000-8000-00000000000e\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "target": "[\"item\",\"10000000-0000-4000-8000-00000000000e\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
             "text": [
               {
                 "text": "checkout · /home/user/projects/api"
@@ -164,7 +168,7 @@
                 "text": "workflow-run"
               }
             ],
-            "target": "[\"item\",\"10000000-0000-4000-8000-000000000012\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+            "target": "[\"item\",\"10000000-0000-4000-8000-000000000012\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
             "text": [
               {
                 "text": "workflow-run · acme/api/42/1"
@@ -187,7 +191,32 @@
               [
                 {
                   "ink": "muted",
-                  "text": "Exact sources · j/k select · x actions"
+                  "text": "Exact sources · "
+                },
+                {
+                  "look": "text.muted",
+                  "text": "↑↓ "
+                },
+                {
+                  "look": "text.muted",
+                  "text": "select"
+                },
+                {
+                  "ink": "muted",
+                  "text": " · "
+                },
+                {
+                  "look": "text.muted",
+                  "text": "e"
+                },
+                {
+                  "look": "text.muted underline",
+                  "text": "x"
+                },
+                {
+                  "key_hint": "x",
+                  "look": "text.muted",
+                  "text": "tra actions"
                 }
               ]
             ],
@@ -201,86 +230,557 @@
               [
                 {
                   "ink": "info",
-                  "text": "Local work saved."
+                  "text": "Local"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "work"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "saved."
                 }
               ],
               [
                 {
                   "ink": "emphasis",
-                  "text": "Ship explicit work-item navigation"
+                  "strong": true,
+                  "text": "Ship"
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": " "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "explicit"
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": " "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "work-item"
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": " "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "navigation"
                 }
               ],
               [
                 {
-                  "text": "Local groups: release candidate"
+                  "text": "Local"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "groups:"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "release"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "candidate"
                 }
               ],
               [
                 {
-                  "text": "Selected pull-request: acme/api/7"
+                  "text": "Selected"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "pull-request:"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "acme/api/7"
                 }
               ],
               [
                 {
                   "ink": "info",
-                  "text": "authored link · c copy locator · x actions"
-                }
-              ],
-              [
-                {
-                  "text": "Locator event in this page: source.selected · requested"
-                }
-              ],
-              [
+                  "text": "authored"
+                },
                 {
                   "ink": "info",
-                  "text": "v history: original claims and outcomes · completeness not guaranteed"
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "link"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "·"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "look": "status.info underline",
+                  "text": "c"
+                },
+                {
+                  "look": "status.info",
+                  "text": "opy"
+                },
+                {
+                  "look": "status.info",
+                  "text": " "
+                },
+                {
+                  "key_hint": "c",
+                  "look": "status.info",
+                  "text": "locator"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "·"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "look": "status.info",
+                  "text": "e"
+                },
+                {
+                  "look": "status.info underline",
+                  "text": "x"
+                },
+                {
+                  "look": "status.info",
+                  "text": "tra"
+                },
+                {
+                  "look": "status.info",
+                  "text": " "
+                },
+                {
+                  "key_hint": "x",
+                  "look": "status.info",
+                  "text": "actions"
+                }
+              ],
+              [
+                {
+                  "text": "Locator"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "event"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "in"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "this"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "page:"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "source.selected"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "·"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "requested"
+                }
+              ],
+              [
+                {
+                  "look": "status.info underline",
+                  "text": "v"
+                },
+                {
+                  "look": "status.info",
+                  "text": "iew"
+                },
+                {
+                  "look": "status.info",
+                  "text": " "
+                },
+                {
+                  "key_hint": "v",
+                  "look": "status.info",
+                  "text": "history"
+                },
+                {
+                  "ink": "info",
+                  "text": ":"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "original"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "claims"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "and"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "outcomes"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "·"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "completeness"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "not"
+                },
+                {
+                  "ink": "info",
+                  "text": " "
+                },
+                {
+                  "ink": "info",
+                  "text": "guaranteed"
                 }
               ],
               [
                 {
                   "ink": "muted",
-                  "text": "Titles and groups are authored locally. Relations do not imply identity,"
+                  "text": "Titles"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "and"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "groups"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "are"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "authored"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "locally."
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "Relations"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "do"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "not"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "imply"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "identity,"
                 }
               ],
               [
                 {
                   "ink": "muted",
-                  "text": "permission or completion."
+                  "text": "permission"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "or"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "completion."
                 }
               ],
               [
                 {
                   "ink": "muted",
-                  "text": "Task item ID: 10000000-0000-4000-8000-000000000001"
+                  "text": "Task"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "item"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "ID:"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "10000000-0000-4000-8000-000000000001"
                 }
               ],
               [
                 {
                   "ink": "emphasis",
-                  "text": "Source identity details"
+                  "strong": true,
+                  "text": "Source"
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": " "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "identity"
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": " "
+                },
+                {
+                  "ink": "emphasis",
+                  "strong": true,
+                  "text": "details"
                 }
               ],
               [
                 {
-                  "text": "Provider: forge"
+                  "text": "Provider:"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "forge"
                 }
               ],
               [
                 {
-                  "text": "Instance: https://forge.example/"
+                  "text": "Instance:"
+                },
+                {
+                  "text": " "
+                },
+                {
+                  "text": "https://forge.example/"
                 }
               ],
               [
                 {
                   "ink": "muted",
-                  "text": "Source item: 10000000-0000-4000-8000-000000000006"
+                  "text": "Source"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "item:"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "10000000-0000-4000-8000-000000000006"
                 }
               ],
               [
                 {
                   "ink": "muted",
-                  "text": "Action interval: 1 through open-ended"
+                  "text": "Action"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "interval:"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "1"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "through"
+                },
+                {
+                  "ink": "muted",
+                  "text": " "
+                },
+                {
+                  "ink": "muted",
+                  "text": "open-ended"
                 }
               ]
             ],
@@ -290,7 +790,7 @@
                 "text": "pull-request · acme/api/7"
               }
             ],
-            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-000000000006\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"pull-request\\\",\\\"id\\\":\\\"acme/api/7\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-000000000006\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"pull-request\\\",\\\"id\\\":\\\"acme/api/7\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
           },
           {
             "body": [
@@ -307,7 +807,7 @@
                 "text": "ticket · ABC-12"
               }
             ],
-            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-00000000000a\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"ticket\\\",\\\"id\\\":\\\"ABC-12\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-00000000000a\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"ticket\\\",\\\"id\\\":\\\"ABC-12\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
           },
           {
             "body": [
@@ -324,7 +824,7 @@
                 "text": "checkout · /home/user/projects/api"
               }
             ],
-            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-00000000000e\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"checkout\\\",\\\"id\\\":\\\"/home/user/projects/api\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-00000000000e\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"checkout\\\",\\\"id\\\":\\\"/home/user/projects/api\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
           },
           {
             "body": [
@@ -341,7 +841,7 @@
                 "text": "workflow-run · acme/api/42/1"
               }
             ],
-            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-000000000012\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"workflow-run\\\",\\\"id\\\":\\\"acme/api/42/1\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
+            "target": "[\"source\",\"[\\\"10000000-0000-4000-8000-000000000012\\\",{\\\"provider\\\":\\\"forge\\\",\\\"instance\\\":\\\"https://forge.example/\\\",\\\"kind\\\":\\\"workflow-run\\\",\\\"id\\\":\\\"acme/api/42/1\\\"},\\\"user_asserted\\\",1,null]\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]"
           }
         ],
         "selected": 0
@@ -367,38 +867,38 @@
               "ambiguous": false,
               "label": "release candidate",
               "selected": false,
-              "target": "[\"group\",\"10000000-0000-4000-8000-000000000016\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]"
+              "target": "[\"group\",\"10000000-0000-4000-8000-000000000016\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,8]"
             }
           ],
           "items": [
             {
               "kind": "task",
               "selected": true,
-              "target": "[\"item\",\"10000000-0000-4000-8000-000000000001\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "target": "[\"item\",\"10000000-0000-4000-8000-000000000001\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
               "title": "Ship explicit work-item navigation"
             },
             {
               "kind": "pull-request",
               "selected": false,
-              "target": "[\"item\",\"10000000-0000-4000-8000-000000000006\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "target": "[\"item\",\"10000000-0000-4000-8000-000000000006\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
               "title": "pull-request · acme/api/7"
             },
             {
               "kind": "ticket",
               "selected": false,
-              "target": "[\"item\",\"10000000-0000-4000-8000-00000000000a\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "target": "[\"item\",\"10000000-0000-4000-8000-00000000000a\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
               "title": "ticket · ABC-12"
             },
             {
               "kind": "checkout",
               "selected": false,
-              "target": "[\"item\",\"10000000-0000-4000-8000-00000000000e\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "target": "[\"item\",\"10000000-0000-4000-8000-00000000000e\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
               "title": "checkout · /home/user/projects/api"
             },
             {
               "kind": "workflow-run",
               "selected": false,
-              "target": "[\"item\",\"10000000-0000-4000-8000-000000000012\",{\"database_id\":\"1070e3f5-02e3-48f6-afd8-378cf222a64d\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
+              "target": "[\"item\",\"10000000-0000-4000-8000-000000000012\",{\"database_id\":\"f17e0000-0000-4000-8000-000000000001\",\"event_sequence\":7,\"map_sequence\":17,\"gap_sequence\":0},0,null,\"\"]",
               "title": "workflow-run · acme/api/42/1"
             }
           ],
@@ -616,7 +1116,8 @@
                   "char": "n"
                 }
               },
-              "label": "create a local task…"
+              "label": "new local task…",
+              "mnemonic_at": 0
             },
             {
               "id": "work.refresh",
@@ -625,7 +1126,8 @@
                   "char": "r"
                 }
               },
-              "label": "refresh local work"
+              "label": "refresh local work",
+              "mnemonic_at": 0
             },
             {
               "id": "work.filter",
@@ -643,7 +1145,8 @@
                   "char": "t"
                 }
               },
-              "label": "apply local group label…"
+              "label": "set local group label…",
+              "mnemonic_at": 2
             },
             {
               "id": "work.evidence",
@@ -652,7 +1155,8 @@
                   "char": "v"
                 }
               },
-              "label": "inspect bounded evidence…"
+              "label": "inspect bounded evidence…",
+              "mnemonic_at": 17
             }
           ],
           "pending": false,
@@ -662,7 +1166,7 @@
           "lines": [
             [
               {
-                "text": "create a local task…"
+                "text": "new local task…"
               }
             ],
             [
@@ -677,7 +1181,7 @@
             ],
             [
               {
-                "text": "apply local group label…"
+                "text": "set local group label…"
               }
             ],
             [

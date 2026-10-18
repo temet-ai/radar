@@ -20,7 +20,8 @@
           "char": "o"
         }
       },
-      "label": "open it in Slack"
+      "label": "open it in Slack",
+      "mnemonic_at": 0
     },
     {
       "id": "slack.feed.copy_message_link",
@@ -29,7 +30,8 @@
           "char": "y"
         }
       },
-      "label": "copy its link"
+      "label": "copy its link",
+      "mnemonic_at": 3
     },
     {
       "id": "slack.feed.mark_read",
@@ -38,7 +40,8 @@
           "char": "m"
         }
       },
-      "label": "mark read up to here, in radar only"
+      "label": "mark read up to here, in radar only",
+      "mnemonic_at": 0
     },
     {
       "heading": true,
@@ -53,7 +56,8 @@
           "char": "c"
         }
       },
-      "label": "reply in its thread…"
+      "label": "comment in its thread…",
+      "mnemonic_at": 0
     },
     {
       "change": "add",
@@ -63,7 +67,8 @@
           "char": "e"
         }
       },
-      "label": "react to it…"
+      "label": "react to it…",
+      "mnemonic_at": 1
     },
     {
       "heading": true,
@@ -78,7 +83,9 @@
           "char": "A"
         }
       },
-      "label": "ask an agent about it…"
+      "label": "ask an agent about it…",
+      "mnemonic_at": 0,
+      "mnemonic_shift": true
     },
     {
       "heading": true,
@@ -102,7 +109,8 @@
           "char": "r"
         }
       },
-      "label": "refresh"
+      "label": "refresh",
+      "mnemonic_at": 0
     },
     {
       "id": "slack.feed.filter",
@@ -554,45 +562,360 @@
     },
     {
       "body": {
-        "blocks": [
-          {
-            "block": "line",
-            "text": [
-              {
-                "ink": "secondary",
-                "text": "── #team · yesterday ──"
-              }
-            ]
-          },
-          {
-            "block": "line",
-            "text": [
-              {
-                "ink": "accent",
-                "text": "● "
-              },
+        "capability": "detail",
+        "data": {
+          "facts": [
+            {
+              "label": "thread",
+              "value": [
+                {
+                  "ink": "secondary",
+                  "text": "thread start"
+                }
+              ]
+            }
+          ],
+          "header": {
+            "age": [
               {
                 "ink": "muted",
-                "text": "09:11"
+                "text": "1d ago"
+              }
+            ],
+            "author": [
+              {
+                "icon": "person"
               },
               {
                 "ink": "emphasis",
-                "text": "  Bob Builder"
+                "text": "Bob Builder"
+              }
+            ],
+            "path": [
+              {
+                "ink": "secondary",
+                "text": "Acme / "
+              },
+              {
+                "icon": "channel"
+              },
+              {
+                "ink": "secondary",
+                "text": "#team"
+              }
+            ],
+            "title": [
+              {
+                "ink": "emphasis",
+                "text": "@Alice Example could you take this one?"
               }
             ]
           },
+          "pictures": "slack",
+          "sections": [
+            {
+              "block": "section",
+              "blocks": [
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "icon": "unread",
+                      "icon_lead": true,
+                      "ink": "accent",
+                      "text": "● "
+                    },
+                    {
+                      "ink": "muted",
+                      "text": "07:11"
+                    },
+                    {
+                      "ink": "emphasis",
+                      "text": "  Bob Builder"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "ink": "primary",
+                      "text": "@Alice Example could you take this one?"
+                    }
+                  ]
+                }
+              ],
+              "detail": "yesterday",
+              "mark": "thread",
+              "title": "THREAD"
+            }
+          ]
+        },
+        "fallback": {
+          "blocks": [
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "secondary",
+                  "text": "Acme / "
+                },
+                {
+                  "icon": "channel"
+                },
+                {
+                  "ink": "secondary",
+                  "text": "#team"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "emphasis",
+                  "text": "@Alice Example could you take this one?"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "icon": "person"
+                },
+                {
+                  "ink": "emphasis",
+                  "text": "Bob Builder"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "1d ago"
+                }
+              ]
+            },
+            {
+              "block": "line",
+              "text": [
+                {
+                  "ink": "muted",
+                  "text": "thread: "
+                },
+                {
+                  "ink": "secondary",
+                  "text": "thread start"
+                }
+              ]
+            },
+            {
+              "block": "section",
+              "blocks": [
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "icon": "unread",
+                      "icon_lead": true,
+                      "ink": "accent",
+                      "text": "● "
+                    },
+                    {
+                      "ink": "muted",
+                      "text": "07:11"
+                    },
+                    {
+                      "ink": "emphasis",
+                      "text": "  Bob Builder"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "text": [
+                    {
+                      "ink": "primary",
+                      "text": "@Alice Example could you take this one?"
+                    }
+                  ]
+                }
+              ],
+              "detail": "yesterday",
+              "mark": "thread",
+              "title": "THREAD"
+            },
+            {
+              "block": "section",
+              "blocks": [
+                {
+                  "block": "line",
+                  "key": "⏎",
+                  "text": [
+                    {
+                      "text": "thread"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "key": "o",
+                  "mnemonic_at": 0,
+                  "text": [
+                    {
+                      "text": "open"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "key": "y",
+                  "mnemonic_at": 3,
+                  "text": [
+                    {
+                      "text": "copy"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "key": "m",
+                  "mnemonic_at": 0,
+                  "text": [
+                    {
+                      "text": "mark read"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "key": "c",
+                  "mnemonic_at": 0,
+                  "text": [
+                    {
+                      "text": "comment"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "key": "e",
+                  "mnemonic_at": 1,
+                  "text": [
+                    {
+                      "text": "react"
+                    }
+                  ]
+                },
+                {
+                  "block": "line",
+                  "key": "x",
+                  "mnemonic_at": 1,
+                  "text": [
+                    {
+                      "text": "extra actions"
+                    }
+                  ]
+                }
+              ],
+              "title": "ACTIONS"
+            }
+          ],
+          "node": "rich",
+          "pictures": "slack"
+        },
+        "node": "extension",
+        "version": 1
+      },
+      "foot_actions": {
+        "actions": [
           {
-            "block": "line",
-            "text": [
-              {
-                "ink": "primary",
-                "text": "    @Alice Example could you take this one?"
-              }
-            ]
+            "action": {
+              "id": "slack.feed.open_thread",
+              "key": {
+                "key": "enter"
+              },
+              "label": "thread"
+            }
+          },
+          {
+            "action": {
+              "id": "slack.feed.open_in_slack",
+              "key": {
+                "key": {
+                  "char": "o"
+                }
+              },
+              "label": "open",
+              "mnemonic_at": 0
+            }
+          },
+          {
+            "action": {
+              "id": "slack.feed.copy_message_link",
+              "key": {
+                "key": {
+                  "char": "y"
+                }
+              },
+              "label": "copy",
+              "mnemonic_at": 3
+            }
+          },
+          {
+            "action": {
+              "id": "slack.feed.mark_read",
+              "key": {
+                "key": {
+                  "char": "m"
+                }
+              },
+              "label": "mark read",
+              "mnemonic_at": 0
+            }
+          },
+          {
+            "action": {
+              "change": "add",
+              "id": "slack.feed.reply",
+              "key": {
+                "key": {
+                  "char": "c"
+                }
+              },
+              "label": "comment",
+              "mnemonic_at": 0
+            }
+          },
+          {
+            "action": {
+              "change": "add",
+              "id": "slack.feed.react",
+              "key": {
+                "key": {
+                  "char": "e"
+                }
+              },
+              "label": "react",
+              "mnemonic_at": 1
+            }
           }
         ],
-        "node": "rich",
-        "pictures": "slack"
+        "menu": {
+          "action": {
+            "id": "detail.extra_actions",
+            "key": {
+              "key": {
+                "char": "x"
+              }
+            },
+            "label": "extra actions",
+            "mnemonic_at": 1
+          }
+        }
       },
       "pane": "detail",
       "title": "Bob Builder's message"

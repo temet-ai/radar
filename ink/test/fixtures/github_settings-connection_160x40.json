@@ -19,7 +19,8 @@
           "char": "c"
         }
       },
-      "label": "check GitHub connection"
+      "label": "check GitHub connection",
+      "mnemonic_at": 0
     },
     {
       "id": "github.connection.token_page",
@@ -28,7 +29,8 @@
           "char": "o"
         }
       },
-      "label": "open GitHub's new-token page"
+      "label": "open GitHub's new-token page",
+      "mnemonic_at": 0
     },
     {
       "id": "github.connection.copy_token_link",
@@ -37,7 +39,8 @@
           "char": "y"
         }
       },
-      "label": "copy the new-token page's link"
+      "label": "copy the new-token page's link",
+      "mnemonic_at": 3
     }
   ],
   "body": {
@@ -516,7 +519,29 @@
             },
             {
               "ink": "muted",
-              "text": "   o opens · y copies"
+              "text": "   "
+            },
+            {
+              "look": "text.muted underline",
+              "text": "o"
+            },
+            {
+              "key_hint": "o",
+              "look": "text.muted",
+              "text": "pen"
+            },
+            {
+              "ink": "muted",
+              "text": " · "
+            },
+            {
+              "look": "text.muted",
+              "text": "cop"
+            },
+            {
+              "key_hint": "y",
+              "look": "text.muted underline",
+              "text": "y"
             }
           ]
         },

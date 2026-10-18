@@ -559,7 +559,7 @@ fn production_dispatch_captures_scope_and_initial_setup_failure_before_reconfigu
             matches!(fx.last(), Some(Effect::Observe { action, outcome: Outcome::Blocked })
             if action.kind.as_str().ends_with(".application.skipped"))
         );
-        assert!(!fx.iter().any(|effect| matches!(effect, Effect::Notify(_))));
+        assert!(!fx.iter().any(|effect| matches!(effect, Effect::Notify(_) | Effect::NotifyWith(_, _) | Effect::Notice(_))));
         p.cfg.url = URL.into();
         p.cfg.base = PATH.into();
     }

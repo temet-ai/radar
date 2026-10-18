@@ -60,10 +60,11 @@ fn command(cmd: &str) -> Block {
     Block::line(Text::new().push(Seg::new("$ ", Ink::Muted)).push(Seg::new(cmd, Ink::Primary)))
 }
 
-fn link(words: &str, url: &str, keys: Option<&str>) -> Block {
+fn link(words: &str, url: &str, hints: &[(&str, &str)]) -> Block {
     let mut text = Text::new().push(Seg::new(words, Ink::Accent).linked(url));
-    if let Some(keys) = keys {
-        text.add(Seg::new(format!("   {keys}"), Ink::Muted));
+    for (index, (key, action)) in hints.iter().enumerate() {
+        text.add(Seg::new(if index == 0 { "   " } else { " · " }, Ink::Muted));
+        text.extend(radar_core::mnemonic::text(key, action, "text.muted"));
     }
     Block::line(text)
 }
@@ -73,14 +74,14 @@ pub(crate) fn token_help() -> Vec<Block> {
     vec![
         Block::section(Some(Icon::Connection), "make a user token", Some("about two minutes, once".into()), vec![
             line("1 Open Slack's new-app page, radar's manifest filled in:"),
-            link("api.slack.com / new app", &manifest::new_app_url(), Some("o opens · m copies the manifest")),
+            link("api.slack.com / new app", &manifest::new_app_url(), &[("o", "open"), ("m", "copy manifest")]),
             line(&format!("  user scopes only: {}", manifest::scopes().len())),
             line("2 Pick your workspace, Next, Create."),
             line("3 Install to Workspace, then Allow."),
             line("4 OAuth & Permissions shows the User OAuth Token, xoxp-…: paste it into token, or:"),
             command("export SLACK_TOKEN=xoxp-…"),
             line("  then the token is env:SLACK_TOKEN"),
-            link("api.slack.com / your apps", manifest::APPS, None),
+            link("api.slack.com / your apps", manifest::APPS, &[]),
         ]),
         Block::section(Some(Icon::Team), "needs an admin?", None, vec![
             line("If Slack says Request to Install, your admin approves it first."),
@@ -104,8 +105,8 @@ pub(crate) fn channels_help() -> Vec<Block> {
 
 fn more() -> Block {
     Block::section(Some(Icon::Link), "more", None, vec![
-        link("Slack: what each scope allows", SCOPES, None),
-        link("radar guide: connect Slack", GUIDE, None),
+        link("Slack: what each scope allows", SCOPES, &[]),
+        link("radar guide: connect Slack", GUIDE, &[]),
     ])
 }
 

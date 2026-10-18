@@ -235,7 +235,7 @@ mod tests {
     fn stopping_with_text_asks_first() {
         let m = stop_menu("drop", "comment");
         assert_eq!(m.title, "stop: drop the comment?");
-        assert_eq!(m.items[0].hint, "throw the text away");
-        assert_eq!(m.items[1].hint, "keep writing");
+        assert_eq!(m.items[0].hint, "yes, throw the text away");
+        assert_eq!(m.items[1].hint, "no, keep writing");
     }
 }

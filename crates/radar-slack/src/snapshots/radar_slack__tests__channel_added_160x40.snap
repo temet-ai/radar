@@ -4,7 +4,7 @@ assertion_line: 665
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ settings ────────────╮╭ channels ──────────────────────────────────────────────────────────────────────╮╭ #acme-deploys ─────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 channels ────────────────────────────────────────────────────────────────────╮╭ 3 #acme-deploys ───────────────────────────────────╮
 │General               ││ + add a channel   paste a link to it, or type #name                            ││ CHECKED                                            │
 │  ├─ parts            ││ ▌ #team   #acme-team · team · watched                                          ││ ✓ #acme-deploys · public · you are in it  0s ago   │
 │  ├─ mode             ││   ├─ alias           team                                                      ││                                                    │
@@ -40,6 +40,6 @@ expression: "to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
+│                      ││                                                                       info added #acme-deploys                                       │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   added #acme-deploys                                                                                                                           slack
+ SETTINGS   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                       slack

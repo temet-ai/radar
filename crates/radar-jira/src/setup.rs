@@ -66,10 +66,11 @@ fn command(cmd: &str) -> Block {
     Block::line(Text::new().push(Seg::new("$ ", Ink::Muted)).push(Seg::new(cmd, Ink::Primary)))
 }
 
-fn link(words: &str, url: &str, keys: Option<&str>) -> Block {
+fn link(words: &str, url: &str, hints: &[(&str, &str)]) -> Block {
     let mut text = Text::new().push(Seg::new(words, Ink::Accent).linked(url));
-    if let Some(keys) = keys {
-        text.add(Seg::new(format!("   {keys}"), Ink::Muted));
+    for (index, (key, action)) in hints.iter().enumerate() {
+        text.add(Seg::new(if index == 0 { "   " } else { " · " }, Ink::Muted));
+        text.extend(radar_core::mnemonic::text(key, action, "text.muted"));
     }
     Block::line(text)
 }
@@ -83,11 +84,11 @@ pub(crate) fn access_help() -> Vec<Block> {
         ]),
         Block::section(Some(Icon::Person), "email", None, vec![
             line("The email you sign in to Atlassian with, on your profile:"),
-            link("id.atlassian.com / profile", PROFILE, None),
+            link("id.atlassian.com / profile", PROFILE, &[]),
         ]),
         Block::section(Some(Icon::Connection), "API token", Some("about a minute".into()), vec![
             line("1 Open Atlassian's API token page:"),
-            link("id.atlassian.com / api tokens", TOKEN_PAGE, Some("o opens · y copies")),
+            link("id.atlassian.com / api tokens", TOKEN_PAGE, &[("o", "open"), ("y", "copy")]),
             line("2 Create API token, label it radar, pick an expiry, then Create."),
             line("3 Copy it now: Atlassian shows it once. Paste it into token, or:"),
             command(&format!("export {}=…", config::DEFAULT_TOKEN)),
@@ -106,7 +107,7 @@ pub(crate) fn projects_help() -> Vec<Block> {
     vec![
         Block::section(Some(Icon::Issue), "projects", None, vec![
             line("Type a project key, like WATCH, or paste a link to the project."),
-            line("p picks from the projects you looked at lately."),
+            Block::line(radar_core::mnemonic::text("p", "pick from the projects you looked at lately.", "text.secondary")),
             line("Colours, checks and acceptance criteria: Settings / Jira / projects."),
             line("Saved queries: Settings / Jira / views."),
         ]),
@@ -116,8 +117,8 @@ pub(crate) fn projects_help() -> Vec<Block> {
 
 fn more() -> Block {
     Block::section(Some(Icon::Link), "more", None, vec![
-        link("Atlassian: manage API tokens", DOCS, None),
-        link("radar guide: connect Jira", GUIDE, None),
+        link("Atlassian: manage API tokens", DOCS, &[]),
+        link("radar guide: connect Jira", GUIDE, &[]),
     ])
 }
 

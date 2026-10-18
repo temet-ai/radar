@@ -1,18 +1,19 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 232
 expression: "to_text(&host, 80, 24)"
 ---
  radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
-╭ #team ───────────────────────────────────────────────────────────────────────╮
+╭ 2 #team ─────────────────────────────────────────────────────────────────────╮
 │ 6 new                                                    REPLIES  WHEN       │
-│▌ today                                                                       │
-│▌ └─ ● Bob B.  Lunch at 12:30? 🍕                                  30m        │
-│▌ yesterday                                                                   │
-│▌ └─ ● Carol C.  Anyone seen ABC-12 failing on main? pipe 1        1d         │
-│▌ Sun 4 Oct                                                                   │
-│▌ └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endp 2        2d         │
-│▌    ├─ you  looking 👀                                            2d         │
-│▌    └─ Carol C.  approved, nice one                               2d         │
+│today                                                                         │
+│  └─ ● Bob B.  Lunch at 12:30? 🍕                                  30m        │
+│yesterday                                                                     │
+│  └─ ● Carol C.  Anyone seen ABC-12 failing on main?  ⋯ 1 1        1d         │
+│Sun 4 Oct                                                                     │
+│  └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endp 2        2d         │
+│     ├─ you  looking 👀                                            2d         │
+│     └─ Carol C.  approved, nice one                               2d         │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -25,4 +26,4 @@ expression: "to_text(&host, 80, 24)"
 │─ shows ──────────────────────────────────────────────────────────────────────│
 │ the last 7 days · where the team talks                                       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   b bulk   +/- expand/collapse   q quit   x menu                   slack
+ SLACK   bulk   +/- expand/collapse   quit   extra actions   ~ notices    slack

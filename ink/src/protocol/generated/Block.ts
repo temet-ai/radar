@@ -9,11 +9,19 @@ import type { Text } from "./Text.js";
 /**
  * A block of a [`Node::Rich`].
  */
-export type Block = { "block": "line", text: Text, target?: Target | null, 
+export type Block = { "block": "line", text: Text, 
 /**
- * The key that does what the line says, drawn `[k]` in muted words
- * at the right edge of the room when the line and it fit there
- * ([`Block::keyed`]).
+ * Unicode scalar position in Text::words(), including icon fallback text
+ * in offsets. Only non-icon text and chip captions supply mnemonics.
+ * Draw the complete containing grapheme, preserving segment styles.
+ */
+mnemonic_at?: number | null, mnemonic_shift?: boolean, target?: Target | null, 
+/**
+ * The unchanged shortcut for this line. Valid mnemonic metadata puts
+ * its letter inside the words; glyph/named/modifier keys precede them.
+ * Legacy or invalid letter metadata and plain readers keep `[k]`,
+ * right-aligned when it fits and wrapped otherwise.
+ * See [`Block::keyed`].
  */
 key?: string | null, } | { "block": "section", mark?: string | null, 
 /**

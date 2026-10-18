@@ -32,6 +32,12 @@ fn actions(p: &SlackPlugin, s: &Subject) -> Vec<Action> {
     let Some(Contribution::Actions(actions)) = contribute(p, Point::Actions, s) else {
         return vec![];
     };
+    for action in &actions {
+        if let Some(key) = action.key.filter(|key| key.is_alphabetic()) {
+            assert!(radar_core::mnemonic::at(&key.to_string(), &action.what).is_some(),
+                "{}: {key} / {}", action.id, action.what);
+        }
+    }
     actions
 }
 
@@ -61,7 +67,7 @@ fn pull_request_exact_discussions_fill_read_only_places_without_review_actions()
     assert_eq!(rows[0].subject, Some(thread.clone()));
     let actions = actions(&p, &s);
     assert_eq!(actions.len(), 1);
-    assert_eq!(actions[0].what, "open discussion in #team");
+    assert_eq!(actions[0].what, "open discussion thread in #team");
     assert!(actions[0].change.is_none());
     assert!(
         matches!(&act(&mut p, &s, &actions[0].id)[..], [Effect::Show(shown)] if shown == &thread)

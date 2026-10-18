@@ -1,28 +1,29 @@
 ---
 source: crates/radar-github/src/tests.rs
+assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)          synced 25s ago  ✎ edit
-╭ views ───────────────╮╭ repositories ────────────────────────────────────────╮
+╭ 1 views ─────────────╮╭ 2 repositories ──────────────────────────────────────╮
 │ Everything   2 repos ││github.com/acme                              2 repos  │
 │ acme         2 repos ││  ├─ acme/api                                2 PRs    │
-│                      ││  │  ├─ #42  Keep background refreshes tied  open     │
-│                      ││  │  └─ #43  Document the public endpoints   draft    │
-│                      ││  └─ acme/docs                               0 PRs    │
-│                  ╭ acme/api #42 ─────────────────────────╮                   │
-│                  │ ⏎  open its page                      │                   │
-│                  │ o  open on GitHub                     │                   │
-│                  │ y  copy the link                      │                   │
-│                  │ r  refresh configured repositories    │                   │
-│                  │ HISTORY                               │                   │
-│                  │ H  recent activity (last 24 hours)    │                   │
-│                  │    all activity history               │                   │
-│                  │    history for selected item          │                   │
-│                  ╰───────────────────────────────────────╯                   │
-│                      ││                                                      │
-│                      ││                                                      │
+│         ╭ acme/api #42 ───────────────────────────────────────────╮ open     │
+│         │ ⏎      open its page                                    │ draft    │
+│         │        open on GitHub                                   │ 0 PRs    │
+│         │        copy the link                                    │          │
+│         │        refresh configured repositories                  │          │
+│         │ space  toggle the group                                 │          │
+│         │ +      expand the group                                 │          │
+│         │ -      collapse the group, or the one this row is in    │          │
+│         │ =      expand every held group                          │          │
+│         │ ~      recent notices (this session)                    │          │
+│         │ HISTORY                                                 │          │
+│         │        shift recent activity (last 24 hours)            │          │
+│         │        all activity history                             │          │
+│         │        history for selected item                        │          │
+│         ╰─────────────────────────────────────────────────────────╯          │
 │                      ││                                                      │
 │                      ││                                                      │
 │                      ││                                                      │
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- GITHUB   j/k move   ⏎ choose   esc close                                github
+ GITHUB   ↑↓ move   ⏎ choose   esc close                                 github

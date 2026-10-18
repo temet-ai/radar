@@ -186,9 +186,13 @@ fn ratatui_text(name: &str, h: &Headless) {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures")
             .join(format!("{name}_ratatui_{w}x{ht}.txt"));
+        let jumps = serde_json::to_string_pretty(&h.chrome().pane_jumps).unwrap() + "\n";
+        let jumps_path = path.with_file_name(format!("{name}_pane_jumps_{w}x{ht}.json"));
         if std::env::var_os("RADAR_WORK_VIEW_FIXTURE").is_some() {
             std::fs::write(&path, &text).unwrap();
+            std::fs::write(&jumps_path, &jumps).unwrap();
         }
+        assert_eq!(std::fs::read_to_string(jumps_path).unwrap(), jumps, "pane shortcuts drifted");
         let recorded = std::fs::read_to_string(&path).expect("run with RADAR_WORK_VIEW_FIXTURE=1 once");
         assert_eq!(recorded, text, "{name} at {w}x{ht} drifted; RADAR_WORK_VIEW_FIXTURE=1 re-records");
     }

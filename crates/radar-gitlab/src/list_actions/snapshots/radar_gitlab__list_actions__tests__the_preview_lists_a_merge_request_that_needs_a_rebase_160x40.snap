@@ -1,26 +1,23 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
+assertion_line: 539
 expression: "shown(p, 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
-╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ api !410 ────────────────────────────────────╮
-│ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a api  !410                                  │
-│ Needs my action      4 ││▌ B team-b                                                                          ││ ABC-410: Page the stats                      │
-│ Opened by me           ││▌ └─ worker                                                       —       1 MR      ││ you · feature/ABC-410 → main · 0s ago        │
-│ Opened by teammates    ││▌    └─ !342 change 342  you          ⊘ draft             1 open  16m     draft     ││                                              │
-│ Opened by bots         ││▌ A team-a   main red in 1                                                          ││  yours, and it needs fixing                  │
-│                        ││▌ ├─ api                              ✓ passed                    4d      2 MRs     ││                                              │
-│                        ││▌ │  ├─ !263 ABC-12: Add a stats endp ◷ needs 1 approval  1 open  16m     review    ││ STATE ────────────────────────────────────── │
-│                        ││▌ │  └─ !410 ABC-410: Page the stats  ▷ needs rebase      1 open  0s      fix       ││   ▷ needs rebase                             │
-│                        ││▌ ├─ web                              ✗ failed                    4d      3 MRs     ││                                              │
-│                        ││▌ │  ├─ !411 ABC-411: Retry the sync  ✗ pipeline failed   1 open  0s      fix       ││ ACTIONS ──────────────────────────────────── │
-│                        ││▌ │  ├─ !187 change 187  you          ✓ ready to merge    1 open  16m     ready     ││   rebase onto main                       [u] │
-│                        ││▌ │  └─ !198 change 198  group_1_bot_ ◷ needs 1 approval  1 open  16m     bot       ││   merge · needs rebase                   [m] │
-│                        ││▌ └─ docs                             ✓ passed                    4d      —         ││   approve                                [e] │
-│                        ││                                                                                    ││   open in GitLab                         [o] │
-│                        ││                                                                                    ││   copy link                              [y] │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││ PIPELINE  passed · 6m 12s ────────────────── │
+╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────╮╭ 3 api !410 ──────────────────────────────────╮
+│ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a / acme/team-a/api / !410                   │
+│ Needs my action      4 ││B team-b                                                                            ││ ABC-410: Page the stats                      │
+│ Opened by me           ││  └─ worker                                                       —       1 MR      ││ feature/ABC-410 → main          you · 0s ago │
+│ Opened by teammates    ││     └─ !342 change 342  you          ⊘ draft             1 open  16m     draft     ││                                              │
+│ Opened by bots         ││A team-a   main red in 1                                                            ││ project    api                               │
+│                        ││  ├─ api                              ✓ passed                    4d      2 MRs     ││ state      open                              │
+│                        ││  │  ├─ !263 ABC-12: Add a stats endp ◷ needs 1 approval  1 open  16m     review    ││ approvals  1 required · 0 left               │
+│                        ││  │  └─ !410 ABC-410: Page the stats  ▷ needs rebase      1 open  0s      fix       ││                                              │
+│                        ││  ├─ web                              ✗ failed                    4d      3 MRs     ││ STATE ────────────────────────────────────── │
+│                        ││  │  ├─ !411 ABC-411: Retry the sync  ✗ pipeline failed   1 open  0s      fix       ││   yours, and it needs fixing                 │
+│                        ││  │  ├─ !187 change 187  you          ✓ ready to merge    1 open  16m     ready     ││   ▷ needs rebase                             │
+│                        ││  │  └─ !198 change 198  group_1_bot_ ◷ needs 1 approval  1 open  16m     bot       ││                                              │
+│                        ││  └─ docs                             ✓ passed                    4d      —         ││ PIPELINE  passed · 6m 12s ────────────────── │
 │                        ││                                                                                    ││   ▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀ │
 │                        ││                                                                                    ││   ✓ build       ✓ test         ▷ deploy      │
 │                        ││                                                                                    ││                                              │
@@ -38,7 +35,11 @@ expression: "shown(p, 160, 40)"
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ every open merge request · listing every repo, also those without                  ││update  merge  approve  open     extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- REPOSITORIES   u rebase   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                             gitlab
+ REPOSITORIES   update by rebasing   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                    gitlab

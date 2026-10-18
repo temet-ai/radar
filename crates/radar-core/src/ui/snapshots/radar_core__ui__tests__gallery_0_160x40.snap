@@ -1,23 +1,23 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1000
+assertion_line: 1315
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Tree
+ Gallery / Tree
  The kit: every element on sample data                                                                                                            colours: none
- [Tree]  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons
+ [Tree]  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons  Notices
 ╭ shelves ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ HELD BY everyone                                                                                           STATE     LABEL     OWNER       SIZE    UPDATED   │
-│▌ A north-wing                                                                                                                                                │
-│▌ ├─ atlases  in the east room                                                                              1 item                          12 kB   4d        │
-│▌ │  └─ #104 sort the atlas box by decade  Alice E.                                                         ● sorting #maps     Alice E.            16m       │
-│▌ ├─ maps  in the east room                                                                                 2 items                         24 kB   4d        │
-│▌ │  ├─ #187 label the map drawer  you                                                                      ✓ filed   #maps     you                 16m       │
-│▌ │  └─ #198 count the postcards  Bob                                                                       ✗ lost    #maps     Bob                 16m       │
-│▌ └─ ledgers  in the east room                                                                              —                               0 kB    4d        │
-│▌ B south-wing                                                                                                                                                │
-│▌ └─ globes  in the east room                                                                               1 item                          12 kB   4d        │
-│▌    └─ #342 move the globes to the top shelf  you                                                          ◷ waiting #maps     you                 16m       │
+│A north-wing                                                                                                                                                  │
+│  ├─ atlases  in the east room                                                                              1 item                          12 kB   4d        │
+│  │  └─ #104 sort the atlas box by decade  Alice E.                                                         ● sorting #maps     Alice E.            16m       │
+│  ├─ maps  in the east room                                                                                 2 items                         24 kB   4d        │
+│  │  ├─ #187 label the map drawer  you                                                                      ✓ filed   #maps     you                 16m       │
+│  │  └─ #198 count the postcards  Bob                                                                       ✗ lost    #maps     Bob                 16m       │
+│  └─ ledgers  in the east room                                                                              —                               0 kB    4d        │
+│B south-wing                                                                                                                                                  │
+│  └─ globes  in the east room                                                                               1 item                          12 kB   4d        │
+│     └─ #342 move the globes to the top shelf  you                                                          ◷ waiting #maps     you                 16m       │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
@@ -42,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

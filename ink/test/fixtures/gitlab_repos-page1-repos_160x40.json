@@ -13,7 +13,8 @@
           "char": "o"
         }
       },
-      "label": "open the group in GitLab"
+      "label": "open the group in GitLab",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.page.copy_link",
@@ -22,7 +23,8 @@
           "char": "y"
         }
       },
-      "label": "copy the group's link"
+      "label": "copy the group's link",
+      "mnemonic_at": 3
     },
     {
       "id": "gitlab.page.refresh",
@@ -31,7 +33,8 @@
           "char": "r"
         }
       },
-      "label": "refresh this page and its tenancy"
+      "label": "refresh this page and its tenancy",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.page.back",

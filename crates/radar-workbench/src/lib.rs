@@ -317,6 +317,11 @@ impl WorkbenchPlugin {
         self.notice = Some(text.clone());
         vec![Effect::Notify(text)]
     }
+    fn error_notice(&mut self, text: impl Into<String>) -> Vec<Effect> {
+        let text = text.into();
+        self.notice = Some(text.clone());
+        vec![Effect::error(None, text)]
+    }
     fn sources(&self) -> Vec<SourceBinding> {
         let Some(detail) = &self.detail else {
             return vec![];
@@ -392,7 +397,7 @@ impl WorkbenchPlugin {
                 {
                     prepared.attempted = false;
                 }
-                let mut effects = self.notice(error.to_string());
+                let mut effects = self.error_notice(error.to_string());
                 effects.push(Effect::PersistCache);
                 return effects;
             }
@@ -494,7 +499,7 @@ impl WorkbenchPlugin {
                 effects.extend(self.read_items(true));
                 effects
             }
-            _ => self.notice(
+            _ => self.error_notice(
                 "The local result did not match the current request. Refresh to inspect it.",
             ),
         }
@@ -517,7 +522,7 @@ impl Plugin for WorkbenchPlugin {
     fn screens(&self) -> Vec<ScreenSpec> {
         vec![ScreenSpec {
             id: "work",
-            name: "work",
+            name: "work items",
             key: 'I',
         }]
     }

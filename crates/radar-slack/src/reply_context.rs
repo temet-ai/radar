@@ -419,7 +419,7 @@ impl SlackPlugin {
             ));
             items.push(MenuItem::new(
                 's',
-                "keep current draft",
+                "stay with current draft",
                 "retain the open composer here",
                 "keep",
             ));

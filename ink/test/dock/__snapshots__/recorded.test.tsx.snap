@@ -24,11 +24,11 @@ exports[`host-recorded dock states > approval_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/project… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > approval_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -67,7 +67,7 @@ exports[`host-recorded dock states > approval_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > attention_80x24.json 1`] = `
@@ -94,11 +94,11 @@ exports[`host-recorded dock states > attention_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/project… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > attention_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -137,7 +137,7 @@ exports[`host-recorded dock states > attention_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > detached_80x24.json 1`] = `
@@ -164,11 +164,11 @@ exports[`host-recorded dock states > detached_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · … ⏎ or alt-r resume · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > detached_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -207,7 +207,7 @@ exports[`host-recorded dock states > detached_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main                                 ⏎ or alt-r resume · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > edit-open_80x24.json 1`] = `
@@ -234,11 +234,11 @@ exports[`host-recorded dock states > edit-open_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · /home/dev/projects/r… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > edit-open_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -277,7 +277,7 @@ exports[`host-recorded dock states > edit-open_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · /home/dev/projects/radar · main · 12k tokens                                alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > empty_80x24.json 1`] = `
@@ -304,11 +304,11 @@ exports[`host-recorded dock states > empty_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > empty_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -347,7 +347,7 @@ exports[`host-recorded dock states > empty_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main                                                     alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > error_80x24.json 1`] = `
@@ -374,11 +374,11 @@ exports[`host-recorded dock states > error_80x24.json 1`] = `
 │ connection lost                                                              │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > error_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -417,7 +417,7 @@ exports[`host-recorded dock states > error_160x40.json 1`] = `
 │                        ││ connection lost                                                                                                                    │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                                        alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > full_80x24.json 1`] = `
@@ -444,11 +444,11 @@ exports[`host-recorded dock states > full_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projec… esc stop · alt-f split · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > full_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ agents · review dock ──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ [◙ review dock ⠟ ×]                                                                                                                │
 │                        ││☻ what does the host own?                                                                                                           │
@@ -487,7 +487,7 @@ exports[`host-recorded dock states > full_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                            esc stop · alt-f split · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > markdown_80x24.json 1`] = `
@@ -514,11 +514,11 @@ exports[`host-recorded dock states > markdown_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > markdown_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -557,7 +557,7 @@ exports[`host-recorded dock states > markdown_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                                        alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > markdown-streaming_80x24.json 1`] = `
@@ -584,11 +584,11 @@ exports[`host-recorded dock states > markdown-streaming_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/project… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > markdown-streaming_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -627,7 +627,7 @@ exports[`host-recorded dock states > markdown-streaming_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > pty_80x24.json 1`] = `
@@ -654,11 +654,11 @@ exports[`host-recorded dock states > pty_80x24.json 1`] = `
 │                                                                              │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k to… ctrl-] leave │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > pty_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -697,7 +697,7 @@ exports[`host-recorded dock states > pty_160x40.json 1`] = `
 │                        ││                                                                                                                                    │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                                                    ctrl-] leave │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > question_80x24.json 1`] = `
@@ -724,11 +724,11 @@ exports[`host-recorded dock states > question_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/proj… esc decline · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > question_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -767,7 +767,7 @@ exports[`host-recorded dock states > question_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                          esc decline · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > reasoning-live_80x24.json 1`] = `
@@ -794,11 +794,11 @@ exports[`host-recorded dock states > reasoning-live_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/project… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > reasoning-live_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -837,7 +837,7 @@ exports[`host-recorded dock states > reasoning-live_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > restored_80x24.json 1`] = `
@@ -864,11 +864,11 @@ exports[`host-recorded dock states > restored_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > restored_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -907,7 +907,7 @@ exports[`host-recorded dock states > restored_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main                                                     alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > stopped_80x24.json 1`] = `
@@ -934,11 +934,11 @@ exports[`host-recorded dock states > stopped_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > stopped_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -977,7 +977,7 @@ exports[`host-recorded dock states > stopped_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                                        alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > streaming_80x24.json 1`] = `
@@ -1004,11 +1004,11 @@ exports[`host-recorded dock states > streaming_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/project… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > streaming_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -1047,7 +1047,7 @@ exports[`host-recorded dock states > streaming_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tabs_80x24.json 1`] = `
@@ -1074,11 +1074,11 @@ exports[`host-recorded dock states > tabs_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/project… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tabs_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -1117,7 +1117,7 @@ exports[`host-recorded dock states > tabs_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                             esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tool-folded_80x24.json 1`] = `
@@ -1144,11 +1144,11 @@ exports[`host-recorded dock states > tool-folded_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tool-folded_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -1187,7 +1187,7 @@ exports[`host-recorded dock states > tool-folded_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                                        alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tool-open_80x24.json 1`] = `
@@ -1214,11 +1214,11 @@ exports[`host-recorded dock states > tool-open_80x24.json 1`] = `
 │>                                                                             │
 │ copilot · claude-sonnet-4.5 · ~/projects/radar · m… alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tool-open_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -1257,7 +1257,7 @@ exports[`host-recorded dock states > tool-open_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ copilot · claude-sonnet-4.5 · ~/projects/radar · main · 12k tokens                                        alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tools_80x24.json 1`] = `
@@ -1284,11 +1284,11 @@ exports[`host-recorded dock states > tools_80x24.json 1`] = `
 │>                                                                             │
 │ claude · claude-sonnet-4.5 · /home/dev/… esc stop · alt-f full · alt-w close │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu       gitlab github jira slack"
+ WORK ITEMS   ✕ quit   ≡ extra actions   ~ notices     gitlab github jira slack"
 `;
 
 exports[`host-recorded dock states > tools_160x40.json 1`] = `
-" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work (I)   ≣ History   ⚙ Settings (,)            ⠷ local annotations · observations only  ✎ edit
+" radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ rows ──────────────────╮╭ rows ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ nav                    ││ one                                                                                                                                │
 │                        ││ two                                                                                                                                │
@@ -1327,5 +1327,5 @@ exports[`host-recorded dock states > tools_160x40.json 1`] = `
 │                        ││>                                                                                                                                   │
 │                        ││ claude · claude-sonnet-4.5 · /home/dev/projects/radar · main · 12k tokens                      esc stop · alt-f full · alt-w close │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- WORK   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                                       gitlab github jira slack"
+ WORK ITEMS   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                                gitlab github jira slack"
 `;

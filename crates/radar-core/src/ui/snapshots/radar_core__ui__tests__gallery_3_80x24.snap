@@ -1,8 +1,9 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
- Gallery › Meters
+ Gallery / Meters
  The kit: every element on sample data                            colours: none
  Tree  Table  Card  [Meters]  Rows & states  Entries & log  Markdown  Diff  Mo…
 ╭ meters ──────────────────────────────────────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: "gallery_text(80, 24, tab)"
 │      ▄▁    ▂█▄▁   ▁▂                                                         │
 │ ▄▅▅█▆███▆▆▅██████▆███▆▅█                                                     │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

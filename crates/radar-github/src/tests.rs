@@ -493,19 +493,25 @@ mod interaction_motion {
         host.update(Event::Intent(Intent::Fold { target: repo_target.clone(), open: false }));
         assert!(host.motion_fold().is_none(), "accepted no-op must not animate");
         host.update(Event::Key(key(KeyCode::Char('-'))));
-        assert!(host.motion_fold().is_none(), "closed repository '-' cannot close its parent");
-        assert!(tree(&host).open.contains(&group));
+        let fold = host.take_motion_fold().expect("closed repository '-' closes its parent");
+        assert_eq!(fold.path, group);
+        assert!(!tree(&host).open.contains(&group));
+        assert_eq!(tree(&host).selected, group);
 
+        host.update(Event::Intent(Intent::Fold { target: TreeRow::target_of(&group), open: true }));
+        assert!(host.take_motion_fold().unwrap().after_open);
         host.update(Event::Intent(Intent::Fold { target: repo_target, open: true }));
         assert!(host.take_motion_fold().unwrap().after_open);
-        let mut pull = repo;
+        let mut pull = repo.clone();
         pull.push("pull:13".into());
         host.update(Event::Intent(Intent::Select { target: TreeRow::target_of(&pull) }));
         assert!(host.plugins[0].subject("github", Pane::Middle).unwrap().id.ends_with("/13"));
         host.update(Event::Key(key(KeyCode::Char('-'))));
-        assert!(host.motion_fold().is_none(), "PR '-' keeps legacy no-fold behavior");
-        assert_eq!(tree(&host).selected, pull);
-        assert_eq!(tree(&host).open, initial.open);
+        let fold = host.take_motion_fold().expect("PR '-' closes its repository");
+        assert_eq!(fold.path, repo);
+        assert_eq!(tree(&host).selected, repo);
+        assert!(!tree(&host).open.contains(&repo));
+        assert_eq!(tree(&host).rows, initial.rows);
     }
 }
 
@@ -1047,6 +1053,8 @@ fn repositories_can_move_between_named_groups() {
         ],
         ..Settings::default()
     });
+    settings::select_repository_row(&mut p, 2);
+    settings::key(&mut p, "repositories", chord(KeyCode::Char('m')));
     settings::on_menu(&mut p, "move:0:0", "1");
     assert!(p.cfg.groups[0].repositories.is_empty());
     assert_eq!(p.cfg.groups[1].repositories, ["acme/api"]);
@@ -1064,7 +1072,7 @@ fn move_offers_to_create_a_destination_when_no_other_group_exists() {
         }],
         ..Settings::default()
     });
-    p.repository_row = 2;
+    settings::select_repository_row(&mut p, 2);
     let Outcome::Handled(effects) =
         settings::key(&mut p, "repositories", chord(KeyCode::Char('m')))
     else {
@@ -1106,7 +1114,7 @@ fn bare_group_name_is_custom_and_can_hold_another_owners_repository() {
     assert_eq!(p.cfg.groups[1].owner, None);
     assert!(!p.discovery_loading);
 
-    p.repository_row = 2;
+    settings::select_repository_row(&mut p, 2);
     let Outcome::Handled(effects) =
         settings::key(&mut p, "repositories", chord(KeyCode::Char('m')))
     else {
@@ -1135,7 +1143,7 @@ fn renaming_an_owner_group_to_a_bare_name_removes_the_owner_restriction() {
         }],
         ..Settings::default()
     });
-    p.repository_row = 1;
+    settings::select_repository_row(&mut p, 1);
     settings::key(&mut p, "repositories", chord(KeyCode::Char('e')));
     p.editor.as_mut().unwrap().input = radar_core::input::TextInput::new("favourites");
     settings::key(&mut p, "repositories", chord(KeyCode::Enter));
@@ -1334,7 +1342,7 @@ impl Plugin for CompositionProbe {
         }
         Some(match point {
             radar_core::Point::Actions => radar_core::Contribution::Actions(vec![
-                radar_core::Action::new('v', "inspect linked context", "inspect"),
+                radar_core::Action::new('v', "view linked context", "inspect"),
                 radar_core::Action::new('y', "conflicting copy", "conflict"),
             ]),
             radar_core::Point::Line => radar_core::Contribution::Line(vec![
@@ -1397,7 +1405,7 @@ fn choose_probe_action(host: &mut radar_core::Host, choice: &str) -> Vec<HostEff
         .menu
         .items
         .iter()
-        .position(|item| item.label == "inspect linked context")
+        .position(|item| item.label == "view linked context")
         .unwrap();
     if choice == "enter" {
         host.menu.as_mut().unwrap().row = index;
@@ -1652,7 +1660,7 @@ fn contributed_popup_rejects_changed_source_same_pull_on_every_dispatch_path() {
             .menu
             .items
             .iter()
-            .position(|item| item.label == "inspect linked context")
+            .position(|item| item.label == "view linked context")
             .unwrap();
         let area = host
             .hits
@@ -2042,4 +2050,34 @@ fn actions_are_invoked_by_their_stable_ids_through_headless() {
             .any(|e| matches!(e, HostEffect::Tracked { .. })),
         "{effects:?}"
     );
+}
+
+mod notice_severity_tests {
+    use super::*;
+
+    #[test]
+    fn connection_result_selects_notice_severity_before_icon_rendering() {
+        for passed in [false, true] {
+            let mut p = GithubPlugin {
+                connection_request: 1,
+                connection_check: Some(Check::Running),
+                ..GithubPlugin::default()
+            };
+            let effects = p.receive(Answer::Connection {
+                generation: p.generation,
+                request: p.connection_request,
+                action: history::connection_action(),
+                result: if passed { Ok((None, None)) } else { Err("request refused".into()) },
+            });
+            if passed {
+                assert!(matches!(effects.last(), Some(Effect::NotifyWith(_, words))
+                    if words == "GitHub public API access works"));
+            } else {
+                assert!(matches!(effects.last(), Some(Effect::Notice(message))
+                    if message.tone == radar_core::view::chrome::NoticeTone::Error
+                        && message.icon == Some(radar_core::ui::Mark::Failed.icon())
+                        && message.text == "request refused"));
+            }
+        }
+    }
 }

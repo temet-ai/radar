@@ -1,19 +1,26 @@
+import { plainBlocks } from "../nodes/plain.js";
+import type { Block } from "../nodes/view.js";
+import { displayChord } from "../nodes/actions.js";
+import type { ChordName } from "../nodes/view.js";
 import type { ViewNode, WorkSection } from "./model.js";
 
 function textOf(t: unknown): string {
   // view::Text serialises as a list of segments {text,...}; accept a string too.
   if (typeof t === "string") return t;
   if (!Array.isArray(t)) return "";
-  return t.map((s) => (typeof s === "string" ? s : ((s as { text?: string })?.text ?? ""))).join("");
+  return t.map((s) => {
+    if (typeof s === "string") return s;
+    const seg = s as { text?: string; key_hint?: string };
+    return (seg?.text ?? "") + (seg?.key_hint ? ` [${seg.key_hint}]` : "");
+  }).join("");
 }
 
 /** The rail's actions as `key  label` lines, so a screen reader keeps the controls and their keys. */
 function railActions(data: unknown): string[] | null {
-  const list = (data as { actions?: { label?: string; key?: { key?: { char?: string } | string; mods?: unknown } }[] } | null)?.actions;
+  const list = (data as { actions?: { label?: string; key?: ChordName }[] } | null)?.actions;
   if (!Array.isArray(list)) return null;
   return list.map((a) => {
-    const k = a.key?.key;
-    const key = typeof k === "string" ? k : (k?.char ?? "");
+    const key = a.key ? displayChord(a.key) : "";
     return `${key ? `[${key}] ` : ""}${a.label ?? ""}`;
   });
 }
@@ -23,6 +30,8 @@ export function plainLines(node: ViewNode): string[] {
   switch (node.node) {
     case "state":
       return [`${String(node.state)}: ${String(node.text ?? "")}`];
+    case "rich":
+      return plainBlocks((node.blocks ?? []) as Block[]);
     case "document":
       return ((node.lines as unknown[]) ?? []).map((l) => textOf(l).replace(/^[▸▶›❯] /, "▎ ")); // GUIDE 2.12: the cursor mark, not a chevron
     case "list": {

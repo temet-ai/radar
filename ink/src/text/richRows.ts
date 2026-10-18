@@ -119,6 +119,7 @@ class Lay {
     private look: Look,
     private width: number,
     private painted: PaintRun[][][],
+    private urls = true,
   ) {}
 
   styleOf(i: Inline, role: Role): Style {
@@ -155,7 +156,7 @@ class Lay {
       const o = open as { url: string; words: string } | null;
       if (o && nextUrl !== o.url) {
         // No OSC 8 in a cell: the address after the words, where they differ.
-        if (o.words.trim() !== o.url && o.words.trim() !== "") {
+        if (this.urls && o.words.trim() !== o.url && o.words.trim() !== "") {
           out.push({ kind: "space", tag: this.look.muted }, { kind: "text", text: `(${o.url})`, tag: this.look.muted });
         }
         open = null;
@@ -413,8 +414,8 @@ class Lay {
 }
 
 /** A document laid out `width` cells wide, as ui::rich::layout lays it out (with link addresses shown). */
-export function docRows(blocks: RichBlock[], width: number, painted: PaintRun[][][] = []): Cell[][] {
-  const l = new Lay(lookNow(), Math.max(1, width), painted);
+export function docRows(blocks: RichBlock[], width: number, painted: PaintRun[][][] = [], urls = true): Cell[][] {
+  const l = new Lay(lookNow(), Math.max(1, width), painted, urls);
   l.blocks(blocks);
   return l.finish();
 }

@@ -13,13 +13,17 @@ import { shellRenderNode, type NodeCx, type RenderNode } from "./Body.js";
 import type { ActionSpec } from "./actions.js";
 import { afterIntent, desynced, screenKey, scrollKey, sectionKey, sheetKey, workingFrom } from "../input/route.js";
 import { scrollerAt, scrollers } from "../nodes/index.js";
+import { layoutNoticeHistory, NOTICE_OPEN } from "../notices/layout.js";
+import { NoticeHistoryOverlay } from "../notices/History.js";
+import { noticeHistoryEscapeTarget } from "../notices/input.js";
+import { hitAt } from "../chrome/layout.js";
 import { layoutHistory } from "../chrome/history.js";
 import { HistoryOverlay, MenuBox, SettingsNavPane, SourcesRow, StatusRow, TopBarRow, TourCardBox, frameOf, withNotice } from "../chrome/Chrome.js";
 import { useSplashPicture } from "./splashPicture.js";
 import { SetupBody } from "./SetupBody.js";
 import { InputController, menuShowing, type InputView } from "../input/controller.js";
 import { WorkArea } from "../workarea/index.js";
-import { FrameRampOwnership, Framed, PageBody, PaneArea, ScreenPanes, share, type DockSlot } from "./Panes.js";
+import { FrameRampOwnership, Framed, PageBody, PaneArea, ScreenPanes, share, paneTitle, type DockSlot } from "./Panes.js";
 import { splitDock } from "../dock/layout.js";
 import { Dock } from "../dock/Dock.js";
 import { TerminalSurface } from "../terminal/index.js";
@@ -85,6 +89,7 @@ const emptyChrome = (w: number, h: number): ChromeView => ({
   version: 1,
   width: w,
   height: h,
+  write_mode: "read_only",
   top_bar: { brand: "radar", tabs: [], mode: { text: "", ink: "plain", target: "chrome:mode" } },
   status: { scope: "" },
   keys_at: "body",
@@ -146,29 +151,33 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   const notice = state.notices[0];
   const shownChrome: ChromeView = withDragHint(withNotice(chrome, notice), dragging);
   const actions: ActionSpec[] = (snap?.section?.actions ?? snap?.screen?.actions ?? []) as ActionSpec[];
-  const baseFrame = frameOf(shownChrome, menu, size.columns, size.rows);
+  const baseFrame = frameOf(shownChrome, menu, size.columns, size.rows, session.plainText);
   // The history overlay replaces everything under the top bar (shell.rs): body, nav, menu and status line.
   const history = chrome.history ?? null;
-  const historyLaid = history ? layoutHistory(history, size.columns, Math.max(1, size.rows - 1), 1) : null;
-  const frame = historyLaid
+  const noticeHistory = chrome.notice_history ?? null;
+  const noticeHistoryLaid = noticeHistory ? layoutNoticeHistory(noticeHistory, size.columns, Math.max(0, size.rows - 2)) : null;
+  const historyLaid = history ? layoutHistory(history, size.columns, Math.max(1, size.rows - 1), 1, session.plainText) : null;
+  const frame = noticeHistoryLaid
+    ? { ...baseFrame, menu: null, hits: [...baseFrame.top.hits, ...baseFrame.status.hits, ...noticeHistoryLaid.hits] }
+    : historyLaid
     ? { ...baseFrame, menu: null, hits: [...baseFrame.top.hits, ...historyLaid.hits] }
     : baseFrame;
   // A capturing editor over the foot of the body (view_tui.rs draw_overlay).
   const overlayBody = snap?.screen?.overlay?.body;
   const editor = overlayBody?.node === "extension" && isEditorData(overlayBody.data) ? overlayBody.data : null;
-  const capturing = !!state.inputRequest || menu?.typed != null || editor !== null;
+  const capturing = !history && !noticeHistory && (!!state.inputRequest || menu?.typed != null || editor !== null);
 
   // Body hits are registered by node components while the frame renders; the controller reads
   // them live, so a click lands on what is on screen now.
   registry.clear();
-  const bodyKeys = (chrome.keys_at ?? "body") === "body" && !history;
+  const bodyKeys = (chrome.keys_at ?? "body") === "body" && !history && !noticeHistory;
   const live = useRef({ frame, menu, capturing, actions, snap, bodyKeys, registry, history: historyLaid });
   live.current = { frame, menu, capturing, actions, snap, bodyKeys, registry, history: historyLaid };
   const pending = useRef<{ base: any; working: any } | undefined>(undefined);
 
   const view: InputView = useMemo(() => {
     // The dock as drawn now, and whether it has the keys (a blur or focus sent since the snapshot counts).
-    const shown = () => dockShown(live.current.snap);
+    const shown = () => live.current.snap?.chrome?.notice_history || live.current.snap?.chrome?.history ? null : dockShown(live.current.snap);
     const dockHasKeys = () => resolveKeyOwner({ snapshot: live.current.snap, pendingDock: dockFocus.current,
       menuOpen: !!live.current.menu, editorOpen: live.current.capturing, inputRequested: !!session.state.inputRequest }).dock;
     const sendDock = (i: any) => {
@@ -181,10 +190,16 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       }
     };
     return {
+      noticeInput: (escape) => session.noticeInput(escape),
+      noticeAt: (x, y) => hitAt(session.noticeHits, x, y),
+      noticeActivate: (target) => {
+        if (target === NOTICE_OPEN) session.sendIntent({ intent: "activate", target });
+        else if (/^chrome:notice:\d+$/.test(target)) session.dismissNoticeId(Number(target.slice("chrome:notice:".length)));
+      },
       // The session's own state is read now, not the last frame: answering a question clears it at once, and
       // the keys after it in the same read are no longer the question's.
       // Under the history overlay its keys are the overlay's: a question or menu it covers waits (host.rs).
-      menu: () => (live.current.snap?.chrome?.history ? null : menuShowing(session.state.questions[0]?.menu, live.current.snap?.chrome?.menu)),
+      menu: () => ((live.current.snap?.chrome?.history || live.current.snap?.chrome?.notice_history) ? null : menuShowing(session.state.questions[0]?.menu, live.current.snap?.chrome?.menu)),
       capturing: () => live.current.capturing,
       route: (chord) => {
         // Keys that arrive together are routed one from the other, not all from the newest snapshot.
@@ -299,7 +314,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       // it (nothing behind the scrim, shell.rs); over the history in its panels; never over the splash.
       selectAt: (x, y) => {
         const l = live.current;
-        if (l.snap?.splash) return undefined;
+        if (l.snap?.splash || l.snap?.chrome?.notice_history) return undefined;
         if (l.menu) {
           const m = l.frame.menu;
           return m ? areaAt([{ ...insideOf(m), id: "menu", kind: "rows" }], x, y) : undefined;
@@ -314,7 +329,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       },
       wheel: (pane, up, x, y) => {
         // The history overlay is the host's: it takes the wheel as k/j (history.rs on_mouse).
-        if (live.current.snap?.chrome?.history) return false;
+        if (live.current.snap?.chrome?.history || live.current.snap?.chrome?.notice_history) return false;
         if (!pane) return true;
         const base = live.current.snap;
         pending.current = workingFrom(pending.current, base);
@@ -359,6 +374,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       // A menu is over the body: body rows under it are not pointable (its hits and the bars' are the frame's).
       hits: () => {
         const l = live.current;
+        if (l.snap?.chrome?.notice_history || l.snap?.chrome?.history) return l.frame.hits;
         const now = menuShowing(session.state.questions[0]?.menu, l.snap?.chrome?.menu);
         if (l.menu && !now) {
           // A question the session just answered: the frame still has its popup, but the keys and clicks that
@@ -375,6 +391,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       new InputController(
         view,
         (i) => {
+          if (i.intent === "activate" && noticeHistoryEscapeTarget(live.current.snap?.chrome, i.target)) session.noticeInput(true);
           session.sendIntent(i);
           // A click selects: the keys after it in the same read go from where it left the selection.
           if (i.intent === "select") {
@@ -439,9 +456,6 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
             if (!ev.on) controller.blur();
           }
           else {
-            // The host's rule (host.rs): a key clears the message and is handled as the same key; a notice the
-            // history overlay covers stays for when it closes.
-            if (!live.current.snap?.chrome?.history) session.dismissNotices();
             controller.keyChord(ev.chord, ev.shift);
           }
         }
@@ -456,7 +470,6 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     if (mouse) return;
     if (/^\[?<\d+;\d+;\d+[Mm]$/.test(input)) return;
     session.input();
-    if (!live.current.snap?.chrome?.history) session.dismissNotices();
     controller.key(input, key);
   }, { isActive: isRawModeSupported });
 
@@ -469,6 +482,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     onIntent: (i) => session.sendIntent(i as unknown as Intent),
     registry,
     tabsFocused: chrome.keys_at === "page_tabs",
+    paneJumps: chrome.pane_jumps,
+    writeMode: chrome.write_mode ?? "read_only",
   };
   // shell.rs: a pane draws as focused only while the body has the keys (not the bar, the sources or the page tabs).
   // While the dock has the keys no pane draws focused either: one frame says where the keys go.
@@ -534,6 +549,19 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       />
     );
   } else if (snap?.screen) body = <ScreenBody screen={snap.screen} dockLocal={dockLocal} bus={mouse} metrics={dockMetrics} menuOpen={!!menu} leave={() => session.sendIntent({ intent: "dock", dock: "blur" } as any)} cx={cx} renderNode={renderNode} focus={focusPane} width={bodyW} height={bodyH} rows={size.rows} />;
+  if (noticeHistoryLaid) {
+    return (
+      <MotionSceneContext.Provider value={motionScene}>
+      <Box ref={rootBox} flexDirection="column" width={size.columns} height={size.rows}>
+        <TopBarRow frame={frame} />
+        <Box height={Math.max(0, size.rows - 2)} width={size.columns} overflow="hidden" flexDirection="column">
+          <NoticeHistoryOverlay layout={noticeHistoryLaid} />
+        </Box>
+        <StatusRow frame={frame} />
+      </Box>
+      </MotionSceneContext.Provider>
+    );
+  }
   if (historyLaid) {
     return (
       <MotionSceneContext.Provider value={motionScene}>
@@ -561,7 +589,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
             <EditorOverlay data={editor} width={size.columns} areaHeight={bodyH} registry={registry} />
           </Box>
         ) : null}
-        {shownChrome.tour ? <TourCardBox card={shownChrome.tour} width={size.columns} height={bodyH} /> : null}
+        {shownChrome.tour ? <TourCardBox card={shownChrome.tour} width={size.columns} height={bodyH} plain={session.plainText} /> : null}
         {menu ? <MenuBox menu={menu} frame={frame} /> : null}
       </Box>
       <StatusRow frame={frame} />
@@ -595,6 +623,7 @@ function ScreenBody({ screen, dockLocal, bus, metrics, menuOpen, leave, cx, rend
         capabilities={{ columns: width, rows, plain_text: !!cx.plainText }}
         height={height}
         panels="pending"
+        paneJumps={cx.paneJumps}
         focus={focus}
         registry={cx.registry}
         renderNode={(node, c) => renderNode(unwrapWork(node), { ...cx, width: c.columns, focused: c.focused })}
@@ -609,7 +638,7 @@ function ScreenBody({ screen, dockLocal, bus, metrics, menuOpen, leave, cx, rend
 /** One framed pane of a settings section or of setup: the section's rows (`middle`) or its detail (`detail`). */
 function sectionPane(cx: NodeCx, renderNode: RenderNode, focused: boolean, title: string, node: any, w: number, h: number, pane: string) {
   return (
-    <Framed title={title} width={w} height={h} focused={focused} pane={pane} registry={cx.registry} select={selectKindOf(node)}>
+    <Framed title={paneTitle({ pane, title }, cx.paneJumps)} width={w} height={h} focused={focused} pane={pane} registry={cx.registry} select={selectKindOf(node)}>
       {renderNode(node, { ...cx, focused, scrolls: node.node === "document", sheet: pane === "detail", width: Math.max(0, w - 2), height: Math.max(1, h - 2) })}
     </Framed>
   );

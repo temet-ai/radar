@@ -4,7 +4,7 @@ assertion_line: 309
 expression: text
 ---
  radar    Repositories   Jira   Slack   Branches   History   Settings (,)                                                                synced 25s ago  ✎ edit
-╭ views ─────────────────╮╭ repositories ──────────────────────────────────────────────────────────────────────╮╭ acme/api #42 ────────────────────────────────╮
+╭ 1 views ───────────────╮╭ 2 repositories ────────────────────────────────────────────────────────────────────╮╭ 3 acme/api #42 ──────────────────────────────╮
 │ Everything     2 repos ││github.com/acme                                                            2 repos  ││  local folder    /work/source   · on main    │
 │ acme           2 repos ││  ├─ acme/api                                                              2 PRs    ││ Keep background refreshes tied to their      │
 │                        ││  │  ├─ #42  Keep background refreshes tied to their request               open     ││ request                                      │
@@ -37,9 +37,9 @@ expression: text
 │                        ││                                                                                    ││   #team · Alice Example · 16m ago · no       │
 │                        ││                                                                                    ││   replies                                    │
 │                        ││                                                                                    ││     https://github.com/acme/api/pull/42      │
-│                        ││                                                                                    ││   https://acme.slack.com/archives/C0000TEAM1 │
-│                        ││                                                                                    ││   /p1791270000000100                         │
+│                        ││                                                                                    ││     https://acme.slack.com/archives/C0000TEA │
+│                        ││                                                                                    ││   M1/p1791270000000100                       │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                                                  github jira slack
+ GITHUB   PgUp/PgDn scroll   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                                           github jira slack

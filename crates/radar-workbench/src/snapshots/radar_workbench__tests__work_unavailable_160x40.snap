@@ -1,9 +1,10 @@
 ---
 source: crates/radar-workbench/src/tests.rs
+assertion_line: 1097
 expression: text
 ---
- radar    Work (I)   History   Settings (,)                                                                       local annotations · observations only  ✎ edit
-╭ local groups ─────────╮╭ work items · page 1 ────────────────────────────────────────────────────────────────╮╭ linked sources and context ──────────────────╮
+ radar    Work items   History   Settings (,)                                                                     local annotations · observations only  ✎ edit
+╭ 1 local groups ───────╮╭ 2 work items · page 1 ──────────────────────────────────────────────────────────────╮╭ 3 linked sources and context ────────────────╮
 │ Groups not loaded     ││ Local activity storage is unavailable. Check state-directory access, restart, then  ││ No source binding in this evidence page. Add │
 │ All items             ││ refresh.                                                                            ││ an exact source from its actions menu; no    │
 │                       ││                                                                                     ││ links are inferred.                          │
@@ -41,4 +42,4 @@ expression: text
 │                       ││                                                                                     ││                                              │
 │ Groups · page 1       ││                                                                                     ││                                              │
 ╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate
+ WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate

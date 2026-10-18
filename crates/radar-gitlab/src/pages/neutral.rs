@@ -1698,7 +1698,11 @@ pub(crate) fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Ou
             if *open {
                 page.tree.borrow_mut().open(path);
             } else {
-                page.tree.borrow_mut().close(&path);
+                let mut tree = page.tree.borrow_mut();
+                tree.close(&path);
+                if tree.selected().len() > path.len() && tree.selected().starts_with(&path) {
+                    tree.select(path);
+                }
             }
             Outcome::done()
         }

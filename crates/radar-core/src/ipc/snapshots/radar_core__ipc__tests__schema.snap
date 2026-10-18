@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/ipc/tests.rs
+assertion_line: 174
 expression: lines.concat()
 ---
 {"type":"hello","protocol":1,"view":1,"capabilities":{"columns":80,"rows":24,"mouse":true,"true_colour":true,"image":"kitty","plain_text":false}}
@@ -12,8 +13,8 @@ expression: lines.concat()
 {"type":"welcome","protocol":1,"view":1,"cursor":1}
 {"type":"refuse","wanted":1,"got":9,"message":"radar speaks protocol 1, this renderer 9"}
 {"type":"look","tier":"truecolor","slots":{"bg.selection":"#44475a","text.emphasis":"#ffffff"},"modifiers":{"text.emphasis":"bold"},"icons":{"run_failed":{"glyph":"✗","style":"status.error"}},"icon_width":1,"pack":"unicode"}
-{"type":"snapshot","cursor":2,"chrome":{"version":1,"width":80,"height":24,"top_bar":{"brand":"","tabs":[],"mode":{"text":"","ink":"plain","target":""}},"status":{"scope":""},"keys_at":"body"},"screen":{"version":1,"scope":"branch-screen","panes":[]},"section":{"version":1,"scope":"look","body":{"node":"document","lines":[[{"text":"theme"}]]},"detail_title":"","detail":[]},"focus":"middle","motion":{"level":"off","timings":{"screen":100,"page":300,"popup":180,"message":250,"message_gone":200,"glow":450,"added":320,"shimmer":1400,"frame":30},"slots":{"base":"bg.base","surface":"bg.surface","overlay":"bg.overlay","glow":"accent.primary","text":"text.primary"}}}
-{"type":"question","id":1,"cursor":3,"menu":{"id":"confirm","title":"delete the branch spike?","question":true,"items":[{"value":"yes","label":"yes","hint":"","key":"y","keys":"y","target":"chrome:menu:0"}],"selected":0}}
+{"type":"snapshot","cursor":2,"chrome":{"version":1,"width":80,"height":24,"top_bar":{"brand":"","tabs":[],"mode":{"text":"","ink":"plain","target":""}},"status":{"scope":""},"keys_at":"body","write_mode":"read_only"},"screen":{"version":1,"scope":"branch-screen","panes":[]},"section":{"version":1,"scope":"look","body":{"node":"document","lines":[[{"text":"theme"}]]},"detail_title":"","detail":[]},"focus":"middle","motion":{"level":"off","timings":{"screen":100,"page":300,"popup":180,"message":250,"message_gone":200,"glow":450,"added":320,"shimmer":1400,"frame":30},"slots":{"base":"bg.base","surface":"bg.surface","overlay":"bg.overlay","glow":"accent.primary","text":"text.primary"}}}
+{"type":"question","id":1,"cursor":3,"menu":{"id":"confirm","title":"delete the branch spike?","question":true,"items":[{"mnemonic_at":0,"value":"yes","label":"yes","hint":"","key":"y","keys":"y","target":"chrome:menu:0"}],"selected":0}}
 {"type":"input_request","id":2,"cursor":4,"title":"filter","value":"ab"}
 {"type":"notice","cursor":5,"text":"copied 4 characters"}
 {"type":"clipboard","text":"spike"}

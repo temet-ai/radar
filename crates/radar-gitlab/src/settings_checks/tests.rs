@@ -98,7 +98,7 @@ fn skip(fx: &[Effect], pending: &Pending, outcome: JournalOutcome) {
     );
     assert!(!fx.iter().any(|effect| matches!(
         effect,
-        Effect::Notify(_)
+        Effect::Notify(_) | Effect::NotifyWith(_, _) | Effect::Notice(_)
             | Effect::Spawn(_)
             | Effect::SpawnAction { .. }
             | Effect::PersistCache

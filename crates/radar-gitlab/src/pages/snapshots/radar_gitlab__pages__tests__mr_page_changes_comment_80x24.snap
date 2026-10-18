@@ -1,12 +1,13 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
+assertion_line: 1067
 expression: "hosted(p, 80, 24)"
 ---
  radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
- Repositories › a › api › !263
+ Repositories / a / api / !263
  ABC-12: Add a stats endpoint for the dashboard  alice · feature/ABC-263 → main
  Overview  [Changes]  Threads ●  Pipeline  Commits
-╭ 1 of 5 · src/main/java/acme/stats/StatsController.java · new file ───────────╮
+╭ 1 1 of 5 · src/main/java/acme/stats/StatsController.java · new file ─────────╮
 │   13 +     @GetMapping("/user/{userId}")                                     ║
 │   14 +     public UserStats userStats(                                       ║
 │   15 +             @PathVariable UUID userId,                                ║

@@ -4,7 +4,7 @@ assertion_line: 107
 expression: text
 ---
  radar    Repositories   History   Settings (,)                          ✎ edit
-╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ────────────────────────────────────────╮
 │General               ││  SIGN IN  how radar reads GitHub                     █
 │  ├─ parts            ││  [ ] public only     public repositories, no token   █
 │  ├─ mode             ││  [ ] gh's sign-in    asks gh for its token           █
@@ -15,7 +15,7 @@ expression: text
 │  ├─ connection       ││  check           not checked yet                     ║
 │  └─ repositories     ││  refresh         once on start, then on request      ║
 │                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ public only ─────────────────────────────────────────╮
+│                      │╭ 3 public only ───────────────────────────────────────╮
 │                      ││ NOW                                                  █
 │                      ││ env:GITHUB_TOKEN                                     █
 │                      ││                                                      █
@@ -26,4 +26,4 @@ expression: text
 │                      ││                                                      ║
 │                      ││ config: [github] token                               ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate           github
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                 github

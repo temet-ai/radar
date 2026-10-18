@@ -1,12 +1,13 @@
 ---
 source: crates/radar-github/src/actions_tests.rs
+assertion_line: 363
 expression: text
 ---
  radar    R   History   Settings (,)            Actions read incomplete  ✎ edit
- GitHub › acme/api
+ GitHub / acme/api
  acme/api
  Overview  Pull requests  [Actions]
-╭ Actions ─────────────────────────────────────────────────────────────────────╮
+╭ 1 Actions ───────────────────────────────────────────────────────────────────╮
 │ GitHub request failed or timed out                                           │
 │ Recent workflow runs · read-only · a run is not overall repository health.   │
 │ failure  Build and test #88 · attempt 2 · push · main · Keep responses with  │
@@ -25,4 +26,4 @@ expression: text
 │                                                                              │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- GITHUB   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             github
+ GITHUB   PgUp/PgDn scroll   quit   extra actions   ~ notices            github

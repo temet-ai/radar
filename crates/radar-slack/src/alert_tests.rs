@@ -237,7 +237,7 @@ fn enter_opens_the_alerts_thread_o_its_console_link_and_y_copies_it() {
     on_alerts(&mut host);
     press(&mut host, KeyCode::Enter);
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("Slack › #team-alerts › alertbot: bot message") && text.contains("looking at it"), "{text}");
+    assert!(text.contains("Slack / #team-alerts / alertbot: bot message") && text.contains("looking at it"), "{text}");
     press(&mut host, KeyCode::Esc);
     assert!(to_text(&host, 160, 40).contains("api-HighErrorRate"), "back on the alerts");
 }

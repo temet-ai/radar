@@ -1065,6 +1065,34 @@ impl Plugin for GitlabPlugin {
         }
         Some(self.pages.last()?.kind.identity())
     }
+    fn detail_identity(&self, scope: &str, pane: Pane) -> Option<radar_core::plugin::DetailIdentity> {
+        if scope != SCREEN.id || pane != Pane::Detail || !self.pages.is_empty() {
+            return None;
+        }
+        let items = self.visible();
+        let item = screen::selected_mr(self, &items)?;
+        let mr = item.mr;
+        let group = self.cfg.group_path(item.tenant);
+        let usable_path = |path: &str| config::group_path_problem(path).is_none()
+            && !path.split('/').any(|part| matches!(part, "." | ".."));
+        if mr.iid == 0 || !usable_path(&mr.project_path) || !usable_path(&group) {
+            return None;
+        }
+        Some(radar_core::plugin::DetailIdentity {
+            connection: self.connection_stamp().generation(),
+            subject: vec![
+                group,
+                mr.project_path.clone(),
+                mr.iid.to_string(),
+                mr.web_url.clone(),
+                mr.pipeline_url.clone().unwrap_or_default(),
+                mr.source_branch.clone(),
+                mr.target_branch.clone(),
+                mr.head_sha.clone(),
+                self.me.clone(),
+            ],
+        })
+    }
     fn subject(&self, _: &str, pane: Pane) -> Option<radar_core::Subject> {
         join::subject(self, pane)
     }
@@ -1190,12 +1218,12 @@ impl Plugin for GitlabPlugin {
                     Err(error) => Check::Failed(error.message),
                 };
                 let say = match &check {
-                    Check::Passed(m) => radar_core::writes::done_line(m),
-                    Check::Failed(e) => radar_core::writes::failed_line(e),
-                    Check::Running => String::new(),
+                    Check::Passed(m) => Effect::Notify(radar_core::writes::done_line(m)),
+                    Check::Failed(e) => Effect::error(None, radar_core::writes::failed_line(e)),
+                    Check::Running => Effect::Notify(String::new()),
                 };
                 self.checks.insert(target.key(), (check, self.now));
-                effects.push(Effect::Notify(say));
+                effects.push(say);
                 return effects;
             }
             GlMsg::MrPage {
@@ -2385,25 +2413,55 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn mr_actions_menu_has_no_group_fold_actions() {
+    fn mr_actions_menu_folds_its_parent_without_expanding_or_acting_on_the_mr() {
         use radar_core::host::Event;
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Node, PaneId};
 
+        let press = |host: &mut radar_core::Host, code| {
+            let _ = radar_core::shell::to_text(host, 160, 40);
+            host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+        };
+        let tree = |host: &radar_core::Host| {
+            let view = host.screen_view(0, SCREEN.id).expect("repositories screen");
+            let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("repositories pane").body else {
+                panic!("repositories tree")
+            };
+            tree.clone()
+        };
         let mut host = hosted();
-        let _ = radar_core::shell::to_text(&host, 160, 40);
         for _ in 0..5 {
-            host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+            press(&mut host, KeyCode::Down);
         }
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('x'),
-            KeyModifiers::NONE,
-        )));
+        let before = tree(&host);
+        assert_eq!(before.selected.len(), 3, "a merge request under its repo and tenancy");
+        assert!(before.row(&before.selected).unwrap().children.is_empty(), "an MR is a leaf");
+        let subject = host.plugins[0].subject(SCREEN.id, Pane::Middle).expect("selected MR");
+        assert!(subject.is("merge-request"));
+
+        press(&mut host, KeyCode::Char('x'));
         let menu = &host.menu.as_ref().expect("MR actions menu").menu;
-        assert!(
-            menu.items
-                .iter()
-                .all(|item| item.key != Some('+') && item.key != Some('-'))
-        );
+        for key in ['+', '-', '='] {
+            assert_eq!(menu.items.iter().filter(|item| item.key == Some(key)).count(), 1,
+                "the shared tree action {key} appears once");
+        }
+        // The shared keys apply to this tree, but '+' must not invent MR children
+        // or silently retarget the operation to its parent.
+        assert!(press(&mut host, KeyCode::Char('+')).is_empty());
+        assert!(host.menu.is_none());
+        assert_eq!(tree(&host), before);
+        assert_eq!(host.plugins[0].subject(SCREEN.id, Pane::Middle), Some(subject));
+        assert_eq!(host.plugins[0].depth(SCREEN.id), 0, "no MR page was opened");
+
+        press(&mut host, KeyCode::Char('x'));
+        assert!(press(&mut host, KeyCode::Char('-')).is_empty(), "folding sends no write or request");
+        assert!(host.menu.is_none());
+        let after = tree(&host);
+        let parent = before.selected[..2].to_vec();
+        assert_eq!(after.selected, parent);
+        assert!(!after.open.contains(&parent));
+        assert_eq!(after.rows, before.rows, "the held rows and their action targets are unchanged");
+        assert_eq!(host.plugins[0].depth(SCREEN.id), 0);
     }
 
     fn section(host: &mut radar_core::Host, name: &str) {
@@ -2538,9 +2596,10 @@ pub(crate) mod tests {
         let radar_core::view::Node::Tree(tree) = &tenancies.body else { panic!("tenancies is a tree") };
         assert_eq!(tree.rows[0].id, "add");
         assert!(tree.rows.iter().any(|row| !row.children.is_empty()));
+        assert_eq!(tree.look.as_ref().unwrap().heading, "bg.overlay");
         let source = p.cfg.sources[0].group.clone();
         settings::tenancies_intent(&mut p, &radar_core::view::Intent::Fold {
-            target: radar_core::view::TreeRow::target_of(&["t0".into()]), open: false,
+            target: radar_core::view::TreeRow::target_of(&[tree.rows[1].id.clone()]), open: false,
         });
         assert!(p.folded.contains(&source));
     }

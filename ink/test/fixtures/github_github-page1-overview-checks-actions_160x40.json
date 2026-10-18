@@ -19,7 +19,8 @@
           "char": "o"
         }
       },
-      "label": "open on GitHub"
+      "label": "open on GitHub",
+      "mnemonic_at": 0
     },
     {
       "id": "github.page.copy_link",
@@ -28,7 +29,8 @@
           "char": "y"
         }
       },
-      "label": "copy the link"
+      "label": "copy the link",
+      "mnemonic_at": 3
     },
     {
       "id": "github.page.refresh",
@@ -37,7 +39,8 @@
           "char": "r"
         }
       },
-      "label": "refresh this page"
+      "label": "refresh this page",
+      "mnemonic_at": 0
     },
     {
       "id": "github.page.previous_tab",

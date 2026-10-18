@@ -12,7 +12,8 @@
           "char": "o"
         }
       },
-      "label": "open on GitHub"
+      "label": "open on GitHub",
+      "mnemonic_at": 0
     },
     {
       "id": "github.actions.copy_link",
@@ -21,7 +22,8 @@
           "char": "y"
         }
       },
-      "label": "copy the link"
+      "label": "copy the link",
+      "mnemonic_at": 3
     },
     {
       "id": "github.actions.choose_attempt",
@@ -30,7 +32,8 @@
           "char": "a"
         }
       },
-      "label": "choose an observed run attempt…"
+      "label": "choose an observed run attempt…",
+      "mnemonic_at": 7
     },
     {
       "id": "github.actions.refresh",
@@ -39,7 +42,8 @@
           "char": "r"
         }
       },
-      "label": "refresh these Actions"
+      "label": "refresh these Actions",
+      "mnemonic_at": 0
     },
     {
       "id": "github.actions.previous_tab",

@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1000
+assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Entries & log
+ Gallery / Entries & log
  The kit: every element on sample data                                                                                                            colours: none
- Tree  Table  Card  Meters  Rows & states  [Entries & log]  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons
+ Tree  Table  Card  Meters  Rows & states  [Entries & log]  Markdown  Diff  Motion  Colours  Tones  Row states  Grid states  Waiting  Long text  Icons  Notices
 ╭ why the sort stopped ────────────────────────────────────────────────╮╭ log · /label 19 of 19 ───────────────────────────────────────────────────────────────╮
 │ WHY IT STOPPED                                                       ││ Starting the sort                                                                    │
 │ ✗ label     2m 04s · ran out of labels                               ││ ─ Getting the boxes · 4s ⋯ 3 lines                                                   │
@@ -42,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 │                                                                      ││                                                                                      │
 │                                                                      ││                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────────────────────╯
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

@@ -47,12 +47,16 @@ pub fn stages(stages: &[Stage], width: u16) -> Vec<Line<'static>> {
     let (mut bars, mut names) = (Vec::new(), Vec::new());
     for (s, c) in stages.iter().zip(cells.iter()) {
         let w = c.width as usize;
-        let name: String = format!("{} {}", s.mark.symbol(), s.name)
-            .chars()
-            .take(w)
-            .collect();
+        let name = Line::styled(format!("{} {}", s.mark.symbol(), s.name), s.style);
+        let mut used = 0;
+        for grapheme in name.styled_graphemes(Style::default()) {
+            let cells = super::width(grapheme.symbol);
+            if used + cells > w { break; }
+            names.push(Span::styled(grapheme.symbol.to_owned(), grapheme.style));
+            used += cells;
+        }
         bars.push(Span::styled("▀".repeat(w), s.style));
-        names.push(Span::styled(format!("{name:<w$}"), s.style));
+        names.push(Span::styled(" ".repeat(w.saturating_sub(used)), s.style));
         bars.push(Span::raw(" "));
         names.push(Span::raw(" "));
     }
@@ -96,4 +100,24 @@ pub fn spark(theme: &Theme, data: &[u64], width: u16, tone: Tone) -> Span<'stati
         .collect::<String>()
         .replace(' ', symbols::bar::ONE_EIGHTH);
     Span::styled(text, widgets::tone(theme, tone))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::widgets::{Paragraph, Wrap};
+
+    #[test]
+    fn stage_labels_clip_and_pad_display_cells_without_extra_wrapped_rows() {
+        for (name, width, expected) in [("界", 3, "✓"), ("e\u{301}", 3, "✓ e\u{301}"), ("界", 4, "✓ 界"), ("👩‍💻", 3, "✓"), ("👩‍💻", 4, "✓ 👩‍💻"), ("lantern", 5, "✓ lan")] {
+            let rows = stages(&[Stage::new(name, Mark::Done, Style::default())], width);
+            let paragraph = Paragraph::new(rows).wrap(Wrap { trim: false });
+            assert_eq!(paragraph.line_count(width), 2, "{name:?}, width {width}");
+            let mut buffer = Buffer::empty(Rect::new(0, 0, width, 3));
+            paragraph.render(buffer.area, &mut buffer);
+            let text = crate::shell::row_text(&buffer, 1);
+            assert_eq!(text, expected);
+            assert!(crate::shell::row_text(&buffer, 2).trim().is_empty());
+        }
+    }
 }

@@ -38,6 +38,99 @@ pub enum KeysAt {
     PageTabs,
 }
 
+/// The producer chooses tone explicitly; words and icon packs never decide it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum NoticeTone {
+    #[default]
+    Info,
+    Error,
+}
+
+/// One bounded occurrence. Identical words have distinct IDs.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct NoticeView {
+    #[ts(type = "number")]
+    pub id: u64,
+    pub tone: NoticeTone,
+    #[serde(default, skip_serializing_if = "Option::is_none", with = "icon_name")]
+    #[ts(as = "Option<String>")]
+    pub icon: Option<Icon>,
+    pub text: String,
+    #[ts(type = "number")]
+    pub created_ms: u64,
+    #[ts(type = "number")]
+    pub lifetime_ms: u64,
+}
+
+/// Authoritative session state, bounded independently of snapshot backpressure.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
+pub struct NoticeStateView {
+    #[ts(type = "number")]
+    pub now_ms: u64,
+    #[ts(type = "number")]
+    pub revision: u64,
+    #[ts(type = "number")]
+    pub through_id: u64,
+    pub active: Vec<NoticeView>,
+    // Older still-active occurrences outside the four-notice stack.
+    #[ts(type = "number")]
+    pub hidden: u64,
+}
+
+impl NoticeStateView {
+    pub fn is_empty(&self) -> bool { self.through_id == 0 }
+}
+
+/// Selection is an index into session history, newest first.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
+pub struct NoticeHistoryView {
+    // Oldest first, at most 256 bounded summaries. Historical occurrences never act.
+    pub entries: Vec<NoticeView>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<NoticeView>,
+    #[ts(type = "number")]
+    pub omitted: u64,
+    pub selected: usize,
+    pub scroll: usize,
+    pub detail_scroll: usize,
+}
+
+/// Typed display metadata for write-kind muting; final owner checks remain authoritative.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+pub enum WriteMode {
+    #[default]
+    ReadOnly,
+    Write,
+    Edit,
+}
+
+impl From<crate::writes::Mode> for WriteMode {
+    fn from(mode: crate::writes::Mode) -> Self {
+        match mode {
+            crate::writes::Mode::ReadOnly => Self::ReadOnly,
+            crate::writes::Mode::Write => Self::Write,
+            crate::writes::Mode::Edit => Self::Edit,
+        }
+    }
+}
+
+/// A digit that the active surface actually routes to a logical pane.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct PaneJump {
+    pub pane: super::PaneId,
+    pub key: char,
+}
+
+/// Prefix a frame title only when the host advertises a real jump.
+pub fn pane_title(jumps: &[PaneJump], pane: super::PaneId, title: &str) -> String {
+    match jumps.iter().find(|jump| jump.pane == pane) {
+        Some(jump) => format!("{} {title}", jump.key),
+        None => title.to_owned(),
+    }
+}
+
 /// The host's chrome for one frame.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct ChromeView {
@@ -75,6 +168,16 @@ pub struct ChromeView {
     /// The tour's card, while the tour shows.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tour: Option<TourCard>,
+    #[serde(default, skip_serializing_if = "NoticeStateView::is_empty")]
+    pub notices: NoticeStateView,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notice_history: Option<NoticeHistoryView>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub notices_visible: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pane_jumps: Vec<PaneJump>,
+    #[serde(default)]
+    pub write_mode: WriteMode,
 }
 
 impl ChromeView {
@@ -85,6 +188,8 @@ impl ChromeView {
             width,
             height,
             top_bar: TopBar::default(),
+            pane_jumps: vec![],
+            write_mode: WriteMode::default(),
             sources: vec![],
             status: StatusLine::default(),
             menu: None,
@@ -94,6 +199,9 @@ impl ChromeView {
             screen_keys: vec![],
             setup: None,
             tour: None,
+            notices: NoticeStateView::default(),
+            notice_history: None,
+            notices_visible: false,
         }
     }
 }
@@ -184,7 +292,7 @@ pub struct SourceTab {
     pub target: Target,
 }
 
-/// ` BOOKS   PgUp/PgDn scroll   q quit   x menu          11 open · 3 need you `
+/// ` BOOKS   PgUp/PgDn scroll   quit   extra actions     11 open · 3 need you `
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
 pub struct StatusLine {
     /// The chip at its left: the screen's name (`BOOKS`, `SETTINGS`).
@@ -286,9 +394,17 @@ pub enum HealthState {
     Waiting,
 }
 
-/// One key on the status line: `x ≡ menu`, `PgUp/PgDn scroll`.
+/// One status action: a mnemonic inside `extra actions`, or a named/glyph
+/// prefix such as `PgUp/PgDn scroll`. Plain readers retain the original keys.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct Hint {
+    /// Zero-based Unicode scalar position in label. Underline the complete
+    /// containing grapheme; never search for a letter in the renderer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mnemonic_at: Option<usize>,
+    /// Show the named Shift modifier before a valid keyed word.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub mnemonic_shift: bool,
     /// The key labels as written (`PgUp/PgDn`, `←→↑↓`, `x`).
     pub keys: String,
     /// What they do (`scroll`, `expand/collapse`).
@@ -440,12 +556,22 @@ pub struct CellAt {
 /// One row of a menu, or one button of a question.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct Choice {
+    /// Zero-based Unicode scalar position in the effective action words: nonempty hint
+    /// for question buttons, otherwise label (including ordinary/palette rows). Underline the complete
+    /// containing grapheme; never search for a letter in the renderer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mnemonic_at: Option<usize>,
+    /// Show the named Shift modifier before a valid keyed word.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub mnemonic_shift: bool,
     pub value: String,
     pub label: String,
     pub hint: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub key: Option<char>,
-    /// What its key column shows (`d`, `space`, `⏎`); empty on a heading.
+    /// The original displayed shortcut (`d`, `space`, `⏎`); empty on a heading.
+    /// Valid letter mnemonics use the action words without a separate key
+    /// column. Named keys, legacy metadata and plain readers retain this label.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub keys: String,
     #[serde(default, skip_serializing_if = "Option::is_none", with = "icon_name")]

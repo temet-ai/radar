@@ -1,6 +1,6 @@
 ---
 source: crates/radar-core/src/setup/tests.rs
-assertion_line: 615
+assertion_line: 617
 expression: "screen(&host, 80, 24)"
 ---
  radar  setup / ready                                               ◉ read only
@@ -26,4 +26,4 @@ expression: "screen(&host, 80, 24)"
                                                                              █
     A QUICK TOUR?                                                            █
     ● yes, show me around                                                    ║
- SETUP   ⏎ yes, a tour   ↑↓ move   ← back   y copy   PgUp/PgDn scroll
+ SETUP   ⏎ yes, a tour   ↑↓ move   ← back   copy   PgUp/PgDn scroll

@@ -9,7 +9,7 @@
 use serde::{Deserialize, Serialize};
 
 mod explore;
-pub use explore::{Capture, CaptureKind, Offered, PageKind, PageReach, capture_of, node_targets, offered, view_problems};
+pub use explore::{Capture, CaptureKind, Offered, PageKind, PageReach, capture_of, foot_controls, node_targets, offered, view_problems};
 
 use crate::host::{Event, Host, HostEffect, JournalRecord, Owner};
 use crate::view::{Change, Intent, PaneId, ScreenView, SectionView};
@@ -131,6 +131,12 @@ impl Headless {
     /// still drawn the legacy way, or off the screens.
     pub fn screen(&self) -> Option<ScreenView> {
         crate::view::screen_showing(&self.host, self.width, self.height)
+    }
+
+    /// The displayed screen with admitted single-press foot controls. Raw `screen`
+    /// remains the deterministic source for ordinary fixture and page enumeration.
+    pub fn displayed_screen(&self) -> Option<ScreenView> {
+        self.host.displayed_screen(self.width, self.height)
     }
 
     /// The settings section showing, as its part describes it.

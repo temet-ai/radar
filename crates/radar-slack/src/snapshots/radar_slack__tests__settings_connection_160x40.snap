@@ -4,7 +4,7 @@ assertion_line: 587
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ workspace ─────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 workspace ───────────────────────────────────────╮
 │General               ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
 │  ├─ parts            ││  api             https://slack.com                                             ││ not checked yet                                    │
 │  ├─ mode             ││  token           xoxp…ests (typed in)                                          ││                                                    │
@@ -17,16 +17,15 @@ expression: "to_text(&host, 160, 40)"
 │  ├─ review           ││                ├─ for you                                               has it ││ MAKE A USER TOKEN  about two minutes, once ─────── │
 │  ├─ alerts           ││                ├─ names                                                 has it ││   1 Open Slack's new-app page, radar's manifest    │
 │  └─ look             ││                ├─ user groups                                           has it ││   filled in:                                       │
-│                      ││                ├─ asking and replying                                   has it ││   api.slack.com / new app   o opens · m copies the │
-│                      ││                ├─ reacting        needs reactions:write                missing ││   manifest                                         │
-│                      ││                └─ pictures                                              has it ││     user scopes only: 10                           │
-│                      ││                                                                                ││   2 Pick your workspace, Next, Create.             │
-│                      ││  CHANNELS  the registry; watched ones are read                                 ││   3 Install to Workspace, then Allow.              │
-│                      ││  + add a channel   paste its link, a message link, or its id                   ││   4 OAuth & Permissions shows the User OAuth       │
-│                      ││    #team   team · watched                                                      ││   Token, xoxp-…: paste it into token, or:          │
-│                      ││    #svc   service · watched                                                    ││   $ export SLACK_TOKEN=xoxp-…                      │
-│                      ││    #try   test · not watched                                                   ││     then the token is env:SLACK_TOKEN              │
-│                      ││                                                                                ││   api.slack.com / your apps                        │
+│                      ││                ├─ asking and replying                                   has it ││   api.slack.com / new app   open · copy manifest   │
+│                      ││                ├─ reacting        needs reactions:write                missing ││     user scopes only: 10                           │
+│                      ││                └─ pictures                                              has it ││   2 Pick your workspace, Next, Create.             │
+│                      ││                                                                                ││   3 Install to Workspace, then Allow.              │
+│                      ││  CHANNELS  the registry; watched ones are read                                 ││   4 OAuth & Permissions shows the User OAuth       │
+│                      ││  + add a channel   paste its link, a message link, or its id                   ││   Token, xoxp-…: paste it into token, or:          │
+│                      ││    #team   team · watched                                                      ││   $ export SLACK_TOKEN=xoxp-…                      │
+│                      ││    #svc   service · watched                                                    ││     then the token is env:SLACK_TOKEN              │
+│                      ││    #try   test · not watched                                                   ││   api.slack.com / your apps                        │
 │                      ││                                                                                ││ NEEDS AN ADMIN? ────────────────────────────────── │
 │                      ││                                                                                ││   If Slack says Request to Install, your admin     │
 │                      ││                                                                                ││   approves it first.                               │
@@ -41,5 +40,6 @@ expression: "to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   b bulk   q quit   x menu   ←→↑↓ navigate                                                                                                      slack
+ SETTINGS   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                       slack

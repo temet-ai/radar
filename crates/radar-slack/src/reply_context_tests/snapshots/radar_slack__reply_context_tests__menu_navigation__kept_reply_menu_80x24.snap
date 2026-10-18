@@ -1,23 +1,24 @@
 ---
 source: crates/radar-slack/src/reply_context_tests/menu_navigation.rs
+assertion_line: 305
 expression: screen
 ---
  radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
-╭ For you ─────────────────────────────────────────────────────────────────────╮
+╭ 2 For you ───────────────────────────────────────────────────────────────────╮
 │ last 7 days                                              REPLIES  WHEN       │
 │mentions you                                                                  │
 │  └─ ● #team Bob B.  @Alice Example could you take this o          1d         │
 │direct messages                                                               │
 │  └─ ● #D0000CAROL Carol C.  hi @Alice Example, quick que          1h         │
 │threads you are in                                                            │
-╭ kept replies · this session ─────────────────────────────────────────────────╮
-│    T000ACME1 · C0000TEAM1 / 1791200000.000100                                │
-│    not sent                                                                  │
-│ y  copy current draft                                                        │
-│    leave the composer unchanged                                              │
-│ s  keep current draft                                                        │
-│    retain the open composer here                                             │
-╰──────────────────────────────────────────────────────────────────────────────╯
+│  ├─ ● #team Carol C.  Anyone seen ABC-12 failing on  ⋯ 1 1        1d         │
+╭ kept replies · this session ────────────────────────────────────────────────╮│
+│  T000ACME1 · C0000TEAM1 / 1791200000.000100   not sent                      ││
+│  copy current draft                           leave the composer unchanged  ││
+│  stay with current draft                      retain the open composer here ││
+╰─────────────────────────────────────────────────────────────────────────────╯│
+│                                                                              │
+│                                                                              │
 │                                                                              │
 │                                                                              │
 ╭ ✎ reply in #team, in the thread ─────────────────────────────────────────────╮
@@ -25,4 +26,4 @@ expression: screen
 │ Including trailing spaces.                                                   │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   j/k move   ⏎ choose   esc close               7 new · 4 for you  slack
+ SLACK   ↑↓ move   ⏎ choose   esc close                7 new · 4 for you  slack

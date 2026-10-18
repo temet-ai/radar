@@ -1,12 +1,13 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
+assertion_line: 223
 expression: "hosted(mr_page(), 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
- Repositories › a › api › !263
+ Repositories / a / api / !263
  ABC-12: Add a stats endpoint for the dashboard                                                                                  alice · feature/ABC-263 → main
  [Overview]  Changes  Threads ●  Pipeline  Commits
-╭ overview ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ can it merge? ───────────────────╮
+╭ 1 overview ──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ can it merge? ───────────────────╮
 │ LABELS  #backend                                                                                                         ││ ◷ needs 1 approval               │
 │                                                                                                                          ││ ✓ pipeline passed                │
 │ Closes ABC-12                                                                                                            ││ ✓ no conflicts, up to date       │
@@ -41,4 +42,4 @@ expression: "hosted(mr_page(), 160, 40)"
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate                                                       4 open · 1 to review · 1 ready  gitlab
+ REPOSITORIES   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                      4 open · 1 to review · 1 ready  gitlab

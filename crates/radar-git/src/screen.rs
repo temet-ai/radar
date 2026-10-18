@@ -735,7 +735,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: BranchMsg) -> Vec<Effect> {
             p.branches.incomplete.insert(dir);
             vec![
                 Effect::Report(JournalOutcome::Unknown),
-                Effect::Notify(radar_core::writes::failed_line(&why)),
+                Effect::error(None, radar_core::writes::failed_line(&why)),
             ]
         }
         BranchMsg::Done { said, reread } => {
@@ -765,7 +765,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: BranchMsg) -> Vec<Effect> {
 fn finished(p: &mut GitPlugin, said: Result<String, String>, reread: Vec<String>) -> Vec<Effect> {
     let mut fx = vec![match said {
         Ok(said) => Effect::Notify(said),
-        Err(why) => Effect::Notify(radar_core::writes::failed_line(&why)),
+        Err(why) => Effect::error(None, radar_core::writes::failed_line(&why)),
     }];
     for dir in reread {
         p.branches.changing.remove(&dir);
@@ -1612,7 +1612,7 @@ pub fn intent(p: &mut GitPlugin, pane: Pane, intent: &Intent) -> Outcome {
             handled(use_it(p))
         }
         // The host turns a chosen cell into a selection and a show.
-        Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } => Outcome::Ignored,
+        Intent::Show { .. } | Intent::End { .. } | Intent::EditSelect { .. } | Intent::EditUnselect | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } | Intent::OpenAll => Outcome::Ignored,
         Intent::Invoke { .. } | Intent::Key { .. } => match intent.chord().map(|c| c.key) {
             Some(Key::Char('r')) => Outcome::Handled(refresh_now(p)),
             Some(Key::Char('d')) => Outcome::Handled(delete(p)),
@@ -2133,9 +2133,11 @@ mod tests {
         host.plugins[0] = Box::new(p);
         host.view = HostView::Screen(0);
         let text = radar_core::shell::to_text(&host, 80, 24);
-        for line in text.lines().filter(|l| l.contains("banking-")) {
-            assert!(line.contains('…'), "cut bare: {line}");
-        }
+        let line = text.lines().find(|line| line.contains("banking-"))
+            .expect("the long-name checkout is visible");
+        let (_, columns) = line.rsplit_once('…').unwrap_or_else(|| panic!("cut bare: {line}"));
+        assert!(columns.starts_with(' '), "a cell separates the clipped name/chip from the columns: {line}");
+        assert!(columns.trim_start().starts_with('—'), "the first data column is preserved: {line}");
         insta::assert_snapshot!(text);
     }
 
@@ -2415,7 +2417,7 @@ mod tests {
             },
         );
         assert!(
-            matches!(&fx[..], [Effect::Report(JournalOutcome::Unknown), Effect::Notify(m)] if m.ends_with("branch is checked out") && m.contains('✗')),
+            matches!(&fx[..], [Effect::Report(JournalOutcome::Unknown), Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.ends_with("branch is checked out") && m.contains('✗')),
             "{fx:?}"
         );
     }
@@ -3022,7 +3024,7 @@ mod tests {
         let fx = on_msg(&mut p, msg);
         assert!(matches!(
             &fx[..],
-            [Effect::Report(JournalOutcome::Unknown), Effect::Notify(_)]
+            [Effect::Report(JournalOutcome::Unknown), Effect::Notice(message)] if message.tone == radar_core::view::chrome::NoticeTone::Error
         ));
         assert!(!p.branches.loading.contains("/work/acme/api"));
         assert!(p.branches.loading.contains("/work/acme/web"));

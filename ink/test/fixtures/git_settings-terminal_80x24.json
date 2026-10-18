@@ -12,7 +12,8 @@
           "char": "e"
         }
       },
-      "label": "type a command…"
+      "label": "type a command…",
+      "mnemonic_at": 3
     }
   ],
   "body": {

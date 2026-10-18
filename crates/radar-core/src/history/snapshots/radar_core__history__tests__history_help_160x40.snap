@@ -1,5 +1,6 @@
 ---
 source: crates/radar-core/src/history/tests.rs
+assertion_line: 169
 expression: screen
 ---
  History · read only · UTC · snapshot through #100
@@ -8,20 +9,22 @@ expression: screen
  Known recording gaps affect this scope; missing actions cannot be identified.
 ╭ history keys ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ BROWSE RECORDED OBSERVATIONS                                                                                                                                 │
-│ j/k, ↑/↓     move in the event list; scroll the focused detail                                                                                               │
-│ Home/End     first/last event, or top/bottom of the detail                                                                                                   │
-│ tab          switch between the event list and detail                                                                                                        │
-│ h/l, ←/→     focus the event list or detail                                                                                                                  │
-│ enter        show the selected event's detail                                                                                                                │
-│ PgUp/PgDn    scroll the event detail from either pane                                                                                                        │
-│ n/p          next/previous page in this fixed snapshot                                                                                                       │
-│ r            refresh this scope from its first page                                                                                                          │
-│ a            show all recorded events                                                                                                                        │
-│ t            show recent activity from the last 24 hours                                                                                                     │
-│ c            show events with the selected event's exact causal root                                                                                         │
-│ i            show events for the selected exact action ID                                                                                                    │
-│ x/?          show or hide these history keys                                                                                                                 │
-│ esc          back from keys; then close history                                                                                                              │
+│ ↑↓ move in the event list; scroll the focused detail                                                                                                         │
+│ Home/End first/last event, or top/bottom of the detail                                                                                                       │
+│ tab switch between the event list and detail                                                                                                                 │
+│ ←→ focus the event list or detail                                                                                                                            │
+│ enter show the selected event's detail                                                                                                                       │
+│ PgUp/PgDn scroll the event detail from either pane                                                                                                           │
+│ next page in this fixed snapshot                                                                                                                             │
+│ previous page in this fixed snapshot                                                                                                                         │
+│ refresh this scope from its first page                                                                                                                       │
+│ show all recorded events                                                                                                                                     │
+│ show recent activity from the last 24 hours                                                                                                                  │
+│ show events with the selected event's exact causal root                                                                                                      │
+│ show events for the selected exact action ID                                                                                                                 │
+│ extra history keys                                                                                                                                           │
+│ ? show or hide these history keys                                                                                                                            │
+│ esc back from keys; then close history                                                                                                                       │
 │                                                                                                                                                              │
 │ Pages contain at most 50 original observations, ordered by recording sequence (oldest first). Times are UTC; clocks can differ from sequence order.          │
 │                                                                                                                                                              │
@@ -38,7 +41,5 @@ expression: screen
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- j/k scroll · PgUp/PgDn page · x/? back · esc back
+ ↑↓ scroll · PgUp/PgDn page · exit keys · esc back

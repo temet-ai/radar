@@ -310,7 +310,8 @@ fn site_row(p: &JiraPlugin) -> SiteRow {
 }
 
 fn proj_row(p: &JiraPlugin) -> Option<ProjRow> {
-    project_rows(p).get(p.section_rows[1]).cloned()
+    let tree = project_state(p);
+    project_rows(p).into_iter().find(|row| project_path(p, row) == tree.selected)
 }
 
 fn field_value(p: &JiraPlugin, i: usize, f: Field) -> String {
@@ -390,9 +391,9 @@ pub(crate) fn check_project(p: &mut JiraPlugin, i: usize, project: &str) -> Vec<
 
 pub(crate) fn on_checked(p: &mut JiraPlugin, target: CheckTarget, result: Result<String, String>) -> Vec<Effect> {
     let say = match &result {
-        Ok(m) if matches!(target, CheckTarget::Site(_)) => radar_core::writes::done_line(&format!("signed in as {m}")),
-        Ok(m) => radar_core::writes::done_line(m),
-        Err(e) => radar_core::writes::failed_line(e),
+        Ok(m) if matches!(target, CheckTarget::Site(_)) => Effect::Notify(radar_core::writes::done_line(&format!("signed in as {m}"))),
+        Ok(m) => Effect::Notify(radar_core::writes::done_line(m)),
+        Err(e) => Effect::error(None, radar_core::writes::failed_line(e)),
     };
     if let (CheckTarget::Site(site), Ok(name)) = (&target, &result) {
         let data = p.data.entry(site.clone()).or_default();
@@ -408,7 +409,7 @@ pub(crate) fn on_checked(p: &mut JiraPlugin, target: CheckTarget, result: Result
         Err(e) => Check::Failed(e),
     };
     p.checks.insert(target, (check, p.now));
-    vec![Effect::Notify(say)]
+    vec![say]
 }
 
 fn ask_to_check(target: &CheckTarget, what: &str) -> Effect {
@@ -1145,17 +1146,50 @@ pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
 }
 
 fn project_path(p: &JiraPlugin, row: &ProjRow) -> Vec<String> {
+    let site_id = |i: usize| crate::screen::site_id(&p.cfg.sites[i].name);
     match row {
-        ProjRow::Site(i) => vec![i.to_string()],
-        ProjRow::Add(i) => vec![i.to_string(), "add".into()],
-        ProjRow::Colour(i) => vec![i.to_string(), "colour".into()],
-        ProjRow::Project(i, j) => vec![i.to_string(), p.cfg.sites[*i].projects[*j].key.clone()],
+        ProjRow::Site(i) => vec![site_id(*i)],
+        ProjRow::Add(i) => vec![site_id(*i), "add".into()],
+        ProjRow::Colour(i) => vec![site_id(*i), "colour".into()],
+        ProjRow::Project(i, j) => vec![site_id(*i), p.cfg.sites[*i].projects[*j].key.clone()],
     }
+}
+
+/// The structural tree is small and independent of display text. Synchronizing
+/// it keeps action lookup tied to the selected identity after a site/project
+/// reorder, while accepting explicit row changes from legacy settings callers.
+fn project_state(p: &JiraPlugin) -> v::Tree {
+    let rows = p.cfg.sites.iter().map(|site| {
+        v::TreeRow::new(crate::screen::site_id(&site.name), v::Text::new())
+            .child(v::TreeRow::new("add", v::Text::new()))
+            .child(v::TreeRow::new("colour", v::Text::new()))
+            .children(site.projects.iter().map(|project| v::TreeRow::new(project.key.clone(), v::Text::new())))
+    }).collect::<Vec<_>>();
+    let mut nav = p.project_tree.borrow_mut();
+    if nav.selected.is_empty() || p.project_row_index.get() != p.section_rows[1] {
+        nav.select(project_rows(p).get(p.section_rows[1]).map(|row| project_path(p, row)).unwrap_or_default());
+    }
+    nav.sync(&rows);
+    p.project_row_index.set(p.section_rows[1]);
+    v::Tree { rows, selected: nav.selected.clone(), open: nav.open.clone(), ..v::Tree::default() }
+}
+
+fn select_project_row(p: &mut JiraPlugin, row: ProjRow, reveal: bool) {
+    let path = project_path(p, &row);
+    p.section_rows[1] = project_rows(p).iter().position(|candidate| *candidate == row).unwrap_or(0);
+    p.project_row_index.set(p.section_rows[1]);
+    let mut nav = p.project_tree.borrow_mut();
+    if reveal {
+        for depth in 1..path.len() {
+            nav.open(path[..depth].to_vec());
+        }
+    }
+    nav.select(path);
 }
 
 pub fn projects_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
     let rows: Vec<v::TreeRow> = p.cfg.sites.iter().enumerate().map(|(i, site)| {
-        let mut root = v::TreeRow::heading(i.to_string(), v::Text::new()
+        let mut root = v::TreeRow::new(crate::screen::site_id(&site.name), v::Text::new()
             .push(v::Seg::icon(Icon::Site))
             .push(v::Seg::styled(site.name.clone(), format!("jira.{} {}", site.color, p.cfg.style_for("site"))))
             .push(v::Seg::new(format!("  {}", site.host()), v::Ink::Muted)))
@@ -1184,11 +1218,10 @@ pub fn projects_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
         }
         root
     }).collect();
-    let ordered = project_rows(p);
-    let selected = ordered.get(p.section_rows[1]).map(|row| project_path(p, row)).unwrap_or_default();
+    let state = project_state(p);
     let editing = match &p.edit {
         Some((Target::ProjectAdd(i), input)) => Some(Box::new(v::TreeEditing {
-            path: vec![i.to_string(), "add".into()], at: 2,
+            path: project_path(p, &ProjRow::Add(*i)), at: 2,
             text: input.value(), caret: input.cursor(),
         })),
         _ => None,
@@ -1235,8 +1268,7 @@ pub fn projects_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
         version: v::VERSION,
         scope: "projects".into(),
         body: v::Node::Tree(v::Tree {
-            rows, selected,
-            open: (0..p.cfg.sites.len()).map(|i| vec![i.to_string()]).collect(),
+            rows, selected: state.selected, open: state.open,
             columns: vec![v::ColumnSpec::new("check", 10, 0)],
             name_width: width.saturating_sub(12),
             look: Some(v::TreeLook {
@@ -1298,20 +1330,42 @@ pub fn connection_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
 
 pub fn projects_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
     let select = |p: &mut JiraPlugin, target: &v::Target| {
-        if p.edit.is_some() { return; }
+        if p.edit.is_some() { return false; }
+        let tree = project_state(p);
         let path = v::TreeRow::path_of(target);
-        if let Some(i) = project_rows(p).iter().position(|row| !matches!(row, ProjRow::Site(_)) && project_path(p, row) == path) {
-            p.section_rows[1] = i;
+        if !tree.selectable(&path) { return false; }
+        if let Some(row) = project_rows(p).into_iter().find(|row| project_path(p, row) == path) {
+            select_project_row(p, row, false);
+            return true;
         }
+        false
     };
     match intent {
         v::Intent::Select { target } | v::Intent::Context { target } => {
-            select(p, target);
+            if !select(p, target) && matches!(intent, v::Intent::Context { .. }) {
+                return Outcome::Ignored;
+            }
+            Outcome::done()
+        }
+        v::Intent::Fold { target, .. } => {
+            if p.edit.is_none() {
+                let tree = project_state(p);
+                let path = v::TreeRow::path_of(target);
+                if tree.row(&path).is_some_and(|row| !row.children.is_empty()) {
+                    p.project_tree.borrow_mut().apply(intent);
+                    if let Some(row) = proj_row(p) {
+                        select_project_row(p, row, false);
+                    }
+                }
+            }
             Outcome::done()
         }
         v::Intent::Activate { target } => {
-            select(p, target);
-            key(p, "projects", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            if select(p, target) {
+                key(p, "projects", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            } else {
+                Outcome::done()
+            }
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
             key(p, "projects", radar_core::view_tui::key_of(chord))
@@ -1362,7 +1416,7 @@ fn row_menu(p: &JiraPlugin, section: &str) -> Option<Menu> {
                     MenuItem::new('c', "check the connection", "ask Jira whether it works and who the token is", "check"),
                     MenuItem::new('n', "rename", "the name shown in the tree", "rename"),
                     MenuItem::new('a', "add a site", "paste another site's link", "add"),
-                    MenuItem::new('d', "stop using…", "remove this site", "remove"),
+                    MenuItem::new('d', "disconnect site…", "remove this site", "remove"),
                 ],
             )),
             // The projects section's own menu for the site.
@@ -1416,7 +1470,7 @@ fn row_menu(p: &JiraPlugin, section: &str) -> Option<Menu> {
                         MenuItem::new('f', "acceptance-criteria field…", "pick among the fields named like it", "ac"),
                         MenuItem::new('c', "check it", "ask Jira whether it exists and can be seen", "check"),
                         MenuItem::new('a', "watch another project", "type its key or paste a link", "add"),
-                        MenuItem::new('d', "stop watching…", "views stop asking about it", "remove"),
+                        MenuItem::new('d', "drop watched project…", "views stop asking about it", "remove"),
                     ],
                 ))
             }
@@ -1476,7 +1530,7 @@ fn row_menu(p: &JiraPlugin, section: &str) -> Option<Menu> {
                 ]);
             }
             if default_styles().get(w).is_some_and(|d| *d != spec) {
-                items.push(MenuItem::new('r', "back to default", look_summary(&default_styles()[w], w), "reset"));
+                items.push(MenuItem::new('r', "restore default", look_summary(&default_styles()[w], w), "reset"));
             }
             Some(Menu::new(format!("look:{w}"), w, items))
         }
@@ -1520,7 +1574,7 @@ fn cond_menu(i: usize) -> Effect {
         "add a condition",
         vec![
             MenuItem::new('m', "assigned to me", "or to anyone but me", "me"),
-            MenuItem::new('u', "assigned to nobody", "or to someone", "none"),
+            MenuItem::new('u', "unassigned", "or to someone", "none"),
             MenuItem::new('r', "reported by me", "or by someone else", "reporter"),
             MenuItem::new('s', "by status…", "not done, to do, doing, done", "status"),
             MenuItem::new('p', "in an open sprint", "or not", "sprint"),
@@ -1529,7 +1583,7 @@ fn cond_menu(i: usize) -> Effect {
             MenuItem::new('t', "of a type…", "Bug, Story, …", "type"),
             MenuItem::new('l', "with a label…", "pick from labels seen", "label"),
             MenuItem::new('d', "changed lately…", "in the last few days", "updated"),
-            MenuItem::new('x', "mentioning words…", "anywhere in the ticket", "words"),
+            MenuItem::new('x', "text contains…", "anywhere in the ticket", "words"),
         ],
     ))
 }
@@ -1542,7 +1596,7 @@ fn sign_menu(i: usize, cond: &str) -> Effect {
         format!("cond-sign:{i}:{cond}"),
         words.clone(),
         vec![
-            MenuItem::new('i', "only these", format!("tickets {words}"), "include"),
+            MenuItem::new('i', "include only these", format!("tickets {words}"), "include"),
             MenuItem::new('e', "all but these", format!("tickets {not}"), "exclude"),
         ],
     ))
@@ -1715,7 +1769,8 @@ pub fn on_menu(p: &mut JiraPlugin, menu: &str, value: &str) -> Vec<Effect> {
             {
                 let gone = s.projects.remove(j);
                 crate::write_context::reconcile(p);
-                p.section_rows[1] = p.section_rows[1].saturating_sub(1);
+                let row = if j > 0 { ProjRow::Project(i, j - 1) } else { ProjRow::Colour(i) };
+                select_project_row(p, row, true);
                 return vec![Effect::Notify(format!("stopped watching {}", gone.key))];
             }
             vec![]
@@ -1981,7 +2036,7 @@ fn use_offer(p: &mut JiraPlugin, f: &Offer) -> Vec<Effect> {
 }
 
 fn start_project_add(p: &mut JiraPlugin, i: usize) -> Vec<Effect> {
-    p.section_rows[1] = project_rows(p).iter().position(|r| *r == ProjRow::Add(i)).unwrap_or(0);
+    select_project_row(p, ProjRow::Add(i), true);
     p.edit = Some((Target::ProjectAdd(i), TextInput::new("")));
     vec![]
 }
@@ -1998,7 +2053,7 @@ fn watch(p: &mut JiraPlugin, i: usize, key: &str) -> Vec<Effect> {
     });
     crate::write_context::reconcile(p);
     let j = p.cfg.sites[i].projects.len() - 1;
-    p.section_rows[1] = project_rows(p).iter().position(|r| *r == ProjRow::Project(i, j)).unwrap_or(0);
+    select_project_row(p, ProjRow::Project(i, j), true);
     let name = p.cfg.sites[i].name.clone();
     let mut fx = p.sync_view(true);
     fx.push(ask_to_check(&CheckTarget::project(&name, key), &format!("{key} on {name}")));
@@ -2018,7 +2073,7 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
             }
             Edit::Submit(text) => match validate(p, &target, &text) {
                 Err(why) => {
-                    let mut fx = vec![Effect::Notify(format!("not yet: {why}"))];
+                    let mut fx = vec![Effect::error(None, format!("not yet: {why}"))];
                     // JQL Jira has not seen yet: ask now.
                     if matches!(target, Target::ViewJql(_)) && !p.jql_checks.contains_key(text.trim()) && !text.trim().is_empty() {
                         fx.extend(ask_jira_about(p, text.trim().to_string()));
@@ -2032,13 +2087,20 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
     }
     let at = index(section);
     if let Some(mv) = Move::from_key(&key, p.section_scroll[at].height()) {
-        // Headings in look, and a site's own row in projects, are not selectable.
-        let projects = (section == "projects").then(|| project_rows(p));
-        let can = |row: usize| match section {
-            "look" => !matches!(look_rows().get(row), Some(LookRow::Header(_))),
-            "projects" => !matches!(projects.as_ref().and_then(|r| r.get(row)), Some(ProjRow::Site(_))),
-            _ => true,
-        };
+        if section == "projects" {
+            let tree = project_state(p);
+            let shown = tree.visible();
+            let at = shown.iter().position(|(path, _)| *path == tree.selected).unwrap_or(0);
+            let next = select(shown.len(), at, mv, |_| true);
+            if let Some((path, _)) = shown.get(next)
+                && let Some(row) = project_rows(p).into_iter().find(|row| project_path(p, row) == *path)
+            {
+                select_project_row(p, row, false);
+            }
+            return Outcome::done();
+        }
+        // Pure labels in look remain nonselectable.
+        let can = |row: usize| section != "look" || !matches!(look_rows().get(row), Some(LookRow::Header(_)));
         p.section_rows[at] = select(row_count(p, section), p.section_rows[at], mv, can);
         return Outcome::done();
     }
@@ -2280,3 +2342,90 @@ pub(crate) fn rows(p: &JiraPlugin, section: &str) -> Vec<(String, Binding)> {
 #[cfg(test)]
 #[path = "settings_checks/tests.rs"]
 mod check_ownership_tests;
+
+#[cfg(test)]
+mod mnemonic_tests {
+    use super::*;
+
+    fn check_menu(menu: &Menu) -> usize {
+        let mut checked = 0;
+        for item in &menu.items {
+            if !item.heading && !item.note && radar_core::mnemonic::letter(&item.keys).is_some() {
+                let words = radar_core::mnemonic::choice_words(menu.question, &item.label, &item.hint);
+                assert!(radar_core::mnemonic::at(&item.keys, words).is_some(),
+                    "{}: {:?} has no mnemonic in {:?}", menu.id, item.keys, words);
+                checked += 1;
+            }
+        }
+        checked
+    }
+
+
+    fn check_setup_link(blocks: &[radar_core::view::Block], url: &str, copy: &str, key: &str) {
+        use radar_core::view::{Block, Text};
+        fn find<'a>(blocks: &'a [Block], url: &str) -> Option<&'a Text> {
+            blocks.iter().find_map(|block| match block {
+                Block::Line { text, .. } if text.0.iter().any(|seg| seg.link.as_deref() == Some(url)) => Some(text),
+                Block::Section { blocks, .. } => find(blocks, url),
+                _ => None,
+            })
+        }
+        let text = find(blocks, url).expect("actual setup token link");
+        assert_eq!(text.0[0].link.as_deref(), Some(url));
+        assert!(text.words().ends_with(&format!("   open · {copy}")));
+        assert!(text.plain_words().ends_with(&format!("   open [o] · {copy} [{key}]")));
+        let underlined: Vec<_> = text.0.iter().filter(|seg| seg.look.as_deref().is_some_and(|look| look.contains("underline"))).map(|seg| seg.text.as_str()).collect();
+        assert_eq!(underlined, ["o", key]);
+        let hints: Vec<_> = text.0.iter().filter_map(|seg| seg.key_hint.as_deref()).collect();
+        assert_eq!(hints, ["o", key]);
+        assert!(text.0[1..].iter().all(|seg| seg.link.is_none() && seg.target.is_none()));
+    }
+
+    #[test]
+    fn settings_producers_embed_every_letter_in_action_words() {
+        check_setup_link(&crate::setup::access_help(), crate::setup::TOKEN_PAGE, "copy", "y");
+        let projects = crate::setup::projects_help();
+        let radar_core::view::Block::Section { blocks, .. } = &projects[0] else { panic!("project help section") };
+        let pick = blocks.iter().find_map(|block| match block {
+            radar_core::view::Block::Line { text, .. } if text.0.iter().any(|seg| seg.key_hint.as_deref() == Some("p")) => Some(text),
+            _ => None,
+        }).expect("actual project picker hint");
+        assert_eq!(pick.words(), "pick from the projects you looked at lately.");
+        assert_eq!(pick.plain_words(), "pick from the projects you looked at lately. [p]");
+        assert_eq!(pick.0.iter().filter(|seg| seg.look.as_deref().is_some_and(|look| look.contains("underline"))).map(|seg| seg.text.as_str()).collect::<Vec<_>>(), ["p"]);
+        assert!(pick.0.iter().all(|seg| seg.link.is_none() && seg.target.is_none()));
+        let mut checked = 0;
+        for changed in [false, true] {
+            let (mut p, fixture) = crate::test_support::hosted_plugin(vec![]).unwrap();
+            if changed {
+                for style in p.cfg.style.values_mut() { *style = "text.primary italic".into(); }
+            }
+
+            for section in ["connection", "projects", "views", "look"] {
+                for row in 0..row_count(&p, section) {
+                    p.section_rows[index(section)] = row;
+                    if let Some(menu) = row_menu(&p, section) { checked += check_menu(&menu); }
+                }
+            }
+            fixture.assert_finished();
+        }
+        assert!(checked > 20, "exercise real settings rows, including reset variants");
+    }
+
+    #[test]
+    fn condition_producers_keep_values_and_meaningful_mnemonics() {
+        for effect in [cond_menu(0), sign_menu(0, "me")] {
+            let Effect::Menu(menu) = effect else { panic!("condition menu") };
+            assert!(check_menu(&menu) > 0);
+            if menu.id == "cond:0" {
+                let item = menu.items.iter().find(|item| item.key == Some('u')).unwrap();
+                assert_eq!((&*item.label, &*item.value), ("unassigned", "none"));
+                let item = menu.items.iter().find(|item| item.key == Some('x')).unwrap();
+                assert_eq!((&*item.label, &*item.value), ("text contains…", "words"));
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tree_tests;

@@ -44,9 +44,8 @@ afterEach(() => {
 
 async function rig(columns = 80, rows = 24, level = "full") {
   let now = 0;
-  vi.spyOn(Date, "now").mockImplementation(() => now);
   applyLook(defaultLook("off"));
-  motion.reset();
+  motion.reset(() => now);
   const registry = new HitRegistry();
   const m = mount(columns, rows, { registry });
   // The real App calls Session.input for every token; the raw bus contract has its own byte-forwarding test.

@@ -12,7 +12,8 @@
           "char": "o"
         }
       },
-      "label": "open it in Jira"
+      "label": "open it in Jira",
+      "mnemonic_at": 0
     },
     {
       "id": "jira.tickets.copy_link",
@@ -21,7 +22,8 @@
           "char": "y"
         }
       },
-      "label": "copy its link"
+      "label": "copy its link",
+      "mnemonic_at": 3
     },
     {
       "id": "jira.tickets.copy_key",
@@ -30,7 +32,9 @@
           "char": "Y"
         }
       },
-      "label": "copy ABC-1"
+      "label": "copy ABC-1",
+      "mnemonic_at": 3,
+      "mnemonic_shift": true
     },
     {
       "id": "jira.tickets.refresh",
@@ -39,7 +43,8 @@
           "char": "r"
         }
       },
-      "label": "refresh this page"
+      "label": "refresh this page",
+      "mnemonic_at": 0
     },
     {
       "heading": true,
@@ -54,7 +59,8 @@
           "char": "t"
         }
       },
-      "label": "move ABC-1 to another status…"
+      "label": "move ABC-1 to another status…",
+      "mnemonic_at": 11
     },
     {
       "change": "add",
@@ -64,7 +70,8 @@
           "char": "c"
         }
       },
-      "label": "comment on ABC-1…"
+      "label": "comment on ABC-1…",
+      "mnemonic_at": 0
     },
     {
       "change": "edit",
@@ -74,7 +81,8 @@
           "char": "i"
         }
       },
-      "label": "assign to me · ABC-1 is already yours"
+      "label": "assign to me · ABC-1 is already yours",
+      "mnemonic_at": 3
     },
     {
       "change": "add",
@@ -84,7 +92,8 @@
           "char": "n"
         }
       },
-      "label": "new ticket in ABC…"
+      "label": "new ticket in ABC…",
+      "mnemonic_at": 0
     },
     {
       "heading": true,
@@ -116,7 +125,9 @@
           "char": "A"
         }
       },
-      "label": "ask an agent about it…"
+      "label": "ask an agent about it…",
+      "mnemonic_at": 0,
+      "mnemonic_shift": true
     },
     {
       "id": "jira.tickets.back",

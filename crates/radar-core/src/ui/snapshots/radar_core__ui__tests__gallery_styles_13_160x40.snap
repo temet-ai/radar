@@ -1,11 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1013
+assertion_line: 1326
 expression: "gallery_styles(160, 40, tab)"
 ---
-00 _1 | "Gallery" fg:text.secondary | " › " fg:text.muted | "Waiting" fg:text.secondary bold
+00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Waiting" fg:text.secondary bold
 01 _1 | "The kit: every element on sample data   …" fg:text.emphasis bold | _2 | "colours: full colour" fg:text.muted
-02 _1 | "Table  Card  Meters  Rows & states  Entr…" fg:text.secondary | "[Waiting]" fg:accent.primary/glow.purple bold | "  Long text  Icons               " fg:text.secondary
+02 _1 | "Table  Card  Meters  Rows & states  Entr…" fg:text.secondary | "[Waiting]" fg:accent.primary/glow.purple bold | "  Long text  Icons  Notices  Det…" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " loading, and what fetching says " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface | " failed " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "loading               loading…" fg:text.muted bg:bg.surface | _47 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "✗ could not load: the server did not ans…" fg:status.error/diff.removed bg:bg.surface | _33 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
 05 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "busy                  " fg:text.muted bg:bg.surface | "⠷ " fg:status.info bg:bg.surface | "asking the server…                      …" bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "✗ could not load: 401: the token was ref…" fg:status.error/diff.removed bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
@@ -42,4 +42,4 @@ expression: "gallery_styles(160, 40, tab)"
 36
 37
 38
-39 _1 | "[ ]" fg:accent.secondary/glow.cyan bold | " tabs" fg:text.muted | _3 | "j k" fg:accent.secondary/glow.cyan bold | " move" fg:text.muted | _3 | "space" fg:accent.secondary/glow.cyan bold | " fold" fg:text.muted | _3 | "PgUp/PgDn" fg:accent.secondary/glow.cyan bold | " scroll" fg:text.muted | _3 | "c" fg:accent.secondary/glow.cyan bold | " colours" fg:text.muted | _3 | "q" fg:accent.secondary/glow.cyan bold | " quit" fg:text.muted
+39 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

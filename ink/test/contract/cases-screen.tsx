@@ -6,7 +6,7 @@ import { chromeOf } from "./support.js";
 export const W = 160;
 export const H = 40;
 
-export type Scene = { chrome: any; screen?: any; section?: any; size?: [number, number]; extra?: any[]; needle?: string };
+export type Scene = { chrome: any; screen?: any; section?: any; size?: [number, number]; extra?: any[]; needle?: string; plainText?: boolean };
 export type Case = (on: boolean) => Scene;
 
 const t = (s: string, over: Record<string, unknown> = {}) => [{ text: s, ...over }];
@@ -16,6 +16,11 @@ const screenOf = (panes: any[], over: Record<string, unknown> = {}) => ({ id: "n
 const paneOf = (body: any, over: Record<string, unknown> = {}) => ({ pane: "middle", title: "PANE", body, ...over });
 const sceneOf = (screen: any, size?: [number, number]): Scene => ({ chrome: chromeOf(size?.[0] ?? W, size?.[1] ?? H), screen, size });
 const doc = (...lines: string[]) => ({ node: "document", lines: (lines.length ? lines : ["BODYLINE"]).map((l) => t(l)) });
+const action = (f: (a: any, on: boolean) => void): Case => (on) => {
+  const a = { id: "watch.refresh", label: "refresh", key: { key: { char: "r" } } };
+  f(a, on);
+  return sceneOf(screenOf([paneOf({ node: "hologram" })], { actions: [a] }));
+};
 
 /** A pane built by `f` on a screen of its own. */
 const pane = (f: (p: any, on: boolean) => void, size?: [number, number]): Case => (on) => {
@@ -158,6 +163,13 @@ export const SCREEN_CASES: Record<string, Case> = {
   // content is still missing. Test its text so the style change cannot hide that gap.
   "ScreenView.overlay": (on) => ({ ...sceneOf(screenOf([paneOf(doc("BODYUNDER"))], { overlay: on ? paneOf(doc("OVERLAYTEXT"), { title: "OVERLAY" }) : null })), needle: "OVERLAYTEXT" }),
 
+  // Actions stay visible when the shell cannot draw a node.
+  "ActionSpec.label": action((a, on) => (a.label = pick(on, "refresh", "ZZREFRESH"))),
+  "ActionSpec.key": action((a, on) => (a.key.key.char = pick(on, "r", "z"))),
+  "ActionSpec.heading": action((a, on) => (a.heading = on)),
+  "ActionSpec.mnemonic_at": action((a, on) => (a.mnemonic_at = on ? 0 : null)),
+  "ActionSpec.mnemonic_shift": action((a, on) => { a.key.key.char = "R"; a.mnemonic_at = 0; a.mnemonic_shift = on; }),
+
   // SectionView
   "SectionView.scope": (on) => ({ chrome: chromeOf(W, H), section: sectionOf({ scope: pick(on, "connection", "ZZSCOPE") }) }),
   "SectionView.body": section((s, on) => (s.body = doc(pick(on, "SECTIONBODY", "ZZBODY")))),
@@ -282,7 +294,8 @@ export const SCREEN_CASES: Record<string, Case> = {
     n.open = [["b"]];
     n.rows[1].children = on ? [{ id: "b1", name: t("ZZCHILD") }] : [];
   }),
-  "TreeRow.stripe": treeRow((r, on) => (r.stripe = on ? "accent" : null)),
+  // The open root and its descendant must both ignore this retained compatibility field (#45).
+  "TreeRow.stripe": tree((n, on) => (n.rows[0].stripe = on ? "accent" : null)),
   "TreeRow.chips": treeWide((r, on) => (r.chips = on ? { gives: 4, text: t("ZZCHIP") } : null), "ZZCHIP"),
   "TreeRow.glow": treeRow((r, on) => (r.glow = on ? "accent" : null)),
   "TreeRow.detail": treeRow((r, on) => (r.detail = on ? t("ZZDETAIL") : null)),
@@ -379,6 +392,8 @@ export const SCREEN_CASES: Record<string, Case> = {
   // Block (a settings detail's or a pane's rich lines)
   "Block.line.text": (on) => sceneOf(screenOf([paneOf(richOf({ block: "line", text: t(pick(on, "LINETEXT", "ZZLINE")) }))])),
   "Block.line.key": (on) => sceneOf(screenOf([paneOf(richOf({ block: "line", text: t("act"), key: on ? "Z" : null }))])),
+  "Block.line.mnemonic_at": (on) => sceneOf(screenOf([paneOf(richOf({ block: "line", text: t("refresh"), key: "r", mnemonic_at: on ? 0 : null }))])),
+  "Block.line.mnemonic_shift": (on) => sceneOf(screenOf([paneOf(richOf({ block: "line", text: t("refresh"), key: "R", mnemonic_at: 0, mnemonic_shift: on }))])),
   "Block.section.mark": (on) => sceneOf(screenOf([paneOf(richOf({ block: "section", title: "SECT", mark: on ? "settings" : null, blocks: [] }))])),
   "Block.section.title": (on) => sceneOf(screenOf([paneOf(richOf({ block: "section", title: pick(on, "SECT", "ZZSECT"), blocks: [] }))])),
   "Block.section.detail": (on) => sceneOf(screenOf([paneOf(richOf({ block: "section", title: "SECT", detail: on ? "ZZDETAIL" : null, blocks: [] }))])),
@@ -435,6 +450,7 @@ export const SCREEN_CASES: Record<string, Case> = {
   "Seg.ink": seg((s, on) => (s.ink = pick(on, "plain", "bad"))),
   "Seg.strong": seg((s, on) => (s.strong = on)),
   "Seg.marked": seg((s, on) => (s.marked = on)),
+  "Seg.key_hint": (on) => ({ ...sceneOf(screenOf([paneOf({ node: "document", lines: [t("refresh", { key_hint: on ? "r" : null })] })])), plainText: true, ...(on ? { needle: "refresh [r]" } : {}) }),
   "Seg.icon": seg((s, on) => (s.icon = on ? "settings" : null)),
   "Seg.icon_lead": seg((s, on) => {
     s.icon = "icons";
@@ -464,14 +480,12 @@ export const SCREEN_INVISIBLE: Record<string, string> = {
   "SectionView.actions": "the actions menu is the host's MenuView; these rows only name the keys (input tests)",
   "Media.size": "Ratatui's no-graphics media line (ui::rich) shows no size; drawing one would break parity",
   "ActionSpec.id": "what Invoke answers with",
-  "ActionSpec.label": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
-  "ActionSpec.key": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
-  "ActionSpec.heading": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
   "ActionSpec.icon": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
   "ActionSpec.change": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
   "Chord.key": "a key a target presses; sent back, never drawn",
   "Chord.ctrl": "a key a target presses; sent back, never drawn",
   "Chord.alt": "a key a target presses; sent back, never drawn",
+  "Chord.shift": "wire/input modifier for navigation ownership, not rendered text; shifted tree routing is covered by input/keys/tree-contract and burst",
   "Key.0.char": "a key a target presses; sent back, never drawn",
   "Marker.1.number": "drawn through Item.marker (a numbered marker is a list's numbering)",
   "CellAt.column": "where a context click opened the menu: MenuView.at covers it",
@@ -517,13 +531,11 @@ export const SCREEN_KNOWN_UNDRAWN: Record<string, string> = {
   "InlineInput.text": "T11: an inline input under a diff line is not drawn (it was at e24c123: regressed; text/DiffView.tsx)",
   "InlineInput.caret": "T11: an inline input under a diff line is not drawn (it was at e24c123: regressed; text/DiffView.tsx)",
   "InlineInput.selection": "T8: an inline input under a diff line is not drawn, so neither is its selection (text/DiffView.tsx)",
-  "Seg.marked": "T11: a marked segment is not drawn differently (it was at e24c123: regressed; text/TextLine.tsx)",
   "Seg.link": "T11: a link segment is not drawn differently (underline, it was at e24c123: regressed; text/TextLine.tsx)",
   "Seg.look": "T11: a segment's look is not applied (it was at e24c123: regressed; text/TextLine.tsx)",
   "TreeRow.chips": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
   "Chips.text": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
   "PaneView.from": "T11: a pane's `from` (the width it shows from) is not applied (app/Panes.tsx)",
-  "TreeEditing.at": "T11: an inline edit's start column is not applied (nodes/tree.tsx)",
   "ScreenView.overlay": "T11: generic overlay content is not drawn; overlay presence does suppress the background focus ramp (recognized editor overlays are supported)",
   "ListRow.link": "T11: a list row's link is not drawn (nodes/lists.tsx)",
   "TreeLook.lines": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",

@@ -2,9 +2,19 @@
 import type { HintKey } from "./HintKey.js";
 
 /**
- * One key on the status line: `x ≡ menu`, `PgUp/PgDn scroll`.
+ * One status action: a mnemonic inside `extra actions`, or a named/glyph
+ * prefix such as `PgUp/PgDn scroll`. Plain readers retain the original keys.
  */
 export type Hint = { 
+/**
+ * Zero-based Unicode scalar position in label. Underline the complete
+ * containing grapheme; never search for a letter in the renderer.
+ */
+mnemonic_at?: number | null, 
+/**
+ * Show the named Shift modifier before a valid keyed word.
+ */
+mnemonic_shift?: boolean, 
 /**
  * The key labels as written (`PgUp/PgDn`, `←→↑↓`, `x`).
  */

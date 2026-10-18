@@ -81,7 +81,8 @@ pub struct GithubPlugin {
     /// The connection section was last drawn as a setup step, without the
     /// rows only Settings needs; `conn_rows` follows it.
     setup_card: Cell<bool>,
-    repository_row: usize,
+    repository_selected: Vec<String>,
+    repository_folded: std::collections::HashSet<String>,
     editor: Option<settings::Editor>,
     connection_check: Option<Check>,
     /// Who the last check signed in as; `None` for public access or before.
@@ -93,6 +94,7 @@ pub struct GithubPlugin {
     under_actions: RefCell<Vec<screen::UnderAction>>,
     link_menu: Option<(u64, u64, Target, Vec<Link>)>,
     remove_menu: Option<(u64, RepositoryId)>,
+    settings_menu: Option<settings::MenuLease>,
     check_menu: Option<u64>,
     sync: sync::Sync,
     /// Pull request pages read before, by repository and number.
@@ -362,6 +364,7 @@ impl GithubPlugin {
         self.generation = self.generation.wrapping_add(1);
         self.page_request = self.page_request.wrapping_add(1);
         self.cfg = cfg;
+        settings::reconcile_editor(self);
         let held = std::mem::take(&mut self.actions);
         self.actions = if same_token {
             held.keep(&self.cfg.ids())
@@ -404,6 +407,7 @@ impl GithubPlugin {
         self.under_actions.borrow_mut().clear();
         self.link_menu = None;
         self.remove_menu = None;
+        self.settings_menu = None;
         self.check_menu = None;
     }
 
@@ -699,17 +703,11 @@ impl GithubPlugin {
                         "repository reads failed or are incomplete; see their details".into()
                     })
             };
-            effects.push(Effect::notify(
-                Some(
-                    if complete {
-                        radar_core::ui::Mark::Done
-                    } else {
-                        radar_core::ui::Mark::Failed
-                    }
-                    .icon(),
-                ),
-                said,
-            ));
+            effects.push(if complete {
+                Effect::notify(Some(radar_core::ui::Mark::Done.icon()), said)
+            } else {
+                Effect::error(Some(radar_core::ui::Mark::Failed.icon()), said)
+            });
         }
         self.sync.said_complete = Some(complete);
         self.sync.manual = false;
@@ -918,17 +916,11 @@ impl GithubPlugin {
                         ago: None,
                     }
                 });
-                effects.push(Effect::notify(
-                    Some(
-                        if passed {
-                            radar_core::ui::Mark::Done
-                        } else {
-                            radar_core::ui::Mark::Failed
-                        }
-                        .icon(),
-                    ),
-                    said,
-                ));
+                effects.push(if passed {
+                    Effect::notify(Some(radar_core::ui::Mark::Done.icon()), said)
+                } else {
+                    Effect::error(Some(radar_core::ui::Mark::Failed.icon()), said)
+                });
                 effects
             }
             Answer::Discovery {
@@ -966,7 +958,7 @@ impl GithubPlugin {
                             ));
                         }
                     }
-                    Err(error) => effects.push(Effect::Notify(error)),
+                    Err(error) => effects.push(Effect::error(None, error)),
                 }
                 effects
             }
@@ -1426,6 +1418,12 @@ impl Plugin for GithubPlugin {
     }
     fn keys(&self, _: &str, pane: Pane) -> Vec<Binding> {
         bindings(screen::keys(self, pane))
+    }
+    fn folds(&self, screen: &str, pane: Pane) -> bool {
+        screen == "github" && pane == Pane::Middle && self.pages.is_empty()
+    }
+    fn section_folds(&self, section: &str) -> bool {
+        section == "repositories"
     }
     fn subject_menu_context(&self, scope: &str, pane: Pane) -> Option<String> {
         (scope == "github")

@@ -125,7 +125,7 @@ fn the_actions_are_this_machines_and_checking_out_is_for_a_merge_request() {
             "t: open a terminal on feature/ABC-263…",
             "s: look for checkouts again",
             "n: new branch…",
-            ": rebase on its base…",
+            ": update by rebasing onto its base…",
             ": push main…",
             ": park on a worktree…",
             ": link to another local folder…",
@@ -138,7 +138,7 @@ fn the_actions_are_this_machines_and_checking_out_is_for_a_merge_request() {
             "t: open a terminal there",
             "s: look for checkouts again",
             "n: new branch…",
-            "u: rebase on its base…",
+            "u: update by rebasing onto its base…",
             ": push main…",
             ": park on a worktree…",
             ": link to another local folder…",
@@ -148,17 +148,17 @@ fn the_actions_are_this_machines_and_checking_out_is_for_a_merge_request() {
     p.cfg.types[0].editor = "idea".into();
     assert_eq!(
         actions(&p, &mr(api, "feature/ABC-263"))[..2],
-        ["c: update feature/ABC-263 from origin…", "e: open in idea"]
+        ["c: update checkout feature/ABC-263 from origin…", "e: open in idea"]
     );
     assert_eq!(
         actions(&p, &repo("acme/team-a/web")),
-        ["s: look for a checkout again", ": link to a local folder…"]
+        ["s: scan for a checkout again", ": link to a local folder…"]
     );
     p.cfg.roots.clear();
     assert_eq!(
         actions(&p, &repo("acme/team-a/web")),
         [
-            "s: look for a checkout · no folders set yet",
+            "s: scan for a checkout · no folders set yet",
             ": link to a local folder…"
         ]
     );
@@ -538,7 +538,7 @@ fn a_dirty_checkout_is_offered_a_stash_a_worktree_or_nothing() {
     assert!(b[0].starts_with("s stash it as ABC-12-local-"), "{b:?}");
     assert_eq!(
         (b[1].as_str(), b[2].as_str()),
-        ("w park on a worktree instead", "n leave it")
+        ("w park on a worktree instead", "n no, leave it")
     );
     // n changes nothing and starts nothing.
     assert!(matches!(
@@ -580,7 +580,7 @@ fn an_existing_branch_defaults_to_switching_and_recreating_says_what_is_lost() {
         [
             "s switch to it",
             "r recreate it off fresh main",
-            "n leave it"
+            "n no, leave it"
         ]
     );
     let one = Plan {
@@ -616,7 +616,7 @@ fn a_new_branch_or_one_only_on_origin_is_a_plain_question() {
     // A name git refuses is said, not asked.
     let fx = planned(&mut p, Op::New, "alice/ABC 12", plan(), false, 0);
     assert!(
-        matches!(&fx[..], [Effect::Report(JournalOutcome::Blocked), Effect::Notify(m)] if m.contains("not a branch name git takes")),
+        matches!(&fx[..], [Effect::Report(JournalOutcome::Blocked), Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("not a branch name git takes")),
         "{fx:?}"
     );
 }
@@ -637,7 +637,7 @@ fn rebase_asks_and_refuses_what_it_cannot_do() {
         0,
     ));
     assert_eq!(m.title, "rebase alice/ABC-12 on origin/main?");
-    assert_eq!(buttons(&m), ["y rebase it", "n leave it"]);
+    assert_eq!(buttons(&m), ["y yes, rebase it", "n no, leave it"]);
     let said = notes(&m).join(" ");
     assert!(
         said.contains("a conflict stops it") && said.contains("git rebase --abort"),
@@ -662,7 +662,7 @@ fn rebase_asks_and_refuses_what_it_cannot_do() {
     ] {
         let fx = planned(&mut p, Op::Rebase, &plan.current.clone(), plan, false, 0);
         assert!(
-            matches!(&fx[..], [Effect::Report(JournalOutcome::Blocked), Effect::Notify(m)] if m.contains(why)),
+            matches!(&fx[..], [Effect::Report(JournalOutcome::Blocked), Effect::Notice(m)] if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains(why)),
             "{why}: {fx:?}"
         );
     }
@@ -863,7 +863,7 @@ fn a_terminal_for_a_merge_request_opens_on_its_branch_asking_where() {
         branch: "feature/ABC-263".into(),
         result: Err("1 uncommitted change in /work/acme/api: commit or stash first; nothing was changed".into()),
     }));
-    assert!(fx.iter().any(|e| matches!(e, Effect::Notify(m) if m.contains("w in its question opens it in a worktree"))), "{fx:?}");
+    assert!(fx.iter().any(|e| matches!(e, Effect::Notice(m) if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("w in its question opens it in a worktree"))), "{fx:?}");
     assert!(p.local.then_open.is_empty(), "nothing opens after a refusal");
     // A worktree: made off the loop, the terminal waits for it.
     let fx = p.on_menu(&m.id, "worktree");
@@ -874,7 +874,7 @@ fn a_terminal_for_a_merge_request_opens_on_its_branch_asking_where() {
         result: Err("/work/acme/api-ABC-263 already exists".into()),
         parked: None,
     }));
-    assert!(fx.iter().any(|e| matches!(e, Effect::Notify(m) if m.contains("no worktree made"))));
+    assert!(fx.iter().any(|e| matches!(e, Effect::Notice(m) if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("no worktree made"))));
     assert!(matches!(fx[0], Effect::Report(JournalOutcome::Unknown)));
     assert!(p.local.then_open.is_empty(), "failed worktrees leave no pending launch");
     // As it is: opened on the clone's own branch now.
@@ -1081,7 +1081,7 @@ fn workspace_start_reads_every_repo_then_asks_one_question_and_run_spawns() {
             "acme/team-a/web: alice/ABC-12 from origin/main, worktree at /work/acme/web-ABC-12",
         ]
     );
-    assert_eq!(buttons(&m), ["y run it", "n leave it"]);
+    assert_eq!(buttons(&m), ["y yes, run it", "n no, leave it"]);
     // n: nothing runs.
     let mut q = mine();
     q.act.start = p.act.start.clone();
@@ -1234,7 +1234,7 @@ fn the_results_become_git_started_with_exactly_these_fields() {
             })
         )]
     );
-    assert!(fx.iter().any(|e| matches!(e, Effect::Notify(m) if m.contains("1 of 2 done") && m.contains("already exists"))));
+    assert!(fx.iter().any(|e| matches!(e, Effect::Notice(m) if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("1 of 2 done") && m.contains("already exists"))));
 }
 
 fn sh(dir: &std::path::Path, args: &[&str]) {

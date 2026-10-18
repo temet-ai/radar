@@ -10,8 +10,8 @@ import { chipRuns, chipText, chipWordStyle } from "./chips.js";
 
 /** The words a segment draws: its icon's glyph and/or its text. An icon with words is drawn bare (the words stand in
  * where there is no glyph); an icon alone is a lead with the pack's one-cell gap. */
-export function segWords(seg: Seg): string {
-  const text = withEmoji(seg.text ?? "");
+export function segWords(seg: Seg, literal = false): string {
+  const text = literal ? seg.text ?? "" : withEmoji(seg.text ?? "");
   const glyph = seg.icon ? ICONS[seg.icon] : undefined;
   // view::Seg: an icon alone is a lead (the glyph and the pack's gap). An icon with words is drawn bare, the words
   // standing in only where there is no glyph. With `icon_lead` the words are the fallback for icons-off and already
@@ -23,7 +23,7 @@ export function segWords(seg: Seg): string {
 
 /** A line of view text as one plain string (icons as glyphs): widths, plain-text mode, tests. */
 export function textWords(text: Text): string {
-  return text.map(segWords).join("");
+  return text.map((seg) => segWords(seg)).join("");
 }
 
 /** view_tui::words: a part's `look` (plus bold when strong), else the ink's slot (bold when strong), else plain text
@@ -46,13 +46,13 @@ export function segRunStyle(seg: Seg): Style {
 }
 
 /** The words one run draws and the chip's padding: what view_tui::spans puts in the buffer for a Seg. */
-export function segRunWords(seg: Seg, plain?: boolean): string {
-  if (seg.chip && seg.icon && !plain) return chipText(seg);
-  const words = seg.chip && seg.icon && seg.text ? seg.text : segWords(seg);
-  if (!words) return "";
+export function segRunWords(seg: Seg, plain?: boolean, literal = false): string {
+  if (seg.chip && seg.icon && !plain) return chipText(seg, literal);
+  const words = seg.chip && seg.icon && seg.text ? seg.text : segWords(seg, literal);
+  if (!words) return plain && seg.key_hint ? ` [${seg.key_hint}]` : "";
   if (plain) {
     const shown = seg.chip ? `[${words}]` : words;
-    return seg.link ? `${shown} <${seg.link}>` : shown;
+    return (seg.link ? `${shown} <${seg.link}>` : shown) + (seg.key_hint ? ` [${seg.key_hint}]` : "");
   }
   return seg.chip ? ` ${words} ` : words;
 }
@@ -82,12 +82,11 @@ export function SegRun({ seg, plain }: { seg: Seg; plain?: boolean }) {
         ))}
       </>
     );
+  if (plain) {
+    return <InkText>{segRunWords(seg, true)}</InkText>;
+  }
   const words = segWords(seg);
   if (!words) return null;
-  if (plain) {
-    const shown = seg.chip ? `[${words}]` : words;
-    return <InkText>{seg.link ? `${shown} <${seg.link}>` : shown}</InkText>;
-  }
   const style = segRunStyle(seg);
   if (seg.chip) {
     // widgets::chip: ` words ` in the tone's colour on the overlay shade.
@@ -106,13 +105,12 @@ function fillLine(rows: Rows, text: Text, plain?: boolean) {
       for (const r of chipRuns(seg)) rows.put(r.text, r.style);
       continue;
     }
-    const words = segWords(seg);
-    if (!words) continue;
     if (plain) {
-      const shown = seg.chip ? `[${words}]` : words;
-      rows.put(seg.link ? `${shown} <${seg.link}>` : shown, {});
+      rows.put(segRunWords(seg, true), {});
       continue;
     }
+    const words = segWords(seg);
+    if (!words) continue;
     let style = segRunStyle(seg);
     if (seg.chip) {
       style = chipWordStyle(seg);

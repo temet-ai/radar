@@ -1,3 +1,5 @@
+import type { Mnemonic } from "../text/mnemonic.js";
+
 // The view data the Ink nodes draw: the TypeScript shape of crates/radar-core/src/view.rs (`Node` and what it holds),
 // as serde writes it. Written by hand until T1's view types are exported with ts-rs; only what a node draws is
 // typed, and every optional field is optional because serde skips defaults.
@@ -19,6 +21,8 @@ export interface Seg {
   target?: Target | null;
   look?: string | null;
   chip?: boolean;
+  /** Exact original shortcut appended by plain readers; visual styling already carries the mnemonic. */
+  key_hint?: string | null;
 }
 
 /** One line of rich text: its runs in order (serde-transparent). */
@@ -153,7 +157,7 @@ export interface MeterStage {
 }
 
 export type Block =
-  | { block: "line"; text: Text; target?: Target | null; key?: string | null }
+  | ({ block: "line"; text: Text; target?: Target | null; key?: string | null } & Mnemonic)
   | { block: "section"; mark?: string | null; title: string; detail?: string | null; blocks: Block[] }
   | { block: "doc"; doc: RichBlock[]; bar?: Seg | null; most?: number | null; urls?: boolean | null }
   | { block: "meter"; stages: MeterStage[] }
@@ -234,7 +238,7 @@ export type ChordName = {
 };
 
 /** One row of a view's actions (view::ActionSpec). */
-export interface ActionSpec {
+export interface ActionSpec extends Mnemonic {
   id: string;
   label: string;
   key?: ChordName | null;
@@ -242,6 +246,13 @@ export interface ActionSpec {
   icon?: string | null;
   change?: "add" | "edit" | null;
 }
+
+/** The version 1 `detail` extension and footer use Rust's exported wire contract directly. */
+export type { DetailHeader } from "../protocol/generated/DetailHeader.js";
+export type { DetailFact } from "../protocol/generated/DetailFact.js";
+export type { DetailContent } from "../protocol/generated/DetailContent.js";
+export type { FootAction } from "../protocol/generated/FootAction.js";
+export type { FootActions } from "../protocol/generated/FootActions.js";
 
 /** What the node components need from the shell, passed to every `renderNode`. */
 export interface NodeContext {
@@ -255,6 +266,8 @@ export interface NodeContext {
   plainText?: boolean;
   /** A Document scrolls in its pane (the settings detail: ui::scroll::paragraph); elsewhere it is cut (widgets::paragraph). */
   scrolls?: boolean;
+  scrollIdentity?: string;
+  bodyTrack?: boolean;
   /** The sheet of settings or setup (shell.rs section_detail_lines): a section's heading is laid one cell wider than the
    * text it is wrapped in, so its rule drops to a row of its own. */
   sheet?: boolean;
@@ -265,6 +278,8 @@ export interface NodeContext {
   /** Where the node registers the rectangles a pointer press acts on (T10's App clears it each frame). */
   registry?: {
     add(hit: { x: number; y: number; w: number; h: number; target: string }): void;
+    replace?(owner: string, hits: Array<{ x: number; y: number; w: number; h: number; target: string }>): void;
+    remove?(owner: string): void;
     /** Where a pane is drawn (HitRegistry.addPane): the wheel and a press on its empty space act on it. */
     addPane?(area: { x: number; y: number; w: number; h: number; pane: string }): void;
     /** Where text can be selected with the mouse (HitRegistry.addSelect): a pane's inside, the dock's transcript. */

@@ -1,44 +1,45 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
+assertion_line: 574
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
-╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ api !410 ────────────────────────────────────╮
-│ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a api  !410                                  │
-│ Needs my action      4 ││▌ B team-b                                                                          ││ ABC-410: Page the stats                      │
-│ Opened by me           ││▌ └─ worker                                                       —       1 MR      ││ you · feature/ABC-410 → main · 0s ago        │
-│ Opened by teammates    ││▌    └─ !342 change 342  you          ⊘ draft             1 open  16m     draft     ││                                              │
-│ Opened by bots         ││▌ A team-a   main red in 1                                                          ││  yours, and it needs fixing                  │
-│                        ││▌ ├─ api                              ✓ passed                    4d      2 MRs     ││                                              │
-│                        ││▌ │  ├─ !263 ABC-12: Add a stats endp ◷ needs 1 approval  1 open  16m     review    ││ STATE ────────────────────────────────────── │
-│                        ││▌ │  └─ !410 ABC-410: ╭ api !410 ──────────────────────────────────────────────────╮││   ▷ needs rebase                             │
-│                        ││▌ ├─ web              │ ⏎       open its page                                      │││                                              │
-│                        ││▌ │  ├─ !411 ABC-411: │ o       open it in GitLab                                  │││ ACTIONS ──────────────────────────────────── │
-│                        ││▌ │  ├─ !187 change 18│ y       copy its link                                      │││   rebase onto main                       [u] │
-│                        ││▌ │  └─ !198 change 19│ ON GITLAB                                                  │││   merge · needs rebase                   [m] │
-│                        ││▌ └─ docs             │ u       rebase onto main…                                  │││   approve                                [e] │
-│                        ││                      │ m       merge · needs rebase                               │││   open in GitLab                         [o] │
-│                        ││                      │ e       approve !410…                                      │││   copy link                              [y] │
-│                        ││                      │ /       filter the view by words                           │││                                              │
-│                        ││                      │ .       show only repos with merge requests in the view    │││ PIPELINE  passed · 6m 12s ────────────────── │
-│                        ││                      │ r       refresh now                                        │││   ▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀ │
-│                        ││                      │ WITH AN AGENT                                              │││   ✓ build       ✓ test         ▷ deploy      │
-│                        ││                      │ A       ask an agent about it…                             │││                                              │
-│                        ││                      │ i       review it locally…                                 │││ CHANGES ──────────────────────────────────── │
-│                        ││                      │ :       go to a tenancy, repo or merge request…            │││   1 file  +10 −2                             │
-│                        ││                      │ a       show one author's merge requests…                  │││                                              │
-│                        ││                      │ ctrl-r  kept comments…                                     │││ THREADS  2, 1 open ───────────────────────── │
-│                        ││                      │ HISTORY                                                    │││   │ Bob Example · 1h ago                     │
-│                        ││                      │ H       recent activity (last 24 hours)                    │││   │ Should this read from the cached view?   │
-│                        ││                      │         all activity history                               │││   │ The dashboard polls every 30s.           │
+╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────╮╭ 3 api !410 ──────────────────────────────────╮
+│ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a / acme/team-a/api / !410                   │
+│ Needs my action      4 ││B team-b                                                                            ││ ABC-410: Page the stats                      │
+│ Opened by me           ││  └─ worker                                                       —       1 MR      ││ feature/ABC-410 → main          you · 0s ago │
+│ Opened by teammates    ││     └─ !342 change 342  you          ⊘ draft             1 open  16m     draft     ││                                              │
+│ Opened by bots         ││A team-a   main red in╭ api !410 ──────────────────────────────────────────────────╮││ project    api                               │
+│                        ││  ├─ api              │ ⏎       open its page                                      │││ state      open                              │
+│                        ││  │  ├─ !263 ABC-12: A│         open it in GitLab                                  │││ approvals  1 required · 0 left               │
+│                        ││  │  └─ !410 ABC-410: │         copy its link                                      │││                                              │
+│                        ││  ├─ web              │ ON GITLAB                                                  │││ STATE ────────────────────────────────────── │
+│                        ││  │  ├─ !411 ABC-411: │         update by rebasing onto main…                      │││   yours, and it needs fixing                 │
+│                        ││  │  ├─ !187 change 18│         merge · needs rebase                               │││   ▷ needs rebase                             │
+│                        ││  │  └─ !198 change 19│         approve !410…                                      │││                                              │
+│                        ││  └─ docs             │ /       filter the view by words                           │││ PIPELINE  passed · 6m 12s ────────────────── │
+│                        ││                      │ .       show only repos with merge requests in the view    │││   ▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀ │
+│                        ││                      │         refresh now                                        │││   ✓ build       ✓ test         ▷ deploy      │
+│                        ││                      │ WITH AN AGENT                                              │││                                              │
+│                        ││                      │         shift ask an agent about it…                       │││ CHANGES ──────────────────────────────────── │
+│                        ││                      │         review it locally…                                 │││   1 file  +10 −2                             │
+│                        ││                      │ :       go to a tenancy, repo or merge request…            │││                                              │
+│                        ││                      │         show one author's merge requests…                  │││ THREADS  2, 1 open ───────────────────────── │
+│                        ││                      │ ctrl-r  kept comments…                                     │││   │ Bob Example · 1h ago                     │
+│                        ││                      │ space   toggle the group                                   │││   │ Should this read from the cached view?   │
+│                        ││                      │ +       expand the group                                   │││   │ The dashboard polls every 30s.           │
+│                        ││                      │ -       collapse the group, or the one this row is in      │││                                              │
+│                        ││                      │ =       expand every held group                            │││                                              │
+│                        ││                      │ ~       recent notices (this session)                      │││                                              │
+│                        ││                      │ HISTORY                                                    │││                                              │
+│                        ││                      │         shift recent activity (last 24 hours)              │││                                              │
+│                        ││                      │         all activity history                               │││                                              │
 │                        ││                      │         history for selected item                          │││                                              │
 │                        ││                      ╰────────────────────────────────────────────────────────────╯││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ every open merge request · listing every repo, also those without                  ││update  merge  approve  open     extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- REPOSITORIES   j/k move   ⏎ choose   esc close                                                               6 open · 1 to review · 2 broken · 1 ready  gitlab
+ REPOSITORIES   ↑↓ move   ⏎ choose   esc close                                                                6 open · 1 to review · 2 broken · 1 ready  gitlab

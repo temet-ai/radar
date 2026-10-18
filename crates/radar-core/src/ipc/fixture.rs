@@ -44,7 +44,7 @@ impl Plugin for Probe {
         }]
     }
     fn keys(&self, _: &str, _: Pane) -> Vec<Binding> {
-        vec![Binding::new("p", "ask first")]
+        vec![Binding::new("p", "prompt first")]
     }
     fn view(&self, scope: &str, _: &v::ViewCx<'_>) -> Option<v::ScreenView> {
         let mut view = v::ScreenView::new(
@@ -60,15 +60,17 @@ impl Plugin for Probe {
         );
         view.actions = vec![
             ActionSpec {
-                id: ASK.into(),
-                label: "ask first".into(),
+                mnemonic_at: None,
+                mnemonic_shift: false,                id: ASK.into(),
+                label: "prompt first".into(),
                 key: Chord::parse("p"),
                 heading: false,
                 icon: None,
                 change: None,
             },
             ActionSpec {
-                id: PAGE.into(),
+                mnemonic_at: None,
+                mnemonic_shift: false,                id: PAGE.into(),
                 label: "page".into(),
                 key: None,
                 heading: false,
@@ -76,7 +78,8 @@ impl Plugin for Probe {
                 change: None,
             },
             ActionSpec {
-                id: SYNC.into(),
+                mnemonic_at: None,
+                mnemonic_shift: false,                id: SYNC.into(),
                 label: "sync".into(),
                 key: None,
                 heading: false,

@@ -438,7 +438,7 @@ mod tests {
                 outcome: JournalOutcome::Failed,
             },
         );
-        assert!(fx.iter().any(|effect| matches!(effect, Effect::Notify(m) if m == "✗ GitLab did not rebase !263: GitLab: 403 Forbidden")), "{fx:?}");
+        assert!(fx.iter().any(|effect| matches!(effect, Effect::Notice(m) if m.tone == radar_core::view::chrome::NoticeTone::Error && m.text == "✗ GitLab did not rebase !263: GitLab: 403 Forbidden")), "{fx:?}");
         assert!(!running(&p));
     }
 }

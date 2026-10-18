@@ -1,10 +1,10 @@
 ---
 source: crates/radar-jira/src/tests.rs
-assertion_line: 1898
+assertion_line: 1849
 expression: "text(&host, 80, 24)"
 ---
  radar    Jira   History   Settings (,)                                  ✎ edit
-╭ settings ────────────╮╭ look ────────────────────────────────────────────────╮
+╭ 1 settings ──────────╮╭ 2 look ──────────────────────────────────────────────╮
 │General               ││ STATUSES                                             █
 │  ├─ parts            ││    to do    a ticket not started      secondary text █
 │  ├─ mode             ││    doing    a ticket being worked on     info · bold █
@@ -15,7 +15,7 @@ expression: "text(&host, 80, 24)"
 │  ├─ connection       ││    task     a task                    links and keys ║
 │  ├─ projects         ││    epic     an epic              third accent · bold ║
 │  ├─ views            │╰──────────────────────────────────────────────────────╯
-│  └─ look             │╭ to do ───────────────────────────────────────────────╮
+│  └─ look             │╭ 3 to do ─────────────────────────────────────────────╮
 │                      ││ How a ticket not started is drawn.                   █
 │                      ││                                                      █
 │                      ││   sample  to do                                      █
@@ -26,4 +26,4 @@ expression: "text(&host, 80, 24)"
 │                      ││ emphasis  none                                       ║
 │                      ││                                                      ║
 ╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   q quit   x menu   ←→↑↓ navigate             jira
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                   jira

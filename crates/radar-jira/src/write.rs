@@ -369,7 +369,7 @@ pub(crate) fn me<'a>(p: &'a JiraPlugin, site: &str) -> Option<&'a Me> {
 }
 
 /// Why `i` cannot assign this ticket to you now, if it cannot.
-fn assign_blocked(p: &JiraPlugin, site: &str, key: &str) -> Option<String> {
+pub(crate) fn assign_blocked(p: &JiraPlugin, site: &str, key: &str) -> Option<String> {
     let mine = me(p, site)?;
     held(p, site, key)
         .filter(|t| t.assignee_id == mine.account_id)
@@ -720,7 +720,7 @@ fn review(p: &mut JiraPlugin) -> Vec<Effect> {
         Draft::Summary { project, kind } => {
             let summary = text.trim().to_string();
             if summary.is_empty() {
-                return vec![Effect::Notify("not yet: a ticket needs a summary".into())];
+                return vec![Effect::error(None, "not yet: a ticket needs a summary")];
             }
             let draft = Draft::Description {
                 project: project.clone(),
@@ -1155,12 +1155,15 @@ pub(crate) fn dispatch(
         let mut refused = finish(p, change, Err(why), JournalOutcome::Blocked, None);
         if reserved.is_some_and(|id| p.recovery.records[&id].status == Status::Uncertain) {
             for effect in &mut refused {
-                if let Effect::Notify(message) | Effect::NotifyWith(_, message) = effect {
-                    message.push_str(&format!(
-                        "; current attempt not sent; {}",
-                        Status::Uncertain.words()
-                    ));
-                }
+                let message = match effect {
+                    Effect::Notify(message) | Effect::NotifyWith(_, message) => message,
+                    Effect::Notice(message) => &mut message.text,
+                    _ => continue,
+                };
+                message.push_str(&format!(
+                    "; current attempt not sent; {}",
+                    Status::Uncertain.words()
+                ));
             }
         }
         fx.extend(refused);

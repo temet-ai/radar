@@ -263,8 +263,12 @@ fn stale_writes_keep_original_results_text_and_newer_composer_without_refreshing
             assert_eq!(skipped_count(&effects), 1);
             assert!(matches!(effects[0], Effect::Report(outcome)
                 if outcome == if success { Outcome::Succeeded } else { Outcome::Unknown }));
-            assert!(effects.iter().any(|e| matches!(e, Effect::Notify(m)
-                if m.contains(if success { "PRIVATE_REMOTE_SUCCESS" } else { "PRIVATE_REMOTE_ERROR" }))));
+            if success {
+                assert!(effects.iter().any(|e| matches!(e, Effect::Notify(m) if m.contains("PRIVATE_REMOTE_SUCCESS"))));
+            } else {
+                assert!(effects.iter().any(|e| matches!(e, Effect::Notice(m)
+                    if m.tone == radar_core::view::chrome::NoticeTone::Error && m.contains("PRIVATE_REMOTE_ERROR"))));
+            }
             assert!(!matches!(p.acting[&change.key()].state, Acting::Running));
             if !success && let Some(text) = change.text() {
                 assert!(

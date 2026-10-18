@@ -120,18 +120,18 @@ fn real_parts_offer_only_source_folder_and_read_only_cached_relationships() {
     let labels: Vec<_> = menu.items.iter().map(|r| r.label.as_str()).collect();
     assert!(labels.contains(&"open current folder in an editor"));
     assert!(labels.contains(&"open terminal in current folder"));
-    assert!(labels.contains(&"open ABC-12"));
-    assert!(labels.contains(&"open discussion in #team"));
+    assert!(labels.contains(&"view ABC-12"));
+    assert!(labels.contains(&"open discussion thread in #team"));
     assert!(!labels.iter().any(|s| s.contains("ask for review")
         || s.starts_with("move ABC")
         || s.starts_with("push ")
         || s.starts_with("check out ")));
-    choose(&mut host, "open discussion in #team");
+    choose(&mut host, "open discussion thread in #team");
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "slack");
     press(&mut host, KeyCode::Esc);
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "github");
     press(&mut host, KeyCode::Char('x'));
-    choose(&mut host, "open ABC-12");
+    choose(&mut host, "view ABC-12");
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "jira");
     press(&mut host, KeyCode::Esc);
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "github");

@@ -1,10 +1,11 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
+assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
- Gallery › Colours
+ Gallery / Colours
  The kit: every element on sample data                                                                                                            colours: none
- Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  [Colours]  Tones  Row states  Grid states  Waiting  Long text  Icons
+ Tree  Table  Card  Meters  Rows & states  Entries & log  Markdown  Diff  Motion  [Colours]  Tones  Row states  Grid states  Waiting  Long text  Icons  Notices
 ╭ slots ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ BACKGROUNDS                                                                   ██████ accent.tertiary  #ff6ac1  spare accent for plugins                     │
 │ ██████ bg.base          #0a0812  the screen behind every panel                STATUS                                                                        │
@@ -41,4 +42,4 @@ expression: "gallery_text(160, 40, tab)"
 
 
 
- [ ] tabs   j k move   space fold   PgUp/PgDn scroll   c colours   q quit
+ [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

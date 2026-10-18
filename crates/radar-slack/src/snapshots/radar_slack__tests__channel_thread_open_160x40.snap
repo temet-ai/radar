@@ -1,20 +1,28 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 231
 expression: text
 ---
  radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
-╭ feed ──────────────────╮╭ #team ─────────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
-│ For you              4 ││ 6 new                                                          REPLIES  WHEN       ││ ── #team · Sun 4 Oct ──                      │
-│ Discussions            ││▌ today                                                                             ││ ● 06:16  Bob Builder                         │
-│ ▌ #team          6 NEW ││▌ └─ ● Bob B.  Lunch at 12:30? 🍕                                        30m        ││     @review-squad :gitlab: mr Add a stats    │
-│ ▌ #svc           1 NEW ││▌ yesterday                                                                         ││ endpoint for the dashboard                   │
-│                        ││▌ └─ ● Carol C.  Anyone seen ABC-12 failing on main? pipeline a 1        1d         ││     👀 1                                     │
-│                        ││▌ Sun 4 Oct                                                                         ││ ● 06:46  Alice Example                       │
-│                        ││▌ └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endpoint f 2        2d         ││     looking 👀                               │
-│                        ││▌    ├─ you  looking 👀                                                  2d         ││ ● 07:16  Carol Coder                         │
-│                        ││▌    └─ Carol C.  approved, nice one                                     2d         ││     approved, nice one                       │
+╭ 1 feed ────────────────╮╭ 2 #team ───────────────────────────────────────────────────────────────────────────╮╭ 3 Bob Builder's message ─────────────────────╮
+│ For you              4 ││ 6 new                                                          REPLIES  WHEN       ││ Acme / #team                                 │
+│ Discussions            ││today                                                                               ││ @review-squad :gitlab: mr Add a stats endpo… │
+│ ▌ #team          6 NEW ││  └─ ● Bob B.  Lunch at 12:30? 🍕                                        30m        ││                         Bob Builder · 2d ago │
+│ ▌ #svc           1 NEW ││yesterday                                                                           ││                                              │
+│                        ││  └─ ● Carol C.  Anyone seen ABC-12 failing on main? pipeli ⋯ 1 1        1d         ││ thread   thread start                        │
+│                        ││Sun 4 Oct                                                                           ││ replies  2                                   │
+│                        ││  └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endpoint f 2        2d         ││                                              │
+│                        ││     ├─ you  looking 👀                                                  2d         ││ THREAD  Sun 4 Oct ────────────────────────── │
+│                        ││     └─ Carol C.  approved, nice one                                     2d         ││   ● 06:16  Bob Builder                       │
+│                        ││                                                                                    ││   @review-squad :gitlab: mr Add a stats      │
+│                        ││                                                                                    ││   endpoint for the dashboard                 │
+│                        ││                                                                                    ││   👀 1                                       │
+│                        ││                                                                                    ││   ● 06:46  Alice Example                     │
+│                        ││                                                                                    ││   looking 👀                                 │
+│                        ││                                                                                    ││   ● 07:16  Carol Coder                       │
+│                        ││                                                                                    ││   approved, nice one                         │
 │                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││ 2 replies · last 2d ago                      │
+│                        ││                                                                                    ││   2 replies · last 2d ago                    │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││ LINKS ────────────────────────────────────── │
 │                        ││                                                                                    ││   mr                                         │
@@ -31,14 +39,7 @@ expression: text
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ the last 7 days · where the team talks                                             ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ the last 7 days · where the team talks                                             ││⏎ thread  open  copy  mark read  extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                             7 new · 4 for you  slack
+ SLACK   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                              7 new · 4 for you  slack

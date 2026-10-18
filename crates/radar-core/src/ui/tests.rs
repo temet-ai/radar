@@ -207,7 +207,7 @@ fn the_part_wide_words_read_alike() {
 }
 
 #[test]
-fn plus_and_equals_open_a_group_minus_closes_it_or_the_one_a_row_is_in() {
+fn plus_opens_selected_equals_opens_all_and_minus_closes_it_or_its_parent() {
     let t = mono();
     let nodes = sample_nodes(&t);
     let mut state = TreeState::default();
@@ -222,7 +222,7 @@ fn plus_and_equals_open_a_group_minus_closes_it_or_the_one_a_row_is_in() {
         draw(state);
         tree::key(state, &press(KeyCode::Char(c)))
     };
-    // On an open group: `-` closes it, `+` and `=` open it.
+    // On an open group: `-` closes it and `+` opens it.
     state.select(path(&["a", "maps"]));
     assert!(key(&mut state, '-'));
     assert!(!state.opened().contains(&path(&["a", "maps"])));
@@ -233,7 +233,7 @@ fn plus_and_equals_open_a_group_minus_closes_it_or_the_one_a_row_is_in() {
     assert!(state.opened().contains(&path(&["a", "maps"])));
     assert!(!key(&mut state, '+'), "open already");
     assert!(key(&mut state, '-'));
-    assert!(key(&mut state, '='), "`=` is `+` without shift");
+    assert!(key(&mut state, '='), "`=` opens every held group");
     assert!(state.opened().contains(&path(&["a", "maps"])));
     // On a row inside a group: `-` closes the group and selects it.
     state.select(path(&["a", "maps", "198"]));
@@ -421,18 +421,19 @@ fn tree_160() {
 fn tree_lines_join_rows_to_their_parents_and_columns_line_up() {
     let out = tree_text(100, 14, &[]);
     let rows: Vec<&str> = out.lines().collect();
-    // Stripe on every row of a group, its heading included.
-    assert!(rows[1].starts_with("▌ A north-wing"), "{out}");
-    assert!(rows[2].starts_with("▌ ├─ atlases"), "{out}");
+    // Group colour is carried by the name, with no left-edge rail.
+    assert!(rows[1].starts_with("A north-wing"), "{out}");
+    assert!(!out.contains('▌'), "{out}");
+    assert!(rows[2].starts_with("  ├─ atlases"), "{out}");
     // Under a box that is not the last, the line runs down past it.
-    assert!(rows[3].starts_with("▌ │  └─ #104"), "{out}");
+    assert!(rows[3].starts_with("  │  └─ #104"), "{out}");
     // Three deep: a line past the box, and one past the item above, each
     // under its parent's name.
-    assert!(rows[5].starts_with("▌ │  ├─ #187"), "{out}");
-    assert!(rows[6].starts_with("▌ │  │  └─ #1 a loose map"), "{out}");
-    assert!(rows[7].starts_with("▌ │  └─ #198"), "{out}");
+    assert!(rows[5].starts_with("  │  ├─ #187"), "{out}");
+    assert!(rows[6].starts_with("  │  │  └─ #1 a loose map"), "{out}");
+    assert!(rows[7].starts_with("  │  └─ #198"), "{out}");
     // The last box: no line past it.
-    assert!(rows[8].starts_with("▌ └─ ledgers"), "{out}");
+    assert!(rows[8].starts_with("  └─ ledgers"), "{out}");
     // Every row's state column starts under its heading.
     let col = rows[0].find("STATE").expect("a heading");
     for r in &rows[1..10] {
@@ -448,7 +449,7 @@ fn tree_lines_join_rows_to_their_parents_and_columns_line_up() {
 fn a_folded_node_shows_dots_and_space_folds() {
     // Down onto atlases, fold it.
     let out = tree_text(100, 14, &[KeyCode::Down, KeyCode::Char(' ')]);
-    assert!(out.contains("├─ atlases ⋯"), "{out}");
+    assert!(out.contains("├─ atlases ⋯ 1"), "{out}");
     assert!(!out.contains("#104"), "{out}");
 }
 
@@ -465,7 +466,7 @@ fn one_row(w: u16, group: Node, row: Node, open: bool) -> String {
     })
 }
 
-/// A tree of an add row, a striped group and the group's own add row, with
+/// A tree of an add row, a group and the group's own add row, with
 /// a text input `abc` on the node `on`, `w` wide, `h` tall; the text and
 /// where the terminal cursor went.
 fn input_tree(on: &str, h: u16, w: u16) -> (String, Option<ratatui::layout::Position>) {
@@ -495,20 +496,20 @@ fn input_tree(on: &str, h: u16, w: u16) -> (String, Option<ratatui::layout::Posi
 }
 
 #[test]
-fn a_text_input_goes_on_a_tree_row_past_its_stripe_and_tree_line() {
+fn a_text_input_goes_on_a_tree_row_past_its_tree_line() {
     // On the top add row: after ` + `.
     let (out, cursor) = input_tree("add", 5, 30);
     let row = out.lines().next().unwrap();
     assert_eq!(row, " + abc", "{out}");
     assert_eq!(cursor.map(|p| (p.x, p.y)), Some((6, 0)));
-    // On a striped group: after the stripe and `● `, over its name.
+    // On a group: after `● `, over its name.
     let (out, cursor) = input_tree("g", 5, 30);
-    assert_eq!(out.lines().nth(1).unwrap(), "▌ ● abc", "{out}");
-    assert_eq!(cursor.map(|p| (p.x, p.y)), Some((7, 1)));
-    // On the group's add row, one level down: past the stripe's lead and `├─ + `.
+    assert_eq!(out.lines().nth(1).unwrap(), "● abc", "{out}");
+    assert_eq!(cursor.map(|p| (p.x, p.y)), Some((5, 1)));
+    // On the group's add row, one level down: past the indent and `├─ + `.
     let (out, cursor) = input_tree("g/add", 5, 30);
     let row = out.lines().nth(2).unwrap();
-    assert_eq!(row, "▌ ├─ + abc", "{out}");
+    assert_eq!(row, "  ├─ + abc", "{out}");
     assert_eq!(cursor.map(|p| (p.x, p.y)), Some((10, 2)), "{out}");
     // A row not shown draws no input and sets no cursor.
     let (out, cursor) = input_tree("g/add", 2, 30);
@@ -545,14 +546,15 @@ fn a_rows_detail_shows_whole_or_not_at_all_and_chips_follow_the_name() {
 }
 
 #[test]
-fn a_foldable_node_shows_dots_while_closed_with_no_children_given() {
+fn an_empty_foldable_node_does_not_claim_unfetched_descendants() {
     let leaf = Node::new("r", vec![Span::raw("atlases")]).cell("state", Span::raw("open"));
     let out = draw(40, 2, |t, area, buf| {
         let nodes = vec![Node::new("g", vec![Span::raw("G north-wing")]).foldable(), leaf];
         let cols = Columns::new([Column::new("state", 10)]);
         BandedTree::new(&nodes, &cols, TreeLook::new(t)).render(t, area, buf, &mut TreeState::default());
     });
-    assert!(out.contains("G north-wing ⋯"), "{out}");
+    assert!(out.contains("G north-wing"), "{out}");
+    assert!(!out.contains("⋯"), "no held descendants to count: {out}");
     assert!(!out.contains("atlases ⋯"), "a plain leaf has nothing folded: {out}");
 }
 

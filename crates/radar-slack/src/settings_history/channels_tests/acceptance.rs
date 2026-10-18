@@ -42,7 +42,7 @@ fn rejected(p: &SlackPlugin, key: &str, fx: &[Effect]) {
     assert_eq!(
         fx.iter()
             .filter_map(|fx| match fx {
-                Effect::Notify(text) => Some(text),
+                Effect::Notice(message) if message.tone == radar_core::view::chrome::NoticeTone::Error => Some(&message.text),
                 _ => None,
             })
             .count(),
@@ -50,7 +50,7 @@ fn rejected(p: &SlackPlugin, key: &str, fx: &[Effect]) {
     );
     assert!(fx.iter().all(|fx| matches!(
         fx,
-        Effect::Report(_) | Effect::Observe { .. } | Effect::Notify(_)
+        Effect::Report(_) | Effect::Observe { .. } | Effect::Notice(_)
     )));
     assert!(!format!("{:?}", history(fx)).contains("request.failed"));
     private_absent(&format!("{:?}", history(fx)));

@@ -270,31 +270,74 @@ fn the_merge_request_page_has_the_trackers_section_and_tab() {
     insta::assert_snapshot!("mr_page_tracker_tab_keys_100x40", to_text(&host, 100, 40));
 }
 
+/// Click the pinned Detail menu control through the actual native hit map.
+fn preview_menu_at(host: &Host) -> radar_core::ratatui::layout::Position {
+    let text = to_text(host, 160, 40);
+    let (y, line) = text.lines().enumerate()
+        .find(|(_, line)| line.contains("extra actions") && line.ends_with('│'))
+        .unwrap_or_else(|| panic!("no pinned menu control in:\n{text}"));
+    let x = radar_core::ui::width(&line[..line.rfind("extra actions").unwrap()]) as u16;
+    assert_eq!(y, 37, "the actions remain pinned above the Detail frame's bottom");
+    assert!(matches!(host.hit_at(x, y as u16), Some(radar_core::host::Hit::Plugin { pane: Pane::Detail, ref id, .. })
+        if id.starts_with(v::detail::TARGET_PREFIX)), "the native footer has a live Detail hit");
+    radar_core::ratatui::layout::Position { x, y: y as u16 }
+}
+
 #[test]
 fn another_parts_line_sits_under_the_title_and_its_actions_in_the_preview_act_on_a_click() {
     let mut host = hosted_with_tracker();
     on_263(&mut host);
-    // The detail pane lists the tracker's action (its `o` is the tree's own,
-    // so only the one with a key it keeps).
+    assert_eq!(host.focus, Pane::Middle, "the preview starts unfocused");
+    let at = preview_menu_at(&host);
+    let before = host.notices.through_id();
+    host.update(Event::Mouse {
+        kind: radar_core::host::MouseKind::Context,
+        column: at.x,
+        row: at.y,
+        at_ms: 0,
+    });
+    assert!(host.menu.is_none(), "a context click does not open or run the control");
+    assert_eq!(host.focus, Pane::Middle);
+    assert_eq!(host.notices.through_id(), before);
+    host.update(Event::Mouse {
+        kind: radar_core::host::MouseKind::Press,
+        column: at.x,
+        row: at.y,
+        at_ms: 1000,
+    });
+    assert_eq!(host.focus, Pane::Detail, "one click focuses the control's pane");
+    assert_eq!(host.notices.through_id(), before, "opening the menu runs no contribution");
+    let menu = &host.menu.as_ref().expect("the original contextual menu").menu;
+    assert_eq!(menu.id, radar_core::host::KEYS_MENU);
+    assert_eq!(menu.title, "api !263");
+    let start = menu.items.iter().position(|item| item.label == "start work on ABC-12…").unwrap();
+    assert_eq!(menu.items[start].keys, "s");
+    assert!(menu.items.iter().any(|item| item.label == "Tracker" && item.heading));
+    let collision = menu.items.iter().find(|item| item.label == "open ABC-12 in the tracker").unwrap();
+    assert_eq!(collision.keys, "", "the contribution does not displace GitLab's o");
+    assert_eq!(collision.key, None);
+    assert!(menu.items.iter().any(|item| item.keys == "o" && item.label == "open it in GitLab"));
     let text = to_text(&host, 160, 40);
-    let (y, line) = text
-        .lines()
-        .enumerate()
-        .find(|(_, l)| l.contains("start work on ABC-12"))
-        .unwrap_or_else(|| panic!("no action line in:\n{text}"));
-    assert!(!text.contains("open ABC-12 in the tracker"), "{text}");
-    let x = line[..line.rfind("start work").unwrap()].chars().count() as u16;
+    let (y, line) = text.lines().enumerate()
+        .find(|(_, line)| line.contains("start work on ABC-12"))
+        .unwrap_or_else(|| panic!("no contributed menu row in:\n{text}"));
+    let x = radar_core::ui::width(&line[..line.find("start work on ABC-12").unwrap()]) as u16;
+    assert_eq!(host.hit_at(x, y as u16), Some(radar_core::host::Hit::MenuItem(start)));
     host.update(Event::Mouse {
         kind: radar_core::host::MouseKind::Press,
         column: x,
         row: y as u16,
-        at_ms: 0,
+        at_ms: 2000,
     });
+    assert!(host.menu.is_none());
     assert_eq!(host.message.as_deref(), Some("start: api !263"));
+    assert_eq!(host.notices.since(before).map(|notice| notice.text.as_str()).collect::<Vec<_>>(),
+        ["start: api !263"], "one physical activation dispatches the contribution exactly once");
     // Its page: the tracker's line under the title.
     press(&mut host, KeyCode::Enter);
     let text = to_text(&host, 160, 40);
     assert!(text.contains("tracked as ABC-12"), "{text}");
+    assert_eq!(host.plugins[0].depth("repos"), 1);
 }
 
 #[test]
@@ -303,6 +346,18 @@ fn contributed_preview_actions_without_an_icon_get_a_generic_action_icon() {
     host.load_config(Some("[theme]\nicons = \"unicode\"\n")).unwrap();
     host.plugins[0] = Box::new(crate::tests::sample());
     on_263(&mut host);
+    let at = preview_menu_at(&host);
+    host.update(Event::Mouse {
+        kind: radar_core::host::MouseKind::Press,
+        column: at.x,
+        row: at.y,
+        at_ms: 0,
+    });
+    let menu = host.menu_view().expect("full menu shared by native and Ink");
+    let action = menu.items.iter().find(|item| item.label == "start work on ABC-12…").unwrap();
+    assert_eq!(action.icon, Some(radar_core::ui::icon::Icon::Action));
+    assert_eq!(action.keys, "s");
+    assert!(action.target.is_some());
     let text = to_text(&host, 160, 40);
     assert!(text.contains("▷ start work on ABC-12"), "{text}");
 }
@@ -322,7 +377,7 @@ fn enter_on_the_ticket_tab_shows_it_and_esc_comes_back_to_the_page() {
     assert_eq!(host.screen().unwrap().1.name, "repositories");
     let text = to_text(&host, 160, 40);
     assert!(
-        text.contains("› api › !263") && text.contains("[Ticket]"),
+        text.contains("/ api / !263") && text.contains("[Ticket]"),
         "{text}"
     );
 }
@@ -379,7 +434,7 @@ fn the_tracker_shows_a_merge_request_and_esc_returns_to_it() {
     press(&mut host, KeyCode::Char('e'));
     assert_eq!(host.screen().unwrap().1.name, "repositories");
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("Repositories › a › api › !263"), "{text}");
+    assert!(text.contains("Repositories / a / api / !263"), "{text}");
     press(&mut host, KeyCode::Char('x'));
     let menu = to_text(&host, 160, 40);
     assert!(menu.contains("back to tickets"), "{menu}");

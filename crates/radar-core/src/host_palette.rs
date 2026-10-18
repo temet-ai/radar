@@ -279,7 +279,7 @@ impl Host {
             Destination::Action => {
                 if route != (self.view, self.focus, self.bar, self.sources, self.tabs) {
                     self.cancel_palette();
-                    self.message = Some("that target changed; open the palette again".into());
+                    self.notify_error("that target changed; open the palette again");
                     return vec![];
                 }
                 self.clear_palette_hits();
@@ -301,7 +301,7 @@ impl Host {
                     });
                 if !current {
                     self.cancel_palette();
-                    self.message = Some("that destination changed; open the palette again".into());
+                    self.notify_error("that destination changed; open the palette again");
                     return vec![];
                 }
                 self.finish_palette_navigation();
@@ -310,7 +310,7 @@ impl Host {
             Destination::Screen(i) => {
                 if !self.screen_shown(i) {
                     self.cancel_palette();
-                    self.message = Some("that screen changed; open the palette again".into());
+                    self.notify_error("that screen changed; open the palette again");
                     return vec![];
                 }
                 self.finish_palette_navigation();

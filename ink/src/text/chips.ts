@@ -32,8 +32,8 @@ export function chipWordStyle(seg: Seg): Style {
 
 /** ui::chips::chip_spans: a chip is ` ` + the icon and its gap (the icon's own colour) + `words ` (the tone's
  * colour), all on the chip's ground. With no glyph (icons off, or an unknown icon) it is ` words ` in one run. */
-export function chipRuns(seg: Seg): ChipRun[] {
-  const words = withEmoji(seg.text ?? "");
+export function chipRuns(seg: Seg, literal = false): ChipRun[] {
+  const words = literal ? seg.text ?? "" : withEmoji(seg.text ?? "");
   const glyph = seg.icon ? ICONS[seg.icon] : undefined;
   const wordStyle: Style = chipWordStyle(seg.icon ? { ...seg, icon: null } : seg);
   const bg = wordStyle.backgroundColor;
@@ -49,8 +49,8 @@ export function chipRuns(seg: Seg): ChipRun[] {
 }
 
 /** The cells' text of a chip, as chipRuns lays it out. */
-export function chipText(seg: Seg): string {
+export function chipText(seg: Seg, literal = false): string {
   let out = "";
-  for (const r of chipRuns(seg)) out += r.text;
+  for (const r of chipRuns(seg, literal)) out += r.text;
   return out;
 }

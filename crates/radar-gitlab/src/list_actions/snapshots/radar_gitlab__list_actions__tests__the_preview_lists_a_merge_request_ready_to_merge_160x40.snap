@@ -1,25 +1,23 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
+assertion_line: 549
 expression: "shown(p, 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
-╭ views ─────────────────╮╭ Everything ────────────────────────────────────────────────────────────────────────╮╭ web !187 ────────────────────────────────────╮
-│ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a web  !187                                  │
-│ Needs my action      4 ││▌ B team-b                                                                          ││ change 187                                   │
-│ Opened by me           ││▌ └─ worker                                                       —       1 MR      ││ you · feature/ABC-187 → main · 16m ago       │
-│ Opened by teammates    ││▌    └─ !342 change 342  you          ⊘ draft             1 open  16m     draft     ││                                              │
-│ Opened by bots         ││▌ A team-a   main red in 1                                                          ││  yours, and ready to merge                   │
-│                        ││▌ ├─ api                              ✓ passed                    4d      2 MRs     ││                                              │
-│                        ││▌ │  ├─ !263 ABC-12: Add a stats endp ◷ needs 1 approval  1 open  16m     review    ││ STATE ────────────────────────────────────── │
-│                        ││▌ │  └─ !410 ABC-410: Page the stats  ▷ needs rebase      1 open  0s      fix       ││   ✓ ready to merge                           │
-│                        ││▌ ├─ web                              ✗ failed                    4d      3 MRs     ││                                              │
-│                        ││▌ │  ├─ !411 ABC-411: Retry the sync  ✗ pipeline failed   1 open  0s      fix       ││ ACTIONS ──────────────────────────────────── │
-│                        ││▌ │  ├─ !187 change 187  you          ✓ ready to merge    1 open  16m     ready     ││   rebase · not behind main               [u] │
-│                        ││▌ │  └─ !198 change 198  group_1_bot_ ◷ needs 1 approval  1 open  16m     bot       ││   merge into main                        [m] │
-│                        ││▌ └─ docs                             ✓ passed                    4d      —         ││   approve                                [e] │
-│                        ││                                                                                    ││   open in GitLab                         [o] │
-│                        ││                                                                                    ││   copy link                              [y] │
-│                        ││                                                                                    ││                                              │
+╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────╮╭ 3 web !187 ──────────────────────────────────╮
+│ Everything             ││ OPENED BY everyone · 4 repos         STATE               THREADS UPDATED FOR YOU   ││ a / acme/team-a/web / !187                   │
+│ Needs my action      4 ││B team-b                                                                            ││ change 187                                   │
+│ Opened by me           ││  └─ worker                                                       —       1 MR      ││ feature/ABC-187 → main         you · 16m ago │
+│ Opened by teammates    ││     └─ !342 change 342  you          ⊘ draft             1 open  16m     draft     ││                                              │
+│ Opened by bots         ││A team-a   main red in 1                                                            ││ project      web                             │
+│                        ││  ├─ api                              ✓ passed                    4d      2 MRs     ││ state        open                            │
+│                        ││  │  ├─ !263 ABC-12: Add a stats endp ◷ needs 1 approval  1 open  16m     review    ││ approvals    1 required · 0 left             │
+│                        ││  │  └─ !410 ABC-410: Page the stats  ▷ needs rebase      1 open  0s      fix       ││ approved by  bob                             │
+│                        ││  ├─ web                              ✗ failed                    4d      3 MRs     ││                                              │
+│                        ││  │  ├─ !411 ABC-411: Retry the sync  ✗ pipeline failed   1 open  0s      fix       ││ STATE ────────────────────────────────────── │
+│                        ││  │  ├─ !187 change 187  you          ✓ ready to merge    1 open  16m     ready     ││   yours, and ready to merge                  │
+│                        ││  │  └─ !198 change 198  group_1_bot_ ◷ needs 1 approval  1 open  16m     bot       ││   ✓ ready to merge                           │
+│                        ││  └─ docs                             ✓ passed                    4d      —         ││                                              │
 │                        ││                                                                                    ││ PIPELINE  passed · 6m 12s ────────────────── │
 │                        ││                                                                                    ││   ▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀ │
 │                        ││                                                                                    ││   ✓ build       ✓ test         ▷ deploy      │
@@ -38,7 +36,10 @@ expression: "shown(p, 160, 40)"
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
-│                        ││ every open merge request · listing every repo, also those without                  ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ every open merge request · listing every repo, also those without                  ││update  merge  approve  open     extra actions│
 ╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- REPOSITORIES   m merge   PgUp/PgDn scroll   b bulk   +/- expand/collapse   q quit   x menu   ←→↑↓ navigate                                              gitlab
+ REPOSITORIES   merge   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                                 gitlab

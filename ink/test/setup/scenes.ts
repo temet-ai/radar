@@ -38,7 +38,8 @@ const sheet = (scope: string, body: SectionView["body"], blocks: Block[], title 
   actions: [],
 });
 
-const hint = (keys: string, label: string): Hint => ({ keys, label, keys_of: [] });
+// Explicit offsets mirror chrome_hint's host-authored metadata; the renderer never chooses a letter.
+const hint = (keys: string, label: string, mnemonic_at?: number): Hint => ({ keys, label, keys_of: [], ...(mnemonic_at == null ? {} : { mnemonic_at }) });
 
 function chrome(width: number, height: number, over: Partial<ChromeView>, hints: Hint[], health = false): ChromeView {
   return {
@@ -95,7 +96,7 @@ const scan = (): Scene => {
       hint("⏎", "continue"),
       hint("↑↓", "move"),
       hint("esc", "no thanks"),
-      hint("y", "copy"),
+      hint("y", "copy", 3),
       hint("PgUp/PgDn", "scroll"),
     ]),
     section: sheet("setup.scan", { node: "list", rows, selected: 5 }, blocks),
@@ -147,7 +148,7 @@ const choose = (): Scene => {
           rail: [],
         },
       },
-      [hint("⏎", "start here"), hint("space", "tick"), hint("a", "all"), hint("n", "none"), hint("esc", "not now"), hint("←", "back")],
+      [hint("⏎", "start here"), hint("space", "tick"), hint("a", "all", 0), hint("n", "none", 0), hint("esc", "not now"), hint("←", "back")],
       true,
     ),
     section: sheet("setup.choose", { node: "list", rows, selected: 1 }, blocks),
@@ -163,7 +164,7 @@ const partStep = (name: string, width: number, height: number): Scene => ({
     width,
     height,
     { setup: { title: "Shelves", step: "step 2 of 3", heading: "", lead: "", rail: [] } },
-    [hint("⏎", "continue"), hint("space", "choose"), hint("esc", "skip this"), hint("←", "back"), hint("f", "finish later")],
+    [hint("⏎", "continue"), hint("space", "choose"), hint("esc", "skip this"), hint("←", "back"), hint("f", "finish later", 0)],
     true,
   ),
   section: sheet(
@@ -223,7 +224,7 @@ const ready = (name: string, width: number, height: number): Scene => {
         // The mode step chose read only.
         top_bar: { brand: "radar", tabs: [], mode: { text: "◉ read only", ink: "info", strong: true, target: "chrome:mode" } },
       } as Partial<ChromeView>,
-      [hint("⏎", "yes, a tour"), hint("↑↓", "move"), hint("←", "back"), hint("y", "copy"), hint("PgUp/PgDn", "scroll")],
+      [hint("⏎", "yes, a tour"), hint("↑↓", "move"), hint("←", "back"), hint("y", "copy", 3), hint("PgUp/PgDn", "scroll")],
     ),
     section: sheet(
       "setup.ready",

@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mount, tick } from "./harness.js";
 import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
+import type { MenuView } from "../../src/chrome/types.js";
 
 // Ratatui's styled buffer with a menu up (tests/ratatui_cells.rs, scene highlight_menu): the screen behind dims and the
 // menu throws a one-cell shadow (ui::scrim). The whole App draws the same view data with the same menu, and the body's
@@ -18,6 +19,25 @@ interface RatCell {
   ch?: string;
   fg?: string;
   bg?: string;
+  mods?: string[];
+}
+
+interface MenuScene {
+  canvas: { fg: string; bg: string };
+  colours: Record<string, { hex: string }>;
+  view: { screen: any; menu: MenuView };
+  rows: RatCell[][];
+}
+
+/** Locate the menu independently in both actual painted frames, below the pane titles. */
+function menuBox(rows: Array<Array<{ ch?: string }>>, title: string) {
+  const text = (r: Array<{ ch?: string }>) => r.map((c) => c.ch || " ").join("");
+  const start = (r: Array<{ ch?: string }>) => text(r).search(new RegExp(`(?<=.)╭ (\\S+ )?${title}`));
+  const y = rows.findIndex((r, i) => i > 2 && start(r) > 0);
+  const x = start(rows[y] ?? []);
+  const right = text(rows[y] ?? []).indexOf("╮", x);
+  const bottom = rows.findIndex((r, i) => i > y && r[x]?.ch === "╰");
+  return { x, y, w: right - x + 1, h: bottom - y + 1 };
 }
 
 let live: Array<() => void> = [];
@@ -36,13 +56,16 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
         view: { screen: any; menu: any };
         rows: RatCell[][];
       };
-      applyLook(defaultLook());
+      applyLook(defaultLook("off")); // tests/ratatui_cells.rs captures this scene with icons off
       const [cols, rowsN] = size.split("x").map(Number) as [number, number];
       const chrome = JSON.parse(fs.readFileSync(path.resolve(here, `../fixtures/host_chrome_${size}.json`), "utf8"));
       const m = mount(cols, rowsN);
       live.push(m.stop);
       m.welcome();
-      m.snapshot({ chrome: { ...chrome, menu: scene.view.menu }, screen: scene.view.screen, focus: "nav" }, 1);
+      // This native scene has its source-tab row; the generic host_chrome fixture is now the Work screen without it.
+      // Preserve the scene's body height so its menu and the shadow land over the same underlying cells.
+      const sources = ["GitLab", "GitHub", "Local workspaces"].map((label, i) => ({ label, active: i === 0, target: `chrome:source:${i}` }));
+      m.snapshot({ chrome: { ...chrome, sources, menu: scene.view.menu }, screen: scene.view.screen, focus: "nav" }, 1);
       await tick(60);
       const got = parseAnsi(m.frame());
       const hex = (n: string | undefined, dflt: string) => {
@@ -51,22 +74,19 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
       };
       const ch = (c: { ch?: string } | undefined) => (c?.ch === undefined || c.ch === "" ? " " : c.ch);
       const text = (r: Array<{ ch?: string }>) => r.map(ch).join("");
-      // Each renderer's menu box, found by its corners. The recorded MenuView is thinner than the menu Ratatui drew
-      // (its keys and headings are left out), so the two boxes differ; the screen around them is what is compared.
-      const box = (rows: Array<Array<{ ch?: string }>>) => {
-        // below the panes' top border, which is also titled (the middle pane is "Everything" too)
-        const title = (r: Array<{ ch?: string }>) => text(r).search(new RegExp(`(?<=.)╭ (\\S+ )?${scene.view.menu.title}`));
-        const y = rows.findIndex((r, i) => i > 2 && title(r) > 0);
-        const x = title(rows[y] ?? []);
-        const right = text(rows[y] ?? []).indexOf("╮", x);
-        const bottom = rows.findIndex((r, i) => i > y && ch(r[x]) === "╰");
-        return { x, y, w: right - x + 1, h: bottom - y + 1 };
-      };
-      const ink = box(got);
-      const rat = box(scene.rows);
+      // The scrim check stays scoped to the surrounding screen; the separate test below
+      // compares the menu itself, using the complete host-authored MenuView in the capture.
+      const ink = menuBox(got, scene.view.menu.title);
+      const rat = menuBox(scene.rows, scene.view.menu.title);
       expect(ink.y, "Ink drew the menu").toBeGreaterThan(-1);
-      // The host chrome's bars differ from the scene's (it has a sources row): rows are matched by the box's top edge.
-      const dy = ink.y - rat.y;
+      // Align the actual pane origins, not the centered menus: adding one menu row can move its top edge without
+      // moving the body underneath. Matching source rows must keep the original scrim/shadow coverage below.
+      const bodyTop = (rows: Array<Array<{ ch?: string }>>) => rows.findIndex((r) => text(r).startsWith("╭"));
+      const inkTop = bodyTop(got), ratTop = bodyTop(scene.rows);
+      expect(inkTop, "Ink drew the pane borders").toBeGreaterThan(-1);
+      expect(ratTop, "Ratatui recorded the pane borders").toBeGreaterThan(-1);
+      expect(inkTop, "the scene's source row preserves its body geometry").toBe(ratTop);
+      const dy = inkTop - ratTop;
       const inBox = (b: typeof ink, x: number, y: number) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
       const inShadow = (b: typeof ink, x: number, y: number) =>
         (x === b.x + b.w && y > b.y && y <= b.y + b.h) || (y === b.y + b.h && x > b.x && x <= b.x + b.w);
@@ -97,6 +117,59 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
       expect(bad.slice(0, 20)).toEqual([]);
       expect(scrimmed, "cells behind the menu compared").toBeGreaterThan(cols * (rowsN - 3) * 0.25);
       expect(shaded, "cells under both shadows compared").toBeGreaterThan(20);
+    });
+    it(`draws the native menu's mnemonic words, styles and geometry at ${size}`, async () => {
+      const scene = JSON.parse(fs.readFileSync(path.resolve(here, `../cells/highlight_menu-${size}.json`), "utf8")) as MenuScene;
+      expect(scene.view.menu.items.some((item) => item.mnemonic_at != null), "capture embeds the complete host MenuView, including mnemonics").toBe(true);
+      applyLook(defaultLook("off")); // match the native capture, including its complete menu payload
+      const [cols, rowsN] = size.split("x").map(Number) as [number, number];
+      const chrome = JSON.parse(fs.readFileSync(path.resolve(here, `../fixtures/host_chrome_${size}.json`), "utf8"));
+      const sources = ["GitLab", "GitHub", "Local workspaces"].map((label, i) => ({ label, active: i === 0, target: `chrome:source:${i}` }));
+      const m = mount(cols, rowsN);
+      live.push(m.stop);
+      m.welcome();
+      m.snapshot({ chrome: { ...chrome, sources, menu: scene.view.menu }, screen: scene.view.screen, focus: "nav" }, 1);
+      await tick(60);
+      const got = parseAnsi(m.frame());
+      const ink = menuBox(got, scene.view.menu.title), rat = menuBox(scene.rows, scene.view.menu.title);
+      expect(rat.x).toBeGreaterThanOrEqual(0);
+      expect(rat.w).toBeGreaterThan(2);
+      expect(rat.h).toBeGreaterThan(2);
+      expect(ink, "the actual menu border, placement and height match native paint").toEqual(rat);
+      const colour = (value: string | undefined, fallback: string) => {
+        const name = (value ?? fallback).split("/")[0]!;
+        return (name.startsWith("#") ? name : scene.colours[name]?.hex ?? currentLook().slots[name])?.toLowerCase();
+      };
+      const shiftY = scene.rows.findIndex((row) => row.map((c) => c.ch ?? " ").join("").includes("shift recent activity"));
+      expect(shiftY, "the native menu includes its unselected shifted mnemonic").toBeGreaterThanOrEqual(rat.y);
+      const shiftX = scene.rows[shiftY]!.map((c) => c.ch ?? " ").join("").indexOf("shift recent activity");
+      expect(got[shiftY]!.slice(shiftX, shiftX + 6).map((c) => c.ch).join("")).toBe("shift ");
+      expect(got[shiftY]!.slice(shiftX, shiftX + 6).map((c) => c.bg?.toLowerCase()), "every Shift-prefix cell inherits the overlay background").toEqual(Array(6).fill(colour("bg.overlay", scene.canvas.bg)));
+      const modifiers = ["bold", "dim", "italic", "underline", "inverse", "strike"] as const;
+      const bad: Array<{ at: [number, number]; got: unknown; want: unknown }> = [];
+      let underlined = 0;
+      for (let y = rat.y; y < rat.y + rat.h; y++) {
+        for (let x = rat.x; x < rat.x + rat.w; x++) {
+          const want = scene.rows[y]![x]!;
+          const actual = got[y]?.[x];
+          const w = {
+            ch: want.ch ?? " ",
+            fg: (want.ch ?? " ") === " " ? undefined : colour(want.fg, scene.canvas.fg),
+            bg: colour(want.bg, scene.canvas.bg),
+            mods: modifiers.filter((mod) => want.mods?.includes(mod === "inverse" ? "reversed" : mod)),
+          };
+          const g = {
+            ch: actual?.ch ?? " ",
+            fg: (actual?.ch ?? " ") === " " ? undefined : colour(actual?.fg, scene.canvas.fg),
+            bg: colour(actual?.bg, scene.canvas.bg),
+            mods: modifiers.filter((mod) => actual?.[mod]),
+          };
+          if (want.mods?.includes("underline")) underlined++;
+          if (JSON.stringify(g) !== JSON.stringify(w)) bad.push({ at: [x, y], got: g, want: w });
+        }
+      }
+      expect(underlined, "native mnemonic underline cells are actually compared").toBeGreaterThan(0);
+      expect(bad.slice(0, 30), `${bad.length} native menu cell differences`).toEqual([]);
     });
   }
 });

@@ -118,6 +118,7 @@ fn notify(effects: &[Effect]) -> Vec<&str> {
         .iter()
         .filter_map(|effect| match effect {
             Effect::Notify(text) => Some(text.as_str()),
+            Effect::Notice(message) => Some(message.text.as_str()),
             _ => None,
         })
         .collect()
@@ -609,10 +610,14 @@ fn original_outcomes_precede_unchanged_application_notifications_and_retained_ac
                     }
                 );
                 assert_eq!(notify(&fx), notify(&expected));
-                assert!(matches!(fx.last().unwrap(), Effect::Notify(_)));
+                if matches!(case, "complete" | "defaulted" | "blank") {
+                    assert!(matches!(fx.last().unwrap(), Effect::Notify(_)));
+                } else {
+                    assert!(matches!(fx.last().unwrap(), Effect::Notice(message) if message.tone == radar_core::view::chrome::NoticeTone::Error));
+                }
                 assert!(fx.iter().all(|effect| matches!(
                     effect,
-                    Effect::Report(_) | Effect::Observe { .. } | Effect::Notify(_)
+                    Effect::Report(_) | Effect::Observe { .. } | Effect::Notify(_) | Effect::Notice(_)
                 )));
                 assert_eq!(format!("{:?}", p.checks), format!("{:?}", legacy.checks));
                 assert_eq!(p.snapshot(), legacy.snapshot());

@@ -65,11 +65,14 @@ describe("recorded view fixtures through the whole App", () => {
       const k = kind(view);
       const chromeFile = files.find((c) => c.startsWith("host_chrome") && sizeOf(c)?.cols === size.cols && sizeOf(c)?.rows === size.rows);
       const chrome = k === "chrome" ? view : chromeFile ? load(chromeFile) : booksChrome({ width: size.cols, height: size.rows });
+      // Screen/section fixtures are composed with unrelated generic chrome, not a paired host snapshot.
+      // Its pane map cannot claim which digits this surface actually routes. Genuine chrome stays intact.
+      const { pane_jumps: _unrelatedPaneJumps, ...viewOnlyChrome } = chrome;
       // Each surface under its own status scope; a settings section under the settings navigation.
       const shown =
         k === "chrome"
           ? chrome
-          : { ...chrome, status: { ...chrome.status, scope: String(view.scope ?? "").toUpperCase() }, ...(k === "section" ? { settings: { ...settingsNav, section_title: view.scope, detail_title: view.detail_title } } : {}) };
+          : { ...viewOnlyChrome, status: { ...viewOnlyChrome.status, scope: String(view.scope ?? "").toUpperCase() }, ...(k === "section" ? { settings: { ...settingsNav, section_title: view.scope, detail_title: view.detail_title } } : {}) };
       m.snapshot({ chrome: shown, screen: k === "screen" ? view : null, section: k === "section" ? view : null }, 1);
       await tick(40);
       const frame = m.frame();

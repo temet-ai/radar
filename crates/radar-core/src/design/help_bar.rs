@@ -89,17 +89,21 @@ impl<'a> HelpBar<'a> {
         let mut used = 0usize;
 
         for (i, hint) in self.visible_hints().iter().enumerate() {
-            let separator = if i > 0 { SEPARATOR.chars().count() } else { 0 };
-            let cost = separator + hint.keys.chars().count() + 1 + hint.action.chars().count();
+            let separator = if i > 0 { crate::ui::width(SEPARATOR) } else { 0 };
+            let at = crate::mnemonic::at(hint.keys, hint.action);
+            let prefix = crate::mnemonic::prefix(hint.keys, hint.action, at, at.is_some() && crate::mnemonic::shifted(hint.keys));
+            let cost = separator + crate::ui::width(prefix) + usize::from(!prefix.is_empty()) + crate::ui::width(hint.action);
             if used + cost > width {
                 break;
             }
             if i > 0 {
                 spans.push(Span::styled(SEPARATOR, separator_style));
             }
-            spans.push(Span::styled(hint.keys, keys_style));
-            spans.push(Span::styled(" ", action_style));
-            spans.push(Span::styled(hint.action, action_style));
+            if !prefix.is_empty() {
+                spans.push(Span::styled(prefix, keys_style));
+                spans.push(Span::styled(" ", action_style));
+            }
+            spans.extend(crate::widgets::mnemonic_word(hint.action, at, action_style));
             used += cost;
         }
 
@@ -135,7 +139,7 @@ mod tests {
     use ratatui::style::Color;
 
     const FIVE: [KeyHint<'static>; 5] = [
-        KeyHint::new("\u{2191}\u{2193}/jk", "move"),
+        KeyHint::new("\u{2191}\u{2193}", "move"),
         KeyHint::new("\u{21e5}", "panel"),
         KeyHint::new("\u{23ce}", "open"),
         KeyHint::new("\u{238b}", "back"),
@@ -158,7 +162,7 @@ mod tests {
         let theme = DesignTheme::with_tier(Tier::TrueColor);
         assert_eq!(
             render(&FIVE, &theme, 80),
-            "\u{2191}\u{2193}/jk move \u{b7} \u{21e5} panel \u{b7} \u{23ce} open \u{b7} \u{238b} back \u{b7} ? help"
+            "\u{2191}\u{2193} move \u{b7} \u{21e5} panel \u{b7} \u{23ce} open \u{b7} \u{238b} back \u{b7} ? help"
         );
     }
 
@@ -166,21 +170,21 @@ mod tests {
     fn never_shows_more_than_five_hints() {
         let theme = DesignTheme::with_tier(Tier::TrueColor);
         let many: Vec<KeyHint<'static>> = vec![
-            KeyHint::new("a", "one"),
-            KeyHint::new("b", "two"),
-            KeyHint::new("c", "three"),
-            KeyHint::new("d", "four"),
-            KeyHint::new("e", "five"),
-            KeyHint::new("f", "six"),
-            KeyHint::new("g", "seven"),
+            KeyHint::new("a", "add"),
+            KeyHint::new("b", "browse"),
+            KeyHint::new("c", "copy"),
+            KeyHint::new("d", "drop"),
+            KeyHint::new("e", "edit"),
+            KeyHint::new("f", "find"),
+            KeyHint::new("g", "go"),
         ];
         let bar = HelpBar::new(&many, &theme);
         assert_eq!(bar.visible_hints().len(), HelpBar::MAX_HINTS);
 
         let text = render(&many, &theme, 120);
-        assert!(text.contains("e five"), "the fifth hint is shown: {text}");
-        assert!(!text.contains("f six"), "the sixth is dropped: {text}");
-        assert!(!text.contains("g seven"), "the seventh is dropped: {text}");
+        assert!(text.contains("edit"), "the fifth hint is shown: {text}");
+        assert!(!text.contains("find"), "the sixth is dropped: {text}");
+        assert!(!text.contains("go"), "the seventh is dropped: {text}");
         assert_eq!(
             text.matches('\u{b7}').count(),
             4,
@@ -201,7 +205,7 @@ mod tests {
         let theme = DesignTheme::with_tier(Tier::TrueColor);
         let text = render(&FIVE, &theme, 20);
         assert!(text.chars().count() <= 20, "overflowed: {text}");
-        assert!(text.starts_with("\u{2191}\u{2193}/jk move"));
+        assert!(text.starts_with("\u{2191}\u{2193} move"));
         assert!(!text.contains("hel"), "no half-rendered hint: {text}");
     }
 

@@ -12,7 +12,8 @@
           "char": "e"
         }
       },
-      "label": "change it"
+      "label": "change it",
+      "mnemonic_at": 5
     },
     {
       "id": "gitlab.connection.check",
@@ -21,7 +22,8 @@
           "char": "c"
         }
       },
-      "label": "check the connection"
+      "label": "check the connection",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.connection.token_page",
@@ -30,7 +32,8 @@
           "char": "o"
         }
       },
-      "label": "open GitLab's new-token page"
+      "label": "open GitLab's new-token page",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.connection.copy_token_link",
@@ -39,7 +42,8 @@
           "char": "y"
         }
       },
-      "label": "copy the new-token page's link"
+      "label": "copy the new-token page's link",
+      "mnemonic_at": 3
     },
     {
       "id": "gitlab.connection.kept_comments",
@@ -512,7 +516,29 @@
             },
             {
               "ink": "muted",
-              "text": "   o opens · y copies"
+              "text": "   "
+            },
+            {
+              "look": "text.muted underline",
+              "text": "o"
+            },
+            {
+              "key_hint": "o",
+              "look": "text.muted",
+              "text": "pen"
+            },
+            {
+              "ink": "muted",
+              "text": " · "
+            },
+            {
+              "look": "text.muted",
+              "text": "cop"
+            },
+            {
+              "key_hint": "y",
+              "look": "text.muted underline",
+              "text": "y"
             }
           ]
         },

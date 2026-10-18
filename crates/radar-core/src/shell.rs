@@ -5,7 +5,7 @@
 
 use crate::design::theme::{Slot, Tier};
 use crate::view::chrome::{ChromeView, Hint, KeysAt, StatusLine};
-use crate::view::{Ink, Target};
+use crate::view::{Chord, Ink, Target};
 use ratatui::Frame;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -26,6 +26,8 @@ use crate::ui::icon::{self, Icon};
 use crate::{ui, widgets};
 
 pub(crate) mod menu;
+mod notices;
+pub(crate) use notices::content as notice_content;
 mod setup;
 mod tour;
 
@@ -43,9 +45,27 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
     motion::begin();
     // The chrome is view data the host produces (having measured what
     // scrolls at this size); this paints it.
+    host.frontend.set_lead(crate::ui::icon::lead_width(theme));
+    host.frontend.set_mode(host.mode());
+    let displayed = host.displayed_screen(area.width, area.height);
     let chrome = host.chrome_view_with(area.width, area.height, theme);
-    if host.motion_enabled() && chrome.menu.is_none() && chrome.tour.is_none() {
+    if host.motion_enabled() && chrome.menu.is_none() && chrome.tour.is_none() && chrome.notice_history.is_none() {
         motion::frames::context(host.motion_context(), host.motion_fold().cloned());
+    }
+    if chrome.notice_history.is_some() {
+        *host.hovered.borrow_mut() = None;
+        let [top, body, bottom] = Layout::vertical([
+            Constraint::Length(1),
+            Constraint::Fill(1),
+            Constraint::Length(1),
+        ])
+        .areas(area);
+        let buf = f.buffer_mut();
+        top_bar(host, theme, &chrome, top, buf);
+        notices::history(host, theme, &chrome, body, buf);
+        status_line(host, theme, &chrome.status, bottom, buf);
+        hover(host, theme, buf, true);
+        return;
     }
     if let Some(view) = &chrome.history {
         *host.hovered.borrow_mut() = None;
@@ -116,15 +136,15 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
                     parts: Parts::new(&host.plugins, Some(p)),
                 };
                 host.frontend.set_lead(crate::ui::icon::lead_width(theme));
-                match host.screen_view_in(p, spec.id, body.width, body.height) {
+                match displayed {
                     Some(mut view) => {
                         // Ratatui draws one line in the dock's place
                         // ([`crate::dock::NOTICE`]), under the middle pane.
                         view.dock = host.dock_view();
                         host.frontend.resolve_pictures(&view, host.plugins[p].as_ref());
-                        crate::view_tui::render_screen_with_ramp(
+                        crate::view_tui::render_screen_with_ramp_and_jumps(
                             &host.frontend, &view, body, buf, &cx,
-                            pane_ramp_allowed(&chrome, false),
+                            pane_ramp_allowed(&chrome, false), &chrome.pane_jumps,
                         )
                     }
                     None => widgets::empty(buf, body, theme, "This part has no view for this screen."),
@@ -161,6 +181,12 @@ pub fn render(host: &Host, theme: &Theme, f: &mut Frame) {
     if let Some(at) = cursor.get() {
         f.set_cursor_position(at);
     }
+}
+
+/// Composite transient notices after motion has retained the clean frame.
+/// The runner does not invoke this while the splash is showing.
+pub fn render_notices(host: &Host, theme: &Theme, buf: &mut Buffer) {
+    notices::transient(host, theme, buf);
 }
 
 fn source_tabs(host: &Host, theme: &Theme, chrome: &ChromeView, area: Rect, buf: &mut Buffer) {
@@ -357,7 +383,7 @@ fn ink_style(theme: &Theme, ink: Ink, strong: bool) -> Style {
 
 /// Body ownership is separate from legacy focus styles and in-pane capture.
 fn pane_ramp_allowed(chrome: &ChromeView, dock_takes_keys: bool) -> bool {
-    chrome.keys_at == KeysAt::Body && chrome.menu.is_none() && !dock_takes_keys
+    chrome.keys_at == KeysAt::Body && chrome.menu.is_none() && chrome.notice_history.is_none() && !dock_takes_keys
 }
 
 /// Keep the original padded span below truecolor, including its clipping.
@@ -586,7 +612,7 @@ fn status_line(host: &Host, theme: &Theme, status: &StatusLine, area: Rect, buf:
 
     // The keys come before the counts: when the bar does not fit, the
     // counts give way, then the keys needed least, then the services'
-    // chips. `x menu` always stays.
+    // chips. `extra actions` always stays.
     let mut keys: Vec<&Hint> = status.hints.iter().collect();
     let keys_w = |keys: &[&Hint]| -> usize {
         keys.iter()
@@ -596,7 +622,7 @@ fn status_line(host: &Host, theme: &Theme, status: &StatusLine, area: Rect, buf:
                 } else {
                     0
                 };
-                ui::width(&h.keys) + ui::width(&h.label) + 4 + lead
+                widgets::key_hint(theme, &h.keys, &h.label, h.mnemonic_at, h.mnemonic_shift).iter().map(Span::width).sum::<usize>() + 3 + lead
             })
             .sum()
     };
@@ -616,6 +642,16 @@ fn status_line(host: &Host, theme: &Theme, status: &StatusLine, area: Rect, buf:
         if !fits(&keys, right_w) {
             show_health = false;
             right_w = 0;
+        }
+        // The original actions-menu input remains reachable even when the
+        // remaining action phrases alone overflow. Preserve its chord/target,
+        // independent of wording, and let trailing nonmandatory hints give way.
+        let actions = |h: &&Hint| h.keys_of.iter().any(|key| key.chord == Chord::char('x'));
+        if keys.iter().any(actions) {
+            while !fits(&keys, right_w) {
+                let Some(drop) = keys.iter().rposition(|h| !actions(h)) else { break };
+                keys.remove(drop);
+            }
         }
     }
 
@@ -643,14 +679,14 @@ fn status_line(host: &Host, theme: &Theme, status: &StatusLine, area: Rect, buf:
         None => {
             let mut hits = host.hits.borrow_mut();
             for h in keys {
-                let mut hint = widgets::key_hint(theme, &h.keys, &h.label);
+                let mut hint = widgets::key_hint(theme, &h.keys, &h.label, h.mnemonic_at, h.mnemonic_shift);
                 if let Some(i) = h.icon {
                     let lead = icon::lead(theme, i);
                     if !lead.content.is_empty() {
-                        // `x ≡ menu`: the key, then the icon before its words.
-                        hint.insert(1, Span::raw(" "));
-                        hint.insert(2, lead);
-                        hint[3].content = h.label.clone().into();
+                        // A named key/modifier precedes the icon; the mnemonic
+                        // letter itself stays inside the word.
+                        let prefix = crate::mnemonic::prefix(&h.keys, &h.label, h.mnemonic_at, h.mnemonic_shift);
+                        hint.insert(usize::from(!prefix.is_empty() && !crate::mnemonic::valid_at(&h.keys, &h.label, h.mnemonic_at)), lead);
                     }
                 }
                 hint.push(Span::raw("   "));
@@ -703,7 +739,7 @@ fn status_line(host: &Host, theme: &Theme, status: &StatusLine, area: Rect, buf:
 /// whole hint and a cell before it; several (`PgUp/PgDn`, `+/-`, `←→↑↓`),
 /// then each label, and each word when there is a word per key
 /// (`expand/collapse`). Each comes with the target the host gave its key.
-fn key_hits(h: &Hint, line: Rect) -> Vec<(Rect, &Target)> {
+pub(crate) fn key_hits(h: &Hint, line: Rect) -> Vec<(Rect, &Target)> {
     let cell = |x: u16, w: u16| Rect {
         x,
         width: w,
@@ -778,7 +814,7 @@ fn settings_areas(body: Rect) -> [Rect; 3] {
 
 /// The body a frame `width` × `height` cells big leaves the screen or
 /// settings: under the top bar (and a source row) and over the status line.
-fn body_of(host: &Host, width: u16, height: u16) -> Rect {
+pub(crate) fn body_of(host: &Host, width: u16, height: u16) -> Rect {
     let area = Rect::new(0, 0, width, height);
     let [_, body, _] = Layout::vertical([
         Constraint::Length(1),
@@ -921,7 +957,8 @@ fn settings(
     let dock_takes_keys = host.current_section().is_some()
         && host.dock_view().is_some_and(|d| d.visible && d.focused);
     let ramp_allowed = pane_ramp_allowed(chrome, dock_takes_keys);
-    let mut block = widgets::panel(theme, "settings", nav_focused);
+    let nav_title = crate::view::chrome::pane_title(&chrome.pane_jumps, crate::view::PaneId::Nav, "settings");
+    let mut block = widgets::panel(theme, &nav_title, nav_focused);
     if snav.unsaved {
         block = block.title_bottom(Line::styled(
             " unsaved · w retries ",
@@ -931,7 +968,7 @@ fn settings(
     let inner = block.inner(nav);
     block.render(nav, buf);
     let mut keep = vec![ui::frame::title_region(
-        nav, ui::width(" settings "), ui::frame::TitleEdge::Top,
+        nav, ui::width(&nav_title) + 2, ui::frame::TitleEdge::Top,
     )];
     if snav.unsaved {
         keep.push(ui::frame::title_region(
@@ -998,10 +1035,11 @@ fn settings(
     };
     // A part's section names its own detail (view data); the host's are
     // in the chrome.
-    let name = snav.section_title.clone();
+    let name = crate::view::chrome::pane_title(&chrome.pane_jumps, crate::view::PaneId::Middle, &snav.section_title);
     let about = section_view
         .as_ref()
         .map_or_else(|| snav.detail_title.clone(), |v| v.detail_title.clone());
+    let about = crate::view::chrome::pane_title(&chrome.pane_jumps, crate::view::PaneId::Detail, &about);
     let mid = motion::frames::with_frame(crate::view::PaneId::Middle, "body", || ui::card::panel_owned(
         theme, middle, buf, &name,
         ui::frame::Focus { focused: has(Pane::Middle), owns_keys: has(Pane::Middle) && ramp_allowed },
@@ -1097,7 +1135,7 @@ fn paint(host: &Host, theme: &Theme, width: u16, height: u16) -> Buffer {
     use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     let mut term = Terminal::new(TestBackend::new(width, height)).expect("test backend");
-    term.draw(|f| render(host, theme, f)).expect("draw");
+    term.draw(|f| { render(host, theme, f); render_notices(host, theme, f.buffer_mut()); }).expect("draw");
     term.backend().buffer().clone()
 }
 
@@ -1147,7 +1185,7 @@ pub fn text_and_cursor(
     use ratatui::Terminal;
     use ratatui::backend::TestBackend;
     let mut term = Terminal::new(TestBackend::new(width, height)).expect("test backend");
-    term.draw(|f| render(host, theme, f)).expect("draw");
+    term.draw(|f| { render(host, theme, f); render_notices(host, theme, f.buffer_mut()); }).expect("draw");
     let b = term.backend();
     let cursor = b.cursor_visible().then(|| b.cursor_position());
     let looks = b
@@ -1185,6 +1223,42 @@ pub fn row_text(buf: &Buffer, y: u16) -> String {
 mod tests {
     use super::*;
     use crate::host::tests::probe;
+
+    mod mnemonic_tests {
+        use super::*;
+        use ratatui::crossterm::event::KeyCode;
+        use ratatui::layout::Position;
+
+        #[test]
+        fn mandatory_actions_keep_their_word_and_click_target_when_other_hints_overflow() {
+            let host = two();
+            let theme = host.build_theme(crate::design::theme::Tier::TrueColor);
+            let mut status = host.chrome_status();
+            let actions = status.hints.iter().find(|h| h.keys_of.iter().any(|k| k.chord == Chord::char('x'))).unwrap().clone();
+            status.hints = [("⏎", "use it"), ("r", "retry status"), ("A", "ask an agent"), ("b", "bulk")]
+                .iter().enumerate().map(|(n, (key, words))| crate::host::chrome_hint(n, &KeyHint::new(key, words))).collect();
+            status.hints.push(actions);
+            status.hints.push(crate::host::chrome_hint(5, &KeyHint::new("~", "notices")));
+            status.least_needed.clear();
+            status.counts.clear();
+            status.health.clear();
+            for width in [80, 40] {
+                host.hits.borrow_mut().clear();
+                let area = Rect::new(0, 0, width, 1);
+                let mut buf = Buffer::empty(area);
+                status_line(&host, &theme, &status, area, &mut buf);
+                let shown = row_text(&buf, 0);
+                let at = shown.find("extra actions").unwrap_or_else(|| panic!("mandatory action missing: {shown:?}"));
+                let start = ui::width(&shown[..at]) as u16;
+                assert!(buf[(start + 1, 0)].modifier.contains(Modifier::UNDERLINED));
+                for x in start..start + 13 {
+                    assert!(host.hits.borrow().iter().any(|(rect, hit)| rect.contains(Position::new(x, 0))
+                        && matches!(hit, Hit::Key(key, _) if key.code == KeyCode::Char('x') && key.modifiers.is_empty())),
+                        "the whole action word keeps its original input at width {width}, cell {x}");
+                }
+            }
+        }
+    }
 
     mod tab_attention {
         use super::*;
@@ -1430,7 +1504,7 @@ mod tests {
         use crate::host::{Event, MouseKind};
         let mut host = two();
         let text = to_text(&host, 120, 24);
-        let menu = at_text(&text, 23, "menu");
+        let menu = at_text(&text, 23, "extra actions");
         host.update(Event::Mouse {
             kind: MouseKind::Press,
             column: menu.x,
@@ -1470,7 +1544,7 @@ mod tests {
         });
         assert!(host.menu.is_none(), "esc close, clicked, closes it");
         let text = to_text(&host, 120, 24);
-        let quit = at_text(&text, 23, "q quit");
+        let quit = at_text(&text, 23, "quit");
         host.update(Event::Mouse {
             kind: MouseKind::Press,
             column: quit.x,
@@ -1545,10 +1619,10 @@ mod tests {
         let pipes: Vec<_> = blank.match_indices('│').map(|(at, _)| at).collect();
         let inside = &blank[pipes[1] + '│'.len_utf8()..pipes[2]];
         assert!(inside.trim().is_empty(), "{text}");
-        let edges = |c: &str| format!("{}  {}  {}│", c.repeat(11), c.repeat(16), c.repeat(11));
+        let edges = |c: &str| format!("{}  {}  {}│", c.repeat(14), c.repeat(14), c.repeat(13));
         assert!(lines[at + 2].contains(&edges("▔")), "{text}");
         assert!(
-            lines[at + 3].contains("y post it    e keep writing    n drop it │"),
+            lines[at + 3].contains("yes, post it    keep writing    no, drop it │"),
             "{text}"
         );
         assert!(lines[at + 4].contains(&edges("▁")), "{text}");
@@ -1558,13 +1632,13 @@ mod tests {
         );
         // The pointer over a button (its edge too) highlights it; a click
         // chooses it.
-        let edit = at_text(&text, at + 3, "e keep writing");
+        let edit = at_text(&text, at + 3, "keep writing");
         assert!(host.hover(Some(ratatui::layout::Position {
             y: edit.y + 1,
             ..edit
         })));
         assert_eq!(host.menu.as_ref().unwrap().row, 2);
-        let no = at_text(&text, at + 3, "n drop it");
+        let no = at_text(&text, at + 3, "no, drop it");
         host.update(Event::Mouse {
             kind: MouseKind::Press,
             column: no.x + 3,
@@ -1578,10 +1652,10 @@ mod tests {
         let lines: Vec<&str> = text.lines().collect();
         let at = lines
             .iter()
-            .position(|l| l.contains("y post it    e keep writing"))
+            .position(|l| l.contains("yes, post it    keep writing"))
             .expect("two fit");
-        assert!(lines[at + 3].contains("n drop it │"), "{text}");
-        let no = at_text(&text, at + 3, "n drop it");
+        assert!(lines[at + 3].contains("no, drop it │"), "{text}");
+        let no = at_text(&text, at + 3, "no, drop it");
         host.update(Event::Mouse {
             kind: MouseKind::Press,
             column: no.x,
@@ -1668,28 +1742,41 @@ mod tests {
     #[test]
     fn a_frame_marks_the_body_the_message_and_the_menu_for_motion() {
         use crate::host::Event;
+        use ratatui::{Terminal, backend::TestBackend};
         let mut host = Host::new(vec![probe("alpha", 'A', "a").0], 0).unwrap();
         let _ = to_text(&host, 80, 24);
         let marks = motion::take();
         assert_eq!(marks.body, Some(Rect::new(0, 1, 80, 22)));
         assert_eq!((marks.popup, marks.message), (None, None));
         host.update(Event::Notice("copied 3 characters".into()));
+        let theme = host.build_theme(Tier::TrueColor);
+        let mut term = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        let mut clean = String::new();
+        term.draw(|f| {
+            render(&host, &theme, f);
+            clean = lines_of(f.buffer_mut(), 24);
+            render_notices(&host, &theme, f.buffer_mut());
+        })
+        .unwrap();
+        assert!(!clean.contains("copied 3 characters"));
+        assert!(row_text(term.backend().buffer(), 21).contains("copied 3 characters"));
+        assert!(!row_text(term.backend().buffer(), 23).contains("copied 3 characters"));
+        let marks = motion::take();
+        assert_eq!(marks.body, Some(Rect::new(0, 1, 80, 22)));
+        assert!(
+            marks.message.is_none(),
+            "transient notices never enter retained motion marks"
+        );
         host.update(Event::Key(ratatui::crossterm::event::KeyEvent::from(
             ratatui::crossterm::event::KeyCode::Char('m'),
         )));
         host.update(Event::Notice("copied 3 characters".into()));
         let text = to_text(&host, 80, 24);
         let marks = motion::take();
-        let message = marks.message.expect("the message is marked");
-        let bottom = text.lines().last().unwrap();
-        assert_eq!(message.y, 23);
-        assert_eq!(
-            bottom
-                .chars()
-                .skip(message.x as usize)
-                .take(message.width as usize)
-                .collect::<String>(),
-            "copied 3 characters"
+        assert!(marks.message.is_none());
+        assert!(
+            !text.contains("copied 3 characters"),
+            "a modal owns the foreground"
         );
         let popup = marks.popup.expect("the menu is marked");
         assert!(text.lines().nth(popup.y as usize).unwrap().contains('╭'));

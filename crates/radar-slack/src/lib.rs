@@ -1321,6 +1321,10 @@ impl Plugin for SlackPlugin {
         if screen != SCREEN.id { return None; }
         if self.pages.is_empty() { Some(screen::view(self, cx)) } else { page::view(self, cx) }
     }
+    fn detail_identity(&self, scope: &str, pane: Pane) -> Option<radar_core::plugin::DetailIdentity> {
+        if scope != SCREEN.id || pane != Pane::Detail || !self.pages.is_empty() { return None; }
+        screen::detail_identity(self)
+    }
     fn pictures(&self, _source: &str) -> Option<radar_core::ui::image::Fetch> {
         Some(self.pictures())
     }

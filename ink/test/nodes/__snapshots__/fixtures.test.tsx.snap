@@ -1084,7 +1084,7 @@ exports[`recorded view fixtures > github_settings-connection at 80x24 1`] = `
  ⇌ OR A TOKEN ─────────────────────────────────────────────────────────────────█
    Public repositories need none. For private ones:                            █
    1 Open the fine-grained token page:                                         █
-   github.com / new token   o opens · y copies                                 █
+   github.com / new token   open · copy                                        █
    2 Repository access: the repositories to follow.                            █
    3 Permissions come filled in from access: contents, pull requests, actions, ║
    statuses: read.                                                             ║
@@ -1174,7 +1174,7 @@ exports[`recorded view fixtures > github_settings-connection at 160x40 1`] = `
  ⇌ OR A TOKEN ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    Public repositories need none. For private ones:
    1 Open the fine-grained token page:
-   github.com / new token   o opens · y copies
+   github.com / new token   open · copy
    2 Repository access: the repositories to follow.
    3 Permissions come filled in from access: contents, pull requests, actions, statuses: read.
    4 Generate token, copy the github_pat_… value into token, or:
@@ -1202,10 +1202,10 @@ exports[`recorded view fixtures > github_settings-connection at 160x40 1`] = `
 
 exports[`recorded view fixtures > github_settings-repositories at 80x24 1`] = `
 "── settings ──
- create a group or add a repository
- ◆  github.com/acme
-   ├─ api
-   └─ docs
+create a group or add a repository
+◆ github.com/acme
+  ├─ api
+  └─ docs
 
 ── create a group or add a repository ──
  Create groups and choose repositories. Press a to browse, e to edit, d to
@@ -1237,10 +1237,10 @@ exports[`recorded view fixtures > github_settings-repositories at 80x24 1`] = `
 
 exports[`recorded view fixtures > github_settings-repositories at 160x40 1`] = `
 "── settings ──
- create a group or add a repository
- ◆  github.com/acme
-   ├─ api
-   └─ docs
+create a group or add a repository
+◆ github.com/acme
+  ├─ api
+  └─ docs
 
 ── create a group or add a repository ──
  Create groups and choose repositories. Press a to browse, e to edit, d to remove, or m to move a repository.
@@ -1296,16 +1296,16 @@ exports[`recorded view fixtures > gitlab_repos at 80x24 1`] = `
 
 ── Everything ──
  OPENED BY ⚇ everyone · 4 repos           ⋮ STATE             ↺ UPDAT ☻ FOR YO
-▌ ◆ B team-b
-▌ └─ ▤ worker                                                 —       ⇄ 1 MR
-▌    └─ ◌ !342 change 342  ☻ you          ◌ draft             16m     draft
-▌ ◆ A team-a   main red in 1
-▌ ├─ ⌂ api  ⎇ alice/ABC-12                ✓ passed            4d      ⇄ 1 MR
-▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoi ◎ needs 1 approval  16m     review
-▌ ├─ ⌂ web  ⎇ main                        ✗ failed            4d      ⇄ 2 MRs
-▌ │  ├─ ⇄ !187 change 187  ☻ you          ✓ ready to merge    16m     ready
-▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_ ◎ needs 1 approval  16m     bot
-▌ └─ ▤ docs                               ✓ passed            4d      —
+◆ B team-b
+  └─ ▤ worker                                                 —       ⇄ 1 MR
+     └─ ◌ !342 change 342  ☻ you          ◌ draft             16m     draft
+◆ A team-a   main red in 1
+  ├─ ⌂ api  ⎇ alice/ABC-12                ✓ passed            4d      ⇄ 1 MR
+  │  └─ ⇄ !263 ABC-12: Add a stats endpoi ◎ needs 1 approval  16m     review
+  ├─ ⌂ web  ⎇ main                        ✗ failed            4d      ⇄ 2 MRs
+  │  ├─ ⇄ !187 change 187  ☻ you          ✓ ready to merge    16m     ready
+  │  └─ ⇄ !198 change 198  ◙ group_1_bot_ ◎ needs 1 approval  16m     bot
+  └─ ▤ docs                               ✓ passed            4d      —
 
 ── team-b ──
  ◆ b acme/team-b
@@ -1345,16 +1345,16 @@ exports[`recorded view fixtures > gitlab_repos at 160x40 1`] = `
 
 ── Everything ──
  OPENED BY ⚇ everyone · 4 repos                                                ⋮ STATE             TICKET                  ✓ APPROVAL ❝ THREA ↺ UPDAT ☻ FOR YO
-▌ ◆ B team-b
-▌ └─ ▤ worker                                                                                                                                 —       ⇄ 1 MR
-▌    └─ ◌ !342 change 342  ☻ you                                               ◌ draft             ABC-342                 0 of 1     ❝ 1 ope 16m     draft
-▌ ◆ A team-a   main red in 1
-▌ ├─ ⌂ api  ⎇ alice/ABC-12                                                     ✓ passed                                                       4d      ⇄ 1 MR
-▌ │  └─ ⇄ !263 ABC-12: Add a stats endpoint for the dashboard  ☺ alice         ◎ needs 1 approval  ▣ ABC-12 · In Progress  0 of 1     ❝ 1 ope 16m     review
-▌ ├─ ⌂ web  ⎇ main                                                             ✗ failed                                                       4d      ⇄ 2 MRs
-▌ │  ├─ ⇄ !187 change 187  ☻ you                                               ✓ ready to merge    ABC-187                 ✓ 1 of 1   ❝ 1 ope 16m     ready
-▌ │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc                                   ◎ needs 1 approval  ABC-198                 0 of 1     ❝ 1 ope 16m     bot
-▌ └─ ▤ docs                                                                    ✓ passed                                                       4d      —
+◆ B team-b
+  └─ ▤ worker                                                                                                                                 —       ⇄ 1 MR
+     └─ ◌ !342 change 342  ☻ you                                               ◌ draft             ABC-342                 0 of 1     ❝ 1 ope 16m     draft
+◆ A team-a   main red in 1
+  ├─ ⌂ api  ⎇ alice/ABC-12                                                     ✓ passed                                                       4d      ⇄ 1 MR
+  │  └─ ⇄ !263 ABC-12: Add a stats endpoint for the dashboard  ☺ alice         ◎ needs 1 approval  ▣ ABC-12 · In Progress  0 of 1     ❝ 1 ope 16m     review
+  ├─ ⌂ web  ⎇ main                                                             ✗ failed                                                       4d      ⇄ 2 MRs
+  │  ├─ ⇄ !187 change 187  ☻ you                                               ✓ ready to merge    ABC-187                 ✓ 1 of 1   ❝ 1 ope 16m     ready
+  │  └─ ⇄ !198 change 198  ◙ group_1_bot_abc                                   ◎ needs 1 approval  ABC-198                 0 of 1     ❝ 1 ope 16m     bot
+  └─ ▤ docs                                                                    ✓ passed                                                       4d      —
 
 ── team-b ──
  ◆ b acme/team-b
@@ -1877,7 +1877,7 @@ exports[`recorded view fixtures > gitlab_settings-connection at 80x24 1`] = `
                                                                                █
  ⇌ GET A GITLAB TOKEN ─────────────────────────────────────────────────────────█
    1 Open GitLab's new-token page:                                             █
-   gitlab.com / new token   o opens · y copies                                 █
+   gitlab.com / new token   open · copy                                        █
      name radar · scope from access: read_api                                  █
    2 Pick an expiry date, then Create personal access token.                   █
    3 Copy the glpat-… value into token, or keep it out of radar's config:      ║
@@ -1966,7 +1966,7 @@ exports[`recorded view fixtures > gitlab_settings-connection at 160x40 1`] = `
 
  ⇌ GET A GITLAB TOKEN ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    1 Open GitLab's new-token page:
-   gitlab.com / new token   o opens · y copies
+   gitlab.com / new token   open · copy
      name radar · scope from access: read_api
    2 Pick an expiry date, then Create personal access token.
    3 Copy the glpat-… value into token, or keep it out of radar's config:
@@ -2127,12 +2127,12 @@ exports[`recorded view fixtures > gitlab_settings-look at 160x40 1`] = `
 exports[`recorded view fixtures > gitlab_settings-tenancies at 80x24 1`] = `
 "── settings ──
  + add a tenancy   paste a GitLab group or repo link, or its path
-▌ ● b    team-b   0 repos · 0 hidden
-▌ ● a    team-a   4 repos · 1 hidden
-▌ ├─ api                                                                shown
-▌ ├─ docs                                                               shown
-▌ ├─ tools/renovate                                                     hidden
-▌ └─ web                                                                shown
+● b    team-b   0 repos · 0 hidden
+● a    team-a   4 repos · 1 hidden
+  ├─ api                                                                shown
+  ├─ docs                                                               shown
+  ├─ tools/renovate                                                     hidden
+  └─ web                                                                shown
 
 ── add a tenancy ──
  Track another GitLab group (every repo in it), or one repo on its own.
@@ -2165,12 +2165,12 @@ exports[`recorded view fixtures > gitlab_settings-tenancies at 80x24 1`] = `
 exports[`recorded view fixtures > gitlab_settings-tenancies at 160x40 1`] = `
 "── settings ──
  + add a tenancy   paste a GitLab group or repo link, or its path
-▌ ● b    team-b   0 repos · 0 hidden
-▌ ● a    team-a   4 repos · 1 hidden
-▌ ├─ api                                                                                                                                                shown
-▌ ├─ docs                                                                                                                                               shown
-▌ ├─ tools/renovate                                                                                                                                     hidden
-▌ └─ web                                                                                                                                                shown
+● b    team-b   0 repos · 0 hidden
+● a    team-a   4 repos · 1 hidden
+  ├─ api                                                                                                                                                shown
+  ├─ docs                                                                                                                                               shown
+  ├─ tools/renovate                                                                                                                                     hidden
+  └─ web                                                                                                                                                shown
 
 ── add a tenancy ──
  Track another GitLab group (every repo in it), or one repo on its own.
@@ -2471,7 +2471,7 @@ exports[`recorded view fixtures > jira_settings-connection at 160x40 1`] = `
    id.atlassian.com / profile
  ⇌ API TOKEN  about a minute ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    1 Open Atlassian's API token page:
-   id.atlassian.com / api tokens   o opens · y copies
+   id.atlassian.com / api tokens   open · copy
    2 Create API token, label it radar, pick an expiry, then Create.
    3 Copy it now: Atlassian shows it once. Paste it into token, or:
    $ export JIRA_TOKEN=…
@@ -2619,15 +2619,15 @@ exports[`recorded view fixtures > jira_settings-look at 160x40 1`] = `
 
 exports[`recorded view fixtures > jira_settings-projects at 80x24 1`] = `
 "── settings ──
-▌ ⊕ acme  acme.atlassian.net
-▌ ├─ + watch a project   its key, or a link to it or a ticket
-▌ ├─ colour          ██ blue
-▌ ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050
-▌ └─ ▪ DEF     Acme DEF   acceptance criteria: not set
-▌ ⊕ beta  beta.atlassian.net
-▌ ├─ + watch a project   its key, or a link to it or a ticket
-▌ ├─ colour          ██ green
-▌ └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set
+⊕ acme  acme.atlassian.net
+  ├─ + watch a project   its key, or a link to it or a ticket
+  ├─ colour          ██ blue
+  ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050
+  └─ ▪ DEF     Acme DEF   acceptance criteria: not set
+⊕ beta  beta.atlassian.net
+  ├─ + watch a project   its key, or a link to it or a ticket
+  ├─ colour          ██ green
+  └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set
 
 ── watch a project ──
  Watch another project on acme.
@@ -2659,15 +2659,15 @@ exports[`recorded view fixtures > jira_settings-projects at 80x24 1`] = `
 
 exports[`recorded view fixtures > jira_settings-projects at 160x40 1`] = `
 "── settings ──
-▌ ⊕ acme  acme.atlassian.net
-▌ ├─ + watch a project   its key, or a link to it or a ticket
-▌ ├─ colour          ██ blue
-▌ ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050
-▌ └─ ▪ DEF     Acme DEF   acceptance criteria: not set
-▌ ⊕ beta  beta.atlassian.net
-▌ ├─ + watch a project   its key, or a link to it or a ticket
-▌ ├─ colour          ██ green
-▌ └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set
+⊕ acme  acme.atlassian.net
+  ├─ + watch a project   its key, or a link to it or a ticket
+  ├─ colour          ██ blue
+  ├─ ▪ ABC     Acme ABC   acceptance criteria: customfield_10050
+  └─ ▪ DEF     Acme DEF   acceptance criteria: not set
+⊕ beta  beta.atlassian.net
+  ├─ + watch a project   its key, or a link to it or a ticket
+  ├─ colour          ██ green
+  └─ ▪ XYZ     Acme XYZ   acceptance criteria: not set
 
 ── watch a project ──
  Watch another project on acme.
@@ -2807,18 +2807,18 @@ exports[`recorded view fixtures > jira_tickets at 80x24 1`] = `
 
 ── My tickets ──
  ASSIGNED TO ⚇ everyone          TYPE      STATUS          CODE        ↺ UPDAT
-▌ ⊕ acme  acme.atlassian.net
-▌ ├─ ◐ In Progress
-▌ │  └─ ✦ ABC-1 = Dashboard for  Epic      ◐ In Progress               2w
-▌ │     ├─ ▣ ABC-12 = Add a stat Story     ◐ In Progress   !263 review 1h
-▌ │     └─ ↳ ABC-13 = Count requ Sub-task  ◐ In Progress               1h
-▌ ├─ ◐ In Review
-▌ │  └─ ▣ DEF-3 = Rename the exp Story     ◐ In Review                 1h
-▌ └─ ○ To Do
-▌    └─ ✱ ABC-20 = Stats page sh Bug       ○ To Do                     9w
-▌ ⊕ beta  beta.atlassian.net
-▌ └─ ○ To Do
-▌    └─ ▣ XYZ-7 = Move the night Story     ○ To Do                     1h
+⊕ acme  acme.atlassian.net
+  ├─ ◐ In Progress
+  │  └─ ✦ ABC-1 = Dashboard for  Epic      ◐ In Progress               2w
+  │     ├─ ▣ ABC-12 = Add a stat Story     ◐ In Progress   !263 review 1h
+  │     └─ ↳ ABC-13 = Count requ Sub-task  ◐ In Progress               1h
+  ├─ ◐ In Review
+  │  └─ ▣ DEF-3 = Rename the exp Story     ◐ In Review                 1h
+  └─ ○ To Do
+     └─ ✱ ABC-20 = Stats page sh Bug       ○ To Do                     9w
+⊕ beta  beta.atlassian.net
+  └─ ○ To Do
+     └─ ▣ XYZ-7 = Move the night Story     ○ To Do                     1h
 
 ── acme ──
  ▌ ⊕ acme  acme.atlassian.net
@@ -2856,18 +2856,18 @@ exports[`recorded view fixtures > jira_tickets at 160x40 1`] = `
 
 ── My tickets ──
  ASSIGNED TO ⚇ everyone                                                                                          TYPE      STATUS          CODE        ↺ UPDAT
-▌ ⊕ acme  acme.atlassian.net
-▌ ├─ ◐ In Progress
-▌ │  └─ ✦ ABC-1 = Dashboard for the stats  ☻ you                                                                 Epic      ◐ In Progress               2w
-▌ │     ├─ ▣ ABC-12 = Add a stats endpoint for the dashboard  ☻ you  ❝ discussed · 1                             Story     ◐ In Progress   !263 review 1h
-▌ │     └─ ↳ ABC-13 = Count requests per route  ☺ Bob E.                                                         Sub-task  ◐ In Progress               1h
-▌ ├─ ◐ In Review
-▌ │  └─ ▣ DEF-3 = Rename the export job  ☻ you                                                                   Story     ◐ In Review                 1h
-▌ └─ ○ To Do
-▌    └─ ✱ ABC-20 = Stats page shows yesterday twice  unassigned                                                  Bug       ○ To Do                     9w
-▌ ⊕ beta  beta.atlassian.net
-▌ └─ ○ To Do
-▌    └─ ▣ XYZ-7 = Move the nightly build  ☺ Alice E.                                                             Story     ○ To Do                     1h
+⊕ acme  acme.atlassian.net
+  ├─ ◐ In Progress
+  │  └─ ✦ ABC-1 = Dashboard for the stats  ☻ you                                                                 Epic      ◐ In Progress               2w
+  │     ├─ ▣ ABC-12 = Add a stats endpoint for the dashboard  ☻ you  ❝ discussed · 1                             Story     ◐ In Progress   !263 review 1h
+  │     └─ ↳ ABC-13 = Count requests per route  ☺ Bob E.                                                         Sub-task  ◐ In Progress               1h
+  ├─ ◐ In Review
+  │  └─ ▣ DEF-3 = Rename the export job  ☻ you                                                                   Story     ◐ In Review                 1h
+  └─ ○ To Do
+     └─ ✱ ABC-20 = Stats page shows yesterday twice  unassigned                                                  Bug       ○ To Do                     9w
+⊕ beta  beta.atlassian.net
+  └─ ○ To Do
+     └─ ▣ XYZ-7 = Move the nightly build  ☺ Alice E.                                                             Story     ○ To Do                     1h
 
 ── acme ──
  ▌ ⊕ acme  acme.atlassian.net
@@ -3200,13 +3200,13 @@ exports[`recorded view fixtures > sessions_settings-agents at 80x24 1`] = `
 
 ── detail ──
  Each agent is its own program with its own sign-in. radar finds it on your    █
- PATH; r looks again.                                                          █
+ PATH; read its status again.                                                  █
                                                                                █
  ◙ COPILOT  checking ──────────────────────────────────────────────────────────█
    $ npm i -g @github/copilot                                                  █
-   $ copilot login                                                          [y]█
+   copy command · $ copilot login                                              █
    Needs a Copilot plan on GitHub.                                             █
-   ↗  GitHub: install Copilot CLI                                           [o]█
+   ↗  open documentation · GitHub: install Copilot CLI                         █
  ◙ CODEX  checking ────────────────────────────────────────────────────────────█
    $ npm i -g @openai/codex                                                    █
    $ codex login                                                               █
@@ -3302,13 +3302,13 @@ exports[`recorded view fixtures > sessions_settings-agents at 160x40 1`] = `
 
 
 ── detail ──
- Each agent is its own program with its own sign-in. radar finds it on your PATH; r looks again.
+ Each agent is its own program with its own sign-in. radar finds it on your PATH; read its status again.
 
  ◙ COPILOT  checking ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    $ npm i -g @github/copilot
-   $ copilot login                                                                                                                                          [y]
+   copy command · $ copilot login
    Needs a Copilot plan on GitHub.
-   ↗  GitHub: install Copilot CLI                                                                                                                           [o]
+   ↗  open documentation · GitHub: install Copilot CLI
  ◙ CODEX  checking ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    $ npm i -g @openai/codex
    $ codex login
@@ -3323,7 +3323,7 @@ exports[`recorded view fixtures > sessions_settings-agents at 160x40 1`] = `
    add a command takes what you would type in a terminal; radar runs it in a tab of the dock.
  ⚠ NOTHING IS APPROVED FOR YOU ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    A request waits in the dock for your answer:
-   a approve · s session · d deny · v view diff
+   approve · session · deny · view diff
    alt-a switches the agent new sessions start as.
  ↗ MORE ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    ↗  radar guide: agents
@@ -3359,19 +3359,19 @@ exports[`recorded view fixtures > slack_feed at 80x24 1`] = `
 @ direct messages
   └─ • #D0000CAROL Carol C.  hi @Alice Example, quick quest          1h
 ❝ threads you are in
-  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main?  ↩ 1      1d
-  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats  ↩ 2      2d
+  ├─ • #team Carol C.  Anyone seen ABC-12 failing on ma ⋯ 1 ↩ 1      1d
+  └─ • #team Bob B.  @review-squad :gitlab: mr Add a st ⋯ 2 ↩ 2      2d
 
 ── Bob Builder's message ──
- ── #team · yesterday ──
- ● 09:11  Bob Builder
-     @Alice Example could you take this one?
+ Acme / # #team
+ @Alice Example could you take this one?
+                                                         ☺ Bob Builder · 1d ago
 
+ thread  thread start
 
-
-
-
-
+ ❝ THREAD  yesterday ──────────────────────────────────────────────────────────
+   • 07:11  Bob Builder
+   @Alice Example could you take this one?
 
 
 
@@ -3404,19 +3404,19 @@ exports[`recorded view fixtures > slack_feed at 160x40 1`] = `
 @ direct messages
   └─ • #D0000CAROL Carol C.  hi @Alice Example, quick question about the stats                                                                       1h
 ❝ threads you are in
-  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯                                                        ↩ 1      1d
-  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard ⋯                                                     ↩ 2      2d
+  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check ⋯ 1                                                      ↩ 1      1d
+  └─ • #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard ⋯ 2                                                   ↩ 2      2d
 
 ── Bob Builder's message ──
- ── #team · yesterday ──
- ● 09:11  Bob Builder
-     @Alice Example could you take this one?
+ Acme / # #team
+ @Alice Example could you take this one?
+                                                                                                                                         ☺ Bob Builder · 1d ago
 
+ thread  thread start
 
-
-
-
-
+ ❝ THREAD  yesterday ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   • 07:11  Bob Builder
+   @Alice Example could you take this one?
 
 
 
@@ -3454,7 +3454,7 @@ exports[`recorded view fixtures > slack_feed at 160x40 1`] = `
 exports[`recorded view fixtures > slack_feed-page1-thread-links at 80x24 1`] = `
 "── thread ──
  ── today ──
- 04:16  Carol Coder  The service is being upgraded at noon
+ 02:16  Carol Coder  The service is being upgraded at noon
 
 
 
@@ -3483,7 +3483,7 @@ exports[`recorded view fixtures > slack_feed-page1-thread-links at 80x24 1`] = `
 exports[`recorded view fixtures > slack_feed-page1-thread-links at 160x40 1`] = `
 "── thread ──
  ── today ──
- 04:16  Carol Coder  The service is being upgraded at noon
+ 02:16  Carol Coder  The service is being upgraded at noon
 
 
 
@@ -3785,7 +3785,7 @@ exports[`recorded view fixtures > slack_settings-connection at 80x24 1`] = `
                                                                                █
  ⇌ MAKE A USER TOKEN  about two minutes, once ─────────────────────────────────█
    1 Open Slack's new-app page, radar's manifest filled in:                    █
-   api.slack.com / new app   o opens · m copies the manifest                   █
+   api.slack.com / new app   open · copy manifest                              █
      user scopes only: 10                                                      █
    2 Pick your workspace, Next, Create.                                        █
    3 Install to Workspace, then Allow.                                         █
@@ -3878,7 +3878,7 @@ exports[`recorded view fixtures > slack_settings-connection at 160x40 1`] = `
 
  ⇌ MAKE A USER TOKEN  about two minutes, once ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
    1 Open Slack's new-app page, radar's manifest filled in:
-   api.slack.com / new app   o opens · m copies the manifest
+   api.slack.com / new app   open · copy manifest
      user scopes only: 10
    2 Pick your workspace, Next, Create.
    3 Install to Workspace, then Allow.
@@ -4206,16 +4206,16 @@ exports[`recorded view fixtures > workbench_work at 80x24 1`] = `
  workflow-run · acme/api/42/1                                      workflow-run
 
 ── linked sources and context ──
- Exact sources · j/k select · x actions
+ Exact sources · ↑↓ select · extra actions
  pull-request · acme/api/7
  authored
  Local work saved.
  Ship explicit work-item navigation
  Local groups: release candidate
  Selected pull-request: acme/api/7
- authored link · c copy locator · x actions
+ authored link · copy locator · extra actions
  Locator event in this page: source.selected · requested
- v history: original claims and outcomes · completeness not guaranteed
+ view history: original claims and outcomes · completeness not guaranteed
  Titles and groups are authored locally. Relations do not imply identity,
  permission or completion.
  Task item ID: 10000000-0000-4000-8000-000000000001
@@ -4314,10 +4314,10 @@ shown simply: this needs work.tabs
 
 ── actions ──
 shown simply: this needs work.rail
- create a local task…
+ new local task…
  refresh local work
  filter this item page…
- apply local group label…
+ set local group label…
  inspect bounded evidence…
 
 
@@ -4354,17 +4354,17 @@ exports[`recorded view fixtures > workbench_work at 160x40 1`] = `
  workflow-run · acme/api/42/1                                                                                                                      workflow-run
 
 ── linked sources and context ──
- Exact sources · j/k select · x actions
+ Exact sources · ↑↓ select · extra actions
  pull-request · acme/api/7
  authored
  Local work saved.
  Ship explicit work-item navigation
  Local groups: release candidate
  Selected pull-request: acme/api/7
- authored link · c copy locator · x actions
+ authored link · copy locator · extra actions
  Locator event in this page: source.selected
  · requested
- v history: original claims and outcomes ·
+ view history: original claims and outcomes ·
  completeness not guaranteed
  Titles and groups are authored locally.
  Relations do not imply identity, permission
@@ -4515,10 +4515,10 @@ shown simply: this needs work.tabs
 
 ── actions ──
 shown simply: this needs work.rail
- create a local task…
+ new local task…
  refresh local work
  filter this item page…
- apply local group label…
+ set local group label…
  inspect bounded evidence…
 
 
@@ -4560,7 +4560,7 @@ shown simply: this needs work.rail
 
 exports[`recorded view fixtures > workspace_local-repositories at 80x24 1`] = `
 "── local repositories ──
- acme
+acme
 
 ── details ──
  /work/acme
@@ -4592,7 +4592,7 @@ exports[`recorded view fixtures > workspace_local-repositories at 80x24 1`] = `
 
 exports[`recorded view fixtures > workspace_local-repositories at 160x40 1`] = `
 "── local repositories ──
- acme
+acme
 
 ── details ──
  /work/acme

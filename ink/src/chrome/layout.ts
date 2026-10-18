@@ -1,12 +1,13 @@
 import { cellWidth, charWidth, clipSegments, fit } from "./width.js";
 import { wordmarkRuns } from "../text/frame.js";
 import type { ChromeView, Hint, Hit, Ink, MenuView, SettingsNav, Text } from "./types.js";
-import { bgOf, currentLook, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
+import { bgOf, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
 import { inkStyle } from "../text/theme.js";
-import { wrap } from "./history.js";
 import { ATTENTION_DOT } from "../text/icons.js";
 import { paletteLines, paletteWidth, wrapPalette } from "./palette.js";
 import { cutCells, fieldWindow } from "../editor/InputField.js";
+import { mnemonicPrefix, mnemonicRange, mnemonicRuns } from "../text/mnemonic.js";
+import { cellsOf, paragraphCells } from "../text/cells.js";
 
 /** A run of text on one row. Rows are laid out in cells so a pointer position maps to a target. `style` is the
  * theme's look for it (colours as the host's slots resolve them); `ink` names a slot, `style` wins over it. */
@@ -223,7 +224,7 @@ function lead(icon: string | null | undefined): { text: string; style: Style } |
   if (!i || !i.glyph) return undefined;
   return { text: `${i.glyph} `, style: specStyle(i.style) };
 }
-const leadWidth = () => (currentLook().iconWidth === 0 ? 0 : currentLook().iconWidth + 1);
+
 
 export function layoutSources(chrome: ChromeView, width: number, y: number): Laid | null {
   const sources = chrome.sources ?? [];
@@ -298,9 +299,32 @@ export function statusRight(chrome: ChromeView, width: number) {
   return { counts, health, sepW, widthOf, showCounts, showHealth, rightW };
 }
 
+/** The visible hint form, shared with History so fit, paint and hits use identical words. */
+export function hintCells(h: Hint): Cell[] {
+  const key = mnemonicPrefix(h.label, h.keys, h);
+  const icon = lead(h.icon);
+  const keyStyle = { ...slotStyle("accent.secondary"), bold: true };
+  const words = slotStyle("text.muted");
+  if (key && !icon && !mnemonicRange(h.label, h.keys, h.mnemonic_at)) return [{ text: key, style: keyStyle }, { text: ` ${h.label}`, style: words }];
+  const valid = !!mnemonicRange(h.label, h.keys, h.mnemonic_at);
+  const prefix = key ? [{ text: key, style: keyStyle }, { text: " ", style: words }] : [];
+  return [
+    ...(!valid ? prefix : []),
+    ...(icon ? [{ text: icon.text, style: icon.style }] : []),
+    ...(valid ? prefix : []),
+    ...mnemonicRuns(h.label, h.keys, h, words),
+  ];
+}
+
+/** Paragraph wrapping with styles retained through whole graphemes. */
+function wrapStyled(cells: Cell[], width: number): Cell[][] {
+  const chars = cells.flatMap((c) => cellsOf(c.text, c.style));
+  return paragraphCells(chars, Math.max(1, width)).map((line) => line.map((c) => ({ text: c.ch, style: c.s })));
+}
+
 /** `BOOKS   PgUp/PgDn scroll   q quit   x menu            11 open · 3 need you  ▼ ◉`, row `y` (shell.rs status_line). */
-export function layoutStatus(chrome: ChromeView, width: number, y: number): Laid {
-  const st = chrome.status;
+export function layoutStatus(chrome: ChromeView, width: number, y: number, plain = false): Laid {
+  const st = plain ? { ...chrome.status, hints: chrome.status.hints?.map((h) => ({ ...h, mnemonic_at: undefined, mnemonic_shift: false })) } : chrome.status;
   const overlay = bgOf("bg.overlay");
   const row = new Row(y);
   row.base = { backgroundColor: overlay };
@@ -328,7 +352,7 @@ export function layoutStatus(chrome: ChromeView, width: number, y: number): Laid
     row.put(clip(st.message.text, room), { style: chromeInk(st.message.ink) });
   } else {
     let hints = [...(st.hints ?? [])];
-    const hintW = (h: (typeof hints)[number]) => cellWidth(h.keys) + cellWidth(h.label) + 4 + (h.icon ? leadWidth() : 0);
+    const hintW = (h: (typeof hints)[number]) => hintCells(h).reduce((n, c) => n + cellWidth(c.text), 3);
     const widthOf = (hs: typeof hints) => hs.reduce((n, h) => n + hintW(h), 0);
     const fits = (hs: typeof hints, rw: number) => row.x + widthOf(hs) < width - rw;
     if (!fits(hints, rightW)) {
@@ -344,20 +368,26 @@ export function layoutStatus(chrome: ChromeView, width: number, y: number): Laid
         rightW = 0;
       }
     }
+    // The host's complete action list remains reachable even when expanded words
+    // exhaust the row. Identify its actual input, never the caption's spelling.
+    const mandatory = (h: Hint) => h.keys_of?.some(({ chord }) =>
+      !chord.ctrl && !chord.alt && typeof chord.key === "object" && chord.key.char === "x",
+    ) ?? false;
+    if (hints.some(mandatory)) {
+      while (!fits(hints, rightW)) {
+        let last = hints.length - 1;
+        while (last >= 0 && mandatory(hints[last]!)) last--;
+        if (last < 0) break;
+        hints.splice(last, 1);
+      }
+    }
     const room = Math.max(0, width - (rightW + 1));
     for (const h of hints) {
-      const ic = h.icon ? lead(h.icon) : undefined;
-      // The key, a space, the icon, the words, three cells after: `q ⇥ quit`.
-      const w = cellWidth(h.keys) + 1 + (ic ? cellWidth(ic.text) : 0) + cellWidth(h.label) + (ic ? 0 : 0) + 3;
-      const plainW = cellWidth(h.keys) + 1 + cellWidth(h.label) + 3;
-      if (row.x + (ic ? w : plainW) > room) break;
+      const cells = hintCells(h);
+      const w = cells.reduce((n, c) => n + cellWidth(c.text), 3);
+      if (row.x + w > room) break;
       const base = row.x;
-      row.put(h.keys, { style: { ...slotStyle("accent.secondary"), bold: true } });
-      if (ic) {
-        row.put(" ");
-        row.put(ic.text, { style: ic.style });
-        row.put(h.label, { style: slotStyle("text.muted") });
-      } else row.put(` ${h.label}`, { style: slotStyle("text.muted") });
+      for (const c of cells) row.put(c.text, { style: c.style });
       row.hits.push(...keyHits(h, base, row.x - base, y));
       row.put("   ");
     }
@@ -376,12 +406,15 @@ export function layoutStatus(chrome: ChromeView, width: number, y: number): Laid
       }
     row.put(" ");
   }
+  row.cells = clipSegments(row.cells, width);
+  row.x = row.cells.reduce((n, c) => n + cellWidth(c.text), 0);
+  row.hits = row.hits.map((h) => ({ ...h, w: Math.max(0, Math.min(width, h.x + h.w) - h.x) })).filter((h) => h.w > 0);
   return row.done(width);
 }
 
 /** Where a click presses each key of a hint (shell.rs key_hits): one key, the whole hint and a cell before it;
  * several (`PgUp/PgDn`, `+/-`, `←→↑↓`), each label, and each word when there is a word per key. */
-function keyHits(h: Hint, base: number, hw: number, y: number): Hit[] {
+export function keyHits(h: Hint, base: number, hw: number, y: number): Hit[] {
   const ks = h.keys_of ?? [];
   if (ks.length === 0) return [];
   const wordsEnd = base + hw;
@@ -419,6 +452,12 @@ export type MenuLayout = { x: number; y: number; w: number; h: number; lines: Ce
 
 const shownOnly = (c: MenuView["items"][number]) => !!(c.heading || c.note || c.shown_only);
 const keyOf = (c: MenuView["items"][number]) => c.keys ?? c.key ?? "";
+const separateKey = (c: MenuView["items"][number]) => mnemonicRange(c.label, keyOf(c), c.mnemonic_at) ? "" : keyOf(c);
+const shiftWords = (c: MenuView["items"][number]) => mnemonicRange(c.label, keyOf(c), c.mnemonic_at) && c.mnemonic_shift ? "shift " : "";
+const choiceRuns = (c: MenuView["items"][number], style: Style): Cell[] => [
+  ...(shiftWords(c) ? [{ text: "shift ", style: { ...slotStyle("accent.secondary"), bold: true, ...(style.backgroundColor ? { backgroundColor: style.backgroundColor } : {}) } }] : []),
+  ...mnemonicRuns(c.label, keyOf(c), c, style),
+];
 
 const mix = (a: [number, number, number], b: [number, number, number], amount: number): string =>
   "#" + a.map((x, i) => Math.round(b[i]! + (x - b[i]!) * amount).toString(16).padStart(2, "0")).join("");
@@ -434,13 +473,15 @@ const padTo = (s: string, w: number) => s + " ".repeat(Math.max(0, w - cellWidth
  * key column, the label and what it does, one row each, the selected row on the selection shade; a
  * question's choices as raised buttons. Rows are full width, so the list under it never shows through.
  */
-export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyHeight: number): MenuLayout {
+export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyHeight: number, plain = false): MenuLayout {
+  if (plain) menu = { ...menu, items: menu.items.map((i) => ({ ...i, mnemonic_at: undefined, mnemonic_shift: false })) };
   const measure = menu.palette ? paletteWidth : cellWidth;
   const title = menu.palette ? `${menu.title} · ${menu.palette.matched} of ${menu.palette.total}` : menu.title;
   const overlay = bgOf("bg.overlay");
   const border: Style = { ...slotStyle("accent.primary"), backgroundColor: overlay };
   const maxW = Math.max(0, width - 2);
   const maxH = Math.max(0, bodyHeight - 2);
+  if (width < 2 || bodyHeight < 2) return { x: 0, y: bodyTop, w: Math.max(0, width), h: Math.max(0, bodyHeight), lines: Array.from({ length: Math.max(0, bodyHeight) }, () => [{ text: " ".repeat(Math.max(0, width)) }]), hits: [] };
   const items = menu.items;
   const sel = menu.selected ?? 0;
   const titleIcon = menu.question ? "warning" : menu.id === "bulk" ? "bulk" : menu.id === "keys" ? "menu" : menu.id === "quit" ? "quit" : undefined;
@@ -455,17 +496,31 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   ];
   const titleText = titleCells.map((c) => c.text).join("");
   const longTitle = measure(titleText) > maxW || title.includes("\n");
-  const keyW = Math.max(0, ...items.map((i) => measure(keyOf(i))));
+  const keyW = Math.max(0, ...items.map((i) => measure(separateKey(i))));
   const iconW = (c: (typeof items)[number]) => (lead(c.icon) ? measure(lead(c.icon)!.text) : 0);
-  const labelW = Math.max(0, ...items.filter((i) => !i.heading).map((i) => measure(i.label) + iconW(i)));
+  const labelW = Math.max(0, ...items.filter((i) => !i.heading).map((i) => measure(i.label) + measure(shiftWords(i)) + iconW(i)));
   const longest = (text: string) => Math.max(0, ...text.split("\n").map(measure));
   const compactW = (c: (typeof items)[number]) => menu.palette
-    ? longest(c.label) + iconW(c) + (c.sample ? 3 : 0) + (c.hint ? 3 + longest(c.hint) : 0) + (keyW === 0 ? 2 : keyW + 4)
+    ? longest(c.label) + measure(shiftWords(c)) + iconW(c) + (c.sample ? 3 : 0) + (c.hint ? 3 + longest(c.hint) : 0) + (keyW === 0 ? 2 : keyW + 4)
     : (keyW === 0 ? 1 : keyW + 2) + (c.sample ? 3 : 0) + 1 + labelW + 4 + measure(c.hint);
   const question = menu.question;
   const buttons = question ? items.map((c, i) => ({ c, i })).filter(({ c }) => !c.heading && !c.note) : [];
-  const buttonText = (c: (typeof items)[number]) => ` ${keyOf(c)} ${lead(c.icon)?.text ?? ""}${c.hint ? c.hint : c.label} `;
-  const buttonsW = buttons.reduce((n, { c }, k) => n + measure(buttonText(c)) + (k ? 2 : 0), 0);
+  const buttonWords = (c: (typeof items)[number]) => c.hint || c.label;
+  const buttonText = (c: (typeof items)[number]) => {
+    const prefix = mnemonicPrefix(buttonWords(c), keyOf(c), c);
+    return ` ${prefix ? `${prefix} ` : ""}${lead(c.icon)?.text ?? ""}${buttonWords(c)} `;
+  };
+  let buttonsW = 0;
+  let currentButtonsW = 0;
+  for (const { c } of buttons) {
+    const bw = Math.min(measure(buttonText(c)), maxW);
+    if (currentButtonsW > 0 && currentButtonsW + 2 + bw > maxW) {
+      buttonsW = Math.max(buttonsW, currentButtonsW);
+      currentButtonsW = 0;
+    }
+    currentButtonsW += (currentButtonsW ? 2 : 0) + bw;
+  }
+  buttonsW = Math.max(buttonsW, currentButtonsW);
   const natural = Math.max(
     1,
     measure(titleText),
@@ -475,10 +530,11 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     ...items.filter((c) => c.note).map((c) => 1 + Math.min(measure(c.label), 60) + iconW(c)),
   );
   const innerW = Math.min(maxW, Math.max(natural, buttonsW));
-  const w = innerW + 2;
+  const w = Math.min(width, innerW + 2);
   const countText = menu.palette ? ` ${menu.palette.matched} of ${menu.palette.total} ` : "";
   const narrowCount = menu.palette && longTitle && measure(countText) <= innerW ? [{ text: countText, style: emphasis }] : undefined;
 
+  const columnsFit = items.every((c) => c.heading || (compactW(c) <= innerW && !c.label.includes("\n") && !c.hint.includes("\n")));
   type Line = { cells: Cell[]; target?: string; sel?: boolean };
   const body: Line[] = [];
   const fillTo = (cells: Cell[], bg?: string): Cell[] => {
@@ -487,23 +543,16 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   };
   if (menu.refused) body.push({ cells: [{ text: " " + menu.refused, ink: "warn", style: { backgroundColor: overlay } }] });
   if (longTitle) {
-    // The icons lead the first line; every line wraps inside the frame, one cell in from its edge.
-    const leadW = titleLeads.reduce((n, x) => n + measure(x.text), 0);
-    if (menu.palette) {
-      const cells = (narrowCount ? menu.title : title).split("\n").map((raw, n) => [
-        ...(n === 0 ? titleLeads.map((l) => ({ text: l.text, style: l.style })) : []),
-        { text: raw.replace(/\r$/, ""), style: emphasis },
-      ]);
-      for (const line of wrapPalette(cells, innerW - 1)) body.push({ cells: [{ text: " " }, ...line] });
-    } else title.split("\n").forEach((raw, n) => {
-      wrap(raw.replace(/\r$/, ""), Math.max(1, innerW - 1 - (n === 0 ? leadW : 0))).forEach((part, k) => {
-        const cells: Cell[] = [{ text: " " }];
-        if (n === 0 && k === 0) for (const l of titleLeads) cells.push({ text: l.text, style: l.style });
-        cells.push({ text: part, style: { ...slotStyle("text.emphasis"), bold: true } });
-        body.push({ cells });
-      });
-    });
+    // Content::push wraps the icon and first title line together; continuations regain its full room.
+    const inset = Math.min(1, Math.max(0, innerW - 2));
+    const titleLines = (narrowCount ? menu.title : title).split("\n").map((raw, n) => [
+      ...(n === 0 ? titleLeads.map((l) => ({ text: l.text, style: l.style })) : []),
+      { text: raw.replace(/\r$/, ""), style: emphasis },
+    ]);
+    const wrapped = menu.palette ? wrapPalette(titleLines, innerW - 1) : titleLines.flatMap((l) => wrapStyled(l, innerW - inset));
+    for (const line of wrapped) body.push({ cells: [{ text: " ".repeat(inset) }, ...line] });
   }
+
   items.forEach((c, i) => {
     if (c.heading || c.note || c.shown_only) {
       // The host marks a note as a heading too (MenuItem::note builds on heading); a note is drawn as written.
@@ -513,7 +562,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
       // menu.rs: the item's icon leads its first line, after the cell of air.
       const ic = lead(c.icon);
       const lines = text.split("\n").map((part, k) => [...(k === 0 && ic ? [{ text: ic.text, style: ic.style }] : []), { text: menu.palette ? part.replace(/\r$/, "") : part, style }]);
-      for (const line of menu.palette ? wrapPalette(lines, innerW - 1) : lines) body.push({ cells: [{ text: " " }, ...line] });
+      for (const line of menu.palette ? wrapPalette(lines, innerW - 1) : lines.flatMap((l) => wrapStyled(l, innerW - Math.min(1, Math.max(0, innerW - 2))))) body.push({ cells: [{ text: " ".repeat(Math.min(1, Math.max(0, innerW - 2))) }, ...line] });
       return;
     }
     if (question) return;
@@ -527,14 +576,38 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     const rowBg = on ? bgOf("bg.selection") : undefined;
     const row: Style = on ? { ...slotStyle("text.emphasis"), bold: true, backgroundColor: rowBg } : slotStyle(c.muted ? "text.muted" : "text.primary");
     const keyStyle: Style = { ...slotStyle("accent.secondary"), bold: true, ...(rowBg ? { backgroundColor: rowBg } : {}) };
-    const cells: Cell[] = [{ text: keyW === 0 ? " " : ` ${padTo(keyOf(c), keyW)} `, style: keyStyle }];
+    if (!columnsFit) {
+      const prefixW = keyW === 0 ? 2 : keyW + 3;
+      const inset = prefixW + 2 <= innerW ? prefixW : 0;
+      const prefix = keyW === 0 ? "  " : ` ${padTo(separateKey(c), keyW)}  `;
+      if (inset === 0 && separateKey(c)) for (const line of wrapStyled([{ text: separateKey(c), style: keyStyle }], innerW)) body.push({ cells: line, target: c.target ?? undefined, sel: on });
+      const labels = c.label.split("\n");
+      let offset = 0;
+      labels.forEach((raw, n) => {
+        const chars = [...raw].length;
+        const meta = { ...c, mnemonic_at: c.mnemonic_at == null ? undefined : c.mnemonic_at - offset };
+        const ic = n === 0 ? lead(c.icon) : undefined;
+        const runs: Cell[] = [
+          ...(n === 0 && c.sample ? [{ text: "██ ", style: specStyle(c.sample) }] : []),
+          ...(ic ? [{ text: ic.text, style: { ...ic.style, backgroundColor: rowBg } }] : []),
+          ...(n === 0 && shiftWords(c) ? [{ text: shiftWords(c), style: keyStyle }] : []),
+          ...mnemonicRuns(raw.replace(/\r$/, ""), keyOf(c), meta, row),
+        ];
+        wrapStyled(runs, innerW - inset).forEach((line, j) => body.push({ cells: fillTo([{ text: n === 0 && j === 0 ? prefix.slice(0, inset) : " ".repeat(inset), style: keyStyle }, ...line], rowBg), target: c.target ?? undefined, sel: on }));
+        offset += chars + 1;
+      });
+      if (c.hint) for (const raw of c.hint.split("\n")) for (const line of wrapStyled([{ text: raw, style: { ...slotStyle("text.muted"), backgroundColor: rowBg } }], innerW - inset)) body.push({ cells: fillTo([{ text: " ".repeat(inset), style: row }, ...line], rowBg), target: c.target ?? undefined, sel: on });
+      return;
+    }
+    const cells: Cell[] = [{ text: keyW === 0 ? " " : ` ${padTo(separateKey(c), keyW)} `, style: keyStyle }];
     if (c.sample) cells.push({ text: " ██", style: { ...specStyle(c.sample), ...(rowBg ? { backgroundColor: rowBg } : {}) } });
     const ic = lead(c.icon);
     if (ic) {
       cells.push({ text: " ", style: row });
       cells.push({ text: ic.text, style: { ...ic.style, ...(rowBg ? { backgroundColor: rowBg } : {}) } });
-      cells.push({ text: padTo(c.label, labelW - measure(ic.text)), style: row });
-    } else cells.push({ text: ` ${padTo(c.label, labelW)}`, style: row });
+      cells.push(...choiceRuns(c, row));
+      cells.push({ text: " ".repeat(Math.max(0, labelW - measure(ic.text) - measure(c.label) - measure(shiftWords(c)))), style: row });
+    } else cells.push({ text: " ", style: row }, ...choiceRuns(c, row), { text: " ".repeat(Math.max(0, labelW - measure(c.label) - measure(shiftWords(c)))), style: row });
     cells.push({ text: `   ${c.hint} `, style: { ...slotStyle("text.muted"), ...(rowBg ? { backgroundColor: rowBg } : {}) } });
     body.push({ cells: fillTo(cells, rowBg), target: c.target ?? undefined, sel: on });
   });
@@ -564,51 +637,68 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     });
   }
 
-  // A question's choices: raised buttons in a row against the right (widgets::buttons).
-  const buttonRows: Cell[][] = [];
-  const buttonHits: Array<{ at: number; w: number; target?: string }> = [];
-  if (question && buttons.length > 0) {
-    const faceOf = (focused: boolean) => (focused ? slotStyle("accent.primary").color : bgOf("bg.selection"));
-    const top: Cell[] = [];
-    const mid: Cell[] = [];
-    const bot: Cell[] = [];
-    let at = Math.max(0, innerW - buttonsW);
-    top.push({ text: " ".repeat(at) });
-    mid.push({ text: " ".repeat(at) });
-    bot.push({ text: " ".repeat(at) });
-    buttons.forEach(({ c, i }, k) => {
-      if (k > 0) for (const l of [top, mid, bot]) l.push({ text: "  " });
-      if (k > 0) at += 2;
+  // Native choices(): pack right-aligned button rows, wrap long captions, then drop bevels if needed.
+  type ButtonHit = { at: number; row: number; w: number; h: number; target?: string };
+  const choices = (raised: boolean): { rows: Cell[][]; hits: ButtonHit[] } => {
+    type Button = { rows: Cell[][]; w: number; target?: string };
+    const groups: Button[][] = [];
+    let used = 0;
+    for (const { c, i } of buttons) {
       const focused = i === sel;
-      const text = buttonText(c);
-      const bw = measure(text);
-      const face = faceOf(focused);
+      const face = focused ? slotStyle("accent.primary").color : bgOf("bg.selection");
       const faceRgb = rgbOf(face);
       const edge = (to: [number, number, number], part: number, or: string): Style =>
         faceRgb ? { color: mix(to, faceRgb, part), backgroundColor: face } : { ...slotStyle(or), backgroundColor: face };
-      top.push({ text: "▔".repeat(bw), style: edge([255, 255, 255], 0.45, "text.muted") });
-      bot.push({ text: "▁".repeat(bw), style: edge([0, 0, 0], 0.55, "bg.base") });
       const on: Style = { ...slotStyle("bg.base"), bold: true, backgroundColor: face };
       const keyS: Style = focused ? on : { ...slotStyle("accent.secondary"), bold: true, backgroundColor: face };
       const wordS: Style = focused ? on : { ...slotStyle(c.muted ? "text.muted" : "text.primary"), backgroundColor: face };
+      const prefix = mnemonicPrefix(buttonWords(c), keyOf(c), c);
       const ic = lead(c.icon);
-      mid.push({ text: ` ${keyOf(c)} `, style: keyS });
-      if (ic) mid.push({ text: ic.text, style: { ...ic.style, backgroundColor: face } });
-      mid.push({ text: `${c.hint ? c.hint : c.label} `, style: wordS });
-      buttonHits.push({ at, w: bw, target: c.target ?? undefined });
-      at += bw;
-    });
-    buttonRows.push(top, mid, bot);
-  }
-
-  const contentH = field.length + body.length + (body.length > 0 && buttonRows.length > 0 ? 1 : 0) + buttonRows.length;
-  const usable = menu.usable !== false && innerW >= (menu.palette && menu.typed != null ? 4 : 2) && maxH >= (menu.palette ? field.length + Number(body.length > 0) : 1);
-  const shownBody = Math.max(0, Math.min(body.length, maxH - field.length - buttonRows.length - (body.length > 0 && buttonRows.length > 0 ? 1 : 0)));
-  // Read from where the view says (menu.rs: the host keeps the offset consistent with the size).
+      const valid = !!mnemonicRange(buttonWords(c), keyOf(c), c.mnemonic_at);
+      const caption: Cell[] = [
+        { text: ` ${!valid && prefix ? `${prefix} ` : ""}`, style: keyS },
+        ...(ic ? [{ text: ic.text, style: { ...ic.style, backgroundColor: face } }] : []),
+        ...(valid && prefix ? [{ text: `${prefix} `, style: keyS }] : []),
+        ...mnemonicRuns(buttonWords(c), keyOf(c), c, wordS),
+        { text: " ", style: wordS },
+      ];
+      const bw = Math.min(measure(buttonText(c)), innerW);
+      const rows = wrapStyled(caption, bw).map((line) => [...line, { text: " ".repeat(Math.max(0, bw - line.reduce((n, c) => n + measure(c.text), 0))), style: { backgroundColor: face } }]);
+      if (raised) rows.unshift([{ text: "▔".repeat(bw), style: edge([255, 255, 255], 0.45, "text.muted") }]);
+      if (raised) rows.push([{ text: "▁".repeat(bw), style: edge([0, 0, 0], 0.55, "bg.base") }]);
+      if (groups.length === 0 || used + 2 + bw > innerW) { groups.push([]); used = 0; }
+      groups.at(-1)!.push({ rows, w: bw, target: c.target ?? undefined });
+      used += (used ? 2 : 0) + bw;
+    }
+    const rows: Cell[][] = [];
+    const hits: ButtonHit[] = [];
+    for (const group of groups) {
+      const height = Math.max(0, ...group.map((b) => b.rows.length));
+      const rowWidth = group.reduce((n, b, i) => n + b.w + (i ? 2 : 0), 0);
+      const pad = Math.max(0, innerW - rowWidth);
+      const y = rows.length;
+      for (let j = 0; j < height; j++) rows.push([{ text: " ".repeat(pad) }]);
+      let at = pad;
+      group.forEach((b, i) => {
+        if (i) { for (let j = 0; j < height; j++) rows[y + j]!.push({ text: "  " }); at += 2; }
+        for (let j = 0; j < height; j++) rows[y + j]!.push(...(b.rows[j] ?? [{ text: " ".repeat(b.w) }]));
+        hits.push({ at, row: y, w: b.w, h: b.rows.length, target: b.target });
+        at += b.w;
+      });
+    }
+    return { rows, hits };
+  };
+  const minBody = Number(body.length > 0);
+  let drawnButtons = choices(true);
+  if (drawnButtons.rows.length + field.length + minBody > maxH) drawnButtons = choices(false);
+  const buttonRows = drawnButtons.rows;
+  const buttonHits = drawnButtons.hits;
+  const usable = menu.usable !== false && innerW >= (menu.typed != null ? 4 : 2) && maxH > 0 && maxH >= buttonRows.length + field.length + minBody;
+  const gap = Number(body.length > 0 && buttonRows.length > 0 && maxH > buttonRows.length + field.length + minBody);
+  const shownBody = Math.max(0, Math.min(body.length, maxH - field.length - buttonRows.length - gap));
   const scroll = Math.max(0, menu.scroll ?? 0);
-  const rows = usable ? field.length + shownBody + (shownBody > 0 && buttonRows.length > 0 ? 1 : 0) + buttonRows.length : maxH;
+  const rows = usable ? field.length + shownBody + gap + buttonRows.length : maxH;
   const h = Math.min(bodyHeight, rows + 2);
-  void contentH;
   // Opened by a context click: at that cell, kept on screen; else centred.
   const x = menu.at ? Math.min(Math.max(0, menu.at.column), Math.max(0, width - w)) : Math.max(0, Math.floor((width - w) / 2));
   const y = menu.at
@@ -622,6 +712,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
   const titleW = shownTitle.reduce((n, c) => n + measure(c.text), 0);
   lines.push([edgeCell("╭"), ...shownTitle, edgeCell(`${"─".repeat(Math.max(0, w - 2 - titleW))}╮`)]);
   const put = (cells: Cell[], inner?: number) => {
+    cells = clipSegments(cells, innerW);
     const used = cells.reduce((n, c) => n + measure(c.text), 0);
     const filled = used >= innerW ? cells : [...cells, { text: " ".repeat(innerW - used), style: { backgroundColor: overlay } }];
     // Every cell sits on the overlay shade unless it has its own.
@@ -630,7 +721,7 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
     void inner;
   };
   if (!usable) {
-    put([{ text: " Make the terminal larger to read this menu.", ink: "muted" }]);
+    for (const line of wrapStyled([{ text: "Make the terminal larger to read this menu.", style: slotStyle("text.muted") }], innerW).slice(0, maxH)) put(line);
   } else {
     const rowAt = () => y + lines.length;
     for (const f of field) put(f.cells);
@@ -638,10 +729,10 @@ export function layoutMenu(menu: MenuView, width: number, bodyTop: number, bodyH
       if (l.target) hits.push({ x: x + 1, y: rowAt(), w: innerW, h: 1, target: l.target });
       put(l.cells);
     });
-    if (shownBody > 0 && buttonRows.length > 0) put([]);
+    if (gap) put([]);
     const firstButtonRow = rowAt();
     buttonRows.forEach((l) => put(l));
-    for (const b of buttonHits) if (b.target) hits.push({ x: x + 1 + b.at, y: firstButtonRow, w: b.w, h: 3, target: b.target });
+    for (const b of buttonHits) if (b.target) hits.push({ x: x + 1 + b.at, y: firstButtonRow + b.row, w: b.w, h: b.h, target: b.target });
     // A scrollbar on the right edge where there is more to read than shows.
     const max = (menu.lines ?? body.length) - (menu.shown ?? shownBody);
     if (max > 0 && shownBody > 0) {

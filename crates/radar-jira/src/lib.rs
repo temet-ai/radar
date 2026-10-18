@@ -440,6 +440,8 @@ pub struct JiraPlugin {
     pub(crate) view: usize,
     pub(crate) filter: String,
     pub(crate) filter_input: Option<radar_core::input::TextInput>,
+    /// Selection when filtering began, before rendering may hide that ticket.
+    pub(crate) filter_before: Option<Vec<String>>,
     /// Only this person's tickets (display name), or [`NOBODY`].
     pub(crate) assignee: Option<String>,
     /// The tree's selection and open groups.
@@ -454,6 +456,10 @@ pub struct JiraPlugin {
     pub(crate) next_page_read: u64,
     // settings
     pub(crate) section_rows: [usize; 4],
+    /// Projects keeps stable site/project paths and the user's folds. The
+    /// numeric row remains the adapter for the existing settings actions.
+    pub(crate) project_tree: RefCell<radar_core::view::TreeNav>,
+    pub(crate) project_row_index: std::cell::Cell<usize>,
     /// The connection section was last drawn as a setup step, without the
     /// rows only Settings needs; `site_rows` follows it.
     pub(crate) setup_card: std::cell::Cell<bool>,
@@ -1247,6 +1253,21 @@ impl Plugin for JiraPlugin {
     fn show_tab(&mut self, _: &str, i: usize) -> Vec<Effect> {
         page::show_tab(self, i)
     }
+    fn detail_identity(&self, scope: &str, pane: Pane) -> Option<radar_core::plugin::DetailIdentity> {
+        if scope != SCREEN.id || pane != Pane::Detail || !self.pages.is_empty() {
+            return None;
+        }
+        let screen::Selected::Ticket(item) = screen::selected(self)? else {
+            return None;
+        };
+        if item.site.name.trim().is_empty() || !config::is_ticket_key(&item.t.key) || item.t.id.trim().is_empty() {
+            return None;
+        }
+        Some(radar_core::plugin::DetailIdentity {
+            connection: self.connections.generation(&item.site.name)?,
+            subject: vec![item.site.name.clone(), item.t.key.clone(), item.t.id.clone()],
+        })
+    }
     fn subject(&self, _: &str, pane: Pane) -> Option<radar_core::Subject> {
         join::subject(self, pane)
     }
@@ -1636,8 +1657,8 @@ impl Plugin for JiraPlugin {
         write::hints(self).unwrap_or_else(|| screen::hints(self))
     }
     /// `+`/`-` fold the tree of sites, statuses and tickets.
-    fn folds(&self, _: &str, pane: Pane) -> bool {
-        self.pages.is_empty() && pane == Pane::Middle
+    fn folds(&self, scope: &str, pane: Pane) -> bool {
+        pane == Pane::Middle && (canon(scope) == "projects" || (scope == SCREEN.id && self.pages.is_empty()))
     }
 
     fn sections(&self) -> Vec<SectionSpec> {

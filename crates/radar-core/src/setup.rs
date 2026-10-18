@@ -533,7 +533,7 @@ impl Host {
         };
         match to {
             Some(at) => self.go(at),
-            None => self.message = Some("nothing before this step".into()),
+            None => self.notify("nothing before this step".into()),
         }
     }
 
@@ -553,7 +553,7 @@ impl Host {
         let paused = self.setup_step_now().map(|s| self.setup_label(s).0);
         let fx = self.leave_setup();
         if let Some(label) = paused {
-            self.message = Some(format!("setup paused at {label} · radar setup, or s on a part not set up, goes on").into());
+            self.notify(format!("setup paused at {label} · radar setup, or s on a part not set up, goes on").into());
         }
         fx
     }
@@ -778,7 +778,7 @@ impl Host {
             At::Welcome | At::Choose | At::Ready => self.leave_setup(),
             // The mode is not skipped: the user chooses it.
             At::Step(_) if on_mode => {
-                self.message = Some("choose a mode: ↑↓ and ⏎".into());
+                self.notify("choose a mode: ↑↓ and ⏎".into());
                 vec![]
             }
             At::Step(_) => {
@@ -821,7 +821,7 @@ impl Host {
         setup.row = n;
         // A move clears the status line's message, as a key does.
         if !activate {
-            self.message = None;
+            self.clear_message_compat();
         }
         let Some(setup) = self.setup.as_mut() else { return vec![] };
         if look.is_some() {
@@ -988,7 +988,7 @@ impl Host {
         let Some(m) = crate::writes::Mode::ALL.get(i).copied() else { return };
         self.on_mode_menu(m.key());
         // The card shows the choice; the status line keeps its keys.
-        self.message = None;
+        self.clear_message_compat();
         if let Some(setup) = self.setup.as_mut() {
             setup.mode = Some(m);
         }
@@ -1056,7 +1056,7 @@ impl Host {
             LookRow::Motion(l) => ("motion", l.word().to_string()),
         };
         if let Some(m) = self.colours.on_menu(menu, &value) {
-            self.message = Some(m.into());
+            self.notify(m.into());
         }
     }
 

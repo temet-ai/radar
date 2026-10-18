@@ -43,9 +43,9 @@ pub(super) fn bindings(p: &GitlabPlugin, page: &Page) -> Vec<crate::Row> {
             Binding::new(
                 "u",
                 if busy("rebase") {
-                    "rebase · asked, waiting for GitLab".to_string()
+                    "update by rebasing · asked, waiting for GitLab".to_string()
                 } else {
-                    format!("rebase onto {}…", mr.target_branch)
+                    format!("update by rebasing onto {}…", mr.target_branch)
                 },
             )
             .edits(),

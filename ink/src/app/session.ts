@@ -2,6 +2,8 @@ import type { Connection } from "../transport/connection.js";
 import type { Capabilities } from "../protocol/generated/Capabilities.js";
 import type { MotionView } from "../protocol/generated/MotionView.js";
 import type { SplashView } from "../protocol/generated/SplashView.js";
+import { NoticeStore } from "../notices/store.js";
+import type { Hit } from "../chrome/types.js";
 import type { ChromeView, Intent, MenuView } from "../chrome/types.js";
 import { applyHostLook, type HostLook } from "../text/look.js";
 import { tracer } from "./trace.js";
@@ -79,6 +81,10 @@ export class Session {
   /** The dock's transcript as last taken in; the host sends only what changed after it. */
   private transcript: HeldTranscript | undefined;
   private resync = false;
+  private noticeProtocol = false;
+  readonly noticeStore: NoticeStore;
+  /** Hits from the last actually composited frame, never an unpainted snapshot. */
+  noticeHits: Hit[] = [];
 
   constructor(
     private readonly conn: Connection,
@@ -86,7 +92,9 @@ export class Session {
     private readonly onClipboard: (text: string) => void = () => {},
     /** Tell listeners once per burst of messages (the real renderer); tests default to one call per change. */
     private readonly batch = false,
+    noticeClock?: () => number,
   ) {
+    this.noticeStore = new NoticeStore(noticeClock);
     conn.onMessage((m) => this.receive(m as any));
     conn.onClose((reason) => {
       if (this.state.phase === "closed" || this.state.phase === "refused") return;
@@ -169,6 +177,8 @@ export class Session {
       case "snapshot": {
         const { type: _t, ...snap } = m;
         tracer.snapshot(m.cursor, m.trace);
+        this.noticeProtocol ||= !!snap.chrome && (snap.chrome.notices !== undefined || snap.chrome.notices_visible !== undefined || snap.chrome.notice_history !== undefined);
+        if (snap.chrome?.notices) this.noticeStore.reconcile(snap.chrome.notices);
         // The dock's transcript comes as what changed since the last one (dock/transcript.ts): made whole here.
         const dock = snap.screen?.dock ?? snap.dock;
         if (dock) {
@@ -212,7 +222,11 @@ export class Session {
         this.set({ inputRequest: { id: m.id, cursor: m.cursor, title: m.title, value: m.value } });
         break;
       case "notice":
-        this.set({ notices: [...this.state.notices, String(m.text)] });
+        if (m.occurrence) {
+          this.noticeProtocol = true;
+          this.noticeStore.immediate(m.occurrence, m.revision ?? 0, m.now_ms ?? 0);
+          this.set({});
+        } else this.set({ notices: [...this.state.notices, String(m.text)].slice(-256) });
         break;
       case "clipboard":
         this.onClipboard(String(m.text));
@@ -253,6 +267,19 @@ export class Session {
 
   resize(columns: number, rows: number) {
     this.conn.send({ type: "resize", columns, rows });
+  }
+
+  /** Presentation-only input also accompanies keys consumed by a local editor or scroll. */
+  noticeInput(escape: boolean) {
+    if (this.noticeStore.input(escape)) this.set({});
+    if (this.noticeProtocol) this.sendIntent({ intent: "notice_input", escape, through_id: this.noticeStore.throughId });
+    this.dismissNotices();
+  }
+
+  dismissNoticeId(id: number) {
+    if (!this.noticeStore.dismiss(id)) return;
+    this.set({});
+    this.sendIntent({ intent: "dismiss_notice", id });
   }
 
   dismissNotices() {

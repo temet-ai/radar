@@ -311,8 +311,8 @@ fn detail_prioritizes_subject_and_safe_facts_and_exposes_scoped_clicks() {
         let buf = draw(&history, width, height, &Theme::new(Tier::Mono));
         let screen = text(&buf);
         assert!(screen.contains("tab events"));
-        assert!(screen.contains("j/k scroll"));
-        assert!(screen.contains("r refresh"));
+        assert!(screen.contains("↑↓ scroll"));
+        assert!(screen.contains("refresh"));
         assert!(screen.contains("esc close"));
         for code in ['c', 'i', 'a'] {
             let (area, expected) = history
@@ -322,7 +322,8 @@ fn detail_prioritizes_subject_and_safe_facts_and_exposes_scoped_clicks() {
                 .find(|(_, key)| key.code == KeyCode::Char(code))
                 .copied()
                 .unwrap();
-            assert_eq!(buf[(area.x, area.y)].symbol(), code.to_string());
+            assert!((area.x..area.right()).any(|x| buf[(x, area.y)].symbol() == code.to_string()
+                && buf[(x, area.y)].modifier.contains(ratatui::style::Modifier::UNDERLINED)), "the whole phrase is clickable and its key is underlined");
             assert_eq!(
                 history.mouse(MouseKind::Press, area.x, area.y),
                 Some(expected)

@@ -9,6 +9,12 @@ use crate::GitlabPlugin;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct ConnectionStamp(u64);
 
+impl ConnectionStamp {
+    pub(crate) fn generation(self) -> u64 {
+        self.0
+    }
+}
+
 impl GitlabPlugin {
     pub(crate) fn connection_stamp(&self) -> ConnectionStamp {
         self.connection

@@ -120,19 +120,39 @@ fn targets(effects: &[HostEffect]) -> Vec<&str> {
         .collect()
 }
 
-fn refused(host: &Host, effects: &[HostEffect]) {
+fn refused(host: &mut Host, effects: &[HostEffect]) {
     assert!(effects.is_empty(), "{effects:?}");
     assert!(host.menu.is_none());
-    let message = host.message.as_deref().unwrap();
+    let message = host.message.as_deref().unwrap().to_owned();
     assert!(message.contains("press x"));
     assert!(!message.contains("private-"));
+    let previous_view = host.view;
+    assert!(
+        press(host, KeyCode::Char('~')).is_empty(),
+        "reading session notices must not dispatch an action"
+    );
     for (width, height) in [(80, 24), (160, 40)] {
+        let history = host
+            .chrome_view(width, height)
+            .notice_history
+            .expect("recovery guidance is accessible in recent notices");
+        assert_eq!(history.selected, 0);
+        assert_eq!(history.detail.as_ref().unwrap().text, message);
         let frame = to_text(host, width, height);
+        assert!(frame.contains("Recent notices"));
         assert!(
-            frame.lines().last().unwrap().contains(message),
-            "the full recovery guidance must fit beside the counts: {frame}"
+            frame
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ")
+                .contains(&message),
+            "the selected notice keeps the full recovery guidance readable: {frame}"
         );
     }
+    assert!(press(host, KeyCode::Esc).is_empty());
+    assert_eq!(host.view, previous_view);
+    assert!(host.chrome_view(80, 24).notice_history.is_none());
+    assert!(host.menu.is_none());
 }
 
 #[test]
@@ -146,7 +166,7 @@ fn popup_link_refresh_cannot_retarget_before_or_after_redraw_by_key_enter_or_cli
                 to_text(&host, 160, 40);
             }
             let effects = choose(&mut host, how);
-            refused(&host, &effects);
+            refused(&mut host, &effects);
             to_text(&host, 160, 40);
             popup(&mut host);
             assert_eq!(targets(&choose(&mut host, how)), [B]);
@@ -204,7 +224,7 @@ fn popup_captures_the_selected_nonzero_link_and_not_the_first_row() {
         if same {
             assert_eq!(targets(&effects), [B]);
         } else {
-            refused(&host, &effects);
+            refused(&mut host, &effects);
         }
         assert!(recorded.requests().is_empty());
     }
@@ -268,7 +288,7 @@ fn missing_links_account_revisions_and_changed_thread_cannot_borrow_a_popup() {
                 to_text(&host, 160, 40);
             }
             let effects = choose(&mut host, "copy");
-            refused(&host, &effects);
+            refused(&mut host, &effects);
             assert!(recorded.requests().is_empty());
         }
     }
@@ -395,7 +415,7 @@ fn recognised_subject_url_and_routing_fields_are_guarded_even_when_subject_equal
             }
             to_text(&host, 160, 40);
             let effects = choose(&mut host, how);
-            refused(&host, &effects);
+            refused(&mut host, &effects);
             assert!(recorded.requests().is_empty());
         }
     }

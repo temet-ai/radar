@@ -184,10 +184,12 @@ pub(super) fn view(p: &WorkbenchPlugin, cx: &ViewCx<'_>) -> ScreenView {
     if !can_open && !sources.is_empty() && p.evidence.is_none() {
         context.insert(
             0,
-            Text::of(
-                "Source owner unavailable here; c copies its exact locator.",
-                Ink::Warn,
-            ),
+            {
+                let mut line = Text::of("Source owner unavailable here; ", Ink::Warn);
+                line.extend(radar_core::mnemonic::text("c", "copy its exact locator", "status.warning"));
+                line.add(Seg::new(".", Ink::Warn));
+                line
+            },
         );
     }
     let body = if p.evidence.is_some() || sources.is_empty() {
@@ -224,22 +226,18 @@ pub(super) fn view(p: &WorkbenchPlugin, cx: &ViewCx<'_>) -> ScreenView {
                 row.body.push(Text::of(model::basis(*basis), Ink::Info));
                 if index == p.source_at {
                     for line in &context {
-                        let ink = line.0.first().map_or(Ink::Plain, |segment| segment.ink);
-                        row.body.extend(
-                            radar_core::ui::wrap_words(&line.words(), width.saturating_sub(4), 0)
-                                .into_iter()
-                                .map(|text| Text::of(text, ink)),
-                        );
+                        row.body.extend(wrap_context(line, width.saturating_sub(4)));
                     }
                 }
                 row
             })
             .collect::<Vec<_>>();
         if let Some(first) = rows.first_mut() {
-            first.before.push(Text::of(
-                "Exact sources · j/k select · x actions",
-                Ink::Muted,
-            ));
+            let mut hint = Text::of("Exact sources · ", Ink::Muted);
+            hint.extend(radar_core::mnemonic::text("↑↓", "select", "text.muted"));
+            hint.add(Seg::new(" · ", Ink::Muted));
+            hint.extend(radar_core::mnemonic::text("x", "extra actions", "text.muted"));
+            first.before.push(hint);
         }
         Node::Entries {
             rows,
@@ -281,10 +279,10 @@ pub(super) fn view(p: &WorkbenchPlugin, cx: &ViewCx<'_>) -> ScreenView {
         .iter()
         .any(|source| sources.iter().filter(|other| other.1 == source.1).count() > 1)
     {
-        detail.notes.push(Text::of(
-            "Multiple binding claims for the same source; intervals may differ. Inspect v history.",
-            Ink::Warn,
-        ));
+        let mut warning = Text::of("Multiple binding claims for the same source; intervals may differ. ", Ink::Warn);
+        warning.extend(radar_core::mnemonic::text("v", "View history", "status.warning"));
+        warning.add(Seg::new(".", Ink::Warn));
+        detail.notes.push(warning);
     }
     detail.notes.push(Text::of(
         "Observations only. Relations grant no identity, permission or completion.",
@@ -491,10 +489,11 @@ fn context(p: &WorkbenchPlugin) -> Vec<Text> {
         }
         if let Some((_, key, basis, _, _)) = sources.get(p.source_at) {
             context.push(Text::plain(format!("Selected {}: {}", key.kind, key.id)));
-            context.push(Text::of(
-                format!("{} link · c copy locator · x actions", model::basis(*basis)),
-                Ink::Info,
-            ));
+            let mut hint = Text::of(format!("{} link · ", model::basis(*basis)), Ink::Info);
+            hint.extend(radar_core::mnemonic::text("c", "copy locator", "status.info"));
+            hint.add(Seg::new(" · ", Ink::Info));
+            hint.extend(radar_core::mnemonic::text("x", "extra actions", "status.info"));
+            context.push(hint);
             let outcome = p
                 .detail
                 .as_ref()
@@ -523,10 +522,9 @@ fn context(p: &WorkbenchPlugin) -> Vec<Text> {
                 ));
             }
         }
-        context.push(Text::of(
-            "v history: original claims and outcomes · completeness not guaranteed",
-            Ink::Info,
-        ));
+        let mut history = radar_core::mnemonic::text("v", "view history", "status.info");
+        history.add(Seg::new(": original claims and outcomes · completeness not guaranteed", Ink::Info));
+        context.push(history);
         if let Some(detail) = &p.detail {
             if detail.expansion_truncated {
                 context.push(Text::of("Partial one-hop map: more relation evidence may exist. Inspect task evidence with v.",Ink::Warn));
@@ -583,6 +581,75 @@ fn context(p: &WorkbenchPlugin) -> Vec<Text> {
         ));
     }
     context
+}
+
+
+/// Keep the existing Entries geometry for this text-only context, retaining
+/// supplied styles/links/targets instead of flattening it to one ink. The shared
+/// word wrapper still decides every row and never splits a word or grapheme.
+/// A phrase's plain-reader hint belongs only to its last surviving fragment.
+/// Empty-source metadata-only Text is outside this visible-context wrapper: as
+/// with wrap_words, it produces no rows. Whitespace-only rows remain present.
+pub(super) fn wrap_context(text: &Text, width: u16) -> Vec<Text> {
+    let source = text.words();
+    let mut offset = 0;
+    let ranges: Vec<_> = text.0.iter().map(|seg| {
+        let start = offset;
+        offset += seg.text.len();
+        start..offset
+    }).collect();
+    let mut cursor = 0;
+    let mut rows: Vec<Vec<(usize, Seg)>> = Vec::new();
+    for words in radar_core::ui::wrap_words(&source, width, 0) {
+        let mut row = Vec::new();
+        for (word_at, word) in words.split_whitespace().enumerate() {
+            let start = cursor + source[cursor..].find(word).expect("wrapped source word");
+            let end = start + word.len();
+            if word_at > 0 {
+                // A collapsed gap keeps the first original whitespace's look.
+                let index = ranges.iter().position(|range| range.contains(&cursor)).unwrap();
+                let mut gap = text.0[index].clone();
+                gap.text = " ".into();
+                gap.key_hint = None;
+                row.push((index, gap));
+            }
+            for (index, range) in ranges.iter().enumerate() {
+                let from = start.max(range.start);
+                let through = end.min(range.end);
+                if from < through {
+                    let mut fragment = text.0[index].clone();
+                    fragment.text = source[from..through].into();
+                    fragment.key_hint = None;
+                    row.push((index, fragment));
+                }
+            }
+            cursor = end;
+        }
+        rows.push(row);
+    }
+    for (index, seg) in text.0.iter().enumerate() {
+        let Some(hint) = &seg.key_hint else { continue };
+        let previous = rows.iter().enumerate().rev().find_map(|(row, fragments)| {
+            fragments.iter().enumerate().rev().find(|(_, (source_index, _))| *source_index <= index)
+                .map(|(fragment, _)| (row, fragment))
+        });
+        if let Some((row, fragment)) = previous
+            && rows[row][fragment].1.key_hint.is_none()
+        {
+            rows[row][fragment].1.key_hint = Some(hint.clone());
+        } else {
+            // Colliding hints and whitespace-only segments keep a zero-text
+            // segment: plain readers retain both keys, visible geometry is fixed.
+            let mut empty = seg.clone();
+            empty.text.clear();
+            if let Some((row, fragment)) = previous {
+                rows[row].insert(fragment + 1, (index, empty));
+            } else if let Some(row) = rows.first_mut() {
+                row.insert(0, (index, empty));
+            }
+        }
+    }
+    rows.into_iter().map(|row| Text::from(row.into_iter().map(|(_, seg)| seg).collect::<Vec<_>>())).collect()
 }
 
 fn locator(key: &SubjectKey) -> String {

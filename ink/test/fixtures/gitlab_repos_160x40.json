@@ -29,7 +29,8 @@
           "char": "o"
         }
       },
-      "label": "open the group in GitLab"
+      "label": "open the group in GitLab",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.repos.copy_link",
@@ -38,7 +39,8 @@
           "char": "y"
         }
       },
-      "label": "copy the group's link"
+      "label": "copy the group's link",
+      "mnemonic_at": 3
     },
     {
       "id": "gitlab.repos.filter",
@@ -65,7 +67,8 @@
           "char": "r"
         }
       },
-      "label": "refresh now"
+      "label": "refresh now",
+      "mnemonic_at": 0
     },
     {
       "id": "gitlab.repos.goto",
@@ -83,7 +86,8 @@
           "char": "a"
         }
       },
-      "label": "show one author's merge requests…"
+      "label": "show one author's merge requests…",
+      "mnemonic_at": 9
     },
     {
       "id": "gitlab.repos.kept_comments",

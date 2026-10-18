@@ -32,8 +32,8 @@ const KEYS: [(&str, &str, &str); 8] = [
     ("g", "rows a sync changed glow and fade", "subtle"),
     ("p", "an item's page slides in", "full"),
     ("n", "a new row sweeps in at the top", "full"),
-    ("t", "a message fades in (again: fades out)", "full"),
-    ("l", "a panel waiting for data shimmers (again: stops)", "full"),
+    ("t", "a toast message fades in (again: fades out)", "full"),
+    ("l", "a loading panel shimmers (again: stops)", "full"),
     ("f", "full, subtle, off", ""),
 ];
 
@@ -179,10 +179,8 @@ impl MotionDemo {
             } else {
                 theme.s(Slot::TextMuted)
             };
-            let mut spans = vec![
-                Span::styled(format!(" {k}  "), theme.bold(Slot::AccentSecondary)),
-                Span::styled(what, style),
-            ];
+            let mut spans = vec![Span::raw(" ")];
+            spans.extend(widgets::mnemonic_word(what, crate::mnemonic::at(k, what), style));
             if !from.is_empty() {
                 spans.push(Span::styled(format!("  · {from}"), theme.s(Slot::TextMuted)));
             }
@@ -220,8 +218,8 @@ impl MotionDemo {
         let (three, _) = widgets::buttons(
             theme,
             &[
-                widgets::Button { keys: "y".into(), words: "shelve it".into(), focused: true, ..Default::default() },
-                widgets::Button { keys: "n".into(), words: "leave it".into(), ..Default::default() },
+                widgets::Button { keys: "y".into(), words: "yes, shelve it".into(), mnemonic_at: Some(0), focused: true, ..Default::default() },
+                widgets::Button { keys: "n".into(), words: "no, leave it".into(), mnemonic_at: Some(0), ..Default::default() },
             ],
             5,
         );

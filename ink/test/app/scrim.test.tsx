@@ -50,6 +50,20 @@ describe("the scrim and shadow over a finished frame", () => {
     expect(out[1]![1]).toMatchObject({ ch: "│", fg: "#181929", bg: "#060509" });
   });
 
+  it("clips the shadow of a layer flush with the bottom and right edges without growing the frame", () => {
+    const original = parseAnsi(lines);
+    const out = parseAnsi(paintScrim(lines, 8, 5, { x: 5, y: 3, w: 3, h: 2 }));
+    expect(out).toHaveLength(5);
+    for (let y = 0; y < 5; y++) {
+      expect(out[y]).toHaveLength(8);
+      for (let x = 0; x < 8; x++) {
+        expect(out[y]![x]!.ch).toBe(original[y]![x]!.ch);
+        if (x >= 5 && y >= 3) expect(out[y]![x]).toEqual(original[y]![x]);
+        else expect(out[y]![x]).toEqual({ ch: "│", fg: "#23263b", bg: "#0f0d17" });
+      }
+    }
+  });
+
   it("with fewer colours the scrim is dim and the shadow's ground black; with none, dim only", () => {
     for (const [tier, base] of [["256", "ansi256(233)"], ["mono", ""]] as const) {
       applyLook({ ...currentLook(), slots: Object.fromEntries(Object.keys(defaultLook().slots).map((k) => [k, tier === "mono" ? "" : base])) });

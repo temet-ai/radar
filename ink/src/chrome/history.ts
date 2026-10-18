@@ -1,11 +1,11 @@
-import { cellWidth, fit } from "./width.js";
+import { cellWidth, clipSegments, fit } from "./width.js";
 import { focusRamp, frameRuns } from "../text/frame.js";
 import { segWords } from "../text/TextLine.js";
-import type { Cell } from "./layout.js";
-import type { Hit, Text } from "./types.js";
+import { hintCells, keyHits, type Cell } from "./layout.js";
+import { lineCells, paragraphCells, type Cell as TextCell } from "../text/cells.js";
+import type { Hint, Hit, Text } from "./types.js";
 import { bgOf, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
 import { inkStyle } from "../text/theme.js";
-import { segRunStyle } from "../text/TextLine.js";
 import { selectedStyle } from "../nodes/tree.js";
 import { fitTableColumns } from "../nodes/columns.js";
 import { thumbOf } from "../nodes/index.js";
@@ -16,8 +16,6 @@ import { insideOf, type SelectArea } from "../input/selection.js";
 
 /** The history overlay laid out in cells (history.rs `History::paint`): every line is exactly `width` cells. */
 export type HistoryLayout = { lines: Cell[][]; hits: Hit[]; selects: SelectArea[]; panes: PaneMark[] };
-
-const textOf = (t: Text): string => t.map(segWords).join("");
 
 /** Break `s` into lines of at most `width` cells, at spaces where there are any. */
 export function wrap(s: string, width: number): string[] {
@@ -58,33 +56,20 @@ const pad = (s: string, width: number) => s + " ".repeat(Math.max(0, width - cel
 /** `style` with `bg` under it unless it has its own. */
 const on = (style: Style, bg: string | undefined): Style => ({ ...style, backgroundColor: style.backgroundColor ?? bg });
 
-/** A view text wrapped to `width`, each run in its own look (view_tui::line): the lines' cells, unpadded. */
-function wrapText(t: Text, width: number): Cell[][] {
-  const units: Style[] = [];
-  let plain = "";
-  for (const seg of t) {
-    const words = segWords(seg);
-    const style = segRunStyle(seg);
-    for (let k = 0; k < words.length; k++) units.push(style);
-    plain += words;
-  }
-  let at = 0;
-  return wrap(plain, width).map((l) => {
-    const start = Math.max(at, plain.indexOf(l, at));
-    at = start + l.length;
-    const cells: Cell[] = [];
-    for (let k = 0; k < l.length; ) {
-      const style = units[start + k]!;
-      let n = 1;
-      while (k + n < l.length && units[start + k + n] === style) n++;
-      cells.push({ text: l.slice(k, k + n), style });
-      k += n;
-    }
+type TargetCell = Cell & { target?: string };
+/** Preserve the supplied target through wrapping; the host owns each action phrase. */
+function wrapText(t: Text, width: number, plain = false): TargetCell[][] {
+  if (width <= 0) return [];
+  const targets = new Map<TextCell, string>();
+  const chars = t.flatMap((seg) => {
+    const cells = lineCells([seg], plain);
+    if (seg.target) for (const cell of cells) targets.set(cell, seg.target);
     return cells;
   });
+  return paragraphCells(chars, width).map((line) => line.map((c) => ({ text: c.ch, style: c.s, target: targets.get(c) })));
 }
 
-type PRow = { cells: Cell[]; /** The row's own shade across the panel's width (the selection). */ fill?: Style };
+type PRow = { cells: TargetCell[]; /** The row's own shade across the panel's width (the selection). */ fill?: Style };
 
 /** widgets::panel: a rounded border (accent.primary when focused, else accent.muted), the title in bold emphasis
  * when focused else secondary, the inside on bg.surface; `rows` fill the inside (w - 4 cells, 1 cell padding). */
@@ -131,16 +116,6 @@ function panel(title: string, w: number, h: number, rows: PRow[], focused: boole
   return out;
 }
 
-/** The labelled key as a word of `words` (history.rs key_at): where it starts, if it does. */
-const keyAt = (words: string, label: string): number => {
-  for (let at = words.indexOf(label); at >= 0; at = words.indexOf(label, at + 1)) {
-    const before = at === 0 ? " " : words[at - 1]!;
-    const after = words[at + label.length] ?? " ";
-    if (!/[A-Za-z0-9]/.test(before) && !/[A-Za-z0-9]/.test(after)) return at;
-  }
-  return -1;
-};
-
 /** scroll::paragraph in a panel: `rows` from the scroll's offset (as far as the room allows) and the scrollbar. */
 function scrolledPanel(title: string, w: number, h: number, rows: PRow[], scroll: number, focused: boolean): Cell[][] {
   const room = Math.max(0, h - 2);
@@ -162,7 +137,22 @@ function barOn(framed: Cell[][], h: number, bar: { max: number; at: number }) {
   }
 }
 
-export function layoutHistory(view: HistoryView, width: number, height: number, top: number): HistoryLayout {
+/** Match native History's deterministic whole-hint priorities, always reserving Escape. */
+export function historyFooter(hints: Hint[], width: number): Hint[] {
+  const available = Math.max(0, width - 1);
+  const cost = (hs: Hint[]) => hs.reduce((n, h) => n + hintCells(h).reduce((m, c) => m + cellWidth(c.text), 0), Math.max(0, hs.length - 1) * 3);
+  let shown = [...hints];
+  for (const label of ["previous page", "next page", "refresh", "page", "details", "events", "move", "scroll"]) {
+    if (cost(shown) <= available) break;
+    shown = shown.filter((h) => h.label !== label);
+  }
+  if (cost(shown) > available) shown = shown.filter((h) => h.keys === "esc");
+  return cost(shown) <= available ? shown : [];
+}
+
+export function layoutHistory(view: HistoryView, width: number, height: number, top: number, plain = false): HistoryLayout {
+  if (plain) view = { ...view, footer: view.footer.map((h) => ({ ...h, mnemonic_at: undefined, mnemonic_shift: false })) };
+  if (width <= 0 || height <= 0) return { lines: [], hits: [], selects: [], panes: [] };
   const lines: Cell[][] = [];
   const panes: PaneMark[] = [];
   const paneMark = (pane: string, title: string, x: number, w: number, h: number, owns: boolean, scrollbar: boolean) => {
@@ -174,6 +164,7 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   const hits: Hit[] = [];
   const base = on(slotStyle("text.primary"), bgOf("bg.base"));
   const full = (cells: Cell[]): Cell[] => {
+    cells = clipSegments(cells, width);
     const used = cells.reduce((n, c) => n + cellWidth(c.text), 0);
     return [...cells, { text: " ".repeat(Math.max(0, width - used)), style: base }].map((c) => ({ ...c, style: on({ ...base, ...c.style }, bgOf("bg.base")) }));
   };
@@ -182,7 +173,7 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   for (const note of view.notes) {
     // history.rs lead: one cell in, the gap in the first run's look.
     const spaced: Text = note.length > 0 ? [{ ...note[0]!, text: ` ${segWords(note[0]!)}`, icon: undefined }, ...note.slice(1)] : [{ text: " " }];
-    for (const l of wrapText(spaced, width)) head.push(full(l));
+    for (const l of wrapText(spaced, width, plain)) head.push(full(l));
   }
   const room = Math.max(0, height - 1);
   const shownHead = head.slice(0, Math.max(0, Math.min(head.length, room)));
@@ -244,31 +235,29 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   const detail = (x0: number, w: number, h: number, focused: boolean): Cell[][] => {
     const inner = Math.max(0, w - 4);
     const rows: PRow[] = [];
-    let keysAt: number | undefined;
-    view.detail.forEach((t, i) => {
-      if (i === view.detail_keys_line) keysAt = rows.length;
-      for (const l of wrapText(t, inner)) rows.push({ cells: l });
-    });
+    for (const t of view.detail) for (const l of wrapText(t, inner, plain)) rows.push({ cells: l });
     const scroll = Math.min(Math.max(0, view.detail_scroll), Math.max(0, rows.length - Math.max(0, h - 2)));
-    const n = view.detail_keys_line;
-    if (n != null && n < view.detail.length && keysAt !== undefined) {
-      const words = textOf(view.detail[n]!);
-      const y = keysAt - scroll;
-      if (cellWidth(words) <= inner && y >= 0 && y < h - 2) {
-        for (const k of view.detail_keys ?? []) {
-          const at = keyAt(words, k.label);
-          if (at < 0) continue;
-          hits.push({ x: x0 + 2 + cellWidth(words.slice(0, at)), y: top + lines.length + 1 + y, w: cellWidth(k.label), h: 1, target: k.target });
+    const allowed = new Set((view.detail_keys ?? []).map((k) => k.target));
+    rows.slice(scroll, scroll + Math.max(0, h - 2)).forEach((row, y) => {
+      let x = 0;
+      for (const cell of clipSegments(row.cells, inner)) {
+        const w = cellWidth(cell.text);
+        if (cell.target && allowed.has(cell.target) && w > 0) {
+          const targetY = top + lines.length + 1 + y;
+          const last = hits.at(-1);
+          if (last?.target === cell.target && last.y === targetY && last.x + last.w === x0 + 2 + x) last.w += w;
+          else hits.push({ x: x0 + 2 + x, y: targetY, w, h: 1, target: cell.target });
         }
+        x += w;
       }
-    }
+    });
     paneMark("detail", view.detail_title, x0, w, h, focused, rows.length > Math.max(0, h - 2));
     return scrolledPanel(view.detail_title, w, h, rows, scroll, focused);
   };
   const help = (w: number, h: number): Cell[][] => {
     const inner = Math.max(0, w - 4);
     const rows: PRow[] = [];
-    for (const t of view.help_lines) for (const l of wrapText(t, inner)) rows.push({ cells: l });
+    for (const t of view.help_lines) for (const l of wrapText(t, inner, plain)) rows.push({ cells: l });
     return scrolledPanel(view.help_title, w, h, rows, Math.max(0, view.help_scroll), true);
   };
 
@@ -298,26 +287,24 @@ export function layoutHistory(view: HistoryView, width: number, height: number, 
   }
   lines.push(...panels.map(full));
 
-  // The keys along the bottom (widgets::key_hint), each key clickable.
-  const keyStyle = { ...slotStyle("accent.secondary"), bold: true };
+  // Measure the same visible hint form as the status line, including host mnemonics.
   const foot: Cell[] = [{ text: " " }];
   let x = 1;
-  const put = (text: string, style?: Style) => {
-    foot.push({ text, style });
-    x += cellWidth(text);
-  };
-  view.footer.forEach((h, i) => {
-    if (i > 0) put(" · ");
-    const base0 = x;
-    for (const k of h.keys_of ?? []) {
-      const at = h.keys.indexOf(k.label);
-      if (at >= 0 && base0 + cellWidth(h.keys.slice(0, at)) + cellWidth(k.label) <= width) {
-        hits.push({ x: base0 + cellWidth(h.keys.slice(0, at)), y: top + height - 1, w: cellWidth(k.label), h: 1, target: k.target });
-      }
+  for (const [i, h] of historyFooter(view.footer, width).entries()) {
+    const cells = hintCells(h);
+    const hw = cells.reduce((n, c) => n + cellWidth(c.text), 0);
+    const sep = i > 0 ? 3 : 0;
+    if (x + sep + hw > width) break;
+    if (sep) { foot.push({ text: " · " }); x += sep; }
+    const start = x;
+    foot.push(...cells);
+    x += hw;
+    for (const hit of keyHits(h, start, hw, top + height - 1)) {
+      const x = Math.max(0, hit.x);
+      const w = Math.min(width, hit.x + hit.w) - x;
+      if (w > 0) hits.push({ ...hit, x, w });
     }
-    put(h.keys, keyStyle);
-    put(` ${h.label}`, slotStyle("text.muted"));
-  });
+  }
   while (lines.length < height - 1) lines.push(full([]));
   lines.length = Math.min(lines.length, Math.max(0, height - 1));
   lines.push(full(foot));

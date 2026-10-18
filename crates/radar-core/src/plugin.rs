@@ -104,6 +104,8 @@ pub enum Effect {
     /// pack in use in the icon's own colour (nothing with icons off): for
     /// a part that builds the words where no theme is in reach.
     NotifyWith(Icon, String),
+    /// One notice occurrence with an explicit producer-selected tone.
+    Notice(Message),
     /// Tell every other plugin something happened.
     Emit { topic: &'static str, payload: Value },
     /// Write this plugin's [`Plugin::snapshot`] to its cache file.
@@ -181,11 +183,11 @@ pub enum Verdict {
     Bad(String),
 }
 
-/// A one-line message on the status line: its words, and an icon the host
-/// draws before them in the icon's own colour. Reads as its words
+/// A notice's explicitly chosen tone, words and optional icon. Reads as its words
 /// (`message.as_deref() == Some("saved")`).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Message {
+    pub tone: crate::view::chrome::NoticeTone,
     pub icon: Option<Icon>,
     pub text: String,
 }
@@ -193,9 +195,14 @@ pub struct Message {
 impl Message {
     pub fn new(icon: Option<Icon>, text: impl Into<String>) -> Self {
         Self {
+            tone: crate::view::chrome::NoticeTone::Info,
             icon,
             text: text.into(),
         }
+    }
+
+    pub fn error(icon: Option<Icon>, text: impl Into<String>) -> Self {
+        Self { tone: crate::view::chrome::NoticeTone::Error, icon, text: text.into() }
     }
 }
 
@@ -215,7 +222,7 @@ impl std::ops::Deref for Message {
 
 impl From<String> for Message {
     fn from(text: String) -> Self {
-        Self { icon: None, text }
+        Self::new(None, text)
     }
 }
 
@@ -330,6 +337,14 @@ impl MenuItem {
     }
 }
 
+/// Keep meaningful confirmation wording while making its yes/no mnemonic visible.
+fn answer_words(answer: &str, words: impl Into<String>) -> String {
+    let words = words.into();
+    if words.is_empty() { answer.into() }
+    else if words == answer || words.starts_with(&format!("{answer},")) || words.starts_with(&format!("{answer} ")) { words }
+    else { format!("{answer}, {words}") }
+}
+
 impl Menu {
     pub fn new(id: impl Into<String>, title: impl Into<String>, items: Vec<MenuItem>) -> Self {
         Self {
@@ -401,8 +416,8 @@ impl Menu {
             id,
             question,
             vec![
-                MenuItem::new('y', "yes", yes, "yes"),
-                MenuItem::new('n', "no", no, "no"),
+                MenuItem::new('y', "yes", answer_words("yes", yes), "yes"),
+                MenuItem::new('n', "no", answer_words("no", no), "no"),
             ],
         )
         .asking()
@@ -424,9 +439,9 @@ impl Menu {
             .into_iter()
             .map(MenuItem::note)
             .collect();
-        items.push(MenuItem::new('y', "yes", yes, "yes"));
+        items.push(MenuItem::new('y', "yes", answer_words("yes", yes), "yes"));
         items.push(MenuItem::new('e', "edit", "keep writing", "edit"));
-        items.push(MenuItem::new('n', "no", no, "no"));
+        items.push(MenuItem::new('n', "no", answer_words("no", no), "no"));
         Self::new(id, question, items).adds().asking()
     }
 
@@ -441,8 +456,8 @@ impl Menu {
         no: impl Into<String>,
     ) -> Self {
         let mut items: Vec<MenuItem> = notes.into_iter().map(MenuItem::note).collect();
-        items.push(MenuItem::new('y', "yes", yes, "yes"));
-        items.push(MenuItem::new('n', "no", no, "no"));
+        items.push(MenuItem::new('y', "yes", answer_words("yes", yes), "yes"));
+        items.push(MenuItem::new('n', "no", answer_words("no", no), "no"));
         Self::new(id, question, items).edits().asking()
     }
 
@@ -499,6 +514,10 @@ pub fn note_lines(text: &str, w: usize) -> Vec<String> {
 }
 
 impl Effect {
+    /// Semantic failure, never inferred from the words or chosen icon.
+    pub fn error(icon: Option<Icon>, words: impl Into<String>) -> Self {
+        Self::Notice(Message::error(icon, words))
+    }
     /// [`Effect::NotifyWith`] when there is an icon, else [`Effect::Notify`]
     /// (with [`crate::ui::icon::plain_or`]'s symbol in the words).
     pub fn notify(icon: Option<Icon>, words: impl Into<String>) -> Self {
@@ -529,6 +548,7 @@ impl std::fmt::Debug for Effect {
             Self::Copy(t) => write!(f, "Copy({t})"),
             Self::Notify(m) => write!(f, "Notify({m})"),
             Self::NotifyWith(i, m) => write!(f, "Notify({}: {m})", i.name()),
+            Self::Notice(m) => write!(f, "Notice({:?}: {m})", m.tone),
             Self::Emit { topic, payload } => write!(f, "Emit({topic}, {payload})"),
             Self::PersistCache => f.write_str("PersistCache"),
             Self::Menu(m) => write!(f, "Menu({})", m.id),
@@ -595,6 +615,14 @@ pub enum Pane {
     Nav,
     Middle,
     Detail,
+}
+
+/// The held subject and configured-connection incarnation of a preview.
+/// Private to host admission: never serialize, journal, or include secrets.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DetailIdentity {
+    pub connection: u64,
+    pub subject: Vec<String>,
 }
 
 /// A screen a plugin contributes.
@@ -1203,6 +1231,11 @@ pub trait Plugin: Send {
     ) -> Option<crate::view::ScreenView> {
         None
     }
+    /// Exact current preview subject for host-owned foot-control admission.
+    /// Read held state only; return None on pages or without an eligible subject.
+    fn detail_identity(&self, _scope: &str, _pane: Pane) -> Option<DetailIdentity> {
+        None
+    }
     /// As [`Plugin::view`], for a settings section: its body, detail and
     /// actions are renderer-neutral, and interaction arrives as an intent.
     fn section_view(
@@ -1250,6 +1283,7 @@ pub trait Plugin: Send {
             vec![
                 Binding::new("+", "expand the group"),
                 Binding::new("-", "collapse the group, or the one this row is in"),
+                Binding::new("=", "expand every held group"),
             ]
         } else {
             Vec::new()

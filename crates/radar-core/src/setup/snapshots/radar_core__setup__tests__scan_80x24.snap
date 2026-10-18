@@ -1,6 +1,6 @@
 ---
 source: crates/radar-core/src/setup/tests.rs
-assertion_line: 607
+assertion_line: 611
 expression: "screen(&host, 80, 24)"
 ---
  radar  setup / look for keys?                                           ✎ edit
@@ -26,4 +26,4 @@ expression: "screen(&host, 80, 24)"
     ● yes, look
     ○ no thanks
 
- SETUP   ⏎ continue   ↑↓ move   esc no thanks   y copy   PgUp/PgDn scroll
+ SETUP   ⏎ continue   ↑↓ move   esc no thanks   copy   PgUp/PgDn scroll

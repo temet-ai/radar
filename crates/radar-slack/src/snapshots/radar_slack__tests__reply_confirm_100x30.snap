@@ -1,25 +1,26 @@
 ---
 source: crates/radar-slack/src/tests.rs
+assertion_line: 1812
 expression: "to_text(&host, 100, 30)"
 ---
  radar    Slack ●   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
-╭ feed ────────────────╮╭ #team ───────────────────────────────────────────────────────────────────╮
+╭ 1 feed ──────────────╮╭ 2 #team ─────────────────────────────────────────────────────────────────╮
 │ For you            4 ││ 6 new                                                REPLIES  WHEN       │
-│ Discussions          ││▌ today                                                                   │
-│ ▌ #team        6 NEW ││▌ └─ ● Bob B.  Lunch at 12:30? 🍕                              30m        │
-│ ▌ #svc         1 NEW ││▌ yesterday                                                               │
-│                      ││▌ └─ ● Carol C.  Anyone seen ABC-12 failing on main?  1        1d         │
-│                      ││▌ Sun 4 Oct                                                               │
-│                      ││▌ └─ ● Bob B.  @review-squad :gitlab: mr Add a stats  2        2d         │
+│ Discussions          ││today                                                                     │
+│ ▌ #team        6 NEW ││  └─ ● Bob B.  Lunch at 12:30? 🍕                              30m        │
+│ ▌ #svc         1 NEW ││yesterday                                                                 │
+│                      ││  └─ ● Carol C.  Anyone seen ABC-12 failing on ma ⋯ 1 1        1d         │
+│                      ││Sun 4 Oct                                                                 │
+│                      ││  └─ ● Bob B.  @review-squad :gitlab: mr Add a st ⋯ 2 2        2d         │
 │                      ││                                                                          │
 │                      ││                                                                          │
 │                      ││ ╭ post this in #team, in Bob Builder's thread? ╮                         │
 │                      ││ │ looking now, <@U00000BOB1>                   │                         │
 │                      ││ │ second line                                  │                         │
 │                      ││ │                                              │                         │
-│                      ││ │    ▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔│                         │
-│                      ││ │     y post it    e keep writing    n drop it │                         │
-│                      ││ │    ▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁│                         │
+│                      ││ │ ▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔  ▔▔▔▔▔▔▔▔▔▔▔▔▔│                         │
+│                      ││ │  yes, post it    keep writing    no, drop it │                         │
+│                      ││ │ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁│                         │
 │                      ││ ╰──────────────────────────────────────────────╯                         │
 │                      ││                                                                          │
 │                      ││                                                                          │

@@ -1,12 +1,13 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
+assertion_line: 1686
 expression: "hosted_icons(red_pipeline_tab(), \"unicode\", 160, 40)"
 ---
  radar    ▤ Repositories ●   ≣ History   ⚙ Settings (,)                                                                                ⠷ not synced yet  ✎ edit
- Repositories › b › worker › !342
+ Repositories / b / worker / !342
  ◌ change 342                                                                                                                   ☻ me · ⎇ feature/ABC-342 → main
  ℹ Overview  ▫ Changes  ❝ Threads ●  [⋮ Pipeline ●]  ◦ Commits
-╭ pipeline ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+╭ 1 pipeline ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ loading…                                                                                                                                                     │
 │ ✗ failed · 6m 12s                                                                                                                                            │
 │                                                                                                                                                              │
@@ -41,4 +42,4 @@ expression: "hosted_icons(red_pipeline_tab(), \"unicode\", 160, 40)"
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn ↕ scroll   q ✕ quit   x ≡ menu   ←→↑↓ navigate                                                      4 open · 1 to review · 1 ready  ▼
+ REPOSITORIES   PgUp/PgDn ↕ scroll   ✕ quit   ≡ extra actions   ~ notices   ←→↑↓ navigate                                     4 open · 1 to review · 1 ready  ▼

@@ -4,4 +4,4 @@ import type { Key } from "./Key.js";
 /**
  * A key with its modifiers.
  */
-export type Chord = { key: Key, ctrl?: boolean, alt?: boolean, };
+export type Chord = { key: Key, ctrl?: boolean, alt?: boolean, shift?: boolean, };

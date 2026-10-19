@@ -1292,11 +1292,12 @@ impl SessionsPlugin {
     fn standing_rule_for(&mut self, radar: &RadarSessionId, request: &crate::event::PermissionRequest) -> bool {
         let verdict = self.settings.defaults().standing(request).map(|(allow, rule)| (allow, crate::settings::rule_words(rule)));
         let Some((allow, rule)) = verdict else { return false };
-        // A review session's own refusals (writes, posting tools, the network)
-        // stand over an allow rule.
+        // A review session's own policy stands over an allow rule: its refusals
+        // (writes, posting tools, the network) refuse, and what it lets through
+        // runs without a line in the transcript.
         if allow && self.is_review(radar) {
             let cwd = self.store.get(radar).map(|s| s.meta.cwd.clone()).unwrap_or_default();
-            if matches!(crate::review::policy::decide(request, std::path::Path::new(&cwd)), crate::review::policy::Verdict::Deny(_)) {
+            if !matches!(crate::review::policy::decide(request, std::path::Path::new(&cwd)), crate::review::policy::Verdict::Ask) {
                 return false;
             }
         }
@@ -1771,6 +1772,10 @@ impl Plugin for SessionsPlugin {
         }
         self.apply_settings();
         Ok(())
+    }
+
+    fn demo(&mut self) {
+        self.settings.use_sample_recipes();
     }
 
     fn config(&self) -> Option<toml::Value> {

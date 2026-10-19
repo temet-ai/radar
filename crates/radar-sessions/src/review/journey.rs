@@ -278,7 +278,7 @@ impl Journey {
         let Some(resolution) = self.resolution.clone() else { return self.fail("lost the change request".into()) };
         let brief = Brief::build(&BriefRequest {
             recipe: &self.recipe,
-            task: format!("Review the change at {} in {}. Additional linked sources are available through radar's MCP context and read tools. Use context with roots [\"{}\"] to find them, and read with its returned refs and snapshot_id for full sections. Context snapshot: {}.{}",
+            task: format!("Review the change at {} in {}. Its threads and full sections: radar MCP `read` with refs [\"{}\"] and snapshot_id {}.{}",
                 resolution.head_sha, ready.path.display(), radar_core::context::reference(&resolution.subject),
                 self.context.snapshot_id.as_deref().unwrap_or("not captured"),
                 if self.context.missing.is_empty() { String::new() } else { format!(" Context gaps: {}", self.context.missing.join("; ")) }),

@@ -114,7 +114,7 @@ pub(super) fn section(s: &AgentsSettings, cx: &ViewCx<'_>) -> SectionView {
             Row::Reviewer => kv(r, "reviewer commands", yes(d.reviewer_may_run_commands).into()),
             Row::RecipesDir => kv(r, "recipes folder", recipes_dir.as_ref().map_or("none".into(), |p| tilde(p))),
             Row::Recipe(name) => {
-                let (recipe, source, broken) = crate::brief::Recipe::load(name, recipes_dir.as_deref());
+                let (recipe, source, broken) = s.recipe(name);
                 let whose = match (&source, broken.is_some()) {
                     (_, true) => "yours is broken: built-in used",
                     (crate::brief::recipe::Source::File(_), _) => "yours",
@@ -293,7 +293,7 @@ fn recipes_detail(s: &AgentsSettings) -> Vec<Text> {
 }
 
 fn recipe_detail(s: &AgentsSettings, name: &str) -> Vec<Text> {
-    let (recipe, source, broken) = crate::brief::Recipe::load(name, s.recipes_dir().as_deref());
+    let (recipe, source, broken) = s.recipe(name);
     let kv = |k: &str, v: String| Text::new().push(Seg::new(radar_core::ui::pad(k, 14), Ink::Muted)).push(Seg::new(v, Ink::Primary));
     let mut lines = vec![];
     if let Some(why) = broken {

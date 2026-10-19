@@ -33,6 +33,8 @@ const MAX_SNAPSHOTS: usize = 32;
 const MAX_SNAPSHOT_BYTES: usize = 8 * 1024 * 1024;
 const MAX_STORE_BYTES: usize = 32 * 1024 * 1024;
 const TTL: i64 = 3600;
+/// Relations to what holds an item rather than what it is about.
+const CONTAINERS: &[&str] = &["repository"];
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Section {
@@ -198,7 +200,9 @@ pub fn resolve(
     plugins: &[Box<dyn Plugin>],
     value: &str,
 ) -> Result<(usize, Subject, SubjectKey), String> {
-    if let Some(encoded) = value.strip_prefix("radar:") {
+    if let Some(encoded) = value.trim().strip_prefix("radar:") {
+        // A model copying a long ref back sometimes breaks it with a space.
+        let encoded: String = encoded.chars().filter(|c| !c.is_whitespace()).collect();
         let key: SubjectKey = URL_SAFE_NO_PAD
             .decode(encoded)
             .ok()
@@ -299,8 +303,10 @@ impl Service {
         arguments: Value,
         now: i64,
     ) -> Result<Value, String> {
+        // Only parts that own subjects decide what a ref resolves to. Another
+        // part's settings (an allow rule added from the dock) keep snapshots.
         let mut hash = std::collections::hash_map::DefaultHasher::new();
-        for p in plugins.iter() {
+        for p in plugins.iter().filter(|p| !p.owns().is_empty()) {
             p.id().hash(&mut hash);
             p.agent_scope().hash(&mut hash);
             p.config().map(|v| v.to_string()).hash(&mut hash);
@@ -476,6 +482,9 @@ impl Service {
                     if to == from {
                         continue;
                     }
+                    // A container is listed but not walked: through an MR's
+                    // repository lies every other MR and every message about them.
+                    let next = if CONTAINERS.contains(&edge.relation.as_str()) { depth } else { level + 1 };
                     if snapshot.edges.len() < 2048
                         && !snapshot.edges.iter().any(|e| {
                             e.from == from
@@ -494,7 +503,7 @@ impl Service {
                     }
                     if level < depth && !seen.contains(&to) && !queue.iter().any(|(r, _)| r == &to)
                     {
-                        queue.push_back((to, level + 1));
+                        queue.push_back((to, next));
                     } else if level >= depth && !seen.contains(&to) {
                         snapshot.omitted += 1;
                     }

@@ -780,7 +780,8 @@ fn a_recipe_row_says_where_it_comes_from_and_what_it_runs_as() {
     if std::env::var_os("RADAR_SHOW").is_some() {
         println!("{text}");
     }
-    for want in ["recipe review-mr", "v3 · yours · agent copilot=reviewer", "recipe ask", "built-in", "review locally"] {
+    let yours = format!("v{} · yours · agent copilot=reviewer", crate::brief::Recipe::built_in("review-mr").unwrap().version);
+    for want in ["recipe review-mr", yours.as_str(), "recipe ask", "built-in", "review locally"] {
         assert!(text.contains(want), "{want}:\n{text}");
     }
     let _ = std::fs::remove_dir_all(&dir);

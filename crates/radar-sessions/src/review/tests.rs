@@ -158,7 +158,7 @@ fn a_finished_turn_saves_the_review_with_sha_provider_model_and_recipe() {
     let [note] = notes(&out)[..] else { panic!("{out:?}") };
     assert_eq!(note.reviewed_sha, "abc1234567890");
     assert_eq!((note.provider.as_str(), note.model.as_deref()), ("copilot", Some("gpt-x")));
-    assert_eq!((note.recipe.as_str(), note.recipe_version), ("review-mr", 3));
+    assert_eq!((note.recipe.as_str(), note.recipe_version), ("review-mr", recipe().version));
     assert_eq!(note.reviewed_at, NOW + 5);
     assert!(note.body.starts_with("**Verdict**") && !note.body.contains("Verd\n"));
     assert_eq!(j.step(), &Step::Done);
@@ -272,6 +272,18 @@ fn git_reads_are_allowed_and_everything_else_asks() {
         "git remote add x y",
         "git stash pop",
         "git diff 2>/tmp/x",
+        "git diff 2>&1x",
+        "cat \"$HOME/.netrc\"",
+        "cat \"`whoami`\"",
+        "cat ~/notes",
+        "git show HEAD~1:a.rs; cat ~",
+        "sed -n '1w out.txt' a.rs",
+        "sed -i 's/a/b/' a.rs",
+        "sed 's/a/b/e' a.rs",
+        "jq . /tmp/other.txt",
+        "jq . /tmp/../etc/1-copilot-tool-output-x.txt",
+        "cat 'unclosed",
+        "git status &",
     ] {
         assert_eq!(shell(c), Verdict::Ask, "{c}");
     }
@@ -288,6 +300,17 @@ fn a_chain_of_reads_is_a_read() {
         "git diff --check origin/main...HEAD; git stash list",
         "git rev-parse HEAD 2>/dev/null || git status",
         "zsh -lc 'git status && git log -3'",
+        // What Copilot sent in a review on 2026-10-19 and had to ask for: quoted
+        // paths and globs, `2>&1`, line numbers through nl and sed, and jq over
+        // the file Copilot wrote a long tool result to.
+        "git diff --no-ext-diff --unified=50 abc...HEAD -- 'src/app/(watch)/page.tsx' src/api.ts",
+        "git diff --name-status abc...HEAD && git merge-base main HEAD 2>&1 && git branch -vv --no-abbrev",
+        "git show abc:src/drafts.tsx | nl -ba | sed -n '18,52p'; git show abc:src/watch.tsx | nl -ba | sed -n '1,180p'",
+        "rg -n \"night-watch|ankh\" . --glob '!node_modules/**' --glob '!package-lock.json'",
+        "rg -n \"fetchFailures|queryKey: \\['failed-count'\\]\" src/a.tsx && nl -ba src/a.tsx | sed -n '16,45p'",
+        "jq -r '.snapshot_id, (.items[] | [.kind, .title, .ref] | @tsv)' /tmp/1792392762985-copilot-tool-output-05364f2d.txt",
+        "jq -r '.items[] | select(.kind==\"merge request\") | .title' /tmp/1-copilot-tool-output-x.txt | head -n 150",
+        "git show HEAD~1 --stat",
     ] {
         assert_eq!(shell(c), Verdict::Allow, "{c}");
     }
@@ -311,6 +334,27 @@ fn a_worktree_reached_through_a_symlink_is_the_same_folder() {
 }
 
 #[test]
+fn the_workspace_repository_around_a_worktree_may_be_read() {
+    // 2026-10-19: a review asked ten times to read the workspace's AGENTS.md
+    // and docs/ above `repositories/<repo>-<branch>`.
+    let base = std::env::temp_dir().join(format!("radar-workspace-{}", std::process::id()));
+    let workspace = base.join("watch");
+    let wt = workspace.join("repositories/api-abc123");
+    for dir in [workspace.join(".git"), wt.join(".git"), workspace.join("docs"), base.join("elsewhere")] {
+        std::fs::create_dir_all(dir).unwrap();
+    }
+    std::fs::write(workspace.join("AGENTS.md"), "").unwrap();
+    let read = |p: &Path| decide(&request(PermissionKind::Read, PermissionTarget::Path { path: p.display().to_string() }), &wt);
+    assert_eq!(read(&workspace.join("AGENTS.md")), Verdict::Allow);
+    assert_eq!(read(&workspace), Verdict::Allow);
+    assert_eq!(read(&base.join("elsewhere")), Verdict::Ask);
+    assert_eq!(read(&workspace.join("docs/../../elsewhere")), Verdict::Ask);
+    // A command over the workspace still asks.
+    assert_eq!(decide(&request(PermissionKind::Shell, PermissionTarget::Command { command: format!("cat {}", workspace.join("AGENTS.md").display()), segments: vec![] }), &wt), Verdict::Ask);
+    let _ = std::fs::remove_dir_all(&base);
+}
+
+#[test]
 fn writes_posting_tools_and_the_network_are_denied() {
     let cwd = Path::new(CWD);
     let write = request(PermissionKind::Write, PermissionTarget::Write { path: "src/a.rs".into(), diff: None });
@@ -329,6 +373,9 @@ fn reading_a_file_inside_the_worktree_is_allowed_outside_it_asks() {
     assert_eq!(read("/work/wt/api-abc123/src/retry.rs"), Verdict::Allow);
     assert_eq!(read("/home/someone/.ssh/id_ed25519"), Verdict::Ask);
     assert_eq!(read("../other/file"), Verdict::Ask);
+    // Copilot puts a tool result too long to show in a file and reads it back.
+    assert_eq!(read("/tmp/1792392762985-copilot-tool-output-05364f2d.txt"), Verdict::Allow);
+    assert_eq!(read("/tmp/notes.txt"), Verdict::Ask);
 }
 
 // --- note -------------------------------------------------------------------
@@ -394,7 +441,8 @@ fn the_row_says_reviewed_and_marks_it_stale_when_the_head_moves() {
 #[test]
 fn the_recipe_is_versioned_and_forbids_posting_and_writes() {
     let r = recipe();
-    assert_eq!((r.name.as_str(), r.version), ("review-mr", 3));
+    assert_eq!(r.name, "review-mr");
+    assert!(r.version > 0);
     assert!(r.permissions.contains("no file writes") && r.permissions.contains("no posting"));
     assert!(r.instructions.contains("file:line"));
 }

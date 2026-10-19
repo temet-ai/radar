@@ -93,6 +93,22 @@ impl Recipe {
         BUILT_IN.iter().find(|(n, _)| *n == name).and_then(|(_, text)| Recipe::parse(text).ok())
     }
 
+    /// A fixed stand-in named `name`, for the demo and its recorded screens.
+    pub fn sample(name: &str) -> Recipe {
+        Recipe {
+            name: name.to_owned(),
+            version: 1,
+            inputs: "one item".into(),
+            scope: "the item".into(),
+            permissions: "read only".into(),
+            expected_output: "a short answer".into(),
+            stopping_point: "the answer is given".into(),
+            agent: None,
+            skills: vec![],
+            instructions: "Answer the question about the item.".into(),
+        }
+    }
+
     /// The recipe `name`: the operator's `<dir>/<name>.md` when there is one
     /// and it parses, else the built-in. A file that does not parse is not
     /// used, and the error says why (the built-in stands in for it).

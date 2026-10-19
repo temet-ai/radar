@@ -2363,8 +2363,8 @@ exports[`recorded view fixtures through the whole App > sessions_settings-agents
 │                      ││ RECIPES AND REVIEWS                                                            ││   product: for one it asks for an API key          │
 │                      ││                                                                                ││   (ANTHROPIC_API_KEY).                             │
 │                      ││ recipes folder        ~/.config/radar/recipes                                  ││   ↗  Claude Code: set up                           │
-│                      ││ recipe ask            v2 · built-in                                            ││ $ ANY OTHER CLI ────────────────────────────────── │
-│                      ││ recipe review-mr      v3 · built-in                                            ││   add a command takes what you would type in a     │
+│                      ││ recipe ask            v1 · built-in                                            ││ $ ANY OTHER CLI ────────────────────────────────── │
+│                      ││ recipe review-mr      v1 · built-in                                            ││   add a command takes what you would type in a     │
 │                      ││ reviews folder        radar's state folder                                     ││   terminal; radar runs it in a tab of the dock.    │
 │                      ││                                                                                ││ ⚠ NOTHING IS APPROVED FOR YOU ──────────────────── │
 │                      ││ WHILE YOU ARE AWAY                                                             ││   A request waits in the dock for your answer:     │

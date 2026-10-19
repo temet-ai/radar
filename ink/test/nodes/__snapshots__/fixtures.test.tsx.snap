@@ -3170,7 +3170,7 @@ exports[`recorded view fixtures > sessions_settings-agents at 80x24 1`] = `
  RECIPES AND REVIEWS
 
  recipes folder        ~/.config/radar/recipes
- recipe ask            v2 · built-in
+ recipe ask            v1 · built-in
 
 ── install and sign in ──
  ◷ Reading the CLI's status…
@@ -3251,8 +3251,8 @@ exports[`recorded view fixtures > sessions_settings-agents at 160x40 1`] = `
  RECIPES AND REVIEWS
 
  recipes folder        ~/.config/radar/recipes
- recipe ask            v2 · built-in
- recipe review-mr      v3 · built-in
+ recipe ask            v1 · built-in
+ recipe review-mr      v1 · built-in
  reviews folder        radar's state folder
 
  WHILE YOU ARE AWAY

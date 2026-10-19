@@ -154,6 +154,9 @@ pub struct AgentsSettings {
     /// Settings needs (the defaults, recipes, away notices) are not in the
     /// list, so keys and clicks walk what is drawn.
     setup_card: std::cell::Cell<bool>,
+    /// The demo's: recipe rows draw fixed sample recipes, so editing a
+    /// shipped recipe changes no recorded screen.
+    sample_recipes: bool,
 }
 
 pub fn sections() -> Vec<SectionSpec> {
@@ -232,6 +235,20 @@ impl AgentsSettings {
     /// The folder of the operator's own recipes: the one set, else radar's config folder's `recipes`.
     pub fn recipes_dir(&self) -> Option<std::path::PathBuf> {
         self.cfg.recipes_dir.as_deref().and_then(config::expand).or_else(default_recipes_dir)
+    }
+
+    /// The demo: recipe rows draw [`crate::brief::Recipe::sample`]. Recorded
+    /// screens that start radar without the demo set `RADAR_SAMPLE_RECIPES`.
+    pub fn use_sample_recipes(&mut self) {
+        self.sample_recipes = true;
+    }
+
+    /// The recipe `name` as Settings shows it.
+    pub(crate) fn recipe(&self, name: &str) -> (Option<crate::brief::Recipe>, crate::brief::recipe::Source, Option<String>) {
+        if self.sample_recipes || std::env::var_os("RADAR_SAMPLE_RECIPES").is_some() {
+            return (Some(crate::brief::Recipe::sample(name)), crate::brief::recipe::Source::BuiltIn, None);
+        }
+        crate::brief::Recipe::load(name, self.recipes_dir().as_deref())
     }
 
     /// What a provider offers, as its adapter last read it.
@@ -1135,6 +1152,7 @@ impl AgentsSettings {
             path: self.path.clone(),
             available: self.available.clone(),
             setup_card: self.setup_card.clone(),
+            sample_recipes: self.sample_recipes,
         }
     }
 

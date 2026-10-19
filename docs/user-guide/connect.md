@@ -82,8 +82,11 @@ sets how many days back views with `state:merged` or `state:closed` reach (14 by
    `owner/repo` (one repository) or a plain name such as `Client work` (a group of your own).
    With a token set, an owner's group opens a picker of the repositories it can read.
 
-radar follows at most 200 repositories. It reads them on start and when you press `r`, and
-does not poll in the background.
+radar follows at most 200 repositories. It reads cached data first and checks for changes
+about once a minute while refreshing is active. An open pull request with running checks
+is refreshed; previously loaded repository Actions are checked when the repository changes
+and at least every 15 minutes during normal syncing. `r` requests a refresh. See the
+[GitHub guide](github.md#refresh-loading-and-access-failures) for partial results and errors.
 
 ![Settings, GitHub connection: the three ways to sign in, the repositories, and how to get a token](images/settings.github.connection.png)
 

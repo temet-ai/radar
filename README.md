@@ -127,18 +127,19 @@ tokens you already have, then sets up what you choose (your local code, each ser
 agents, and icons, theme and motion), and last asks which mode to run in. A service needs
 a token (GitHub's public repositories need none); [Connect your services](docs/user-guide/connect.md) says which, with what access.
 `radar setup` runs setup again. The [user guide](docs/user-guide/README.md) covers the
-screens, keys, agents and settings.
+screens, keys, agents and settings. [Find a page](docs/user-guide/pages.md) links every
+screen and detail tab to its guide.
 
 ## Status
 
-Version 0.1.0-alpha.8. Screens, keys and the config file can still change between
-releases. The agent dock is the newest part.
+Radar is in alpha. Screens, keys and the config file can still change between releases.
 
 ## Privacy
 
-radar's config, cache and history are files under your home folder. It talks to the
-services you connect, and to the npm registry once, to fetch Anthropic's Claude Agent SDK
-(1.6 MB) the first time you start a Claude session.
+radar's config, cache and history are local files. Connected services and agent providers
+receive requests and the context needed for their features. Pictures, Git operations and
+programs you launch can make network requests too. The Claude Agent SDK is fetched from
+the npm registry on first use when it is not already cached.
 [What radar stores and sends](docs/user-guide/privacy.md) lists each file and request, and
 [SECURITY.md](SECURITY.md) says how to report a security problem.
 

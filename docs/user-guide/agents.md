@@ -1,89 +1,136 @@
 # Agents
 
-Back to the [user guide](README.md).
+Radar runs coding-agent conversations in a dock below the middle pane of supported list
+screens and Settings. Work and item pages do not draw the dock.
+You can keep several sessions open while inspecting repositories, tickets and discussions,
+and give a session the selected item's connected context. After following a conversation
+in [Slack](slack.md), use **ask an agent about it…** to turn that context into a task.
 
-radar runs coding agent sessions in a dock under the middle pane, on every screen. A session
-is one conversation with one agent. radar can start one with an item already described to it.
+![A demo session in the agent dock, using radar's fake provider](images/agent-dock.png)
 
-![The agent dock](images/agent-dock.png)
+## Set up a provider
 
-## What each agent needs
+Open Settings → Agents, or run `radar setup agents`. Each provider's row shows installation,
+version and sign-in status. Select it to see the install/sign-in instructions and its
+supported capabilities; the setup sheet offers the appropriate actions and copyable commands.
 
-| Agent | Needs |
+| Provider | What radar uses |
 |---|---|
-| Claude Agent | the `claude` program (Claude Code), signed in; radar runs it through your own Claude Code login |
-| Codex | the `codex` program, signed in |
-| Copilot | the `copilot` program (GitHub Copilot), signed in |
+| Claude Agent | The `claude` program and its login, through the Claude Agent SDK sidecar. |
+| Codex | The `codex` program and its login, through its App Server. |
+| Copilot | The `copilot` program and its login, through the Copilot SDK. |
+| Another command | A program you add in Settings → Agents → **add a command**, running its own terminal screen in a dock tab. |
 
-Install the program and sign in to it as you normally do, with a subscription or an API key.
-That vendor's terms apply to its use; for heavy or unattended use of Claude, Anthropic
-recommends an API key. radar drives each program itself. The program keeps the transcript,
-and radar reads it back when you reopen a session.
+Choose the default **provider** in Settings → Agents. The working folder determines where
+the provider looks for project instructions, agents and skills. For global defaults and
+repository overrides, see [where reviews and work are saved](mcp-and-reviews.md#where-reviews-and-work-are-saved).
 
-Setup's agents step shows which programs are installed and signed in, and which one new
-sessions use; `y` copies the command that installs or signs in one.
+## Start and follow a session
 
-## Using the dock
+`ctrl-t` starts a session, and backtick (`` ` ``) shows the dock. Type your request in the
+composer and press `⏎`. Each conversation has its own tab. A message sent during a turn
+steers the current work or queues for the next turn, depending on the provider's capabilities.
+Drag the dock's top edge to resize it, or use `alt-f` to give it the whole middle column.
+Item pages use that space for their content; return to a supported list screen to see the dock.
 
-`ctrl-t` starts a session, and `` ` `` shows the dock. Each session is a tab. Type your
-message in the box at the bottom and press `⏎`. A message sent while a turn is running is
-queued and sent afterwards. Drag the dock's top edge to resize it. Every dock key is in
-[Keys](keys.md#agent-dock).
+The transcript shows your messages, the agent's answers, tool calls, permission requests and
+questions. Open a tool call to inspect it; `alt-o` folds or opens the latest one. The activity
+line shows the current work and elapsed time, then the turn's result and any reported token
+usage. A tab's activity or attention mark helps you find sessions that are running, waiting
+for input, or finished while you were elsewhere.
 
-An **activity line** above the box says what the agent is doing (thinking, writing, running a
-command, waiting for you) and for how long, and afterwards how the turn ended (for example
-`done in 42s · 3.4k tokens`). A tab shows a spinner while it works, a warning mark when it needs
-you, and a mark when a turn ended while you were looking elsewhere. If a session needs you out
-of sight, the status line shows a chip; press `` ` `` or click the chip to go there.
+When a session needs attention out of sight, the status line shows a chip. Click it or press
+backtick to reach the waiting session. Desktop notifications are optional and off by default.
+`esc` declines a pending question, stops a running turn, or returns focus to the lists when
+neither is waiting. Use the [dock keys](keys.md#agent-dock) for the full controls.
+
+## Pick an agent, model, skill or conversation
+
+The dock's pickers use the selected provider's capabilities. An unavailable feature is
+reported rather than treated as a successful selection.
+
+| Picker | How to open it | What the selection does |
+|---|---|---|
+| **Agent** | `alt-a` | Chooses a named agent for new sessions of that provider. The provider itself is chosen in Settings. |
+| **Model** | `alt-m` | Chooses the model for new sessions; a running session keeps its existing model. |
+| **Skill** | `alt-k` | Puts the skill's request in the composer so you can review and send it. |
+| **Session** | `alt-s` | Opens a conversation listed by the provider. |
+
+Type `/` in the composer for commands offered by the current session. Choose a row with the
+arrow keys; `tab` completes it and `⏎` runs it. Radar also offers `/close`, and `/resume` on a
+detached session. Provider commands depend on that provider and the project's configuration.
+
+An arbitrary terminal command uses its own screen, questions and permissions. Radar does
+not turn its output into this structured transcript, inject the shared MCP connection, or
+restore the ended terminal after restart. Choose agents and answer prompts inside that
+terminal; a brief sent to it is typed without pressing Enter so you can submit it yourself.
 
 ## Approvals
 
-When an agent wants to run a command, change a file or fetch a page, the dock shows the exact
-command, path, diff or address and waits until you choose:
+When an integrated agent sends a permission request, the dock shows the command, path, diff,
+address or tool details it supplied. Choose from the actions that provider supports:
 
-| Choice | Does |
+| Choice | Result |
 |---|---|
-| a̲pprove once | allow it once |
-| approve for s̲ession | allow this kind of request for the rest of the session (when the agent offers it) |
-| al̲ways allow | allow this kind of request from now on, as a standing rule (when the agent offers it) |
-| d̲eny | refuse; the agent is told |
-| v̲iew diff | see the change before choosing |
+| **approve once** | Allow this request. |
+| **approve for session** | Allow this kind of request for the remainder of the session. |
+| **always allow** | Add a standing rule for matching requests. |
+| **deny** | Refuse the request and tell the agent. |
+| **view diff** | Inspect a supplied change before deciding. |
 
-Rules you already set in an agent's own configuration still apply. Settings, Agents has
-**always allow** and **always deny**, which list the requests your agents made so you can
-turn one into a standing rule.
+Settings → Agents → **always allow** and **always deny** hold radar's standing rules. A deny
+wins over an allow. The provider's own configuration also applies; an action it already
+allows may not ask radar. Agent questions appear separately, with choices or a text answer
+as provided by the agent.
 
-## After you quit radar
+Local-review sessions use a specific policy: reading the worktree and permitted inspection
+commands can proceed, file writes are denied, and other commands need individual approval.
+The [local-review guide](mcp-and-reviews.md#start-reviews-from-slack) explains the policy and
+the option to finish entirely by inspection.
 
-Your session tabs come back when you start radar again, but the agent programs that ran them
-ended with radar. A restored tab shows a connection mark and says it is not attached. radar
-reads the session back from the agent when you first look at its tab, type a message in it,
-or press `alt-r` (or type `/resume`).
+## Send an item to an agent
 
-A request or question that was waiting when radar closed comes back muted, marked "radar
-closed before this was answered", with no buttons, and it does not count as needing you. A
-line says the turn was ended. Send a message to carry on; if the agent asks again, the new
-request waits for you as usual.
+On a supported GitLab merge request, ticket, Slack message or local Git item, open `x` and
+find **With an agent**. **Ask an agent about it…** (`A`) starts a conversation with the item described.
+Add your question in the dock. The brief includes the connected work radar can currently
+read and names missing information; the agent can request further cached sections through
+[MCP](mcp-and-reviews.md#connect-an-external-session).
 
-## Sending an item to an agent
+**Review it locally…** (`i` on an open GitLab merge request) prepares a clean worktree at its head
+commit and starts the review recipe. On a Slack thread linking a change, `v` starts the same
+journey. The resulting Markdown review remains local, with its reviewed commit recorded.
+See [the review workflow and result](mcp-and-reviews.md#start-reviews-from-slack).
 
-On a row for a merge request, ticket, Slack message or branch, the `x` menu has a **With an
-agent** group:
+GitHub pull requests are available to the MCP context tools and can be reviewed from a
+linked Slack thread. Their page does not currently provide these direct `A` and `i` actions.
 
-* `A` **ask an agent about it…** starts a session with the item described, and your question.
-* `i` **review it locally…** (on an open merge request) makes a fresh worktree and starts a
-  review session in it. The review is written in radar and is not posted to GitLab. On a
-  Slack review ask, `v` does the same for its linked merge request.
+## Resume after closing radar
 
-## Settings, Agents
+Integrated session tabs return after a restart, initially detached. Radar asks the provider
+for its transcript when you first look at the tab, send a message, or use `alt-r` or
+`/resume`. This requires the provider and its saved conversation to remain available.
 
-Settings, Agents shows each program: whether it is installed, its version and who you are
-signed in as. It also holds the default agent, the folders an agent may use, shared skill
-folders, and whether an agent's own configuration is read. Desktop notifications when a
-session needs you or ends out of sight are off by default.
+An unanswered request from before shutdown returns muted, marked **radar closed before
+this was answered**, without active approval buttons. It does not count as a current
+request. Send a message to continue; a fresh request from the provider can then be answered.
+If resuming fails, the dock shows the reason and lets you retry. A terminal-command tab must
+be started again because its process ended with radar.
 
-Review folders, working folders and worktree locations have global defaults and repository
-overrides. See [where reviews and work are saved](mcp-and-reviews.md#where-reviews-and-work-are-saved)
-for the configuration and precedence.
+## Configure new sessions and recipes
 
-![Settings, Agents](images/settings.sessions.agents.png)
+Settings → Agents groups the provider status, new-session defaults, recipes/review folders
+and notifications on one page. Defaults include the provider/model, working and permitted
+folders, shared skill folders, whether the provider loads its own project configuration,
+standing permission rules and local-only operation. The settings heading says whether you
+are changing the global defaults or the selected workspace's defaults.
+
+The **ask** recipe supplies an item's opening task; **review-mr** supplies the local-review
+task. Settings shows each recipe's version and whether radar is using the built-in or your
+override. Select a recipe to choose its agent and skills. The recipes-folder action can
+copy the built-ins into your folder and open them for editing. A malformed override falls
+back to the built-in and displays the reason. The [recipe format](../../agents/recipes/README.md)
+describes the fields; a recipe does not loosen the review permission policy.
+
+Continue with [Connected context and local reviews](mcp-and-reviews.md) to connect external
+sessions, enable Slack review intake, and choose where the work and review files live.
+For the rest of the configuration pages, see [Settings](settings.md).

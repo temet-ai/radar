@@ -28,9 +28,18 @@ links radar could not open, and crashes with where they happened.
 | the screen looks wrong or garbled | start with the other renderer to compare: `RADAR_RENDERER=ratatui radar`. If it looks right there, report the difference |
 | empty boxes instead of icons | set the icon pack to `unicode`, or use a Nerd Font |
 | Slack says it needs a user token | use an `xoxp-` token; a bot token does not work |
-| nothing refreshes | radar paused after idle time; press any key, or `z` |
-| no agent in the dock | the `claude`, `codex` or `copilot` program is not on your `PATH` or not signed in; see Settings, Agents |
-| a cache that looks wrong | quit radar and delete `~/.local/state/radar/cache.sqlite3`; radar rebuilds it on its next sync |
+| nothing refreshes | input resumes an idle pause; an explicit pause lasts until you press `z` again |
+| no agent in the dock | check provider status in Settings, Agents and follow [provider setup](agents.md#set-up-a-provider); item pages do not draw the dock |
+| stale or unexpected rows | press `r`, check the view/filter and connection result; cached rows remain visible after a failed refresh |
+| a status message disappeared | press `~` for [recent notices](README.md#recent-notices), or `H` for recorded operations |
+| an MCP client cannot find radar | leave radar running, then follow [host selection and reconnecting](mcp-and-reviews.md#connect-an-external-session) |
+| a Slack review did not start or finish | check the [review intake and result states](mcp-and-reviews.md#when-a-review-does-not-start-or-finish) |
+| a session or report uses the wrong folder | check [global and repository location precedence](mcp-and-reviews.md#where-reviews-and-work-are-saved); changes apply to new work |
+
+Do not delete the cache as a routine refresh fix. It also holds local read marks, review
+queues and context, session resume pointers and pending recovery data. The journal holds
+Work tasks and relationships. Quit radar and preserve the relevant files before any
+storage repair; [What radar stores and sends](privacy.md#files) explains what is recoverable.
 
 ## Report a problem
 
@@ -41,4 +50,5 @@ Open an issue on the [radar repository](https://github.com/temet-ai/radar/issues
 * what you pressed and what you expected
 * the last lines of the log, taken with `RADAR_DEBUG=1` if you can
 
-Read the log before you post it. It holds no tokens, but it names your repositories and sites.
+Read and redact the log before you post it. Radar redacts credentials, but the log can
+name your repositories, sites and local folders.

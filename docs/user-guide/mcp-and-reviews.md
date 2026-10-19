@@ -1,15 +1,53 @@
 # Connected context and local reviews
 
-Radar exposes the same connected work to its dock agents and external MCP clients.
-Keep radar running with your normal service and workspace configuration. The MCP client
-starts `radar mcp` over stdio; radar discovers the running host automatically. If several
-hosts are open, use `radar mcp --workspace /absolute/path/where/radar/was/started`.
-This relay shares the host's configured account scope and caches. It does not need service
-tokens in the agent's configuration. It is a local connection, not a remote HTTP endpoint.
+Radar gives agents connected context from your configured repositories, issues, conversations
+and local checkouts. A review can start with a Slack request, follow its linked change and
+requirements, and finish as a local Markdown file tied to the reviewed commit. The
+[agent dock](agents.md) and external MCP clients use the same context model.
+
+This guide continues the [Slack review example](slack.md): a request about
+`ankh-morpork/watch!12` can lead an agent to its linked `WATCH-12` issue and relevant
+discussions. The available relationships depend on the links and cached data radar actually
+holds; an inferred association is labelled as such.
+
+## Connect an external session
+
+Start radar with your normal service and workspace configuration, and leave it running.
+In your MCP client's server settings, add a **stdio** server with executable `radar` and
+argument `mcp`. The executable must be available on that client's PATH; otherwise use its
+absolute path. For clients that use an `mcpServers` JSON object, the entry is:
+
+```json
+{
+  "mcpServers": {
+    "radar": {
+      "command": "radar",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+The client launches the relay; you do not need a second interactive radar instance for it.
+Radar discovers the running host automatically. If several hosts are open, use arguments
+`["mcp", "--workspace", "/absolute/path/where/radar/was/started"]`. This selects the host by
+its launch directory, not by the repository currently selected on screen. If more than one
+host has that launch directory, close the duplicate before reconnecting.
+
+The relay shares the host's configured account scope and caches. It does not need service
+tokens in the agent's configuration. It is a local connection, not a remote HTTP endpoint
+or an independent headless service. Integrated dock providers receive the connection
+automatically on start or resume. Arbitrary terminal-command tabs use their own MCP setup.
+
+If the client reports **no running radar context server**, start radar in the selected
+directory and reconnect. A **several radar hosts match** error means you need the workspace
+argument or must close a duplicate host. Closing radar ends this connection; the client
+can reconnect after you start it again.
 
 The wire format follows the MCP [stdio transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
 and [tool result contract](https://modelcontextprotocol.io/specification/2025-11-25/server/tools).
-Dock sessions receive this connection automatically when they start or resume.
+
+## Find the work, then read the evidence
 
 | Tool | Use |
 |---|---|
@@ -18,15 +56,22 @@ Dock sessions receive this connection automatically when they start or resume.
 | `read` | Read named `sections` for 1–32 `refs`. Supply `snapshot_id` to read the captured source rather than a newer cache value. |
 | `changes` | Compare a `snapshot_id` with current connected cached work. It returns changed and unavailable refs. |
 
-For example, search for `WATCH-12`, pass its `selection_ref` to `context`, then pass relevant
-item refs and the returned `snapshot_id` to `read`. Follow `next_cursor` by calling the same
-tool with `cursor`. `max_bytes` controls source payload size per page, from 1 KiB to 256 KiB;
-metadata adds overhead. There is no cumulative read quota or approval after a fixed volume.
+For the example, call `search` with `{"query":"WATCH-12"}`. Pass the returned
+`selection_ref` to `context`, inspect the available item refs and section names, then pass
+the relevant `refs` and returned `snapshot_id` to `read`. Supplying `sections` narrows the
+read to the named sections; omitting it reads all available sections for those refs. Use
+`changes` with that snapshot later to see whether the cached connected work changed.
+
+Follow `next_cursor` by calling the same tool with `cursor`. `max_bytes` controls source
+payload size per page, from 1 KiB to 256 KiB (24 KiB by default); metadata adds overhead.
+There is no cumulative read quota or approval after a fixed volume.
 
 Context includes scoped identities, source observation times where known, content revisions,
 relationship evidence, available sections and missing information. A ticket key in a branch
 is an inference; an observed link is evidence of a mention. Neither proves completion or
 production deployment. Source prose is evidence, not instructions for the agent.
+
+### Freshness and limits
 
 Snapshots last up to an hour, subject to memory limits: 256 items and 8 MiB per snapshot,
 32 snapshots and 32 MiB of retained source content per host. Oversized selections report
@@ -42,8 +87,11 @@ comments, remote operational logs, and a standalone headless host are not yet in
 
 ## Start reviews from Slack
 
-Configure a watched channel in Radar's Slack settings, choose it as the review channel, and
-set this option in the existing configuration:
+A manual review starts with `v` on a Slack message or thread that links an MR/PR. For
+automatic intake, first connect Slack, GitLab or GitHub, configure the local checkout, and
+choose a signed-in integrated provider in [Agents](agents.md#set-up-a-provider). Choose a
+watched channel as the review channel in Settings → Slack → Review, then set this option
+in the existing configuration:
 
 ```toml
 [slack.review]
@@ -51,6 +99,10 @@ channel = "watch-reviews" # the alias of an existing watched channel
 # group = "S0123456789"  # optional Slack user-group ID
 auto_review = true
 ```
+
+The channel value is radar's configured channel alias, not the Slack channel ID or URL.
+Automatic intake is off by default. The [Slack guide](slack.md#draft-a-review-ask) covers
+composing a request yourself; this option handles incoming requests.
 
 When a group is configured, a request must mention that exact group and its thread must
 link a GitLab MR or GitHub PR. Without a group, a message that links a change, or a request
@@ -78,13 +130,36 @@ A background launch preserves the selected agent tab and does not open or focus 
 Enabled automatic intake keeps refreshes running while idle; manually pausing Radar still
 pauses intake and review preparation. MCP reads of existing caches remain available.
 
-The agent reads the exact revision and writes a Markdown review with a verdict, findings
-with file and line references, and what it could not check. Radar saves the review in its
-configured reviews directory, shows its location, and offers the local review from the
-MR/PR's actions. Existing review indicators show when the head has moved. Nothing is posted
-to Slack, GitLab or GitHub. File edits are denied; tests and builds use the existing review
-command policy. An operator can set `reviewer_may_run_commands = false` in `[sessions]` for
-reviews that must finish by inspection without waiting for command approval.
+### Read the result
+
+The agent returns a review with a verdict, findings with file and line references, and what
+it could not check. Radar saves that response as Markdown in the resolved reviews directory,
+shows its location, and adds **open the local review** and **copy the local review's path**
+actions to the MR/PR. The note records the service-scoped item, source and target branches, reviewed commit,
+provider, model, recipe version and review time. It is marked `status: local` and
+`posted: false`.
+
+For a review of `ankh-morpork/watch!12` at commit `abc12345…`, the filename is
+`review-ankh-morpork-watch-12-abc12345.md`. The row's review indicator shows when the remote
+head has moved, so a saved review is not mistaken for a review of newer code. Existing files
+are preserved; a changed result for the same revision gets a numbered filename.
+
+Nothing is posted to Slack, GitLab or GitHub. The review policy permits reading the worktree,
+approved inspection commands and radar's context tools. It denies file-write requests,
+other MCP tools and direct network requests. Tests, builds and other commands require
+individual approval in the dock. Set `reviewer_may_run_commands = false` in `[sessions]`
+for reviews that should finish by inspection instead of waiting for those command approvals.
+
+### When a review does not start or finish
+
+| What you see | What to check |
+|---|---|
+| No automatic review | The review channel must be watched, `auto_review` enabled, and the request newer than first activation. Check the group mention and linked MR/PR, and resume radar if manually paused. |
+| Missing checkout or commit | Configure the correct local repository and make the required commit available there. Radar does not clone a repository for the review. |
+| Provider unavailable or signed out | Check the selected provider in Settings → Agents. |
+| A session waiting for approval | Open its dock tab and inspect the pending command, or use inspection-only reviews for subsequent launches. |
+| Review failed or was interrupted | Use the thread's manual **review locally** action to retry. Automatic failures are not retried repeatedly. |
+| Context says data is missing or truncated | Open or refresh the relevant service item and retry the context read. A snapshot preserves the old read; start a new query for refreshed data. |
 
 ## Where reviews and work are saved
 
@@ -138,3 +213,7 @@ be edited in Settings → Agents. Select either folder row and press `p` for **r
 overrides**: add a repository, set its checkout/working/reviews folders, or drop its overrides.
 An empty field inherits the default. Settings → Git → Links offers **worktree folder** (`o`)
 on each repository link; clearing it restores the global template from Git → Branches.
+
+Changing these locations does not move existing review files or a running session's work.
+Continue with [Settings](settings.md) for the other configuration pages, or
+[Privacy and local data](privacy.md) for what radar and the providers retain.

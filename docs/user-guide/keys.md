@@ -2,7 +2,7 @@
 
 Back to the [user guide](README.md).
 
-This page lists every key. In radar, `x` (or `?`) lists the keys that work where you are,
+This page collects the shared keys and the main keys for each part. In radar, `x` (or `?`) lists the keys that work where you are,
 and the status line shows the main ones. How keys are chosen is in
 [the key model](README.md#the-key-model).
 
@@ -17,10 +17,15 @@ and the status line shows the main ones. How keys are chosen is in
 | `esc` | back one level; close a menu; stop typing; clear a filter |
 | `PgUp` `PgDn` | scroll the detail pane |
 | `x` or `?` | the menu for where you are |
+| `ctrl-p` | command palette: find a screen, setting, action or cached item |
+| `~` | recent notices from this session |
 | `b` | bulk actions on everything shown |
 | `z` | pause or resume refreshing |
 | `q` | quit (asks first when a setting is not saved) |
 | `ctrl-c` | quit from anywhere, even while typing |
+
+Global navigation shortcuts apply while navigating; editors, menus and a focused agent
+dock keep their own keys. The [page directory](pages.md) links each detailed guide.
 
 In the parts' lists and pages:
 
@@ -36,7 +41,9 @@ In the parts' lists and pages:
 
 | Key | Screen |
 |---|---|
-| `R` | Repositories: GitLab, then `G` for GitHub and `W` for local workspaces |
+| `R` | Repositories; preserves the selected source when already on this screen |
+| `G` | GitHub source of Repositories |
+| `W` | Local workspaces source of Repositories |
 | `J` | Jira |
 | `S` | Slack |
 | `B` | Branches |
@@ -183,6 +190,11 @@ On a review ask you are drafting:
 | Key | Does |
 |---|---|
 | `n` | new task |
+| `t` | set a local group label |
+| `[` `]` | previous / next group or item page, depending on the focused pane |
+| `v` | read original evidence |
+| `c` | in source detail: copy the scoped source locator |
+| `r` | refresh, or review a retained pending change |
 
 ## History
 
@@ -190,10 +202,24 @@ On a review ask you are drafting:
 |---|---|
 | `n` `p` | next / previous page |
 | `r` | fresh snapshot |
-| `a` | all recorded activity (when a filter is set) |
+| `a` | all recorded activity |
+| `t` | recent activity, the last 24 hours |
+| `c` | events sharing the selected event's causal root |
+| `i` | events for the selected exact action ID |
 | `j` `k` | choose a row |
-| `tab` | move to the detail |
+| `tab` | switch between events and detail |
 | `esc` | back |
+
+## Recent notices
+
+| Key | Does |
+|---|---|
+| `~` or `esc` | close recent notices |
+| `↑` `↓` or `k` `j` | select a notice |
+| `Home` / `g`, `End` / `G` | first / last notice |
+| `PgUp` `PgDn` | scroll the selected notice's detail |
+
+Notices last only for the current session; [History](history.md) is the persistent record.
 
 ## Settings
 
@@ -202,19 +228,21 @@ On a review ask you are drafting:
 | `⏎` | change the row; on a check row, run the check |
 | `<` `>` | move a row up or down, where order matters (tenancies, views) |
 | `PgUp` `PgDn` | scroll the explanation |
+| `p` | on an agent provider: paths and folders; on working/review folders: repository overrides |
+| `o` | on a Git link: its worktree-folder template |
 
 ## Agent dock
 
 | Key | Does |
 |---|---|
-| `` ` `` (backtick) | show the dock, or go to a session waiting for you; in an empty composer, hide it. On an item page, where the dock is not drawn, it shows or hides the dock for the lists and the keys stay with the page |
+| `` ` `` (backtick) | show the dock, or go to a session waiting for you; in an empty composer, hide it. Work and item pages do not draw the dock; on an item page this changes its visibility for supported screens while the keys stay with the page |
 | `/` in the composer | the session's commands: `↑` `↓` choose, `tab` completes the name, `⏎` runs it, a click on a row runs it |
 | `ctrl-t` | new session |
 | `alt-f` | the dock takes the whole middle column, and back |
 | `alt-w` | close the session tab (`ctrl-w` too, while the composer is empty) |
 | `alt-←` `alt-→` | previous / next session tab |
-| `alt-a` | choose the agent new sessions start as |
-| `alt-m` | choose the model for the session |
+| `alt-a` | choose the provider's named agent for new sessions |
+| `alt-m` | choose the model for new sessions |
 | `alt-s` | choose a session to open |
 | `alt-k` | put a skill's request in the composer |
 | `alt-o` | fold or open the latest tool call |

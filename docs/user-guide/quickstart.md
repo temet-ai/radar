@@ -30,9 +30,10 @@ screens. [First run](README.md#1-first-run) describes every setup step.
 
 ## Find a branch
 
-Press `B` to open Branches. The left pane lists the folders radar searches; the
-middle pane shows checkouts, worktrees and branches. Select a checkout to see
-its status on the right.
+Press `B` to open Branches. The left pane offers **all**, **dirty**, **ahead of
+remote** and **stashes** views. The middle pane shows checkouts, worktrees and
+branches; select a checkout to see its status on the right. Set the folders radar
+searches in **Settings / Git / checkouts**.
 
 ![The Branches screen shows local checkouts and their branch status](images/branches.png)
 
@@ -44,5 +45,6 @@ press `q` when you are ready to leave radar.
 
 - [Connect a service](connect.md) to bring its work into radar.
 - [Learn the navigation rules](README.md#2-getting-around) for every screen.
+- [Find a page](pages.md) for every screen and tab, or read the [Branches guide](git.md).
 - [See all keys](keys.md) when you need an exact shortcut.
 - [Use an agent](agents.md) beside a selected item.

@@ -4,7 +4,8 @@ This guide shows how to set radar up and work in it. What radar is for, and how 
 it, are in the [README](../../README.md).
 
 New to radar? Start with [Get started with radar](quickstart.md), a short walkthrough
-using a local Git checkout.
+using a local Git checkout. Use [Find a page](pages.md) for the complete screen and
+tab directory, or read [Getting around](#2-getting-around) for shared controls.
 
 **On this page**
 
@@ -15,9 +16,12 @@ using a local Git checkout.
 5. [Settings and the config file](#5-settings-and-the-config-file)
 6. [The command line](#6-the-command-line)
 
-More pages: [Keys](keys.md) (every key on one page), [Connect your services](connect.md),
-[Agents](agents.md), [MCP and automatic local reviews](mcp-and-reviews.md), [What radar stores and sends](privacy.md) and
-[When something looks wrong](troubleshooting.md).
+Guides: [GitLab](gitlab.md), [GitHub](github.md), [Jira](jira.md), [Slack](slack.md),
+[Branches](git.md), [Workspaces](workspaces.md), [Work](work.md) and [History](history.md).
+For setup and configuration, use [Connect your services](connect.md), [Agents](agents.md),
+[MCP and automatic local reviews](mcp-and-reviews.md) and [Settings](settings.md).
+[Keys](keys.md), [What radar stores and sends](privacy.md) and
+[When something looks wrong](troubleshooting.md) are the reference pages.
 
 ---
 
@@ -110,11 +114,12 @@ Everything setup sets is also in Settings (`,`).
   Settings. A screen's key is the letter underlined in its name. On the right radar shows its
   [mode](#the-mode) and when it last synced.
 * **Three panes.** Most screens have views on the left, the items in the middle, and the
-  detail of the selected item on the right. `⏎` on an item opens its page.
+  detail of the selected item on the right. `⏎` opens a detail page where the item has one;
+  some local rows open a folder in your editor.
 * **Status line.** The bottom line shows the keys that work where you are. Every key on it
   can be clicked.
-* **Agent dock.** When you start an agent, it appears under the middle pane (see
-  [Agents](#4-agents)).
+* **Agent dock.** Supported list screens and Settings show sessions beneath the middle
+  pane. Work and item pages omit the dock (see [Agents](#4-agents)).
 
 ### The key model
 
@@ -140,9 +145,10 @@ key beside each row. A row that cannot be done now stays in the list, muted, wit
 
 ### Pages
 
-`⏎` on a row opens its **page**. A page has tabs: a merge request has Overview, Changes,
-Threads, Pipeline, Commits and Ticket. `[` and `]` switch tabs, and `esc` goes back to the
-list with your place kept.
+`⏎` on a service item opens its **page**. A merge request has Overview, Changes,
+Threads, Pipeline and Commits tabs. Linked Ticket/Tickets and Slack tabs appear when radar
+has related information. `[` and `]` switch tabs; `esc` returns to the previous page or
+the list with your place kept. [Find a page](pages.md) lists every page and tab.
 
 ![A merge request page](images/detail-merge-request.png)
 
@@ -150,11 +156,32 @@ list with your place kept.
 
 ### Finding things
 
+Press `ctrl-p` while navigating to open the **command palette**. Type words to find a
+screen, Settings section, an available action or an item radar already has cached.
+Choose with `↑` / `↓` and `⏎`; `esc` closes it. Searching does not fetch more service data.
+Close a text editor or other menu first; those controls keep their own keys.
+
+![The command palette finds repository screens, settings and cached items](images/command-palette.png)
+
+The picture uses an offline demonstration cache, so its status line reports that sync
+credentials are unset. The palette can still find the cached items.
+
 * `/` filters the list by words. In GitLab you can also write terms such as `state:merged`
   or `label:bug`.
 * `:` goes to a group, repository or merge request in GitLab, or a ticket in Jira, by name,
   key or number.
 * `a` shows one author's merge requests in GitLab, or one assignee's tickets in Jira.
+
+### Recent notices
+
+Press `~` while navigating to read notices retained during this radar session. Select a
+notice with `↑` / `↓` and scroll its detail with `PgUp` / `PgDn`. `esc` or `~` closes the
+list. Use this when a status message disappeared before you could read it.
+
+![Recent notices retain the result of changes made during this session](images/notice-history.png)
+
+These notices disappear when radar closes. Press `H` for the persistent
+[History](history.md), which records operations and their outcomes.
 
 ### The mouse
 
@@ -188,135 +215,87 @@ changes it.
 
 | Mode | What radar may send |
 |---|---|
-| read only | nothing. A write still shows its question, and `y` sends nothing |
+| read only | no remote writes or local Work annotations; a remote write can still show its question, but `y` sends nothing |
 | write | additions: comments, replies, reactions, review asks, new tickets |
 | edit (the default) | also changes: approve, resolve, rebase, merge, move or assign tickets |
 
 `RADAR_MODE=read-only radar` (or `write`, `edit`) sets the mode for one run.
 
-Every write is shown in full first, and is sent when you press `y`; `e` goes back to
-editing. Text is typed in the same small editor everywhere ([keys](keys.md#text-and-questions)).
-Text you decline is kept, and the key that wrote it brings it back.
+Remote write actions show a confirmation before sending; `y` confirms and `e` returns to
+editing where offered. Comments and replies use the shared small editor
+([keys](keys.md#text-and-questions)); `ctrl-r` recovers retained text in GitLab, Jira and Slack.
+
+The mode does not disable Settings or local Git changes such as checking out, creating
+branches and deleting worktrees. Git pushes are mode-gated: a new remote branch needs
+write mode, while updating an existing branch needs edit mode. Read the action's own
+confirmation to see what will change.
 
 ---
 
 ## 3. The parts
 
-Each service, and your local Git, is a part of radar with a screen of its own. The keys for
-each are in [Keys](keys.md).
+Use [Find a page](pages.md) for the complete list of screens and nested tabs. Each guide
+below includes a walkthrough, available actions and help with loading or empty states.
 
 ### GitLab
 
-Press `R`. This is the merge request screen.
-
-![GitLab on the Repositories screen](images/repositories.png)
-
-* **Left:** views, such as "Everything", "Needs my action", "Opened by me".
-* **Middle:** a tree of your groups, repositories and open merge requests, with state (needs
-  approval, ready to merge, pipeline failed), age and what is waiting for you.
-* **Right:** detail of the selected group, repository or merge request, and its actions.
-
-Views show open merge requests unless a filter says otherwise. `state:merged`,
-`state:closed` or `state:all` add merged and closed ones from the last 14 days (the
-**merged, closed** row in the GitLab connection changes the number of days).
-
-On a merge request you can rebase, merge, approve, open the pipeline, check out its branch,
-comment on the Changes and Threads tabs, and resolve threads. Pipelines and job logs have
-their own pages. After the first sync, radar asks GitLab only for what changed; `r` fetches
-everything again.
+Press `R` and choose GitLab. Follow groups, repositories and merge requests; inspect
+diffs, discussions, pipelines and job logs. The [GitLab guide](gitlab.md) covers all
+pages and review actions, including linked Jira tickets and Slack threads.
 
 ### GitHub
 
-Press `G` (or `R` and pick GitHub). Repositories, open pull requests, the checks on a pull
-request's head commit, and Actions runs.
-
-![GitHub](images/github.png)
-
-GitHub is read only: radar does not rerun, cancel, review or merge anything there. "No
-checks" is not shown as "passed", and a list radar could not read in full says so.
+Press `G`, or choose GitHub under Repositories. Read repositories, pull requests,
+head-commit checks and Actions run attempts. The [GitHub guide](github.md) explains
+what each result means and where to open job logs. GitHub operations in radar are read only.
 
 ### Jira
 
-Press `J`. Views are your saved queries. The middle pane is a tree: site, then status, then
-tickets. A ticket row shows its type, status, the merge request linked to it and its age.
-
-![Jira](images/jira.png)
-
-You can create tickets, comment, move a ticket to another status and assign it to yourself.
-Comments and new tickets need write mode; moves and assignments need edit mode.
+Press `J`. Browse tickets by saved query, site and status; read descriptions, comments,
+links and connected work. The [Jira guide](jira.md) covers every ticket tab, creation,
+comments, assignment and transitions.
 
 ### Slack
 
-Press `S`. Slack shows the threads in the channels you watch, mentions of you, and review
-asks, newest first. Messages read like a compact chat: one line a message, with the author
-left blank when the same person writes again within five minutes.
-
-![Slack, For you](images/slack.png)
-
-![Slack, the #team channel](images/slack-channel.png)
-
-You can reply, react, and mark a thread read up to a message (a mark radar keeps; Slack is
-not told). A review ask can be drafted in radar and posted to a channel. `:name:` emoji are
-shown as emoji. For a roomier layout, set `density` to `cozy` in Settings, Slack, look.
+Press `S`. Choose For you, Discussions, Alerts or a watched channel. The
+[Slack guide](slack.md) covers threads, links, replies, reactions, local read marks and
+review-request drafts. [Automatic local reviews](mcp-and-reviews.md#start-reviews-from-slack)
+can turn watched review requests into local reports.
 
 ### Git (Branches)
 
-Press `B`. This is your local clones, their worktrees and their branches, with how far each
-is ahead of or behind its remote, which are dirty, and your stashes.
-
-![Branches](images/branches.png)
-
-* **Left:** all, dirty, ahead of remote, stashes.
-* **Middle:** a tree of clone, then worktrees, then branches.
-
-`d` deletes a branch or worktree; radar asks first, says what would be lost, and will not
-delete the current branch. The bulk menu (`b`) has "prune merged and gone".
-
-Tell radar where your code is in Settings, Git, **checkouts**. radar then shows, on a merge
-request or repository, where it is checked out, and from there checks out the branch, opens
-an editor or opens a terminal. Editors per project type are under Settings, Git,
-**editors**. A terminal opens as a new tmux window when radar runs inside tmux; otherwise it
-opens in the terminal set in Settings, Git, **terminal**, or one radar finds on this
-machine.
+Press `B`. Inspect local clones, worktrees, branches and stashes. The [Branches guide](git.md)
+explains checkout selection, editors and terminals, branch operations and cleanup.
 
 ### Workspaces
 
-Press `R`, then `W` (the "Local workspaces" source). A workspace is a top folder that holds
-your clones, for example `~/work/acme`. Add them in Settings, Workspace, **workspaces**.
-radar also offers folders it finds, as a question.
-
-![Local workspaces](images/local-workspaces.png)
-
-A workspace lets you start work on a ticket: you choose the ticket's repositories, and radar
-makes the branches (or parked worktrees) and a README for the ticket, asking first.
+Press `W`, or choose Local workspaces under Repositories. The [Workspaces guide](workspaces.md)
+explains related checkout folders, ticket notes and starting a ticket across repositories.
 
 ### Work
 
-Press `I`. Work is a list of your own local work items: tasks you create (`n`), and things
-you add from a service's `x` menu (**add to work item…**). Labels and links appear only when
-you add them.
-
-![Work](images/work.png)
+Press `I`. Create local tasks and connect service items through **add to work item…**.
+The [Work guide](work.md) covers tasks, groups, filters, source bindings and evidence.
 
 ### History
 
-Press `H`. radar keeps a journal on your machine of what it did and what happened: syncs,
-checks, opens, and every write you confirmed or declined. History shows it, oldest first,
-50 events a page, opening on the last 24 hours. From any item's `x` menu, **history for
-selected item** shows just that item. [What radar stores and sends](privacy.md#files) says
-what the journal records.
-
-![History](images/history.png)
+Press `H` for recorded operations and outcomes. An item's action menu can open its own
+history. The [History guide](history.md) explains event detail, operation scopes and
+pagination; [privacy](privacy.md#files) explains what the journal stores.
 
 ---
 
 ## 4. Agents
 
-radar runs Claude Agent, Codex and Copilot sessions in a dock under the middle pane, on
-every screen. `A` on a row starts a session with that item described to the agent, and `i`
-on a merge request starts a local review. Each agent needs its own program installed and
-signed in. [Agents](agents.md) covers what each needs, the dock, approvals and the agent
-settings.
+radar runs Claude Agent, Codex and Copilot sessions in a dock beneath the middle pane of
+supported list screens and Settings. Work and item pages omit the dock. `A` on supported GitLab,
+Jira, Slack and Branches rows starts a session with that item's context; `i` on an open GitLab
+merge request starts a local review. [Agents](agents.md) covers setup, conversations,
+approvals, resume and terminal tabs.
+
+[MCP and automatic local reviews](mcp-and-reviews.md) covers the shared context model for
+external sessions and radar's integrated agents, Slack-triggered review intake, results
+and global or per-repository save locations.
 
 ---
 
@@ -329,91 +308,30 @@ the selected row on the right. Everything saves as you go.
 
 ![Settings, parts](images/settings.general.parts.png)
 
-| Group | Sections |
-|---|---|
-| General | parts, mode, appearance, colours, icons |
-| GitLab | connection, tenancies, views, look |
-| GitHub | connection, repositories |
-| Jira | connection, projects, views, look |
-| Slack | connection, channels, review, alerts, look |
-| Git | checkouts, terminal, editors, links, branches |
-| Workspace | workspaces |
-| Agents | tools and defaults |
-
-`parts` shows which parts this radar has, whether each is set up, and the terminal radar
-detected. `mode` sets the [mode](#the-mode) and the pause when idle. `appearance` is setup's
-look step: icons, theme and motion. `colours` and `icons` are below.
-
-The right pane says what a row does, what it accepts and which config key it writes. A bad
-value is refused with a reason.
+The [Settings guide](settings.md) describes all 27 sections, including provider defaults,
+Git worktree templates and [repository-specific folders](settings.md#change-a-folder-for-one-repository).
+The right pane names each row's config key and accepted values. Invalid values stay in
+the editor with a reason.
 
 ### The config file
 
-```sh
-radar config path     # where it is
-radar config show     # what radar would write, in full
-```
-
-It is a TOML file at `~/.config/radar/config.toml` (or `$XDG_CONFIG_HOME/radar/config.toml`),
-on macOS too. radar writes it after each completed change in Settings and reads it when it
-starts, so you can also edit it by hand. The tables are named after the parts: `[gitlab]`,
-`[github]`, `[jira]`, `[slack]`, `[git]`, `[workspace]`, `[sessions]`, `[theme]`,
-`[general]` and `[icons]`. Every row in Settings names its key in the right pane (for
-example `config: [gitlab] url`).
-
-A small example:
-
-```toml
-[gitlab]
-url = "https://gitlab.com"
-token = "env:GITLAB_TOKEN"
-
-[general]
-mode = "read-only"     # or "write" or "edit"
-idle_minutes = 30      # 0 never pauses
-
-[theme]
-palette = "silkcircuit-neon"
-motion = "subtle"
-```
+Run `radar config path` to find your TOML file and `radar config show` to print its
+configuration. Settings saves completed changes; restart radar after hand-editing the
+file. The [config reference](settings.md#the-config-file) gives the location, environment
+overrides and an example. Treat the output as sensitive if you store tokens in the file.
 
 ### Colours
 
-Settings, General, **colours** has a palette picker (39 palettes) and every colour slot as a
-hex value, such as `#e135ff`. Colours you set stay set when you change the palette.
-
-| Setting (`[theme]`) | Values |
-|---|---|
-| `palette` | a palette name |
-| `motion` | `subtle` (the default), `full`, `off` |
-| `splash` | `auto`, `off` |
-| `hyperlinks`, `images`, `pointer` | `auto`, `on`, `off` |
-| `icons` | `auto`, `nerd`, `unicode`, `emoji`, `off`, or your own pack |
-| `colors` | `auto` (detect), `truecolor`, `256`, `16`, `none`: how many colours radar uses |
-
-**Motion.** `subtle` fades a screen in, sweeps menus open and makes rows that a sync changed
-glow for a moment. `full` adds sliding pages, rows sweeping in and a shimmer on panels
-waiting for data. `off` has none. A key always acts at once. Motion is off over SSH, below
-full colour, and on terminals too slow to draw it.
+Choose the palette, motion and icon pack in **General / appearance**. Use
+**General / colours** for individual colour slots, terminal colour depth, the splash,
+hyperlinks, images and pointer. Slot overrides survive a palette change.
+[Appearance and colour settings](settings.md#appearance) lists the choices.
 
 ### Icons
 
-radar draws icons beside rows, states, tabs and menus. `auto` picks `nerd` (Nerd Font
-symbols) in terminals that bring them (Ghostty, kitty, WezTerm) and `unicode` elsewhere and
-over SSH. If you see empty boxes, set the pack to `unicode`, or install a Nerd Font.
-
-Settings, General, **icons** lists every icon: `⏎` types your own, `r` gives it back to the
-pack. You can also make a whole pack:
-
-```sh
-radar icons list                    # every icon and its glyph
-radar icons export nerd > mine.toml # a pack as a start
-radar icons path                    # the folder your packs go in
-```
-
-A pack can `extends` another and set only the icons it wants. Icons you change in Settings
-are saved in the config file's own `[icons]` table (an icon's name and your glyph); they go
-on top of the chosen pack.
+If icons appear as empty boxes, choose `unicode` in **General / appearance**, or install
+a Nerd Font. **General / icons** changes individual glyphs; `r` restores the pack's glyph.
+The [Icons reference](settings.md#icons) explains custom packs and the `radar icons` commands.
 
 ### The start line
 
@@ -435,9 +353,11 @@ The lines and their groups are listed in the file radar ships
 
 ### Refresh and idle
 
-Each part has a refresh time in its connection section. After 30 idle minutes radar stops
-refreshing; any key resumes it. Change the time in Settings, General, mode (`pause if
-idle`). `z` pauses or resumes by hand.
+Services refresh while radar is active; connection settings expose configurable intervals
+where supported. By default, radar pauses after 30 idle minutes; input resumes it. Enabled
+automatic review intake or active background work can keep refreshing through idle time.
+Change the timeout in Settings, General, mode (`pause if idle`). `z` pauses by hand and
+stays paused until you press `z` again. Each service guide explains its refresh behavior.
 
 ---
 
@@ -452,12 +372,13 @@ radar gitlab list [--view NAME] [--filter TEXT] [--json]
 radar gitlab show '!263' [--json]        # or repo!263 when several repositories have one
 radar github list [--json]
 radar jira list [--view NAME] [--site NAME] [--filter TEXT] [--json]
-radar jira show ABC-12 [--site NAME] [--json]
+radar jira show WATCH-12 [--site NAME] [--json]
 radar slack list [--view CHANNEL] [--filter TEXT] [--json]
 radar slack catchup [CHANNEL] [--json]
 radar config path | show
 radar setup [STEP]                       # opens radar on setup, from the start or one step
 radar icons list | export PACK | path
+radar mcp [--workspace /absolute/path]   # stdio bridge to a running radar host
 radar terminal                           # the terminal layers radar detected
 radar licenses                           # radar's licence and the licences of what it carries
 radar work id | apply | handoff | items | events | tag | change | resolve

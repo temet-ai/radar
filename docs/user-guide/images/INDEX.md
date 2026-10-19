@@ -1,6 +1,6 @@
 # User guide screenshots
 
-All drawn by the Ink renderer (`ink-live` proves it), 160x40 unless the name says otherwise. GitLab, Jira,
+All drawn by the Ink renderer (`ink-live` proves it), 160x40 unless the name says otherwise. In the original capture set, GitLab, Jira,
 GitHub and Slack are one local stand-in (`tools/fake-services.py`, an invented `acme` organisation with
 alice, bob and carol), so every screen shows a normal, successful sync; the agent is the fake provider;
 there are three small git checkouts and a few local work items. Keys are typed from the first screen after
@@ -30,6 +30,28 @@ start; `R J S B I H ,` are Shift-letters.
 - settings.jira.connection.png — Settings, Jira › connection — `,`, click `connection` under Jira
 - settings.slack.connection.png — Settings, Slack › connection (no token set) — `,`, click `connection` under Slack
 - settings.sessions.agents.png — Settings, Agents › Tools and defaults (provider `fake`) — `,`, click `Tools and defaults` under Agents
+
+## Additional page-guide captures
+
+Captured on 2026-10-19 with radar `0.1.0-alpha.12` (`2722ec0`), Ink at 160×40.
+These use `ink-live`'s bundled offline cache and a scratch configuration, without
+the fake-service server. The unset-token notice is expected; no service sync is
+attempted with real credentials. New folder examples use `ankh-morpork/watch`.
+
+- settings.repository-locations.png — Agents / Tools and defaults, **working folder**, `p` for repository overrides; add `ankh-morpork/watch`, set working folder `~/work/watch` and reviews folder `~/reviews/watch`, then reopen its menu. The checkout folder inherits its default. Only the scratch config is changed; the folders are not created.
+- command-palette.png — close the settings menu, `R`, `ctrl-p`, type `repo`; shows matching screens, settings, actions and cached repositories. The cache contains the older fictional `acme` fixtures.
+- notice-history.png — close the palette and press `~`; the two retained notices show the saved working/review folder settings from this session.
+
+To capture these, start with:
+
+```sh
+RADAR_BIN="$HOME/.local/bin/radar" scripts/ink-live/ink-live start docs-pages ink 160x40
+```
+
+Drive the keys and menus above, capture with `scripts/ink-live/ink-live colour docs-pages`,
+and render the saved ANSI with `docs/user-guide/tools/render.sh capture.ans out.png 160 40`.
+Finish with `scripts/ink-live/ink-live stop docs-pages`. These captures are not part of
+`capture-all.sh`.
 
 ## Things to know when using them
 

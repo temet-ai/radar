@@ -526,8 +526,8 @@ mod tests {
                     let mut runs: Vec<(String, String, String, String)> = Vec::new();
                     for x in 0..width {
                         let cell = &buf[(x, 0)];
-                        let fg = colour_word(Some(cell.fg));
-                        let bg = colour_word(Some(cell.bg));
+                        let fg = colour_word(Some(cell.fg.into()));
+                        let bg = colour_word(Some(cell.bg.into()));
                         let modifiers = [
                             (Modifier::BOLD, "bold"), (Modifier::DIM, "dim"),
                             (Modifier::ITALIC, "italic"), (Modifier::UNDERLINED, "underline"),

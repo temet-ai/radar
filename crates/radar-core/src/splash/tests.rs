@@ -395,7 +395,7 @@ fn cells(buf: &Buffer) -> Vec<Vec<Value>> {
             (0..a.width)
                 .map(|x| {
                     let c = &buf[(x, y)];
-                    let word = |c: Color| colour_word(Some(c));
+                    let word = |c: Color| colour_word(Some(c.into()));
                     json!([c.symbol(), word(c.fg), word(c.bg), c.modifier.contains(Modifier::BOLD)])
                 })
                 .collect()

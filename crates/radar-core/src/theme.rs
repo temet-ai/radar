@@ -489,6 +489,7 @@ impl Theme {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ratatui::style::{Color, Modifier};
 
     #[test]
     fn overrides_reach_core_and_domain_slots() {
@@ -530,7 +531,7 @@ mod tests {
         let sixteen = Theme::build(&auto, Tier::Ansi16, &[])
             .s(Slot::StatusError)
             .fg;
-        assert_eq!(sixteen, Some(Slot::StatusError.ansi16()));
+        assert_eq!(sixteen, Some(Slot::StatusError.ansi16().into()));
     }
 
     #[test]

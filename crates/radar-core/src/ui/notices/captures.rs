@@ -14,8 +14,8 @@ fn rows(buf: &Buffer) -> Value {
             let mut previous: Option<(String, String, String)> = None;
             for x in buf.area.x..buf.area.right() {
                 let cell = &buf[(x, y)];
-                let fg = crate::ipc::look::colour_word(Some(cell.fg));
-                let bg = crate::ipc::look::colour_word(Some(cell.bg));
+                let fg = crate::ipc::look::colour_word(Some(cell.fg.into()));
+                let bg = crate::ipc::look::colour_word(Some(cell.bg.into()));
                 let mods = [
                     (Modifier::BOLD, "bold"),
                     (Modifier::DIM, "dim"),

@@ -458,6 +458,16 @@ fn selected_job_identity_never_opens_a_different_run_attempt() {
     assert!(link(&p).is_some_and(|url| url.ends_with("/actions/runs/501/attempts/2")));
 }
 
+/// Every string of a view's JSON that holds a control character.
+fn strings_with_controls(value: &serde_json::Value, out: &mut Vec<String>) {
+    match value {
+        serde_json::Value::String(s) if s.chars().any(char::is_control) => out.push(s.clone()),
+        serde_json::Value::Array(items) => items.iter().for_each(|v| strings_with_controls(v, out)),
+        serde_json::Value::Object(map) => map.values().for_each(|v| strings_with_controls(v, out)),
+        _ => {}
+    }
+}
+
 #[test]
 fn untrusted_actions_text_cannot_emit_terminal_controls_in_cells_or_menus() {
     let unsafe_text = "name\u{1b}]52;c;clipboard\u{7}\u{1b}[31m\u{85}\u{9b}31m";
@@ -508,9 +518,18 @@ fn untrusted_actions_text_cannot_emit_terminal_controls_in_cells_or_menus() {
                 h.update(Event::Key(event(KeyCode::Char('x'))));
             }
             let text = shown(&h, 160, 40);
-            // The cells carry the words as GitHub sent them; the renderer
-            // strips the controls (Ink's sanitize), so the view text keeps them.
+            // The host strips the controls from every part's view data
+            // (`radar_core::view::clean`), so the cells and the text form
+            // hold the words GitHub sent without them.
             assert!(text.contains("name"), "{page} menu={menu}");
+            assert!(
+                !text.chars().any(|c| c.is_control() && c != '\n'),
+                "{page} menu={menu}: the text form holds a control"
+            );
+            let view = radar_core::view::screen_showing(&h, 160, 40).expect("the screen");
+            let mut controls = Vec::new();
+            strings_with_controls(&serde_json::to_value(&view).unwrap(), &mut controls);
+            assert!(controls.is_empty(), "{page} menu={menu}: cells hold controls: {controls:?}");
             if let Some(open) = &h.menu {
                 for item in &open.menu.items {
                     assert!(

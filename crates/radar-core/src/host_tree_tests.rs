@@ -653,3 +653,32 @@ fn open_all_and_menu_replay_require_a_concrete_item_page_identity() {
         assert!(state.calls.is_empty());
     }
 }
+
+#[test]
+fn a_part_s_views_leave_the_host_without_terminal_controls() {
+    let (host, state) = fixture();
+    {
+        let mut state = state.lock().unwrap();
+        let row = &mut state.tree.rows[0];
+        row.name = crate::view::Text::plain("Watch\u{1b}[31m\u{7}\u{85}\u{9b}\u{7f}\tduty");
+        row.cells.push(crate::view::CellView {
+            heading: "State\u{1b}".into(),
+            text: crate::view::Text::plain("on\u{1b}]52;c;x\u{7}"),
+            show: None,
+            target: None,
+        });
+    }
+    let name_in = |tree: &Tree| (tree.rows[0].name.words(), tree.rows[0].cells[0].text.words(), tree.rows[0].cells[0].heading.clone());
+    let want = ("Watch[31m duty".to_string(), "on]52;c;x".to_string(), "State".to_string());
+
+    let screen = crate::view::screen_showing(&host, 160, 40).expect("the screen");
+    let Node::Tree(tree) = &screen.panes[1].body else { panic!("a tree") };
+    assert_eq!(name_in(tree), want, "the screen the host shows");
+    let screen = host.screen_view(0, "watch").expect("the screen");
+    let Node::Tree(tree) = &screen.panes[1].body else { panic!("a tree") };
+    assert_eq!(name_in(tree), want, "a screen taken by key handling");
+    let section = host.section_view(0, "cases").expect("the section");
+    let Node::Tree(tree) = &section.body else { panic!("a tree") };
+    assert_eq!(name_in(tree), want, "a settings section");
+    assert_eq!(tree.rows[0].id, "watch", "ids are as the part gave them");
+}

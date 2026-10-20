@@ -2128,6 +2128,7 @@ impl TreeNav {
 }
 
 pub mod chrome;
+pub mod clean;
 pub mod detail;
 pub mod diff;
 pub mod doc;

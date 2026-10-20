@@ -2926,7 +2926,11 @@ impl Host {
         self.plugins
             .iter()
             .find_map(|p| p.dock())
-            .map(|content| Box::new(self.dock.over(content)))
+            .map(|content| {
+                let mut view = Box::new(self.dock.over(content));
+                crate::view::clean::multiline(&mut view);
+                view
+            })
     }
 
     /// Whether the dock is drawn where the user is now: beside a settings
@@ -3278,7 +3282,11 @@ impl Host {
         width: u16,
         height: u16,
     ) -> Option<crate::view::ScreenView> {
-        self.plugins[p].view(scope, &self.view_cx(p, width, height))
+        let mut view = self.plugins[p].view(scope, &self.view_cx(p, width, height))?;
+        // The one place service text leaves a part for a renderer or the
+        // text form: terminal controls go here, for every part.
+        crate::view::clean::controls(&mut view);
+        Some(view)
     }
 
     /// Part `p`'s settings section `scope` as a view; `None` while legacy.
@@ -3295,6 +3303,7 @@ impl Host {
         height: u16,
     ) -> Option<crate::view::SectionView> {
         let mut view = self.plugins[p].section_view(scope, &self.view_cx(p, width, height))?;
+        crate::view::clean::controls(&mut view);
         // On a setup step ⏎ goes on and space is the section's ⏎: its help
         // says so.
         if self.setup_on_section() {
@@ -5148,6 +5157,9 @@ impl Host {
         if self.view == View::Settings && self.history.is_none() && out.setup.is_none() {
             out.settings = Some(self.settings_nav());
         }
+        // The status words, notices and settings navigation carry text from
+        // parts and services too.
+        crate::view::clean::multiline(&mut out);
         out
     }
 
@@ -5560,6 +5572,7 @@ impl Host {
                     item.target = Some(crate::view::Target::new(format!("chrome:menu:{}", item.value)));
                 }
             }
+            crate::view::clean::multiline(&mut view);
             view
         })
     }

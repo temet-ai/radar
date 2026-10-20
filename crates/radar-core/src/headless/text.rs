@@ -2,7 +2,7 @@
 //! screen. It reads like the screen's content and names no colour, width or
 //! cell, so a look change in a renderer moves no part's snapshot.
 //!
-//! Per pane a rule naming it and its title (`── middle · Merge requests ──`,
+//! Per pane a rule naming it and its title (`── middle · Rota ──`,
 //! `*` after the title when the pane has the keys), then one line per row:
 //! `>` on the selected row, cells two spaces apart, chips in `[ ]`, icons as
 //! `:name:`, and the row's target at the end in `{ }`. An overlay, the open

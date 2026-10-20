@@ -162,7 +162,7 @@ impl Headless {
     pub fn menu(&self) -> Option<MenuView> {
         let open = self.host.menu.as_ref()?;
         let m = &open.menu;
-        Some(MenuView {
+        let mut view = MenuView {
             id: m.id.clone(),
             title: m.title.clone(),
             question: m.question,
@@ -180,7 +180,9 @@ impl Headless {
                 })
                 .collect(),
             typed: open.input.as_ref().map(|i| i.value()),
-        })
+        };
+        crate::view::clean::multiline(&mut view);
+        Some(view)
     }
 
     /// Move the focus to a pane, as a frontend does on its own; not the

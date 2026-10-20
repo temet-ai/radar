@@ -67,9 +67,21 @@ export function patch(base: Style, over: Style): Style {
 
 const sameStyle = (a: Style, b: Style) => KEYS.every((k) => a[k] === b[k]);
 
+// eslint-disable-next-line no-control-regex
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/;
+// eslint-disable-next-line no-control-regex
+const CONTROLS = /[\u0000-\u001f\u007f-\u009f]/g;
+
+/** `text` with no terminal control (C0, DEL, C1): a tab is a space, any other goes. The host strips them from view
+ * data (radar-core `view::clean`); this keeps one that gets here anyway from becoming a cell, because a cell's
+ * character is written to the terminal as it is. Text with none is returned as it is. */
+export function withoutControls(text: string): string {
+  return CONTROL.test(text) ? text.replace(CONTROLS, (c) => (c === "\t" ? " " : "")) : text;
+}
+
 export function cellsOf(text: string, s: Style = {}): Cell[] {
   const out: Cell[] = [];
-  for (const ch of graphemes(text)) {
+  for (const ch of graphemes(withoutControls(text))) {
     const w = graphemeCells(ch);
     // a combining mark (width 0) belongs to the cell before it
     if (w === 0 && out.length > 0) out[out.length - 1]!.ch += ch;
@@ -355,6 +367,7 @@ export class Rows {
   /** `text` of cell width `w` (counted when not given) in `style`. */
   put(text: string, style: Style, w?: number): this {
     if (!this.cur) this.line();
+    text = withoutControls(text);
     if (text === "") return this;
     const info = infoOf(style, this.plain, this.bg);
     if (info !== this.last) {

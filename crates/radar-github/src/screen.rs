@@ -319,7 +319,6 @@ fn safe_link(url: &str) -> bool {
 }
 
 pub(crate) fn key(p: &mut GithubPlugin, pane: Pane, key: Chord) -> Outcome {
-    use radar_core::view_tui::key_of;
     if key.ctrl || key.alt {
         return Outcome::Ignored;
     }
@@ -429,7 +428,7 @@ pub(crate) fn key(p: &mut GithubPlugin, pane: Pane, key: Chord) -> Outcome {
         && p.pages.is_empty()
         && pane == Pane::Detail
     {
-        return if p.detail_scroll.key(&key_of(key)) {
+        return if p.detail_scroll.key(&key) {
             Outcome::done()
         } else {
             Outcome::Ignored
@@ -440,7 +439,7 @@ pub(crate) fn key(p: &mut GithubPlugin, pane: Pane, key: Chord) -> Outcome {
         .last()
         .is_some_and(|page| page.tab == 0 || matches!(page.target, Target::Pull(_, _)));
     if text_page || (p.pages.is_empty() && pane == Pane::Detail) {
-        return if p.detail_scroll.key(&key_of(key)) {
+        return if p.detail_scroll.key(&key) {
             Outcome::done()
         } else {
             Outcome::Ignored
@@ -472,7 +471,7 @@ pub(crate) fn key(p: &mut GithubPlugin, pane: Pane, key: Chord) -> Outcome {
             p.pull_scroll.height(),
         )
     };
-    let Some(movement) = Move::from_key(&key_of(key), height) else {
+    let Some(movement) = Move::from_key(key, height) else {
         return Outcome::Ignored;
     };
     let to = ui::rows::select(len, at, movement, |_| true);

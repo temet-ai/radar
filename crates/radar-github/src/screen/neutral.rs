@@ -352,7 +352,7 @@ fn repository_blocks(p: &GithubPlugin, state: &crate::RepoState) -> Vec<Block> {
         None,
         crate::actions::repository_summary(p, state)
             .into_iter()
-            .map(|l| Block::line(Text::plain(l.to_string())))
+            .map(Block::line)
             .collect(),
     ));
     blocks.push(Block::line(Text::new()));

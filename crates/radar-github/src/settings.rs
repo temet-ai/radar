@@ -558,7 +558,7 @@ fn keep(p: &mut GithubPlugin, value: String) -> Outcome {
 
 pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
     if let Some(editor) = &mut p.editor {
-        return match editor.input.key(radar_core::view_tui::key_of(key)) {
+        return match editor.input.key(key) {
             Edit::Submit(value) => keep(p, value),
             Edit::Cancel => {
                 p.editor = None;
@@ -659,8 +659,7 @@ pub(crate) fn key(p: &mut GithubPlugin, section: &str, key: Chord) -> Outcome {
         }
         _ => {}
     }
-    let Some(movement) = Move::from_key(&radar_core::view_tui::key_of(key), p.section_scroll.height())
-    else {
+    let Some(movement) = Move::from_key(key, p.section_scroll.height()) else {
         return Outcome::Ignored;
     };
     let order: Vec<usize> = if section == "connection" {

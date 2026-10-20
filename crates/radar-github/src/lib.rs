@@ -258,14 +258,8 @@ enum Answer {
 
 /// The chord a test key stands for.
 #[cfg(test)]
-pub(crate) fn chord(code: radar_core::ratatui::crossterm::event::KeyCode) -> Chord {
-    use radar_core::ratatui::crossterm::event::KeyCode;
-    Chord::new(match code {
-        KeyCode::Char(c) => Key::Char(c),
-        KeyCode::Esc => Key::Esc,
-        KeyCode::Enter => Key::Enter,
-        other => panic!("no chord for {other:?}"),
-    })
+pub(crate) fn chord(key: Key) -> Chord {
+    Chord::new(key)
 }
 
 /// A menu row with its stable id (`github.<surface>.<verb>`), written where

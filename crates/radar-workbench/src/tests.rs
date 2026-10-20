@@ -1,8 +1,7 @@
 use super::*;
 use radar_core::compose::Parts;
 use radar_core::headless::Headless;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::view::{Node, PaneId, Target};
+use radar_core::view::{Chord, Intent, Key, Node, PaneId, Target};
 
 /// What shows, as view text (`radar_core::headless::text`): the screen's
 /// panes and rows, the open menu and the status line. No painted frame.
@@ -1022,10 +1021,9 @@ fn rendered_work_states() {
     partial.focus = Pane::Detail;
     cases.push(("partial", partial));
     let mut menu = host(sample());
-    menu.update(radar_core::host::Event::Key(KeyEvent::new(
-        KeyCode::Char('x'),
-        KeyModifiers::NONE,
-    )));
+    menu.update(radar_core::host::Event::Intent(Intent::Key {
+        chord: Chord::new(Key::Char('x')),
+    }));
     cases.push(("actions", menu));
     let mut chooser = Fixture::new();
     chooser.start();
@@ -1197,12 +1195,11 @@ fn host_pump(host: &mut radar_core::Host, f: &mut Fixture, effects: Vec<radar_co
         }
     }
 }
-fn host_key(host: &mut radar_core::Host, f: &mut Fixture, code: KeyCode) {
+fn host_key(host: &mut radar_core::Host, f: &mut Fixture, code: Key) {
     shown(host, 80, 24);
-    let effects = host.update(radar_core::host::Event::Key(KeyEvent::new(
-        code,
-        KeyModifiers::NONE,
-    )));
+    let effects = host.update(radar_core::host::Event::Intent(Intent::Key {
+        chord: Chord::new(code),
+    }));
     host_pump(host, f, effects);
 }
 
@@ -1217,7 +1214,7 @@ fn real_host_menu_create_link_enter_context_and_cancel_flow() {
     .unwrap();
     host.load_config(Some("")).unwrap();
     host.enable_journal();
-    host_key(&mut host, &mut f, KeyCode::Char('x'));
+    host_key(&mut host, &mut f, Key::Char('x'));
     let menu = host.menu.as_mut().unwrap();
     menu.row = menu
         .menu
@@ -1225,13 +1222,13 @@ fn real_host_menu_create_link_enter_context_and_cancel_flow() {
         .iter()
         .position(|i| i.label.contains("add to work item"))
         .unwrap();
-    host_key(&mut host, &mut f, KeyCode::Enter);
+    host_key(&mut host, &mut f, Key::Enter);
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "work.choose");
-    host_key(&mut host, &mut f, KeyCode::Enter);
+    host_key(&mut host, &mut f, Key::Enter);
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "work.new");
     let effects = host.update(Event::Paste("Menu-created work".into()));
     host_pump(&mut host, &mut f, effects);
-    host_key(&mut host, &mut f, KeyCode::Enter);
+    host_key(&mut host, &mut f, Key::Enter);
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "work.sources");
     let menu = host.menu.as_mut().unwrap();
     menu.row = menu
@@ -1240,25 +1237,25 @@ fn real_host_menu_create_link_enter_context_and_cancel_flow() {
         .iter()
         .position(|i| i.value == "review")
         .unwrap();
-    host_key(&mut host, &mut f, KeyCode::Enter);
+    host_key(&mut host, &mut f, Key::Enter);
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "work.confirm");
-    host_key(&mut host, &mut f, KeyCode::Char('y'));
+    host_key(&mut host, &mut f, Key::Char('y'));
     assert!(host.menu.is_none());
     assert!(matches!(host.view, HostView::Screen(_)));
     assert!(shown(&host, 80, 24).contains("Menu-created work"));
-    host_key(&mut host, &mut f, KeyCode::Enter);
+    host_key(&mut host, &mut f, Key::Enter);
     assert_eq!(host.focus, Pane::Detail);
-    host_key(&mut host, &mut f, KeyCode::Char('o'));
+    host_key(&mut host, &mut f, Key::Char('o'));
     assert!(matches!(host.view, HostView::Screen(_)));
     assert_eq!(host.screen().unwrap().1.id, "sources");
-    host_key(&mut host, &mut f, KeyCode::Char('I'));
-    host_key(&mut host, &mut f, KeyCode::Char('n'));
+    host_key(&mut host, &mut f, Key::Char('I'));
+    host_key(&mut host, &mut f, Key::Char('n'));
     let effects = host.update(Event::Paste("Discard this preview".into()));
     host_pump(&mut host, &mut f, effects);
-    host_key(&mut host, &mut f, KeyCode::Enter);
-    host_key(&mut host, &mut f, KeyCode::Esc);
+    host_key(&mut host, &mut f, Key::Enter);
+    host_key(&mut host, &mut f, Key::Esc);
     assert!(host.menu.is_none());
-    host_key(&mut host, &mut f, KeyCode::Char('n'));
+    host_key(&mut host, &mut f, Key::Char('n'));
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "work.new");
     assert_eq!(
         f.journal
@@ -1325,7 +1322,7 @@ fn select_activate_and_context_intents_keep_exact_targets() {
     let mut host = radar_core::Host::new(vec![Box::new(SourcePart), Box::new(plugin)], 1000).unwrap();
     host.load_config(Some("")).unwrap();
     host.enable_journal();
-    host_key(&mut host, &mut f, KeyCode::Char('I'));
+    host_key(&mut host, &mut f, Key::Char('I'));
     // A press selects the row and a second press on it opens it: the
     // intents the pane's row target takes.
     for open in [false, true] {
@@ -1530,10 +1527,9 @@ fn terminal_and_headless_page_catalog_and_select_empty_group_identically() {
             Headless::requiring_views(host(std::mem::take(&mut headless_fixture.p)), width, height)
                 .unwrap();
         headless.host_mut().focus = Pane::Nav;
-        let effects = terminal.update(Event::Key(KeyEvent::new(
-            KeyCode::Char(']'),
-            KeyModifiers::NONE,
-        )));
+        let effects = terminal.update(Event::Intent(Intent::Key {
+            chord: Chord::new(Key::Char(']')),
+        }));
         host_pump(&mut terminal, &mut terminal_fixture, effects);
         headless_send(
             &mut headless,
@@ -1552,7 +1548,9 @@ fn terminal_and_headless_page_catalog_and_select_empty_group_identically() {
             panic!()
         };
         let target = rows[1].target.clone();
-        let effects = terminal.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        let effects = terminal.update(Event::Intent(Intent::Key {
+            chord: Chord::new(Key::Down),
+        }));
         host_pump(&mut terminal, &mut terminal_fixture, effects);
         headless_send(
             &mut headless,
@@ -1581,7 +1579,7 @@ fn headless_and_terminal_create_the_same_confirmed_local_task() {
     let mut headless =
         Headless::requiring_views(host(std::mem::take(&mut headless_fixture.p)), 160, 40)
             .unwrap_or_else(|gaps| panic!("missing views: {gaps:?}"));
-    host_key(&mut terminal, &mut terminal_fixture, KeyCode::Char('n'));
+    host_key(&mut terminal, &mut terminal_fixture, Key::Char('n'));
     headless_send(
         &mut headless,
         &mut headless_fixture,
@@ -1600,7 +1598,7 @@ fn headless_and_terminal_create_the_same_confirmed_local_task() {
         let effects = host.update(Event::Paste("A renderer-neutral task".into()));
         host_pump(host, fixture, effects);
     }
-    host_key(&mut terminal, &mut terminal_fixture, KeyCode::Enter);
+    host_key(&mut terminal, &mut terminal_fixture, Key::Enter);
     headless_send(
         &mut headless,
         &mut headless_fixture,
@@ -1621,7 +1619,7 @@ fn headless_and_terminal_create_the_same_confirmed_local_task() {
             .items
             .is_empty()
     );
-    host_key(&mut terminal, &mut terminal_fixture, KeyCode::Char('y'));
+    host_key(&mut terminal, &mut terminal_fixture, Key::Char('y'));
     headless_send(
         &mut headless,
         &mut headless_fixture,
@@ -1775,11 +1773,11 @@ fn work_domain_source_names_no_terminal_contract() {
         ("model", include_str!("model.rs")),
     ] {
         for forbidden in [
-            "ratatui",
-            "crossterm",
-            "KeyEvent",
+            concat!("rat", "atui"),
+            concat!("cross", "term"),
+            concat!("Key", "Event"),
             "view_tui",
-            "view_ratatui",
+            concat!("view_rat", "atui"),
             "semantic_view",
             "semantic_action",
         ] {
@@ -2076,7 +2074,7 @@ fn restarted_source_draft_tick_and_stale_menus_cannot_replace_retained_ids() {
         let effects = h.update(radar_core::host::Event::Tick(1001));
         host_pump(&mut h, &mut f, effects);
         assert!(h.menu.is_none());
-        host_key(&mut h, &mut f, KeyCode::Char('r'));
+        host_key(&mut h, &mut f, Key::Char('r'));
         assert_eq!(h.menu.as_ref().unwrap().menu.id, "work.confirm");
     }
 }

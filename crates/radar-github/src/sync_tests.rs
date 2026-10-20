@@ -374,7 +374,7 @@ fn a_pull_page_reopens_from_what_was_seen_and_polls_only_running_checks() {
     screen::key(
         &mut p,
         Pane::Middle,
-        chord(radar_core::ratatui::crossterm::event::KeyCode::Esc),
+        chord(radar_core::view::Key::Esc),
     );
     p.open_target(target.clone());
     assert_eq!(

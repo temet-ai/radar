@@ -942,7 +942,7 @@ mod tests {
     use crate::find::fixture::Scratch;
     use crate::notes;
     use radar_core::Plugin;
-    use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use radar_core::view::{Chord, Intent, Key};
 
     const KEY: &str = "ABC-12";
 
@@ -1358,11 +1358,10 @@ mod tests {
         let mut host = radar_core::Host::new(vec![Box::new(WorkspacePlugin::default())], 0).unwrap();
         host.menu = Some(open);
         let at = host.menu.as_ref().unwrap().row;
-        for code in [KeyCode::Down, KeyCode::Char('j')] {
-            host.update(radar_core::host::Event::Key(KeyEvent::new(
-                code,
-                KeyModifiers::NONE,
-            )));
+        for code in [Key::Down, Key::Char('j')] {
+            host.update(radar_core::host::Event::Intent(Intent::Key {
+                chord: Chord::new(code),
+            }));
         }
         assert_eq!(
             host.menu.as_ref().unwrap().row,

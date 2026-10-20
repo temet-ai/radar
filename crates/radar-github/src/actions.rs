@@ -10,9 +10,8 @@ use crate::{
 };
 use radar_core::journal::{ActionDescriptor, Outcome as ReadOutcome};
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome};
-use radar_core::ratatui::text::Line;
 use radar_core::ui::{self, rows::Move, scroll::Scroll};
-use radar_core::view::{Chord, Key};
+use radar_core::view::{Chord, Key, Text};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -911,20 +910,20 @@ pub(crate) fn neutral_blocks(p: &GithubPlugin) -> Vec<radar_core::view::Block> {
     }
     blocks
 }
-pub(crate) fn repository_summary(p: &GithubPlugin, repo: &crate::RepoState) -> Vec<Line<'static>> {
+pub(crate) fn repository_summary(p: &GithubPlugin, repo: &crate::RepoState) -> Vec<Text> {
     let key = Target::Repository(repo.id.clone()).url();
     let Some(state) = p.actions.lists.get(&key) else {
-        return vec![Line::from("Actions have not been loaded.")];
+        return vec![Text::plain("Actions have not been loaded.")];
     };
     let Some(branch) = repo.repository.as_ref().map(|r| r.default_branch.as_str()) else {
-        return vec![Line::from(
+        return vec![Text::plain(
             "Default branch is unknown; Actions health is unknown.",
         )];
     };
     let Some(value) = &state.value else {
-        return vec![Line::from(format!("Actions on {branch} are unknown."))];
+        return vec![Text::plain(format!("Actions on {branch} are unknown."))];
     };
-    let mut out = vec![Line::from(format!("Latest observed Actions on {branch}"))];
+    let mut out = vec![Text::plain(format!("Latest observed Actions on {branch}"))];
     let mut observed = std::collections::BTreeMap::<u64, &WorkflowRun>::new();
     for run in value.items.iter().filter(|r| {
         r.head_branch.as_deref() == Some(branch)
@@ -940,7 +939,7 @@ pub(crate) fn repository_summary(p: &GithubPlugin, repo: &crate::RepoState) -> V
         }
     }
     for run in observed.values() {
-        out.push(Line::from(format!(
+        out.push(Text::plain(format!(
             "{}  {} · #{} attempt {} · updated {}",
             run.status_label(),
             run.name.as_deref().unwrap_or("workflow"),
@@ -950,16 +949,16 @@ pub(crate) fn repository_summary(p: &GithubPlugin, repo: &crate::RepoState) -> V
         )));
     }
     if observed.is_empty() {
-        out.push(Line::from(
+        out.push(Text::plain(
             "No default-branch runs in this observed result.",
         ));
     }
     if state.error.is_some() || !value.completion.complete {
-        out.push(Line::from(
+        out.push(Text::plain(
             "Results are stale or incomplete; current overall health is unknown.",
         ));
     }
-    out.push(Line::from(
+    out.push(Text::plain(
         "Observed workflows only; this does not establish overall repository health.",
     ));
     out
@@ -1009,7 +1008,7 @@ pub(crate) fn key(p: &mut GithubPlugin, event: Chord) -> Option<Outcome> {
                     (s.row, rows(s).len(), s.scroll.height())
                 }
             };
-            let movement = Move::from_key(&radar_core::view_tui::key_of(event), height)?;
+            let movement = Move::from_key(event, height)?;
             let to = ui::rows::select(len, at, movement, |_| true);
             if to == at {
                 return Some(Outcome::Ignored);

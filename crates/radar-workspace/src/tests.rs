@@ -3,7 +3,7 @@
 
 use radar_core::host::{Event, View};
 use radar_core::plugin::{Effect, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Intent, Key};
 use radar_core::{Contribution, Host, Plugin, Point, Setup, Showing, Subject};
 
 use crate::WorkspacePlugin;
@@ -58,9 +58,11 @@ fn shown(host: &Host, width: u16, height: u16) -> String {
     radar_core::headless::text_of(host, width, height)
 }
 
-fn press(host: &mut Host, code: KeyCode) {
+fn press(host: &mut Host, code: Key) {
     let _ = shown(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+    host.update(Event::Intent(Intent::Key {
+        chord: Chord::new(code),
+    }));
 }
 
 /// `key: what` for each action the part adds to a subject.
@@ -310,7 +312,7 @@ fn settings_workspaces_a_workspace_row() {
     section(&mut host, "workspaces");
     host.focus = Pane::Middle;
     for _ in 0..2 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     insta::assert_snapshot!(shown(&host, 160, 40));
 }
@@ -323,14 +325,14 @@ fn adding_a_workspace_is_typed_validated_and_looked_into() {
     section(&mut host, "workspaces");
     host.focus = Pane::Middle;
     // The found workspace is the first row; the add row is next.
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Enter);
     let field = |host: &radar_core::Host| host.menu.as_ref().is_some_and(|m| m.input.is_some());
     assert!(field(&host), "a field to type the folder in");
     for c in "/definitely/not/here".chars() {
-        press(&mut host, KeyCode::Char(c));
+        press(&mut host, Key::Char(c));
     }
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(field(&host), "a folder that is not there is refused");
     assert_eq!(host.message.as_deref(), Some("not yet: not a folder on this machine"));
     // A workspace with clones under repositories/ and notes by ticket.
@@ -342,14 +344,14 @@ fn adding_a_workspace_is_typed_validated_and_looked_into() {
     scratch.file("top/artifacts/2026-01-01/ABC-12-stats/README.md", "# ABC-12\n");
     scratch.file("top/artifacts/ABC-14/README.md", "# ABC-14\n");
     scratch.file("top/artifacts/done/DEF-3/README.md", "# DEF-3\n");
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Enter);
     for c in scratch.path("top").display().to_string().chars() {
-        press(&mut host, KeyCode::Char(c));
+        press(&mut host, Key::Char(c));
     }
     let said = host.menu.as_ref().unwrap().menu.items[0].label.clone();
     assert_eq!(said, "✓ 2 clones under repositories/ · notes by .okf.yaml · tickets ABC, DEF");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!field(&host));
     let cfg = host.plugins[0].config().unwrap();
     let text = toml::to_string(&cfg).unwrap();

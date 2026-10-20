@@ -2,11 +2,18 @@ use super::*;
 use radar_core::check::{Check as RowCheck, Place};
 use radar_core::host::{Event, HostEffect, View};
 use radar_core::view::{Intent, Target as ViewTarget};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Key;
 use model::Completion;
 
-fn key(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn key(code: Key) -> Event {
+    Event::Intent(Intent::Key {
+        chord: Chord::new(code),
+    })
+}
+fn ctrl_key(c: char) -> Event {
+    Event::Intent(Intent::Key {
+        chord: Chord::ctrl(c),
+    })
 }
 pub(crate) fn hosted(p: GithubPlugin) -> radar_core::Host {
     let mut host = radar_core::Host::new(
@@ -23,7 +30,7 @@ pub(crate) fn hosted(p: GithubPlugin) -> radar_core::Host {
 }
 fn settings_host(section: &str) -> radar_core::Host {
     let mut host = hosted(demo::sample());
-    host.update(Event::Key(key(KeyCode::Char(radar_core::host::SETTINGS_KEY))));
+    host.update(key(Key::Char(radar_core::host::SETTINGS_KEY)));
     host.section = host
         .sections
         .iter()
@@ -38,7 +45,7 @@ fn settings_host(section: &str) -> radar_core::Host {
 fn connection_host() -> radar_core::Host {
     let mut host = settings_host("connection");
     for _ in 0..3 {
-        host.update(Event::Key(key(KeyCode::Down)));
+        host.update(key(Key::Down));
     }
     host
 }
@@ -90,7 +97,7 @@ fn rendered_screens_and_settings() {
     places.push(("unknown_checks", hosted(unknown)));
     places.push(("deleted_source_checks", hosted(deleted_source_checks())));
     let mut menu = hosted(demo::sample());
-    menu.update(Event::Key(key(KeyCode::Char('x'))));
+    menu.update(key(Key::Char('x')));
     places.push(("actions", menu));
     let mut repo_page = demo::sample();
     repo_page.open_target(Target::Repository(repo_page.repos[0].id.clone()));
@@ -269,7 +276,7 @@ fn pull_answer(p: &GithubPlugin, pull: PullRequest) -> Answer {
 fn navigation_and_reopen_fence_late_pull_answers() {
     let mut p = demo::page();
     let old = pull_answer(&p, p.pull_detail.clone().unwrap());
-    screen::key(&mut p, Pane::Middle, chord(KeyCode::Esc));
+    screen::key(&mut p, Pane::Middle, chord(Key::Esc));
     let same = p.selected_pull().unwrap().clone();
     p.open_target(Target::Pull(same.repository.clone(), same.number));
     p.receive(old);
@@ -340,7 +347,7 @@ fn links_cannot_replay_after_same_target_refresh_or_replacement() {
         text: "old link".into(),
         url: "https://example.com/old".into(),
     });
-    screen::key(&mut p, Pane::Middle, chord(KeyCode::Enter));
+    screen::key(&mut p, Pane::Middle, chord(Key::Enter));
     p.refresh_page();
     assert!(
         !screen::follow_link(&mut p, "0")
@@ -351,7 +358,7 @@ fn links_cannot_replay_after_same_target_refresh_or_replacement() {
         text: "old link".into(),
         url: "https://example.com/old".into(),
     });
-    screen::key(&mut p, Pane::Middle, chord(KeyCode::Enter));
+    screen::key(&mut p, Pane::Middle, chord(Key::Enter));
     let mut pull = p.pull_detail.clone().unwrap();
     pull.body = Some("new description".into());
     p.receive(pull_answer(&p, pull));
@@ -366,28 +373,22 @@ fn links_cannot_replay_after_same_target_refresh_or_replacement() {
 #[test]
 fn host_typing_paste_validation_save_and_cancel() {
     let mut host = connection_host();
-    host.update(Event::Key(key(KeyCode::Down)));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Down));
+    host.update(key(Key::Enter));
     assert!(host.plugins[0].capturing());
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(ctrl_key('u'));
     host.update(Event::Paste("raw secret value".into()));
     let text = shown(&host, 160, 40);
     assert!(text.to_lowercase().contains("as you type"), "{text}");
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(host.plugins[0].capturing());
     assert_eq!(
         host.plugins[0].config().unwrap()["token"].as_str(),
         Some("env:GITHUB_TOKEN")
     );
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(ctrl_key('u'));
     host.update(Event::Paste("env:SECOND_TOKEN".into()));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(!host.plugins[0].capturing());
     assert_eq!(
         host.plugins[0].config().unwrap()["token"].as_str(),
@@ -398,9 +399,9 @@ fn host_typing_paste_validation_save_and_cancel() {
         host.plugins[0].tick(30).is_empty(),
         "saving a token must not trigger repository reads on the next tick"
     );
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     host.update(Event::Paste("QH".into()));
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     assert_eq!(
         host.plugins[0].config().unwrap()["token"].as_str(),
         Some("env:SECOND_TOKEN")
@@ -416,43 +417,34 @@ fn the_server_row_edits_the_api_address_and_a_default_is_left_out_of_the_file() 
     assert!(text.contains("https://api.github.com"), "{text}");
     assert!(text.contains("[github] api"), "{text}");
     assert!(text.to_lowercase().contains("accepts"), "{text}");
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(host.plugins[0].capturing(), "the server row is typed into");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(ctrl_key('u'));
     host.update(Event::Paste("ftp://nowhere".into()));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(host.plugins[0].capturing(), "a bad address is not kept");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(ctrl_key('u'));
     host.update(Event::Paste("http://127.0.0.1:8123/".into()));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(!host.plugins[0].capturing());
     assert_eq!(
         host.plugins[0].config().unwrap()["api"].as_str(),
         Some("http://127.0.0.1:8123")
     );
     assert!(shown(&host, 160, 40).contains("http://127.0.0.1:8123"));
-    host.update(Event::Key(key(KeyCode::Enter)));
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(key(Key::Enter));
+    host.update(ctrl_key('u'));
     host.update(Event::Paste("https://api.github.com".into()));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(host.plugins[0].config().unwrap().get("api").is_none());
 }
 
 #[test]
 fn add_repository_accepts_exact_url_through_host() {
     let mut host = settings_host("repositories");
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     host.update(Event::Paste("github.com/acme/extra".into()));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     let cfg = host.plugins[0].config().unwrap();
     assert_eq!(
         cfg["groups"][0]["repositories"].as_array().unwrap().len(),
@@ -515,7 +507,7 @@ mod interaction_motion {
         assert_eq!(tree(&host).rows, initial.rows);
         host.update(Event::Intent(Intent::Fold { target: repo_target.clone(), open: false }));
         assert!(host.motion_fold().is_none(), "accepted no-op must not animate");
-        host.update(Event::Key(key(KeyCode::Char('-'))));
+        host.update(key(Key::Char('-')));
         let fold = host.take_motion_fold().expect("closed repository '-' closes its parent");
         assert_eq!(fold.path, group);
         assert!(!tree(&host).open.contains(&group));
@@ -529,7 +521,7 @@ mod interaction_motion {
         pull.push("pull:13".into());
         host.update(Event::Intent(Intent::Select { target: TreeRow::target_of(&pull) }));
         assert!(host.plugins[0].subject("github", Pane::Middle).unwrap().id.ends_with("/13"));
-        host.update(Event::Key(key(KeyCode::Char('-'))));
+        host.update(key(Key::Char('-')));
         let fold = host.take_motion_fold().expect("PR '-' closes its repository");
         assert_eq!(fold.path, repo);
         assert_eq!(tree(&host).selected, repo);
@@ -565,7 +557,7 @@ fn row_intents_select_blank_space_open_and_context_menu() {
     host.update(Event::Intent(Intent::Context { target: row.clone() }));
     assert_eq!(host.plugins[0].depth("github"), 0);
     assert!(host.menu.is_some());
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     host.update(Event::Intent(Intent::Select { target: row.clone() }));
     host.update(Event::Intent(Intent::Activate { target: row }));
     assert_eq!(host.plugins[0].depth("github"), 1);
@@ -588,7 +580,7 @@ fn stale_host_popup_never_copies_a_replacement_row() {
         let new_pull = p.repos[0].pulls.as_ref().unwrap().items[1].clone();
         let answer = repository_answer(&p, vec![new_pull], true);
         let mut host = hosted(p);
-        host.update(Event::Key(key(KeyCode::Char('x'))));
+        host.update(key(Key::Char('x')));
         let _ = shown(&host, 160, 40);
         let menu_index = host
             .menu
@@ -612,9 +604,9 @@ fn stale_host_popup_never_copies_a_replacement_row() {
             host.update(Event::Intent(Intent::Invoke { action }))
         } else if choice == "enter" {
             host.menu.as_mut().unwrap().row = menu_index;
-            host.update(Event::Key(key(KeyCode::Enter)))
+            host.update(key(Key::Enter))
         } else {
-            host.update(Event::Key(key(KeyCode::Char('y'))))
+            host.update(key(Key::Char('y')))
         };
         assert!(!effects.iter().any(|e| matches!(e, HostEffect::Copy(_))));
         assert!(
@@ -622,8 +614,8 @@ fn stale_host_popup_never_copies_a_replacement_row() {
                 .as_ref()
                 .is_some_and(|m| m.contains("changed") || m.contains("reopen"))
         );
-        host.update(Event::Key(key(KeyCode::Char('x'))));
-        let effects = host.update(Event::Key(key(KeyCode::Char('y'))));
+        host.update(key(Key::Char('x')));
+        let effects = host.update(key(Key::Char('y')));
         assert!(
             effects
                 .iter()
@@ -638,12 +630,12 @@ fn unchanged_host_popup_survives_a_background_read() {
     let items = p.repos[0].pulls.as_ref().unwrap().items.clone();
     let answer = repository_answer(&p, items, true);
     let mut host = hosted(p);
-    host.update(Event::Key(key(KeyCode::Char('x'))));
+    host.update(key(Key::Char('x')));
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(answer),
     });
-    let effects = host.update(Event::Key(key(KeyCode::Char('y'))));
+    let effects = host.update(key(Key::Char('y')));
     assert!(
         effects
             .iter()
@@ -681,12 +673,12 @@ fn modified_action_keys_and_foreign_subjects_are_refused() {
 #[test]
 fn page_back_and_tabs_keep_list_selection() {
     let mut host = hosted(demo::sample());
-    host.update(Event::Key(key(KeyCode::Down)));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Down));
+    host.update(key(Key::Enter));
     assert_eq!(host.plugins[0].depth("github"), 1);
-    host.update(Event::Key(key(KeyCode::Char(']'))));
+    host.update(key(Key::Char(']')));
     assert_eq!(host.plugins[0].tabs("github").unwrap().on, 1);
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     assert_eq!(host.plugins[0].depth("github"), 0);
     assert!(
         host.plugins[0]
@@ -705,7 +697,7 @@ fn nested_cross_repository_back_restores_exact_parent_data() {
     let second = p.repos[1].id.clone();
     p.open_target(Target::Repository(first.clone()));
     p.open_target(Target::Repository(second));
-    screen::key(&mut p, Pane::Middle, chord(KeyCode::Esc));
+    screen::key(&mut p, Pane::Middle, chord(Key::Esc));
     assert_eq!(
         p.pages.last().unwrap().target,
         Target::Repository(first.clone())
@@ -731,14 +723,11 @@ fn saved_text(effects: &[HostEffect]) -> Option<&str> {
 fn replace_field(host: &mut radar_core::Host, value: &str) -> Vec<HostEffect> {
     assert!(host.plugins[0].capturing());
     assert!(
-        saved_text(&host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('u'),
-            KeyModifiers::CONTROL
-        ))))
+        saved_text(&host.update(ctrl_key('u')))
         .is_none()
     );
     assert!(saved_text(&host.update(Event::Paste(value.into()))).is_none());
-    host.update(Event::Key(key(KeyCode::Enter)))
+    host.update(key(Key::Enter))
 }
 
 fn reloaded(text: &str) -> radar_core::Host {
@@ -752,8 +741,8 @@ fn public_and_reference_settings_save_acknowledge_and_reload_without_resolving_c
     for value in ["", "env:SYNTHETIC_EXISTING_REFERENCE"] {
         let mut host = connection_host();
         assert!(!host.dirty());
-        host.update(Event::Key(key(KeyCode::Down)));
-        assert!(saved_text(&host.update(Event::Key(key(KeyCode::Enter)))).is_none());
+        host.update(key(Key::Down));
+        assert!(saved_text(&host.update(key(Key::Enter))).is_none());
         let effects = replace_field(&mut host, value);
         let text = saved_text(&effects)
             .expect("committed token must save")
@@ -789,29 +778,29 @@ fn cancelled_invalid_and_fixed_settings_never_save_or_spawn_reads() {
     let before = host.plugins[0].config();
     // Home is the first sign-in choice; the server row is three below it.
     let down = |host: &mut radar_core::Host, n: usize| {
-        host.update(Event::Key(key(KeyCode::Home)));
+        host.update(key(Key::Home));
         for _ in 0..n {
-            host.update(Event::Key(key(KeyCode::Down)));
+            host.update(key(Key::Down));
         }
     };
     down(&mut host, 6);
-    let effects = host.update(Event::Key(key(KeyCode::Enter)));
+    let effects = host.update(key(Key::Enter));
     assert!(effects.is_empty());
     assert!(!host.plugins[0].capturing());
     // The server row is typed into, but a bad address is never kept.
     down(&mut host, 3);
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(host.plugins[0].capturing());
     assert!(replace_field(&mut host, "ftp://elsewhere.test").is_empty());
     assert!(host.plugins[0].capturing());
     assert_eq!(host.plugins[0].config(), before);
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     down(&mut host, 4);
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     assert!(replace_field(&mut host, "bad token with spaces").is_empty());
     assert!(host.plugins[0].capturing());
     assert_eq!(host.plugins[0].config(), before);
-    assert!(host.update(Event::Key(key(KeyCode::Esc))).is_empty());
+    assert!(host.update(key(Key::Esc)).is_empty());
     assert_eq!(host.plugins[0].config(), before);
     assert!(!host.dirty());
     assert!(host.update(Event::Tick(10)).is_empty());
@@ -820,7 +809,7 @@ fn cancelled_invalid_and_fixed_settings_never_save_or_spawn_reads() {
 #[test]
 fn repository_add_edit_duplicate_cancel_and_remove_save_exact_config() {
     let mut host = settings_host("repositories");
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     let effects = replace_field(&mut host, "https://github.com/Acme/Extra");
     let text = saved_text(&effects).unwrap().to_owned();
     assert_eq!(
@@ -828,20 +817,20 @@ fn repository_add_edit_duplicate_cancel_and_remove_save_exact_config() {
         host.plugins[0].config()
     );
     host.update(Event::Saved(Ok(())));
-    host.update(Event::Key(key(KeyCode::Char('n'))));
-    host.update(Event::Key(key(KeyCode::Char('e'))));
+    host.update(key(Key::Char('n')));
+    host.update(key(Key::Char('e')));
     let effects = replace_field(&mut host, "acme/renamed");
     assert!(saved_text(&effects).is_some());
     host.update(Event::Saved(Ok(())));
-    host.update(Event::Key(key(KeyCode::Char('n'))));
+    host.update(key(Key::Char('n')));
     let before = host.plugins[0].config();
-    host.update(Event::Key(key(KeyCode::Home)));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Home));
+    host.update(key(Key::Enter));
     assert!(replace_field(&mut host, "https://elsewhere.example/acme/api").is_empty());
     assert!(host.plugins[0].capturing());
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     assert_eq!(host.plugins[0].config(), before);
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     let effects = replace_field(&mut host, "acme/newdocs");
     assert_eq!(
         host.plugins[0].config().unwrap()["groups"][0]["repositories"]
@@ -852,12 +841,12 @@ fn repository_add_edit_duplicate_cancel_and_remove_save_exact_config() {
     );
     assert!(saved_text(&effects).is_some());
     host.update(Event::Saved(Ok(())));
-    host.update(Event::Key(key(KeyCode::Char('n'))));
-    host.update(Event::Key(key(KeyCode::Char('d'))));
-    assert!(host.update(Event::Key(key(KeyCode::Char('n')))).is_empty());
+    host.update(key(Key::Char('n')));
+    host.update(key(Key::Char('d')));
+    assert!(host.update(key(Key::Char('n'))).is_empty());
     assert!(!host.dirty());
-    host.update(Event::Key(key(KeyCode::Char('d'))));
-    let effects = host.update(Event::Key(key(KeyCode::Char('y'))));
+    host.update(key(Key::Char('d')));
+    let effects = host.update(key(Key::Char('y')));
     let text = saved_text(&effects).unwrap();
     assert_eq!(
         reloaded(text).plugins[0].config().unwrap()["groups"][0]["repositories"]
@@ -878,16 +867,16 @@ fn repository_add_edit_duplicate_cancel_and_remove_save_exact_config() {
 #[test]
 fn failed_settings_save_is_visible_and_write_retries_current_config() {
     let mut host = connection_host();
-    host.update(Event::Key(key(KeyCode::Down)));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Down));
+    host.update(key(Key::Enter));
     let effects = replace_field(&mut host, "");
     let first = saved_text(&effects).unwrap().to_owned();
     host.update(Event::Saved(Err("synthetic disk full".into())));
     assert!(host.unsaved());
-    host.update(Event::Key(key(KeyCode::Char('n'))));
+    host.update(key(Key::Char('n')));
     // The settings navigation says so (the host draws it).
     assert!(host.chrome_view(160, 40).settings.is_some_and(|nav| nav.unsaved));
-    let effects = host.update(Event::Key(key(KeyCode::Char('w'))));
+    let effects = host.update(key(Key::Char('w')));
     assert_eq!(saved_text(&effects), Some(first.as_str()));
     host.update(Event::Saved(Ok(())));
     assert!(!host.unsaved());
@@ -897,9 +886,9 @@ fn failed_settings_save_is_visible_and_write_retries_current_config() {
 #[test]
 fn explicit_access_check_uses_host_task_dispatch_and_empty_settings_explain_why() {
     let mut host = connection_host();
-    host.update(Event::Key(key(KeyCode::Down)));
-    host.update(Event::Key(key(KeyCode::Down)));
-    let effects = host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Down));
+    host.update(key(Key::Down));
+    let effects = host.update(key(Key::Enter));
     assert_eq!(
         effects
             .iter()
@@ -911,7 +900,7 @@ fn explicit_access_check_uses_host_task_dispatch_and_empty_settings_explain_why(
     // Tasks are inspected but never polled: no credentials or network are used.
     let mut empty = settings_host("repositories");
     empty.plugins[0].configure(None).unwrap();
-    let effects = empty.update(Event::Key(key(KeyCode::Char('c'))));
+    let effects = empty.update(key(Key::Char('c')));
     assert_eq!(
         effects
             .iter()
@@ -1038,7 +1027,7 @@ fn repositories_can_move_between_named_groups() {
         ..Settings::default()
     });
     settings::select_repository_row(&mut p, 2);
-    settings::key(&mut p, "repositories", chord(KeyCode::Char('m')));
+    settings::key(&mut p, "repositories", chord(Key::Char('m')));
     settings::on_menu(&mut p, "move:0:0", "1");
     assert!(p.cfg.groups[0].repositories.is_empty());
     assert_eq!(p.cfg.groups[1].repositories, ["acme/api"]);
@@ -1058,7 +1047,7 @@ fn move_offers_to_create_a_destination_when_no_other_group_exists() {
     });
     settings::select_repository_row(&mut p, 2);
     let Outcome::Handled(effects) =
-        settings::key(&mut p, "repositories", chord(KeyCode::Char('m')))
+        settings::key(&mut p, "repositories", chord(Key::Char('m')))
     else {
         panic!("move should open a destination menu");
     };
@@ -1071,7 +1060,7 @@ fn move_offers_to_create_a_destination_when_no_other_group_exists() {
     settings::on_menu(&mut p, &menu.id, "new");
     let editor = p.editor.as_mut().expect("new group name input");
     editor.input.paste("Client work");
-    settings::key(&mut p, "repositories", chord(KeyCode::Enter));
+    settings::key(&mut p, "repositories", chord(Key::Enter));
     assert_eq!(p.cfg.groups.len(), 2);
     assert!(p.cfg.groups[0].repositories.is_empty());
     assert_eq!(p.cfg.groups[1].name, "Client work");
@@ -1090,9 +1079,9 @@ fn bare_group_name_is_custom_and_can_hold_another_owners_repository() {
         }],
         ..Settings::default()
     });
-    settings::key(&mut p, "repositories", chord(KeyCode::Enter));
+    settings::key(&mut p, "repositories", chord(Key::Enter));
     p.editor.as_mut().unwrap().input.paste("favourites");
-    settings::key(&mut p, "repositories", chord(KeyCode::Enter));
+    settings::key(&mut p, "repositories", chord(Key::Enter));
     assert_eq!(p.cfg.groups.len(), 2, "{:?}", p.cfg);
     assert_eq!(p.cfg.groups[1].name, "favourites");
     assert_eq!(p.cfg.groups[1].owner, None);
@@ -1100,7 +1089,7 @@ fn bare_group_name_is_custom_and_can_hold_another_owners_repository() {
 
     settings::select_repository_row(&mut p, 2);
     let Outcome::Handled(effects) =
-        settings::key(&mut p, "repositories", chord(KeyCode::Char('m')))
+        settings::key(&mut p, "repositories", chord(Key::Char('m')))
     else {
         panic!("move should open a destination menu");
     };
@@ -1128,9 +1117,9 @@ fn renaming_an_owner_group_to_a_bare_name_removes_the_owner_restriction() {
         ..Settings::default()
     });
     settings::select_repository_row(&mut p, 1);
-    settings::key(&mut p, "repositories", chord(KeyCode::Char('e')));
+    settings::key(&mut p, "repositories", chord(Key::Char('e')));
     p.editor.as_mut().unwrap().input = radar_core::input::TextInput::new("favourites");
-    settings::key(&mut p, "repositories", chord(KeyCode::Enter));
+    settings::key(&mut p, "repositories", chord(Key::Enter));
     assert_eq!(p.cfg.groups[0].name, "favourites");
     assert_eq!(p.cfg.groups[0].owner, None);
 }
@@ -1145,20 +1134,20 @@ fn owner_input_and_browse_key_start_access_discovery_without_repositories() {
         ..Settings::default()
     });
     assert!(matches!(
-        settings::key(&mut p, "repositories", chord(KeyCode::Char('a'))),
+        settings::key(&mut p, "repositories", chord(Key::Char('a'))),
         Outcome::Handled(_)
     ));
     assert!(p.discovery_loading);
     p.editor = None;
     p.discovery_loading = false;
     assert!(matches!(
-        settings::key(&mut p, "repositories", chord(KeyCode::Enter)),
+        settings::key(&mut p, "repositories", chord(Key::Enter)),
         Outcome::Handled(_)
     ));
     let editor = p.editor.as_mut().unwrap();
     editor.input.paste("github.com/acme-org");
     assert!(matches!(
-        settings::key(&mut p, "repositories", chord(KeyCode::Enter)),
+        settings::key(&mut p, "repositories", chord(Key::Enter)),
         Outcome::Handled(_)
     ));
     assert!(p.discovery_loading);
@@ -1168,8 +1157,8 @@ fn owner_input_and_browse_key_start_access_discovery_without_repositories() {
 #[test]
 fn typed_token_is_masked_after_save_and_checks_without_repositories() {
     let mut host = connection_host();
-    host.update(Event::Key(key(KeyCode::Down)));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Down));
+    host.update(key(Key::Enter));
     let token = "github_pat_synthetic_screen_123";
     let effects = replace_field(&mut host, token);
     assert_eq!(
@@ -1377,11 +1366,11 @@ fn composed_host(
 
 fn choose_probe_action(host: &mut radar_core::Host, choice: &str) -> Vec<HostEffect> {
     if choice == "direct" {
-        return host.update(Event::Key(key(KeyCode::Char('v'))));
+        return host.update(key(Key::Char('v')));
     }
-    host.update(Event::Key(key(KeyCode::Char('x'))));
+    host.update(key(Key::Char('x')));
     if choice == "key" {
-        return host.update(Event::Key(key(KeyCode::Char('v'))));
+        return host.update(key(Key::Char('v')));
     }
     let index = host
         .menu
@@ -1394,7 +1383,7 @@ fn choose_probe_action(host: &mut radar_core::Host, choice: &str) -> Vec<HostEff
         .unwrap();
     if choice == "enter" {
         host.menu.as_mut().unwrap().row = index;
-        host.update(Event::Key(key(KeyCode::Enter)))
+        host.update(key(Key::Enter))
     } else {
         // A press on the row, by the value the menu view gives it.
         let action = host.menu.as_ref().unwrap().menu.items[index].value.clone();
@@ -1428,7 +1417,7 @@ fn foreign_contribution_actions_use_host_keys_enter_and_mouse_with_owned_identit
         assert_eq!(subject.field("head_sha"), Some("a".repeat(40).as_str()));
     }
     let (mut host, state) = composed_host(demo::sample(), true);
-    host.update(Event::Key(key(KeyCode::Char('x'))));
+    host.update(key(Key::Char('x')));
     let conflicting = host
         .menu
         .as_ref()
@@ -1439,7 +1428,7 @@ fn foreign_contribution_actions_use_host_keys_enter_and_mouse_with_owned_identit
         .find(|item| item.label == "conflicting copy")
         .unwrap();
     assert!(conflicting.keys.is_empty());
-    let effects = host.update(Event::Key(key(KeyCode::Char('y'))));
+    let effects = host.update(key(Key::Char('y')));
     assert!(
         effects
             .iter()
@@ -1494,10 +1483,10 @@ fn native_links_route_through_host_and_back_preserves_origin_focus() {
     ] {
         let (mut host, state) = composed_host(demo::sample(), true);
         state.lock().unwrap().link = url.into();
-        host.update(Event::Key(key(KeyCode::Char('P'))));
+        host.update(key(Key::Char('P')));
         host.focus = Pane::Detail;
         let origin = host.view;
-        let effects = host.update(Event::Key(key(KeyCode::Char('n'))));
+        let effects = host.update(key(Key::Char('n')));
         if native {
             assert_ne!(host.view, origin);
             assert!(
@@ -1506,7 +1495,7 @@ fn native_links_route_through_host_and_back_preserves_origin_focus() {
                     .all(|effect| !matches!(effect, HostEffect::Open(_)))
             );
             assert_eq!(host.plugins[0].depth("github"), 1);
-            host.update(Event::Key(key(KeyCode::Esc)));
+            host.update(key(Key::Esc));
             assert_eq!((host.view, host.focus), (origin, Pane::Detail));
         } else {
             assert_eq!(host.view, origin);
@@ -1528,7 +1517,7 @@ fn description_links_open_foreign_native_pages_and_return_to_current_page() {
     let (mut host, state) = composed_host(p, true);
     let original = host.view;
     shown(&host, 160, 40);
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(key(Key::Enter));
     let index = host
         .menu
         .as_ref()
@@ -1539,7 +1528,7 @@ fn description_links_open_foreign_native_pages_and_return_to_current_page() {
         .position(|item| item.label == "the guide")
         .unwrap();
     host.menu.as_mut().unwrap().row = index;
-    let effects = host.update(Event::Key(key(KeyCode::Enter)));
+    let effects = host.update(key(Key::Enter));
     assert!(
         effects
             .iter()
@@ -1547,7 +1536,7 @@ fn description_links_open_foreign_native_pages_and_return_to_current_page() {
     );
     assert_ne!(host.view, original);
     assert_eq!(state.lock().unwrap().depth, 1);
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     assert_eq!(host.view, original);
     assert_eq!(host.plugins[0].depth("github"), 1);
 }
@@ -1603,7 +1592,7 @@ fn contributed_popup_rejects_changed_source_same_pull_on_every_dispatch_path() {
         items[0].head_sha = "b".repeat(40);
         let answer = repository_answer(&p, items, true);
         let (mut host, state) = composed_host(p, true);
-        host.update(Event::Key(key(KeyCode::Char('x'))));
+        host.update(key(Key::Char('x')));
         shown(&host, 160, 40);
         let index = host
             .menu
@@ -1627,9 +1616,9 @@ fn contributed_popup_rejects_changed_source_same_pull_on_every_dispatch_path() {
             host.update(Event::Intent(Intent::Invoke { action }))
         } else if choice == "enter" {
             host.menu.as_mut().unwrap().row = index;
-            host.update(Event::Key(key(KeyCode::Enter)))
+            host.update(key(Key::Enter))
         } else {
-            host.update(Event::Key(key(KeyCode::Char('v'))))
+            host.update(key(Key::Char('v')))
         };
         assert!(
             effects
@@ -1657,22 +1646,22 @@ fn unchanged_contributed_popup_survives_background_read_but_not_reconfiguration(
     let p = demo::sample();
     let answer = repository_answer(&p, p.repos[0].pulls.as_ref().unwrap().items.clone(), true);
     let (mut host, state) = composed_host(p, true);
-    host.update(Event::Key(key(KeyCode::Char('x'))));
+    host.update(key(Key::Char('x')));
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(answer),
     });
-    let effects = host.update(Event::Key(key(KeyCode::Char('v'))));
+    let effects = host.update(key(Key::Char('v')));
     assert!(
         effects
             .iter()
             .any(|effect| matches!(effect, HostEffect::Copy(text) if text == "probe:inspect"))
     );
     assert_eq!(state.lock().unwrap().actions.len(), 1);
-    host.update(Event::Key(key(KeyCode::Char('x'))));
+    host.update(key(Key::Char('x')));
     let cfg = host.plugins[0].config().unwrap();
     host.plugins[0].configure(Some(&cfg)).unwrap();
-    let effects = host.update(Event::Key(key(KeyCode::Char('v'))));
+    let effects = host.update(key(Key::Char('v')));
     assert!(
         effects
             .iter()
@@ -1729,12 +1718,12 @@ fn settings_context_selects_without_editing_or_checking_and_blank_dismisses() {
             .detail_title,
         "token"
     );
-    host.update(Event::Key(key(KeyCode::Char('e'))));
+    host.update(key(Key::Char('e')));
     assert!(host.plugins[0].capturing());
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     host.update(Event::Intent(Intent::Context { target: row }));
     assert!(host.menu.is_some());
-    host.update(Event::Key(key(KeyCode::Esc)));
+    host.update(key(Key::Esc));
     assert!(host.menu.is_none());
     assert!(!host.plugins[0].capturing());
     assert!(!host.dirty());
@@ -1768,11 +1757,11 @@ fn list_preview_renders_cached_line_and_fences_action_hits_on_selection_and_refr
         );
         assert_eq!(state.lock().unwrap().actions[0].1.id, expected);
         host.focus = Pane::Middle;
-        host.update(Event::Key(key(if repository {
-            KeyCode::Up
+        host.update(key(if repository {
+            Key::Up
         } else {
-            KeyCode::Down
-        })));
+            Key::Down
+        }));
         // The target drawn for the earlier selection is stale.
         let effects = host.update(Event::Intent(Intent::Select { target }));
         assert!(

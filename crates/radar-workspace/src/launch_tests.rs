@@ -5,7 +5,7 @@ use super::*;
 use radar_core::Host;
 use radar_core::host::{Event, HostEffect, JournalRecord};
 use radar_core::journal::ActionId;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Intent, Key};
 
 #[test]
 fn launch_scopes_capture_workspace_and_exact_target_without_ui_text() {
@@ -312,10 +312,9 @@ fn editor_menu(host: &mut Host) -> (ActionId, Vec<HostEffect>) {
 fn choosing_an_editor_completes_the_original_launch_without_another_marker() {
     let mut host = host();
     let (action, _) = editor_menu(&mut host);
-    let selected = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
-    )));
+    let selected = host.update(Event::Intent(Intent::Key {
+        chord: Chord::new(Key::Enter),
+    }));
     let context = task(&selected);
     assert_eq!(context.1.as_ref(), Some(&action));
     assert!(!records(&selected).iter().any(|r| matches!(r,
@@ -338,7 +337,9 @@ fn choosing_an_editor_completes_the_original_launch_without_another_marker() {
 fn cancelling_the_editor_chooser_cancels_the_original_launch() {
     let mut host = host();
     let (action, _) = editor_menu(&mut host);
-    let cancelled = host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+    let cancelled = host.update(Event::Intent(Intent::Key {
+        chord: Chord::new(Key::Esc),
+    }));
     assert_eq!(terminal(&cancelled, &action), [JournalOutcome::Cancelled]);
     assert!(host.menu.is_none());
     assert!(!cancelled.iter().any(|e| matches!(e, HostEffect::Tracked { effect, .. } if matches!(&**effect, HostEffect::Spawn { .. }))));

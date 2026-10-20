@@ -4,12 +4,13 @@ use radar_core::Host;
 use radar_core::Plugin as _;
 use crate::tests::{shown, top_bar_words};
 use radar_core::host::{Event, HostEffect};
-use radar_core::view::Intent;
 use radar_core::plugin::{DEMO_NOW, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Intent, Key};
 
-fn event(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn event(code: Key) -> Event {
+    Event::Intent(Intent::Key {
+        chord: Chord::new(code),
+    })
 }
 fn hosted(p: GithubPlugin) -> Host {
     let mut h = Host::new(vec![Box::new(GithubPlugin::default())], DEMO_NOW).unwrap();
@@ -95,10 +96,10 @@ fn independent_step_rows_include_the_last_step() {
     state.jobs.as_mut().unwrap().items.truncate(1);
     screen::show_tab(&mut p, 1);
     let mut h = hosted(p);
-    h.update(Event::Key(event(KeyCode::End)));
+    h.update(event(Key::End));
     let text = shown(&h, 80, 24);
     assert!(text.contains("step-40"), "{text}");
-    let fx = h.update(Event::Key(event(KeyCode::Char('o'))));
+    let fx = h.update(event(Key::Char('o')));
     assert!(fx.iter().any(
         |fx| matches!(fx,HostEffect::Open(url) if url.ends_with("/actions/runs/501/job/701"))
     ));
@@ -112,7 +113,7 @@ fn pr_parent_snapshot_survives_run_back_and_overview_checks_tabs() {
     screen::show_tab(&mut p, 2);
     p.open_target(Target::Run(original.repository.clone(), 501, 2));
     assert!(p.pull_detail.is_none());
-    screen::key(&mut p, Pane::Middle, crate::chord(KeyCode::Esc));
+    screen::key(&mut p, Pane::Middle, crate::chord(Key::Esc));
     assert_eq!(p.pull_detail, Some(original));
     assert_eq!(p.checks, checks);
     screen::show_tab(&mut p, 0);
@@ -129,7 +130,7 @@ fn leaving_invalidates_loading_so_immediate_reentry_can_fetch() {
     let fx = refresh(&mut p);
     assert_eq!(fx.len(), 1);
     let old = p.actions.lists[&target.url()].request;
-    screen::key(&mut p, Pane::Middle, crate::chord(KeyCode::Esc));
+    screen::key(&mut p, Pane::Middle, crate::chord(Key::Esc));
     p.open_target(target.clone());
     let next = screen::show_tab(&mut p, 2);
     assert_eq!(next.len(), 1);
@@ -184,7 +185,7 @@ fn default_branch_summary_omits_fork_and_pr_events_and_uses_latest_observation()
     values.extend([latest, fork, pr]);
     let words = repository_summary(&p, &p.repos[0])
         .iter()
-        .map(ToString::to_string)
+        .map(|text| text.plain_words())
         .collect::<Vec<_>>()
         .join("\n");
     assert!(words.contains("latest-safe"));
@@ -217,7 +218,7 @@ fn late_run_result_reports_original_outcome_then_application_skip() {
     let generation = p.generation;
     let value = p.actions.runs[&target.url()].value.clone().unwrap();
     let jobs = p.actions.runs[&target.url()].jobs.clone().unwrap();
-    screen::key(&mut p, Pane::Middle, crate::chord(KeyCode::Esc));
+    screen::key(&mut p, Pane::Middle, crate::chord(Key::Esc));
     let effects = receive(
         &mut p,
         Answer::Run {
@@ -372,7 +373,7 @@ fn run_popup_rejects_replaced_attempt_on_every_dispatch_path() {
             reply: sync::Reply::default(),
         };
         let mut h = hosted(p);
-        h.update(Event::Key(event(KeyCode::Char('x'))));
+        h.update(event(Key::Char('x')));
         shown(&h, 160, 40);
         let menu_index = h
             .menu
@@ -396,9 +397,9 @@ fn run_popup_rejects_replaced_attempt_on_every_dispatch_path() {
             h.update(Event::Intent(Intent::Invoke { action }))
         } else if choice == "enter" {
             h.menu.as_mut().unwrap().row = menu_index;
-            h.update(Event::Key(event(KeyCode::Enter)))
+            h.update(event(Key::Enter))
         } else {
-            h.update(Event::Key(event(KeyCode::Char('y'))))
+            h.update(event(Key::Char('y')))
         };
         assert!(
             !fx.iter().any(|e| matches!(e, HostEffect::Copy(_))),
@@ -429,12 +430,12 @@ fn run_popup_survives_unchanged_target_refresh_reordering() {
         reply: sync::Reply::default(),
     };
     let mut h = hosted(p);
-    h.update(Event::Key(event(KeyCode::Char('x'))));
+    h.update(event(Key::Char('x')));
     h.update(Event::Msg {
         plugin: 0,
         msg: Box::new(crate::Answer::Actions(Box::new(answer))),
     });
-    let fx = h.update(Event::Key(event(KeyCode::Char('y'))));
+    let fx = h.update(event(Key::Char('y')));
     assert!(fx.iter().any(
         |e| matches!(e,HostEffect::Copy(url)if url.ends_with("/actions/runs/501/attempts/2"))
     ));
@@ -515,7 +516,7 @@ fn untrusted_actions_text_cannot_emit_terminal_controls_in_cells_or_menus() {
         let mut h = hosted(p);
         for menu in [false, true] {
             if menu {
-                h.update(Event::Key(event(KeyCode::Char('x'))));
+                h.update(event(Key::Char('x')));
             }
             let text = shown(&h, 160, 40);
             // The host strips the controls from every part's view data

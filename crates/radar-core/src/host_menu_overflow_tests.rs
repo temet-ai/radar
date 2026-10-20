@@ -1,4 +1,11 @@
 //! Reading a long menu never changes the action, drops text, or hides its field.
+//!
+//! Where the dropped painter-only coverage went: the mouse wheel is Ink's
+//! (`ink/test/input/input.test.ts`, "the wheel is k/j on the body and ↑/↓ in
+//! a menu"), and paging by those keys is tested here. A click on a wrapped
+//! continuation line choosing its original item has no test of its own in
+//! Ink: a menu item is one target in view data whatever its wrapping, so the
+//! host never sees the line; that mapping is Ink's layout, untested.
 
 use super::*;
 use crate::plugin::{Typing, Verdict};

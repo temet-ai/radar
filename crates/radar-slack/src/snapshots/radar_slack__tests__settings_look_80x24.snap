@@ -1,29 +1,40 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 588
-expression: "to_text(&host, 80, 24)"
+expression: "shown(&host, 80, 24)"
 ---
- radar    Slack ●   History   Settings (,)                               ✎ edit
-╭ 1 settings ──────────╮╭ 2 look ──────────────────────────────────────────────╮
-│General               ││ MESSAGES                                             █
-│  ├─ parts            ││   density                                    compact █
-│  ├─ mode             ││   author   who wrote a message        links and keys █
-│  ├─ appearance       ││   you                                         accent █
-│  ├─ colours          ││   pinged                              warning · bold ║
-│  └─ icons            ││   mention                               third accent ║
-│Slack                 ││   link     a link                   info · underline ║
-│  ├─ connection       ││   emoji                                   muted text ║
-│  ├─ channels         ││   code     code, inline or in a block    data string ║
-│  ├─ review           │╰──────────────────────────────────────────────────────╯
-│  ├─ alerts           │╭ 3 density ───────────────────────────────────────────╮
-│  └─ look             ││ How the messages of a thread, the detail pane and a  █
-│                      ││ direct message are laid out.                         █
-│                      ││                                                      █
-│                      ││ compact  in use                                      █
-│                      ││ One line a message: the time, the author in a        █
-│                      ││ column, then the text. The author is left blank for  ║
-│                      ││ the same person within five minutes. A thin line     ║
-│                      ││ marks a new day, and a thread's replies sit under    ║
-│                      ││ one divider. In a narrow panel the author and time   ║
-╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                  slack
+── section · look ──
+  # MESSAGES  {row:0}
+> density  how a thread's messages are laid out  compact  {row:1}
+  author  who wrote a message  links and keys  {row:2}
+  you  the reader, in place of their own name  accent  {row:3}
+  pinged  a mention of you or your groups  warning · bold  {row:4}
+  mention  a mention of someone else, a group or a channel  third accent  {row:5}
+  link  a link  info · underline  {row:6}
+  emoji  a custom emoji, shown as its :name:  muted text  {row:7}
+  code  code, inline or in a block  data string  {row:8}
+  quote  a quoted line  secondary text · italic  {row:9}
+  new  what is new since you caught up  success · bold  {row:10}
+  time  when  muted text  {row:11}
+  channel  a channel's name  main text · bold  {row:12}
+  # MESSAGES TREE  {row:13}
+  band  the shade behind every other thread  overlays  {row:14}
+  heading  the shade behind a day's or a group's heading  overlays  {row:15}
+  lines  the tree lines joining threads and replies  muted text  {row:16}
+  # ALERTS  {row:17}
+  firing  an alert that is firing  error · bold  {row:18}
+  failed  a job that failed  error · bold  {row:19}
+  resolved  an alert that resolved  success  {row:20}
+  priority  an alert's priority  warning  {row:21}
+  unmapped  an alert no rule places, and its group  muted text · italic  {row:22}
+── detail · density ──
+How the messages of a thread, the detail pane and a direct message are laid out.
+
+compact  in use
+One line a message: the time, the author in a column, then the text. The author is left blank for the same person within five minutes. A thin line marks a new day, and a thread's replies sit under one divider. In a narrow panel the author and time take a line and the text sits under it.
+
+cozy
+The roomier layout: the author, place and date on a line, the text under it, the reactions on a line of their own, a blank line between messages, and replies two cells in.
+
+config: [slack] density = "compact" or "cozy"
+── status · SETTINGS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

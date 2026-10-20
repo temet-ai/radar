@@ -4,9 +4,10 @@ use super::*;
 use crate::Via;
 use crate::client::{ListEvidence, MessagesRead, Recorded};
 use crate::demo::{self, BOB, NOW, TEAM};
-use radar_core::host::{Event, Hit, HostEffect, MouseKind};
+use radar_core::host::{Event, HostEffect};
+use radar_core::view::{Intent, Target};
 use radar_core::ratatui::crossterm::event::KeyModifiers;
-use radar_core::shell::to_text;
+use crate::tests::shown;
 use radar_core::{Host, Plugin};
 use std::sync::{Arc, Mutex};
 
@@ -43,7 +44,7 @@ fn fixture(words: &str, extra: Option<Box<dyn Plugin>>) -> (Host, Arc<Recorded>)
     let mut host = Host::new(plugins, NOW).unwrap();
     host.load_config(Some("")).unwrap();
     host.plugins[0] = Box::new(p);
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     (host, recorded)
 }
 
@@ -54,7 +55,7 @@ fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
 fn popup(host: &mut Host) {
     press(host, KeyCode::Char('x'));
     assert!(host.menu.is_some());
-    to_text(host, 160, 40);
+    shown(host, 160, 40);
 }
 
 fn refresh(host: &mut Host, words: &str) {
@@ -92,18 +93,9 @@ fn choose(host: &mut Host, how: &str) -> Vec<HostEffect> {
                 .iter()
                 .position(|item| item.key == Some('y'))
                 .unwrap();
-            let area = host
-                .hits
-                .borrow()
-                .iter()
-                .find_map(|(area, hit)| (*hit == Hit::MenuItem(i)).then_some(*area))
-                .unwrap();
-            host.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column: area.x,
-                row: area.y,
-                at_ms: 1000,
-            })
+            // A press on the item: the choice, by the value the menu view gives it.
+            let action = host.menu.as_ref().unwrap().menu.items[i].value.clone();
+            host.update(Event::Intent(Intent::Invoke { action }))
         }
         _ => unreachable!(),
     }
@@ -138,16 +130,6 @@ fn refused(host: &mut Host, effects: &[HostEffect]) {
             .expect("recovery guidance is accessible in recent notices");
         assert_eq!(history.selected, 0);
         assert_eq!(history.detail.as_ref().unwrap().text, message);
-        let frame = to_text(host, width, height);
-        assert!(frame.contains("Recent notices"));
-        assert!(
-            frame
-                .split_whitespace()
-                .collect::<Vec<_>>()
-                .join(" ")
-                .contains(&message),
-            "the selected notice keeps the full recovery guidance readable: {frame}"
-        );
     }
     assert!(press(host, KeyCode::Esc).is_empty());
     assert_eq!(host.view, previous_view);
@@ -163,11 +145,11 @@ fn popup_link_refresh_cannot_retarget_before_or_after_redraw_by_key_enter_or_cli
             popup(&mut host);
             refresh(&mut host, &format!("<{B}|second>"));
             if redraw {
-                to_text(&host, 160, 40);
+                shown(&host, 160, 40);
             }
             let effects = choose(&mut host, how);
             refused(&mut host, &effects);
-            to_text(&host, 160, 40);
+            shown(&host, 160, 40);
             popup(&mut host);
             assert_eq!(targets(&choose(&mut host, how)), [B]);
             assert!(recorded.requests().is_empty());
@@ -184,7 +166,7 @@ fn unchanged_link_survives_refresh_and_labels_or_counts_changing() {
             &mut host,
             &format!("<{A}|a renamed link> <{B}|another link>"),
         );
-        to_text(&host, 160, 40);
+        shown(&host, 160, 40);
         assert_eq!(targets(&choose(&mut host, how)), [A]);
         assert!(recorded.requests().is_empty());
     }
@@ -194,20 +176,8 @@ fn unchanged_link_survives_refresh_and_labels_or_counts_changing() {
 fn popup_captures_the_selected_nonzero_link_and_not_the_first_row() {
     for same in [false, true] {
         let (mut host, recorded) = fixture(&format!("<{A}|first> <{B}|second>"), None);
-        let area = host
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(area, hit)| {
-                matches!(hit, Hit::Plugin { id, .. } if id == "link:1").then_some(*area)
-            })
-            .unwrap();
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: area.x,
-            row: area.y,
-            at_ms: 100,
-        });
+        // A press on the second link, by the target the page view gives it.
+        host.update(Event::Intent(Intent::Select { target: Target::new("link:1") }));
         assert!(matches!(
             slack(&host).pages.last(),
             Some(Page::Thread { row: 1, .. })
@@ -219,7 +189,7 @@ fn popup_captures_the_selected_nonzero_link_and_not_the_first_row() {
             "https://example.com/replacement"
         };
         refresh(&mut host, &format!("<{A}|first> <{next}|second>"));
-        to_text(&host, 160, 40);
+        shown(&host, 160, 40);
         let effects = choose(&mut host, "copy");
         if same {
             assert_eq!(targets(&effects), [B]);
@@ -285,7 +255,7 @@ fn missing_links_account_revisions_and_changed_thread_cannot_borrow_a_popup() {
                 _ => unreachable!(),
             }
             if redraw {
-                to_text(&host, 160, 40);
+                shown(&host, 160, 40);
             }
             let effects = choose(&mut host, "copy");
             refused(&mut host, &effects);
@@ -413,7 +383,7 @@ fn recognised_subject_url_and_routing_fields_are_guarded_even_when_subject_equal
                     "public Subject equality is intentionally unchanged"
                 );
             }
-            to_text(&host, 160, 40);
+            shown(&host, 160, 40);
             let effects = choose(&mut host, how);
             refused(&mut host, &effects);
             assert!(recorded.requests().is_empty());
@@ -433,9 +403,9 @@ fn private_link_context_is_absent_from_host_records_and_persisted_history() {
     let (mut host, recorded) = fixture("TARGET", Some(Box::new(Recogniser(target.clone()))));
     host.enable_journal();
     let mut effects = press(&mut host, KeyCode::Char('x'));
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     target.lock().unwrap().url = Some(B.into());
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     effects.extend(choose(&mut host, "copy"));
     let records: Vec<_> = effects
         .into_iter()
@@ -510,7 +480,7 @@ fn private_link_context_is_absent_from_host_records_and_persisted_history() {
 fn direct_keys_and_unrelated_popup_actions_keep_working_after_link_changes() {
     let (mut host, recorded) = fixture(&format!("<{A}|first>"), None);
     refresh(&mut host, &format!("<{B}|second>"));
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     assert_eq!(targets(&press(&mut host, KeyCode::Char('y'))), [B]);
     popup(&mut host);
     refresh(&mut host, &format!("<{A}|first>"));
@@ -523,7 +493,7 @@ fn direct_keys_and_unrelated_popup_actions_keep_working_after_link_changes() {
     assert_eq!(host.menu.as_ref().unwrap().menu.id, confirm);
     press(&mut host, KeyCode::Char('n'));
     assert!(host.menu.is_none());
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     popup(&mut host);
     refresh(&mut host, &format!("<{A}|first>"));
     press(&mut host, KeyCode::Char('c'));

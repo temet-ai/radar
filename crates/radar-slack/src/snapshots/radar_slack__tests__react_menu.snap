@@ -1,0 +1,13 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: menu_shown(&host)
+---
+── menu · react to Bob Builder's message ──
+> eyes on it  (e)  :eyes:
+  done  (d)  :white_check_mark:
+  plus one  (p)  :+1:
+  thanks  (t)  :pray:
+  raise hands  (r)  :raised_hands:
+── status · SLACK ──
+↑↓ move  ⏎ choose  esc close
+7 new · 4 for you

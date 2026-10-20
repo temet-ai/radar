@@ -1,0 +1,15 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: menu_shown(&host)
+---
+── menu · api !263 ──
+> open its page  (⏎)
+  # Slack
+  ask for review in Slack…  (a)
+  open its review ask's thread  (t)
+  recent notices (this session)  (~)
+  # History
+  recent activity (last 24 hours)  (H)
+  all activity history
+── status · CODE ──
+↑↓ move  ⏎ choose  esc close

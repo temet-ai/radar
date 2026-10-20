@@ -394,29 +394,10 @@ fn host_late_incomplete_negative_cannot_replace_newer_feedback_after_token_chang
 
 #[test]
 fn add_detail_keeps_pending_success_and_failure_feedback_before_static_help() {
-    use radar_core::view_tui::Cx;
-    use radar_core::ratatui::{buffer::Buffer, layout::Rect};
-    use std::cell::{Cell, RefCell};
-
     let (mut p, _) = sample(vec![page(vec![], ""), page(vec![], "")]);
     let (_, task) = start(&mut p, "add", Err("PRIVATE_NAME"));
     p.on_msg(run(task));
     let failure = p.checks["add"].0.clone();
-    let theme = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-    let cursor = Cell::new(None);
-    let hits = RefCell::new(vec![]);
-    let plugins: Vec<Box<dyn Plugin>> = vec![];
-    let cx = Cx {
-        theme: &theme,
-        now: p.now,
-        focused: false,
-        focus: radar_core::Pane::Middle,
-        bar: false,
-        tabs: false,
-        cursor: &cursor,
-        hits: &hits,
-        parts: radar_core::compose::Parts::new(&plugins, None),
-    };
     for (state, expected) in [
         (None, None),
         (Some(Check::Running), Some("checking with Slack…")),
@@ -433,17 +414,11 @@ fn add_detail_keeps_pending_success_and_failure_feedback_before_static_help() {
         if let Some(state) = state {
             p.checks.insert("add".into(), (state, p.now));
         }
-        let area = Rect::new(0, 0, 22, 22);
-        let mut buf = Buffer::empty(area);
-        radar_core::view_tui::render_section_detail(&settings::channels_view(&p, area.width, p.now), area, &mut buf, &cx);
-        let lines: Vec<String> = (0..area.height)
-            .map(|y| (0..area.width).map(|x| buf[(x, y)].symbol()).collect())
-            .collect();
-        let text = lines
-            .join(" ")
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .join(" ");
+        // The section's detail as view text, its lines joined.
+        let view = settings::channels_view(&p, 22, p.now);
+        let section = radar_core::headless::text::section(&view);
+        let detail = section.split("── detail").nth(1).and_then(|d| d.split_once('\n')).expect("the detail").1;
+        let text = detail.split_whitespace().collect::<Vec<_>>().join(" ");
         if let Some(expected) = expected {
             let result_at = text.find(expected).unwrap_or_else(|| panic!("{text}"));
             assert!(

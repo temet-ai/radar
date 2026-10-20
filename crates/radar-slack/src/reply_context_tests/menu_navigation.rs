@@ -2,8 +2,8 @@
 
 use super::*;
 use radar_core::Host;
-use radar_core::host::{Hit, MouseKind};
-use radar_core::shell::to_text;
+use radar_core::view::Intent;
+use crate::tests::shown;
 
 mod setup_footer;
 
@@ -106,7 +106,7 @@ fn host_recovery_navigation_and_escape_preserve_draft_and_retained_rows() {
             (KeyCode::Down, 1),
             (KeyCode::Char('k'), 0),
         ] {
-            to_text(&host, 80, 24);
+            shown(&host, 80, 24);
             press(&mut host, code, KeyModifiers::NONE);
             let menu = host.menu.as_ref().expect("navigation keeps the menu open");
             assert_eq!(menu.menu.id, id, "{settings}/{configured}/{code:?}");
@@ -139,7 +139,7 @@ fn host_recovery_keep_shortcut_is_explicit_and_single_use_without_credentials() 
             (Some('s'), "s", "keep")
         );
         assert_eq!(keep.label, "stay with current draft");
-        to_text(&host, 80, 24);
+        shown(&host, 80, 24);
         press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
         assert!(!slack(&host).capturing());
         assert_eq!(kept_texts(slack(&host)), [TEXT, ACTIVE]);
@@ -158,7 +158,7 @@ fn host_recovery_keep_shortcut_is_explicit_and_single_use_without_credentials() 
                 .all(|item| item.key.is_none())
         );
         let after = state(&host);
-        to_text(&host, 80, 24);
+        shown(&host, 80, 24);
         press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
         assert_eq!(state(&host), after, "repeated shortcut cannot keep twice");
         press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
@@ -173,7 +173,7 @@ fn host_recovery_modified_keys_do_not_borrow_keep_copy_or_navigation() {
     let (mut host, recorded, _mode) = fixture(false, true);
     let before = state(&host);
     let id = open(&mut host);
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     for (code, modifiers) in [
         (KeyCode::Char('s'), KeyModifiers::CONTROL),
         (KeyCode::Char('s'), KeyModifiers::ALT),
@@ -221,7 +221,7 @@ fn host_recovery_keep_rejects_newer_editor_or_connection_context() {
     for change in ["edit", "target", "connection"] {
         let (mut host, recorded, _mode) = fixture(false, true);
         open(&mut host);
-        to_text(&host, 80, 24);
+        shown(&host, 80, 24);
         let p = slack_mut(&mut host);
         match change {
             "edit" => {
@@ -244,8 +244,15 @@ fn host_recovery_keep_rejects_newer_editor_or_connection_context() {
 }
 
 #[test]
-fn host_recovery_keep_enter_and_repeated_click_retain_only_one_copy() {
-    for (width, height, click) in [(80, 24, false), (80, 24, true), (160, 40, true)] {
+fn host_recovery_keep_enter_and_repeated_choice_retain_only_one_copy() {
+    // A press on the menu's third row, by the value the menu view gives it.
+    fn press_keep_row(host: &mut Host) {
+        let action = host.menu.as_ref().and_then(|m| m.menu.items.get(2)).map(|item| item.value.clone());
+        if let Some(action) = action {
+            update(host, Event::Intent(Intent::Invoke { action }));
+        }
+    }
+    for click in [false, true] {
         let (mut host, recorded, _mode) = fixture(false, true);
         open(&mut host);
         press(&mut host, KeyCode::Down, KeyModifiers::NONE);
@@ -254,36 +261,13 @@ fn host_recovery_keep_enter_and_repeated_click_retain_only_one_copy() {
             host.menu.as_ref().unwrap().menu.items[host.menu.as_ref().unwrap().row].value,
             "keep"
         );
-        to_text(&host, width, height);
+        shown(&host, 160, 40);
         if click {
-            let area = host
-                .hits
-                .borrow()
-                .iter()
-                .find_map(|(area, hit)| (*hit == Hit::MenuItem(2)).then_some(*area))
-                .expect("rendered keep row");
-            for at_ms in [1000, 1100] {
-                // The second press deliberately precedes a redraw of the replacement menu.
-                update(
-                    &mut host,
-                    Event::Mouse {
-                        kind: MouseKind::Press,
-                        column: area.x,
-                        row: area.y,
-                        at_ms,
-                    },
-                );
-            }
-            to_text(&host, width, height);
-            update(
-                &mut host,
-                Event::Mouse {
-                    kind: MouseKind::Press,
-                    column: area.x,
-                    row: area.y,
-                    at_ms: 1200,
-                },
-            );
+            // The second press comes before the replacement menu was shown.
+            press_keep_row(&mut host);
+            press_keep_row(&mut host);
+            shown(&host, 160, 40);
+            press_keep_row(&mut host);
         } else {
             press(&mut host, KeyCode::Enter, KeyModifiers::NONE);
         }
@@ -294,25 +278,13 @@ fn host_recovery_keep_enter_and_repeated_click_retain_only_one_copy() {
 }
 
 #[test]
-fn host_recovery_keep_menu_shows_its_non_navigation_shortcut_at_both_sizes() {
+fn host_recovery_keep_menu_shows_its_non_navigation_shortcut() {
     let (mut host, recorded, _mode) = fixture(false, true);
     open(&mut host);
     press(&mut host, KeyCode::Down, KeyModifiers::NONE);
     press(&mut host, KeyCode::Down, KeyModifiers::NONE);
-    for (width, height) in [(80, 24), (160, 40)] {
-        let screen = to_text(&host, width, height);
-        assert!(screen.contains("stay with current draft"), "{screen}");
-        insta::assert_snapshot!(format!("kept_reply_menu_{width}x{height}"), screen);
-        if let Some(dir) = std::env::var_os("RADAR_SLACK_REPLY_MENU_SHOTS") {
-            let dir = std::path::Path::new(&dir);
-            std::fs::create_dir_all(dir).unwrap();
-            radar_core::shell::to_svg(&host, width, height);
-            let svg = radar_core::shell::to_svg(&host, width, height);
-            std::fs::write(dir.join(format!("kept-replies-{width}x{height}.svg")), &svg).unwrap();
-            let png =
-                radar_core::shot::to_png(&svg).expect("visual export needs --features radar-core/png");
-            std::fs::write(dir.join(format!("kept-replies-{width}x{height}.png")), png).unwrap();
-        }
-    }
+    let screen = shown(&host, 160, 40);
+    assert!(screen.contains("stay with current draft"), "{screen}");
+    insta::assert_snapshot!("kept_reply_menu", screen);
     assert!(recorded.requests().is_empty());
 }

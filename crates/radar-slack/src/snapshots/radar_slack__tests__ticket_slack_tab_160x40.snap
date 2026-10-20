@@ -1,45 +1,9 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 1227
 expression: text
 ---
- radar    Code   Tickets   Slack ●   History   Settings (,)                                                                                              ✎ edit
-╭ 2 tickets ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ ticket page ABC-12 · Overview  [Slack]                                                                                                                       │
-│ > #team · Carol Coder · 1d ago · 1 reply  Anyone seen ABC-12 failing on main? pipeline and make check                                                        │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- TICKETS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                            slack
+── middle · tickets * ──
+ticket page ABC-12 · Overview  [Slack]
+> #team · Carol Coder · 1d ago · 1 reply  Anyone seen ABC-12 failing on main? pipeline and make check
+── status · TICKETS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

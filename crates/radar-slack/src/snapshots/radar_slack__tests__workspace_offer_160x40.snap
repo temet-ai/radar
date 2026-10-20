@@ -1,45 +1,55 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 548
 expression: text
 ---
- radar    History   Settings (,)                                                                                                                         ✎ edit
-╭ 1 settings ──────────╮╭ 2 connection ──────────────────────────────────────────────────────────────────╮╭ 3 found in your environment ───────────────────────╮
-│General               ││  ? Found: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?             ││ radar found a Slack user token in your             █
-│  ├─ parts            ││  workspace       — the check finds it                                          ││ environment. Do you want to use it?                █
-│  ├─ mode             ││  api             https://slack.com                                             ││                                                    █
-│  ├─ appearance       ││  token           —                                                             ││ FOUND                                              █
-│  ├─ colours          ││  signed in as    — the check finds it                                          ││ SLACK_APP_USER_OAUTH_TOKEN  the token (xoxp-…)     █
-│  └─ icons            ││  check           not checked yet                                               ││                                                    █
-│Slack                 ││  refresh         every 2m                                                      ││ radar stores only the variables' names (env:NAME)  █
-│  ├─ connection       ││  read back       7 days                                                        ││ and reads their values each time it starts. It     █
-│  ├─ channels         ││  permissions   ├─ public channels                                  not checked ││ never shows the values or saves them.              █
-│  ├─ review           ││                ├─ private channels                                 not checked ││                                                    █
-│  ├─ alerts           ││                ├─ for you                                          not checked ││ IF YOU USE IT                                      █
-│  └─ look             ││                ├─ names                                            not checked ││ radar sets the token to                            █
-│                      ││                ├─ user groups                                      not checked ││ env:SLACK_APP_USER_OAUTH_TOKEN and checks it with  █
-│                      ││                ├─ asking and replying                              not checked ││ Slack.                                             █
-│                      ││                ├─ reacting                                         not checked ││                                                    █
-│                      ││                └─ pictures                                         not checked ││ ⏎ uses it                                          █
-│                      ││                                                                                ││                                                    █
-│                      ││  CHANNELS  the registry; watched ones are read                                 ││ MAKE A USER TOKEN  about two minutes, once ─────── █
-│                      ││  + add a channel   paste its link, a message link, or its id                   ││   1 Open Slack's new-app page, radar's manifest    █
-│                      ││                                                                                ││   filled in:                                       █
-│                      ││                                                                                ││   api.slack.com / new app   open · copy manifest   █
-│                      ││                                                                                ││     user scopes only: 10                           █
-│                      ││                                                                                ││   2 Pick your workspace, Next, Create.             █
-│                      ││                                                                                ││   3 Install to Workspace, then Allow.              █
-│                      ││                                                                                ││   4 OAuth & Permissions shows the User OAuth       █
-│                      ││                                                                                ││   Token, xoxp-…: paste it into token, or:          █
-│                      ││                                                                                ││   $ export SLACK_TOKEN=xoxp-…                      █
-│                      ││                                                                                ││     then the token is env:SLACK_TOKEN              █
-│                      ││                                                                                ││   api.slack.com / your apps                        █
-│                      ││                                                                                ││ NEEDS AN ADMIN? ────────────────────────────────── █
-│                      ││                                                                                ││   If Slack says Request to Install, your admin     █
-│                      ││                                                                                ││   approves it first.                               █
-│                      ││                                                                                ││   A missing scope switches off only its own        █
-│                      ││                                                                                ││   actions.                                         █
-│                      ││                                                                                ││ MORE ───────────────────────────────────────────── █
-│                      ││                                                                                ││   Slack: what each scope allows                    ║
-╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate
+── section · connection ──
+> ? Found in your environment: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?  {row:0}
+  workspace       — the check finds it  {row:1}
+  api             https://slack.com  {row:2}
+  token           —  {row:3}
+  signed in as    — the check finds it  {row:4}
+  check           not checked yet  {row:5}
+  refresh         every 2m  {row:6}
+  read back       7 days  {row:7}
+  permissions   ├─ public channels  not checked  {row:8}
+  ├─ private channels  not checked  {row:9}
+  ├─ for you  not checked  {row:10}
+  ├─ names  not checked  {row:11}
+  ├─ user groups  not checked  {row:12}
+  ├─ asking and replying  not checked  {row:13}
+  ├─ reacting  not checked  {row:14}
+  └─ pictures  not checked  {row:15}
+  #  {row:16}
+  #  CHANNELS  the registry; watched ones are read  {row:17}
+  + add a channel   paste its link, a message link, or its id  {row:18}
+── detail · found in your environment ──
+radar found a Slack user token in your environment. Do you want to use it?
+
+FOUND
+SLACK_APP_USER_OAUTH_TOKEN  the token (xoxp-…)
+
+radar stores only the variables' names (env:NAME) and reads their values each time it starts. It never shows the values or saves them.
+
+IF YOU USE IT
+radar sets the token to env:SLACK_APP_USER_OAUTH_TOKEN and checks it with Slack.
+
+⏎ uses it
+
+§ :connection: MAKE A USER TOKEN  about two minutes, once
+  1 Open Slack's new-app page, radar's manifest filled in:
+  api.slack.com / new app   open · copy manifest
+  user scopes only: 10
+  2 Pick your workspace, Next, Create.
+  3 Install to Workspace, then Allow.
+  4 OAuth & Permissions shows the User OAuth Token, xoxp-…: paste it into token, or:
+  $ export SLACK_TOKEN=xoxp-…
+  then the token is env:SLACK_TOKEN
+  api.slack.com / your apps
+§ :team: NEEDS AN ADMIN?
+  If Slack says Request to Install, your admin approves it first.
+  A missing scope switches off only its own actions.
+§ :link: MORE
+  Slack: what each scope allows
+  radar guide: connect Slack
+── status · SETTINGS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

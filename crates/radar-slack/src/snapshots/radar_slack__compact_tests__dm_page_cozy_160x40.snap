@@ -1,45 +1,35 @@
 ---
 source: crates/radar-slack/src/compact_tests.rs
-assertion_line: 183
 expression: text
 ---
- radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
- Slack / #D0000CAROL / Carol Coder: hi @Alice Example, quick…
- hi @Alice Example, quick question about the stats                                                                            Carol Coder · 13h ago · 5 replies
- [Thread]  Links
-╭ 1 thread ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Carol Coder  13h ago                                                                                                                                         │
-│ hi @Alice Example, quick question about the stats                                                                                                            │
-│                                                                                                                                                              │
-│   Carol Coder  13h ago                                                                                                                                       │
-│   the dashboard shows 0 for the weekly numbers                                                                                                               │
-│                                                                                                                                                              │
-│   Alice Example  13h ago                                                                                                                                     │
-│   on it, looking now 👀                                                                                                                                      │
-│                                                                                                                                                              │
-│   Alice Example  13h ago                                                                                                                                     │
-│   found it: the query groups by ISO week but the cache keys by calendar week, so they disagree on the first of the year. I will fix the key and add a test   │
-│   that crosses a year boundary. Back in ten minutes                                                                                                          │
-│ 👍 1                                                                                                                                                         │
-│                                                                                                                                                              │
-│   Carol Coder  46m ago                                                                                                                                       │
-│   thanks!! 🎉 the numbers are right again, see the notes                                                                                                     │
-│                                                                                                                                                              │
-│   ▤ file notes.csv https://acme.slack.com/files/U1/F2/notes.csv                                                                                              │
-│                                                                                                                                                              │
-│   ▣ image Weekly.png https://acme.slack.com/files/U1/F3/weekly.png                                                                                           │
-│                                                                                                                                                              │
-│   Alice Example  45m ago                                                                                                                                     │
-│   great, Bob wrote the original                                                                                                                              │
-│                                                                                                                                                              │
-│   │ shared: Bob Builder's message                                                                                                                            │
-│   │ the weekly job is in the api, it keys the cache by calendar week for now and we should change that soon                                                  │
-│   │ https://acme.slack.com/archives/C0000TEAM1/p1791000000000100                                                                                             │
-│ 3 to open: links, files and what it names, on the Links tab                                                                                                  │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 3 for you  slack
+── page · Slack / #D0000CAROL / Carol Coder: hi @Alice Example, quick… ──
+hi @Alice Example, quick question about the stats  :person: Carol Coder · 13h ago · :reply: 5 replies
+<:thread: Thread>  :link: Links
+── middle · thread * ──
+:person: Carol Coder  13h ago
+hi @Alice Example, quick question about the stats
+
+:person: Carol Coder  13h ago
+   the dashboard shows 0 for the weekly numbers
+
+:you: Alice Example  13h ago
+   on it, looking now 👀
+
+:you: Alice Example  13h ago
+   found it: the query groups by ISO week but the cache keys by calendar week, so they disagree on the first of the year. I will fix the key and add a test that crosses a year boundary. Back in ten minutes
+👍 1
+
+:person: Carol Coder  46m ago
+   thanks!! 🎉 the numbers are right again, see the notes
+   ▤ file notes.csv https://acme.slack.com/files/U1/F2/notes.csv
+   ▣ image Weekly.png https://acme.slack.com/files/U1/F3/weekly.png
+
+:you: Alice Example  45m ago
+   great, Bob wrote the original
+   > shared: Bob Builder's message
+   > the weekly job is in the api <https://git.example/acme/team-a/api/-/merge_requests/263>, it keys the cache by calendar week for now and we should change that soon
+   > https://acme.slack.com/archives/C0000TEAM1/p1791000000000100
+3 to open: links, files and what it names, on the Links tab
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 3 for you

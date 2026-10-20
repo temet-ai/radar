@@ -1,0 +1,21 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: menu_shown(&host)
+---
+── menu · review ask ──
+> post it in #team…  (p)
+  edit the words for api !263  (e)
+  drop api !263  (d)
+  post it in another channel…  (c)
+  copy the review ask text  (y)
+  cancel the review ask…  (n)
+  kept replies…  (ctrl-r)
+  refresh this page  (r)
+  back to code  (esc)
+  recent notices (this session)  (~)
+  # History
+  recent activity (last 24 hours)  (H)
+  all activity history
+── status · SLACK ──
+↑↓ move  ⏎ choose  esc close
+7 new · 4 for you

@@ -527,7 +527,7 @@ fn foreign_link_stays_visible_on_links_tab_and_internal_threads_do_not_group() {
         KeyCode::Char(']'),
         KeyModifiers::NONE,
     )));
-    let text = radar_core::shell::to_text(&host, 160, 40);
+    let text = crate::tests::shown(&host, 160, 40);
     let links = slack(&host).page_links.borrow();
     assert_eq!(links.len(), 1, "{text}");
     assert!(links[0].is(radar_core::compose::LINK));
@@ -559,7 +559,7 @@ fn whole_foreign_link_with_embedded_local_reference_is_visible_and_stays_externa
         KeyCode::Char(']'),
         KeyModifiers::NONE,
     )));
-    radar_core::shell::to_text(&host, 160, 40);
+    crate::tests::shown(&host, 160, 40);
     let link = {
         let links = slack(&host).page_links.borrow();
         assert_eq!(links.len(), 1);

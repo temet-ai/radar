@@ -1,7 +1,7 @@
-//! Small rendered status snapshots; transport/cache behavior is tested separately.
+//! Small status checks on the view text; transport/cache behavior is tested separately.
 
 use radar_core::Host;
-use radar_core::shell::to_text;
+use crate::tests::shown;
 
 use super::{FollowedBatch, FollowedResponse, FollowedTarget, followed_action, followed_target};
 use crate::client::ListEvidence;
@@ -23,7 +23,7 @@ fn rendered(p: SlackPlugin) -> String {
     let mut host = Host::new(vec![Box::new(SlackPlugin::new())], NOW).unwrap();
     host.load_config(Some("")).unwrap();
     host.plugins[0] = Box::new(p);
-    to_text(&host, 240, 40)
+    shown(&host, 240, 40)
 }
 
 fn error_lines(text: &str) -> Vec<String> {

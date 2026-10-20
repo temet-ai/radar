@@ -1,45 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 587
-expression: "to_text(&host, 160, 40)"
+expression: "shown(&host, 160, 40)"
 ---
- radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ 1 settings ──────────╮╭ 2 alerts ──────────────────────────────────────────────────────────────────────╮╭ 3 add a mapping ───────────────────────────────────╮
-│General               ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
-│  ├─ parts            ││ keep resolved    24 hours                                                      ││                                                    │
-│  ├─ mode             ││                                                                                ││ Type the start of its name; the repo it belongs to │
-│  ├─ appearance       ││                                                                                ││ is asked next. The service, a label to match and   │
-│  ├─ colours          ││                                                                                ││ an environment can be set under the rule. The      │
-│  └─ icons            ││                                                                                ││ first rule that matches an alert decides.          │
-│Slack                 ││                                                                                ││                                                    │
-│  ├─ connection       ││                                                                                ││                                                    │
-│  ├─ channels         ││                                                                                ││                                                    │
-│  ├─ review           ││                                                                                ││                                                    │
-│  ├─ alerts           ││                                                                                ││                                                    │
-│  └─ look             ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                              slack
+── section · alerts ──
+> + add a mapping   the start of an alert's name, then where it belongs  {row:0}
+  keep resolved    24 hours  {row:1}
+── detail · add a mapping ──
+Say where a kind of alert belongs.
+
+Type the start of its name; the repo it belongs to is asked next. The service, a label to match and an environment can be set under the rule. The first rule that matches an alert decides.
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

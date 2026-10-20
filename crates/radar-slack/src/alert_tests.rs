@@ -7,12 +7,12 @@
 use radar_core::Host;
 use radar_core::host::HostEffect;
 use radar_core::ratatui::crossterm::event::KeyCode;
-use radar_core::shell::to_text;
+
 
 use crate::client::{Block, Card, Message};
 use crate::config::{Kind, Reader, Rule};
 use crate::model::ChannelData;
-use crate::tests::{ALICE, NOW, ago, chars, every_row, hosted_with_parts, keys, menu_labels, msg, press, slack_places_of};
+use crate::tests::{menu_shown, shown, ALICE, NOW, ago, chars, every_row, hosted_with_parts, keys, menu_labels, msg, press, slack_places_of};
 use crate::{SlackPlugin, tests};
 
 pub(crate) const ALRT: &str = "C0000ALRT1";
@@ -140,19 +140,19 @@ fn at(text: &str, s: &str) -> usize {
 #[test]
 fn the_rail_has_alerts_after_discussions_only_with_an_alerts_channel() {
     let host = hosted();
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(at(&text, "Discussions") < at(&text, "Alerts"), "{text}");
     assert!(at(&text, "Alerts") < at(&text, "#team-alerts"), "{text}");
     // No alerts channel: no row.
     let plain = tests::hosted();
-    assert!(!to_text(&plain, 160, 40).contains("Alerts"));
+    assert!(!shown(&plain, 160, 40).contains("Alerts"));
 }
 
 #[test]
 fn alerts_show_firing_first_then_failed_jobs_then_what_resolved_by_service_and_environment() {
     let mut host = hosted();
     on_alerts(&mut host);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     let order = [
         "firing",
         "api  prod",
@@ -175,15 +175,14 @@ fn alerts_show_firing_first_then_failed_jobs_then_what_resolved_by_service_and_e
     assert!(!text.contains("api-OldOne"), "resolved too long ago to show: {text}");
     // The nav pane counts what fires, and the status line too.
     assert!(text.contains("2 firing"), "{text}");
-    insta::assert_snapshot!("alerts_160x40", text);
-    insta::assert_snapshot!("alerts_80x24", to_text(&host, 80, 24));
+    insta::assert_snapshot!("alerts", text);
 }
 
 #[test]
 fn the_preview_tells_the_alert_how_long_where_it_belongs_and_its_console_link() {
     let mut host = hosted();
     on_alerts(&mut host);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     for s in [
         "▲ firing for 3h 07m",
         "environment",
@@ -200,14 +199,14 @@ fn the_preview_tells_the_alert_how_long_where_it_belongs_and_its_console_link() 
     }
     // An unmapped one says so, and a job that failed says when.
     down(&mut host, DISK);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("unmapped: no rule in settings places it"), "{text}");
     down(&mut host, JOB - DISK);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("✗ failed 2h 00m ago") && text.contains("https://ci.acme.example/runs/9"), "{text}");
     // A resolved one: after how long, and when.
     down(&mut host, LATENCY - JOB);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("✓ resolved after 40m"), "{text}");
 }
 
@@ -236,10 +235,10 @@ fn enter_opens_the_alerts_thread_o_its_console_link_and_y_copies_it() {
     let mut host = hosted();
     on_alerts(&mut host);
     press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Slack / #team-alerts / alertbot: bot message") && text.contains("looking at it"), "{text}");
     press(&mut host, KeyCode::Esc);
-    assert!(to_text(&host, 160, 40).contains("api-HighErrorRate"), "back on the alerts");
+    assert!(shown(&host, 160, 40).contains("api-HighErrorRate"), "back on the alerts");
 }
 
 #[test]
@@ -249,7 +248,7 @@ fn an_unmapped_alert_is_mapped_in_one_key_by_typing_a_repo_or_a_service() {
     down(&mut host, DISK);
     press(&mut host, KeyCode::Char('m'));
     assert!(host.plugins[0].capturing());
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("DiskFull belongs to (a repo path, or a service)"), "{text}");
     // Nothing typed: refused with what it takes.
     press(&mut host, KeyCode::Enter);
@@ -257,12 +256,12 @@ fn an_unmapped_alert_is_mapped_in_one_key_by_typing_a_repo_or_a_service() {
     chars(&mut host, "acme/team-a/disk");
     press(&mut host, KeyCode::Enter);
     assert!(!host.plugins[0].capturing());
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("disk  prod") && text.contains("▲ DiskFull"), "{text}");
     let saved = host.plugins[0].config().unwrap().to_string();
     assert!(saved.contains("prefix = \"DiskFull\"") && saved.contains("repo = \"acme/team-a/disk\""), "{saved}");
     // A mapped alert does not offer it.
-    let _ = to_text(&host, 160, 40);
+    let _ = shown(&host, 160, 40);
     press(&mut host, KeyCode::Char('x'));
     assert!(!menu_labels(&host).iter().any(|l| l.contains("map it")), "{:?}", menu_labels(&host));
     // Escape drops it.
@@ -273,14 +272,14 @@ fn an_unmapped_alert_is_mapped_in_one_key_by_typing_a_repo_or_a_service() {
     chars(&mut host, "billing");
     press(&mut host, KeyCode::Esc);
     assert!(!host.plugins[0].capturing());
-    assert!(to_text(&host, 160, 40).contains("unmapped  prod"));
+    assert!(shown(&host, 160, 40).contains("unmapped  prod"));
 }
 
 #[test]
 fn what_no_reader_could_read_is_counted_in_the_rail_and_said_in_the_log_once() {
     let mut host = hosted();
     on_alerts(&mut host);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("1 bot message not read"), "the nav pane footer says so: {text}");
     let mut p = sample();
     assert_eq!(p.alerts().refused.len(), 1);
@@ -298,18 +297,18 @@ fn what_no_reader_could_read_is_counted_in_the_rail_and_said_in_the_log_once() {
     assert_eq!(p.alerts().without_reader, ["team-alerts"]);
     let mut host = hosting(p);
     on_alerts(&mut host);
-    assert!(to_text(&host, 160, 40).contains("#team-alerts has no"));
+    assert!(shown(&host, 160, 40).contains("#team-alerts has no"));
 }
 
 #[test]
 fn an_alerts_channel_is_not_a_discussion_and_the_x_menu_of_an_alert_lists_what_works() {
     let mut host = hosted();
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Char('2')]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(!text.contains("HighErrorRate") && !text.contains("who is on the disk alert"), "{text}");
     let mut host = hosted();
     on_alerts(&mut host);
-    let _ = to_text(&host, 160, 40);
+    let _ = shown(&host, 160, 40);
     press(&mut host, KeyCode::Char('x'));
     let labels = menu_labels(&host);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "api-HighErrorRate");
@@ -317,7 +316,7 @@ fn an_alerts_channel_is_not_a_discussion_and_the_x_menu_of_an_alert_lists_what_w
         assert!(labels.iter().any(|l| l.starts_with(want)), "{want}: {labels:?}");
     }
     assert!(!labels.iter().any(|l| l.contains("map it")), "it is mapped already: {labels:?}");
-    insta::assert_snapshot!("alert_keys_100x40", to_text(&host, 100, 40));
+    insta::assert_snapshot!("alert_keys", menu_shown(&host));
     press(&mut host, KeyCode::Esc);
     down(&mut host, DISK);
     press(&mut host, KeyCode::Char('x'));
@@ -360,7 +359,7 @@ fn settings_of(section: usize) -> Host {
 #[test]
 fn the_alerts_section_lists_the_mapping_and_the_alerts_no_rule_places() {
     let host = settings_of(3);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     for s in [
         "keep resolved",
         "+ add a mapping",
@@ -372,8 +371,7 @@ fn the_alerts_section_lists_the_mapping_and_the_alerts_no_rule_places() {
     ] {
         assert!(text.contains(s), "{s}:\n{text}");
     }
-    insta::assert_snapshot!("settings_alerts_160x40", text);
-    insta::assert_snapshot!("settings_alerts_80x24", to_text(&host, 80, 24));
+    insta::assert_snapshot!("settings_alerts", text);
 }
 
 #[test]
@@ -394,7 +392,7 @@ fn a_mapping_is_added_by_typing_a_name_then_where_it_belongs_and_is_kept() {
     assert!(!host.plugins[0].capturing());
     let saved = host.plugins[0].config().unwrap().to_string();
     assert!(saved.contains("prefix = \"db-\"") && saved.contains("repo = \"acme/team-a/db\""), "{saved}");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("db-… → repo acme/team-a/db"), "{text}");
 }
 
@@ -405,14 +403,14 @@ fn an_unmapped_alert_listed_in_settings_is_mapped_from_its_row() {
     for _ in 0..8 {
         press(&mut host, KeyCode::Down);
     }
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("No rule places alerts named DiskFull"), "{text}");
     press(&mut host, KeyCode::Enter);
     assert!(host.plugins[0].capturing());
     chars(&mut host, "two words");
     press(&mut host, KeyCode::Enter);
     assert!(host.plugins[0].capturing(), "refused while it has spaces");
-    let _ = to_text(&host, 160, 40);
+    let _ = shown(&host, 160, 40);
     for _ in 0..9 {
         press(&mut host, KeyCode::Backspace);
     }
@@ -421,7 +419,7 @@ fn an_unmapped_alert_listed_in_settings_is_mapped_from_its_row() {
     assert!(!host.plugins[0].capturing());
     let saved = host.plugins[0].config().unwrap().to_string();
     assert!(saved.contains("prefix = \"DiskFull\"") && saved.contains("service = \"disks\""), "{saved}");
-    assert!(!to_text(&host, 160, 40).contains("No rule places alerts named DiskFull"));
+    assert!(!shown(&host, 160, 40).contains("No rule places alerts named DiskFull"));
 }
 
 #[test]
@@ -446,13 +444,13 @@ fn the_hours_resolved_alerts_stay_are_typed_and_checked() {
     p.cfg.alerts.recent_hours = 5;
     let mut host = hosting(p);
     on_alerts(&mut host);
-    assert!(!to_text(&host, 160, 40).contains("api-LatencyHigh"));
+    assert!(!shown(&host, 160, 40).contains("api-LatencyHigh"));
 }
 
 #[test]
 fn a_channel_made_an_alerts_channel_gets_the_usual_reader_and_leaving_drops_it() {
     let mut host = hosted();
-    let _ = to_text(&host, 160, 40);
+    let _ = shown(&host, 160, 40);
     // The team channel is the first in the registry.
     let fx = host.plugins[0].on_menu("kind:0", "alerts");
     assert!(fx.is_empty());
@@ -468,7 +466,7 @@ fn a_channel_made_an_alerts_channel_gets_the_usual_reader_and_leaving_drops_it()
 #[test]
 fn an_alerts_channel_shows_its_reader_row_and_the_kind_menu_offers_alerts() {
     let mut host = settings_of(1);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("reader") && text.contains("alertmanager") && text.contains("job-failed"), "{text}");
     // Down from add: #team, its fields; the kind row offers alerts.
     for _ in 0..4 {
@@ -553,15 +551,6 @@ fn alerts_add_nothing_to_other_parts_here() {
     // requests or tickets.
     let mut host = hosted_with_parts();
     host.plugins[2] = Box::new(sample());
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(!text.to_lowercase().contains("firing"), "{text}");
-}
-
-#[test]
-fn the_alerts_view_with_icons_unicode() {
-    let mut host = Host::new(vec![Box::new(SlackPlugin::new())], NOW).unwrap();
-    host.load_config(Some("[theme]\nicons = \"unicode\"\n")).unwrap();
-    host.plugins[0] = Box::new(sample());
-    on_alerts(&mut host);
-    insta::assert_snapshot!("alerts_icons_unicode_160x40", to_text(&host, 160, 40));
 }

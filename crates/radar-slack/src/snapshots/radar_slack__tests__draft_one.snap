@@ -1,0 +1,17 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: text
+---
+── page · Slack / ask for review ──
+:needs_approval: Ask for review in #team  posted as you
+mentions @review-squad · the review channel
+── middle · as it will post in #team * ──
+@review-squad :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+
+THE TEXT SENT
+<!subteam^S0REVIEW01> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard
+── detail · merge requests in it ──
+> api !263  Add a stats endpoint for the dashboard  {item:0}
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

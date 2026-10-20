@@ -1,0 +1,49 @@
+---
+source: crates/radar-slack/src/reply_context_tests/menu_navigation.rs
+expression: screen
+---
+── nav · feed ──
+> :mention: For you  4  {rail:0}
+  :thread: Discussions  {rail:1}
+  ▌ :channel: #team  6 NEW  {rail:2}
+  ▌ :channel: #svc  1 NEW  {rail:3}
+── middle · For you * ──
+last 7 days
+  :mention: mentions you  {mentions}
+>   :unread: ● #team Bob B.  @Alice Example could you take this one?  1d  {mentions/C0000TEAM1-1791184300.606900}
+  :mention: direct messages  {dms}
+    :unread: ● #D0000CAROL Carol C.  hi @Alice Example, quick question about the stats  1h  {dms/D0000CAROL-1791267400.000000}
+  :thread: threads you are in  {threads}
+    :unread: ● #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check  1d  :reply: 1  ⋯ 1  {threads/1791184000.609000}
+    :unread: ● #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard  2d  :reply: 2  ⋯ 2  {threads/1791094600.234800}
+· mentions, messages and new replies in the last 7 days
+── detail · Bob Builder's message ──
+<detail>
+Acme / :channel: #team
+@Alice Example could you take this one?
+:person: Bob Builder
+1d ago
+thread: thread start
+§ :thread: THREAD  yesterday
+  :unread: ● 07:11  Bob Builder
+  @Alice Example could you take this one?
+§ ACTIONS
+  thread  (⏎)
+  open  (o)
+  copy  (y)
+  mark read  (m)
+  comment  (c)
+  react  (e)
+  extra actions  (x)
+[thread] [open] [copy] [mark read] [comment] [react] [extra actions]
+── overlay · ✎ reply in #team, in the thread ──
+<editor>
+Active reply stays here.
+Including trailing spaces.
+── menu · kept replies · this session ──
+  T000ACME1 · C0000TEAM1 / 1791200000.000100  not sent
+  copy current draft  (y)  leave the composer unchanged
+> stay with current draft  (s)  retain the open composer here
+── status · SLACK ──
+↑↓ move  ⏎ choose  esc close
+7 new · 4 for you

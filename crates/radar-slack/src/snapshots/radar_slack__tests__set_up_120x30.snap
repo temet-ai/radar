@@ -1,35 +1,13 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 542
 expression: text
 ---
- radar    History   Settings (,)                                                                                 ✎ edit
-╭ 1 set up Slack ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Slack is not set up yet.                                                                                             │
-│                                                                                                                      │
-│ Add your workspace token: a user token (xoxp-…), as env:NAME or typed in. radar found SLACK_APP_USER_OAUTH_TOKEN     │
-│ holding a user token; workspace offers it.                                                                           │
-│                                                                                                                      │
-│ Press ⏎ to set it up in settings, under slack.                                                                       │
-│ Press s to walk its setup step.                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   quit   extra actions   ~ notices   ←→↑↓ navigate
+── middle · set up Slack * ──
+:settings: Slack is not set up yet.
+
+Add your workspace token: a user token (xoxp-…), as env:NAME or typed in. radar found SLACK_APP_USER_OAUTH_TOKEN holding a user token; workspace offers it.
+
+Press ⏎ to set it up in settings, under slack.
+Press s to walk its setup step.
+── status · SLACK ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

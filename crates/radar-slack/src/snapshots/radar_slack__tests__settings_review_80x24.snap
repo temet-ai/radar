@@ -1,29 +1,31 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 588
-expression: "to_text(&host, 80, 24)"
+expression: "shown(&host, 80, 24)"
 ---
- radar    Slack ●   History   Settings (,)                               ✎ edit
-╭ 1 settings ──────────╮╭ 2 review ────────────────────────────────────────────╮
-│General               ││ channel          team                                │
-│  ├─ parts            ││ user group       @review-squad                       │
-│  ├─ mode             ││ template         {group} :gitlab: {mrs}              │
-│  ├─ appearance       ││ link text        mr                                  │
-│  ├─ colours          ││ test channel     try                                 │
-│  └─ icons            ││ ask again        after 2 working days without a repl │
-│Slack                 ││                                                      │
-│  ├─ connection       ││                                                      │
-│  ├─ channels         ││                                                      │
-│  ├─ review           │╰──────────────────────────────────────────────────────╯
-│  ├─ alerts           │╭ 3 channel ───────────────────────────────────────────╮
-│  └─ look             ││ Where review asks go. The user group is mentioned    █
-│                      ││ only here.                                           █
-│                      ││                                                      █
-│                      ││ ACCEPTS                                              █
-│                      ││ a channel in the registry                            ║
-│                      ││                                                      ║
-│                      ││ NOW                                                  ║
-│                      ││ team                                                 ║
-│                      ││                                                      ║
-╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                  slack
+── section · review ──
+> channel          team  {row:0}
+  user group       @review-squad  {row:1}
+  template         {group} :gitlab: {mrs}  {row:2}
+  link text        mr  {row:3}
+  test channel     try  {row:4}
+  ask again        after 2 working days without a reply  {row:5}
+── detail · channel ──
+Where review asks go. The user group is mentioned only here.
+
+ACCEPTS
+a channel in the registry
+
+NOW
+team
+
+WITH A SAMPLE MERGE REQUEST
+@review-squad :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+
+WITH TWO
+@review-squad :gitlab:
+• api !263 <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+• web !12 <https://git.example/acme/team-a/web/-/merge_requests/12> Show the stats
+
+config: [slack.review] channel
+── status · SETTINGS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

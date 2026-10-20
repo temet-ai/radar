@@ -1,0 +1,13 @@
+---
+source: crates/radar-slack/src/tests.rs
+expression: menu_shown(&host)
+---
+── question · post this in #team, in Bob Builder's thread? ──
+  # looking now, <@U00000BOB1>
+  # second line
+> yes  (y)  yes, post it
+  edit  (e)  keep writing
+  no  (n)  no, drop it
+── status · SLACK ──
+←→ move  ⏎ choose  esc close
+7 new · 4 for you

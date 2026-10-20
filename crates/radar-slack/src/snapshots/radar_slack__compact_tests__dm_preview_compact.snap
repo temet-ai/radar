@@ -1,0 +1,66 @@
+---
+source: crates/radar-slack/src/compact_tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── nav · feed ──
+> :mention: For you  4  {rail:0}
+  :thread: Discussions  {rail:1}
+  ▌ :channel: #team  6 NEW  {rail:2}
+  ▌ :channel: #svc  1 NEW  {rail:3}
+── middle · For you ──
+last 7 days
+  :mention: mentions you  {mentions}
+    :unread: ● #team Bob B.  @Alice Example could you take this one?  1d  {mentions/C0000TEAM1-1791184300.606900}
+  :mention: direct messages  {dms}
+>   :unread: ● #D0000CAROL Carol C.  hi @Alice Example, quick question about the stats  45m  {dms/D0000CAROL-1791223080.000000}
+  :thread: threads you are in  {threads}
+    :unread: ● #team Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check  1d  :reply: 1  ⋯ 1  {threads/1791184000.609000}
+    :unread: ● #team Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard  2d  :reply: 2  ⋯ 2  {threads/1791094600.234800}
+· mentions, messages and new replies in the last 7 days
+── detail · Carol Coder's message * ──
+<detail>
+Acme / :direct: U0000CAROL
+hi @Alice Example, quick question about the stats
+:person: Carol Coder
+13h ago
+thread: thread start
+replies: 5
+§ :thread: THREAD  yesterday
+  :unread: ● 17:58  Carol Coder
+  hi @Alice Example, quick question about the stats
+  :unread: ● 17:59  Carol Coder
+  the dashboard shows 0 for the weekly numbers
+  :unread: ● 18:10  Alice Example
+  on it, looking now 👀
+  :unread: ● 18:12  Alice Example
+  found it: the query groups by ISO week but the cache keys by calendar week, so they disagree on the first of the year. I will fix the key and add a test that crosses a year boundary. Back in ten minutes
+  👍 1
+  :unread: ● 06:30  Carol Coder
+  thanks!! 🎉 the numbers are right again, see the notes
+  :file: notes.csv
+  :file_image: Weekly.png
+  :unread: ● 06:31  Alice Example
+  great, Bob wrote the original
+  │ Bob Builder: the weekly job is in the api, it keys the cache by calendar week for now and we should change that soon
+
+  5 replies · last 45m ago
+§ :link: LINKS
+  :file: file notes.csv
+  https://acme.slack.com/files/U1/F2/notes.csv
+  :file_image: image Weekly.png
+  https://acme.slack.com/files/U1/F3/weekly.png
+  :thread: shared: Bob Builder's message
+  https://acme.slack.com/archives/C0000TEAM1/p1791000000000100
+  :link: the api
+  https://git.example/acme/team-a/api/-/merge_requests/263
+§ ACTIONS
+  thread  (⏎)
+  open  (o)
+  copy  (y)
+  comment  (c)
+  react  (e)
+  extra actions  (x)
+[thread] [open] [copy] [comment] [react] [extra actions]
+── status · SLACK ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

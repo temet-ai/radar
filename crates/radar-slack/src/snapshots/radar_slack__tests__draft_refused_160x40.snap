@@ -2,43 +2,17 @@
 source: crates/radar-slack/src/tests.rs
 expression: text
 ---
- radar    Code   Tickets   Slack ●   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
- Slack / ask for review
- Ask for review in #team                                                                                                                          posted as you
- mentions @review-squad · the review channel
-╭ 1 as it will post in #team ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ @review-squad :gitlab: mr Add a stats endpoint for the dashboard                                                                                             │
-│ ✗ Slack did not take it: Slack is busy (rate limited): it was not sent, and radar does not send it again; try again in 30s                                   │
-│                                                                                                                                                              │
-│ THE TEXT SENT                                                                                                                                                │
-│ <!subteam^S0REVIEW01> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard                          │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭ merge requests in it ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ api !263  Add a stats endpoint for the dashboard                                                                                                             │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                               +3 earlier notices · ~ history │
-│                                                                                               info ✓ review asked · its thread is followed on the merge req… │
-│                                                                                               info review ask for api !263: nothing is sent until you post … │
-│                                                                                                           info asking Slack to post the review ask in #team… │
-│                                                                                               error ✗ Slack did not post the review ask in #team: Slack is … │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 4 for you  slack
+── page · Slack / ask for review ──
+:needs_approval: Ask for review in #team  posted as you
+mentions @review-squad · the review channel
+── middle · as it will post in #team * ──
+@review-squad :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+:error: ✗ Slack did not take it: Slack is busy (rate limited): it was not sent, and radar does not send it again; try again in 30s
+
+THE TEXT SENT
+<!subteam^S0REVIEW01> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard
+── detail · merge requests in it ──
+> api !263  Add a stats endpoint for the dashboard  {item:0}
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

@@ -1,45 +1,41 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 226
 expression: text
 ---
- radar    Slack ●   History   Settings (,)                                                                                    synced 40s ago · every 2m  ✎ edit
-╭ 1 feed ────────────────╮╭ 2 #team ───────────────────────────────────────────────────────────────────────────╮╭ 3 Bob Builder's message ─────────────────────╮
-│ For you              4 ││ 6 new                                                          REPLIES  WHEN       ││ Acme / #team                                 │
-│ Discussions            ││today                                                                               ││ Lunch at 12:30? 🍕                           │
-│ ▌ #team          6 NEW ││  └─ ● Bob B.  Lunch at 12:30? 🍕                                        30m        ││                        Bob Builder · 30m ago │
-│ ▌ #svc           1 NEW ││yesterday                                                                           ││                                              │
-│                        ││  └─ ● Carol C.  Anyone seen ABC-12 failing on main? pipeli ⋯ 1 1        1d         ││ thread   thread start                        │
-│                        ││Sun 4 Oct                                                                           ││ replies  0                                   │
-│                        ││  └─ ● Bob B.  @review-squad :gitlab: mr Add a stats endpoi ⋯ 2 2        2d         ││                                              │
-│                        ││                                                                                    ││ THREAD  today ────────────────────────────── │
-│                        ││                                                                                    ││   ● 06:46  Bob Builder                       │
-│                        ││                                                                                    ││   Lunch at 12:30? 🍕                         │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
-│                        ││ the last 7 days · where the team talks                                             ││⏎ thread  open  copy  mark read  extra actions│
-╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                    7 new · 4 for you  slack
+── nav · feed * ──
+  :mention: For you  4  {rail:0}
+  :thread: Discussions  {rail:1}
+> ▌ :channel: #team  6 NEW  {rail:2}
+  ▌ :channel: #svc  1 NEW  {rail:3}
+── middle · #team ──
+6 new
+  today  {today}
+>   :unread: ● Bob B.  Lunch at 12:30? 🍕  30m  {today/1791269200.012600}
+  yesterday  {yesterday}
+    :unread: ● Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check  1d  :reply: 1  ⋯ 1  {yesterday/1791184000.609000}
+  Sun 4 Oct  {Sun 4 Oct}
+    :unread: ● Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard  2d  :reply: 2  ⋯ 2  {Sun 4 Oct/1791094600.234800}
+· the last 7 days · where the team talks
+── detail · Bob Builder's message ──
+<detail>
+Acme / :channel: #team
+Lunch at 12:30? 🍕
+:person: Bob Builder
+30m ago
+thread: thread start
+replies: 0
+§ :thread: THREAD  today
+  :unread: ● 06:46  Bob Builder
+  Lunch at 12:30? 🍕
+§ ACTIONS
+  thread  (⏎)
+  open  (o)
+  copy  (y)
+  mark read  (m)
+  comment  (c)
+  react  (e)
+  extra actions  (x)
+[thread] [open] [copy] [mark read] [comment] [react] [extra actions]
+── status · SLACK ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

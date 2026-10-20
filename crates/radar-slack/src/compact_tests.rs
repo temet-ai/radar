@@ -4,7 +4,7 @@
 
 use radar_core::Host;
 use radar_core::ratatui::crossterm::event::KeyCode;
-use radar_core::shell::to_text;
+use crate::tests::shown;
 
 use crate::SlackPlugin;
 use crate::client::{File, Reaction, Shared};
@@ -79,12 +79,12 @@ fn chatty() -> SlackPlugin {
 fn on_dm(host: &mut Host) {
     keys(host, &[KeyCode::Char('2')]);
     for _ in 0..6 {
-        if to_text(host, 160, 40).contains("direct message") && to_text(host, 160, 40).contains("Carol Coder") {
+        if shown(host, 160, 40).contains("direct message") && shown(host, 160, 40).contains("Carol Coder") {
             return;
         }
         press(host, KeyCode::Down);
     }
-    panic!("the direct message was not reached: {}", to_text(host, 160, 40));
+    panic!("the direct message was not reached: {}", shown(host, 160, 40));
 }
 
 fn dm_page(p: SlackPlugin) -> Host {
@@ -104,8 +104,9 @@ fn thread_page(p: SlackPlugin) -> Host {
 #[test]
 fn the_thread_page_is_a_few_lines_in_compact() {
     let host = thread_page(sample());
-    for (w, h) in [(80, 24), (100, 40), (160, 40)] {
-        let text = to_text(&host, w, h);
+    // The one line a message is wrapped to the room it is asked for.
+    for (w, h) in [(80, 24), (160, 40)] {
+        let text = shown(&host, w, h);
         assert!(text.contains("06:46  Alice Example  looking"), "one line a message: {text}");
         assert!(text.contains("── 2 replies ──"), "{text}");
         insta::assert_snapshot!(format!("thread_page_compact_{w}x{h}"), text);
@@ -115,10 +116,9 @@ fn the_thread_page_is_a_few_lines_in_compact() {
 #[test]
 fn the_thread_page_in_cozy_is_as_it_was() {
     let host = thread_page(cozy(sample()));
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("│   Alice Example  2d ago"), "{text}");
-    insta::assert_snapshot!("thread_page_cozy_160x40", text);
-    insta::assert_snapshot!("thread_page_cozy_80x24", to_text(&host, 80, 24));
+    let text = shown(&host, 160, 40);
+    assert!(text.contains(":you: Alice Example  2d ago"), "{text}");
+    insta::assert_snapshot!("thread_page_cozy", text);
 }
 
 #[test]
@@ -127,28 +127,26 @@ fn the_preview_of_a_message_is_compact_and_in_cozy_as_it_was() {
     // Focus on the detail pane, so it is the pane shown where the screen is narrow.
     on_team(&mut host, 4);
     keys(&mut host, &[KeyCode::Char('3')]);
-    let wide = to_text(&host, 160, 40);
+    let wide = shown(&host, 160, 40);
     for word in ["2 replies", "looking", "approved, nice one", "LINKS", "requests/263"] {
         assert!(wide.contains(word), "compact detail pane keeps {word}: {wide}");
     }
-    for (w, h) in [(80, 24), (100, 40), (160, 40)] {
-        insta::assert_snapshot!(format!("preview_compact_{w}x{h}"), to_text(&host, w, h));
-    }
+    insta::assert_snapshot!("preview_compact", wide);
     let mut host = host_of(cozy(sample()));
     on_team(&mut host, 4);
     keys(&mut host, &[KeyCode::Char('3')]);
-    insta::assert_snapshot!("preview_cozy_100x40", to_text(&host, 100, 40));
+    insta::assert_snapshot!("preview_cozy_100x40", shown(&host, 100, 40));
 }
 
 #[test]
 fn a_direct_message_is_a_conversation_of_single_lines() {
     let host = dm_page(chatty());
     for (w, h) in [(80, 24), (100, 40), (160, 40)] {
-        let text = to_text(&host, w, h);
+        let text = shown(&host, w, h);
         assert!(text.contains("── 5 replies ──"), "{text}");
         insta::assert_snapshot!(format!("dm_page_compact_{w}x{h}"), text);
     }
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("17:58  Carol Coder    hi @Alice Example, quick question"), "{text}");
     // Alice's second message, two minutes after her first, leaves her name
     // blank; the time stays. Its reaction ends its last line.
@@ -170,15 +168,15 @@ fn a_threads_files_and_a_shared_message_in_cozy_are_as_they_were() {
     let mut host = host_of(cozy(crate::tests::with_files()));
     on_team(&mut host, 4);
     press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("│ shared: Carol Coder's message") && text.contains("▣ image Screenshot.png https://"), "{text}");
+    let text = shown(&host, 160, 40);
+    assert!(text.contains("> shared: Carol Coder's message") && text.contains("▣ image Screenshot.png https://"), "{text}");
     insta::assert_snapshot!("thread_files_cozy_160x40", text);
 }
 
 #[test]
 fn a_direct_message_in_cozy_is_as_it_was() {
     let host = dm_page(cozy(chatty()));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Carol Coder  13h ago"), "{text}");
     insta::assert_snapshot!("dm_page_cozy_160x40", text);
 }
@@ -188,9 +186,7 @@ fn the_preview_of_a_direct_message_is_compact() {
     let mut host = host_of(chatty());
     on_dm(&mut host);
     keys(&mut host, &[KeyCode::Char('3')]);
-    for (w, h) in [(80, 24), (100, 40), (160, 40)] {
-        insta::assert_snapshot!(format!("dm_preview_compact_{w}x{h}"), to_text(&host, w, h));
-    }
+    insta::assert_snapshot!("dm_preview_compact", shown(&host, 160, 40));
 }
 
 #[test]

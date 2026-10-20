@@ -3,17 +3,9 @@
 use super::*;
 use crate::Target;
 
-fn render(host: &Host, place: &str, width: u16, height: u16) -> String {
-    let screen = to_text(host, width, height);
-    if let Some(dir) = std::env::var_os("RADAR_SLACK_SETUP_FOOTER_SHOTS") {
-        let dir = std::path::Path::new(&dir);
-        std::fs::create_dir_all(dir).unwrap();
-        let svg = radar_core::shell::to_svg(host, width, height);
-        std::fs::write(dir.join(format!("{place}-{width}x{height}.svg")), &svg).unwrap();
-        let png = radar_core::shot::to_png(&svg).expect("visual export needs --features radar-core/png");
-        std::fs::write(dir.join(format!("{place}-{width}x{height}.png")), png).unwrap();
-    }
-    screen
+/// The status line: the keys it advertises and its counts.
+fn status_of(screen: &str) -> &str {
+    screen.split("── status").nth(1).expect("the status line")
 }
 
 #[test]
@@ -24,9 +16,9 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
         assert!(host.setting_up().is_some());
         assert!(!host.capturing());
         assert!(slack(&host).capturing());
-        let screen = render(&host, "setup", width, height);
+        let screen = shown(&host, width, height);
         assert!(!screen.contains("Active reply stays here."));
-        let footer = screen.lines().last().unwrap();
+        let footer = status_of(&screen);
         assert!(footer.contains("extra actions"), "{footer}");
         for ghost in [
             "new line",
@@ -38,10 +30,6 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
         ] {
             assert!(!footer.contains(ghost), "{ghost}: {footer}");
         }
-        assert!(host.hits.borrow().iter().all(|(_, hit)| {
-            !matches!(hit, Hit::Key(key, _) if key.modifiers.contains(KeyModifiers::CONTROL)
-                && matches!(key.code, KeyCode::Char('r' | 's')))
-        }));
         for (code, modifiers) in [
             (KeyCode::Char('r'), KeyModifiers::CONTROL),
             (KeyCode::Char('s'), KeyModifiers::CONTROL),
@@ -75,7 +63,7 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
             ]
         );
         assert!(items[2].heading);
-        render(&host, "setup-menu", width, height);
+        shown(&host, width, height);
         press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
         assert_eq!(state(&host), before);
 
@@ -83,17 +71,11 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
         assert_eq!(host.view, View::Settings);
         assert_eq!(host.current_section().unwrap().1.id, "connection");
         assert_eq!(state(&host), before);
-        let settings = render(&host, "settings-recovery", width, height);
-        assert!(
-            settings
-                .lines()
-                .last()
-                .unwrap()
-                .contains("ctrl-r kept replies")
-        );
+        let settings = shown(&host, width, height);
+        assert!(status_of(&settings).contains("ctrl-r kept replies"), "{settings}");
         open(&mut host);
         assert_eq!(state(&host), before);
-        to_text(&host, width, height);
+        shown(&host, width, height);
         press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
         assert_eq!(kept_texts(slack(&host)), [TEXT, ACTIVE]);
         assert!(slack(&host).replying.is_none());
@@ -107,8 +89,8 @@ fn ready_reply_and_settings_editor_keep_their_routable_footer_hints() {
     let before = state(&host);
     for (width, height) in [(80, 24), (160, 40)] {
         assert!(host.capturing());
-        let screen = render(&host, "ready-reply", width, height);
-        let footer = screen.lines().last().unwrap();
+        let screen = shown(&host, width, height);
+        let footer = status_of(&screen);
         for hint in ["⏎ new line", "ctrl-s review and send", "esc stop"] {
             assert!(footer.contains(hint), "{hint}: {footer}");
         }
@@ -131,8 +113,8 @@ fn ready_reply_and_settings_editor_keep_their_routable_footer_hints() {
     p.edit = Some((Target::Refresh, TextInput::new("90")));
     for (width, height) in [(80, 24), (160, 40)] {
         assert!(host.capturing());
-        let screen = render(&host, "settings-editor", width, height);
-        let footer = screen.lines().last().unwrap();
+        let screen = shown(&host, width, height);
+        let footer = status_of(&screen);
         for hint in ["⏎ keep", "esc cancel", "ctrl-r kept replies"] {
             assert!(footer.contains(hint), "{hint}: {footer}");
         }

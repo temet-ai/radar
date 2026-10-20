@@ -1,45 +1,47 @@
 ---
 source: crates/radar-slack/src/compact_tests.rs
-assertion_line: 140
-expression: "to_text(&host, 100, 40)"
+expression: "shown(&host, 100, 40)"
 ---
- radar    Slack ●   History   Settings (,)                        synced 40s ago · every 2m  ✎ edit
-╭ 1 feed ──────────────╮╭ 3 Bob Builder's message ─────────────────────────────────────────────────╮
-│ For you            4 ││ Acme / #team                                                             │
-│ Discussions          ││ @review-squad :gitlab: mr Add a stats endpoint for the dashboard         │
-│ ▌ #team        6 NEW ││                                                     Bob Builder · 2d ago │
-│ ▌ #svc         1 NEW ││                                                                          │
-│                      ││ thread   thread start                                                    │
-│                      ││ replies  2                                                               │
-│                      ││                                                                          │
-│                      ││ MESSAGE ──────────────────────────────────────────────────────────────── │
-│                      ││   @review-squad :gitlab: mr                                              │
-│                      ││   (https://git.example/acme/team-a/api/-/merge_requests/263) Add a       │
-│                      ││   stats endpoint for the dashboard                                       │
-│                      ││   👀 1                                                                   │
-│                      ││                                                                          │
-│                      ││ REPLIES  2 replies · last 2d ago ─────────────────────────────────────── │
-│                      ││   you: looking 👀                                                        │
-│                      ││   Carol C.: approved, nice one                                           │
-│                      ││                                                                          │
-│                      ││ LINKS ────────────────────────────────────────────────────────────────── │
-│                      ││   mr                                                                     │
-│                      ││   https://git.example/acme/team-a/api/-/merge_requests/263               │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││                                                                          │
-│                      ││──────────────────────────────────────────────────────────────────────────│
-│                      ││⏎ thread  open  copy  mark read  comment  react              extra actions│
-╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate           slack
+── nav · feed ──
+  :mention: For you  4  {rail:0}
+  :thread: Discussions  {rail:1}
+> ▌ :channel: #team  6 NEW  {rail:2}
+  ▌ :channel: #svc  1 NEW  {rail:3}
+── middle · #team ──
+6 new
+  today  {today}
+    :unread: ● Bob B.  Lunch at 12:30? 🍕  30m  {today/1791269200.012600}
+  yesterday  {yesterday}
+    :unread: ● Carol C.  Anyone seen ABC-12 failing on main? pipeline and make check  1d  :reply: 1  ⋯ 1  {yesterday/1791184000.609000}
+  Sun 4 Oct  {Sun 4 Oct}
+>   :unread: ● Bob B.  @review-squad :gitlab: mr Add a stats endpoint for the dashboard  2d  :reply: 2  ⋯ 2  {Sun 4 Oct/1791094600.234800}
+· the last 7 days · where the team talks
+── detail · Bob Builder's message * ──
+<detail>
+Acme / :channel: #team
+@review-squad :gitlab: mr Add a stats endpoint for the dashboard
+:person: Bob Builder
+2d ago
+thread: thread start
+replies: 2
+§ :chat: MESSAGE
+  @review-squad :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+  👀 1
+§ :reply: REPLIES  2 replies · last 2d ago
+  you: looking 👀
+  Carol C.: approved, nice one
+§ :link: LINKS
+  :link: mr
+  https://git.example/acme/team-a/api/-/merge_requests/263
+§ ACTIONS
+  thread  (⏎)
+  open  (o)
+  copy  (y)
+  mark read  (m)
+  comment  (c)
+  react  (e)
+  extra actions  (x)
+[thread] [open] [copy] [mark read] [comment] [react] [extra actions]
+── status · SLACK ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

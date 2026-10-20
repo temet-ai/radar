@@ -1,35 +1,15 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 565
 expression: text
 ---
- radar    Slack   History   Settings (,)                                              synced 40s ago · every 2m  ✎ edit
-╭ 1 feed ────────────────╮╭ 2 For you ───────────────────────────────────────────╮╭ 3 detail ──────────────────────────╮
-│ For you                ││ No channels yet. Press , for settings, then add one  ││ Nothing selected.                  │
-│ Discussions            ││ under channels: paste a link to it or type its name. ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││                                                      ││                                    │
-│                        ││─ shows ──────────────────────────────────────────────││                                    │
-│                        ││ mentions, messages and new replies in the last 7     ││                                    │
-│                        ││ days                                                 ││                                    │
-╰────────────────────────╯╰──────────────────────────────────────────────────────╯╰────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                               slack
+── nav · feed ──
+> :mention: For you  {rail:0}
+  :thread: Discussions  {rail:1}
+── middle · For you * ──
+last 7 days
+(empty) No channels yet. Press , for settings, then add one under channels: paste a link to it or type its name.
+· mentions, messages and new replies in the last 7 days
+── detail · detail ──
+Nothing selected.
+── status · SLACK ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

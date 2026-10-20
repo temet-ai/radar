@@ -1,0 +1,48 @@
+---
+source: crates/radar-slack/src/alert_tests.rs
+expression: text
+---
+── nav · feed ──
+  :mention: For you  5  {rail:0}
+  :thread: Discussions  {rail:1}
+> :alert: Alerts  2  {rail:2}
+  ▌ :channel: #team  6 NEW  {rail:3}
+  ▌ :channel: #svc  1 NEW  {rail:4}
+  ▌ :channel: #team-alerts  10 NEW  {rail:5}
+  ▌ :channel: #jobs  1 NEW  {rail:6}
+── middle · Alerts * ──
+firing first, then what resolved
+  firing  {s:firing}
+    api  prod  {s:firing/g:api:prod}
+>     :alert_firing: ▲ api-HighErrorRate ×2  Error rate above 5% for 10m  P1  1h  3h 07m  {s:firing/g:api:prod/C0000ALRT1-1791259780.078540}
+    unmapped  prod  {s:firing/g:unmapped:prod}
+      :alert_firing: ▲ DiskFull  P2  1h  1h 01m  {s:firing/g:unmapped:prod/C0000ALRT1-1791267300.025900}
+  failed jobs  {s:failed}
+    unmapped  prod  {s:failed/g:unmapped:prod}
+      :run_failed: ✗ Nightly export  2h  —  {s:failed/g:unmapped:prod/C00000JOB1-1791263800.050400}
+  recently resolved  {s:resolved}
+    api  staging  {s:resolved/g:api:staging}
+      :alert_resolved: ✓ api-LatencyHigh  Error rate above 5% for 10m  P3  5h  40m 00s  {s:resolved/g:api:staging/C0000ALRT1-1791249400.151200}
+· 1 bot message not read as alerts: the log says why.
+── detail · alert ──
+api-HighErrorRate
+▲ firing for 3h 07m · since 04:09
+notified 2 times, the last 1h 00m ago
+
+environment  prod
+priority  P1
+channel  #team-alerts
+read as  alertmanager
+
+Error rate above 5% for 10m
+
+CONSOLE
+https://console.acme.example/alerts/42
+
+BELONGS TO
+service api · repo acme/team-a/api
+
+1 reply in its thread
+── status · SLACK ──
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 5 for you · 2 firing

@@ -1,29 +1,12 @@
 ---
 source: crates/radar-slack/src/page_polish_tests.rs
-assertion_line: 306
 expression: empty
 ---
- radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
- Slack / #team / Bob Builder: No links left.
- No links left.                              Bob Builder · 19h ago · no replies
- Thread  [Links]
-╭ 1 what it links to ──────────────────────────────────────────────────────────╮
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│─ shows ──────────────────────────────────────────────────────────────────────│
-│ No links in these messages. Your browser gets a breather.                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices              slack
+── page · Slack / #team / Bob Builder: No links left. ──
+No links left.  :person: Bob Builder · 19h ago · :reply: no replies
+:thread: Thread  <:link: Links>
+── middle · what it links to * ──
+· No links in these messages. Your browser gets a breather.
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

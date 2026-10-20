@@ -2,43 +2,21 @@
 source: crates/radar-slack/src/tests.rs
 expression: text
 ---
- radar    Code   Tickets   Slack ●   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
- Slack / ask for review
- Ask for review in #team                                                                                                                          posted as you
- mentions @review-squad · the review channel
-╭ 1 as it will post in #team ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ @review-squad :gitlab:                                                                                                                                       █
-│ • api !263 Add a stats endpoint for the dashboard                                                                                                            █
-│ • api !270 Tidy the README                                                                                                                                   █
-│                                                                                                                                                              █
-│ THE TEXT SENT                                                                                                                                                █
-│ <!subteam^S0REVIEW01> :gitlab:                                                                                                                               █
-│ • <https://git.example/acme/team-a/api/-/merge_requests/263|api !263> Add a stats endpoint for the dashboard                                                 ║
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭ merge requests in it ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ api !263  Add a stats endpoint for the dashboard                                                                                                             │
-│ api !270  Tidy the README                                                                                                                                    │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                        info api !270 added to the review ask │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 4 for you  slack
+── page · Slack / ask for review ──
+:needs_approval: Ask for review in #team  posted as you
+mentions @review-squad · the review channel
+── middle · as it will post in #team * ──
+@review-squad :gitlab:
+• api !263 <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+• api !270 <https://git.example/acme/team-a/api/-/merge_requests/270> Tidy the README
+
+THE TEXT SENT
+<!subteam^S0REVIEW01> :gitlab:
+• <https://git.example/acme/team-a/api/-/merge_requests/263|api !263> Add a stats endpoint for the dashboard
+• <https://git.example/acme/team-a/api/-/merge_requests/270|api !270> Tidy the README
+── detail · merge requests in it ──
+> api !263  Add a stats endpoint for the dashboard  {item:0}
+  api !270  Tidy the README  {item:1}
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

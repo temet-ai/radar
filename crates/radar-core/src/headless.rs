@@ -9,6 +9,7 @@
 use serde::{Deserialize, Serialize};
 
 mod explore;
+pub mod text;
 pub use explore::{Capture, CaptureKind, Offered, PageKind, PageReach, capture_of, foot_controls, node_targets, offered, view_problems};
 
 use crate::host::{Event, Host, HostEffect, JournalRecord, Owner};
@@ -141,14 +142,20 @@ impl Headless {
 
     /// The settings section showing, as its part describes it.
     pub fn section(&self) -> Option<SectionView> {
-        // Setup's own steps (a step that is a section is that section).
-        if self.host.setup_host_step() {
-            return self.host.setup_section_view();
-        }
-        match self.host.current_section()? {
-            (Owner::Plugin(p), s) => self.host.section_view_in(p, s.id, self.width, self.height),
-            _ => crate::settings_view::section_view(&self.host, crate::design::theme::Tier::TrueColor),
-        }
+        section_of(&self.host, self.width, self.height)
+    }
+
+    /// What shows, as text ([`text`]): the screen, or the settings section,
+    /// with the pane that has the keys marked; then the open menu and the
+    /// status line. What a part's tests snapshot in place of a frame.
+    pub fn text(&self) -> String {
+        text_of(&self.host, self.width, self.height)
+    }
+
+    /// The screen showing as text, panes only ([`Headless::text`] without
+    /// the chrome).
+    pub fn screen_text(&self) -> String {
+        screen_text_of(&self.host, self.width, self.height)
     }
 
     /// The menu or question open, if one is.
@@ -198,6 +205,34 @@ impl Headless {
     /// Every journal record the intents produced, in order.
     pub fn records(&self) -> &[JournalRecord] {
         &self.records
+    }
+}
+
+/// [`Headless::text`] for a host a test drives itself (keys, effects): says
+/// the room once, as [`Headless::new`] does, then reads the views.
+pub fn text_of(host: &Host, width: u16, height: u16) -> String {
+    host.set_view_room(width, height);
+    let body = match crate::view::screen_showing(host, width, height) {
+        Some(screen) => text::screen(&screen, Some(host.focus.into())),
+        None => section_of(host, width, height).map(|s| text::section(&s)).unwrap_or_default(),
+    };
+    body + &text::chrome(&host.chrome_view(width, height))
+}
+
+/// [`Headless::screen_text`] for a host a test drives itself.
+pub fn screen_text_of(host: &Host, width: u16, height: u16) -> String {
+    host.set_view_room(width, height);
+    crate::view::screen_showing(host, width, height).map(|s| text::screen(&s, Some(host.focus.into()))).unwrap_or_default()
+}
+
+fn section_of(host: &Host, width: u16, height: u16) -> Option<SectionView> {
+    // Setup's own steps (a step that is a section is that section).
+    if host.setup_host_step() {
+        return host.setup_section_view();
+    }
+    match host.current_section()? {
+        (Owner::Plugin(p), s) => host.section_view_in(p, s.id, width, height),
+        _ => crate::settings_view::section_view(host, crate::design::theme::Tier::TrueColor),
     }
 }
 

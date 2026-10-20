@@ -1,45 +1,34 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 790
 expression: text
 ---
- radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
-╭ 1 settings ──────────╮╭ 2 review ──────────────────────────────────────────────────────────────────────╮╭ 3 template ────────────────────────────────────────╮
-│General               ││ channel          team                                                          ││ AS YOU TYPE                                        │
-│  ├─ parts            ││ user group       @review-squad                                                 ││ ✓ mentions the group picked under user group (in   │
-│  ├─ mode             ││ template         Review please {group}: {mrs}                                  ││ the review channel); posts: Review please          │
-│  ├─ appearance       ││ link text        mr                                                            ││ <!subteam^S0REVIEW01>:                             │
-│  ├─ colours          ││ test channel     try                                                           ││ <https://git.example/acme/team-a/api/-/merge_reque │
-│  └─ icons            ││ ask again        after 2 working days without a reply                          ││ sts/263|mr> Add a stats endpoint for the dashboard │
-│Slack                 ││                                                                                ││                                                    │
-│  ├─ connection       ││                                                                                ││ The message: {mrs} is the merge request linked     │
-│  ├─ channels         ││                                                                                ││ with its words, or one bullet each for several;    │
-│  ├─ review           ││                                                                                ││ {group} mentions the user group picked above, and  │
-│  ├─ alerts           ││                                                                                ││ {@handle} any of Slack's user groups by its        │
-│  └─ look             ││                                                                                ││ handle. Both are sent as Slack's mention of the    │
-│                      ││                                                                                ││ group's id, so it pings, and only in the review    │
-│                      ││                                                                                ││ channel. :name: is an emoji.                       │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ ACCEPTS                                            │
-│                      ││                                                                                ││ text with {mrs}; {group} and {@handle} optional    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ NOW                                                │
-│                      ││                                                                                ││ {group} :gitlab: {mrs}                             │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
-│                      ││                                                                                ││ Review please @review-squad: mr Add a stats        │
-│                      ││                                                                                ││ endpoint for the dashboard                         │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ WITH TWO                                           │
-│                      ││                                                                                ││ Review please @review-squad:                       │
-│                      ││                                                                                ││ • api !263 Add a stats endpoint for the dashboard  │
-│                      ││                                                                                ││ • web !12 Show the stats                           │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││ config: [slack.review] template                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   ⏎ keep   esc cancel                                                                                                                           slack
+── section · review ──
+  channel          team  {row:0}
+  user group       @review-squad  {row:1}
+> template         {group} :gitlab: {mrs}  [Review please {group}: {mrs}|]  {row:2}
+  link text        mr  {row:3}
+  test channel     try  {row:4}
+  ask again        after 2 working days without a reply  {row:5}
+── detail · template ──
+AS YOU TYPE
+✓ mentions the group picked under user group (in the review channel); posts: Review please <!subteam^S0REVIEW01>: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard
+
+The message: {mrs} is the merge request linked with its words, or one bullet each for several; {group} mentions the user group picked above, and {@handle} any of Slack's user groups by its handle. Both are sent as Slack's mention of the group's id, so it pings, and only in the review channel. :name: is an emoji.
+
+ACCEPTS
+text with {mrs}; {group} and {@handle} optional
+
+NOW
+{group} :gitlab: {mrs}
+
+WITH A SAMPLE MERGE REQUEST
+Review please @review-squad: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+
+WITH TWO
+Review please @review-squad:
+• api !263 <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
+• web !12 <https://git.example/acme/team-a/web/-/merge_requests/12> Show the stats
+
+config: [slack.review] template
+── status · SETTINGS ──
+⏎ keep  esc cancel

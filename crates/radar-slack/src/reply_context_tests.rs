@@ -863,8 +863,8 @@ fn host_ctrl_r_reaches_kept_replies_from_screen_or_offline_settings_while_compos
             .clone();
         assert!(id.starts_with("reply-kept:"));
         assert_eq!(host.plugins[0].capturing(), composing);
-        let _ = radar_core::shell::to_text(&host, 100, 30);
-        let _ = radar_core::shell::to_text(&host, 80, 24);
+        let _ = crate::tests::shown(&host, 100, 30);
+        let _ = crate::tests::shown(&host, 80, 24);
         assert_eq!(host.menu.as_ref().unwrap().menu.id, id);
         assert!(
             !effects

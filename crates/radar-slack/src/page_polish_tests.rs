@@ -5,8 +5,9 @@ use crate::Via;
 use crate::client::Recorded;
 use crate::demo::{self, BOB, NOW, TEAM};
 use radar_core::host::{Event, HostEffect};
+use radar_core::view::Intent;
 use radar_core::ratatui::crossterm::event::KeyModifiers;
-use radar_core::shell::to_text;
+use crate::tests::shown;
 use radar_core::{Host, Plugin};
 
 const A: &str = "1791200000.000100";
@@ -76,23 +77,6 @@ fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
     host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
 }
 
-/// Opt-in visual review output, kept outside the repository by the caller.
-fn export(host: &Host, name: &str) {
-    let Some(dir) = std::env::var_os("RADAR_SLACK_POLISH_SHOTS") else {
-        return;
-    };
-    let dir = std::path::Path::new(&dir);
-    std::fs::create_dir_all(dir).unwrap();
-    for (width, height) in [(80, 24), (160, 40)] {
-        // Prime the rendered tab/row metadata, as `radar shot` does.
-        radar_core::shell::to_svg(host, width, height);
-        let svg = radar_core::shell::to_svg(host, width, height);
-        std::fs::write(dir.join(format!("{name}-{width}x{height}.svg")), &svg).unwrap();
-        let png = radar_core::shot::to_png(&svg).expect("visual export needs --features radar-core/png");
-        std::fs::write(dir.join(format!("{name}-{width}x{height}.png")), png).unwrap();
-    }
-}
-
 fn page(p: &mut SlackPlugin, ts: &str, words: Option<&str>) {
     if let Some(words) = words {
         on_thread(p, TEAM, ts, Ok(vec![demo::msg(ts, BOB, words)]));
@@ -136,16 +120,14 @@ fn cold_failure_empty_and_retry_have_truthful_states() {
         },
     );
     let mut h = host(p);
-    assert!(to_text(&h, 80, 24).contains("loading…"));
+    assert!(shown(&h, 80, 24).contains("loading…"));
     on_thread(slack_mut(&mut h), TEAM, A, Err("thread_not_found".into()));
-    let wide = to_text(&h, 160, 40);
+    let wide = shown(&h, 160, 40);
     assert!(
         wide.contains("could not load: thread_not_found") && wide.contains("Press r to try again")
     );
     assert!(!wide.contains("loading…"));
-    export(&h, "cold-error");
-    insta::assert_snapshot!("slack_thread_failed_160x40", wide);
-    insta::assert_snapshot!("slack_thread_failed_80x24", to_text(&h, 80, 24));
+    insta::assert_snapshot!("slack_thread_failed", wide);
     let retry = press(&mut h, KeyCode::Char('r'));
     assert_eq!(
         retry
@@ -156,15 +138,14 @@ fn cold_failure_empty_and_retry_have_truthful_states() {
     );
     let repeat = press(&mut h, KeyCode::Char('r'));
     assert!(!repeat.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
-    assert!(to_text(&h, 80, 24).contains("loading…"));
-    assert!(!to_text(&h, 80, 24).contains("thread_not_found"));
+    assert!(shown(&h, 80, 24).contains("loading…"));
+    assert!(!shown(&h, 80, 24).contains("thread_not_found"));
     drop(retry); // No task is run, even against the empty recording.
     on_thread(slack_mut(&mut h), TEAM, A, Ok(vec![]));
     // The empty-state snapshot is independent of the duplicate-key notice.
     h.message = None;
-    let empty = to_text(&h, 80, 24);
+    let empty = shown(&h, 80, 24);
     assert!(empty.contains("Slack returned no messages") && !empty.contains("loading…"));
-    export(&h, "empty-thread");
     insta::assert_snapshot!("slack_thread_empty_80x24", empty);
     on_thread(
         slack_mut(&mut h),
@@ -172,7 +153,7 @@ fn cold_failure_empty_and_retry_have_truthful_states() {
         A,
         Ok(vec![demo::msg(A, BOB, "The retry worked.")]),
     );
-    assert!(to_text(&h, 80, 24).contains("The retry worked."));
+    assert!(shown(&h, 80, 24).contains("The retry worked."));
     assert!(!slack(&h).busy(crate::SCREEN.id));
 }
 
@@ -189,18 +170,16 @@ fn cached_reply_failure_never_claims_it_is_still_reading() {
     });
     on_thread(&mut p, TEAM, &ts, Err("missing_scope".into()));
     let mut h = host(p);
-    let text = to_text(&h, 160, 40);
+    let text = shown(&h, 160, 40);
     assert!(text.contains("missing_scope") && text.contains("2 replies aren't loaded"));
     assert!(!text.contains("are being read"));
-    export(&h, "cached-failure");
     press(&mut h, KeyCode::Char(']'));
-    let text = to_text(&h, 160, 40);
+    let text = shown(&h, 160, 40);
     assert!(text.contains("missing_scope") && text.contains("Press r to try again"));
     assert!(
         text.contains(demo::MR_263),
         "cached links remain visible: {text}"
     );
-    export(&h, "cached-links-failure");
 }
 
 #[test]
@@ -208,7 +187,7 @@ fn links_cannot_cross_threads_even_before_a_redraw_or_after_back_and_reentry() {
     let mut p = sample();
     page(&mut p, A, Some(&format!("<{URL}|first>")));
     let mut h = host(p);
-    to_text(&h, 160, 40);
+    shown(&h, 160, 40);
     assert_eq!(page_links(slack(&h)).len(), 1);
     for _ in 0..2 {
         // Simulate a page push without clearing the derived cache: identity alone
@@ -216,7 +195,7 @@ fn links_cannot_cross_threads_even_before_a_redraw_or_after_back_and_reentry() {
         page(slack_mut(&mut h), B, None);
         show_tab(slack_mut(&mut h), 1);
         no_links(slack_mut(&mut h));
-        let text = to_text(&h, 80, 24);
+        let text = shown(&h, 80, 24);
         assert!(!text.contains(URL));
         no_links(slack_mut(&mut h));
         press(&mut h, KeyCode::Char('x'));
@@ -237,7 +216,7 @@ fn links_cannot_cross_threads_even_before_a_redraw_or_after_back_and_reentry() {
             page_links(slack(&h)).is_empty(),
             "back waits for A's redraw"
         );
-        to_text(&h, 160, 40);
+        shown(&h, 160, 40);
         assert_eq!(page_links(slack(&h)).len(), 1);
     }
 }
@@ -254,7 +233,7 @@ fn refreshed_links_are_invalid_until_rendered_then_cursor_and_actions_agree() {
     );
     show_tab(&mut p, 1);
     let mut h = host(p);
-    to_text(&h, 160, 40);
+    shown(&h, 160, 40);
     click(slack_mut(&mut h), "link:2");
     on_thread(
         slack_mut(&mut h),
@@ -271,7 +250,7 @@ fn refreshed_links_are_invalid_until_rendered_then_cursor_and_actions_agree() {
         "old rows are unavailable before redraw"
     );
     assert!(!keys(slack(&h)).iter().any(|b| b.keys == "y"));
-    let text = to_text(&h, 80, 24);
+    let text = shown(&h, 80, 24);
     assert!(text.contains("remaining"));
     let copied = key(
         slack_mut(&mut h),
@@ -300,9 +279,8 @@ fn refreshed_links_are_invalid_until_rendered_then_cursor_and_actions_agree() {
         Ok(vec![demo::msg(A, BOB, "No links left.")]),
     );
     no_links(slack_mut(&mut h));
-    let empty = to_text(&h, 80, 24);
+    let empty = shown(&h, 80, 24);
     assert!(empty.contains("No links in these messages. Your browser gets a breather."));
-    export(&h, "empty-links");
     insta::assert_snapshot!("slack_empty_links_80x24", empty);
     no_links(slack_mut(&mut h));
     assert_eq!(page_tabs(slack(&h)).unwrap().names[1], "Links");
@@ -312,12 +290,12 @@ fn refreshed_links_are_invalid_until_rendered_then_cursor_and_actions_agree() {
         .unwrap()
         .loading = true;
     assert!(
-        !to_text(&h, 80, 24).contains("breather"),
+        !shown(&h, 80, 24).contains("breather"),
         "no joke during a read"
     );
     on_thread(slack_mut(&mut h), TEAM, A, Err("missing_scope".into()));
     assert!(
-        !to_text(&h, 80, 24).contains("breather"),
+        !shown(&h, 80, 24).contains("breather"),
         "no joke on an error"
     );
 }
@@ -328,7 +306,7 @@ fn rendered_links_do_not_survive_a_connection_revision() {
     page(&mut p, A, Some(&format!("<{URL}|first>")));
     show_tab(&mut p, 1);
     let mut h = host(p);
-    to_text(&h, 160, 40);
+    shown(&h, 160, 40);
     slack_mut(&mut h).replace_token("env:RADAR_POLISH_UNSET_TOKEN".into());
     no_links(slack_mut(&mut h));
 }
@@ -376,15 +354,10 @@ fn reply_capture_and_reentry_do_not_leak_page_or_write_shortcuts() {
     let mut p = sample();
     page(&mut p, A, Some("Reply here"));
     let mut h = host(p);
-    to_text(&h, 160, 40);
-    let tab = h
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(area, hit)| {
-            matches!(hit, radar_core::host::Hit::Plugin { id, .. } if id == "tab:1").then_some(*area)
-        })
-        .expect("Links tab is clickable");
+    shown(&h, 160, 40);
+    // The Links tab, by the target the page view gives it.
+    let tab = Intent::Select { target: radar_core::view::TabView::target(1) };
+    assert!(shown(&h, 160, 40).contains(":link: Links"), "the page offers a Links tab");
     for attempt in 0..2 {
         press(&mut h, KeyCode::Char('c'));
         assert!(slack(&h).replying.is_some());
@@ -394,13 +367,8 @@ fn reply_capture_and_reentry_do_not_leak_page_or_write_shortcuts() {
         }
         assert!(h.menu.is_none());
         assert_eq!(slack(&h).pages.len(), 1);
-        for at_ms in [1000, 1100] {
-            let fx = h.update(Event::Mouse {
-                kind: radar_core::host::MouseKind::Press,
-                column: tab.x,
-                row: tab.y,
-                at_ms,
-            });
+        for _ in 0..2 {
+            let fx = h.update(Event::Intent(tab.clone()));
             assert!(fx.is_empty(), "clicks do not escape the composer");
         }
         assert!(matches!(
@@ -437,15 +405,10 @@ fn rapid_repeat_tab_clicks_do_not_open_a_link_before_redraw() {
     let mut p = sample();
     page(&mut p, A, Some(&format!("<{URL}|first>")));
     let mut h = host(p);
-    to_text(&h, 160, 40);
-    let tab = h
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(area, hit)| {
-            matches!(hit, radar_core::host::Hit::Plugin { id, .. } if id == "tab:1").then_some(*area)
-        })
-        .expect("Links tab is clickable");
+    shown(&h, 160, 40);
+    // The Links tab, by the target the page view gives it.
+    let tab = Intent::Select { target: radar_core::view::TabView::target(1) };
+    assert!(shown(&h, 160, 40).contains(":link: Links"), "the page offers a Links tab");
     fn opens(effect: &HostEffect) -> bool {
         match effect {
             HostEffect::Open(_) | HostEffect::OpenApp { .. } => true,
@@ -453,13 +416,8 @@ fn rapid_repeat_tab_clicks_do_not_open_a_link_before_redraw() {
             _ => false,
         }
     }
-    for at_ms in [1000, 1100] {
-        let effects = h.update(Event::Mouse {
-            kind: radar_core::host::MouseKind::Press,
-            column: tab.x,
-            row: tab.y,
-            at_ms,
-        });
+    for _ in 0..2 {
+        let effects = h.update(Event::Intent(tab.clone()));
         assert!(
             !effects.iter().any(opens),
             "a repeated tab click must not become Enter: {effects:?}"

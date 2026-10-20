@@ -2,27 +2,12 @@
 source: crates/radar-slack/src/page_polish_tests.rs
 expression: empty
 ---
- radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
- Slack / #team / thread
- thread
- [Thread]  Links
-╭ 1 thread ────────────────────────────────────────────────────────────────────╮
-│ Slack returned no messages for this thread.                                  │
-│ Press r to try again. Use , for connection settings or Esc to go back.       │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                             info already reading this thread │
-╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices              slack
+── page · Slack / #team / thread ──
+thread
+<:thread: Thread>  :link: Links
+── middle · thread * ──
+Slack returned no messages for this thread.
+Press r to try again. Use , for connection settings or Esc to go back.
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 4 for you

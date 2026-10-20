@@ -5,7 +5,6 @@
 use radar_core::Host;
 use radar_core::host::Event;
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::shell::to_text;
 
 use crate::SlackPlugin;
 use crate::client::Message;
@@ -41,8 +40,20 @@ pub(crate) fn hosted() -> Host {
     host
 }
 
+/// What shows, as view text (`radar_core::headless::text`): the screen's
+/// panes and rows, the open menu and the status line. No painted frame.
+pub(crate) fn shown(host: &Host, width: u16, height: u16) -> String {
+    radar_core::headless::text_of(host, width, height)
+}
+
+/// The open menu or question and the status line under it, as view text:
+/// what a menu's snapshot is about, without the screen behind it.
+pub(crate) fn menu_shown(host: &Host) -> String {
+    radar_core::headless::text::chrome(&host.chrome_view(100, 40))
+}
+
 pub(crate) fn press(host: &mut Host, code: KeyCode) -> Vec<radar_core::host::HostEffect> {
-    let _ = to_text(host, 160, 40);
+    let _ = shown(host, 160, 40);
     host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
 }
 
@@ -66,7 +77,7 @@ fn up_from_the_top_of_each_pane_reaches_the_bar_and_down_comes_back() {
     let mut host = hosted();
     on_team(&mut host, 4);
     press(&mut host, KeyCode::Enter);
-    assert!(radar_core::Plugin::depth(host.plugins[0].as_ref(), "slack") > 0, "{}", to_text(&host, 160, 40));
+    assert!(radar_core::Plugin::depth(host.plugins[0].as_ref(), "slack") > 0, "{}", shown(&host, 160, 40));
     press(&mut host, KeyCode::Char('g'));
     press(&mut host, KeyCode::Up);
     assert!(!host.bar, "inside a page");
@@ -83,7 +94,8 @@ fn plus_and_minus_fold_the_feeds_groups_and_minus_on_a_row_closes_its_group() {
         let t = p.tree.borrow();
         (t.selected().to_vec(), t.opened().clone())
     };
-    assert!(to_text(&host, 160, 40).lines().last().unwrap().contains("+/- expand/collapse"));
+    let text = shown(&host, 160, 40);
+    assert!(text.split("── status").nth(1).unwrap().contains("+/- expand/collapse"), "{text}");
     for _ in 0..10 {
         if tree(&host).0.len() >= 2 {
             break;
@@ -206,30 +218,28 @@ pub(crate) fn menu_labels(host: &Host) -> Vec<String> {
 #[test]
 fn for_you_comes_first_with_mentions_messages_and_threads() {
     let host = hosted();
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("mentions you"), "{text}");
     assert!(text.contains("direct messages"), "{text}");
     assert!(text.contains("threads you are in"), "{text}");
     assert!(text.contains("@Alice Example could you take this one?"), "{text}");
-    insta::assert_snapshot!("for_you_160x40", text);
-    insta::assert_snapshot!("for_you_80x24", to_text(&host, 80, 24));
+    insta::assert_snapshot!("for_you", text);
 }
 
 #[test]
 fn a_channel_shows_days_with_threads_folded_under_them() {
     let mut host = hosted();
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("6 NEW"), "{text}");
     assert!(text.contains("today") && text.contains("yesterday") && text.contains("Sun 4 Oct"), "{text}");
     assert!(!text.contains("approved, nice one"), "replies are folded: {text}");
     insta::assert_snapshot!("channel_160x40", text);
     // space shows a thread's replies.
     keys(&mut host, &[KeyCode::Char('2'), KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Char(' ')]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("approved, nice one"), "{text}");
     insta::assert_snapshot!("channel_thread_open_160x40", text);
-    insta::assert_snapshot!("channel_80x24", to_text(&host, 80, 24));
 }
 
 /// Live, a thread started days ago that just got a reply sat below one
@@ -246,16 +256,16 @@ fn threads_are_ordered_by_their_latest_activity_and_show_its_time() {
     team.messages[0].reply_count = 3;
     let mut host = hosted_via(p);
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     let row = |needle: &str| text.lines().position(|l| l.contains(needle)).unwrap_or_else(|| panic!("{needle}: {text}"));
     assert!(row("Bob B.  @review-squad :gitlab: mr") < row("Lunch at 12:30?"), "{text}");
     assert!(row("Lunch at 12:30?") < row("Anyone seen ABC-12"), "{text}");
     let ask_row = text.lines().find(|l| l.contains("Bob B.  @review-squad :gitlab: mr")).unwrap();
     assert!(ask_row.contains("10m"), "the time of its newest reply: {ask_row}");
-    assert!(row("│today ") < row("Bob B.  @review-squad :gitlab: mr"), "under today: {text}");
+    assert!(row("today  {today}") < row("Bob B.  @review-squad :gitlab: mr"), "under today: {text}");
     // Discussions too.
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Up]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     let row = |needle: &str| text.lines().position(|l| l.contains(needle)).unwrap_or_else(|| panic!("{needle}: {text}"));
     assert!(row("Bob B.  @review-squad :gitlab: mr") < row("Anyone seen ABC-12"), "{text}");
 }
@@ -265,7 +275,7 @@ fn going_back_to_a_channel_shows_its_days_open_again() {
     let mut host = hosted();
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down, KeyCode::Down]);
     keys(&mut host, &[KeyCode::Up]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Lunch at 12:30?"), "#team's days are open: {text}");
 }
 
@@ -276,7 +286,7 @@ fn the_draft_names_the_group_as_slack_does_when_settings_have_only_its_id() {
     p.cfg.review.handle.clear();
     host.plugins[2] = Box::new(p);
     press(&mut host, KeyCode::Char('a'));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("mentions @review-squad · the review channel"), "{text}");
 }
 
@@ -284,7 +294,7 @@ fn the_draft_names_the_group_as_slack_does_when_settings_have_only_its_id() {
 fn discussions_alone_are_all_general_and_name_no_other_part() {
     let mut host = hosted();
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("general"), "{text}");
     assert!(text.contains("THE MOST ACTIVE FIRST"), "{text}");
     assert!(!text.contains("BY WHAT THEY ARE ABOUT"), "{text}");
@@ -296,24 +306,21 @@ fn the_preview_scrolls_with_its_own_keys_and_pgdn_from_anywhere() {
     let mut host = hosted();
     on_team(&mut host, 4);
     keys(&mut host, &[KeyCode::Char('3')]);
-    let text = to_text(&host, 80, 24);
+    let text = shown(&host, 80, 24);
     assert!(text.contains("Add a stats endpoint"), "the review ask: {text}");
     insta::assert_snapshot!("preview_focused_80x24", text);
     // ↑↓ in the focused detail pane move through it, not to the next message.
-    let text_before = to_text(&host, 160, 40);
     let before = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
     let subject = host.plugins[0].subject(crate::SCREEN.id, radar_core::Pane::Detail)
         .expect("the review ask's thread");
     press(&mut host, KeyCode::Down);
     assert_eq!(host.focus, radar_core::Pane::Detail);
-    let text_after = to_text(&host, 160, 40);
     let after = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
     assert_eq!(host.plugins[0].subject(crate::SCREEN.id, radar_core::Pane::Detail), Some(subject));
     assert_eq!(after.pane(radar_core::view::PaneId::Middle), before.pane(radar_core::view::PaneId::Middle),
         "scrolling the preview keeps the exact selected tree row and folds");
     assert_eq!(after.pane(radar_core::view::PaneId::Detail), before.pane(radar_core::view::PaneId::Detail),
         "the same message content remains, even when its title scrolls out of view");
-    assert_ne!(text_after, text_before, "the preview actually scrolls");
     // PgDn from the list scrolls the detail pane.
     press(&mut host, KeyCode::Char('2'));
     let fx = press(&mut host, KeyCode::PageDown);
@@ -325,24 +332,24 @@ fn the_preview_scrolls_with_its_own_keys_and_pgdn_from_anywhere() {
 fn enter_opens_the_threads_page_and_esc_comes_back_to_the_same_row() {
     let mut host = hosted();
     on_team(&mut host, 4);
-    let before = to_text(&host, 160, 40);
+    let before = shown(&host, 160, 40);
     press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Slack / #team / Bob Builder: @review-squad"), "{text}");
     assert!(text.contains("approved, nice one"), "{text}");
     insta::assert_snapshot!("thread_page_160x40", text);
-    insta::assert_snapshot!("thread_page_80x24", to_text(&host, 80, 24));
+    insta::assert_snapshot!("thread_page_80x24", shown(&host, 80, 24));
     press(&mut host, KeyCode::Char(']'));
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("[Links]"), "{text}");
+    let text = shown(&host, 160, 40);
+    assert!(text.contains("<:link: Links>"), "{text}");
     assert!(text.contains(MR_263), "a bare link alone: {text}");
     insta::assert_snapshot!("thread_links_160x40", text);
     press(&mut host, KeyCode::Char('x'));
-    insta::assert_snapshot!("thread_links_keys_100x40", to_text(&host, 100, 40));
+    insta::assert_snapshot!("thread_links_keys", menu_shown(&host));
     press(&mut host, KeyCode::Esc);
     press(&mut host, KeyCode::Esc);
     // Back where it was (the thread now read, so its new marks went).
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(before.contains("6 NEW") && text.contains("3 NEW"), "{text}");
     press(&mut host, KeyCode::Char('x'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "Bob Builder's message", "the same row");
@@ -377,7 +384,7 @@ fn a_threads_files_shared_messages_and_links_are_shown_by_name_and_open_from_lin
     let mut host = hosted_via(with_files());
     on_team(&mut host, 4);
     press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("looking, see the plan"), "the words, not the markup: {text}");
     assert!(!text.contains("<https://"), "{text}");
     assert!(text.contains("│ Carol Coder: @review-squad :gitlab: mr still open"), "one line, cut to fit: {text}");
@@ -386,7 +393,7 @@ fn a_threads_files_shared_messages_and_links_are_shown_by_name_and_open_from_lin
     assert!(text.contains("to open: links, files and what it names, on the Links tab"), "{text}");
     insta::assert_snapshot!("thread_files_160x40", text);
     press(&mut host, KeyCode::Char(']'));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("the plan  https://docs.example/plan"), "{text}");
     assert!(text.contains("image Screenshot.png"), "{text}");
     insta::assert_snapshot!("thread_files_links_160x40", text);
@@ -408,15 +415,15 @@ fn a_threads_files_shared_messages_and_links_are_shown_by_name_and_open_from_lin
 #[test]
 fn a_mention_opened_is_read_and_stays_read_through_refreshes_and_restarts() {
     let mut host = hosted();
-    assert!(to_text(&host, 160, 40).contains("4 for you"));
+    assert!(shown(&host, 160, 40).contains("4 for you"));
     // For you: the first mention (Bob's, in #team), where the cursor starts.
     keys(&mut host, &[KeyCode::Char('2')]);
-    let before = to_text(&host, 160, 40);
+    let before = shown(&host, 160, 40);
     assert!(before.contains("● #team Bob B.  @Alice Example could you"), "{before}");
     let fx = press(&mut host, KeyCode::Enter);
     assert!(fx.iter().any(|e| matches!(e, HostEffect::WriteCache { .. })), "kept: {fx:?}");
     press(&mut host, KeyCode::Esc);
-    let after = to_text(&host, 160, 40);
+    let after = shown(&host, 160, 40);
     assert!(!after.contains("● #team Bob B.  @Alice Example could you"), "{after}");
     assert!(after.contains("#team Bob B.  @Alice Example could you"), "{after}");
     assert!(after.contains("3 for you"), "{after}");
@@ -445,14 +452,14 @@ fn caught_up_to_here_moves_the_local_mark_and_what_is_new() {
     let fx = press(&mut host, KeyCode::Char('m'));
     assert!(fx.iter().any(|e| matches!(e, HostEffect::WriteCache { .. })), "{fx:?}");
     assert!(spawned(&fx) == 0, "nothing is sent to Slack");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("2 NEW"), "lunch and the late reply stay new: {text}");
     assert!(host.message.as_deref().unwrap_or("").contains("#team caught up to"), "{:?}", host.message);
     // b: the whole channel.
     press(&mut host, KeyCode::Char('b'));
     assert!(menu_labels(&host).iter().any(|l| l.contains("mark #team caught up")), "{:?}", menu_labels(&host));
     press(&mut host, KeyCode::Char('m'));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("CAUGHT UP"), "{text}");
 }
 
@@ -506,14 +513,15 @@ fn o_opens_a_message_in_the_slack_app_when_it_runs_here() {
 }
 
 #[test]
-fn the_rail_and_rows_answer_the_mouse() {
-    use radar_core::host::MouseKind;
+fn the_rail_answers_a_selection() {
+    use radar_core::view::{Intent, Target};
     let mut host = hosted();
-    let _ = to_text(&host, 160, 40);
-    // The nav pane's #team row: y 4 (bar, border, For you, Discussions, #team).
-    host.update(Event::Mouse { kind: MouseKind::Press, column: 4, row: 4, at_ms: 1000 });
-    assert_eq!(host.focus, radar_core::Pane::Nav, "the click focuses the nav pane");
-    let text = to_text(&host, 160, 40);
+    // The nav pane's #team row, by the target the view gives it.
+    let text = shown(&host, 160, 40);
+    assert!(text.contains("#team  7 NEW  {rail:2}") || text.contains("#team  6 NEW  {rail:2}"), "{text}");
+    host.update(Event::Intent(Intent::Select { target: Target::new("rail:2") }));
+    assert_eq!(host.focus, radar_core::Pane::Nav, "selecting a rail row focuses the nav pane");
+    let text = shown(&host, 160, 40);
     assert!(text.contains("6 NEW"), "{text}");
 }
 
@@ -527,7 +535,7 @@ fn the_x_menu_of_a_message_lists_what_works_there() {
     for want in ["⏎ open its thread", "o open it in Slack", "y copy its link", "m mark read up to here", "c comment in its thread", "e react to it", "r refresh"] {
         assert!(labels.iter().any(|l| l.starts_with(want)), "{want}: {labels:?}");
     }
-    insta::assert_snapshot!("message_keys_100x40", to_text(&host, 100, 40));
+    insta::assert_snapshot!("message_keys", menu_shown(&host));
 }
 
 // --- not set up, and set up from the environment --------------------------------------------
@@ -543,7 +551,7 @@ fn not_set_up_it_says_what_it_needs_and_names_a_variable_it_found_never_its_valu
     let mut host = Host::new(vec![Box::new(p)], NOW).unwrap();
     host.load_config(Some("")).unwrap();
     // The env the plugin looks in is the test's (load_config keeps it).
-    let text = to_text(&host, 120, 30);
+    let text = shown(&host, 120, 30);
     assert!(text.contains("Slack is not set up yet"), "{text}");
     assert!(text.contains("SLACK_APP_USER_OAUTH_TOKEN"), "{text}");
     assert!(!text.contains("secret-value"), "{text}");
@@ -551,8 +559,8 @@ fn not_set_up_it_says_what_it_needs_and_names_a_variable_it_found_never_its_valu
     insta::assert_snapshot!("set_up_120x30", text);
     // ⏎ goes to connection, where the variable is asked about; ⏎ uses it.
     press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("? Found: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?"), "{text}");
+    let text = shown(&host, 160, 40);
+    assert!(text.contains("? Found in your environment: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?"), "{text}");
     assert!(text.contains("shows the values or saves them"), "{text}");
     insta::assert_snapshot!("workspace_offer_160x40", text);
     press(&mut host, KeyCode::Enter);
@@ -569,7 +577,7 @@ fn set_up_with_no_channels_it_says_how_to_add_one() {
     p.cfg.channels.clear();
     p.data.for_you.clear();
     let host = hosted_via(p);
-    let text = to_text(&host, 120, 30);
+    let text = shown(&host, 120, 30);
     assert!(text.contains("No channels yet"), "{text}");
     insta::assert_snapshot!("no_channels_120x30", text);
 }
@@ -590,18 +598,22 @@ fn settings_at(section: usize) -> Host {
 }
 
 #[test]
-fn each_settings_section_draws_at_both_sizes() {
+fn each_settings_section_reads_as_view_data() {
     for (i, name) in ["connection", "channels", "review", "alerts", "look"].iter().enumerate() {
         let host = settings_at(i);
-        insta::assert_snapshot!(format!("settings_{name}_160x40"), to_text(&host, 160, 40));
-        insta::assert_snapshot!(format!("settings_{name}_80x24"), to_text(&host, 80, 24));
+        insta::assert_snapshot!(format!("settings_{name}_160x40"), shown(&host, 160, 40));
+        // The parts fit some words to the room they are asked for; where
+        // that changes nothing, one snapshot says it all.
+        if *name != "alerts" {
+            insta::assert_snapshot!(format!("settings_{name}_80x24"), shown(&host, 80, 24));
+        }
     }
 }
 
 #[test]
 fn the_workspace_shows_who_and_what_the_token_may_do() {
     let host = settings_at(0);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     // In the order every part's connection has.
     let at = |s: &str| text.find(s).unwrap_or_else(|| panic!("{s}: {text}"));
     let order = [
@@ -611,11 +623,11 @@ fn the_workspace_shows_who_and_what_the_token_may_do() {
         "check           not checked yet",
         "refresh         every 2m",
         "read back       7 days",
-        " permissions   ├─",
+        "permissions   ├─",
     ]
     .map(at);
     assert!(order.windows(2).all(|w| w[0] < w[1]), "{text}");
-    assert!(text.contains("├─ reacting        needs reactions:write"), "{text}");
+    assert!(text.contains("├─ reacting  needs reactions:write"), "{text}");
     assert!(text.contains("└─ pictures"), "{text}");
     assert!(!text.contains("typed-in-token"), "{text}");
 }
@@ -627,14 +639,14 @@ fn typing_a_token_checks_it_as_you_type_and_refuses_a_bot_token() {
     press(&mut host, KeyCode::Down); // the token row, under the api
     press(&mut host, KeyCode::Char('e'));
     assert!(host.plugins[0].capturing(), "editing");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(!text.contains("typed-in"), "a typed token is not shown again: {text}");
     press(&mut host, KeyCode::Char('u'));
     for _ in 0..40 {
         press(&mut host, KeyCode::Backspace);
     }
     chars(&mut host, "xoxb-12345678901234567890");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("radar needs a user token"), "{text}");
     press(&mut host, KeyCode::Enter);
     assert!(host.message.as_deref().unwrap_or("").starts_with("not yet"), "{:?}", host.message);
@@ -660,7 +672,7 @@ fn adding_a_channel_asks_slack_which_it_is_and_adds_it_watched() {
     host.focus = radar_core::Pane::Middle;
     press(&mut host, KeyCode::Enter); // + add a channel
     host.update(Event::Paste("https://acme.slack.com/archives/C00000NEW1".into()));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("the channel C00000NEW1"), "{text}");
     let fx = press(&mut host, KeyCode::Enter);
     let rest = settle(&mut host, fx);
@@ -671,7 +683,7 @@ fn adding_a_channel_asks_slack_which_it_is_and_adds_it_watched() {
     let cfg = host.config_text();
     assert!(cfg.contains("alias = \"acme-deploys\""), "its own name, not its last word: {cfg}");
     assert!(cfg.contains("name = \"acme-deploys\""), "{cfg}");
-    insta::assert_snapshot!("channel_added_160x40", to_text(&host, 160, 40));
+    insta::assert_snapshot!("channel_added_160x40", shown(&host, 160, 40));
 }
 
 /// The channels section, focused, on `row` (0 is `+ add a channel`).
@@ -707,7 +719,7 @@ fn adding_by_name_finds_a_private_channel_you_are_in_however_far_down_the_list()
     assert!(cfg.contains("alias = \"acme-team-private\""), "{cfg}");
     assert!(cfg.contains("id = \"C0PRIVATE1\""), "{cfg}");
     // users.conversations leaves is_member out: listed there, you are in it.
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("private · you are in it"), "{text}");
 }
 
@@ -735,16 +747,11 @@ fn adding_by_name_shows_incomplete_search_and_wrapped_retry_guidance() {
     assert!(!said.contains("not among") && !said.contains("private channel"), "{said}");
     assert_eq!(host.config_text(), before);
     for (width, height) in [(160, 40), (80, 24)] {
-        let text = to_text(&host, width, height);
-        // The detail can be stacked and its right border a scrollbar.
-        // Inspect its actual viewport rather than treating a │ as its edge.
-        let detail = host.hits.borrow().iter().find_map(|(r, hit)| {
-            matches!(hit, radar_core::host::Hit::Pane(radar_core::Pane::Detail)).then_some(*r)
-        }).expect("detail pane");
-        let body = text.lines().skip(usize::from(detail.y + 1)).take(usize::from(detail.height - 2))
-            .map(|line| line.chars().skip(usize::from(detail.x + 2)).take(usize::from(detail.width - 4)).collect::<String>())
-            .map(|line| line.trim().to_string())
-            .collect::<Vec<_>>().join(" ");
+        let text = shown(&host, width, height);
+        // The section's detail, its lines joined: the guidance reads whole
+        // whatever the room it was fitted to.
+        let detail = text.split("── detail").nth(1).expect("the section's detail");
+        let body = detail.split_whitespace().collect::<Vec<_>>().join(" ");
         for visible in ["Search for", "acme-secret", "incomplete", "channel ID or link"] {
             assert!(body.contains(visible), "the add row's detail wraps at {width}x{height}: {text}");
         }
@@ -793,9 +800,9 @@ fn the_template_previews_as_you_type_and_must_keep_mrs() {
     keys(&mut host, &[KeyCode::Down, KeyCode::Down, KeyCode::Enter]);
     keys(&mut host, &[KeyCode::Backspace; 30]);
     chars(&mut host, "Review please {group}: {mrs}");
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("Review please @review-squad: mr Add a stats"), "{text}");
-    assert!(text.contains("template         Review please {group}: {mrs}"), "the input over the row: {text}");
+    let text = shown(&host, 160, 40);
+    assert!(text.contains("Review please @review-squad: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats"), "{text}");
+    assert!(text.contains("[Review please {group}: {mrs}|]"), "the input over the row: {text}");
     insta::assert_snapshot!("review_template_typing_160x40", text);
     keys(&mut host, &[KeyCode::Backspace; 40]);
     chars(&mut host, "no placeholder");
@@ -831,7 +838,7 @@ fn the_review_group_is_picked_from_slacks_own_list_stored_by_id_and_shown_by_han
     press(&mut host, KeyCode::Enter);
     let cfg = host.config_text();
     assert!(cfg.contains("group = \"S0ACMEDEV1\"") && cfg.contains("handle = \"acme-devs\""), "{cfg}");
-    assert!(to_text(&host, 160, 40).contains("user group       @acme-devs"));
+    assert!(shown(&host, 160, 40).contains("user group       @acme-devs"));
 }
 
 /// The template as it was typed live, `{@handle} :gitlab: {mrs}`: checked
@@ -855,9 +862,9 @@ fn a_template_naming_a_group_by_handle_is_checked_and_sends_the_groups_mention()
     host.plugins[2] = Box::new(p);
     press(&mut host, KeyCode::Down);
     press(&mut host, KeyCode::Char('a'));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("mentions @acme-devs · the review channel"), "{text}");
-    assert!(text.contains("@acme-devs :gitlab: mr Tidy the README"), "{text}");
+    assert!(text.contains("@acme-devs :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/270> Tidy the README"), "{text}");
     press(&mut host, KeyCode::Char('p'));
     let fx = press(&mut host, KeyCode::Char('y'));
     settle(&mut host, fx);
@@ -874,7 +881,7 @@ fn a_template_slack_would_not_understand_is_refused_as_you_type() {
     keys(&mut host, &[KeyCode::Down, KeyCode::Down, KeyCode::Enter]);
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
     chars(&mut host, "{@nobody} :gitlab: {mrs}");
-    assert!(to_text(&host, 160, 40).contains("✗ {@nobody}: Slack has no user group with that"));
+    assert!(shown(&host, 160, 40).contains("✗ {@nobody}: Slack has no user group with that"));
     press(&mut host, KeyCode::Enter);
     assert!(host.message.as_deref().unwrap_or("").starts_with("not yet: {@nobody}"), "{:?}", host.message);
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
@@ -894,11 +901,11 @@ fn when_to_ask_again_is_typed_as_hours_days_or_a_time_and_kept() {
     press(&mut host, KeyCode::Enter);
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
     chars(&mut host, "10:00");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("✓ offers to ask again at 10:00"), "{text}");
     press(&mut host, KeyCode::Enter);
     assert!(host.config_text().contains("reask = \"10:00\""), "{}", host.config_text());
-    assert!(to_text(&host, 160, 40).contains("ask again        at 10:00 on the next working day without a reply"));
+    assert!(shown(&host, 160, 40).contains("ask again        at 10:00 on the next working day without a reply"));
     press(&mut host, KeyCode::Enter);
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
     chars(&mut host, "3 weeks");
@@ -930,7 +937,7 @@ fn asking_again_replies_in_the_thread_with_the_group_and_a_link_to_the_ask() {
     });
     host.plugins[2] = Box::new(p);
     press(&mut host, KeyCode::Down);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("api !270 Tidy the README [asked 3h · no reply]"), "{text}");
     press(&mut host, KeyCode::Char('x'));
     assert!(menu_labels(&host).iter().any(|l| l.contains("ask again in the thread")), "{:?}", menu_labels(&host));
@@ -1049,10 +1056,10 @@ fn a_read_asks_for_the_channels_threads_for_you_and_names_then_holds_them() {
     assert!(queries[0].starts_with(&format!("<@{ALICE}> after:2026-09-29")), "{queries:?}");
     assert!(queries[1].starts_with("to:me after:"), "{queries:?}");
     assert!(queries[2].starts_with(&format!("<!subteam^{GROUP}> after:")), "{queries:?}");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Carol C"), "the name read: {text}");
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(!text.contains("joined"), "joins are left out: {text}");
     assert!(text.contains("ask mr"), "{text}");
 }
@@ -1073,10 +1080,10 @@ fn a_failed_read_says_so_in_the_rail_and_the_status_line() {
     let mut host = hosted_via(p);
     let fx = host.update(Event::Tick(NOW));
     settle(&mut host, fx);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("✗ #team could not sync: you are not in"), "{text}");
     assert!(text.contains("1 read failed"), "{text}");
-    assert!(text.contains("▌ #team              ✗"), "{text}");
+    assert!(text.contains("▌ :channel: #team  :error: ✗"), "{text}");
 }
 
 #[test]
@@ -1114,20 +1121,20 @@ fn catchup_prints_what_is_new_per_channel_and_as_json() {
 fn slash_filters_the_list_by_words_and_colon_says_it_goes_nowhere_yet() {
     let mut host = hosted();
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down]);
-    assert!(to_text(&host, 160, 40).contains("Anyone seen ABC-12"), "every thread is there at first");
+    assert!(shown(&host, 160, 40).contains("Anyone seen ABC-12"), "every thread is there at first");
     press(&mut host, KeyCode::Char('/'));
     assert!(host.plugins[0].capturing());
     chars(&mut host, "lunch");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("lunch") && text.contains("Lunch at 12:30"), "{text}");
     assert!(!text.contains("Anyone seen ABC-12"), "only the rows with the words: {text}");
     press(&mut host, KeyCode::Enter);
     assert!(!host.plugins[0].capturing());
-    assert!(!to_text(&host, 160, 40).contains("Anyone seen ABC-12"), "kept after ⏎");
+    assert!(!shown(&host, 160, 40).contains("Anyone seen ABC-12"), "kept after ⏎");
     // esc with the words open clears them.
     press(&mut host, KeyCode::Char('/'));
     press(&mut host, KeyCode::Esc);
-    assert!(to_text(&host, 160, 40).contains("Anyone seen ABC-12"));
+    assert!(shown(&host, 160, 40).contains("Anyone seen ABC-12"));
     press(&mut host, KeyCode::Char(':'));
     assert!(host.message.as_deref().unwrap_or("").contains("not on Slack yet"), "{:?}", host.message);
 }
@@ -1164,7 +1171,7 @@ fn list_prints_threads_newest_first_filtered_by_words_with_people_as_name_and_ha
 #[test]
 fn merge_request_rows_carry_the_review_ask_and_only_where_it_applies() {
     let host = hosted_with_parts();
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("api !263 Add a stats endpoint for the dashboard [asked 2d · 2 replies]"), "{text}");
     let other = text.lines().find(|l| l.contains("api !270")).unwrap();
     assert!(!other.contains('['), "no chip: {other}");
@@ -1174,7 +1181,7 @@ fn merge_request_rows_carry_the_review_ask_and_only_where_it_applies() {
 fn the_merge_request_page_has_a_discussed_in_slack_section() {
     let mut host = hosted_with_parts();
     press(&mut host, KeyCode::Enter);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("== Discussed in Slack"), "{text}");
     assert!(text.contains("review asked in #team 2d ago · 2 replies · 👀 1"), "{text}");
     assert!(!text.contains("#team · Bob Builder · 2d ago"), "the ask's thread is said once: {text}");
@@ -1217,14 +1224,14 @@ fn discussions_group_by_what_the_parts_here_recognise() {
     let mut host = hosted_with_parts();
     press(&mut host, KeyCode::Char('S'));
     keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down]);
-    let text = to_text(&host, 200, 40);
+    let text = shown(&host, 200, 40);
     assert!(text.contains("api !263"), "{text}");
     assert!(text.contains("ABC-12"), "{text}");
     assert!(text.contains("BY WHAT THEY ARE ABOUT"), "{text}");
     insta::assert_snapshot!("discussions_with_parts_200x40", text);
     // ⏎ on the first group shows the merge request in its owner's page.
     keys(&mut host, &[KeyCode::Char('2'), KeyCode::Char('g'), KeyCode::Enter]);
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("merge request page api !263"), "{text}");
     press(&mut host, KeyCode::Esc);
     assert_eq!(host.screen().unwrap().1.name, "slack", "esc comes back");
@@ -1236,13 +1243,13 @@ fn the_ticket_page_has_a_slack_tab_whose_rows_open_the_thread() {
     press(&mut host, KeyCode::Char('T'));
     press(&mut host, KeyCode::Enter);
     press(&mut host, KeyCode::Char(']'));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Overview  [Slack]"), "{text}");
     assert!(text.contains("#team · Carol Coder · 1d ago · 1 reply  Anyone seen ABC-12 failing on main?"), "{text}");
     insta::assert_snapshot!("ticket_slack_tab_160x40", text);
     press(&mut host, KeyCode::Enter);
     assert_eq!(host.screen().unwrap().1.name, "slack");
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("Slack / #team / Carol Coder: Anyone seen ABC-12"), "{text}");
     assert!(text.contains("can you look?"), "{text}");
     press(&mut host, KeyCode::Esc);
@@ -1358,18 +1365,15 @@ mod review_draft {
                 .any(|l| l.ends_with("open its review ask's thread")),
             "{labels:?}"
         );
-        insta::assert_snapshot!(
-            "radar_slack__tests__code_keys_with_slack_100x40",
-            to_text(&host, 100, 40)
-        );
+        insta::assert_snapshot!("radar_slack__tests__code_keys_with_slack", menu_shown(&host));
         key(&mut host, KeyCode::Esc);
         // The contributed action opens the real Slack draft page.
         key(&mut host, KeyCode::Char('a'));
         assert_eq!(host.screen().unwrap().1.name, "slack");
-        let text = to_text(&host, 160, 40);
+        let text = shown(&host, 160, 40);
         assert!(text.contains("Ask for review in #team"), "{text}");
         assert!(
-            text.contains("@review-squad :gitlab: mr Add a stats endpoint for the dashboard"),
+            text.contains(&format!("@review-squad :gitlab: mr <{MR_263}> Add a stats endpoint for the dashboard")),
             "{text}"
         );
         assert!(
@@ -1378,16 +1382,9 @@ mod review_draft {
             )),
             "the text sent: {text}"
         );
-        insta::assert_snapshot!("radar_slack__tests__draft_one_160x40", text);
-        insta::assert_snapshot!(
-            "radar_slack__tests__draft_one_80x24",
-            to_text(&host, 80, 24)
-        );
+        insta::assert_snapshot!("radar_slack__tests__draft_one", text);
         key(&mut host, KeyCode::Char('x'));
-        insta::assert_snapshot!(
-            "radar_slack__tests__draft_keys_100x40",
-            to_text(&host, 100, 40)
-        );
+        insta::assert_snapshot!("radar_slack__tests__draft_keys", menu_shown(&host));
         key(&mut host, KeyCode::Esc);
         // Esc keeps the first item; the next contributed action adds another.
         key(&mut host, KeyCode::Esc);
@@ -1403,12 +1400,15 @@ mod review_draft {
         );
         key(&mut host, KeyCode::Esc);
         key(&mut host, KeyCode::Char('a'));
-        let text = to_text(&host, 160, 40);
+        let text = shown(&host, 160, 40);
         assert!(
-            text.contains("• api !263 Add a stats endpoint for the dashboard"),
+            text.contains(&format!("• api !263 <{MR_263}> Add a stats endpoint for the dashboard")),
             "{text}"
         );
-        assert!(text.contains("• api !270 Tidy the README"), "{text}");
+        assert!(
+            text.contains("• api !270 <https://git.example/acme/team-a/api/-/merge_requests/270> Tidy the README"),
+            "{text}"
+        );
         insta::assert_snapshot!("radar_slack__tests__draft_two_160x40", text);
 
         // Choose the emitted test channel through the actual menu and Enter.
@@ -1424,7 +1424,7 @@ mod review_draft {
             .unwrap();
         host.menu.as_mut().unwrap().row = at;
         key(&mut host, KeyCode::Enter);
-        let text = to_text(&host, 160, 40);
+        let text = shown(&host, 160, 40);
         assert!(text.contains("Ask for review in #try"), "{text}");
         assert!(!text.contains("subteam"), "{text}");
         assert!(
@@ -1449,7 +1449,7 @@ mod review_draft {
         }
         key(&mut host, KeyCode::Enter);
         assert!(!host.plugins[2].capturing());
-        let text = to_text(&host, 160, 40);
+        let text = shown(&host, 160, 40);
         assert!(
             text.contains(&format!(
                 "<{MR_263}|mr> stats for the dashboard &lt;3 &amp; more"
@@ -1465,8 +1465,8 @@ mod review_draft {
             radar_core::scenario::Scenario::new(host)
                 .costs()
                 .shell_frames,
-            7,
-            "only six goldens and the original edited-text checkpoint render"
+            0,
+            "the checkpoints read view data; no frame is painted"
         );
     }
 }
@@ -1620,7 +1620,7 @@ mod review_post {
             Some("✓ review asked · its thread is followed on the merge request")
         );
         key(&mut s, KeyCode::Char('C'));
-        let text = s.inspect(|host| to_text(host, 160, 40));
+        let text = s.inspect(|host| shown(host, 160, 40));
         assert!(
             text.contains("api !270 Tidy the README [asked 0s · no reply]"),
             "{text}"
@@ -1651,7 +1651,7 @@ mod review_post {
             .expect("the refused ask reports why")
             .to_owned();
         assert!(refusal.contains("✗ Slack did not post the review ask in #team: Slack is busy (rate limited): it was not sent"));
-        let text = s.inspect(|host| to_text(host, 160, 40));
+        let text = s.inspect(|host| shown(host, 160, 40));
         assert!(
             text.contains("Slack did not take it: Slack is busy (rate limited): it was not sent"),
             "{text}"
@@ -1689,8 +1689,8 @@ mod review_post {
         assert!(s.desktop_effects().is_empty());
         assert_eq!(
             s.costs().shell_frames,
-            2,
-            "only the followed row and refusal golden render"
+            0,
+            "the checkpoints read view data; no frame is painted"
         );
         s.finish_journal().unwrap();
     }
@@ -1800,7 +1800,7 @@ mod reply_confirmation {
         let body = "looking now, <@U00000BOB1>\nsecond line";
         assert_eq!(composer_text(&host), body);
         assert!(rec.requests().is_empty(), "typing cannot send");
-        let text = to_text(&host, 160, 40);
+        let text = shown(&host, 160, 40);
         assert!(
             text.contains("✎ reply in #team, in Bob Builder's thread"),
             "{text}"
@@ -1824,10 +1824,7 @@ mod reply_confirmation {
             ]
         );
         assert!(rec.requests().is_empty(), "preview cannot send");
-        insta::assert_snapshot!(
-            "radar_slack__tests__reply_confirm_100x30",
-            to_text(&host, 100, 30)
-        );
+        insta::assert_snapshot!("radar_slack__tests__reply_confirm", menu_shown(&host));
         // e: back to the text, as it was.
         key(&mut host, KeyCode::Char('e'));
         assert!(host.plugins[0].capturing() && rec.requests().is_empty());
@@ -1884,8 +1881,8 @@ mod reply_confirmation {
             radar_core::scenario::Scenario::new(host)
                 .costs()
                 .shell_frames,
-            2,
-            "only the two golden checkpoints render"
+            0,
+            "the checkpoints read view data; no frame is painted"
         );
     }
 }
@@ -1986,7 +1983,7 @@ fn a_reaction_is_picked_asked_and_sent_once() {
     on_team(&mut host, 4);
     press(&mut host, KeyCode::Char('e'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "react to Bob Builder's message");
-    insta::assert_snapshot!("react_menu_100x30", to_text(&host, 100, 30));
+    insta::assert_snapshot!("react_menu", menu_shown(&host));
     press(&mut host, KeyCode::Char('e'));
     let menu = &host.menu.as_ref().unwrap().menu;
     assert_eq!(menu.title, "react :eyes: to Bob Builder's message?");
@@ -2010,7 +2007,7 @@ fn a_reaction_is_picked_asked_and_sent_once() {
 fn not_set_up_it_adds_nothing_to_other_parts() {
     let mut host = hosted_with_parts();
     host.plugins[2] = Box::new(SlackPlugin::new());
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(!text.contains("asked"), "{text}");
     press(&mut host, KeyCode::Char('x'));
     assert!(!menu_labels(&host).iter().any(|l| l.contains("Slack")), "{:?}", menu_labels(&host));
@@ -2084,13 +2081,12 @@ fn every_action_slack_adds_acts_and_the_draft_page_rows_are_taken() {
 }
 
 /// Open a settings field's input from its row, empty it and type `w`: the
-/// `w` sits exactly where the value was drawn, with nothing of the old
-/// value beside it (a stray first letter looks typed but cannot be deleted,
-/// and ⏎ drops it). `row` picks the line, `value` the text on it where the
-/// input starts.
-fn input_sits_on_its_value(host: &mut Host, name: &str, downs: usize, open: &[KeyCode], row: &str, value: &str) {
+/// input is on that row, and only there, with `w` typed into it (a stray
+/// first letter would look typed but could not be deleted, and ⏎ would
+/// drop it). `row` picks the line by its label.
+fn input_opens_on_its_row(host: &mut Host, name: &str, downs: usize, open: &[KeyCode], row: &str) {
     let key = |host: &mut Host, code: KeyCode, m: KeyModifiers| {
-        let _ = to_text(host, 160, 40);
+        let _ = shown(host, 160, 40);
         host.update(Event::Key(KeyEvent::new(code, m)))
     };
     host.view = radar_core::host::View::Settings;
@@ -2102,16 +2098,9 @@ fn input_sits_on_its_value(host: &mut Host, name: &str, downs: usize, open: &[Ke
     for _ in 0..downs {
         key(host, KeyCode::Down, KeyModifiers::NONE);
     }
-    let before = to_text(host, 160, 40);
-    let (y, line) = before
-        .lines()
-        .enumerate()
-        .find(|(_, l)| l.contains(row))
-        .unwrap_or_else(|| panic!("no row {row:?} in {name}:\n{before}"));
-    let chars: Vec<char> = line.chars().collect();
-    let start = line.find(row).unwrap();
-    let at = start + line[start..].find(value).unwrap_or_else(|| panic!("no {value:?} on {line:?}"));
-    let c = line[..at].chars().count();
+    let before = shown(host, 160, 40);
+    assert!(before.lines().any(|l| l.contains(row)), "no row {row:?} in {name}:\n{before}");
+    assert!(!before.contains("|]"), "{name}: an input is open before {open:?}:\n{before}");
     for code in open {
         key(host, *code, KeyModifiers::NONE);
     }
@@ -2124,37 +2113,33 @@ fn input_sits_on_its_value(host: &mut Host, name: &str, downs: usize, open: &[Ke
         !fx.iter().any(|e| matches!(e, radar_core::host::HostEffect::Save(_))),
         "{name}: w saved instead of being typed"
     );
-    let after = to_text(host, 160, 40);
-    let now: Vec<char> = after.lines().nth(y).unwrap_or_default().chars().collect();
-    let shown = |cs: &[char]| cs[c.saturating_sub(12)..(c + 4).min(cs.len())].iter().collect::<String>();
-    assert_eq!(
-        (now.get(c), now.get(c.wrapping_sub(1))),
-        (Some(&'w'), chars.get(c.wrapping_sub(1))),
-        "{name}, {row:?}: the input does not start where {value:?} was\nbefore {:?}\nafter  {:?}",
-        shown(&chars),
-        shown(&now),
+    let after = shown(host, 160, 40);
+    let inputs: Vec<&str> = after.lines().filter(|l| l.contains("|]")).collect();
+    assert!(
+        matches!(inputs[..], [line] if line.contains(row) && line.contains("[w|]")),
+        "{name}, {row:?}: the input is not just on that row, holding only w: {inputs:?}\n{after}"
     );
     key(host, KeyCode::Esc, KeyModifiers::NONE);
     assert!(!host.plugins[0].capturing());
 }
 
 #[test]
-fn every_settings_input_starts_where_its_value_was_drawn() {
+fn every_settings_input_opens_on_its_row_holding_what_is_typed() {
     use KeyCode::{Char, Enter};
     let mut host = hosted();
     // connection: the api, the token, how often to read, how far back.
-    input_sits_on_its_value(&mut host, "connection", 1, &[Char('e')], "│  api ", "https://slack.com");
-    input_sits_on_its_value(&mut host, "connection", 2, &[Char('e')], "│  token ", "xoxp");
-    input_sits_on_its_value(&mut host, "connection", 5, &[Char('e')], "│  refresh ", "every 2m");
-    input_sits_on_its_value(&mut host, "connection", 6, &[Char('e')], "│  read back ", "7 days");
+    input_opens_on_its_row(&mut host, "connection", 1, &[Char('e')], "api ");
+    input_opens_on_its_row(&mut host, "connection", 2, &[Char('e')], "token ");
+    input_opens_on_its_row(&mut host, "connection", 5, &[Char('e')], "refresh ");
+    input_opens_on_its_row(&mut host, "connection", 6, &[Char('e')], "read back ");
     // channels: the add row, a channel's alias and purpose.
-    input_sits_on_its_value(&mut host, "channels", 0, &[Enter], "│ + add a channel", "add a channel");
-    input_sits_on_its_value(&mut host, "channels", 2, &[Char('e')], "│   ├─ alias ", "team");
-    input_sits_on_its_value(&mut host, "channels", 3, &[Char('e')], "│   ├─ purpose ", "where");
+    input_opens_on_its_row(&mut host, "channels", 0, &[Enter], "+ add a channel");
+    input_opens_on_its_row(&mut host, "channels", 2, &[Char('e')], "├─ alias ");
+    input_opens_on_its_row(&mut host, "channels", 3, &[Char('e')], "├─ purpose ");
     // review: the template, the link text, how long before asking again.
-    input_sits_on_its_value(&mut host, "review", 2, &[Char('e')], "│ template ", "{group}");
-    input_sits_on_its_value(&mut host, "review", 3, &[Char('e')], "│ link text ", "mr");
-    input_sits_on_its_value(&mut host, "review", 5, &[Char('e')], "│ ask again        after", "after 2");
+    input_opens_on_its_row(&mut host, "review", 2, &[Char('e')], "template ");
+    input_opens_on_its_row(&mut host, "review", 3, &[Char('e')], "link text ");
+    input_opens_on_its_row(&mut host, "review", 5, &[Char('e')], "ask again");
 }
 
 #[test]
@@ -2190,28 +2175,19 @@ fn a_read_says_which_threads_changed_and_the_list_marks_their_rows() {
     host.update(read(messages));
     assert!(host.take_cues().is_empty(), "the same again changes nothing");
 
-    let text = to_text(&host, 160, 40);
-    let marks = radar_core::motion::take();
-    let (_, at) = marks.rows.iter().find(|(k, _)| *k == q).expect("its row is marked");
-    let line = text.lines().nth(at.y as usize).unwrap();
-    assert!(line.contains("Anyone seen"), "where it is drawn: {line}");
+    // The row of that thread carries the key its glow is told by.
+    use radar_core::view::{Node, PaneId, TreeRow};
+    fn glowing<'a>(rows: &'a [TreeRow], key: &str) -> Option<&'a TreeRow> {
+        rows.iter().find_map(|r| if r.glow.as_deref() == Some(key) { Some(r) } else { glowing(&r.children, key) })
+    }
+    let view = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
+    let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("the list").body else { panic!("the list is a tree") };
+    let row = glowing(&tree.rows, &q).expect("its row is marked");
+    let line = radar_core::headless::text::text(&row.name);
+    assert!(line.contains("Anyone seen"), "where it is shown: {line}");
 }
 
-// --- icons on ------------------------------------------------------------------------------
-
-/// The sample in a host whose config chose an icon pack.
-pub(crate) fn hosted_icons(pack: &str) -> Host {
-    let mut host = Host::new(vec![Box::new(SlackPlugin::new())], NOW).unwrap();
-    host.load_config(Some(&format!("[theme]\nicons = \"{pack}\"\n"))).unwrap();
-    host.plugins[0] = Box::new(sample());
-    host
-}
-
-/// The replies cell's icon keeps its own colour beside the count.
-#[test]
-fn feed_icon_styles_unicode_160x40() {
-    insta::assert_snapshot!(radar_core::shell::to_styles(&hosted_icons("unicode"), 160, 40));
-}
+// --- icons ---------------------------------------------------------------------------------
 
 #[test]
 fn the_screen_and_the_settings_sections_have_icons() {
@@ -2224,41 +2200,6 @@ fn the_screen_and_the_settings_sections_have_icons() {
     }
     assert_eq!(p.section_icon("connection"), Some(Icon::Connection));
     assert_eq!(p.section_icon("alerts"), Some(Icon::Alert));
-}
-
-#[test]
-fn a_channel_with_icons_unicode() {
-    let mut host = hosted_icons("unicode");
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Char('2')]);
-    let text = to_text(&host, 160, 40);
-    assert!(!text.contains("##"), "{text}");
-    insta::assert_snapshot!("channel_icons_unicode_160x40", text);
-    insta::assert_snapshot!("channel_icons_unicode_80x24", to_text(&host, 80, 24));
-}
-
-#[test]
-fn a_channel_with_icons_nerd() {
-    let mut host = hosted_icons("nerd");
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Char('2')]);
-    insta::assert_snapshot!("channel_icons_nerd_160x40", to_text(&host, 160, 40));
-}
-
-#[test]
-fn the_x_menu_of_a_message_with_icons_unicode() {
-    let mut host = hosted_icons("unicode");
-    on_team(&mut host, 4);
-    // Drawn once, so the host's icons are current when the menu is built.
-    let _ = to_text(&host, 100, 40);
-    press(&mut host, KeyCode::Char('x'));
-    insta::assert_snapshot!("message_keys_icons_unicode_100x40", to_text(&host, 100, 40));
-}
-
-#[test]
-fn a_thread_page_with_icons_unicode() {
-    let mut host = hosted_icons("unicode");
-    on_team(&mut host, 4);
-    press(&mut host, KeyCode::Enter);
-    insta::assert_snapshot!("thread_page_icons_unicode_160x40", to_text(&host, 160, 40));
 }
 
 /// The host asks every part whether it is set up on every frame, and with

@@ -1,29 +1,53 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 588
-expression: "to_text(&host, 80, 24)"
+expression: "shown(&host, 80, 24)"
 ---
- radar    Slack ●   History   Settings (,)                               ✎ edit
-╭ 1 settings ──────────╮╭ 2 connection ────────────────────────────────────────╮
-│General               ││  workspace       Acme · https://acme.slack.com       █
-│  ├─ parts            ││  api             https://slack.com                   █
-│  ├─ mode             ││  token           xoxp…ests (typed in)                █
-│  ├─ appearance       ││  signed in as    Alice Example  alice                █
-│  ├─ colours          ││  check           not checked yet                     ║
-│  └─ icons            ││  refresh         every 2m                            ║
-│Slack                 ││  read back       7 days                              ║
-│  ├─ connection       ││  permissions   ├─ public channels             has it ║
-│  ├─ channels         ││                ├─ private channels            has it ║
-│  ├─ review           │╰──────────────────────────────────────────────────────╯
-│  ├─ alerts           │╭ 3 workspace ─────────────────────────────────────────╮
-│  └─ look             ││ CHECKED                                              █
-│                      ││ not checked yet                                      █
-│                      ││                                                      █
-│                      ││ NOW                                                  ║
-│                      ││ Acme · https://acme.slack.com                        ║
-│                      ││                                                      ║
-│                      ││ The Slack workspace the token is for: a user token   ║
-│                      ││ belongs to one. The check finds it.                  ║
-│                      ││                                                      ║
-╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices                  slack
+── section · connection ──
+> workspace       Acme · https://acme.slack.com  {row:0}
+  api             https://slack.com  {row:1}
+  token           xoxp…ests (typed in)  {row:2}
+  signed in as    Alice Example  alice  {row:3}
+  check           not checked yet  {row:4}
+  refresh         every 2m  {row:5}
+  read back       7 days  {row:6}
+  permissions   ├─ public channels  :done: has it  {row:7}
+  ├─ private channels  :done: has it  {row:8}
+  ├─ for you  :done: has it  {row:9}
+  ├─ names  :done: has it  {row:10}
+  ├─ user groups  :done: has it  {row:11}
+  ├─ asking and replying  :done: has it  {row:12}
+  ├─ reacting  needs reactions:write  :error: missing  {row:13}
+  └─ pictures  :done: has it  {row:14}
+  #  {row:15}
+  #  CHANNELS  the registry; watched ones are read  {row:16}
+  + add a channel   paste its link, a message link, or its id  {row:17}
+  :channel: #team   team · watched  {row:18}
+  :channel: #svc   service · watched  {row:19}
+  :channel: #try   test · not watched  {row:20}
+── detail · workspace ──
+CHECKED
+not checked yet
+
+NOW
+Acme · https://acme.slack.com
+
+The Slack workspace the token is for: a user token belongs to one. The check finds it.
+
+§ :connection: MAKE A USER TOKEN  about two minutes, once
+  1 Open Slack's new-app page, radar's manifest filled in:
+  api.slack.com / new app   open · copy manifest
+  user scopes only: 10
+  2 Pick your workspace, Next, Create.
+  3 Install to Workspace, then Allow.
+  4 OAuth & Permissions shows the User OAuth Token, xoxp-…: paste it into token, or:
+  $ export SLACK_TOKEN=xoxp-…
+  then the token is env:SLACK_TOKEN
+  api.slack.com / your apps
+§ :team: NEEDS AN ADMIN?
+  If Slack says Request to Install, your admin approves it first.
+  A missing scope switches off only its own actions.
+§ :link: MORE
+  Slack: what each scope allows
+  radar guide: connect Slack
+── status · SETTINGS ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

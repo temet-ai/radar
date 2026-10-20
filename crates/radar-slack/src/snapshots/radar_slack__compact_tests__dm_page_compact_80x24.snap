@@ -1,29 +1,28 @@
 ---
 source: crates/radar-slack/src/compact_tests.rs
-assertion_line: 149
 expression: text
 ---
- radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
- Slack / #D0000CAROL / Carol Coder: hi @Alice Example, quick…
- hi @Alice Example, quick question about th…  Carol Coder · 13h ago · 5 replies
- [Thread]  Links
-╭ 1 thread ────────────────────────────────────────────────────────────────────╮
-│ ── yesterday ──                                                              █
-│ 17:58  Carol Coder    hi @Alice Example, quick question about the stats      █
-│ ── 5 replies ──                                                              █
-│ 17:59  Carol Coder    the dashboard shows 0 for the weekly numbers           █
-│ 18:10  Alice Example  on it, looking now 👀                                  █
-│ 18:12                 found it: the query groups by ISO week but the cache   █
-│                       keys by calendar week, so they disagree on the first   █
-│                       of the year. I will fix the key and add a test that    █
-│                       crosses a year boundary. Back in ten minutes  👍 1     █
-│ ── today ──                                                                  █
-│ 06:30  Carol Coder    thanks!! 🎉 the numbers are right again, see the notes █
-│                       (edited)                                               █
-│                       ▤ notes.csv                                            █
-│                       ▣ Weekly.png                                           █
-│ 06:31  Alice Example  great, Bob wrote the original                          █
-│                       │ Bob Builder: the weekly job is in the api, it keys   ║
-│                       │ the cache by calendar week for now and we should     ║
-╰──────────────────────────────────────────────────────────────────────────────╯
- SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices              slack
+── page · Slack / #D0000CAROL / Carol Coder: hi @Alice Example, quick… ──
+hi @Alice Example, quick question about the stats  :person: Carol Coder · 13h ago · :reply: 5 replies
+<:thread: Thread>  :link: Links
+── middle · thread * ──
+── yesterday ──
+17:58  Carol Coder    hi @Alice Example, quick question about the stats
+── 5 replies ──
+17:59  Carol Coder    the dashboard shows 0 for the weekly numbers
+18:10  Alice Example  on it, looking now 👀
+18:12                 found it: the query groups by ISO week but the cache
+keys by calendar week, so they disagree on the first
+of the year. I will fix the key and add a test that
+crosses a year boundary. Back in ten minutes  👍 1
+── today ──
+06:30  Carol Coder    thanks!! 🎉 the numbers are right again, see the notes
+(edited)
+:file: ▤ notes.csv
+:file_image: ▣ Weekly.png
+06:31  Alice Example  great, Bob wrote the original
+                      │ Bob Builder: the weekly job is in the api, it keys the cache by calendar week for now and we should change that soon
+3 to open: links, files and what it names, on the Links tab
+── status · SLACK ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+7 new · 3 for you

@@ -5,9 +5,9 @@ use radar_core::host::{Event, View};
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Pane};
 use radar_core::view::{Chord, Intent, Key as KeyCode};
-/// A contributed line's chips as words: each chip's text, two spaces apart.
+/// A contributed line's chips as words: each chip's text, runs of space as one.
 fn words(chips: &[radar_core::compose::Chip]) -> String {
-    chips.iter().map(|c| c.text.as_str()).collect::<Vec<_>>().join("  ")
+    chips.iter().map(|c| c.text.as_str()).collect::<Vec<_>>().join(" ").split_whitespace().collect::<Vec<_>>().join(" ")
 }
 use radar_core::{Contribution, Host, Plugin, Point, Subject};
 
@@ -93,7 +93,7 @@ fn a_repo_and_a_merge_request_say_where_they_are_checked_out() {
     // Where, then a terminal there and an editor on it, each a click.
     assert_eq!(
         line(&p, &repo(api)),
-        "checkout  terminal  editor  /work/acme/api · java · on main"
+        "checkout terminal editor /work/acme/api · java · on main"
     );
     let Some(Contribution::Line(w)) = p.contribute(Point::Line, &repo(api)) else { panic!() };
     let acts: Vec<(&str, Option<&str>)> = w.iter().filter(|c| c.action.is_some()).map(|c| (c.text.as_str(), c.action.as_deref())).collect();
@@ -101,12 +101,12 @@ fn a_repo_and_a_merge_request_say_where_they_are_checked_out() {
     assert!(!p.act(&repo(api), "terminal").is_empty(), "the chip's action is one git does");
     assert_eq!(
         line(&p, &mr(api, "feature/ABC-263")),
-        "checkout  terminal  editor  /work/acme/api · java · on main"
+        "checkout terminal editor /work/acme/api · java · on main"
     );
     p.local.index.as_mut().unwrap().checkouts[0].branch = "feature/ABC-263".into();
     assert_eq!(
         line(&p, &mr(api, "feature/ABC-263")),
-        "checkout  terminal  editor  /work/acme/api · java · on feature/ABC-263"
+        "checkout terminal editor /work/acme/api · java · on feature/ABC-263"
     );
     // The repo's row: cloned here, on its branch, in place of its own icon.
     let Some(Contribution::Mark { icon, words: w }) = p.contribute(Point::Mark, &repo(api)) else { panic!() };
@@ -115,7 +115,7 @@ fn a_repo_and_a_merge_request_say_where_they_are_checked_out() {
     // Elsewhere: why not, and where to set the folders.
     assert_eq!(
         line(&p, &repo("acme/team-a/web")),
-        "checkout  no checkout of this repo in /work"
+        "checkout no checkout of this repo in /work"
     );
     p.cfg.roots.clear();
     p.local.index = None;

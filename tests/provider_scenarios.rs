@@ -165,12 +165,15 @@ mod github {
     const BASE: &str = "https://api.github.com/repos/ankh-morpork/watch";
     const CONFIG: &str = "[theme]\nicons = 'off'\n[github]\ntoken = ''\n[[github.groups]]\nname = 'The Watch'\nrepositories = ['ankh-morpork/watch']\n";
 
-    /// One real rendered checkpoint from the hosted refresh, never a demo world.
-    /// Default runs verify checked-in artifacts; regeneration is explicit.
+    /// One real checkpoint from the hosted refresh, never a demo world: the
+    /// view data a renderer is sent. Default runs verify the checked-in JSON;
+    /// regeneration is explicit. Beside it, `github_refresh_120x40.txt` is
+    /// Ink's golden of this checkpoint (Ratatui's text as it was when this
+    /// test moved to the view data's text form); this test no longer writes it.
     fn renderer_checkpoint(s: &Scenario) {
         let (snapshot, text) = s.inspect(|host| {
             host.set_view_room(120, 40);
-            let text = radar_core::shell::to_text(host, 120, 40);
+            let text = radar_core::headless::host_text_of(host, 120, 40);
             let snapshot = json!({
                 "width": 120,
                 "height": 40,
@@ -187,12 +190,15 @@ mod github {
         });
         assert!(
             text.contains(TITLE),
-            "the actual Ratatui frame contains the refreshed PR"
+            "the view data's text form contains the refreshed PR:\n{text}"
         );
-        let files = [
-            ("github_refresh_120x40.json", snapshot),
-            ("github_refresh_120x40.txt", text),
-        ];
+        let golden = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("ink/test/fixtures/scenarios/github_refresh_120x40.txt");
+        assert!(
+            std::fs::read_to_string(&golden).is_ok_and(|t| t.contains(TITLE)),
+            "Ink's golden of this checkpoint: {}",
+            golden.display()
+        );
+        let files = [("github_refresh_120x40.json", snapshot)];
         if let Some(dir) = std::env::var_os("RADAR_SCENARIO_FIXTURES_DIR") {
             let dir = PathBuf::from(dir);
             std::fs::create_dir(&dir)
@@ -318,7 +324,8 @@ mod github {
             3,
             "failed detail does not silently retry"
         );
-        let events = persisted(&mut s, &scratch, TITLE, 1);
+        // The checkpoint reads view data and paints no frame.
+        let events = persisted(&mut s, &scratch, TITLE, 0);
         terminal(&events, "github.repository.read", Outcome::Succeeded);
         terminal(&events, "github.pull-request.read", Outcome::Failed);
         count(&events, "github.read.items", 1, Outcome::Succeeded);

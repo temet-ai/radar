@@ -1,0 +1,40 @@
+ radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                              not synced yet · every 2m  ✎ edit
+╭ 1 views ───────────────╮╭ 2 Our project ─────────────────────────────────────────────────────────────────────╮╭ 3 acme ──────────────────────────────────────╮
+│ Our project            ││ ASSIGNED TO everyone                TYPE      STATUS          CODE        UPDATED  ││ acme  acme.atlassian.net                     │
+│                        ││acme  acme.atlassian.net                                                            ││                                              │
+│                        ││  ├─ In Review                                                                      ││ signed in   Alice Example                    │
+│                        ││  │  └─ ABC-12 Add a stats endpoint  Story     In Review       !263 review 1h       ││ watching    ABC                              │
+│                        ││  └─ To Do                                                                          ││                                              │
+│                        ││     ├─ ABC-20 Stats page shows yest Story     To Do           !264 team   1h       ││ IN THIS VIEW ─────────────────────────────── │
+│                        ││     └─ ABC-21 Nothing written for i Story     To Do                       1h       ││   doing 1                                    │
+│                        ││                                                                                    ││   to do 2                                    │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ what its JQL asks for (settings, views)                                            ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ JIRA   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                       3 tickets · 1 doing  gitlab jira

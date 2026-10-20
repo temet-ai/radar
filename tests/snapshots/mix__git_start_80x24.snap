@@ -1,29 +1,17 @@
 ---
 source: tests/mix.rs
-assertion_line: 134
-expression: "to_text(&started(), 80, 24)"
+expression: text
 ---
- radar    Branches   History   Settings (,)   not synced yet · every 1m  ✎ edit
-╭ 2 all ───────────────────────────────────────────────────────────────────────╮
-│ No clones known yet. Press , for settings, then add a folder under git ›     │
-│ checkouts.                                                                   │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│─ shows ──────────────────────────────────────────────────────────────────────│
-│ every clone, its worktrees and its local branches                            │
-╰──────────────────────────────────────────────────────────────────────────────╯
- BRANCHES   bulk   +/- expand/collapse   quit   extra actions   ~ notices
+bar: radar  <:branch: branches> :log: history :settings: settings  not synced yet · every 1m  ✎ edit {chrome:mode}
+── nav · views ──
+> :views: all  {view:0}
+  :warning: dirty  {view:1}
+  :commit: ahead of remote  {view:2}
+  :folder: stashes  {view:3}
+── middle · all * ──
+(empty) No clones known yet. Press , for settings, then add a folder under git › checkouts.
+· every clone, its worktrees and its local branches
+── detail · branches ──
+Select a clone, a worktree or a branch.
+── status · BRANCHES ──
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -1,0 +1,40 @@
+ radar    History   Settings (,)                                                                                                                         ✎ edit
+╭ 1 settings ──────────╮╭ 2 Tools and defaults ──────────────────────────────────────────────────────────╮╭ 3 install and sign in ─────────────────────────────╮
+│General               ││ COMMAND LINE TOOLS                                                             ││ Each agent is its own program with its own         │
+│  ├─ parts            ││                                                                                ││ sign-in. radar finds it on your PATH; read its     │
+│  ├─ mode             ││ … Copilot       checking                                                       ││ status again.                                      │
+│  ├─ appearance       ││ … Codex         checking                                                       ││                                                    │
+│  ├─ colours          ││ … Claude Agent  checking                                                       ││ COPILOT  checking ──────────────────────────────── │
+│  └─ icons            ││  + add a command   aider, opencode, …                                          ││   $ npm i -g @github/copilot                       │
+│Agents                ││                                                                                ││   copy command · $ copilot login                   │
+│  └─ Tools and defau  ││ NEW SESSIONS · FOR EVERY WORKSPACE                                             ││   Needs a Copilot plan on GitHub.                  │
+│                      ││                                                                                ││    open documentation · GitHub: install Copilot    │
+│                      ││ provider              Copilot                                                  ││   CLI                                              │
+│                      ││ model                 the provider's own                                       ││ CODEX  checking ────────────────────────────────── │
+│                      ││ working folder        where radar was started                                  ││   $ npm i -g @openai/codex                         │
+│                      ││ permitted folders     none                                                     ││   $ codex login                                    │
+│                      ││ skill folders         none                                                     ││    Codex: install and sign in                      │
+│                      ││ CLI's own config      yes                                                      ││ CLAUDE AGENT  checking ─────────────────────────── │
+│                      ││ always allow          none                                                     ││   $ npm i -g @anthropic-ai/claude-code             │
+│                      ││ always deny           none                                                     ││   $ claude auth login                              │
+│                      ││ local only            yes                                                      ││   radar runs your own claude and offers no sign-in │
+│                      ││ reviewer commands     yes                                                      ││   of its own.                                      │
+│                      ││                                                                                ││   Anthropic does not allow a claude.ai login in a  │
+│                      ││ RECIPES AND REVIEWS                                                            ││   product: for one it asks for an API key          │
+│                      ││                                                                                ││   (ANTHROPIC_API_KEY).                             │
+│                      ││ recipes folder        ~/.config/radar/recipes                                  ││    Claude Code: set up                             │
+│                      ││ recipe ask            v# · built-in                                            ││ ANY OTHER CLI ──────────────────────────────────── │
+│                      ││ recipe review-mr      v# · built-in                                            ││   add a command takes what you would type in a     │
+│                      ││ reviews folder        radar's state folder                                     ││   terminal; radar runs it in a tab of the dock.    │
+│                      ││                                                                                ││ NOTHING IS APPROVED FOR YOU ────────────────────── │
+│                      ││ WHILE YOU ARE AWAY                                                             ││   A request waits in the dock for your answer:     │
+│                      ││                                                                                ││   approve · session · deny · view diff             │
+│                      ││ desktop notifications no                                                       ││   alt-a switches the agent new sessions start as.  │
+│                      ││                                                                                ││ MORE ───────────────────────────────────────────── │
+│                      ││                                                                                ││    radar guide: agents                             │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+│                      ││                                                                                ││                                                    │
+╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate

@@ -2,43 +2,47 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    Repositories   Branches   Work items   History   Settings (,)                                                                  not synced yet  ✎ edit
-╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────╮╭ 3 api !263 ──────────────────────────────────╮
-│ Everything             ││ OPENED BY everyone · 2 repos         STATE               THREADS UPDATED FOR YOU   ││ a / acme/team-a/api / !263                   │
-│ Needs my action        ││A team-a                                                                            ││ Add a stats endpoint                         │
-│ Opened by me           ││  ├─ api                              — no recent run             —       1 MR      ││ stats → main          Alice Examp… · 16m ago │
-│ Opened by teammates    ││  │  └─ !263 Add a stats endpoint  Al needs rebase        —       16m     team      ││                                              │
-│ Opened by bots         ││  └─ web                              — no recent run             —       —         ││ project    api                               │
-│                        ││                                                                                    ││ state      open                              │
-│                        ││                                                                                    ││ approvals  1 required · 0 left               │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││ STATE ────────────────────────────────────── │
-│                        ││                                                                                    ││   a teammate's                               │
-│                        ││                                                                                    ││   needs rebase                               │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││ PIPELINE  passed ─────────────────────────── │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││ CHANGES ──────────────────────────────────── │
-│                        ││                                                                                    ││   1 file  +10 −2                             │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││ THREADS  none ────────────────────────────── │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││                                                                                    ││                                              │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
-│                        ││ every open merge request · listing every repo, also those without                  ││update  merge  approve  open     extra actions│
-╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- REPOSITORIES   update by rebasing   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate            1 open  gitlab
+bar: radar  <:repo: repositories> :branch: branches work items :log: history :settings: settings  not synced yet  ✎ edit {chrome:mode}
+── nav · views ──
+> :change: Everything  {view:0}
+  :needs_approval: Needs my action  {view:1}
+  :you: Opened by me  {view:2}
+  :team: Opened by teammates  {view:3}
+  :bot: Opened by bots  {view:4}
+── middle · Everything * ──
+OPENED BY :team: everyone · 2 repos  {authors}
+  :group: A team-a  {t:team-a}
+    :repo: api  — no recent run  —  :change: 1 MR  {t:team-a/r:acme/team-a/api}
+>     :change: !263 Add a stats endpoint  :person: Alice E.  :rebase: needs rebase  :approved: 0 of 1  —  16m  team  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+    :repo: web  — no recent run  —  —  {t:team-a/r:acme/team-a/web}
+· every open merge request · listing every repo, also those without
+── detail · api !263 ──
+<detail>
+:repo: a / acme/team-a/api / !263
+:change: Add a stats endpoint
+:branch: stats → main
+:person: Alice Example
+16m ago
+project: api
+state: open
+approvals: 1 required · 0 left
+§ :info: STATE
+  a teammate's
+  :rebase: needs rebase
+§ :pipeline: PIPELINE  passed
+
+§ :file: CHANGES
+  1 file  +10 −2
+§ :thread: THREADS  none
+§ ACTIONS
+  update  (u)
+  merge (needs rebase)  (m)
+  approve  (e)
+  open  (o)
+  copy link  (y)
+  page  (⏎)
+  extra actions  (x)
+[update] [merge] [approve] [open] [copy link] [page] [extra actions]
+── status · REPOSITORIES ──
+u update by rebasing  PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+1 open

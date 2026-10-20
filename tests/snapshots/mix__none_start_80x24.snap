@@ -1,29 +1,18 @@
 ---
 source: tests/mix.rs
-assertion_line: 134
-expression: "to_text(&started(), 80, 24)"
+expression: text
 ---
- radar    History   Settings (,)                                         ✎ edit
-╭ 1 settings ──────────╮╭ 2 parts ─────────────────────────────────────────────╮
-│General               ││ No parts are compiled into this build of radar. Each │
-│  ├─ parts            ││ part is a cargo feature: build radar with the ones   │
-│  ├─ mode             ││ you want (cargo build --features <part>).            │
-│  ├─ appearance       ││                                                      │
-│  ├─ colours          ││                                                      │
-│  └─ icons            ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      │╰──────────────────────────────────────────────────────╯
-│                      │╭ 3 about ─────────────────────────────────────────────╮
-│                      ││ A part is one ability of radar, usually one tool it  │
-│                      ││ works with, compiled in as a cargo feature. Parts    │
-│                      ││ never depend on each other: each works alone, and    │
-│                      ││ each one present adds to the others.                 │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-│                      ││                                                      │
-╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate
+bar: radar  :log: history <:settings: settings>  ✎ edit {chrome:mode}
+── settings · parts · about ──
+  General  {chrome:group:general}
+>   :parts: parts  {chrome:section:0}
+    :mode_edit: mode  {chrome:section:1}
+    :colours: appearance  {chrome:section:2}
+    :colours: colours  {chrome:section:3}
+    :icons: icons  {chrome:section:4}
+── section · parts ──
+(empty) No parts are compiled into this build of radar. Each part is a cargo feature: build radar with the ones you want (cargo build --features <part>).
+── detail · about ──
+:empty: A part is one ability of radar, usually one tool it works with, compiled in as a cargo feature. Parts never depend on each other: each works alone, and each one present adds to the others.
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -2,43 +2,72 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    History   Settings (,)                                                                                                                         ✎ edit
-╭ 1 settings ──────────╮╭ 2 Tools and defaults ──────────────────────────────────────────────────────────╮╭ 3 install and sign in ─────────────────────────────╮
-│General               ││ COMMAND LINE TOOLS                                                             ││ Each agent is its own program with its own         │
-│  ├─ parts            ││                                                                                ││ sign-in. radar finds it on your PATH; read its     │
-│  ├─ mode             ││ … Copilot       checking                                                       ││ status again.                                      │
-│  ├─ appearance       ││ … Codex         checking                                                       ││                                                    │
-│  ├─ colours          ││ … Claude Agent  checking                                                       ││ COPILOT  checking ──────────────────────────────── │
-│  └─ icons            ││  + add a command   aider, opencode, …                                          ││   $ npm i -g @github/copilot                       │
-│Agents                ││                                                                                ││   copy command · $ copilot login                   │
-│  └─ Tools and defau  ││ NEW SESSIONS · FOR EVERY WORKSPACE                                             ││   Needs a Copilot plan on GitHub.                  │
-│                      ││                                                                                ││    open documentation · GitHub: install Copilot    │
-│                      ││ provider              Copilot                                                  ││   CLI                                              │
-│                      ││ model                 the provider's own                                       ││ CODEX  checking ────────────────────────────────── │
-│                      ││ working folder        where radar was started                                  ││   $ npm i -g @openai/codex                         │
-│                      ││ permitted folders     none                                                     ││   $ codex login                                    │
-│                      ││ skill folders         none                                                     ││    Codex: install and sign in                      │
-│                      ││ CLI's own config      yes                                                      ││ CLAUDE AGENT  checking ─────────────────────────── │
-│                      ││ always allow          none                                                     ││   $ npm i -g @anthropic-ai/claude-code             │
-│                      ││ always deny           none                                                     ││   $ claude auth login                              │
-│                      ││ local only            yes                                                      ││   radar runs your own claude and offers no sign-in │
-│                      ││ reviewer commands     yes                                                      ││   of its own.                                      │
-│                      ││                                                                                ││   Anthropic does not allow a claude.ai login in a  │
-│                      ││ RECIPES AND REVIEWS                                                            ││   product: for one it asks for an API key          │
-│                      ││                                                                                ││   (ANTHROPIC_API_KEY).                             │
-│                      ││ recipes folder        ~/.config/radar/recipes                                  ││    Claude Code: set up                             │
-│                      ││ recipe ask            v1 · built-in                                            ││ ANY OTHER CLI ──────────────────────────────────── │
-│                      ││ recipe review-mr      v1 · built-in                                            ││   add a command takes what you would type in a     │
-│                      ││ reviews folder        radar's state folder                                     ││   terminal; radar runs it in a tab of the dock.    │
-│                      ││                                                                                ││ NOTHING IS APPROVED FOR YOU ────────────────────── │
-│                      ││ WHILE YOU ARE AWAY                                                             ││   A request waits in the dock for your answer:     │
-│                      ││                                                                                ││   approve · session · deny · view diff             │
-│                      ││ desktop notifications no                                                       ││   alt-a switches the agent new sessions start as.  │
-│                      ││                                                                                ││ MORE ───────────────────────────────────────────── │
-│                      ││                                                                                ││    radar guide: agents                             │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-│                      ││                                                                                ││                                                    │
-╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
- SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate
+bar: radar  :log: history <:settings: settings>  ✎ edit {chrome:mode}
+── settings · Tools and defaults · install and sign in ──
+  General  {chrome:group:general}
+    :parts: parts  {chrome:section:0}
+    :mode_edit: mode  {chrome:section:1}
+    :colours: appearance  {chrome:section:2}
+    :colours: colours  {chrome:section:3}
+    :icons: icons  {chrome:section:4}
+  Agents  {chrome:group:sessions}
+>   Tools and defaults  {chrome:section:5}
+── section · agents ──
+  # COMMAND LINE TOOLS  {h:clis}
+  #  {b:0}
+> :time: … Copilot       checking  {cli:copilot}
+  :time: … Codex         checking  {cli:codex}
+  :time: … Claude Agent  checking  {cli:claude}
+  + add a command   aider, opencode, …  {cli:add}
+  #  {b:1}
+  # NEW SESSIONS · FOR EVERY WORKSPACE  {h:defaults}
+  #  {b:2}
+  provider              Copilot  {def:provider}
+  model                 the provider's own  {def:model}
+  working folder        where radar was started  {def:work_dir}
+  permitted folders     none  {def:roots}
+  skill folders         none  {def:skills}
+  CLI's own config      yes  {def:project_config}
+  always allow          none  {def:allow}
+  always deny           none  {def:deny}
+  local only            yes  {def:local_only}
+  reviewer commands     yes  {def:reviewer_commands}
+  #  {b:3}
+  # RECIPES AND REVIEWS  {h:recipes}
+  #  {b:4}
+  recipes folder        ~/.config/radar/recipes  {rec:folder}
+  recipe ask            v1 · built-in  {rec:ask}
+  recipe review-mr      v1 · built-in  {rec:review-mr}
+  reviews folder        radar's state folder  {rec:reviews}
+  #  {b:5}
+  # WHILE YOU ARE AWAY  {h:away}
+  #  {b:6}
+  desktop notifications no  {dock:notify}
+── detail · install and sign in ──
+Each agent is its own program with its own sign-in. radar finds it on your PATH; read its status again.
+
+§ :bot: COPILOT  checking
+  $ npm i -g @github/copilot  {copy:install:copilot}
+  copy command · $ copilot login  (y)  {copy:login:copilot}
+  Needs a Copilot plan on GitHub.
+  :link:  open documentation · GitHub: install Copilot CLI  (o)
+§ :bot: CODEX  checking
+  $ npm i -g @openai/codex  {copy:install:codex}
+  $ codex login  {copy:login:codex}
+  :link:  Codex: install and sign in
+§ :bot: CLAUDE AGENT  checking
+  $ npm i -g @anthropic-ai/claude-code  {copy:install:claude}
+  $ claude auth login  {copy:login:claude}
+  radar runs your own claude and offers no sign-in of its own.
+  Anthropic does not allow a claude.ai login in a product: for one it asks for an API key (ANTHROPIC_API_KEY).
+  :link:  Claude Code: set up
+§ :terminal: ANY OTHER CLI
+  add a command takes what you would type in a terminal; radar runs it in a tab of the dock.
+§ :warning: NOTHING IS APPROVED FOR YOU
+  A request waits in the dock for your answer:
+  approve · session · deny · view diff
+  alt-a switches the agent new sessions start as.
+§ :link: MORE
+  :link:  radar guide: agents
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

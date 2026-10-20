@@ -1,0 +1,24 @@
+ radar    History   Settings (,)                                         ✎ edit
+╭ 1 settings ──────────╮╭ 2 Tools and defaults ────────────────────────────────╮
+│General               ││ COMMAND LINE TOOLS                                   █
+│  ├─ parts            ││                                                      █
+│  ├─ mode             ││ … Copilot       checking                             █
+│  ├─ appearance       ││ … Codex         checking                             ║
+│  ├─ colours          ││ … Claude Agent  checking                             ║
+│  └─ icons            ││  + add a command   aider, opencode, …                ║
+│Agents                ││                                                      ║
+│  └─ Tools and defau  ││ NEW SESSIONS · FOR EVERY WORKSPACE                   ║
+│                      ││                                                      ║
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ 3 install and sign in ───────────────────────────────╮
+│                      ││ Each agent is its own program with its own sign-in.  █
+│                      ││ radar finds it on your PATH; read its status again.  █
+│                      ││                                                      █
+│                      ││ COPILOT  checking ────────────────────────────────── ║
+│                      ││   $ npm i -g @github/copilot                         ║
+│                      ││   copy command · $ copilot login                     ║
+│                      ││   Needs a Copilot plan on GitHub.                    ║
+│                      ││    open documentation · GitHub: install Copilot CLI  ║
+│                      ││ CODEX  checking ──────────────────────────────────── ║
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   PgUp/PgDn scroll   extra actions   ~ notices   ←→↑↓ navigate

@@ -2,43 +2,27 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                                                                                                     not synced yet  ✎ edit
-╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ 3 team-a ────────────────────────────────────────────────╮
-│ Everything             ││ OPENED BY everyone · 1 repo                            STATE               TICKET             APPROVALS  THREADS UPDATED FOR YOU   ││ a acme/team-a                                            │
-│ Needs my action      2 ││A team-a                                                                                                                            ││                                                          │
-│ Opened by me           ││  └─ api                                                — no recent run                                           —       3 MRs     ││ repos       1 shown · 0 hidden                           │
-│ Opened by teammates    ││     ├─ !263 ABC-12: Add a stats endpoint for the dashb needs 1 approval    ABC-12 · In Review 0 of 1     —       16m     review    ││ with MRs    1 repos, in this view                        │
-│ Opened by bots         ││     ├─ !265 Unrelated change  Alice E.                 needs 1 approval                       0 of 1     —       16m     review    ││ open MRs    3                                            │
-│                        ││     └─ !264 Tidy the build  Alice E.                   needs 1 approval    ABC-20 · To Do     1 of 1     —       16m     team      ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││                                                          │
-│                        ││ every open merge request · listing every repo, also those without                                                                  ││                                                          │
-╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                          3 open · 2 to review  gitlab jira
+bar: radar  <:repo: repositories !> :issue: jira :branch: branches work items :log: history :settings: settings  not synced yet  ✎ edit {chrome:mode}
+── nav · views ──
+> :change: Everything  {view:0}
+  :needs_approval: Needs my action  2  {view:1}
+  :you: Opened by me  {view:2}
+  :team: Opened by teammates  {view:3}
+  :bot: Opened by bots  {view:4}
+── middle · Everything * ──
+OPENED BY :team: everyone · 1 repo  {authors}
+> :group: A team-a  {t:team-a}
+    :repo: api  — no recent run  —  :change: 3 MRs  {t:team-a/r:acme/team-a/api}
+      :change: !263 ABC-12: Add a stats endpoint for the dashboard  :person: Alice E.  :needs_approval: needs 1 approval  0 of 1  —  16m  review  :story: ABC-12 · In Review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+      :change: !265 Unrelated change  :person: Alice E.  :needs_approval: needs 1 approval  0 of 1  —  16m  review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!265}
+      :change: !264 Tidy the build  :person: Alice E.  :needs_approval: needs 1 approval  :approved: 1 of 1  —  16m  team  :story: ABC-20 · To Do  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!264}
+· every open merge request · listing every repo, also those without
+── detail · team-a ──
+:group: a acme/team-a
+
+repos       1 shown · 0 hidden
+with MRs    1 repos, in this view
+open MRs    3
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+3 open · 2 to review

@@ -2,43 +2,13 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                            ⠷ not synced yet · every 2m  ✎ edit
- Jira / acme / ABC / ABC-12
- Add a stats endpoint for the dashboard                                                                                                 In Review · Story · you
- Acme ABC · updated 1h ago
- Overview  Comments  Links  [Code]
-╭ 1 code ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│  api !263         review   pipeline passed    approvals 0 of 1       ABC-12: Add a stats endpoint for the dashboard                                          │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- JIRA   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                    3 tickets · 1 doing  gitlab jira
+bar: radar  :repo: repositories ! <:issue: jira> :branch: branches work items :log: history :settings: settings  (busy)  not synced yet · every 2m  ✎ edit {chrome:mode}
+── page · Jira / acme / ABC / ABC-12 ──
+:story: Add a stats endpoint for the dashboard  :in_progress: In Review · Story · :you: you
+Acme ABC · :updated: updated 1h ago
+:info: Overview  :thread: Comments  :link: Links  <:change: Code>
+── middle · code * ──
+> api !263         review   pipeline passed    approvals 0 of 1       ABC-12: Add a stats endpoint for the dashboard  <https://gitlab.example/acme/team-a/api/-/merge_requests/263>  {row:0}
+── status · JIRA ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+3 tickets · 1 doing

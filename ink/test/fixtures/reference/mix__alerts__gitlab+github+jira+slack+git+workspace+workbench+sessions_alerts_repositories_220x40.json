@@ -554,10 +554,7 @@
                           "heading": "state",
                           "text": [
                             {
-                              "icon": "needs_approval",
-                              "icon_lead": true,
-                              "ink": "warn",
-                              "text": "◷ "
+                              "icon": "needs_approval"
                             },
                             {
                               "ink": "warn",

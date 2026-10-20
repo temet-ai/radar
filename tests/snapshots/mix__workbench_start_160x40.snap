@@ -1,45 +1,31 @@
 ---
 source: tests/mix.rs
-assertion_line: 143
-expression: "to_text(&started(), 160, 40)"
+expression: text
 ---
- radar    Work items   History   Settings (,)                                                                     local annotations · observations only  ✎ edit
-╭ 1 local groups ───────╮╭ 2 work items · page 1 ──────────────────────────────────────────────────────────────╮╭ 3 linked sources and context ────────────────╮
-│ Groups not loaded     ││ Press r to load local work.                                                         ││ No source binding in this evidence page. Add │
-│ All items             ││                                                                                     ││ an exact source from its actions menu; no    │
-│                       ││                                                                                     ││ links are inferred.                          │
-│                       ││                                                                                     ││ Create a local task or select an existing    │
-│                       ││                                                                                     ││ item. No provider labels, relationships or   │
-│                       ││                                                                                     ││ goals are inferred.                          │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│                       ││                                                                                     ││                                              │
-│ Groups · page 1       ││                                                                                     ││                                              │
-╰───────────────────────╯╰─────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
- WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate
+bar: radar  <work items> :log: history :settings: settings  local annotations · observations only  ✎ edit {chrome:mode}
+── nav · local groups ──
+! Groups not loaded
+> All items  {["group","all",null,0,0]}
+_ Groups · page 1
+── middle · work items · page 1 * ──
+(empty) Press r to load local work.
+── detail · linked sources and context ──
+No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+0 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+linked sources
+evidence
+── detail · actions ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

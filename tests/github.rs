@@ -198,7 +198,7 @@ fn native_actions_navigation_keeps_checks_and_runs_separate_in_the_real_mix() {
         .unwrap();
     host.plugins[index].demo();
     let press = |host: &mut Host, code| {
-        let _ = radar_core::shell::to_text(host, 160, 40);
+        let _ = radar_core::headless::host_text_of(host, 160, 40);
         host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
     };
     press(&mut host, KeyCode::Char('G'));
@@ -207,7 +207,7 @@ fn native_actions_navigation_keeps_checks_and_runs_separate_in_the_real_mix() {
     press(&mut host, KeyCode::Enter);
     press(&mut host, KeyCode::Char(']'));
     press(&mut host, KeyCode::Char(']'));
-    let shown = radar_core::shell::to_text(&host, 160, 40);
+    let shown = radar_core::headless::host_text_of(&host, 160, 40);
     assert!(shown.contains("Actions"), "{shown}");
     assert!(shown.contains("attempt"), "{shown}");
     host.focus = Pane::Middle;

@@ -2,27 +2,27 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    R ●   J   B   I   History   Settings (,)  not synced yet · ev… ✎ edit
-╭ 2 Our project ───────────────────────────────────────────────────────────────╮
-│ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
-│acme  acme.atlassian.net                                                      │
-│  ├─ In Review                                                                │
-│  │  └─ ABC-12 Add a stats end Story     In Review       !263 review 1h       │
-│  └─ To Do                                                                    │
-│     ├─ ABC-20 Stats page show Story     To Do           !264 team   1h       │
-│     └─ ABC-21 Nothing written Story     To Do                       1h       │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│─ shows ──────────────────────────────────────────────────────────────────────│
-│ what its JQL asks for (settings, views)                                      │
-╰──────────────────────────────────────────────────────────────────────────────╯
- JIRA   bulk   +/- expand/collapse   extra actions   ~ notices      gitlab jira
+bar: radar  :repo: repositories ! <:issue: jira> :branch: branches work items :log: history :settings: settings  not synced yet · every 2m  ✎ edit {chrome:mode}
+── nav · views ──
+> :search: Our project  {view:0}
+── middle · Our project * ──
+ASSIGNED TO :team: everyone  {assignees}
+> :site: acme  acme.atlassian.net  {s:acme}
+    :in_progress: In Review  {s:acme/g:acme:In Review}
+      :story: ABC-12 Add a stats endpoint for the dashboard  :you: you  Story  :in_progress: In Review  1h  !263 review  {s:acme/g:acme:In Review/t:acme:ABC-12}
+    :todo: To Do  {s:acme/g:acme:To Do}
+      :story: ABC-20 Stats page shows yesterday twice  :you: you  Story  :todo: To Do  1h  !264 team  {s:acme/g:acme:To Do/t:acme:ABC-20}
+      :story: ABC-21 Nothing written for it yet  :you: you  Story  :todo: To Do  1h  {s:acme/g:acme:To Do/t:acme:ABC-21}
+· what its JQL asks for (settings, views)
+── detail · acme ──
+:site: acme  acme.atlassian.net
+
+signed in   Alice Example
+watching    ABC
+
+§ IN THIS VIEW
+  :in_progress: doing 1
+  :todo: to do 2
+── status · JIRA ──
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+3 tickets · 1 doing

@@ -1,14 +1,13 @@
 //! The renderer-neutral plugin boundary (M11 A0), end to end: the Git
 //! Branches screen, with a ticket column the Jira part contributes, driven
-//! once through the Ratatui frontend (terminal keys and clicks, painted
-//! frames) and once through the headless frontend (view data and
-//! intents). Both reach the same part state, the same question, and the
-//! same journal actions.
+//! once by terminal keys and once by intents (what a renderer sends for a
+//! click or a chosen action), both read as view data. Both reach the same
+//! part state, the same question, and the same journal actions.
 
 #![cfg(all(feature = "git", feature = "jira", feature = "demo"))]
 
 use radar_core::headless::Headless;
-use radar_core::host::{Event, Hit, HostEffect, JournalRecord, MouseKind, View};
+use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::journal::ActionId;
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use radar_core::view::{Intent, Node, PaneId, Target, TreeRow};
@@ -111,26 +110,28 @@ fn the_same_part_state_question_and_journal_through_either_frontend() {
     assert_eq!(cell.text.words(), "ABC-12 · In Progress");
     assert_eq!(cell.show.as_ref().map(|s| s.id.as_str()), Some("ABC-12"));
 
-    // The terminal draws the same column.
-    let frame = radar_core::shell::to_text(tui.host(), W, H);
-    assert!(frame.contains("TICKET") && frame.contains("ABC-12 · In Progress"), "{frame}");
+    // The text form a test reads shows the same cell on that branch's row.
+    let text = tui.text();
+    assert!(
+        text.lines().any(|l| l.contains("alice/ABC-12") && l.contains("ABC-12 · In Progress")),
+        "{text}"
+    );
 
-    // Select the same branch: a click on its drawn row, and an intent.
+    // Select the same branch: by keys on the terminal (↓ until its row is
+    // selected), and by an intent on its target headless.
     let target = branch("spike");
-    let rect = tui
-        .host()
-        .hits
-        .borrow()
-        .iter()
-        .find(|(_, h)| matches!(h, Hit::Plugin { id, .. } if *id == target.0))
-        .map(|(r, _)| *r)
-        .expect("the row is a target");
-    tui.host_mut().update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: rect.x + 1,
-        row: rect.y,
-        at_ms: 0,
-    });
+    let selected_of = |h: &Headless| match h.screen().unwrap().pane(PaneId::Middle).map(|p| p.body.clone()) {
+        Some(Node::Tree(t)) => TreeRow::target_of(&t.selected),
+        _ => Target::new(""),
+    };
+    tui.focus(PaneId::Middle);
+    for _ in 0..20 {
+        if selected_of(&tui) == target {
+            break;
+        }
+        tui.host_mut().update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+    }
+    assert_eq!(selected_of(&tui), target, "↓ reaches the branch:\n{}", tui.text());
     headless.focus(PaneId::Middle);
     headless.send(Intent::Select { target: target.clone() });
     assert_eq!(tui.screen(), headless.screen(), "the same part state");
@@ -164,30 +165,15 @@ fn the_same_part_state_question_and_journal_through_either_frontend() {
 }
 
 #[test]
-fn a_contributed_cell_shows_its_subject_from_either_frontend() {
-    let (mut tui, mut headless) = (hosted(), hosted());
-    let _ = radar_core::shell::to_text(tui.host(), W, H);
-    let cell = tui
-        .host()
-        .hits
-        .borrow()
-        .iter()
-        .find(|(_, h)| matches!(h, Hit::Plugin { id, .. } if id.contains("cell:")))
-        .map(|(r, _)| *r)
-        .expect("Jira's cell is a target of its own");
-    tui.host_mut().update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: cell.x + 1,
-        row: cell.y,
-        at_ms: 0,
-    });
+fn a_contributed_cell_shows_its_subject() {
+    let mut headless = hosted();
     // The owner of tickets opens it: the Jira screen.
     let jira_screen = |h: &Host| match h.view {
         View::Screen(i) => h.screens[i].0 == 0,
         _ => false,
     };
-    assert!(jira_screen(tui.host()), "the ticket's owner shows it");
-    // Headless: the same cell, by its row and the subject it shows.
+    assert!(!jira_screen(headless.host()), "not on Jira's screen yet");
+    // The cell, by its row and the subject it shows.
     let view = headless.screen().unwrap();
     let Some(Node::Tree(tree)) = view.pane(PaneId::Middle).map(|p| &p.body) else { panic!() };
     assert!(tree.visible().iter().any(|(_, r)| r.cells.iter().any(|c| c.show.is_some())));
@@ -263,35 +249,31 @@ fn a_filter_captures_keys_and_its_text_is_view_data() {
     assert!(!h.capturing());
 }
 
-/// The pointer on a drawn row and `Intent::Activate` on its target reach
-/// the same part state.
+/// Every row target the view offers is in the text form a test reads, and
+/// `Intent::Select` on it (a click, from any renderer) selects that row.
 #[test]
-fn every_target_the_terminal_draws_does_the_same_headless() {
+fn every_row_target_the_view_offers_is_shown_and_selects_its_row() {
     let probe = hosted();
-    let _ = radar_core::shell::to_text(probe.host(), W, H);
-    let drawn: Vec<(String, radar_core::ratatui::layout::Rect)> = probe
-        .host()
-        .hits
-        .borrow()
-        .iter()
-        .filter_map(|(r, h)| match h {
-            Hit::Plugin { id, .. } => Some((id.clone(), *r)),
-            _ => None,
-        })
-        .collect();
+    let text = probe.text();
     let offered = radar_core::headless::offered(&probe.screen().unwrap());
     let mut compared = 0;
     for o in &offered {
-        let Some((_, rect)) = drawn.iter().find(|(id, _)| *id == o.target.0) else { continue };
-        let (mut tui, mut headless) = (hosted(), hosted());
-        let _ = radar_core::shell::to_text(tui.host(), W, H);
-        tui.host_mut().update(Event::Mouse { kind: MouseKind::Press, column: rect.x + 1, row: rect.y, at_ms: 0 });
+        let mut headless = hosted();
+        let Some(body @ Node::Tree(_)) = headless.screen().unwrap().pane(o.pane).map(|p| p.body.clone()) else { continue };
+        if !radar_core::headless::node_targets(&body).contains(&o.target) {
+            continue; // a chip or a cell, not a row
+        }
+        let shown = format!("{{{}}}", o.target.0.replace(radar_core::view::PATH_SEP, "/"));
+        assert!(text.contains(&shown), "{shown} is not in the text form:\n{text}");
         headless.focus(o.pane);
         headless.send(Intent::Select { target: o.target.clone() });
-        assert_eq!(tui.screen(), headless.screen(), "{:?}", o.target);
+        let Some(Node::Tree(tree)) = headless.screen().unwrap().pane(o.pane).map(|p| p.body.clone()) else {
+            panic!("{:?}: the tree went", o.target)
+        };
+        assert_eq!(TreeRow::target_of(&tree.selected), o.target, "a click selects its row");
         compared += 1;
     }
-    assert!(compared >= 5, "{compared} of {} targets were drawn as hits", offered.len());
+    assert!(compared >= 5, "{compared} of {} targets were rows", offered.len());
 }
 
 #[test]

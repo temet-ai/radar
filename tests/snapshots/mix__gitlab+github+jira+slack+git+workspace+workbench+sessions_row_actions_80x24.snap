@@ -2,27 +2,47 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    R   B   I   History   Settings (,)             not synced yet  ✎ edit
-╭ 1 views ─────────────╮╭ 3 api !263 ──────────────────────────────────────────╮
-│ Everything           ││ a / acme/team-a/api / !263                           │
-│ Needs my action      ││ Add a stats endpoint                                 │
-│ Opened by me         ││ stats → main                 Alice Example · 16m ago │
-│ Opened by teammates  ││                                                      │
-│ Opened by bots       ││ project    api                                       │
-│                      ││ state      open                                      │
-│                      ││ approvals  1 required · 0 left                       │
-│                      ││                                                      │
-│                      ││ STATE ────────────────────────────────────────────── │
-│                      ││   a teammate's                                       │
-│                      ││   needs rebase                                       │
-│                      ││                                                      │
-│                      ││ PIPELINE  passed ─────────────────────────────────── │
-│                      ││                                                      │
-│                      ││ CHANGES ──────────────────────────────────────────── │
-│                      ││   1 file  +10 −2                                     │
-│                      ││                                                      │
-│                      ││ THREADS  none ────────────────────────────────────── │
-│                      ││──────────────────────────────────────────────────────│
-│                      ││update  merge  approve  open  copy link  extra actions│
-╰──────────────────────╯╰──────────────────────────────────────────────────────╯
- REPOSITORIES   update by rebasing   bulk   extra actions   ~ notices    gitlab
+bar: radar  <:repo: repositories> :branch: branches work items :log: history :settings: settings  not synced yet  ✎ edit {chrome:mode}
+── nav · views ──
+> :change: Everything  {view:0}
+  :needs_approval: Needs my action  {view:1}
+  :you: Opened by me  {view:2}
+  :team: Opened by teammates  {view:3}
+  :bot: Opened by bots  {view:4}
+── middle · Everything ──
+OPENED BY :team: everyone · 2 repos  {authors}
+  :group: A team-a  {t:team-a}
+    :repo: api  — no recent run  —  :change: 1 MR  {t:team-a/r:acme/team-a/api}
+>     :change: !263 Add a stats endpoint  :person: Alice E.  :rebase: needs rebase  :approved: 0 of 1  —  16m  team  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+    :repo: web  — no recent run  —  —  {t:team-a/r:acme/team-a/web}
+· every open merge request · listing every repo, also those without
+── detail · api !263 * ──
+<detail>
+:repo: a / acme/team-a/api / !263
+:change: Add a stats endpoint
+:branch: stats → main
+:person: Alice Example
+16m ago
+project: api
+state: open
+approvals: 1 required · 0 left
+§ :info: STATE
+  a teammate's
+  :rebase: needs rebase
+§ :pipeline: PIPELINE  passed
+
+§ :file: CHANGES
+  1 file  +10 −2
+§ :thread: THREADS  none
+§ ACTIONS
+  update  (u)
+  merge (needs rebase)  (m)
+  approve  (e)
+  open  (o)
+  copy link  (y)
+  page  (⏎)
+  extra actions  (x)
+[update] [merge] [approve] [open] [copy link] [page] [extra actions]
+── status · REPOSITORIES ──
+u update by rebasing  PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+1 open

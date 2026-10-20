@@ -1,0 +1,24 @@
+ radar    History   Settings (,)                                         ✎ edit
+╭ 1 settings ──────────╮╭ 2 parts ─────────────────────────────────────────────╮
+│General               ││ No parts are compiled into this build of radar. Each │
+│  ├─ parts            ││ part is a cargo feature: build radar with the ones   │
+│  ├─ mode             ││ you want (cargo build --features <part>).            │
+│  ├─ appearance       ││                                                      │
+│  ├─ colours          ││                                                      │
+│  └─ icons            ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      │╰──────────────────────────────────────────────────────╯
+│                      │╭ 3 about ─────────────────────────────────────────────╮
+│                      ││ A part is one ability of radar, usually one tool it  │
+│                      ││ works with, compiled in as a cargo feature. Parts    │
+│                      ││ never depend on each other: each works alone, and    │
+│                      ││ each one present adds to the others.                 │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+│                      ││                                                      │
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ SETTINGS   quit   extra actions   ~ notices   ←→↑↓ navigate

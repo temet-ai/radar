@@ -1,45 +1,13 @@
 ---
 source: tests/mix.rs
-assertion_line: 143
-expression: "to_text(&started(), 160, 40)"
+expression: text
 ---
- radar    History   Settings (,)                                                                                                                         ✎ edit
-╭ 1 set up Workspace ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Workspace is not set up yet.                                                                                                                                 │
-│                                                                                                                                                              │
-│ no workspace yet: add one in settings, workspace › workspaces                                                                                                │
-│                                                                                                                                                              │
-│ Press ⏎ to set it up in settings, under workspace.                                                                                                           │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- LOCAL WORKSPACES   quit   extra actions   ~ notices   ←→↑↓ navigate
+bar: radar  :log: history :settings: settings  ✎ edit {chrome:mode}
+── middle · set up Workspace * ──
+:settings: Workspace is not set up yet.
+
+no workspace yet: add one in settings, workspace › workspaces
+
+Press ⏎ to set it up in settings, under workspace.
+── status · LOCAL WORKSPACES ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

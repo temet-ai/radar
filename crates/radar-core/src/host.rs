@@ -45,6 +45,10 @@ use crate::theme::{Theme, ThemeConfig};
 use crate::ui::rows::step;
 
 #[cfg(test)]
+#[path = "host_setup_hints_tests.rs"]
+mod setup_hints_tests;
+
+#[cfg(test)]
 #[path = "host_history_discovery_tests.rs"]
 mod history_discovery_tests;
 
@@ -6946,6 +6950,80 @@ pub(crate) mod tests {
         press(&mut host, Key::Char('m'));
         assert!(host.menu.is_some());
         host.update(crate::host::chord_event(Chord::ctrl('c')));
+        assert!(host.quit);
+    }
+
+    fn status_pairs(host: &Host, w: u16, h: u16) -> Vec<(String, String)> {
+        host.chrome_view(w, h).status.hints.into_iter().map(|k| (k.keys, k.label)).collect()
+    }
+
+    #[test]
+    fn modal_hints_ignore_the_settings_detail_scroll_behind_them() {
+        let mut host = Host::new(vec![], 0).unwrap();
+        host.view = View::Settings;
+        host.menu = Some(OpenMenu::open(
+            Owner::Host,
+            Menu::write_confirm("hint-scope", "Read these notes?", &"note\n".repeat(30), "post it", "drop it"),
+        ));
+        host.settings_detail.fit(10, 10);
+        let fitting = host.chrome_view(34, 10).status;
+        host.settings_detail.fit(10, 50);
+        assert_eq!(host.chrome_view(34, 10).status, fitting, "modal hints belong only to the modal");
+    }
+
+    #[test]
+    fn a_hint_with_several_keys_gives_each_its_own_chord_and_target() {
+        use crate::design::help_bar::KeyHint;
+        let fold = chrome_hint(0, &KeyHint::new("+/-", "expand/collapse"));
+        let chords: Vec<_> = fold.keys_of.iter().map(|k| k.chord).collect();
+        assert_eq!(chords, [Chord::char('+'), Chord::char('-')]);
+        assert_ne!(fold.keys_of[0].target, fold.keys_of[1].target);
+        let pg = chrome_hint(0, &KeyHint::new("PgUp/PgDn", "scroll"));
+        let chords: Vec<_> = pg.keys_of.iter().map(|k| k.chord.key).collect();
+        assert_eq!(chords, [Key::PageUp, Key::PageDown]);
+    }
+
+    #[test]
+    fn a_question_offers_move_choose_and_close_and_its_buttons_are_chosen_by_target() {
+        let (mut host, logs) = host(&[("a", 'A', "a")]);
+        host.menu = Some(OpenMenu::open(
+            Owner::Plugin(0),
+            Menu::write_confirm("note", "post this on #12?", "hello", "post it", "drop it"),
+        ));
+        let pairs = status_pairs(&host, 120, 24);
+        for want in [("←→", "move"), ("⏎", "choose"), ("esc", "close")] {
+            assert!(
+                pairs.iter().any(|(k, l)| (k.as_str(), l.as_str()) == want),
+                "{want:?} in {pairs:?}"
+            );
+        }
+        let menu = host.chrome_view(120, 24).menu.expect("the question");
+        let no = menu.items.iter().find(|c| c.value == "no").expect("the no button");
+        host.update(Event::Intent(crate::view::Intent::Activate { target: no.target.clone().expect("a button has a target") }));
+        assert_eq!(logs[0].lock().unwrap().bus, vec!["menu note no"]);
+    }
+
+    #[test]
+    fn menu_headings_and_notes_carry_no_target_and_the_status_quit_key_quits() {
+        use crate::plugin::MenuItem;
+        let (mut host, _) = host(&[("a", 'A', "a")]);
+        host.menu = Some(OpenMenu::open(
+            Owner::Plugin(0),
+            Menu::new("m", "pick", vec![MenuItem::heading("which"), MenuItem::pick("one", "", "1")]),
+        ));
+        let menu = host.chrome_view(80, 24).menu.expect("the menu");
+        assert!(menu.items[0].heading && menu.items[0].target.is_none(), "a heading is shown, never chosen");
+        assert!(menu.items[1].target.is_some());
+        host.menu = None;
+        let quit = host
+            .chrome_view(120, 24)
+            .status
+            .hints
+            .into_iter()
+            .flat_map(|h| h.keys_of)
+            .find(|k| k.chord == Chord::char('q'))
+            .expect("the quit key is on the status line");
+        host.update(Event::Intent(crate::view::Intent::Activate { target: quit.target }));
         assert!(host.quit);
     }
 

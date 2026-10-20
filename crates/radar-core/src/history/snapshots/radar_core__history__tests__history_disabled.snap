@@ -1,0 +1,15 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: "crate::headless::text::history(&view)"
+---
+── history · History · read only · UTC ──
+snapshot not loaded · all recorded events
+· Recorded observations; coverage may be incomplete. Not task intent or permission.
+── events · page 1 · oldest-first * ──
+  observed UTC  action  subject  outcome
+  History recording is disabled or unavailable for this session. Close this view to continue.
+── event detail ──
+History recording is disabled or unavailable for this session. Close this view to continue.
+
+Scope: all recorded events
+keys: ↑↓ move  enter details  n next page  p previous page  r refresh  x extra keys  esc close

@@ -100,7 +100,7 @@ pub enum ToHost {
     },
     /// The cell the pointer pressed, sent just before the `intent` it
     /// belongs to. A `context` intent that opens a menu opens it there, as
-    /// the Ratatui runner opens one at a right-click; any other intent
+    /// a right-click does; any other intent
     /// forgets it.
     Pointer { column: u16, row: u16 },
     /// The snapshot with this cursor is drawn; the next may come.
@@ -151,7 +151,7 @@ pub struct Snapshot {
     #[serde(default)]
     pub motion: MotionView,
     /// The startup splash while it shows: drawn over everything, cell for
-    /// cell as the Ratatui runner paints it ([`crate::splash`]). Keys and
+    /// cell as the splash's own cells give it ([`crate::splash`]). Keys and
     /// clicks still go to the screen under it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
@@ -271,7 +271,7 @@ impl Default for MotionTimings {
 }
 
 /// The theme slots (names in [`Look::slots`]) the effects blend with, as
-/// the Ratatui engine takes them: fades go to `base`, sweeps in over
+/// the motion engine takes them: fades go to `base`, sweeps in over
 /// `surface` or `overlay`, the glow is `glow`'s colour.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct MotionSlots {

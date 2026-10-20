@@ -7,7 +7,7 @@ use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Msg, Outcome, Pane};
 use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
-use radar_core::{Subject, log, widgets};
+use radar_core::{Subject, log, ui::rows::step};
 
 #[cfg(test)]
 use crate::Write;
@@ -450,11 +450,11 @@ fn draft_key(p: &mut SlackPlugin, key: Chord) -> Outcome {
     }
     match key.key {
         Key::Char('j') | Key::Down => {
-            d.row = widgets::step(d.row, d.items.len(), true);
+            d.row = step(d.row, d.items.len(), true);
             Outcome::done()
         }
         Key::Char('k') | Key::Up => {
-            d.row = widgets::step(d.row, d.items.len(), false);
+            d.row = step(d.row, d.items.len(), false);
             Outcome::done()
         }
         Key::Char('e') | Key::Enter => {
@@ -604,7 +604,7 @@ pub fn key(p: &mut SlackPlugin, key: Chord) -> Outcome {
         _ => match key.vertical() {
             // ↑ at the top is not the list's: the host takes it up.
             Some(down) if down || row > 0 => {
-                set(p, tab, widgets::step(row, n_links, down));
+                set(p, tab, step(row, n_links, down));
                 Outcome::done()
             }
             _ => Outcome::Ignored,

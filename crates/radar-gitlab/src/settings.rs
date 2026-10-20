@@ -12,7 +12,7 @@ use radar_core::theme::slot_info;
 use radar_core::ui::connection;
 use radar_core::ui::rows::{Move, select};
 use radar_core::view as v;
-use radar_core::{time, ui, widgets};
+use radar_core::{time, ui};
 
 use crate::config::{Source, TENANT_COLORS, View, default_styles};
 use crate::filter;
@@ -895,7 +895,7 @@ fn validate(p: &GitlabPlugin, target: &Target, text: &str) -> Result<String, Str
 fn look_summary(spec: &str, word: &str) -> String {
     let mut parts = spec.split_whitespace();
     let colour = if word == "tenant" {
-        widgets::own_colour("tenancy")
+        ui::connection::own_colour("tenancy")
     } else {
         parts.next().map(|s| slot_info(s).label).unwrap_or_default()
     };

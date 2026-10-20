@@ -8,7 +8,7 @@ use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
 use radar_core::view::TreeNav;
 use radar_core::ui::{self, rich};
-use radar_core::{Subject, widgets};
+use radar_core::Subject;
 
 use crate::client::Found;
 use crate::model::{Thread, ts_key};
@@ -478,7 +478,7 @@ pub fn key(p: &mut SlackPlugin, pane: Pane, key: Chord) -> Outcome {
                     return Outcome::Ignored;
                 }
                 let n = nav_rows(p).len();
-                let to = widgets::step(p.nav_at, n, down);
+                let to = ui::rows::step(p.nav_at, n, down);
                 pick_rail(p, to);
                 return Outcome::done();
             }

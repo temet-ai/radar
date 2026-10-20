@@ -1,8 +1,5 @@
 use std::time::Duration;
 
-use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
-use ratatui::style::{Color, Modifier};
 use serde_json::{Value, json};
 
 use super::*;
@@ -73,7 +70,7 @@ fn run_at(frame: &Frame, x: usize, y: usize) -> &Run {
 }
 
 fn fg(theme: &Theme, slot: Slot) -> Option<Color> {
-    theme.s(slot).fg
+    theme.resolve(slot.token_name()).fg
 }
 
 /// The rows of the scope in a frame laid out at 64 wide.
@@ -374,77 +371,17 @@ fn small_terminals_drop_the_scope_then_the_mark_and_below_twenty_columns_show_no
 }
 
 #[test]
-fn ratatui_paints_the_frame_and_ink_is_sent_the_same_cells() {
+fn the_view_sent_to_ink_is_every_cell_of_the_frame() {
     let t = truecolour();
     let f = frame(&t, &scene(Style::Full, 1500), 80, 40).unwrap();
-    let mut buf = Buffer::empty(Rect::new(0, 0, 80, 40));
-    draw(&f, &mut buf);
     let v = view(&f);
     assert_eq!((v.width, v.height, v.rows.len()), (80, 40, 40));
-    let painted = cells(&buf);
-    let sent = view_cells(&v);
-    assert_eq!(painted, sent);
-}
-
-/// Each cell of `buf` as `[symbol, fg, bg, bold]`, colours as Ink's colour words.
-fn cells(buf: &Buffer) -> Vec<Vec<Value>> {
-    use crate::ipc::look::colour_word;
-    let a = buf.area;
-    (0..a.height)
-        .map(|y| {
-            (0..a.width)
-                .map(|x| {
-                    let c = &buf[(x, y)];
-                    let word = |c: Color| colour_word(Some(c.into()));
-                    json!([c.symbol(), word(c.fg), word(c.bg), c.modifier.contains(Modifier::BOLD)])
-                })
-                .collect()
-        })
-        .collect()
-}
-
-fn view_cells(v: &SplashView) -> Vec<Vec<Value>> {
-    v.rows
-        .iter()
-        .map(|runs| {
-            runs.iter()
-                .flat_map(|r| r.text.chars().map(move |c| json!([c.to_string(), r.fg, r.bg, r.bold])))
-                .collect()
-        })
-        .collect()
-}
-
-/// The frames Ink's cell-parity test draws (ink/test/splash/parity.test.tsx): the splash view sent and the
-/// cells Ratatui painted, per frame. `RADAR_SPLASH_CELLS_DIR=$PWD/ink/test/fixtures/splash` writes them; without
-/// it the committed files are compared and drift fails.
-#[test]
-fn the_cells_ink_compares_against_are_the_committed_fixtures() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ink/test/fixtures/splash");
-    let write = std::env::var_os("RADAR_SPLASH_CELLS_DIR").map(std::path::PathBuf::from);
-    let t = truecolour();
-    let fire = |at| Scene { start: start(Echo::Plane, Some(Event::Fire), "This is fine."), ..scene(Style::Full, at) };
-    for (name, s, w, h) in [
-        ("full-600-80x24", scene(Style::Full, 600), 80, 24),
-        ("full-1500-160x40", scene(Style::Full, 1500), 160, 40),
-        ("subtle-1400-80x24", scene(Style::Subtle, 1400), 80, 24),
-        ("subtle-1400-160x40", scene(Style::Subtle, 1400), 160, 40),
-        ("fire-2600-160x40", fire(2600), 160, 40),
-    ] {
-        let f = frame(&t, &s, w, h).unwrap();
-        let mut buf = Buffer::empty(Rect::new(0, 0, w, h));
-        draw(&f, &mut buf);
-        let doc = json!({ "format": 1, "name": name, "width": w, "height": h, "view": view(&f), "cells": cells(&buf) });
-        let text = serde_json::to_string(&doc).unwrap() + "\n";
-        let file = format!("{name}.json");
-        if let Some(out) = &write {
-            std::fs::create_dir_all(out).unwrap();
-            std::fs::write(out.join(&file), &text).unwrap();
-        } else {
-            let have = std::fs::read_to_string(dir.join(&file))
-                .unwrap_or_else(|_| panic!("{file} missing: run with RADAR_SPLASH_CELLS_DIR=$PWD/ink/test/fixtures/splash"));
-            assert!(have == text, "{file} differs from the splash Ratatui paints: regenerate with RADAR_SPLASH_CELLS_DIR");
-        }
+    for (y, runs) in v.rows.iter().enumerate() {
+        let width: usize = runs.iter().map(|r| crate::ui::width(&r.text)).sum();
+        assert_eq!(width, 80, "row {y} is as wide as the screen");
     }
+    let sent = serde_json::to_value(&v).unwrap();
+    assert_eq!(sent["width"], json!(80));
 }
 
 #[test]
@@ -480,9 +417,7 @@ fn the_pixel_tier_paints_the_scope_as_a_png_over_its_cells_and_kitty_replaces_it
     }
     let img = image::load_from_memory(&pic.png).unwrap();
     assert_eq!((img.width(), img.height()), (640, 480));
-    let shown = kitty_at(&pic);
-    assert!(shown.contains(&format!("i={PICTURE_ID},p=1")), "one picture, replaced each frame");
-    assert!(kitty_hide().contains(&format!("a=d,d=I,i={PICTURE_ID}")));
+    assert_eq!(SplashPicture::of(&pic).id, PICTURE_ID, "one picture, replaced each frame");
     // Too small for the scope, or without true colour: no picture.
     assert!(picture(&frame_of(&theme, &scene, 80, 24), (10, 20)).is_none());
     let mono = Theme::build(&ThemeConfig::default(), crate::design::theme::Tier::Ansi256, &[]);

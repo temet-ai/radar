@@ -9,7 +9,7 @@ use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, MenuItem, Outcome, Pane, Tone};
 use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::{self, Icon};
-use radar_core::{time, ui, widgets};
+use radar_core::{time, ui};
 
 use crate::config::Source;
 use crate::filter::Filter;
@@ -619,7 +619,7 @@ pub fn key(p: &mut GitlabPlugin, pane: Pane, key: Chord) -> Outcome {
                 if !down && p.view == 0 {
                     return Outcome::Ignored;
                 }
-                p.view = widgets::step(p.view, p.cfg.views.len(), down);
+                p.view = ui::rows::step(p.view, p.cfg.views.len(), down);
                 return Outcome::done();
             }
             Outcome::Ignored

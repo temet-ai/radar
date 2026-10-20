@@ -3,21 +3,16 @@
 //! uses for what is the plugin's own `look` section.)
 
 use crate::design::theme::{Slot, SlotValue};
-use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
-use ratatui::layout::Rect;
-use ratatui::text::{Line, Span};
-
 use crate::input::{Edit, TextInput};
 use crate::motion::Level;
 use crate::splash::Setting;
 use crate::plugin::{Menu, MenuItem};
 use crate::theme::{
-    COLOR_LEVELS, SLOT_GROUPS, SWITCHES, Theme, ThemeConfig, color_level_label, palettes,
-    parse_hex, slot_info, switch_label,
+    COLOR_LEVELS, SLOT_GROUPS, SWITCHES, ThemeConfig, color_level_label, palettes, parse_hex,
+    slot_info, switch_label,
 };
 use crate::ui::icon;
-use crate::widgets;
+use crate::view::{Chord, Key};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Row {
@@ -168,7 +163,7 @@ impl Colours {
         self.edit.is_some()
     }
 
-    pub fn key(&mut self, key: KeyEvent) -> Reply {
+    pub fn key(&mut self, key: Chord) -> Reply {
         if let Some(mut input) = self.edit.take() {
             return match input.key(key) {
                 Edit::Cancel => Reply::Done,
@@ -196,11 +191,11 @@ impl Colours {
                 }
             };
         }
-        if let Some(down) = widgets::vertical(&key) {
+        if let Some(down) = key.vertical() {
             self.step(down);
             return Reply::Done;
         }
-        if key.code != KeyCode::Enter {
+        if key.key != Key::Enter {
             return Reply::Ignored;
         }
         Reply::Menu(match self.selected() {
@@ -413,174 +408,6 @@ impl Colours {
         }
     }
 
-    pub fn render(
-        &self,
-        theme: &Theme,
-        inner: Rect,
-        buf: &mut Buffer,
-        focused: bool,
-        cursor: &std::cell::Cell<Option<ratatui::layout::Position>>,
-    ) -> Vec<(Rect, usize)> {
-        let rows = self.rows();
-        let h = inner.height as usize;
-        let offset = widgets::scroll_offset(self.row, h);
-        // Where each selectable row was drawn, for clicks.
-        let mut drawn = Vec::new();
-        for (n, (i, row)) in rows.iter().enumerate().skip(offset).enumerate().take(h) {
-            let y = inner.y + n as u16;
-            let selected = i == self.row;
-            let style = widgets::row_style(theme, focused, selected);
-            if !matches!(row, Row::Header(_)) {
-                drawn.push((
-                    Rect {
-                        y,
-                        height: 1,
-                        ..inner
-                    },
-                    i,
-                ));
-            }
-            let (left, right) = match row {
-                Row::Header(g) => {
-                    widgets::row(
-                        buf,
-                        inner,
-                        y,
-                        widgets::row_style(theme, false, false),
-                        Line::styled(*g, theme.s(Slot::TextMuted)),
-                        None,
-                    );
-                    continue;
-                }
-                Row::Palette => (
-                    widgets::kv(
-                        theme,
-                        "  palette",
-                        16,
-                        vec![Span::styled(
-                            self.cfg.palette.clone(),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-                Row::Depth => (
-                    widgets::kv(
-                        theme,
-                        "  colours",
-                        16,
-                        vec![Span::styled(
-                            color_level_label(&self.cfg.colors),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-                Row::Motion => (
-                    widgets::kv(
-                        theme,
-                        "  motion",
-                        16,
-                        vec![Span::styled(
-                            Level::parse(&self.cfg.motion).word(),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-                Row::Splash => (
-                    widgets::kv(
-                        theme,
-                        "  splash",
-                        16,
-                        vec![Span::styled(
-                            Setting::parse(&self.cfg.splash).word(),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-                Row::Icons => (
-                    widgets::kv(
-                        theme,
-                        "  icons",
-                        16,
-                        vec![Span::styled(self.icons_label(), theme.s(Slot::TextPrimary))],
-                    ),
-                    None,
-                ),
-                Row::Slot(name) => {
-                    let mut spans = vec![
-                        Span::raw("  "),
-                        Span::styled("██ ", theme.style(name)),
-                        Span::styled(
-                            format!("{:<16}", slot_info(name).label),
-                            theme.s(Slot::TextPrimary),
-                        ),
-                    ];
-                    if let Some(input) = self.edit.as_ref().filter(|_| selected) {
-                        // The input takes the value's place on this row.
-                        widgets::row(buf, inner, y, style, Line::from(spans), None);
-                        let x = inner.x + 23;
-                        let rect = Rect {
-                            x,
-                            y,
-                            width: inner.width.saturating_sub(24),
-                            height: 1,
-                        };
-                        input.render(theme, rect, buf, cursor);
-                        continue;
-                    }
-                    spans.push(Span::styled(theme.hex(name), theme.s(Slot::TextSecondary)));
-                    let mine = self
-                        .cfg
-                        .slots
-                        .contains_key(name)
-                        .then(|| Span::styled("yours", theme.s(Slot::StatusWarning)));
-                    (Line::from(spans), mine)
-                }
-                Row::Links => (
-                    widgets::kv(
-                        theme,
-                        "  links",
-                        16,
-                        vec![Span::styled(
-                            switch_label(&self.cfg.hyperlinks),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-                Row::Images => (
-                    widgets::kv(
-                        theme,
-                        "  pictures",
-                        16,
-                        vec![Span::styled(
-                            switch_label(&self.cfg.images),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-                Row::Pointer => (
-                    widgets::kv(
-                        theme,
-                        "  pointer",
-                        16,
-                        vec![Span::styled(
-                            switch_label(&self.cfg.pointer),
-                            theme.s(Slot::TextPrimary),
-                        )],
-                    ),
-                    None,
-                ),
-            };
-            widgets::row(buf, inner, y, style, left, right);
-        }
-        drawn
-    }
-
     pub fn detail_title(&self) -> String {
         match self.selected() {
             Row::Palette => "palette".into(),
@@ -596,310 +423,15 @@ impl Colours {
         }
     }
 
-    pub fn render_detail(&self, theme: &Theme, inner: Rect, buf: &mut Buffer) {
-        widgets::paragraph(buf, inner, self.detail_lines(theme));
-    }
-
-    /// The selected setting's detail, ready for the host to wrap and scroll.
-    pub fn detail_lines(&self, theme: &Theme) -> Vec<Line<'static>> {
-        let muted = theme.s(Slot::TextMuted);
-        let text = theme.s(Slot::TextPrimary);
-        let mut lines: Vec<Line<'static>> = Vec::new();
-        match self.selected() {
-            Row::Palette => {
-                lines.push(Line::styled(
-                    "The set of colours everything starts from.",
-                    text,
-                ));
-                lines.push(Line::default());
-                lines.push(widgets::kv(
-                    theme,
-                    "in use",
-                    10,
-                    vec![Span::styled(
-                        self.cfg.palette.clone(),
-                        theme.s(Slot::TextEmphasis),
-                    )],
-                ));
-                lines.push(widgets::kv(
-                    theme,
-                    "choices",
-                    10,
-                    vec![Span::styled(format!("{} palettes", palettes().len()), text)],
-                ));
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    "Colours you set below stay set when you change palette.",
-                    muted,
-                ));
-            }
-            Row::Depth => {
-                lines.push(Line::styled("How many colours radar uses.", text));
-                lines.push(Line::default());
-                for l in COLOR_LEVELS {
-                    let style = if l == self.cfg.colors {
-                        theme.bold(Slot::TextEmphasis)
-                    } else {
-                        text
-                    };
-                    lines.push(Line::styled(format!("  {}", color_level_label(l)), style));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    format!("Drawing with: {}", tier_label(theme)),
-                    muted,
-                ));
-                lines.push(Line::styled(
-                    "NO_COLOR in the environment always wins.",
-                    muted,
-                ));
-            }
-            Row::Motion => {
-                let level = Level::parse(&self.cfg.motion);
-                lines.push(Line::styled(
-                    "Short effects that show what changed: a screen fading in, a menu \
-                     sweeping open, rows a sync changed glowing for a moment.",
-                    text,
-                ));
-                lines.push(Line::default());
-                for l in Level::ALL {
-                    let style = if l == level {
-                        theme.bold(Slot::TextEmphasis)
-                    } else {
-                        text
-                    };
-                    lines.push(Line::from(vec![
-                        Span::styled(format!("  {:<8}", l.word()), style),
-                        Span::styled(l.about(), muted),
-                    ]));
-                }
-                lines.push(Line::default());
-                let here = crate::motion::held_back(theme.tier(), crate::system::Env::detect().ssh);
-                lines.push(match (level, here) {
-                    (Level::Off, _) => Line::styled("Nothing moves.", muted),
-                    (_, Some(why)) => Line::styled(
-                        format!("Off here all the same: {why}."),
-                        theme.s(Slot::StatusWarning),
-                    ),
-                    _ => Line::styled("A key always acts at once; the effect gives way.", muted),
-                });
-                lines.push(Line::default());
-                lines.push(Line::styled("config: [theme] motion", muted));
-            }
-            Row::Splash => {
-                let setting = Setting::parse(&self.cfg.splash);
-                lines.push(Line::styled(
-                    "The radar mark while radar starts, with the parts in this build lighting as each is ready; \
-                     then the first screen fades in. A key or click goes straight to the screen and acts.",
-                    text,
-                ));
-                lines.push(Line::default());
-                for s in Setting::ALL {
-                    let style = if s == setting { theme.bold(Slot::TextEmphasis) } else { text };
-                    lines.push(Line::from(vec![
-                        Span::styled(format!("  {:<8}", s.word()), style),
-                        Span::styled(s.about(), muted),
-                    ]));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    "How it moves follows motion: with motion off it shows only when radar is slow to start.",
-                    muted,
-                ));
-                lines.push(Line::default());
-                lines.push(Line::styled("config: [theme] splash", muted));
-            }
-            Row::Icons => {
-                lines.push(Line::styled(
-                    "Icons beside names and states, from a pack. Packs extend each other; what one leaves out comes from the one it extends, and in the end from unicode.",
-                    text,
-                ));
-                lines.push(Line::default());
-                let user = icon::user_packs();
-                let mut names = vec!["auto".to_string()];
-                names.extend(icon::pack_names());
-                for name in names {
-                    let style = if name == self.cfg.icons {
-                        theme.bold(Slot::TextEmphasis)
-                    } else {
-                        text
-                    };
-                    let shown = if name == "auto" {
-                        icon::auto_choice()
-                    } else {
-                        name.clone()
-                    };
-                    lines.push(Line::from(vec![
-                        Span::styled(format!("  {}", crate::ui::pad(&name, 10)), style),
-                        Span::styled(icon::preview(&shown, &user), text),
-                    ]));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    format!("auto here: {}. Nerd Font symbols where the terminal brings them (Ghostty, kitty, WezTerm), else unicode; unicode over SSH.", icon::auto_choice()),
-                    muted,
-                ));
-                lines.push(Line::styled(
-                    "Your packs: <name>.toml in the icons folder beside config.toml (radar icons path), read when radar starts. One icon at a time: General › icons.",
-                    muted,
-                ));
-                lines.push(Line::default());
-                lines.push(Line::styled("config: [theme] icons", muted));
-            }
-            Row::Slot(name) => {
-                let info = slot_info(&name);
-                if let Some(t) = self.edit.as_ref().map(TextInput::value) {
-                    lines.push(match parse_hex(&t) {
-                        Some(_) => Line::styled("⏎ keeps it", theme.s(Slot::StatusSuccess)),
-                        None => Line::styled(
-                            "Type # and six hex digits, e.g. #e135ff",
-                            theme.s(Slot::StatusWarning),
-                        ),
-                    });
-                    lines.push(Line::default());
-                }
-                lines.push(Line::styled(format!("Used for {}.", info.meaning), text));
-                lines.push(Line::default());
-                lines.push(Line::from(vec![
-                    Span::styled("██████ ", theme.style(&name)),
-                    Span::styled(theme.hex(&name), text),
-                ]));
-                if self.edit.is_none() {
-                    lines.push(Line::default());
-                }
-                if let Some(v) = self.cfg.slots.get(&name).filter(|_| self.edit.is_none()) {
-                    lines.push(widgets::kv(
-                        theme,
-                        "yours",
-                        10,
-                        vec![Span::styled(v.clone(), text)],
-                    ));
-                    lines.push(Line::styled(
-                        "⏎ to change it or go back to the palette's.",
-                        muted,
-                    ));
-                } else if self.edit.is_none() {
-                    lines.push(Line::styled("From the palette. ⏎ to set your own.", muted));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    format!("config: [theme.slots] \"{name}\""),
-                    muted,
-                ));
-            }
-            Row::Links => {
-                lines.push(Line::styled(
-                    "Links in text open on a click (Ctrl, or Cmd on a Mac): the terminal opens them. o and the Links tabs open them too, whatever this says.",
-                    text,
-                ));
-                lines.push(Line::default());
-                for v in SWITCHES {
-                    let style = if v == self.cfg.hyperlinks {
-                        theme.bold(Slot::TextEmphasis)
-                    } else {
-                        text
-                    };
-                    lines.push(Line::styled(format!("  {}", switch_label(v)), style));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    if crate::ui::link::on() {
-                        "Drawing links: yes."
-                    } else {
-                        "Drawing links: no."
-                    },
-                    muted,
-                ));
-                lines.push(Line::styled(
-                    "Where the terminal can: Ghostty, kitty, WezTerm, iTerm2, GNOME's and Windows Terminal, and terminals that pass them on. Not inside tmux, nor over ssh unless the terminal says what it is.",
-                    muted,
-                ));
-                lines.push(Line::default());
-                lines.push(Line::styled("config: [theme] hyperlinks", muted));
-            }
-            Row::Images => {
-                lines.push(Line::styled(
-                    "Pictures in messages and descriptions, drawn in the terminal. Where it cannot, a line names each and its link.",
-                    text,
-                ));
-                lines.push(Line::default());
-                for v in SWITCHES {
-                    let style = if v == self.cfg.images {
-                        theme.bold(Slot::TextEmphasis)
-                    } else {
-                        text
-                    };
-                    lines.push(Line::styled(format!("  {}", switch_label(v)), style));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    if crate::ui::image::on() {
-                        "Drawing pictures: yes."
-                    } else {
-                        "Drawing pictures: no."
-                    },
-                    muted,
-                ));
-                lines.push(Line::styled(
-                    "radar asks the terminal when it starts (kitty's, sixel or iTerm2's graphics): turning them on takes effect then. Not inside tmux unless on.",
-                    muted,
-                ));
-                lines.push(Line::default());
-                lines.push(Line::styled("config: [theme] images", muted));
-            }
-            Row::Pointer => {
-                lines.push(Line::styled(
-                    "The mouse pointer turns into a hand over what a click acts on, and into a text cursor while you drag to select. What it is over is lit either way.",
-                    text,
-                ));
-                lines.push(Line::default());
-                for v in SWITCHES {
-                    let style = if v == self.cfg.pointer {
-                        theme.bold(Slot::TextEmphasis)
-                    } else {
-                        text
-                    };
-                    lines.push(Line::styled(format!("  {}", switch_label(v)), style));
-                }
-                lines.push(Line::default());
-                lines.push(Line::styled(
-                    if crate::ui::pointer::on() {
-                        "Changing the pointer: yes."
-                    } else {
-                        "Changing the pointer: no."
-                    },
-                    muted,
-                ));
-                lines.push(Line::styled(
-                    "Where the terminal can: Ghostty, kitty, foot and WezTerm. Not inside tmux unless on.",
-                    muted,
-                ));
-                lines.push(Line::default());
-                lines.push(Line::styled("config: [theme] pointer", muted));
-            }
-            Row::Header(_) => {}
-        }
-        lines
-    }
-}
-
-fn tier_label(theme: &Theme) -> &'static str {
-    use crate::design::theme::Tier;
-    match theme.tier() {
-        Tier::TrueColor => "full colour",
-        Tier::Ansi256 => "256 colours",
-        Tier::Ansi16 => "16 colours",
-        Tier::Mono => "no colour",
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ratatui::crossterm::event::KeyModifiers;
+    use crate::view::Key as KeyCode;
 
     fn press(c: &mut Colours, code: KeyCode) -> Reply {
-        c.key(KeyEvent::new(code, KeyModifiers::NONE))
+        c.key(Chord::new(code))
     }
 
     #[test]
@@ -1043,25 +575,31 @@ mod tests {
 
     #[test]
     fn a_slot_typing_verdict_precedes_its_explanation() {
-        let mut c = Colours::default();
-        c.row = c
+        let mut host = crate::Host::new(vec![], 0).unwrap();
+        host.load_config(Some("")).unwrap();
+        host.view = crate::host::View::Settings;
+        host.section = host
+            .sections
+            .iter()
+            .position(|(o, s)| *o == crate::host::Owner::Host && s.id == "colours")
+            .expect("the colours section");
+        host.colours.row = host
+            .colours
             .rows()
             .iter()
             .position(|r| *r == Row::Slot("bg.base".into()))
             .unwrap();
-        let theme = Theme::new(crate::design::theme::Tier::Mono);
         for (input, expected) in [
             ("#123456", "⏎ keeps it"),
             ("#12zz", "Type # and six hex digits, e.g. #e135ff"),
         ] {
-            c.edit = Some(TextInput::new(input));
-            let lines = c.detail_lines(&theme);
-            assert_eq!(lines[0].to_string(), expected);
-            assert!(lines[2].to_string().starts_with("Used for "));
-            assert_eq!(
-                lines.last().unwrap().to_string(),
-                "config: [theme.slots] \"bg.base\""
-            );
+            host.colours.edit = Some(TextInput::new(input));
+            let view = crate::settings_view::section_view(&host, crate::design::theme::Tier::Mono)
+                .expect("the colours view");
+            let lines: Vec<String> = view.detail.iter().map(|t| t.words()).collect();
+            assert_eq!(lines[0], expected);
+            assert!(lines[2].starts_with("Used for "), "{lines:?}");
+            assert_eq!(lines.last().unwrap(), "config: [theme.slots] \"bg.base\"");
         }
     }
 }

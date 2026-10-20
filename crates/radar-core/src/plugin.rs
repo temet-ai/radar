@@ -835,12 +835,6 @@ pub fn parse_chord(keys: &str) -> Option<crate::view::Chord> {
     crate::view::Chord::parse(keys)
 }
 
-/// [`parse_chord`] as a terminal key. Temporary, for the parts' tests that
-/// still build terminal keys; removed with the terminal path (T15).
-pub fn parse_key(keys: &str) -> Option<ratatui::crossterm::event::KeyEvent> {
-    parse_chord(keys).map(crate::key_compat::key_of)
-}
-
 /// How a key is shown in the keys menu: `' '` is `space`.
 pub fn key_text(c: char) -> String {
     if c == ' ' {
@@ -1282,7 +1276,7 @@ pub trait Plugin: Send {
         vec![]
     }
     /// Whether `pane` of the screen shows a tree with groups that fold
-    /// (`+` opens, `-` closes, as [`crate::ui::tree::key`] does): the
+    /// (`+` opens, `-` closes): the
     /// status line then shows `+/- expand/collapse` and the `x` menu lists
     /// both keys.
     fn folds(&self, _screen: &str, _pane: Pane) -> bool {

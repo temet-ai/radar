@@ -5,26 +5,13 @@
 //! Backspace at the start of an empty line goes back up a line; pasted
 //! lines stay lines. A one-line composer (a title) reviews on `⏎`.
 //!
-//! It draws over the foot of a body ([`Composer::draw_foot`]) or as lines
-//! under a row of another element ([`Composer::block`] and
-//! [`Composer::draw_input`], e.g. under a line of a diff).
-
-use std::cell::Cell;
-
-use ratatui::buffer::Buffer;
-use ratatui::layout::{Position, Rect};
-use ratatui::text::{Line, Span};
-use ratatui::widgets::{Clear, Widget};
+//! The renderer draws it from the view data a part builds out of
+//! [`Composer::lines`] and the line being typed.
 
 use crate::design::help_bar::KeyHint;
-use crate::design::theme::Slot;
 use crate::input::{Edit, TextInput};
 use crate::plugin::Menu;
-use crate::theme::Theme;
 use crate::view::{Chord, Key};
-use crate::widgets;
-
-use super::card::panel;
 
 /// What a key did in the composer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -134,61 +121,6 @@ impl Composer {
                 KeyHint::new("esc", "stop"),
             ]
         }
-    }
-
-    /// Its lines when it sits under a row of another element: the title,
-    /// the lines kept, and a row for the line being typed
-    /// ([`Composer::draw_input`] draws it).
-    pub fn block(&self, theme: &Theme, title: &str) -> Vec<Line<'static>> {
-        let mut out = vec![Line::styled(title.to_string(), theme.bold(Slot::AccentPrimary))];
-        out.extend(self.lines.iter().map(|l| Line::from(Span::styled(l.clone(), theme.s(Slot::TextPrimary)))));
-        out.push(Line::default());
-        out
-    }
-
-    /// The line being typed, on the last row of `area` (its [`Composer::block`]).
-    pub fn draw_input(&self, theme: &Theme, area: Rect, buf: &mut Buffer, cursor: &Cell<Option<Position>>) {
-        if area.height == 0 {
-            return;
-        }
-        let row = Rect {
-            y: area.y + area.height - 1,
-            height: 1,
-            ..area
-        };
-        self.input.render(theme, row, buf, cursor);
-    }
-
-    /// A titled panel over the foot of `area`, as tall as its lines (up to
-    /// two thirds of it); the last lines when they do not all fit.
-    pub fn draw_foot(&self, theme: &Theme, title: &str, area: Rect, buf: &mut Buffer, cursor: &Cell<Option<Position>>) {
-        if area.height == 0 {
-            return;
-        }
-        let want = self.lines.len() as u16 + 4;
-        let height = want.clamp(5, (area.height * 2 / 3).max(5)).min(area.height);
-        let r = Rect {
-            y: area.y + area.height - height,
-            height,
-            ..area
-        };
-        Clear.render(r, buf);
-        let inner = widgets::padded(panel(theme, r, buf, title, true));
-        if inner.height == 0 {
-            return;
-        }
-        let room = inner.height.saturating_sub(1) as usize;
-        let skip = self.lines.len().saturating_sub(room);
-        for (i, l) in self.lines.iter().skip(skip).enumerate() {
-            buf.set_line(
-                inner.x,
-                inner.y + i as u16,
-                &Line::from(Span::styled(l.clone(), theme.s(Slot::TextPrimary))),
-                inner.width,
-            );
-        }
-        let y = inner.y + (self.lines.len() - skip) as u16;
-        self.input.render(theme, Rect { y, height: 1, ..inner }, buf, cursor);
     }
 }
 

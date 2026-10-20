@@ -1,90 +1,41 @@
-//! The kit: the elements every part draws its screens with, so a tree, a
-//! table, a page or a detail pane looks and behaves the same in every part.
-//!
-//! Each element is built on a library where one does the job (ratatui's
-//! `Table`, `Tabs`, `List`, `LineGauge`, `Sparkline` and `Scrollbar`,
-//! `tui-tree-widget`, `tui-scrollview`, `throbber-widgets-tui`), takes the
-//! [`Theme`](crate::Theme) and draws only with its slots. Where a part lets
-//! the user choose a slot for a word (its look words), the element takes the
-//! resolved style, so the choice stays the part's.
+//! What the host and the parts share that is not drawing: the state of a
+//! composer, a log, a diff and a scroll, the icon packs, rich text and
+//! markdown as a document, the connection section's words and the status
+//! words. Drawing is the renderer's (Ink); nothing here names a terminal
+//! library.
 //!
 //! | Element | For | Module |
 //! |---|---|---|
-//! | banded tree | a hierarchy with tree lines, a stripe per group, bands, `⋯` when folded | [`tree`] |
-//! | columns | named columns at the right of rows, dropped by width | [`columns`] |
-//! | table | a flat list of rows with headings and a cursor | [`table`] |
-//! | list | selectable rows with a word at the right edge (settings, nav panes) | [`rows`] |
-//! | entries | rows with lines under them, and headings that are never chosen | [`entries`] |
-//! | log | a long output with a cursor, folding sections, search, its colours | [`log`] |
-//! | highlight | code coloured by language, as spans per line (theme slots; plain when unknown) | [`highlight`] |
-//! | diff | a file's changes: hunks, both sides' line numbers, a cursor, blocks under lines | [`diff`] |
-//! | rich text | one document model (blocks, runs with marks, links, mentions, emoji, badges, media) laid out as lines, with its links | [`rich`] |
+//! | log | a long output with a cursor, folding sections, search | [`log`] |
+//! | highlight | code coloured by language, as tokens per line | [`highlight`] |
+//! | diff | a file's changes: hunks, both sides' line numbers, a cursor | [`diff`] |
+//! | rich text | one document model (blocks, runs with marks, links, mentions, emoji, badges, media) | [`rich`] |
 //! | markdown | text written in markdown (a description, a comment) parsed into rich text | [`markdown`] |
-//! | page frame | breadcrumb, title and details, a line under it, tabs, the body | [`page`] |
-//! | card | a titled panel of text that scrolls, with a scrollbar | [`card`], [`scroll`] |
-//! | chips | short labels set apart from text | [`chips`] |
-//! | status strip, checks | counts in a row; a check's verdict | [`status`] |
-//! | stage bar, gauge, sparkline | steps of a run, a ratio, numbers over time | [`meter`] |
-//! | key-value rows, add row | facts beside their labels; the `+ add …` row | [`rows`] |
+//! | rows | movement along selectable rows | [`rows`] |
 //! | composer | text typed for a write: `⏎` a new line, `ctrl-s` review, `esc` stop | [`composer`] |
-//! | connection | a part's connection section: its rows, words, detail panels, and what was found in the environment as a question | [`connection`] |
-//! | empty, set-up, loading, spinner | what a panel shows when it has nothing yet | [`states`] |
-//! | step rail | a run's steps along a line: done, skipped, current, ahead, and how each went | [`rail`] |
-//!
-//! See every element live with `cargo run -p radar-core --example gallery`.
-//! Parts use these instead of drawing their own (docs/GUIDE.md 1.15).
+//! | connection | a part's connection section: its words, and what was found in the environment as a question | [`connection`] |
+//! | status | counts in a row; a check's verdict | [`status`] |
 
-pub mod card;
-pub mod chips;
-pub mod columns;
 pub mod composer;
 pub mod connection;
 pub mod diff;
-pub mod detail;
-pub mod entries;
-pub mod frame;
-pub mod gallery;
 pub mod highlight;
-pub mod hover;
 pub mod icon;
 pub mod image;
 pub mod link;
 pub mod log;
 pub mod markdown;
-pub mod meter;
-pub mod motion_demo;
-pub mod notices;
-pub mod page;
 pub mod pointer;
-pub mod rail;
 pub mod rich;
 pub mod rows;
-pub mod scrim;
 pub mod scroll;
-pub mod states;
 pub mod status;
-pub mod stories;
-pub mod table;
-pub mod tree;
 
-#[cfg(test)]
-mod tests;
-
-pub use columns::{Column, Columns};
 pub use scroll::Scroll;
-pub use tree::{BandedTree, Node, TreeLook};
-
-use ratatui::style::Style;
-use ratatui::text::{Line, Span};
 
 use crate::plugin::Tone;
 
 pub use crate::design::width::{clusters, fit, pad, take, width, wrap_words};
-
-/// A cell of a row: `text` fitted to `w - 1` and one space after.
-pub fn cell(text: &str, w: usize, style: Style) -> Span<'static> {
-    Span::styled(format!("{} ", fit(text, w.saturating_sub(1))), style)
-}
 
 /// `Alice Example` → `Alice E.`; one name stays as it is. A surname with a
 /// particle (a lower-case word between the first name and the last) stays
@@ -124,35 +75,6 @@ pub fn duration(secs: u64) -> String {
     } else {
         format!("{secs}s")
     }
-}
-
-/// `text` broken between words to fit `width` after `prefix`, each line
-/// behind the prefix (a quote bar `│ `, an indent).
-pub fn wrapped(text: &str, width: u16, prefix: Span<'static>, style: Style) -> Vec<Line<'static>> {
-    wrap_words(text, width, self::width(&prefix.content))
-        .into_iter()
-        .map(|line| Line::from(vec![prefix.clone(), Span::styled(line, style)]))
-        .collect()
-}
-
-/// Spans cut to `w` cells, keeping their styles.
-pub fn clip(spans: Vec<Span<'static>>, w: usize) -> Vec<Span<'static>> {
-    let mut used = 0;
-    let mut out = Vec::new();
-    for s in spans {
-        if used >= w {
-            break;
-        }
-        let (text, n) = take(&s.content, w - used);
-        used += n;
-        let cut = text.len() < s.content.len();
-        out.push(Span::styled(text.to_string(), s.style));
-        if cut {
-            // Cut short (a wide character at the edge): the line ends here.
-            break;
-        }
-    }
-    out
 }
 
 /// The state of a run, a step or a check, as a symbol that reads without
@@ -195,11 +117,6 @@ impl Mark {
             Mark::Stopped => Icon::RunCanceled,
             Mark::Skipped => Icon::RunSkipped,
         }
-    }
-
-    /// Drawn: its icon when icons are on, else its symbol in `style`.
-    pub fn span(self, theme: &crate::Theme, style: Style) -> Span<'static> {
-        icon::or(theme, self.icon(), self.symbol(), style)
     }
 
     pub fn tone(self) -> Tone {

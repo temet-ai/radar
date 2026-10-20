@@ -1415,7 +1415,7 @@ pub enum Block {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         key: Option<String>,
     },
-    /// A section of a detail pane (`ui::card::section`): its heading
+    /// A section of a detail pane: its heading
     /// (`mark`, the title in muted capitals, `detail` in secondary words
     /// where it fits) and a quiet rule to the edge of the room, then its
     /// blocks two cells in, laid out in the room left. A line in it wraps

@@ -1,46 +1,20 @@
-//! Motion: short effects over what was drawn, tied to what happened.
+//! Motion: what happened, as data for the renderer to show as short effects.
 //!
 //! The host says what happened, as a [`Cue`]: a screen switched, an item's
 //! page opened, a menu or confirm appeared, a message came or went, a part's
-//! rows changed in a sync. While a frame is drawn, the shell and the parts
-//! mark where things are ([`region`], [`row`], [`loading`]). The runner's
-//! [`Engine`] turns cues into effects (built with `tachyonfx`), binds each
-//! to its place in the frame, and applies them over the frame just drawn.
+//! rows changed in a sync. The renderer (Ink) runs the effects, fitted to the
+//! level the host sends ([`Level`], [`effective`]).
 //!
-//! Parts never use `tachyonfx` themselves. A part:
-//! - reports what a sync changed with `Effect::Changed(Changes)` (see
-//!   [`Changes::between`]), keyed by the row's subject (`kind:id`);
-//! - marks where those rows are while it draws, with [`row`];
-//! - marks a panel that waits for its first data, with [`loading`].
-//!
-//! What the engine keeps to:
-//! - Every effect is short (100 to 450 ms) and time-based; the clock is
-//!   injectable ([`Clock`], [`ManualClock`]) so tests are exact.
-//! - Input wins: a key, click or paste drops what is running
-//!   ([`Engine::input`]), and the key acts at once.
-//! - Drawing is untouched: effects run in the runner over a frame already
-//!   drawn, so tests and snapshots draw without them; `off` draws exactly
-//!   what radar draws without motion, and so does the frame after an effect.
-//! - The runner redraws on a frame tick only while [`Engine::running`].
+//! Parts never draw motion themselves. A part reports what a sync changed with
+//! `Effect::Changed(Changes)` (see [`Changes::between`]), keyed by the row's
+//! subject (`kind:id`, [`key`]).
 
 pub mod transition;
-pub mod frames;
-pub mod assemble;
-pub mod outline;
-mod interaction;
 
-use std::cell::{Cell as StdCell, RefCell};
 use std::collections::{BTreeSet, HashMap};
-use std::rc::Rc;
 use std::time::Duration;
 
-use ratatui::buffer::{Buffer, Cell};
-use ratatui::layout::Rect;
-use ratatui::style::Color;
-use tachyonfx::{Effect as Fx, Interpolatable, Interpolation, Motion as Way, fx};
-
-use crate::design::theme::{Slot, Tier};
-use crate::theme::Theme;
+use crate::design::theme::Tier;
 
 /// How much motion: `[theme] motion = "full" | "subtle" | "off"`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -146,7 +120,7 @@ impl Changes {
     }
 }
 
-/// What happened, for the engine to show.
+/// What happened, for the renderer to show.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Cue {
     /// Another screen (a tab's key, settings, a show across parts).
@@ -175,119 +149,17 @@ impl Cue {
     }
 }
 
-/// A place the shell marks while drawing.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Region {
-    /// Between the top bar and the status line.
-    Body,
-    /// The menu or confirm on screen.
-    Popup,
-    /// The message on the status line.
-    Message,
-}
-
-/// Where things were drawn in the frame being drawn.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct Marks {
-    pub context: Option<transition::MotionContext>,
-    pub fold: Option<transition::MotionFold>,
-    pub frames: Vec<frames::FrameMark>,
-    pub trees: Vec<frames::TreeMark>,
-    pub body: Option<Rect>,
-    pub popup: Option<Rect>,
-    pub message: Option<Rect>,
-    pub rows: Vec<(String, Rect)>,
-    pub loading: Vec<Rect>,
-}
-
-thread_local! {
-    static MARKS: RefCell<Marks> = RefCell::default();
-}
-
-/// Start a frame's marks afresh (the shell does, before drawing).
-pub fn begin() {
-    MARKS.with(|m| *m.borrow_mut() = Marks::default());
-}
-
-/// The marks of the frame just drawn.
-pub fn take() -> Marks {
-    MARKS.with(|m| std::mem::take(&mut *m.borrow_mut()))
-}
-
-/// Mark one of the shell's places.
-pub fn region(region: Region, rect: Rect) {
-    MARKS.with(|m| {
-        let mut m = m.borrow_mut();
-        let slot = match region {
-            Region::Body => &mut m.body,
-            Region::Popup => &mut m.popup,
-            Region::Message => &mut m.message,
-        };
-        *slot = Some(rect);
-    });
-}
-
-/// The key a row goes by in [`Changes`] and [`row`]: its subject's kind and
-/// id, `kind:id` (`shelf:A-12`), so two parts' keys never meet.
+/// The key a row goes by in [`Changes`]: its subject's kind and id,
+/// `kind:id` (`shelf:A-12`), so two parts' keys never meet.
 pub fn key(kind: &str, id: &str) -> String {
     format!("{kind}:{id}")
 }
 
-/// Mark where a row was drawn, under the key a sync reports it by
-/// ([`Changes`]). Mark every visible row; one a sync changed glows there.
-pub fn row(key: impl Into<String>, rect: Rect) {
-    MARKS.with(|m| m.borrow_mut().rows.push((key.into(), rect)));
-}
-
-/// Mark a panel that waits for its first data: at `full` it shimmers
-/// while it is marked.
-pub fn loading(rect: Rect) {
-    MARKS.with(|m| m.borrow_mut().loading.push(rect));
-}
-
-/// Where effects get the time from.
-pub trait Clock {
-    /// Time since some fixed start.
-    fn now(&self) -> Duration;
-}
-
-/// The real clock.
-pub struct SystemClock(std::time::Instant);
-
-impl Default for SystemClock {
-    fn default() -> Self {
-        Self(std::time::Instant::now())
-    }
-}
-
-impl Clock for SystemClock {
-    fn now(&self) -> Duration {
-        self.0.elapsed()
-    }
-}
-
-/// A clock that moves only when told, for tests. Clones share the time.
-#[derive(Debug, Clone, Default)]
-pub struct ManualClock(Rc<StdCell<u64>>);
-
-impl ManualClock {
-    pub fn advance(&self, ms: u64) {
-        self.0.set(self.0.get() + ms);
-    }
-}
-
-impl Clock for ManualClock {
-    fn now(&self) -> Duration {
-        Duration::from_millis(self.0.get())
-    }
-}
-
-/// How long each effect runs, in ms. A screen switch is the shortest: it
+/// How long a screen switch runs, in ms. It is the shortest effect: it
 /// happens most, and the new screen's words read from its first frame.
 pub const SCREEN_MS: u32 = 100;
-/// How far from the background toward the text a screen switch's words
-/// start: dimmed, never invisible.
-pub const SCREEN_FROM: f32 = 0.5;
+/// How long Ink's effects run, in ms; the host sends them in
+/// [`crate::ipc::MotionTimings`].
 pub const PAGE_MS: u32 = 300;
 pub const POPUP_MS: u32 = 180;
 pub const MESSAGE_MS: u32 = 250;
@@ -295,371 +167,60 @@ pub const MESSAGE_GONE_MS: u32 = 200;
 pub const GLOW_MS: u32 = 450;
 pub const ADDED_MS: u32 = 320;
 /// One pass of the loading shimmer; it repeats while the panel waits.
-pub const SHIMMER_MS: u32 = outline::WAVE_MS;
-/// How often the runner redraws while an effect runs.
+pub const SHIMMER_MS: u32 = 1400;
+/// How often a frame is drawn while an effect runs.
 pub const FRAME: Duration = Duration::from_millis(30);
-/// A frame slower than this to draw, three times in a row while effects
-/// run, turns motion off for the session.
-const SLOW: Duration = Duration::from_millis(60);
-
-/// The theme's colours the effects blend with.
-#[derive(Debug, Clone, Copy)]
-struct Ink {
-    base: Color,
-    surface: Color,
-    overlay: Color,
-    glow: Color,
-    text: Color,
-}
-
-impl Ink {
-    fn of(theme: &Theme) -> Self {
-        let bg = |s| theme.bg(s).bg.unwrap_or(Color::Reset);
-        let fg = |s| theme.s(s).fg.unwrap_or(Color::Reset);
-        Self {
-            base: bg(Slot::BgBase),
-            surface: bg(Slot::BgSurface),
-            overlay: bg(Slot::BgOverlay),
-            glow: fg(Slot::AccentPrimary),
-            text: fg(Slot::TextPrimary),
-        }
-    }
-}
-
-/// Where a running effect applies, found again in every frame's marks.
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum Target {
-    Body,
-    Popup,
-    Message,
-    Row(String),
-    Area(Rect),
-}
-
-impl Target {
-    fn find(&self, marks: &Marks) -> Option<Rect> {
-        match self {
-            Self::Body => marks.body,
-            Self::Popup => marks.popup,
-            Self::Message => marks.message,
-            Self::Row(key) => marks.rows.iter().find(|(k, _)| k == key).map(|(_, r)| *r),
-            Self::Area(r) => Some(*r),
-        }
-    }
-}
-
-struct Running {
-    target: Target,
-    fx: Fx,
-    /// A loading shimmer: it runs while its panel is marked, and input
-    /// does not stop it.
-    shimmer: bool,
-}
-
-/// Runs the effects: cues start them, each frame applies them.
-pub struct Engine {
-    frames: frames::FrameMotion,
-    level: Level,
-    clock: Box<dyn Clock>,
-    /// When the last frame with effects was drawn.
-    last: Option<Duration>,
-    running: Vec<Running>,
-    /// The last effect ended in the frame just drawn: one more plain frame
-    /// follows, so what stays on screen is exactly what radar drew.
-    settle: bool,
-    /// The message as last drawn (where, and its cells), for its fade out.
-    message: Option<(Rect, Vec<Cell>)>,
-    /// Slow frames in a row; three turn motion off.
-    slow: u8,
-    /// The terminal was too slow: off for the session.
-    too_slow: bool,
-}
-
-impl Engine {
-    pub fn new(level: Level, clock: Box<dyn Clock>) -> Self {
-        Self {
-            frames: frames::FrameMotion::default(),
-            level,
-            clock,
-            last: None,
-            running: Vec::new(),
-            settle: false,
-            message: None,
-            slow: 0,
-            too_slow: false,
-        }
-    }
-
-    pub fn level(&self) -> Level {
-        self.level
-    }
-
-    /// A new setting. Off drops everything at once; leaving Full drops loading.
-    pub fn set_level(&mut self, level: Level) {
-        self.frames.clear();
-        self.level = if self.too_slow { Level::Off } else { level };
-        if self.level == Level::Off {
-            self.running.clear();
-            self.last = None;
-            self.message = None;
-            self.settle = false;
-        } else if self.level != Level::Full {
-            let before = self.running.len();
-            self.running.retain(|r| !r.shimmer);
-            if self.running.len() != before {
-                // Leave one clean frame without restarting ordinary effects
-                // that survive the loading policy change.
-                self.settle = true;
-                if self.running.is_empty() {
-                    self.last = None;
-                }
-            }
-        }
-    }
-
-    /// Whether the runner should draw again soon: an effect runs, or the
-    /// plain frame after one is still to come.
-    pub fn running(&self) -> bool {
-        !self.running.is_empty() || self.settle || self.frames.running()
-    }
-
-    /// The runner's frame tick: `Some` only while [`Engine::running`].
-    pub fn next_frame(&self) -> Option<Duration> {
-        self.running().then_some(FRAME)
-    }
-
-    /// Someone pressed a key, clicked or pasted: what runs is dropped and
-    /// the next frame is plain, so nothing stands in the way. A loading
-    /// shimmer goes on (it says the panel still waits).
-    pub fn input(&mut self) {
-        self.frames.input();
-        let before = self.running.len();
-        self.running.retain(|r| r.shimmer);
-        if self.running.len() != before {
-            self.settle = true;
-        }
-    }
-
-    /// Background work cannot borrow a locally consumed input's pending start.
-    pub fn background(&mut self) { self.frames.background(); }
-
-    /// Start what `cue` shows at this level.
-    pub fn cue(&mut self, cue: Cue, theme: &Theme) {
-        if !cue.runs_at(self.level) {
-            return;
-        }
-        let ink = Ink::of(theme);
-        let ease = Interpolation::QuadOut;
-        match cue {
-            // At full a new screen builds from its parts; subtle keeps the fade.
-            Cue::Screen if self.level == Level::Full => self.replace(Target::Body, assemble()),
-            Cue::Screen => {
-                // The terminal's own text colour is read as tachyonfx reads a
-                // Reset foreground, as the fade does for each cell.
-                let text = match ink.text {
-                    Color::Reset => Color::Rgb(192, 192, 192),
-                    c => c,
-                };
-                let from = ink.base.lerp(&text, SCREEN_FROM);
-                self.replace(Target::Body, fx::fade_from_fg(from, (SCREEN_MS, ease)));
-            }
-            Cue::Page => self.replace(
-                Target::Body,
-                fx::sweep_in(Way::LeftToRight, 24, 0, ink.base, (PAGE_MS, ease)),
-            ),
-            Cue::Popup => self.replace(
-                Target::Popup,
-                fx::sweep_in(Way::UpToDown, 3, 0, ink.base, (POPUP_MS, ease)),
-            ),
-            Cue::Message => self.replace(
-                Target::Message,
-                fx::sweep_in(Way::LeftToRight, 8, 0, ink.overlay, (MESSAGE_MS, ease)),
-            ),
-            Cue::MessageGone => {
-                if let Some((rect, cells)) = self.message.take() {
-                    self.replace(Target::Area(rect), fade_out(cells, rect.width, ink.overlay));
-                }
-            }
-            Cue::Changed(changes) => {
-                for key in changes.changed {
-                    self.replace(Target::Row(key), glow(ink));
-                }
-                for key in changes.added {
-                    let fx = if self.level == Level::Full {
-                        fx::sweep_in(Way::LeftToRight, 12, 0, ink.surface, (ADDED_MS, ease))
-                    } else {
-                        glow(ink)
-                    };
-                    self.replace(Target::Row(key), fx);
-                }
-            }
-        }
-    }
-
-    fn replace(&mut self, target: Target, fx: Fx) {
-        self.running.retain(|r| r.target != target);
-        self.running.push(Running {
-            target,
-            fx,
-            shimmer: false,
-        });
-    }
-
-    /// Apply what runs to the frame just drawn into `buf`, using the marks
-    /// made while drawing it.
-    pub fn draw(&mut self, buf: &mut Buffer, theme: &Theme) {
-        let marks = take();
-        self.settle = false;
-        if self.level == Level::Off {
-            return;
-        }
-        if self.level == Level::Full {
-            self.frames.draw(buf, theme, &marks, self.clock.now().as_millis());
-            self.running.retain(|r| {
-                !r.shimmer || matches!(r.target, Target::Area(a) if marks.loading.contains(&a))
-            });
-            for &area in &marks.loading {
-                let known = self
-                    .running
-                    .iter()
-                    .any(|r| r.shimmer && r.target == Target::Area(area));
-                if !known {
-                    self.running.push(Running {
-                        target: Target::Area(area),
-                        fx: shimmer(Ink::of(theme)),
-                        shimmer: true,
-                    });
-                }
-            }
-            self.message = marks.message.map(|r| {
-                let r = r.intersection(buf.area);
-                (r, cells(buf, r))
-            });
-        }
-        if self.running.is_empty() {
-            self.last = None;
-            return;
-        }
-        let now = self.clock.now();
-        let dt = self.last.map_or(Duration::ZERO, |l| now.saturating_sub(l));
-        let mut kept = Vec::new();
-        for mut r in self.running.drain(..) {
-            let Some(area) = r.target.find(&marks).map(|a| a.intersection(buf.area)) else {
-                continue;
-            };
-            if area.is_empty() {
-                continue;
-            }
-            r.fx.process(dt.into(), buf, area);
-            if !r.fx.done() {
-                kept.push(r);
-            }
-        }
-        self.running = kept;
-        self.settle = self.running.is_empty();
-        self.last = (!self.running.is_empty()).then_some(now);
-    }
-
-    /// How long the frame took to reach the terminal. Three slow ones in a
-    /// row while effects run turn motion off for the session; the reason is
-    /// returned once, for the status line.
-    pub fn drew_in(&mut self, took: Duration) -> Option<&'static str> {
-        if !self.running() || self.too_slow {
-            return None;
-        }
-        if took < SLOW {
-            self.slow = 0;
-            return None;
-        }
-        self.slow += 1;
-        if self.slow < 3 {
-            return None;
-        }
-        self.too_slow = true;
-        self.set_level(Level::Off);
-        Some("motion is off: this terminal is slow to draw")
-    }
-}
-
-/// The cells of `area`, row by row.
-fn cells(buf: &Buffer, area: Rect) -> Vec<Cell> {
-    area.positions().map(|p| buf[p].clone()).collect()
-}
-
-/// The screen-assemble moment over the body ([`assemble::apply`]), on the effect's own clock.
-fn assemble() -> Fx {
-    fx::effect_fn((), (assemble::ASSEMBLE_MS, Interpolation::Linear), |_, ctx, cells| {
-        let area = ctx.area;
-        let elapsed = (ctx.alpha() * assemble::ASSEMBLE_MS as f32).round() as u32;
-        let mut cells: Vec<_> = cells.collect();
-        let mut drawn: Vec<Cell> = cells.iter().map(|(_, cell)| (**cell).clone()).collect();
-        assemble::apply(&mut drawn, area, elapsed);
-        for ((_, cell), now) in cells.iter_mut().zip(drawn) {
-            **cell = now;
-        }
-    })
-}
-
-/// A background pulse in the accent colour that fades to the row's own.
-fn glow(ink: Ink) -> Fx {
-    fx::effect_fn(ink.glow, (GLOW_MS, Interpolation::SineOut), |glow, ctx, cells| {
-        let k = (1.0 - ctx.alpha()) * 0.45;
-        for (_, cell) in cells {
-            let bg = cell.bg;
-            cell.set_bg(bg.lerp(glow, k));
-        }
-    })
-}
-
-/// The cells that were there fade into `to`; then what is there now shows.
-fn fade_out(was: Vec<Cell>, width: u16, to: Color) -> Fx {
-    fx::effect_fn(
-        (was, width),
-        (MESSAGE_GONE_MS, Interpolation::QuadIn),
-        move |(was, width), ctx, cells| {
-            let a = ctx.alpha();
-            if a >= 1.0 {
-                return;
-            }
-            let area = ctx.area;
-            for (pos, cell) in cells {
-                let i = (pos.y - area.y) as usize * *width as usize + (pos.x - area.x) as usize;
-                if let Some(old) = was.get(i) {
-                    *cell = old.clone();
-                    cell.set_fg(old.fg.lerp(&to, a));
-                }
-            }
-        },
-    )
-}
-
-/// A waiting panel's blank rows as outlines of the rows to come, with a
-/// light wave running down them, again and again ([`outline`]).
-fn shimmer(ink: Ink) -> Fx {
-    let dim = ink.surface.lerp(&ink.text, outline::DIM);
-    let light = ink.surface.lerp(&ink.text, outline::LIGHT);
-    fx::repeating(fx::effect_fn(
-        (dim, light),
-        (outline::WAVE_MS, Interpolation::Linear),
-        |(dim, light), ctx, cells| {
-            let area = ctx.area;
-            let elapsed = (ctx.alpha() * outline::WAVE_MS as f32).round() as u32;
-            let width = usize::from(area.width);
-            let mut cells: Vec<_> = cells.collect();
-            for (r, row) in cells.chunks_mut(width.max(1)).enumerate() {
-                if !row.iter().all(|(_, cell)| cell.symbol() == " ") {
-                    continue;
-                }
-                let colour = dim.lerp(light, outline::wave(elapsed, r, usize::from(area.height)));
-                for ((_, cell), glyph) in row.iter_mut().zip(outline::row(r, area.width)) {
-                    if let Some(glyph) = glyph {
-                        cell.set_symbol(glyph).set_fg(colour);
-                    }
-                }
-            }
-        },
-    ))
-}
 
 #[cfg(test)]
-mod tests;
+mod tests {
+    use super::*;
+
+    #[test]
+    fn changes_compare_rows_and_the_first_data_is_not_a_change() {
+        let rows = |r: &[(&str, i32)]| -> Vec<(String, i32)> {
+            r.iter().map(|(k, v)| (k.to_string(), *v)).collect()
+        };
+        assert!(Changes::between(rows(&[]), rows(&[("a", 1)])).is_empty());
+        let c = Changes::between(
+            rows(&[("a", 1), ("b", 2), ("gone", 0)]),
+            rows(&[("a", 1), ("b", 3), ("c", 4)]),
+        );
+        assert_eq!(c.changed.iter().collect::<Vec<_>>(), ["b"]);
+        assert_eq!(c.added.iter().collect::<Vec<_>>(), ["c"]);
+    }
+
+    #[test]
+    fn motion_is_held_back_over_ssh_and_below_full_colour() {
+        assert_eq!(effective(Level::Full, Tier::TrueColor, false), Level::Full);
+        assert_eq!(effective(Level::Full, Tier::TrueColor, true), Level::Off);
+        for tier in [Tier::Ansi256, Tier::Ansi16, Tier::Mono] {
+            assert_eq!(effective(Level::Subtle, tier, false), Level::Off, "{tier:?}");
+        }
+        assert_eq!(Level::parse("full"), Level::Full);
+        assert_eq!(Level::parse("off"), Level::Off);
+        assert_eq!(Level::parse("whatever"), Level::Subtle);
+        for l in Level::ALL {
+            assert_eq!(Level::parse(l.word()), l);
+        }
+    }
+
+    #[test]
+    fn subtle_has_switches_popups_and_the_glow_only() {
+        let mut changes = Changes::default();
+        changes.changed.insert("row:1".into());
+        let cues = [
+            Cue::Screen,
+            Cue::Page,
+            Cue::Popup,
+            Cue::Message,
+            Cue::MessageGone,
+            Cue::Changed(changes),
+        ];
+        for cue in cues {
+            let shows = matches!(cue, Cue::Screen | Cue::Popup | Cue::Changed(_));
+            assert_eq!(cue.runs_at(Level::Subtle), shows, "{cue:?} at subtle");
+            assert!(cue.runs_at(Level::Full), "{cue:?} at full");
+            assert!(!cue.runs_at(Level::Off), "{cue:?} at off");
+        }
+    }
+}

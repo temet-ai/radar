@@ -18,7 +18,7 @@ use radar_core::ui::icon::Icon;
 use radar_core::ui::rows::{Move, select};
 use radar_core::ui::status;
 use radar_core::view as v;
-use radar_core::{log, time, widgets};
+use radar_core::{log, time};
 
 use crate::config::{self, Offer, Project, SITE_COLORS, Site, View, default_styles};
 use crate::model::Me;
@@ -809,7 +809,7 @@ const TREE_ADD_AT: u16 = 2;
 fn look_summary(spec: &str, word: &str) -> String {
     let mut parts = spec.split_whitespace();
     let colour = if word == "site" {
-        widgets::own_colour("site")
+        radar_core::ui::connection::own_colour("site")
     } else {
         parts.next().map(|s| slot_info(s).label).unwrap_or_default()
     };

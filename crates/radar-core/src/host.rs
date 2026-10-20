@@ -4,6 +4,7 @@
 
 #[path = "host/detail_actions.rs"]
 mod detail_actions;
+mod measure;
 
 #[path = "host_palette.rs"]
 mod palette;
@@ -41,7 +42,7 @@ use crate::plugin::{
 };
 use crate::design::help_bar::KeyHint;
 use crate::theme::{Theme, ThemeConfig};
-use crate::widgets::step;
+use crate::ui::rows::step;
 
 #[cfg(test)]
 #[path = "host_history_discovery_tests.rs"]
@@ -237,8 +238,8 @@ pub struct OpenMenu {
     pub refused: Option<String>,
     /// Reading position and geometry of this menu, independent of its choice.
     pub viewport: MenuViewport,
-    /// Pointer position when a context click opened the menu.
-    pub anchor: Option<ratatui::layout::Position>,
+    /// Where the renderer's pointer was when a context click opened the menu.
+    pub anchor: Option<crate::view::chrome::CellAt>,
 }
 
 /// Geometry learned while drawing. Scrolling only changes the reading
@@ -366,9 +367,6 @@ pub enum Event {
         semantic: Option<ActionId>,
         event: Box<Event>,
     },
-    /// A terminal key from the Ratatui runner; `update` turns it into the
-    /// chord intent a renderer sends. Removed with the terminal path.
-    Key(ratatui::crossterm::event::KeyEvent),
     Tick(i64),
     /// A part woke the host ([`crate::wake`]), with the current unix time: the
     /// woken parts take in what their background work brought.
@@ -401,22 +399,6 @@ pub enum Event {
     /// ([`crate::view::Intent`]) instead of terminal events. Routed, checked
     /// and journalled as the key or click it stands for.
     Intent(crate::view::Intent),
-    /// A mouse press or wheel turn at a cell, with when it happened (ms),
-    /// so two presses on the same thing close together are a double click.
-    Mouse {
-        kind: MouseKind,
-        column: u16,
-        row: u16,
-        at_ms: u64,
-    },
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MouseKind {
-    Press,
-    Context,
-    ScrollUp,
-    ScrollDown,
 }
 
 /// A clickable area, as the last frame drew it.
@@ -568,9 +550,8 @@ pub struct Host {
     pub(crate) notice_history: Option<crate::notices::HistorySelection>,
     notice_input_supported: bool,
     notice_motion: bool,
-    /// A drag is selecting text (the Ratatui runner's): the key that makes
-    /// the terminal select its own text instead ([`crate::select::bypass_key`]),
-    /// which the status line names while it lasts.
+    /// The key that makes the terminal select its own text instead of the
+    /// renderer, which the status line names while it lasts.
     pub selecting: Option<&'static str>,
     /// Detected terminal layers and the current right-click routing state.
     pub(crate) terminal: Option<crate::terminal_host::State>,
@@ -603,26 +584,13 @@ pub struct Host {
     pub save_failed: Option<String>,
     /// Advances every tick; drives spinners.
     pub frame: usize,
-    /// Lifetime shell-render invocations on this host, independent of ticks.
-    /// Kept on the owned host so parallel or interleaved fixtures cannot mix.
-    #[cfg(feature = "test-support")]
-    pub(crate) scenario_shell_frames: Cell<u64>,
-    /// Clickable areas of the last frame, in drawing order (later on top).
-    pub hits: std::cell::RefCell<Vec<(ratatui::layout::Rect, Hit)>>,
-    /// Where the mouse pointer is, while it is over the window.
-    pub pointer: Option<ratatui::layout::Position>,
-    /// What the pointer is over as the last frame drew it: the area that
-    /// is lit and what a click there does ([`Host::hover_at`]).
-    pub hovered: std::cell::RefCell<Option<(ratatui::layout::Rect, Hit)>>,
-    /// The Ratatui frontend's own state for parts drawn from views
-    /// ([`crate::view_tui`]): scroll offsets and click targets, never a
+    /// The frontend-facing state for parts drawn from views
+    /// ([`crate::route`]): the room last given and the icon lead, never a
     /// part's state.
-    pub frontend: crate::view_tui::Frontend,
+    pub frontend: crate::route::Frontend,
     /// What the renderer last laid out in the panes it scrolls, and on
     /// which screen ([`Host::laid_out`]).
     laid_out: Option<(String, Vec<crate::view::PaneRows>)>,
-    /// The last press: what it hit and when, for double clicks.
-    last_press: Option<(Hit, u64)>,
     detail_lease: std::cell::RefCell<detail_actions::State>,
     saved: toml::Table,
     /// The config file as last read or written: a save edits it, so what radar
@@ -808,14 +776,8 @@ impl Host {
             saving: Default::default(),
             save_failed: None,
             frame: 0,
-            #[cfg(feature = "test-support")]
-            scenario_shell_frames: Cell::new(0),
-            hits: std::cell::RefCell::new(Vec::new()),
-            pointer: None,
-            hovered: std::cell::RefCell::new(None),
-            frontend: crate::view_tui::Frontend::default(),
+            frontend: crate::route::Frontend::default(),
             laid_out: None,
-            last_press: None,
             detail_lease: Default::default(),
             saved: toml::Table::new(),
             file: String::new(),
@@ -860,9 +822,9 @@ impl Host {
     /// take it.
     pub(crate) fn colours_take(&mut self, key: Chord) -> bool {
         let reply = if self.on_icons() {
-            self.colours.icons_key(crate::key_compat::key_of(key))
+            self.colours.icons_key(key)
         } else {
-            self.colours.key(crate::key_compat::key_of(key))
+            self.colours.key(key)
         };
         match reply {
             Reply::Ignored => return false,
@@ -1567,15 +1529,6 @@ impl Host {
     /// Handle one event; then, unless it was a save's answer, save a change
     /// it completed (see [`Host::autosave`]).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
-        // The terminal runner's key is the one edge: from here on the host
-        // knows only chords (removed with the runner's terminal path).
-        let event = match event {
-            Event::Key(key) => match crate::key_compat::chord_of(&key) {
-                Some(chord) => Event::Intent(crate::view::Intent::Key { chord }),
-                None => return vec![],
-            },
-            event => event,
-        };
         self.guard_notice_history_owner();
         if let Some(out) = self.update_notices(&event) {
             self.reconcile_detail_lease();
@@ -1596,7 +1549,7 @@ impl Host {
         // An outside click or a background question may dismiss/replace the
         // palette. Restore suspended History only when no new menu owns input.
         if self.palette.is_some() && self.menu.as_ref().is_none_or(|open| open.owner != Owner::Host || open.menu.id != palette::ID) {
-            if self.menu.is_none() { self.cancel_palette(); } else { self.clear_palette_hits(); self.palette = None; }
+            if self.menu.is_none() { self.cancel_palette(); } else { self.palette = None; }
         }
         self.tell_dock();
         self.finish_motion_event();
@@ -1668,7 +1621,7 @@ impl Host {
             }
             let input = matches!(
                 inner,
-                Event::Intent(_) | Event::Paste(_) | Event::Mouse { .. }
+                Event::Intent(_) | Event::Paste(_)
             );
             let mut event = event;
             while input && let Event::Tracked { event: inner, .. } = event {
@@ -1698,29 +1651,6 @@ impl Host {
                     };
                 }
                 Event::Paste(_) => return vec![],
-                Event::Mouse {
-                    kind, column, row, ..
-                } => {
-                    self.someone_is_there();
-                    if kind == MouseKind::Press {
-                        // A tab, or a row or key of the overlay: pressed by
-                        // its target, as every frontend presses it.
-                        let at = ratatui::layout::Position::new(column, row);
-                        let target = match self.hit_at(column, row) {
-                            Some(hit @ (Hit::Tab(_) | Hit::HistoryTab)) => self.chrome_target_of(&hit),
-                            _ => self.history.as_ref().and_then(|h| h.target_at(at)),
-                        };
-                        if let Some(target) = target {
-                            return self.on_intent(crate::view::Intent::Activate { target });
-                        }
-                    }
-                    let key = self
-                        .history
-                        .as_mut()
-                        .and_then(|history| history.mouse(kind, column, row))
-                        .and_then(|key| crate::key_compat::chord_of(&key));
-                    return key.map_or_else(Vec::new, |key| self.history_key(key));
-                }
                 other => return self.handle_outside_history(other),
             }
         }
@@ -1750,7 +1680,7 @@ impl Host {
         self.trace.current = inherited;
         self.trace.semantic = semantic;
         let menu_before = self.menu.is_some();
-        if menu_before && matches!(event, Event::Mouse { .. } | Event::Intent(_)) {
+        if menu_before && matches!(event, Event::Intent(_)) {
             self.trace.current = self
                 .trace
                 .menu
@@ -1790,8 +1720,6 @@ impl Host {
             Event::Intent(crate::view::Intent::Copy { .. }) => None,
             Event::Intent(_) if menu_before => Some("ui.menu.action"),
             Event::Intent(_) => Some("ui.action"),
-            Event::Mouse { .. } if menu_before => Some("ui.menu.action"),
-            Event::Mouse { .. } if !menu_before && !self.capturing() => Some("ui.pointer.action"),
             _ => None,
         };
         let dispatch = kind.and_then(|kind| self.trace.host(kind, self.trace.current.clone()));
@@ -1985,8 +1913,6 @@ impl Host {
         match event {
             Event::History { .. } => vec![],
             Event::Tracked { event, .. } => self.handle(*event),
-            // `update` turned the terminal's key into an intent already.
-            Event::Key(_) => vec![],
             Event::Tick(now) => {
                 self.now = now;
                 self.frame = self.frame.wrapping_add(1);
@@ -2033,16 +1959,6 @@ impl Host {
             Event::Msg { plugin, msg } => {
                 let fx = self.plugins[plugin].on_msg(msg);
                 self.route(plugin, fx, 0)
-            }
-            Event::Mouse {
-                kind,
-                column,
-                row,
-                at_ms,
-            } => {
-                let fx = self.on_mouse(kind, column, row, at_ms);
-                self.someone_is_there();
-                fx
             }
             Event::Intent(intent) => {
                 self.someone_is_there();
@@ -3094,7 +3010,7 @@ impl Host {
         }
         // `pane:<id>` from a renderer that lays the panes out itself (Ink): a
         // press on a pane's empty space, or the wheel over it, focuses that
-        // pane and nothing else, as `Hit::Pane` does in `on_mouse`. Every
+        // pane and nothing else, as a click on the pane does. Every
         // intent that names such a target is the host's: no part sees it and
         // no menu opens (a right-press on empty space offers nothing).
         if let Intent::Select { target }
@@ -3114,7 +3030,7 @@ impl Host {
         }
         // While a field has the keys (an edit, a filter, a reply), a press
         // on one of the part's rows waits for it (⏎ or esc), as a click
-        // does in the terminal (`on_mouse`): moving the selection under an
+        // does in Ink: moving the selection under an
         // open edit would commit the edit into the row pressed. The field's
         // own intents (keys, actions, its text selection) still reach it.
         if self.capturing()
@@ -3185,7 +3101,7 @@ impl Host {
         let p = self.target()?;
         // A press on a section's row from a renderer that lays the section
         // out itself (Ink) focuses the section first, as a click on it does
-        // in the terminal (`on_mouse`, `Hit::Plugin`). The nav's rows are
+        // in Ink. The nav's rows are
         // chrome targets and never come here.
         if self.view == View::Settings
             && self.focus != Pane::Middle
@@ -3411,19 +3327,19 @@ impl Host {
         let mut cx = self.view_cx(p, w, h);
         cx.focus = pane.into();
         match self.plugins[p].view(scope, &cx) {
-            Some(v) => crate::view_tui::bindings(&v.actions),
+            Some(v) => crate::route::bindings(&v.actions),
             None => vec![],
         }
     }
 
     fn section_keys(&self, p: usize, scope: &str) -> Vec<Binding> {
         match self.section_view(p, scope) {
-            Some(v) => crate::view_tui::bindings(&v.actions),
+            Some(v) => crate::route::bindings(&v.actions),
             None => vec![],
         }
     }
 
-    /// A terminal key on a screen, translated by the renderer adapter.
+    /// A key on a screen, translated by [`crate::route`].
     fn screen_input(&mut self, p: usize, scope: &'static str, key: Chord) -> Outcome {
         let Some(view) = self.screen_view(p, scope) else {
             return Outcome::Ignored;
@@ -3432,7 +3348,7 @@ impl Host {
         if self.plugins[p].capturing() {
             return self.plugins[p].intent(scope, self.focus, &crate::view::Intent::Key { chord });
         }
-        let routed = crate::view_tui::key(&self.frontend, &view, self.focus.into(), chord);
+        let routed = crate::route::key(&self.frontend, &view, self.focus.into(), chord);
         let node = interaction_motion::screen_node(&view, self.focus);
         self.routed(p, scope, self.focus, routed, node)
     }
@@ -3445,12 +3361,11 @@ impl Host {
         if self.plugins[p].capturing() {
             return self.plugins[p].intent(scope, Pane::Middle, &crate::view::Intent::Key { chord });
         }
-        let intent = crate::view_tui::section_key(&view, chord);
+        let intent = crate::route::section_key(&view, chord);
         self.shared_part_input(p, scope, Pane::Middle, &intent, Some(&view.body))
     }
 
-    /// An intent from a frontend with no terminal (or the Ratatui adapter's,
-    /// already translated). A missing view cannot accept plugin input.
+    /// An intent from a frontend. A missing view cannot accept plugin input.
     fn intent_input(
         &mut self,
         p: usize,
@@ -3502,7 +3417,7 @@ impl Host {
     /// The pane of screen `scope` that holds `target` anywhere in its view
     /// data: a row, a cell, a run inside a line, a control at its foot. A
     /// page's own frame (the line under its title, its details, its
-    /// notice) is the middle pane's, as Ratatui hit-tests it. `None` when
+    /// notice) is the middle pane's. `None` when
     /// nothing in the view names it (a tab, a chrome target).
     fn pane_of_target(&self, p: usize, scope: &str, target: &crate::view::Target) -> Option<Pane> {
         use crate::view::{Node, TreeRow};
@@ -3575,393 +3490,20 @@ impl Host {
             .key
     }
 
-    /// A pointer press on a target drawn by the renderer adapter.
-    fn pointer_input(
-        &mut self,
-        p: usize,
-        scope: &'static str,
-        pane: Pane,
-        id: &str,
-        _at: ratatui::layout::Position,
-        context: bool,
-    ) -> Outcome {
-        if id.starts_with(crate::view::detail::TARGET_PREFIX) {
-            return Outcome::done();
-        }
-        if !self.has_view(p, scope) {
-            return Outcome::Ignored;
-        }
-        let routed = crate::view_tui::click(&self.frontend, id, context);
-        self.routed(p, scope, pane, routed, None)
-    }
-
     fn routed(
         &mut self,
         p: usize,
         scope: &'static str,
         pane: Pane,
-        routed: crate::view_tui::Routed,
+        routed: crate::route::Routed,
         known: Option<&crate::view::Node>,
     ) -> Outcome {
-        use crate::view_tui::Routed;
+        use crate::route::Routed;
         match routed {
             Routed::Intent(i) => self.shared_part_input(p, scope, pane, &i, known),
             Routed::Done => Outcome::done(),
             Routed::Ignored => Outcome::Ignored,
         }
-    }
-
-    /// What the last frame drew at a cell (the topmost area).
-    pub fn hit_at(&self, column: u16, row: u16) -> Option<Hit> {
-        let at = ratatui::layout::Position { x: column, y: row };
-        self.hits
-            .borrow()
-            .iter()
-            .rev()
-            .find(|(r, _)| r.contains(at))
-            .map(|(_, h)| h.clone())
-    }
-
-    /// What a click at `at` would act on, and the area of it to light: the
-    /// topmost hit there, on the pointer's line. `None` over nothing a
-    /// click acts on: empty space, a pane's background (a click there only
-    /// focuses it), a menu's frame or one of its headings.
-    pub fn hover_at(&self, at: ratatui::layout::Position) -> Option<(ratatui::layout::Rect, Hit)> {
-        let hits = self.hits.borrow();
-        let (rect, hit) = hits.iter().rev().find(|(r, _)| r.contains(at))?;
-        // While something is typed, clicks wait for it (⏎ or esc), except
-        // on the status line's keys: only those are lit.
-        let typing = self.menu.is_none() && self.capturing();
-        let target = match hit {
-            Hit::Key(..) => true,
-            _ if typing => false,
-            Hit::Pane(_) | Hit::MenuBox => false,
-            Hit::Plugin { id, .. } => id != crate::view_tui::PANE_HIT,
-            Hit::MenuItem(i) => self
-                .menu
-                .as_ref()
-                .and_then(|m| m.menu.items.get(*i))
-                .is_some_and(|item| !item.heading && !item.note),
-            _ => true,
-        };
-        target.then(|| {
-            (
-                ratatui::layout::Rect {
-                    y: at.y,
-                    height: 1,
-                    ..*rect
-                },
-                hit.clone(),
-            )
-        })
-    }
-
-    /// The pointer moved to `at` (`None`: it left the window). Over a
-    /// menu's item it moves the menu's highlight there, as a desktop menu
-    /// does. Whether what is lit changed, so the screen needs drawing.
-    pub fn hover(&mut self, at: Option<ratatui::layout::Position>) -> bool {
-        self.pointer = at;
-        let now = at.and_then(|p| self.hover_at(p));
-        let mut changed = *self.hovered.borrow() != now;
-        if let (Some((_, Hit::MenuItem(i))), Some(open)) = (&now, self.menu.as_mut())
-            && open.row != *i
-        {
-            open.row = *i;
-            changed = true;
-        }
-        *self.hovered.borrow_mut() = now;
-        changed
-    }
-
-    /// The pointer's shape for what it is over: a hand where a click acts.
-    pub fn pointer_shape(&self) -> crate::ui::pointer::Shape {
-        match self.hovered.borrow().as_ref() {
-            Some(_) => crate::ui::pointer::Shape::Hand,
-            None => crate::ui::pointer::Shape::Default,
-        }
-    }
-
-    fn on_mouse(&mut self, kind: MouseKind, column: u16, row: u16, at_ms: u64) -> Vec<HostEffect> {
-        let replacing_context = kind == MouseKind::Context
-            && self
-                .menu
-                .as_ref()
-                .is_some_and(|open| open.owner == Owner::Host && open.menu.id == KEYS_MENU);
-        // The menu is drawn last, so its hits cover the screen's hits. A
-        // second right-click addresses the screen beneath that menu.
-        let hit = if replacing_context {
-            let at = ratatui::layout::Position { x: column, y: row };
-            self.hits
-                .borrow()
-                .iter()
-                .rev()
-                .find(|(rect, hit)| {
-                    rect.contains(at) && !matches!(hit, Hit::MenuBox | Hit::MenuItem(_))
-                })
-                .map(|(_, hit)| hit.clone())
-        } else {
-            self.hit_at(column, row)
-        };
-        if matches!(hit, Some(Hit::NoticeHistoryOpen)) {
-            if kind == MouseKind::Press && self.notice_history_can_open() { self.open_notice_history(); }
-            return vec![];
-        }
-        if let Some(Hit::Notice(id)) = hit {
-            if kind == MouseKind::Press && self.notices_visible() { self.notices.dismiss(id); self.sync_message_compat(); }
-            return vec![];
-        }
-        let detail_target = match &hit {
-            Some(Hit::Plugin { id, .. }) if id.starts_with(crate::view::detail::TARGET_PREFIX) => Some(id.clone()),
-            _ => None,
-        };
-        if detail_target.is_some() && kind == MouseKind::Context {
-            self.last_press = None;
-            return vec![];
-        }
-        let key = |code| Chord::new(code);
-        if kind == MouseKind::Context {
-            if self.menu.is_some() && !replacing_context || self.capturing() {
-                return vec![];
-            }
-            if replacing_context {
-                self.cancel_menu_trace(true);
-                self.menu = None;
-            }
-            self.last_press = None;
-            let out = match hit {
-                Some(Hit::Plugin { plugin, scope, pane, id }) => {
-                    let outcome = self.pointer_input(
-                        plugin,
-                        scope,
-                        pane,
-                        &id,
-                        ratatui::layout::Position { x: column, y: row },
-                        true,
-                    );
-                    let Outcome::Handled(effects) = outcome else {
-                        return vec![];
-                    };
-                    self.focus = pane;
-                    self.route(plugin, effects, 0)
-                }
-                Some(Hit::ColourRow(i)) if self.view == View::Settings => {
-                    self.focus = Pane::Middle;
-                    if self.on_icons() {
-                        self.colours.icon_row = i;
-                    } else {
-                        self.colours.row = i;
-                    }
-                    vec![]
-                }
-                Some(Hit::PartsRow(i)) if self.view == View::Settings => {
-                    self.focus = Pane::Middle;
-                    self.parts_row = i;
-                    vec![]
-                }
-                Some(Hit::Section(i)) if self.view == View::Settings => {
-                    self.focus = Pane::Nav;
-                    self.select_section(i);
-                    vec![]
-                }
-                _ => return vec![],
-            };
-            self.settings_detail.top();
-            self.bar = false;
-            self.tabs = false;
-            self.open_keys_menu();
-            if let Some(open) = self.menu.as_mut() {
-                open.anchor = Some(ratatui::layout::Position { x: column, y: row });
-            }
-            return out;
-        }
-        // A key on the status line is pressed, whatever has the keys: the
-        // menu's `⏎ choose`, a field's `esc cancel`.
-        // Chrome targets are pressed the way every frontend presses them: an
-        // Intent::Activate on the target the chrome view gave.
-        if let (MouseKind::Press, Some(h @ Hit::Key(..))) = (kind, &hit)
-            && let Some(target) = self.chrome_target_of(h)
-        {
-            self.last_press = None;
-            return self.on_intent(crate::view::Intent::Activate { target });
-        }
-        // With a menu open, the mouse is the menu's.
-        if let Some(open) = self.menu.as_mut() {
-            return match (kind, hit) {
-                (MouseKind::Press, Some(h @ Hit::MenuItem(_))) => match self.chrome_target_of(&h) {
-                    Some(target) => self.on_intent(crate::view::Intent::Activate { target }),
-                    None => vec![],
-                },
-                (MouseKind::Press, Some(Hit::MenuBox)) => vec![],
-                (MouseKind::Press, _) => {
-                    self.cancel_menu_trace(true);
-                    self.menu = None;
-                    vec![]
-                }
-                (MouseKind::ScrollUp | MouseKind::ScrollDown, _)
-                    if open.menu.question || open.viewport.more() =>
-                {
-                    open.viewport.scroll(kind == MouseKind::ScrollDown, false);
-                    vec![]
-                }
-                (MouseKind::ScrollUp, _) => self.menu_key(key(Key::Up)),
-                (MouseKind::ScrollDown, _) => self.menu_key(key(Key::Down)),
-                (MouseKind::Context, _) => unreachable!("context clicks are handled above"),
-            };
-        }
-        // Typing goes on until ⏎ or esc; a click elsewhere does not drop it.
-        if self.colours.capturing() || self.target().is_some_and(|p| self.plugins[p].capturing()) {
-            return vec![];
-        }
-        // Controls bypass row focus and double-press synthesis entirely.
-        if let Some(target) = detail_target {
-            self.last_press = None;
-            return if kind == MouseKind::Press {
-                self.activate_detail_control(&crate::view::Target::new(target))
-            } else { vec![] };
-        }
-        // A click anywhere takes the keys from the top bar, or from a
-        // page's tab row.
-        if kind == MouseKind::Press {
-            self.bar = false;
-            self.sources = false;
-            self.tabs = false;
-        }
-        let Some(hit) = hit else { return vec![] };
-        let pane = match &hit {
-            Hit::Section(_) | Hit::Group(_) => Some(Pane::Nav),
-            Hit::ColourRow(_) | Hit::PartsRow(_) | Hit::Mode | Hit::PauseIdle | Hit::Setup(_) => {
-                Some(Pane::Middle)
-            }
-            Hit::Pane(p) | Hit::Plugin { pane: p, .. } => Some(*p),
-            _ => None,
-        };
-        if kind != MouseKind::Press {
-            // The wheel moves the selection of the pane under the pointer.
-            if let Some(p) = pane {
-                self.focus = p;
-            }
-            let k = if kind == MouseKind::ScrollUp {
-                'k'
-            } else {
-                'j'
-            };
-            let fx = self.on_key(key(Key::Char(k)));
-            // The wheel past the top stays in the pane; only keys go up
-            // into the top bar or a page's tab row.
-            self.bar = false;
-            self.sources = false;
-            self.tabs = false;
-            return fx;
-        }
-        // A click on a row focuses its pane and selects the row at once. A
-        // click on a pane's empty space or border only focuses it: its cursor
-        // stays where you left it.
-        let focuses_only = matches!(hit, Hit::Pane(_)) && pane.is_some_and(|p| p != self.focus);
-        if focuses_only {
-            self.focus = pane.expect("checked");
-            self.last_press = None;
-            return vec![];
-        }
-        // Page tabs act on the first click. Repeating one before a redraw
-        // must not press Enter on the new tab's first row.
-        // A chooser's row ticks on each click.
-        let ticking = matches!(&hit, Hit::Setup(id) if id.starts_with("setup:choose:"));
-        let single_click = matches!(&hit, Hit::SourceTab(_) | Hit::SetupStop(_))
-            || ticking
-            || matches!(&hit, Hit::Plugin { id, .. } if id.starts_with("tab:"));
-        let double = !single_click
-            && self
-                .last_press
-                .as_ref()
-                .is_some_and(|(h, t)| *h == hit && at_ms.saturating_sub(*t) <= 400);
-        self.last_press = if double {
-            None
-        } else {
-            Some((hit.clone(), at_ms))
-        };
-        if let Some(p) = pane {
-            self.focus = p;
-        }
-        if self.view == View::Settings
-            && self.focus == Pane::Middle
-            && !matches!(&hit, Hit::Pane(_))
-            && !matches!(&hit, Hit::Plugin { id, .. } if id == crate::view_tui::PANE_HIT)
-        {
-            self.settings_detail.top();
-        }
-        let mut out = match hit {
-            hit @ (Hit::HistoryTab
-            | Hit::Tab(_)
-            | Hit::SourceTab(_)
-            | Hit::Section(_)
-            | Hit::Group(_)
-            | Hit::Mode
-            | Hit::Health(_)
-            | Hit::SetupStop(_)
-            | Hit::Attention) => {
-                return match self.chrome_target_of(&hit) {
-                    Some(target) => self.on_intent(crate::view::Intent::Activate { target }),
-                    None => vec![],
-                };
-            }
-            Hit::PartsRow(i) => {
-                self.parts_row = i;
-                vec![]
-            }
-            // Selected (a chooser's row ticked); a double click chooses.
-            Hit::Setup(id) => {
-                if self.setup.is_none() {
-                    self.look_settings_target(&crate::view::Target::new(id), false);
-                } else {
-                    self.setup_target(&crate::view::Target::new(id), ticking);
-                }
-                vec![]
-            }
-            Hit::PauseIdle => {
-                self.pause.row = 1;
-                self.open_idle_menu();
-                return vec![];
-            }
-            Hit::ColourRow(i) => {
-                if self.on_icons() {
-                    self.colours.icon_row = i;
-                } else {
-                    self.colours.row = i;
-                }
-                vec![]
-            }
-            Hit::Plugin {
-                plugin, scope, id, pane,
-            } => {
-                let span = self.plugin_dispatch(plugin, "plugin.pointer.action");
-                let outcome = self.pointer_input(
-                    plugin,
-                    scope,
-                    pane,
-                    &id,
-                    ratatui::layout::Position { x: column, y: row },
-                    false,
-                );
-                let (out, handled) = match outcome {
-                    Outcome::Handled(fx) => (self.route(plugin, fx, 0), true),
-                    Outcome::Ignored => (vec![], false),
-                };
-                self.finish_dispatch(span, handled);
-                out
-            }
-            Hit::Notice(_) | Hit::NoticeHistory(_) | Hit::NoticeHistoryOpen | Hit::NoticeHistoryKey(_) | Hit::History | Hit::Pane(_) | Hit::MenuBox | Hit::MenuItem(_) | Hit::Key(..) => vec![],
-        };
-        if double {
-            // On a setup step that is a section, a double click is the
-            // row's own ⏎, not setup's "continue".
-            let enter = key(Key::Enter);
-            if self.setup_on_section() {
-                out.extend(self.setup_section_takes(enter).unwrap_or_default());
-            } else {
-                out.extend(self.on_key(enter));
-            }
-        }
-        out
     }
 
     fn on_key(&mut self, key: Chord) -> Vec<HostEffect> {
@@ -4712,8 +4254,6 @@ impl Host {
         let (history, request) =
             crate::history::History::recent(self.now.saturating_mul(1000), self.history_request);
         self.history = Some(history);
-        self.hits.borrow_mut().clear();
-        *self.hovered.borrow_mut() = None;
         vec![HostEffect::History(Box::new(request))]
     }
 
@@ -4725,8 +4265,6 @@ impl Host {
         };
         let (history, request) = crate::history::History::new(filter, self.history_request);
         self.history = Some(history);
-        self.hits.borrow_mut().clear();
-        *self.hovered.borrow_mut() = None;
         vec![HostEffect::History(Box::new(request))]
     }
 
@@ -4744,9 +4282,6 @@ impl Host {
                 return vec![];
             }
             self.history = None;
-            // Previous hit targets must not remain active until the next draw.
-            self.hits.borrow_mut().clear();
-            *self.hovered.borrow_mut() = None;
             return vec![];
         }
         self.history_request = self.history_request.wrapping_add(1);
@@ -4755,7 +4290,7 @@ impl Host {
         }
         self.history
             .as_mut()
-            .and_then(|history| history.key(crate::key_compat::key_of(key), self.history_request))
+            .and_then(|history| history.key(key, self.history_request))
             .map(|request| HostEffect::History(Box::new(request)))
             .into_iter()
             .collect()
@@ -5155,8 +4690,7 @@ pub(crate) fn chrome_hint(n: usize, h: &KeyHint<'_>) -> crate::view::chrome::Hin
 
 impl Host {
     /// The chrome for a frame `width` × `height` cells big, as view data:
-    /// what the Ratatui shell paints, a headless frontend returns and the
-    /// Ink renderer receives. Bounded: at most [`crate::view::chrome::MOST`]
+    /// what a headless frontend returns and the Ink renderer receives. Bounded: at most [`crate::view::chrome::MOST`]
     /// of each list.
     pub fn chrome_view(&self, width: u16, height: u16) -> crate::view::ChromeView {
         // Measured in the user's icons and look (colour does not change a
@@ -5174,9 +4708,9 @@ impl Host {
     /// the menu's reading position are the same for every frontend.
     pub fn chrome_view_with(&self, width: u16, height: u16, theme: &Theme) -> crate::view::ChromeView {
         use crate::view::chrome::{self as c, targets};
-        let body = crate::shell::body_of(self, width, height);
+        let body = self.body_size(width, height);
         self.frontend.set_room(body.width, body.height);
-        crate::shell::measure(self, theme, width, height);
+        self.measure_frame(theme, width, height);
         let mut out = c::ChromeView::new(width, height);
         out.notices_visible = self.notices_visible();
         out.notices = self.notices.view();
@@ -5687,7 +5221,7 @@ pub(crate) fn menu_view_of(open: &OpenMenu) -> crate::view::MenuView {
             selected: Some(open.row),
             typed: open.input.as_ref().map(|i| i.value()),
             caret: open.input.as_ref().map(|i| i.cursor()),
-            at: open.anchor.map(|p| c::CellAt { column: p.x, row: p.y }),
+            at: open.anchor,
             scroll: open.viewport.at.get(),
             lines: open.viewport.total.get(),
             shown: open.viewport.height.get(),
@@ -5838,48 +5372,8 @@ impl Host {
         })
     }
 
-    /// The chrome target a pointer hit stands for: the inverse of
-    /// [`Host::chrome_hit`], so the Ratatui shell's clicks reach the host as
-    /// the same [`crate::view::Intent::Activate`] Headless and Ink send.
-    pub(crate) fn chrome_target_of(&self, hit: &Hit) -> Option<crate::view::Target> {
-        use crate::view::chrome::targets;
-        Some(match hit {
-            Hit::HistoryTab => targets::history_tab(),
-            Hit::NoticeHistoryOpen => crate::view::Target::new("chrome:notices:open"),
-            Hit::NoticeHistory(id) => crate::view::Target::new(format!("chrome:notices:id:{id}")),
-            Hit::NoticeHistoryKey(key) => Self::notice_history_key_target(*key)?,
-            Hit::Tab(View::Settings) => targets::settings_tab(),
-            Hit::Tab(View::Screen(i)) => targets::screen_tab(*i),
-            Hit::SourceTab(View::Screen(i)) => targets::source_tab(*i),
-            Hit::Section(i) => targets::nav_section(*i),
-            Hit::Group(g) => targets::nav_group(g),
-            Hit::Mode => targets::mode(),
-            Hit::Health(p) => targets::health(self.plugins.get(*p)?.id()),
-            Hit::Attention => targets::attention(),
-            Hit::MenuItem(i) if self.palette.is_some() => {
-                let item = self.menu.as_ref()?.menu.items.get(*i)?;
-                crate::view::Target::new(format!("chrome:menu:{}", item.value))
-            }
-            Hit::MenuItem(i) => targets::menu_item(*i),
-            Hit::SetupStop(i) => targets::setup_stop(*i),
-            Hit::Key(key, n) => {
-                let hints = self.status_hints();
-                let k = hint_labels(hints.get(*n)?.keys)
-                    .iter()
-                    .position(|l| hint_key(l) == Some(*key))?;
-                if self.palette.is_some() {
-                    crate::view::Target::new(format!("chrome:palette-key:{}:{n}:{k}", self.palette_generation))
-                } else {
-                    targets::hint_key(*n, k)
-                }
-            }
-            _ => return None,
-        })
-    }
-
-    /// A chrome target chosen without a pointer (a headless frontend, the
-    /// Ink renderer) or with one (the Ratatui shell, through
-    /// [`Host::chrome_target_of`]): what a click on it does. `activate`
+    /// A chrome target chosen by a frontend (a headless one, the Ink
+    /// renderer): what a click on it does. `activate`
     /// false only moves a menu's highlight.
     fn chrome_intent(&mut self, target: &crate::view::Target, activate: bool) -> Vec<HostEffect> {
         if target.as_str() == "chrome:notices:open" {
@@ -5889,7 +5383,7 @@ impl Host {
         // The history overlay's rows and keys are its own: a row selects, a
         // key does what pressing it does.
         if target.as_str().starts_with(crate::history::targets::PREFIX) {
-            let key = self.history.as_mut().and_then(|h| h.target(target)).and_then(|key| crate::key_compat::chord_of(&key));
+            let key = self.history.as_mut().and_then(|h| h.target(target));
             return match key {
                 Some(key) if activate => self.history_key(key),
                 _ => vec![],
@@ -5907,7 +5401,6 @@ impl Host {
                 self.bar = false;
                 self.sources = false;
                 self.back.clear();
-                self.hits.borrow_mut().clear();
             }
             return vec![];
         }
@@ -6016,10 +5509,8 @@ impl Host {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::design::theme::Slot;
     use crate::plugin::{Outcome, Pane};
     use crate::ui::icon::Icon;
-    use ratatui::style::Style;
     use serde_json::json;
 
     use std::sync::{Arc, Mutex};
@@ -6382,7 +5873,7 @@ pub(crate) mod tests {
             (&"legacy".to_string(), &"legacy-settings".to_string(), true, &"missing".to_string()));
         assert_eq!(crate::headless::Headless::requiring_views(legacy_host(), 80, 24).err(), Some(gaps));
         let missing = Host::new(vec![Box::new(MissingScreen)], 0).unwrap();
-        assert!(crate::shell::to_text(&missing, 80, 24).contains("no view for this screen"));
+        assert_eq!(crate::headless::Headless::new(missing, 80, 24).view_gaps().len(), 1);
     }
 
     fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
@@ -7032,10 +6523,9 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn the_history_overlay_takes_its_keys_sent_as_intents_as_it_takes_them_from_the_terminal() {
-        // Ink and Headless send keys as Intent::Key; the overlay must take
-        // them exactly as the Ratatui runner's Event::Key, not pass them to
-        // the part under it.
+    fn the_history_overlay_takes_its_keys_sent_as_intents_and_never_passes_them_to_the_part() {
+        // Ink and Headless send keys as Intent::Key; the overlay takes them
+        // and does not pass them to the part under it.
         use crate::view::{Chord, Intent, Key};
         let open = || {
             let (mut host, logs) = host(&[("books", 'B', "shelves")]);
@@ -7052,16 +6542,8 @@ pub(crate) mod tests {
         );
         for chord in chords {
             let c = format!("{chord:?}");
-            let (mut by_key, _) = open();
             let (mut by_intent, logs) = open();
-            let a = by_key.update(Event::Key(crate::key_compat::key_of(chord)));
-            let b = by_intent.update(Event::Intent(Intent::Key { chord }));
-            assert_eq!(a.len(), b.len(), "{c}: the same effects");
-            assert_eq!(
-                by_key.chrome_view(80, 24).history,
-                by_intent.chrome_view(80, 24).history,
-                "{c}: the overlay is in the same state"
-            );
+            by_intent.update(Event::Intent(Intent::Key { chord }));
             assert!(logs[0].lock().unwrap().keys.is_empty(), "{c}: the part under it got nothing");
         }
         // Esc closes it (after closing its help when that is open).
@@ -7315,7 +6797,7 @@ pub(crate) mod tests {
             viewport: Default::default(),
             anchor: None,
         });
-        let text = crate::shell::to_text(&host, 80, 24);
+        let text = crate::headless::text_of(&host, 80, 24);
         assert!(text.contains(question), "{text}");
     }
 
@@ -7378,11 +6860,21 @@ pub(crate) mod tests {
     fn a_menu_taller_than_the_screen_scrolls_to_the_highlighted_row() {
         let (mut host, logs) = host(&[("a", 'A', "a")]);
         press(&mut host, Key::Char('n'));
-        assert!(!crate::shell::to_text(&host, 80, 24).contains("item 39"));
+        let menu = |host: &Host| host.chrome_view(80, 24).menu.expect("the menu is open");
+        let first = menu(&host);
+        assert!(first.lines > first.shown, "the menu is taller than the room it has");
+        assert_eq!(first.scroll, 0);
         for _ in 0..40 {
             press(&mut host, Key::Down);
         }
-        assert!(crate::shell::to_text(&host, 80, 24).contains("item 39"));
+        let last = menu(&host);
+        let selected = last.selected.expect("a row is highlighted");
+        assert!(
+            (last.scroll..last.scroll + last.shown).contains(&selected),
+            "the highlighted row {selected} is shown from {} for {}",
+            last.scroll,
+            last.shown
+        );
         press(&mut host, Key::Enter);
         assert_eq!(logs[0].lock().unwrap().bus, vec!["menu long 39"]);
     }
@@ -7397,12 +6889,9 @@ pub(crate) mod tests {
         );
         press(&mut host, Key::Char('y'));
         host.update(Event::Tick(200));
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 0,
-            row: 0,
-            at_ms: 0,
-        });
+        host.update(Event::Intent(crate::view::Intent::Select {
+            target: crate::view::chrome::targets::settings_tab(),
+        }));
         host.update(Event::Paste("x".into()));
         for log in &logs {
             assert_eq!(log.lock().unwrap().inputs, vec![100, 200, 200]);
@@ -7470,81 +6959,6 @@ pub(crate) mod tests {
         host
     }
 
-    /// The styles of the cells on row `y` from `x`, `n` of them.
-    fn styles_at(host: &Host, needle: &str) -> (u16, u16, Vec<(String, Style)>) {
-        let theme = host.build_theme(crate::design::theme::Tier::TrueColor);
-        let mut term = ratatui::Terminal::new(ratatui::backend::TestBackend::new(80, 24)).unwrap();
-        term.draw(|f| { crate::shell::render(host, &theme, f); crate::shell::render_notices(host, &theme, f.buffer_mut()); })
-            .unwrap();
-        let buf = term.backend().buffer().clone();
-        for y in 0..24 {
-            let row = crate::shell::row_text(&buf, y);
-            if let Some(i) = row.find(needle) {
-                let x = crate::ui::width(&row[..i]) as u16;
-                let cells = (0..80u16.saturating_sub(x))
-                    .map(|k| {
-                        (
-                            buf[(x + k, y)].symbol().to_string(),
-                            buf[(x + k, y)].style(),
-                        )
-                    })
-                    .take(needle.chars().count())
-                    .collect();
-                return (x, y, cells);
-            }
-        }
-        panic!(
-            "{needle:?} not on screen:\n{}",
-            crate::shell::to_text(host, 80, 24)
-        );
-    }
-
-    #[test]
-    fn menus_and_messages_draw_a_parts_icons_in_their_own_colour() {
-        let mut host = icon_host("unicode");
-        press(&mut host, Key::Char('i'));
-        let theme = host.build_theme(crate::design::theme::Tier::TrueColor);
-        let own = |i: Icon| theme.spec(&theme.icons().get(i).style).fg;
-        let bug = theme.icons().get(Icon::Bug).glyph.clone();
-        let link = theme.icons().get(Icon::Link).glyph.clone();
-        let repo = theme.icons().get(Icon::Repo).glyph.clone();
-        let failed = theme.icons().get(Icon::RunFailed).glyph.clone();
-        // The title: the part's icon, then its words.
-        let (_, _, cells) = styles_at(&host, &format!("{bug} crash"));
-        assert_eq!(cells[0].1.fg, own(Icon::Bug), "the title's icon");
-        assert_eq!(
-            cells[2].1.fg,
-            theme.s(Slot::TextEmphasis).fg,
-            "the title's words"
-        );
-        // A heading and an item.
-        let (_, _, cells) = styles_at(&host, &format!("{repo} WHERE"));
-        assert_eq!(cells[0].1.fg, own(Icon::Repo));
-        let (_, _, cells) = styles_at(&host, &format!("{link} open"));
-        assert_eq!(cells[0].1.fg, own(Icon::Link));
-        assert_ne!(
-            cells[2].1.fg,
-            own(Icon::Link),
-            "the label in the row's colour"
-        );
-        // Items line up with an item that has no icon.
-        let (x_open, _, _) = styles_at(&host, &format!("{link} open"));
-        let (x_close, _, _) = styles_at(&host, "close");
-        assert_eq!(
-            x_close, x_open,
-            "an item without an icon starts where one with an icon does"
-        );
-        assert!(crate::shell::to_text(&host, 80, 24).contains("closes it"));
-        // The message.
-        assert_eq!(host.message.as_deref(), Some("it broke"));
-        assert_eq!(host.message.as_ref().unwrap().icon, Some(Icon::RunFailed));
-        host.menu = None;
-        let (_, y, cells) = styles_at(&host, &format!("{failed} it broke"));
-        assert_eq!(y, 21, "notice stays above the panel border and status hints");
-        assert_eq!(cells[0].1.fg, own(Icon::RunFailed));
-        assert_eq!(cells[2].1.fg, theme.s(Slot::TextPrimary).fg);
-    }
-
     #[test]
     fn a_keys_menu_heading_icon_leads_the_menus_title_and_items_keep_theirs() {
         let mut host = icon_host("unicode");
@@ -7555,31 +6969,23 @@ pub(crate) mod tests {
             ("crash", Some(Icon::Bug))
         );
         assert_eq!(open.menu.items[0].icon, Some(Icon::Link));
-        let text = crate::shell::to_text(&host, 80, 24);
-        let theme = host.build_theme(crate::design::theme::Tier::Mono);
-        let menu = theme.icons().get(Icon::Menu).glyph.clone();
-        let bug = theme.icons().get(Icon::Bug).glyph.clone();
-        assert!(
-            text.contains(&format!("{menu} {bug} crash")),
-            "the host's icon, then the part's:\n{text}"
-        );
+        let view = host.chrome_view(80, 24).menu.expect("the menu as view data");
+        assert_eq!((view.title.as_str(), view.icon), ("crash", Some(Icon::Bug)));
+        assert_eq!(view.items[0].icon, Some(Icon::Link), "an item keeps its own icon in the view");
     }
 
     #[test]
-    fn with_icons_off_a_parts_icons_take_no_room() {
+    fn with_icons_off_the_menu_view_still_names_the_parts_icons_for_ink_to_drop() {
         let mut host = icon_host("off");
         press(&mut host, Key::Char('i'));
-        let text = crate::shell::to_text(&host, 80, 24);
-        assert!(text.contains(" crash "), "{text}");
-        assert!(text.contains(" WHERE"), "{text}");
-        assert!(text.contains(" open    opens it"), "{text}");
-        assert!(!text.contains(" o  open"), "no separate letter or icon column: {text}");
+        let view = host.chrome_view(80, 24).menu.expect("the menu as view data");
+        assert_eq!(view.title, "crash");
+        let labels: Vec<&str> = view.items.iter().map(|c| c.label.as_str()).collect();
+        assert!(labels.contains(&"where") && labels.contains(&"open") && labels.contains(&"close"), "{labels:?}");
+        let open = view.items.iter().find(|c| c.label == "open").unwrap();
+        assert_eq!(open.hint, "opens it");
         host.menu = None;
-        let text = crate::shell::to_text(&host, 80, 24);
-        assert!(
-            text.lines().nth(21).unwrap().contains("info it broke"),
-            "{text}"
-        );
+        assert_eq!(host.message.as_deref(), Some("it broke"));
     }
 
     #[test]
@@ -7798,17 +7204,13 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn a_click_takes_the_keys_back_from_the_bar() {
+    fn a_press_on_a_chrome_target_takes_the_keys_back_from_the_bar() {
         let (mut host, _) = host(&[("a", 'A', "alpha")]);
         press(&mut host, Key::Up);
         assert!(host.bar);
-        let _ = crate::shell::to_text(&host, 80, 24);
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 40,
-            row: 10,
-            at_ms: 0,
-        });
+        host.update(Event::Intent(crate::view::Intent::Activate {
+            target: crate::view::chrome::targets::settings_tab(),
+        }));
         assert!(!host.bar);
     }
 

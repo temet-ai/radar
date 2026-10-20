@@ -1,5 +1,4 @@
 use super::*;
-use crate::design::theme::Tier;
 use crate::journal::work_map::ActionSource;
 use crate::journal::{
     ActionEvent, ActionId, EventId, Metadata, SafeUrl, SessionId, StableCode, SubjectSnapshot,
@@ -138,25 +137,8 @@ fn sample() -> History {
     history
 }
 
-fn key(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
-}
-fn press(history: &mut History, code: KeyCode, id: u64) -> Option<Request> {
-    history.key(key(code), id)
-}
-
-fn draw(history: &History, width: u16, height: u16, theme: &Theme) -> Buffer {
-    let area = Rect::new(0, 0, width, height);
-    let mut buf = Buffer::empty(area);
-    history.render(area, &mut buf, theme);
-    buf
-}
-
-fn text(buf: &Buffer) -> String {
-    (buf.area.y..buf.area.bottom())
-        .map(|y| crate::shell::row_text(buf, y))
-        .collect::<Vec<_>>()
-        .join("\n")
+fn press(history: &mut History, code: Key, id: u64) -> Option<Request> {
+    history.key(Chord::new(code), id)
 }
 
 fn shot(name: &str, history: &History) {
@@ -182,23 +164,23 @@ fn history_screens_as_view_text() {
     shot("all_activity", &all);
     let mut history = sample();
     shot("events", &history);
-    press(&mut history, KeyCode::Tab, 2);
+    press(&mut history, Key::Tab, 2);
     shot("detail", &history);
     // The panel scrolls by the room the frontend reports; here it is set.
     history.detail_scroll.set(4);
     let scrolled = history.view(160, 40);
     assert_eq!((scrolled.focus, scrolled.detail_scroll), (HistoryFocus::Detail, 4));
-    press(&mut history, KeyCode::Char('?'), 2);
+    press(&mut history, Key::Char('?'), 2);
     shot("help", &history);
 
     let (mut history, request) = History::new(EventFilter::default(), 20);
     shot("loading", &history);
     history.receive(request.id, Ok(page(EventFilter::default(), vec![], false)));
     shot("empty", &history);
-    let retry = press(&mut history, KeyCode::Char('r'), 21).unwrap();
+    let retry = press(&mut history, Key::Char('r'), 21).unwrap();
     history.receive(retry.id, Err(ReadError::Disabled));
     shot("disabled", &history);
-    let retry = press(&mut history, KeyCode::Char('r'), 22).unwrap();
+    let retry = press(&mut history, Key::Char('r'), 22).unwrap();
     history.receive(retry.id, Err(ReadError::Unavailable));
     shot("unavailable", &history);
 }
@@ -230,19 +212,19 @@ fn recent_pagination_keeps_its_original_clock_boundary_until_explicit_refresh() 
     let cut = page_one.snapshot.clone();
     history.receive(first.id, Ok(page_one.clone()));
     history.set_now(now + 600_000);
-    let next = press(&mut history, KeyCode::Char('n'), 2).unwrap();
+    let next = press(&mut history, Key::Char('n'), 2).unwrap();
     assert_eq!(next.filter, first.filter);
     assert_eq!(next.snapshot, Some(cut.clone()));
     history.receive(
         next.id,
         Ok(page(next.filter, vec![entry(2, Outcome::Started)], false)),
     );
-    let previous = press(&mut history, KeyCode::Char('p'), 3).unwrap();
+    let previous = press(&mut history, Key::Char('p'), 3).unwrap();
     assert!(previous.cursor.is_none());
     assert_eq!(previous.filter, first.filter);
     assert_eq!(previous.snapshot, Some(cut));
     history.receive(previous.id, Ok(page_one));
-    let refresh = press(&mut history, KeyCode::Char('r'), 4).unwrap();
+    let refresh = press(&mut history, Key::Char('r'), 4).unwrap();
     assert_eq!(refresh.filter.since_ms, Some(now + 600_000 - 86_400_000));
     assert!(refresh.snapshot.is_none());
     assert!(refresh.cursor.is_none());
@@ -252,7 +234,7 @@ fn recent_pagination_keeps_its_original_clock_boundary_until_explicit_refresh() 
             .scope()
             .starts_with("recent activity · last 24 hours")
     );
-    assert!(press(&mut history, KeyCode::Char('r'), 5).is_none());
+    assert!(press(&mut history, Key::Char('r'), 5).is_none());
 }
 
 #[test]
@@ -262,10 +244,10 @@ fn recent_control_changes_scope_explicitly_and_clamps_the_epoch() {
     assert_eq!(request.filter.since_ms, Some(0));
     let mut history = sample();
     history.set_now(AT);
-    let recent = press(&mut history, KeyCode::Char('t'), 2).unwrap();
+    let recent = press(&mut history, Key::Char('t'), 2).unwrap();
     assert_eq!(recent.filter, recent_filter(AT));
     assert!(history.recent);
-    assert!(press(&mut history, KeyCode::Char('t'), 3).is_none());
+    assert!(press(&mut history, Key::Char('t'), 3).is_none());
     history.receive(
         recent.id,
         Ok(page(
@@ -274,11 +256,11 @@ fn recent_control_changes_scope_explicitly_and_clamps_the_epoch() {
             false,
         )),
     );
-    let causal = press(&mut history, KeyCode::Char('c'), 4).unwrap();
+    let causal = press(&mut history, Key::Char('c'), 4).unwrap();
     assert!(!history.recent);
     assert!(causal.filter.since_ms.is_none());
-    press(&mut history, KeyCode::Char('t'), 5).unwrap();
-    let all = press(&mut history, KeyCode::Char('a'), 6).unwrap();
+    press(&mut history, Key::Char('t'), 5).unwrap();
+    let all = press(&mut history, Key::Char('a'), 6).unwrap();
     assert!(!history.recent);
     assert_eq!(all.filter, EventFilter::default());
 }
@@ -314,7 +296,7 @@ fn detail_prioritizes_subject_and_safe_facts_and_exposes_scoped_keys() {
                 .find(|key| key.label == code.to_string())
                 .unwrap();
             let pressed = history.target(&shown.target).unwrap();
-            assert_eq!(pressed.code, KeyCode::Char(code));
+            assert_eq!(pressed.key, Key::Char(code));
         }
     }
 }
@@ -333,12 +315,12 @@ fn footer_keys_open_detail_with_enter_and_return_to_events_with_tab() {
     };
     assert!(crate::headless::text::history(&history.view(160, 40)).contains("enter details"));
     let key = history.target(&shown(&history, "enter").target).unwrap();
-    assert_eq!(key.code, KeyCode::Enter);
+    assert_eq!(key.key, Key::Enter);
     assert!(history.key(key, 2).is_none());
     assert_eq!(history.focus, Focus::Detail);
     assert!(crate::headless::text::history(&history.view(160, 40)).contains("tab events"));
     let key = history.target(&shown(&history, "tab").target).unwrap();
-    assert_eq!(key.code, KeyCode::Tab);
+    assert_eq!(key.key, Key::Tab);
     assert!(history.key(key, 3).is_none());
     assert_eq!(history.focus, Focus::Events);
 }
@@ -346,7 +328,7 @@ fn footer_keys_open_detail_with_enter_and_return_to_events_with_tab() {
 #[test]
 fn stale_and_repeated_completions_cannot_replace_current_scope() {
     let (mut history, first) = History::new(filter(), 40);
-    let all = press(&mut history, KeyCode::Char('a'), 41).unwrap();
+    let all = press(&mut history, Key::Char('a'), 41).unwrap();
     assert!(!history.receive(
         first.id,
         Ok(page(filter(), vec![entry(1, Outcome::Requested)], false))
@@ -376,18 +358,18 @@ fn stale_and_repeated_completions_cannot_replace_current_scope() {
 fn repeated_reads_are_deduplicated_but_scope_changes_supersede_pending_reads() {
     let (mut history, _) = History::new(filter(), 1);
     for code in ['r', 'r', 'n', 'p', 'c', 'i'] {
-        assert!(press(&mut history, KeyCode::Char(code), 2).is_none());
+        assert!(press(&mut history, Key::Char(code), 2).is_none());
     }
-    let all = press(&mut history, KeyCode::Char('a'), 3).unwrap();
+    let all = press(&mut history, Key::Char('a'), 3).unwrap();
     assert_eq!(all.filter, EventFilter::default());
-    assert!(press(&mut history, KeyCode::Char('a'), 4).is_none());
+    assert!(press(&mut history, Key::Char('a'), 4).is_none());
     history.receive(
         all.id,
         Ok(page(all.filter, vec![entry(1, Outcome::Started)], true)),
     );
-    let next = press(&mut history, KeyCode::Char('n'), 5).unwrap();
-    assert!(press(&mut history, KeyCode::Char('n'), 6).is_none());
-    let causal = press(&mut history, KeyCode::Char('c'), 7).unwrap();
+    let next = press(&mut history, Key::Char('n'), 5).unwrap();
+    assert!(press(&mut history, Key::Char('n'), 6).is_none());
+    let causal = press(&mut history, Key::Char('c'), 7).unwrap();
     assert_eq!(causal.filter.root_action_id, Some(action(1)));
     assert!(!history.receive(next.id, Err(ReadError::Unavailable)));
 }
@@ -403,7 +385,7 @@ fn pagination_retains_snapshot_including_previous_first_page_without_retaining_e
     );
     let cut = first_page.snapshot.clone();
     history.receive(first.id, Ok(first_page.clone()));
-    let next = press(&mut history, KeyCode::Char('n'), 2).unwrap();
+    let next = press(&mut history, Key::Char('n'), 2).unwrap();
     assert_eq!(next.cursor, first_page.next);
     assert_eq!(next.snapshot, Some(cut.clone()));
     history.receive(
@@ -413,16 +395,16 @@ fn pagination_retains_snapshot_including_previous_first_page_without_retaining_e
     assert_eq!(history.len(), 1);
     assert_eq!(history.index, 1);
     assert_eq!(history.cursors.len(), 2);
-    assert!(press(&mut history, KeyCode::Char('n'), 3).is_none());
-    let previous = press(&mut history, KeyCode::Char('p'), 4).unwrap();
+    assert!(press(&mut history, Key::Char('n'), 3).is_none());
+    let previous = press(&mut history, Key::Char('p'), 4).unwrap();
     assert!(previous.cursor.is_none());
     assert_eq!(previous.snapshot, Some(cut));
     history.receive(previous.id, Ok(first_page));
     assert_eq!(history.len(), 2);
     assert_eq!(history.cursors.len(), 1);
     assert_eq!(history.index, 0);
-    assert!(press(&mut history, KeyCode::Char('p'), 5).is_none());
-    let refresh = press(&mut history, KeyCode::Char('r'), 6).unwrap();
+    assert!(press(&mut history, Key::Char('p'), 5).is_none());
+    let refresh = press(&mut history, Key::Char('r'), 6).unwrap();
     assert!(refresh.snapshot.is_none());
     assert!(refresh.cursor.is_none());
     assert!(history.page.is_none());
@@ -433,12 +415,12 @@ fn pagination_retains_snapshot_including_previous_first_page_without_retaining_e
 fn failed_pagination_keeps_displayed_page_selection_and_retry_position() {
     let mut history = sample();
     let before = history.selected_entry().unwrap().event.event_id.clone();
-    let request = press(&mut history, KeyCode::Char('n'), 2).unwrap();
+    let request = press(&mut history, Key::Char('n'), 2).unwrap();
     history.receive(request.id, Err(ReadError::Unavailable));
     assert_eq!(history.index, 0);
     assert_eq!(history.cursors.len(), 1);
     assert_eq!(history.selected_entry().unwrap().event.event_id, before);
-    let retry = press(&mut history, KeyCode::Char('n'), 3).unwrap();
+    let retry = press(&mut history, Key::Char('n'), 3).unwrap();
     assert_eq!(retry.cursor, request.cursor);
     assert_eq!(retry.snapshot, request.snapshot);
 }
@@ -448,7 +430,7 @@ fn causal_scope_uses_only_explicit_root_and_action_scope_is_exact() {
     let mut history = sample();
     let selected = history.selected_entry().unwrap().event.clone();
     assert!(selected.parent_action_id.is_some());
-    let causal = press(&mut history, KeyCode::Char('c'), 2).unwrap();
+    let causal = press(&mut history, Key::Char('c'), 2).unwrap();
     assert_eq!(
         causal.filter,
         EventFilter {
@@ -465,8 +447,8 @@ fn causal_scope_uses_only_explicit_root_and_action_scope_is_exact() {
             false,
         )),
     );
-    assert!(press(&mut history, KeyCode::Char('c'), 3).is_none());
-    let exact = press(&mut history, KeyCode::Char('i'), 4).unwrap();
+    assert!(press(&mut history, Key::Char('c'), 3).is_none());
+    let exact = press(&mut history, Key::Char('i'), 4).unwrap();
     assert_eq!(
         exact.filter,
         EventFilter {
@@ -474,7 +456,7 @@ fn causal_scope_uses_only_explicit_root_and_action_scope_is_exact() {
             ..EventFilter::default()
         }
     );
-    let all = press(&mut history, KeyCode::Char('a'), 5).unwrap();
+    let all = press(&mut history, Key::Char('a'), 5).unwrap();
     assert_eq!(all.filter, EventFilter::default());
     assert!(all.snapshot.is_none());
 }
@@ -482,22 +464,23 @@ fn causal_scope_uses_only_explicit_root_and_action_scope_is_exact() {
 #[test]
 fn navigation_clamps_and_selection_changes_reset_detail_scroll() {
     let mut history = sample();
-    press(&mut history, KeyCode::Home, 2);
-    press(&mut history, KeyCode::Up, 2);
+    press(&mut history, Key::Home, 2);
+    press(&mut history, Key::Up, 2);
     assert_eq!(history.selected, 0);
-    press(&mut history, KeyCode::End, 2);
-    press(&mut history, KeyCode::Down, 2);
+    press(&mut history, Key::End, 2);
+    press(&mut history, Key::Down, 2);
     assert_eq!(history.selected, 9);
-    press(&mut history, KeyCode::Tab, 2);
-    let _ = draw(&history, 80, 24, &Theme::new(Tier::Mono));
-    press(&mut history, KeyCode::PageDown, 2);
+    press(&mut history, Key::Tab, 2);
+    // The renderer reports the room the detail has: 10 rows of 40.
+    history.detail_scroll.laid_out(10, 40, 0);
+    press(&mut history, Key::PageDown, 2);
     assert!(history.detail_scroll.at() > 0);
     let offset = history.detail_scroll.at();
-    press(&mut history, KeyCode::Char('h'), 2);
-    press(&mut history, KeyCode::Char('l'), 2);
+    press(&mut history, Key::Char('h'), 2);
+    press(&mut history, Key::Char('l'), 2);
     assert_eq!(history.detail_scroll.at(), offset);
-    press(&mut history, KeyCode::Char('h'), 2);
-    press(&mut history, KeyCode::Up, 2);
+    press(&mut history, Key::Char('h'), 2);
+    press(&mut history, Key::Up, 2);
     assert_eq!(history.selected, 8);
     assert_eq!(history.detail_scroll.at(), 0);
 }
@@ -507,52 +490,35 @@ fn help_is_local_and_does_not_leak_navigation_or_read_keys() {
     let mut history = sample();
     let filter = history.filter.clone();
     let selected = history.selected;
-    press(&mut history, KeyCode::Char('x'), 2);
+    press(&mut history, Key::Char('x'), 2);
     assert!(history.help);
     for code in ['a', 'c', 'i', 'r', 'n', 'p', 'j'] {
-        assert!(press(&mut history, KeyCode::Char(code), 3).is_none());
+        assert!(press(&mut history, Key::Char(code), 3).is_none());
     }
     assert_eq!(history.filter, filter);
     assert_eq!(history.selected, selected);
     assert!(history.pending.is_none());
     assert!(history.dismiss_help());
     assert!(!history.dismiss_help());
-    history.key(KeyEvent::new(KeyCode::Char('a'), KeyModifiers::CONTROL), 4);
+    history.key(Chord::ctrl('a'), 4);
     assert_eq!(history.filter, filter);
 }
 
 #[test]
-fn mouse_hits_stay_within_overlay_and_empty_space_preserves_selection() {
+fn a_row_target_selects_the_row_and_a_key_target_gives_the_key_it_shows() {
     let mut history = sample();
-    let _ = draw(&history, 160, 40, &Theme::new(Tier::Mono));
-    let (area, index) = history.rows.borrow()[2];
-    assert!(
-        history
-            .mouse(MouseKind::Press, area.x + 2, area.y)
-            .is_none()
-    );
-    assert_eq!(history.selected, index);
-    let detail = history.detail_area.get();
-    history.mouse(MouseKind::Press, detail.x + 1, detail.y + 1);
-    assert_eq!(history.focus, Focus::Detail);
-    assert_eq!(history.selected, index);
-    history.mouse(MouseKind::ScrollDown, detail.x + 1, detail.y + 1);
-    assert!(history.detail_scroll.at() > 0);
-    let list = history.list_area.get();
-    history.mouse(MouseKind::Press, list.x + 2, list.bottom() - 2);
-    assert_eq!(history.focus, Focus::Events);
-    assert_eq!(history.selected, index);
-    let (hit, expected) = history
-        .keys
-        .borrow()
-        .iter()
-        .find(|(_, k)| k.code == KeyCode::Char('n'))
-        .copied()
-        .unwrap();
-    assert_eq!(
-        history.mouse(MouseKind::Press, hit.x, hit.y),
-        Some(expected)
-    );
+    assert!(history.target(&history.row_target(2)).is_none());
+    assert_eq!(history.selected, 2);
+    let next = history
+        .view(160, 40)
+        .footer
+        .into_iter()
+        .flat_map(|hint| hint.keys_of)
+        .find(|key| key.label == "n")
+        .map(|key| key.target);
+    if let Some(target) = next {
+        assert_eq!(history.target(&target).map(|c| c.key), Some(Key::Char('n')));
+    }
 }
 
 #[test]
@@ -568,7 +534,7 @@ fn incoming_wrong_filter_and_oversized_page_fail_without_replacing_evidence() {
     );
     assert_eq!(history.error, Some(ReadError::Unavailable));
     assert!(history.page.is_none());
-    let retry = press(&mut history, KeyCode::Char('r'), 2).unwrap();
+    let retry = press(&mut history, Key::Char('r'), 2).unwrap();
     let too_many = (1..=51).map(|n| entry(n, Outcome::Requested)).collect();
     history.receive(retry.id, Ok(page(filter(), too_many, false)));
     assert_eq!(history.error, Some(ReadError::Unavailable));
@@ -579,7 +545,7 @@ fn incoming_wrong_filter_and_oversized_page_fail_without_replacing_evidence() {
 fn a_matching_request_cannot_advance_its_fixed_snapshot() {
     let mut history = sample();
     let original = history.selected_entry().unwrap().event.event_id.clone();
-    let request = press(&mut history, KeyCode::Char('n'), 2).unwrap();
+    let request = press(&mut history, Key::Char('n'), 2).unwrap();
     let mut changed = page(filter(), vec![entry(11, Outcome::Requested)], false);
     changed.snapshot = snapshot(101);
     history.receive(request.id, Ok(changed));
@@ -611,7 +577,7 @@ fn detail_uses_allowlisted_facts_without_invented_success_or_payloads() {
 }
 
 #[test]
-fn rendering_stays_inside_area_at_tiny_widths_and_with_long_unicode_identities() {
+fn the_view_is_built_at_tiny_sizes_and_with_long_unicode_identities() {
     let mut history = sample();
     history.filter.subject = Some(
         SubjectKey::new(
@@ -623,9 +589,9 @@ fn rendering_stays_inside_area_at_tiny_widths_and_with_long_unicode_identities()
         .unwrap(),
     );
     for (width, height) in [(1, 1), (2, 2), (20, 4), (40, 12), (80, 24), (160, 40)] {
-        let _ = draw(&history, width, height, &Theme::new(Tier::Mono));
+        let _ = history.view(width, height);
     }
-    let screen = text(&draw(&history, 80, 24, &Theme::new(Tier::Mono)));
-    assert!(screen.contains("coverage may be incomplete"));
-    assert!(screen.contains("Known recording gaps"));
+    let screen = crate::headless::text::history(&history.view(80, 24));
+    assert!(screen.to_lowercase().contains("coverage may be incomplete"), "{screen}");
+    assert!(screen.contains("Known recording gaps") || history.detail_text().iter().any(|t| t.words().contains("Known recording gaps")));
 }

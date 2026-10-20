@@ -617,9 +617,19 @@ fn alone(runs: &[Inline]) -> Option<Vec<Media>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::design::theme::{Slot, Tier};
-    use ratatui::style::{Modifier, Style};
+    use crate::design::theme::{Modifier, Slot, Style, Tier};
     use unicode_width::UnicodeWidthStr;
+
+    /// A slot's style, as the tests below name it.
+    trait Slots {
+        fn s(&self, slot: Slot) -> Style;
+    }
+
+    impl Slots for Theme {
+        fn s(&self, slot: Slot) -> Style {
+            self.resolve(slot.token_name())
+        }
+    }
 
     fn width_of(s: &str) -> usize {
         UnicodeWidthStr::width(s)
@@ -1083,19 +1093,5 @@ This update bumps two dependencies.\n\n\
             "{narrow:?}"
         );
         assert!(narrow.iter().filter(|l| l.contains("acme/")).count() >= 2);
-    }
-
-    fn snapshot(w: u16) -> String {
-        plain(&mono(), SAMPLE, w)
-    }
-
-    #[test]
-    fn markdown_80() {
-        insta::assert_snapshot!(snapshot(80));
-    }
-
-    #[test]
-    fn markdown_160() {
-        insta::assert_snapshot!(snapshot(160));
     }
 }

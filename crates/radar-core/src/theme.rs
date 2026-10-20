@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
-use crate::design::theme::{Color, DesignTheme, Modifier, Slot, SlotValue, Style, Tier};
+use crate::design::theme::{DesignTheme, Modifier, Slot, SlotValue, Style, Tier};
 use crate::ui::icon::{self, Glyph, Icons};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -220,84 +220,6 @@ impl ThemeConfig {
     }
 }
 
-// Conversions to Ratatui's types, for the Ratatui painters (ui/, view_tui,
-// shell) and the parts' palette tuples only. Nothing else may use them.
-// REMOVED BY T14, with the painters, when Ratatui is deleted.
-impl From<Color> for ratatui::style::Color {
-    fn from(c: Color) -> Self {
-        use ratatui::style::Color as R;
-        match c {
-            Color::Reset => R::Reset,
-            Color::Black => R::Black,
-            Color::Red => R::Red,
-            Color::Green => R::Green,
-            Color::Yellow => R::Yellow,
-            Color::Blue => R::Blue,
-            Color::Magenta => R::Magenta,
-            Color::Cyan => R::Cyan,
-            Color::Gray => R::Gray,
-            Color::DarkGray => R::DarkGray,
-            Color::LightRed => R::LightRed,
-            Color::LightGreen => R::LightGreen,
-            Color::LightYellow => R::LightYellow,
-            Color::LightBlue => R::LightBlue,
-            Color::LightMagenta => R::LightMagenta,
-            Color::LightCyan => R::LightCyan,
-            Color::White => R::White,
-            Color::Rgb(r, g, b) => R::Rgb(r, g, b),
-            Color::Indexed(n) => R::Indexed(n),
-        }
-    }
-}
-
-// REMOVED BY T14 (with the parts' palette tuples that still hold Ratatui colours).
-impl From<ratatui::style::Color> for Color {
-    fn from(c: ratatui::style::Color) -> Self {
-        use ratatui::style::Color as R;
-        match c {
-            R::Reset => Color::Reset,
-            R::Black => Color::Black,
-            R::Red => Color::Red,
-            R::Green => Color::Green,
-            R::Yellow => Color::Yellow,
-            R::Blue => Color::Blue,
-            R::Magenta => Color::Magenta,
-            R::Cyan => Color::Cyan,
-            R::Gray => Color::Gray,
-            R::DarkGray => Color::DarkGray,
-            R::LightRed => Color::LightRed,
-            R::LightGreen => Color::LightGreen,
-            R::LightYellow => Color::LightYellow,
-            R::LightBlue => Color::LightBlue,
-            R::LightMagenta => Color::LightMagenta,
-            R::LightCyan => Color::LightCyan,
-            R::White => Color::White,
-            R::Rgb(r, g, b) => Color::Rgb(r, g, b),
-            R::Indexed(n) => Color::Indexed(n),
-        }
-    }
-}
-
-// REMOVED BY T14.
-impl From<Modifier> for ratatui::style::Modifier {
-    fn from(m: Modifier) -> Self {
-        ratatui::style::Modifier::from_bits_retain(m.bits())
-    }
-}
-
-// REMOVED BY T14.
-impl From<Style> for ratatui::style::Style {
-    fn from(s: Style) -> Self {
-        ratatui::style::Style {
-            fg: s.fg.map(Into::into),
-            bg: s.bg.map(Into::into),
-            underline_color: None,
-            add_modifier: s.add_modifier.into(),
-            sub_modifier: s.sub_modifier.into(),
-        }
-    }
-}
-
 /// `#rrggbb` → `(r, g, b)`.
 pub fn parse_hex(s: &str) -> Option<(u8, u8, u8)> {
     let h = s.trim().strip_prefix('#')?;
@@ -306,15 +228,6 @@ pub fn parse_hex(s: &str) -> Option<(u8, u8, u8)> {
     }
     let n = u32::from_str_radix(h, 16).ok()?;
     Some(((n >> 16) as u8, (n >> 8) as u8, n as u8))
-}
-
-/// `a` mixed `per_mille` of the way toward `b`, each channel rounded half
-/// up (Ink's `mix` in `text/look.ts` rounds the same).
-pub fn mix(a: (u8, u8, u8), b: (u8, u8, u8), per_mille: u32) -> ratatui::style::Color {
-    let m = |x: u8, y: u8| {
-        ((u32::from(x) * (1000 - per_mille) + u32::from(y) * per_mille + 500) / 1000) as u8
-    };
-    ratatui::style::Color::Rgb(m(a.0, b.0), m(a.1, b.1), m(a.2, b.2))
 }
 
 /// The nearest xterm-256 colour-cube index, so an override also degrades.
@@ -401,34 +314,6 @@ impl Theme {
         self.d.tier()
     }
 
-    /// A core slot's style, as Ratatui draws it. Painters only; removed by T14.
-    pub fn s(&self, slot: Slot) -> ratatui::style::Style {
-        self.style(slot.token_name())
-    }
-
-    /// A core slot as a background. Painters only; removed by T14.
-    pub fn bg(&self, slot: Slot) -> ratatui::style::Style {
-        match self.resolve(slot.token_name()).fg {
-            Some(c) => Style::new().bg(c).into(),
-            None => ratatui::style::Style::new(),
-        }
-    }
-
-    /// A core slot, bold. Painters only; removed by T14.
-    pub fn bold(&self, slot: Slot) -> ratatui::style::Style {
-        self.resolve(slot.token_name()).add_modifier(Modifier::BOLD).into()
-    }
-
-    /// A slot's style by name, as Ratatui draws it. Painters only; removed by T14.
-    pub fn style(&self, name: &str) -> ratatui::style::Style {
-        self.resolve(name).into()
-    }
-
-    /// A style spec as Ratatui draws it. Painters only; removed by T14.
-    pub fn spec(&self, spec: &str) -> ratatui::style::Style {
-        self.resolve_spec(spec).into()
-    }
-
     /// A slot's style by name: core first (with any override), then domain.
     pub fn resolve(&self, name: &str) -> Style {
         if self.d.has_domain_slot(name) {
@@ -479,17 +364,12 @@ impl Theme {
         let color = self.d.opaline().color(name);
         format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
     }
-
-    /// The colour a swatch for this slot is drawn in, at the current tier.
-    pub fn swatch(&self, name: &str) -> Option<ratatui::style::Color> {
-        self.resolve(name).fg.map(Into::into)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ratatui::style::{Color, Modifier};
+    use crate::design::theme::Color;
 
     #[test]
     fn overrides_reach_core_and_domain_slots() {
@@ -505,11 +385,11 @@ mod tests {
         cfg.slots.insert("tenant.cyan".into(), "#445566".into());
         let t = Theme::build(&cfg, Tier::Mono, &declared);
         assert_eq!(
-            t.s(Slot::AccentPrimary).fg,
+            t.resolve(Slot::AccentPrimary.token_name()).fg,
             Some(Color::Rgb(0x11, 0x22, 0x33))
         );
         assert_eq!(
-            t.style("tenant.cyan").fg,
+            t.resolve("tenant.cyan").fg,
             Some(Color::Rgb(0x44, 0x55, 0x66))
         );
         assert!(t.slot_names().contains(&"tenant.cyan".to_string()));
@@ -523,26 +403,26 @@ mod tests {
         };
         assert_eq!(
             Theme::build(&cfg, Tier::TrueColor, &[])
-                .s(Slot::StatusError)
+                .resolve(Slot::StatusError.token_name())
                 .fg,
             None
         );
         let auto = ThemeConfig::default();
         let sixteen = Theme::build(&auto, Tier::Ansi16, &[])
-            .s(Slot::StatusError)
+            .resolve(Slot::StatusError.token_name())
             .fg;
-        assert_eq!(sixteen, Some(Slot::StatusError.ansi16().into()));
+        assert_eq!(sixteen, Some(Slot::StatusError.ansi16()));
     }
 
     #[test]
     fn specs_add_modifiers_and_unknown_names_fall_back() {
         let t = Theme::new(Tier::TrueColor);
-        let s = t.spec("status.warning bold underline");
+        let s = t.resolve_spec("status.warning bold underline");
         assert!(
             s.add_modifier
                 .contains(Modifier::BOLD | Modifier::UNDERLINED)
         );
-        assert_eq!(t.spec("no.such.slot").fg, t.s(Slot::TextPrimary).fg);
+        assert_eq!(t.resolve_spec("no.such.slot").fg, t.resolve(Slot::TextPrimary.token_name()).fg);
     }
 
     #[test]

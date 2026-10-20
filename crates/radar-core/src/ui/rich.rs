@@ -13,16 +13,56 @@
 //! never re-wraps it and the line count is the height. Links are shown as
 //! their words and collected, in order, once per url.
 
-use ratatui::style::{Modifier, Style};
-use ratatui::text::{Line, Span};
+use std::borrow::Cow;
+
 use unicode_width::UnicodeWidthStr;
 
-use crate::design::theme::Slot;
+use crate::design::theme::{Color, Modifier, Slot, Style};
 use crate::plugin::Tone;
 use crate::theme::Theme;
-use crate::widgets;
 
 pub use crate::view::doc::*;
+
+/// Words in one style: a laid-out line is a row of these.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Span<'a> {
+    pub content: Cow<'a, str>,
+    pub style: Style,
+}
+
+impl<'a> Span<'a> {
+    pub fn raw(content: impl Into<Cow<'a, str>>) -> Self {
+        Self { content: content.into(), style: Style::new() }
+    }
+
+    pub fn styled(content: impl Into<Cow<'a, str>>, style: Style) -> Self {
+        Self { content: content.into(), style }
+    }
+
+    /// Its width in cells.
+    pub fn width(&self) -> usize {
+        UnicodeWidthStr::width(self.content.as_ref())
+    }
+}
+
+/// A row of [`Span`]s.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Line<'a> {
+    pub spans: Vec<Span<'a>>,
+}
+
+impl<'a> From<Vec<Span<'a>>> for Line<'a> {
+    fn from(spans: Vec<Span<'a>>) -> Self {
+        Self { spans }
+    }
+}
+
+impl Line<'_> {
+    /// Its width in cells.
+    pub fn width(&self) -> usize {
+        self.spans.iter().map(Span::width).sum()
+    }
+}
 
 // ---------------------------------------------------------------------
 // The look.
@@ -75,25 +115,58 @@ fn tone_at(t: Tone) -> usize {
     TONES.iter().position(|x| *x == t).unwrap_or(0)
 }
 
+/// The style for a tone: the one place tones become slots.
+fn tone_style(t: &Theme, tone: Tone) -> Style {
+    let s = |slot: Slot| t.resolve(slot.token_name());
+    let bold = |slot: Slot| s(slot).add_modifier(Modifier::BOLD);
+    match tone {
+        Tone::Plain => s(Slot::TextPrimary),
+        Tone::Muted => s(Slot::TextMuted),
+        Tone::Accent => bold(Slot::AccentPrimary),
+        Tone::Info => s(Slot::StatusInfo),
+        Tone::Good => s(Slot::StatusSuccess),
+        Tone::Warn => bold(Slot::StatusWarning),
+        Tone::Bad => bold(Slot::StatusError),
+    }
+}
+
+/// A badge's look: its tone on a ground, the tone's colour mixed 16% over
+/// the overlay shade where both are full colour, the flat overlay shade
+/// elsewhere (256, 16, mono).
+fn badge_style(t: &Theme, tone: Tone) -> Style {
+    let fg = tone_style(t, tone);
+    let overlay = t.resolve(Slot::BgOverlay.token_name());
+    let ground = match (overlay.fg, fg.fg) {
+        (Some(Color::Rgb(r, g, b)), Some(Color::Rgb(tr, tg, tb))) => {
+            let m = |x: u8, y: u8| ((u32::from(x) * 840 + u32::from(y) * 160 + 500) / 1000) as u8;
+            Style::new().bg(Color::Rgb(m(r, tr), m(g, tg), m(b, tb)))
+        }
+        _ => overlay.fg.map_or(Style::new(), |c| Style::new().bg(c)),
+    };
+    fg.patch(ground)
+}
+
 impl Look {
     pub fn new(t: &Theme) -> Self {
+        let s = |slot: Slot| t.resolve(slot.token_name());
+        let bold = |slot: Slot| s(slot).add_modifier(Modifier::BOLD);
         Self {
-            text: t.s(Slot::TextPrimary),
-            heading: t.bold(Slot::TextEmphasis),
-            summary: t.bold(Slot::TextSecondary),
-            quote: t.s(Slot::TextSecondary),
-            bar: t.s(Slot::AccentMuted),
-            code: t.s(Slot::AccentSecondary),
-            link: t.s(Slot::AccentPrimary).add_modifier(Modifier::UNDERLINED),
-            mention: t.s(Slot::AccentTertiary),
-            me: t.bold(Slot::StatusWarning),
-            emoji: t.s(Slot::TextSecondary),
-            muted: t.s(Slot::TextMuted),
-            marker: t.s(Slot::TextSecondary),
-            rule: t.s(Slot::TextMuted),
+            text: s(Slot::TextPrimary),
+            heading: bold(Slot::TextEmphasis),
+            summary: bold(Slot::TextSecondary),
+            quote: s(Slot::TextSecondary),
+            bar: s(Slot::AccentMuted),
+            code: s(Slot::AccentSecondary),
+            link: s(Slot::AccentPrimary).add_modifier(Modifier::UNDERLINED),
+            mention: s(Slot::AccentTertiary),
+            me: bold(Slot::StatusWarning),
+            emoji: s(Slot::TextSecondary),
+            muted: s(Slot::TextMuted),
+            marker: s(Slot::TextSecondary),
+            rule: s(Slot::TextMuted),
             urls: false,
-            tones: TONES.map(|x| widgets::tone(t, x)),
-            badges: TONES.map(|x| widgets::chip_style(t, x)),
+            tones: TONES.map(|x| tone_style(t, x)),
+            badges: TONES.map(|x| badge_style(t, x)),
         }
     }
 
@@ -112,34 +185,11 @@ impl Look {
 // Layout.
 
 /// A document laid out: its lines and the links in it, in order, one per
-/// url; and where its images sit, when the terminal draws them.
+/// url.
 #[derive(Debug, Clone, Default)]
 pub struct Laid {
     pub lines: Vec<Line<'static>>,
     pub links: Vec<Link>,
-    /// Images to draw over the rows kept for them ([`super::image`]).
-    pub media: Vec<Placed>,
-}
-
-/// An image's place in laid-out lines: from line `line`, `x` cells in,
-/// `cols` by `rows` cells, drawn from `src`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Placed {
-    pub line: usize,
-    pub x: u16,
-    pub cols: u16,
-    pub rows: u16,
-    pub src: String,
-}
-
-impl Placed {
-    /// The same place once its lines are put `down` lines lower and
-    /// `right` cells further in (a header above them, an indent).
-    pub fn moved(mut self, down: usize, right: u16) -> Self {
-        self.line += down;
-        self.x += right;
-        self
-    }
 }
 
 /// `doc` laid out for a panel `width` cells wide, in `look`.
@@ -442,7 +492,6 @@ struct Lay<'a> {
     depth: usize,
     quote: usize,
     links: Vec<Link>,
-    media: Vec<Placed>,
 }
 
 impl<'a> Lay<'a> {
@@ -457,30 +506,18 @@ impl<'a> Lay<'a> {
             depth: 0,
             quote: 0,
             links: Vec::new(),
-            media: Vec::new(),
         }
     }
 
     fn finish(mut self) -> Laid {
-        // The rows kept for an image are blank, and stay.
-        let kept = self
-            .media
-            .iter()
-            .map(|m| m.line + m.rows as usize)
-            .max()
-            .unwrap_or(0);
-        while self.out.len() > kept && self.out.last().is_some_and(blank_text) {
+        while self.out.last().is_some_and(blank_text) {
             self.out.pop();
         }
         let lead = self.out.iter().take_while(|l| blank_text(l)).count();
         self.out.drain(..lead);
-        for m in &mut self.media {
-            m.line -= lead;
-        }
         Laid {
             lines: self.out,
             links: self.links,
-            media: self.media,
         }
     }
 
@@ -499,7 +536,7 @@ impl<'a> Lay<'a> {
         }
         match &i.kind {
             Kind::Text | Kind::Break => {}
-            Kind::Link { url } => s = super::link::style(l.link, url),
+            Kind::Link { .. } => s = l.link,
             Kind::Mention { me: true } => s = l.me,
             Kind::Mention { me: false } => s = l.mention,
             Kind::Emoji => s = l.emoji,
@@ -550,8 +587,7 @@ impl<'a> Lay<'a> {
             {
                 if self.look.urls && words.trim() != *url && !words.trim().is_empty() {
                     out.push(Piece::Space(self.look.muted));
-                    let s = super::link::style(self.look.muted, url);
-                    out.push(Piece::Text(format!("({url})"), s));
+                    out.push(Piece::Text(format!("({url})"), self.look.muted));
                 }
                 open = None;
             }
@@ -795,37 +831,6 @@ impl<'a> Lay<'a> {
 
     fn media(&mut self, m: &Media) {
         let l = self.look;
-        // Drawn as an image where the terminal can: its rows kept, its name
-        // on the first until the image covers it.
-        if let Some((cols, rows)) = super::image::fit(m, self.avail()) {
-            if !m.url.is_empty() {
-                self.add_link(&m.name, m.url.clone());
-            }
-            self.sep();
-            let x = (self.width - self.avail()) as u16;
-            let mut first = text_pieces("▣", l.muted);
-            if !m.name.trim().is_empty() {
-                first.push(Piece::Space(l.muted));
-                first.extend(text_pieces(&m.name, l.muted));
-            }
-            let mut lines = wrap(&first, self.avail());
-            lines.truncate(1);
-            let line = self.out.len();
-            self.emit(lines);
-            for _ in 1..rows {
-                let prefix = finish_line(self.prefix(false), self.width);
-                self.out.push(Line::from(prefix));
-            }
-            self.last_blank = false;
-            self.media.push(Placed {
-                line,
-                x,
-                cols,
-                rows,
-                src: m.src.clone(),
-            });
-            return;
-        }
         let label = if m.image { "▣ image" } else { "▤ file" };
         let mut p = text_pieces(label, l.marker);
         if !m.name.trim().is_empty() {
@@ -834,10 +839,7 @@ impl<'a> Lay<'a> {
         }
         if !m.url.is_empty() {
             p.push(Piece::Space(l.muted));
-            p.push(Piece::Text(
-                m.url.clone(),
-                super::link::style(l.link, &m.url),
-            ));
+            p.push(Piece::Text(m.url.clone(), l.link));
             self.add_link(&m.name, m.url.clone());
         }
         self.write(p);
@@ -1089,10 +1091,10 @@ mod tests {
     fn runs_take_the_look_a_part_gives_them() {
         let t = Theme::new(Tier::TrueColor);
         let mut look = Look::new(&t);
-        look.mention = t.s(Slot::StatusInfo);
-        look.me = t.bold(Slot::StatusWarning);
-        look.emoji = t.s(Slot::TextMuted);
-        look.link = t.s(Slot::DataNumber);
+        look.mention = t.resolve(Slot::StatusInfo.token_name());
+        look.me = t.resolve(Slot::StatusWarning.token_name()).add_modifier(Modifier::BOLD);
+        look.emoji = t.resolve(Slot::TextMuted.token_name());
+        look.link = t.resolve(Slot::DataNumber.token_name());
         let doc = para(vec![
             Inline::mention("@alice", false),
             Inline::text(" and "),
@@ -1128,10 +1130,7 @@ mod tests {
         assert_eq!(at(&doc, 16), ["state", " in progress", "now"]);
         let t = Theme::new(Tier::TrueColor);
         let look = Look::new(&t);
-        assert_eq!(
-            style_of(&doc, &look, "progress"),
-            widgets::chip(&t, "x", Tone::Info).style
-        );
+        assert_eq!(style_of(&doc, &look, "progress"), look.badge(Tone::Info));
     }
 
     #[test]
@@ -1278,45 +1277,6 @@ mod tests {
         assert_eq!(
             text_of(&layout(&doc, &look, 80).lines),
             "see the plan (https://x/a), https://x/b and notes (https://x/c)"
-        );
-    }
-
-    #[test]
-    fn with_links_on_their_words_carry_where_they_go_and_the_text_is_the_same() {
-        let doc = Doc::new(vec![
-            Block::para(vec![
-                Inline::text("see "),
-                Inline::link("the plan", "https://x/plan"),
-            ]),
-            Block::Media(Media {
-                name: "f.csv".into(),
-                url: "https://x/f.csv".into(),
-                ..Media::default()
-            }),
-        ]);
-        let look = Look::new(&Theme::new(Tier::TrueColor));
-        let before = layout(&doc, &look, 40);
-        super::super::link::set(true);
-        let after = layout(&doc, &look, 40);
-        super::super::link::set(false);
-        assert_eq!(text_of(&before.lines), text_of(&after.lines));
-        let carried = |word: &str| {
-            after
-                .lines
-                .iter()
-                .flat_map(|l| l.spans.iter())
-                .find(|s| s.content.contains(word))
-                .and_then(|s| s.style.underline_color)
-        };
-        assert!(carried("plan").is_some());
-        assert!(carried("https://x/f.csv").is_some());
-        assert_eq!(carried("see"), None);
-        assert!(
-            before
-                .lines
-                .iter()
-                .flat_map(|l| l.spans.iter())
-                .all(|s| s.style.underline_color.is_none())
         );
     }
 

@@ -12,12 +12,7 @@
 
 use std::sync::OnceLock;
 
-use ratatui::style::{Modifier, Style};
-use ratatui::text::Span;
 use syntect::parsing::{ParseState, Scope, ScopeStack, SyntaxSet};
-
-use crate::design::theme::Slot;
-use crate::theme::Theme;
 
 /// What a stretch of code is, as far as colour goes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,20 +45,6 @@ impl Token {
         }
     }
 
-    /// Its look: a theme slot, and bold or italic where that carries the
-    /// shape without colour.
-    pub fn style(self, theme: &Theme) -> Style {
-        match self {
-            Token::Plain => theme.s(Slot::TextPrimary),
-            Token::Comment => theme.s(Slot::TextMuted).add_modifier(Modifier::ITALIC),
-            Token::Text => theme.s(Slot::AccentTertiary),
-            Token::Number | Token::Constant => theme.s(Slot::DataNumber),
-            Token::Keyword => theme.s(Slot::AccentPrimary).add_modifier(Modifier::BOLD),
-            Token::Type => theme.s(Slot::AccentSecondary),
-            Token::Function => theme.s(Slot::GlowCyan),
-            Token::Mark => theme.s(Slot::GlowPink),
-        }
-    }
 }
 
 fn set() -> &'static SyntaxSet {
@@ -163,30 +144,9 @@ impl Highlighter {
         })
     }
 
-    /// The next line (without its newline) as spans. A line the grammar
-    /// cannot read comes back plain, and the lines after it carry on.
-    pub fn line(&mut self, theme: &Theme, text: &str) -> Vec<Span<'static>> {
-        let Some(runs) = self.runs(text) else {
-            return plain(theme, text);
-        };
-        let mut out: Vec<Span<'static>> = Vec::new();
-        for (piece, token) in runs {
-            let style = token.style(theme);
-            match out.last_mut() {
-                Some(last) if last.style == style => last.content.to_mut().push_str(piece),
-                _ => out.push(Span::styled(piece.to_string(), style)),
-            }
-        }
-        if out.is_empty() {
-            out.push(Span::styled(String::new(), Token::Plain.style(theme)));
-        }
-        out
-    }
-
     /// The next line (without its newline) as pieces of it and what each
     /// is, in order and not empty; `None` when the grammar cannot read it.
-    /// What [`Highlighter::line`] styles, for a renderer that styles it
-    /// itself.
+    /// The renderer styles each token itself.
     pub fn runs<'t>(&mut self, text: &'t str) -> Option<Vec<(&'t str, Token)>> {
         let with_nl = format!("{text}\n");
         let ops = self.parse.parse_line(&with_nl, set()).ok()?;
@@ -210,46 +170,27 @@ impl Highlighter {
     }
 }
 
-/// A line as one plain span.
-pub fn plain(theme: &Theme, text: &str) -> Vec<Span<'static>> {
-    vec![Span::styled(text.to_string(), Token::Plain.style(theme))]
-}
-
-/// `code` in `lang`, styled spans per line; plain when no grammar knows
-/// the language.
-pub fn highlight(theme: &Theme, code: &str, lang: &str) -> Vec<Vec<Span<'static>>> {
-    match Highlighter::new(lang) {
-        Some(mut h) => code.lines().map(|l| h.line(theme, l)).collect(),
-        None => code.lines().map(|l| plain(theme, l)).collect(),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::design::theme::Tier;
 
-    fn tokens(code: &str, lang: &str) -> Vec<(String, Token)> {
-        let t = Theme::new(Tier::TrueColor);
-        let all = [
-            Token::Plain,
-            Token::Comment,
-            Token::Text,
-            Token::Number,
-            Token::Keyword,
-            Token::Type,
-            Token::Function,
-            Token::Constant,
-            Token::Mark,
-        ];
-        highlight(&t, code, lang)
-            .into_iter()
-            .flatten()
-            .map(|s| {
-                let tok = all.into_iter().find(|k| k.style(&t) == s.style).unwrap_or(Token::Plain);
-                (s.content.to_string(), tok)
+    /// Every line's pieces and what each is; a line the grammar cannot read,
+    /// or an unknown language, is one plain piece.
+    fn lines(code: &str, lang: &str) -> Vec<Vec<(String, Token)>> {
+        let mut highlighter = Highlighter::new(lang);
+        code.lines()
+            .map(|l| {
+                let runs = highlighter.as_mut().and_then(|h| h.runs(l));
+                match runs {
+                    Some(runs) if !runs.is_empty() => runs.into_iter().map(|(s, t)| (s.to_string(), t)).collect(),
+                    _ => vec![(l.to_string(), Token::Plain)],
+                }
             })
             .collect()
+    }
+
+    fn tokens(code: &str, lang: &str) -> Vec<(String, Token)> {
+        lines(code, lang).into_iter().flatten().collect()
     }
 
     fn kind_of(spans: &[(String, Token)], word: &str) -> Token {
@@ -274,17 +215,15 @@ mod tests {
 
     #[test]
     fn every_line_keeps_its_text_and_an_unknown_language_is_plain() {
-        let t = Theme::new(Tier::Mono);
         let code = "/* open\n still open */\nx = 1\n\n";
-        let lines = highlight(&t, code, "c");
+        let lines = lines(code, "c");
         assert_eq!(lines.len(), 4);
-        let text: Vec<String> = lines.iter().map(|l| l.iter().map(|s| s.content.as_ref()).collect()).collect();
+        let text: Vec<String> = lines.iter().map(|l| l.iter().map(|(s, _)| s.as_str()).collect()).collect();
         assert_eq!(text, ["/* open", " still open */", "x = 1", ""]);
         // The open comment carries over to the next line.
         let spans = tokens(code, "c");
         assert_eq!(kind_of(&spans, "still open"), Token::Comment);
-        let plain = highlight(&t, "anything at all", "no-such-language");
-        assert_eq!(plain, vec![super::plain(&t, "anything at all")]);
+        assert_eq!(tokens("anything at all", "no-such-language"), vec![("anything at all".to_string(), Token::Plain)]);
     }
 
     #[test]

@@ -14,12 +14,7 @@
 //!  pause if idle  after 30 minutes
 //! ```
 
-use ratatui::text::{Line, Span};
-
-use super::status::{Check, as_you_type};
-use crate::design::theme::Slot;
-use crate::theme::Theme;
-use crate::widgets;
+use super::status::Check;
 
 /// The section's name in every part (each under its part's heading).
 pub const SECTION: &str = "connection";
@@ -40,31 +35,26 @@ pub const IDLE: &str = "pause if idle";
 pub const TOKEN_ACCEPTS: &str = "env:NAME reads an environment variable each time · or the token itself, stored in config.toml";
 pub const IDLE_ACCEPTS: &str = "whole minutes; 0 never pauses";
 
-/// `lead` (a space, or a tree joint), the label in its column, the value.
-pub fn field(
-    theme: &Theme,
-    lead: Vec<Span<'static>>,
-    label: &str,
-    value: Vec<Span<'static>>,
-) -> Line<'static> {
-    let mut spans = lead;
-    spans.extend(widgets::kv(theme, label, LABEL_W, value).spans);
-    Line::from(spans)
+/// The name of the colour a part's own entry uses: `site's own`.
+pub fn own_colour(name: &str) -> String {
+    format!("{name}'s own")
 }
 
-/// [`field`] as view text.
+/// `lead` (a space, or a tree joint), the label in its column, the value.
 pub fn field_text(lead: crate::view::Text, label: &str, value: crate::view::Text) -> crate::view::Text {
     let mut text = lead;
     text.extend(crate::view::kit::labelled(label, LABEL_W, value));
     text
 }
 
-/// [`check_field`] as view text.
+/// The check row: what the last check said, or that none ran.
 pub fn check_field_text(lead: crate::view::Text, check: &Check, service: &str) -> crate::view::Text {
     field_text(lead, CHECK, check.text("not checked yet", &format!("asking {service}…")))
 }
 
-/// [`signed_in`] as view text.
+/// The signed-in row's value: the display name, then the handle muted
+/// (`Alice Example  alice`). A handle equal to the name, or none, is shown
+/// once.
 pub fn signed_in_text(name: &str, handle: &str) -> crate::view::Text {
     use crate::view::{Ink, Seg, Text};
     let (name, handle) = (name.trim(), handle.trim());
@@ -80,17 +70,6 @@ pub fn signed_in_text(name: &str, handle: &str) -> crate::view::Text {
 /// `lead` cells.
 pub const fn value_x(lead: usize) -> u16 {
     (lead + LABEL_W) as u16
-}
-
-/// The check row: what the last check said, or that none ran.
-pub fn check_field(
-    theme: &Theme,
-    lead: Vec<Span<'static>>,
-    check: &Check,
-    service: &str,
-) -> Line<'static> {
-    let said = check.line(theme, "not checked yet", &format!("asking {service}…"));
-    field(theme, lead, CHECK, said.spans)
 }
 
 /// A token as shown: empty as `—`; `env:NAME`, and the words in `named`
@@ -119,19 +98,6 @@ pub fn every(secs: u64) -> String {
         s if s >= 60 && s % 60 == 0 => format!("every {}m", s / 60),
         s => format!("every {s}s"),
     }
-}
-
-/// The signed-in row's value: the display name, then the handle muted
-/// (`Alice Example  alice`). A handle equal to the name, or none, is shown
-/// once.
-pub fn signed_in(theme: &Theme, name: &str, handle: &str) -> Vec<Span<'static>> {
-    let (name, handle) = (name.trim(), handle.trim());
-    let first = if name.is_empty() { handle } else { name };
-    let mut spans = vec![Span::styled(first.to_string(), theme.s(Slot::TextPrimary))];
-    if !name.is_empty() && !handle.is_empty() && handle != name {
-        spans.push(Span::styled(format!("  {handle}"), theme.s(Slot::TextMuted)));
-    }
-    spans
 }
 
 /// `never`, `after 1 minute`, `after 30 minutes`.
@@ -169,88 +135,6 @@ pub fn refresh_accepts(at_least: u64) -> String {
 }
 
 /// A connection row's detail panel, in the same order in every part.
-#[derive(Debug, Default, Clone)]
-pub struct Detail {
-    /// What it is, in a sentence or two.
-    pub about: String,
-    /// Lines after it: facts the part has (a site's projects, a scope).
-    pub more: Vec<Line<'static>>,
-    pub accepts: Option<String>,
-    /// The value now.
-    pub now: Option<String>,
-    /// The check's line, for rows the check confirms.
-    pub checked: Option<Line<'static>>,
-    /// The verdict on what is being typed, while typing.
-    pub typing: Option<Result<String, String>>,
-    /// A line on what a key does here (`⏎ asks now`).
-    pub keys: Option<String>,
-    /// `[shelves] url`
-    pub config: Option<String>,
-}
-
-impl Detail {
-    pub fn new(about: impl Into<String>) -> Self {
-        Self {
-            about: about.into(),
-            ..Self::default()
-        }
-    }
-
-    pub fn lines(self, theme: &Theme) -> Vec<Line<'static>> {
-        let muted = theme.s(Slot::TextMuted);
-        let mut lines = Vec::new();
-        let block = |lines: &mut Vec<Line<'static>>, heading: &str, body: Line<'static>| {
-            if !lines.is_empty() {
-                lines.push(Line::default());
-            }
-            lines.push(widgets::heading(theme, heading));
-            lines.push(body);
-        };
-        if let Some(v) = self.typing {
-            block(
-                &mut lines,
-                "as you type",
-                as_you_type(theme, v.as_deref().map_err(String::as_str)),
-            );
-        }
-        if let Some(c) = self.checked {
-            block(&mut lines, "checked", c);
-        }
-        if let Some(n) = self.now {
-            block(
-                &mut lines,
-                "now",
-                Line::styled(n, theme.bold(Slot::TextEmphasis)),
-            );
-        }
-        if !lines.is_empty() {
-            lines.push(Line::default());
-        }
-        lines.push(Line::styled(self.about, theme.s(Slot::TextPrimary)));
-        if !self.more.is_empty() {
-            lines.push(Line::default());
-            lines.extend(self.more);
-        }
-        if let Some(a) = self.accepts {
-            block(
-                &mut lines,
-                "accepts",
-                Line::styled(a, theme.s(Slot::TextSecondary)),
-            );
-        }
-        if let Some(k) = self.keys {
-            lines.push(Line::default());
-            lines.push(Line::styled(k, muted));
-        }
-        if let Some(c) = self.config {
-            lines.push(Line::default());
-            lines.push(Line::styled(format!("config: {c}"), muted));
-        }
-        lines
-    }
-}
-
-/// [`Detail`] as view text: the same blocks in the same order.
 #[derive(Debug, Default, Clone)]
 pub struct DetailText {
     pub about: String,
@@ -350,15 +234,10 @@ impl Found {
         format!("Found in {}: {} ({}). Use it?", self.place(), self.what, self.listed())
     }
 
-    /// The row of a [`RowList`](super::rows::RowList) `width` wide: the
-    /// question as whole as fits. The names matter most, then where: all of
-    /// them and where; the first and `…` and where; all without where; the
-    /// first without where; then none (the detail panel lists them).
-    pub fn row(&self, theme: &Theme, width: u16) -> Line<'static> {
-        crate::view_tui::line(theme, &self.text(width))
-    }
-
-    /// [`Found::row`] as view text.
+    /// The row of a list `width` wide: the question as whole as fits. The
+    /// names matter most, then where: all of them and where; the first and
+    /// `…` and where; all without where; the first without where; then none
+    /// (the detail panel lists them).
     pub fn text(&self, width: u16) -> crate::view::Text {
         use crate::view::{Ink, Seg, Text};
         // The list keeps a cell each side.
@@ -396,7 +275,8 @@ impl Found {
         format!("found in {}", self.place())
     }
 
-    /// [`Found::detail`] as view text.
+    /// The detail panel: what was found, what radar keeps of it, what choosing
+    /// it does.
     pub fn detail_text(&self) -> Vec<crate::view::Text> {
         use crate::view::{Ink, Seg, Text, kit};
         let w = self.names.iter().map(|(n, _)| super::width(n)).max().unwrap_or(0) + 2;
@@ -426,54 +306,6 @@ impl Found {
         lines.push(Text::of(format!("radar {}.", self.does), Ink::Secondary));
         lines.push(Text::new());
         lines.push(Text::of("⏎ uses it", Ink::Muted));
-        lines
-    }
-
-    /// The detail panel: what was found, what radar keeps of it, what choosing
-    /// it does.
-    pub fn detail(&self, theme: &Theme) -> Vec<Line<'static>> {
-        let text = theme.s(Slot::TextPrimary);
-        let muted = theme.s(Slot::TextMuted);
-        let w = self
-            .names
-            .iter()
-            .map(|(n, _)| super::width(n))
-            .max()
-            .unwrap_or(0)
-            + 2;
-        let mut lines = vec![
-            Line::styled(
-                format!("radar found {} in {}. Do you want to use it?", self.what, self.place()),
-                text,
-            ),
-            Line::default(),
-            widgets::heading(theme, "found"),
-        ];
-        for (name, holds) in &self.names {
-            lines.push(widgets::kv(
-                theme,
-                "",
-                0,
-                vec![
-                    Span::styled(format!("{name:<w$}"), theme.bold(Slot::TextEmphasis)),
-                    Span::styled(holds.clone(), theme.s(Slot::TextSecondary)),
-                ],
-            ));
-        }
-        lines.push(Line::default());
-        lines.push(Line::styled(
-            "radar stores only the variables' names (env:NAME) and reads their values each time it starts. It never shows the values or saves them.",
-            text,
-        ));
-        if let Some(n) = &self.note {
-            lines.push(Line::default());
-            lines.push(Line::styled(n.clone(), text));
-        }
-        lines.push(Line::default());
-        lines.push(widgets::heading(theme, "if you use it"));
-        lines.push(Line::styled(format!("radar {}.", self.does), theme.s(Slot::TextSecondary)));
-        lines.push(Line::default());
-        lines.push(Line::styled("⏎ uses it", muted));
         lines
     }
 }

@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+expression: shown(&host)
+---
+bar: radar  ◉ read only {chrome:mode}
+── setup · ready ──
+Setup is done.
+This is what radar has now.
+── section · setup.ready ──
+  # SETUP  {setup:h:setup}
+  # :local: local code   1 of 1 set up  {setup:h:step:0}
+  # :mode_read: mode         read only  {setup:h:step:1}
+  #  {setup:blank:0}
+  # SAVED IN  config.toml  {setup:h:saved}
+  # MODE      :mode_read: read only  {setup:h:mode}
+  #  {setup:blank:1}
+  # A QUICK TOUR?  {setup:h:tour}
+> :done: ● yes, show me around  {setup:ready:0}
+  :todo: ○ no thanks  {setup:ready:1}
+── detail · about this step ──
+§ :file: SAVED
+  In the config file shown below. A token is saved as the name of the variable that holds it.
+  radar config path prints where the file is.
+§ :settings: CHANGE IT LATER
+  Settings (,) has every step's fields. To run setup again:
+  $ radar setup  {setup:copy}
+── status · SETUP ──
+⏎ yes, a tour  ↑↓ move  ← back  y copy

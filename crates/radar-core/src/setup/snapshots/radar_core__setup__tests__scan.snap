@@ -1,0 +1,27 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+expression: shown(&host)
+---
+bar: radar  ✎ edit {chrome:mode}
+── setup · look for keys? ──
+May radar look for keys on this machine?
+If you have tokens or sign-ins already, radar can use them instead of you pasting them.
+── section · setup.scan ──
+  # WHERE IT LOOKS  {setup:h:where}
+  # variables SHELF_TOKEN, LEDGER_…  {setup:h:env}
+  # sign-ins  shelfctl  {setup:h:files}
+  #  {setup:blank:0}
+  # YOUR CHOICE  {setup:h:choice}
+> :done: ● yes, look  {setup:scan:0}
+  :todo: ○ no thanks  {setup:scan:1}
+── detail · about this step ──
+§ :search: WHAT IT READS
+  The names of the variables listed, and whether the sign-in files listed exist.
+  It does not read a token's value or a file's contents.
+  Nothing is sent anywhere, and nothing is saved until you finish a step.
+§ :settings: IF YOU SAY NO
+  Nothing is ticked. Each service's step asks for a token instead.
+§ :updated: NEXT TIME
+  radar asks again each time setup runs.
+── status · SETUP ──
+⏎ continue  ↑↓ move  esc no thanks  y copy

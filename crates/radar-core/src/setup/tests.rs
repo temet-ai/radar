@@ -588,33 +588,37 @@ fn a_renderer_presses_a_host_steps_rows_by_their_targets() {
     assert_eq!(at(&host), At::Choose);
 }
 
-// --- what Ratatui draws ------------------------------------------------------
+// --- what setup shows --------------------------------------------------------
 
 fn screen(host: &Host, w: u16, h: u16) -> String {
     crate::shell::to_text(host, w, h)
 }
 
-#[test]
-fn the_chooser_and_a_parts_step_drawn_at_160_by_40() {
-    let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Enter);
-    host.update(Event::Scanned(shelf_found()));
-    insta::assert_snapshot!("choose_160x40", screen(&host, 160, 40));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Enter);
-    insta::assert_snapshot!("part_step_160x40", screen(&host, 160, 40));
+fn shown(host: &Host) -> String {
+    crate::headless::host_text_of(host, 160, 40)
 }
 
 #[test]
-fn the_scan_and_ready_drawn_at_80_by_24() {
+fn the_chooser_and_a_parts_step_as_view_text() {
     let (mut host, _) = first_run();
-    insta::assert_snapshot!("scan_80x24", screen(&host, 80, 24));
+    press(&mut host, KeyCode::Enter);
+    host.update(Event::Scanned(shelf_found()));
+    insta::assert_snapshot!("choose", shown(&host));
+    press(&mut host, KeyCode::Enter);
+    press(&mut host, KeyCode::Enter);
+    insta::assert_snapshot!("part_step", shown(&host));
+}
+
+#[test]
+fn the_scan_the_mode_and_ready_as_view_text() {
+    let (mut host, _) = first_run();
+    insta::assert_snapshot!("scan", shown(&host));
     press(&mut host, KeyCode::Esc);
     press(&mut host, KeyCode::Enter);
     press(&mut host, KeyCode::Enter);
-    insta::assert_snapshot!("mode_80x24", screen(&host, 80, 24));
+    insta::assert_snapshot!("mode", shown(&host));
     press(&mut host, KeyCode::Enter);
-    insta::assert_snapshot!("ready_80x24", screen(&host, 80, 24));
+    insta::assert_snapshot!("ready", shown(&host));
 }
 
 #[test]

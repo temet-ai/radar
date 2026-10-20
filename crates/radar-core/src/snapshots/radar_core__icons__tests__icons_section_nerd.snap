@@ -1,0 +1,152 @@
+---
+source: crates/radar-core/src/icons.rs
+expression: "crate::headless::host_text_of(&host, 160, 40)"
+---
+bar: radar  :log: history <:settings: settings>  ✎ edit {chrome:mode}
+── settings · icons · group ──
+  General  {chrome:group:general}
+    :parts: parts  {chrome:section:0}
+    :mode_edit: mode  {chrome:section:1}
+    :colours: appearance  {chrome:section:2}
+    :colours: colours  {chrome:section:3}
+>   :icons: icons  {chrome:section:4}
+── section · icons ──
+  # code  {icon:0}
+>   group  a group of repositories, a tenancy  {icon:1}
+  R  repo  a repository  yours  {icon:2}
+    branch  a branch  {icon:3}
+    commit  a commit  {icon:4}
+    change  a change asked to be merged, open  {icon:5}
+    draft  a change still in draft  {icon:6}
+    merged  a change merged  {icon:7}
+    closed  a change closed without merging  {icon:8}
+    approved  approved  {icon:9}
+    needs_approval  waiting for approval, to review  {icon:10}
+    thread  a discussion, its threads  {icon:11}
+    comment  a comment, write one  {icon:12}
+    resolved  a thread resolved  {icon:13}
+    conflict  conflicts to fix  {icon:14}
+    rebase  needs a rebase  {icon:15}
+    label  a label  {icon:16}
+  # runs  {icon:17}
+    pipeline  a pipeline, a run of jobs  {icon:18}
+    run_passed  passed  {icon:19}
+    run_failed  failed  {icon:20}
+    run_running  running  {icon:21}
+    run_pending  waiting to run  {icon:22}
+    run_skipped  skipped  {icon:23}
+    run_manual  waits to be started by hand  {icon:24}
+    run_canceled  canceled  {icon:25}
+    job  a job  {icon:26}
+    log  a log  {icon:27}
+  # work  {icon:28}
+    issue  a work item of any kind  {icon:29}
+    epic  an epic  {icon:30}
+    story  a story  {icon:31}
+    task  a task  {icon:32}
+  B  bug  a bug  yours  {icon:33}
+    subtask  a sub-task  {icon:34}
+    priority_highest  highest priority  {icon:35}
+    priority_high  high priority  {icon:36}
+    priority_medium  medium priority  {icon:37}
+    priority_low  low priority  {icon:38}
+    priority_lowest  lowest priority  {icon:39}
+    todo  to do  {icon:40}
+    in_progress  in progress  {icon:41}
+    done  done  {icon:42}
+    site  a site, a server  {icon:43}
+    board  a board, a list of work  {icon:44}
+  # people  {icon:45}
+    person  a person  {icon:46}
+    you  you  {icon:47}
+  󰚩  bot  a bot  {icon:48}
+    team  a team, several people  {icon:49}
+  # chat  {icon:50}
+    chat  conversations  {icon:51}
+    channel  a channel  {icon:52}
+    private_channel  a private channel  {icon:53}
+    direct  a direct message  {icon:54}
+    reply  a reply in a thread  {icon:55}
+    mention  you are mentioned  {icon:56}
+    reaction  reactions  {icon:57}
+    unread  unread  {icon:58}
+    alert  alerts  {icon:59}
+    alert_firing  an alert firing  {icon:60}
+    alert_resolved  an alert resolved  {icon:61}
+  # app  {icon:62}
+    settings  settings  {icon:63}
+    action  an available action  {icon:64}
+    copy  copy to the clipboard  {icon:65}
+    link  a link  {icon:66}
+    search  search, a filter  {icon:67}
+    time  a time, how long  {icon:68}
+    updated  when it last changed  {icon:69}
+    calendar  a date  {icon:70}
+    info  information  {icon:71}
+    warning  a warning  {icon:72}
+    error  an error  {icon:73}
+    empty  nothing here  {icon:74}
+    menu  the actions menu  {icon:75}
+    keys  keys  {icon:76}
+    quit  quit  {icon:77}
+    close  close a tab  {icon:78}
+    navigate  move about  {icon:79}
+    scroll  scroll  {icon:80}
+    bulk  everything shown at once  {icon:81}
+    fold  groups expand and collapse  {icon:82}
+    colours  colours and the theme  {icon:83}
+    icons  icons  {icon:84}
+    parts  the parts in this build  {icon:85}
+    connection  a connection, signing in  {icon:86}
+    views  views, what a list shows  {icon:87}
+    look  the look of words  {icon:88}
+    local  this machine, a checkout  {icon:89}
+    editor  an editor  {icon:90}
+    terminal  a terminal  {icon:91}
+    mode_read  read only: radar changes nothing  {icon:92}
+    mode_write  write: radar may add things  {icon:93}
+    mode_edit  edit: radar may add and change things  {icon:94}
+  # files  {icon:95}
+    file  a file  {icon:96}
+    folder  a folder  {icon:97}
+    folder_open  an open folder  {icon:98}
+    file_rust  Rust  {icon:99}
+    file_java  Java  {icon:100}
+    file_kotlin  Kotlin  {icon:101}
+    file_typescript  TypeScript  {icon:102}
+    file_javascript  JavaScript  {icon:103}
+    file_python  Python  {icon:104}
+    file_go  Go  {icon:105}
+    file_markdown  Markdown  {icon:106}
+    file_json  JSON  {icon:107}
+    file_yaml  YAML  {icon:108}
+    file_toml  TOML  {icon:109}
+    file_docker  a Dockerfile  {icon:110}
+    file_sql  SQL  {icon:111}
+    file_html  HTML  {icon:112}
+    file_css  CSS  {icon:113}
+    file_shell  a shell script  {icon:114}
+    file_c  C  {icon:115}
+    file_cpp  C++  {icon:116}
+    file_ruby  Ruby  {icon:117}
+    file_php  PHP  {icon:118}
+    file_swift  Swift  {icon:119}
+    file_image  an image  {icon:120}
+    file_git  git's own files  {icon:121}
+    file_lock  a lock file  {icon:122}
+    file_xml  XML  {icon:123}
+    file_text  plain text  {icon:124}
+── detail · group ──
+Shows a group of repositories, a tenancy.
+
+now       
+from      nerd
+colour    accent.primary
+pack      nerd
+
+The pack's. ⏎ types your own.
+A glyph takes at most 1 cell in this pack; joined emoji, skin tones and flags are refused.
+
+config: [icons] group
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

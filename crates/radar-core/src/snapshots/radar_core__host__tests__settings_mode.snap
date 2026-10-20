@@ -1,0 +1,37 @@
+---
+source: crates/radar-core/src/host.rs
+expression: text
+---
+bar: radar  a :log: history <:settings: settings>  ◉ read only {chrome:mode}
+── settings · mode · the modes ──
+  General  {chrome:group:general}
+    :parts: parts  {chrome:section:0}
+>   :mode_read: mode  {chrome:section:1}
+    :colours: appearance  {chrome:section:2}
+    :colours: colours  {chrome:section:3}
+    :icons: icons  {chrome:section:4}
+  a  {chrome:group:a}
+    a  {chrome:section:5}
+── section · mode ──
+  # WHAT RADAR MAY CHANGE  {mode.what}
+  #  {blank:0}
+> :mode_read: mode    read only  {mode}
+  #         set by RADAR_MODE  {mode.set_by}
+  #  {blank:2}
+  # WHEN IDLE  {mode.idle}
+  #  {blank:3}
+  :settings: pause if idle after 30 minutes  {pause}
+── detail · the modes ──
+● :mode_read: read only
+    changes nothing anywhere: every write is shown and asked, and none is sent
+  :mode_write: write
+    may add things: comments, replies, reactions, review asks, new items
+  :mode_edit: edit
+    may also change what is there: approve, resolve, move, assign, rebase, merge
+
+Local actions (check out, an editor, a terminal) and settings work in every mode.
+RADAR_MODE sets it for one run: read-only, write or edit.
+
+Now RADAR_MODE keeps radar read only for this run; the setting is kept for the next.
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

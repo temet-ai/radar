@@ -72,10 +72,10 @@ fn the_last_stop_says_the_mode_and_enter_starts_working() {
 }
 
 #[test]
-fn the_card_is_drawn_over_the_app_at_80_by_24() {
+fn the_card_is_given_over_the_app() {
     let mut host = host();
     host.open_tour();
-    let text = crate::shell::to_text(&host, 80, 24);
+    let text = crate::headless::host_text_of(&host, 80, 24);
     assert!(text.contains("tour · 1 of"), "{text}");
     assert!(text.contains("Every screen has a letter."), "{text}");
 }

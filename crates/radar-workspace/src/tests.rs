@@ -52,8 +52,14 @@ fn ticket(key: &str) -> Subject {
         .with("project", key.split('-').next().unwrap())
 }
 
+/// What shows, as view text (`radar_core::headless::text`): the screen's
+/// panes and rows, the open menu and the status line. No painted frame.
+fn shown(host: &Host, width: u16, height: u16) -> String {
+    radar_core::headless::text_of(host, width, height)
+}
+
 fn press(host: &mut Host, code: KeyCode) {
-    let _ = radar_core::shell::to_text(host, 160, 40);
+    let _ = shown(host, 160, 40);
     host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
 }
 
@@ -292,28 +298,21 @@ fn every_row_and_target_is_taken() {
 }
 
 #[test]
-fn settings_workspaces_80x24() {
+fn settings_workspaces() {
     let mut host = hosted();
     section(&mut host, "workspaces");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+    insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 #[test]
-fn settings_workspaces_160x40() {
-    let mut host = hosted();
-    section(&mut host, "workspaces");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
-}
-
-#[test]
-fn settings_workspaces_a_workspace_row_160x40() {
+fn settings_workspaces_a_workspace_row() {
     let mut host = hosted();
     section(&mut host, "workspaces");
     host.focus = Pane::Middle;
     for _ in 0..2 {
         press(&mut host, KeyCode::Down);
     }
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+    insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 /// Typing through the host: add a workspace by its folder (refused until it

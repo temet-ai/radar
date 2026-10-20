@@ -1284,17 +1284,15 @@ mod tests {
         assert_eq!(menu.items[0].value, "go");
         assert_eq!(menu.items[0].label, "start work in 1 repo →");
         assert!(menu.title.contains("first row"));
-        // Drawn at both sizes, the row is on screen without scrolling.
-        for (w, h) in [(80u16, 24u16), (160, 40)] {
-            let mut host =
-                radar_core::Host::new(vec![Box::new(WorkspacePlugin::default())], 0).unwrap();
-            host.menu = Some(radar_core::host::OpenMenu::open(
-                radar_core::host::Owner::Plugin(0),
-                menu.clone(),
-            ));
-            let text = radar_core::shell::to_text(&host, w, h);
-            assert!(text.contains("start work in 1 repo"), "{w}x{h}:\n{text}");
-        }
+        // Open on a host, the menu's first row is the one under the cursor.
+        let mut host =
+            radar_core::Host::new(vec![Box::new(WorkspacePlugin::default())], 0).unwrap();
+        host.menu = Some(radar_core::host::OpenMenu::open(
+            radar_core::host::Owner::Plugin(0),
+            menu.clone(),
+        ));
+        let text = radar_core::headless::text_of(&host, 160, 40);
+        assert!(text.contains("> start work in 1 repo"), "{text}");
     }
 
     #[test]

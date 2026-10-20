@@ -1,0 +1,28 @@
+---
+source: crates/radar-workspace/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · workspaces ──
+  ? Found in /work/other: a workspace with 3 clones. Use it?  {row:0}
+  + add a workspace   a folder of clones  {row:1}
+> acme        /work/acme  14 clones  {row:2}
+── detail · acme ──
+CHECKED
+:run_passed: ✓ 14 clones found
+:run_passed: ✓ .okf.yaml read: knowledge in artifacts, docs
+:run_passed: ✓ 3 notes for 1 ticket · 212 files read · 2m ago
+
+acme is a workspace: tickets of ABC are worked from /work/acme, and the editor and a terminal open at its top.
+
+folder          /work/acme
+name            acme
+tickets         ABC
+clones in       repositories
+open at         top
+editor          asks
+after worktree  scripts/sync.sh
+notes           okf
+
+config: [[workspace.space]] dir, name, tickets, repos, open_at, editor, after_worktree, notes
+── status · SETTINGS ──
+b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

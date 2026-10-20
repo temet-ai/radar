@@ -1,0 +1,20 @@
+---
+source: crates/radar-workspace/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · workspaces ──
+> ? Found in /work/other: a workspace with 3 clones. Use it?  {row:0}
+  + add a workspace   a folder of clones  {row:1}
+  acme        /work/acme  14 clones  {row:2}
+── detail · found in /work/other ──
+radar found a workspace at /work/other. Do you want to use it?
+
+FOUND
+folder    /work/other
+clones    3 clones in it
+
+A git repo whose folder holds other clones. Using it makes it a workspace: its tickets' notes are read from it, and the editor and a terminal open at its top.
+
+config: [[workspace.space]]
+── status · SETTINGS ──
+b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

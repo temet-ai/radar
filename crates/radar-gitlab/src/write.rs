@@ -18,7 +18,7 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Menu, Msg, Outcome};
-use radar_core::view::{Chord, Key};
+use radar_core::view::Chord;
 use radar_core::ui::composer::{self, Composer, Typed};
 use radar_core::writes::{self, Service};
 use radar_core::log;

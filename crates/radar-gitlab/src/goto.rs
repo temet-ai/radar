@@ -6,7 +6,7 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Effect, Outcome};
-use radar_core::view::{Chord, Key};
+use radar_core::view::Chord;
 use radar_core::log;
 
 use crate::{GitlabPlugin, screen};
@@ -142,7 +142,7 @@ pub(crate) fn hints() -> Vec<KeyHint<'static>> {
 mod tests {
     use super::*;
     use crate::tests::sample;
-
+    use radar_core::view::Key;
 
     fn t(path: &str, words: &[&str]) -> Target {
         Target {

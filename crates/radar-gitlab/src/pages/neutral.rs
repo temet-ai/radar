@@ -1601,13 +1601,15 @@ pub(crate) fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Ou
             if target.as_str().starts_with("line:") || target.as_str().starts_with("comment:") {
                 return click(p, target.as_str());
             }
-            if pane == Pane::Nav
-                && (target.as_str().starts_with("d:") || target.as_str().starts_with("f:"))
+            // A folder or file id belongs to the files tree, whichever pane
+            // the pointer or the check names.
+            if (target.as_str().starts_with("d:") || target.as_str().starts_with("f:"))
                 && let Some(page) = p.pages.last()
+                && page.tree_shown.get()
             {
                 page.tree.borrow_mut().select(v::TreeRow::path_of(target));
                 if matches!(intent, v::Intent::Activate { .. }) {
-                    return crate::pages::activate(p, pane);
+                    return crate::pages::activate(p, Pane::Nav);
                 }
                 return Outcome::done();
             }

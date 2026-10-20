@@ -2278,7 +2278,7 @@ pub(crate) mod tests {
     /// screen, ↓ comes back to that pane; inside a page ↑ stays.
     #[test]
     fn up_from_the_top_of_each_pane_reaches_the_bar_and_down_comes_back() {
-        use radar_core::host::{Event, View};
+        use radar_core::host::View;
         use radar_core::view::{Chord, Key};
         let press = |host: &mut radar_core::Host, code| {
             let _ = crate::tests::shown(host, 160, 40);
@@ -2317,7 +2317,7 @@ pub(crate) mod tests {
     #[test]
     fn choosing_out_of_and_back_into_a_pane_keeps_its_cursor() {
         use radar_core::host::Event;
-        use radar_core::view::{Chord, Key};
+        use radar_core::view::Chord;
         use radar_core::view::{Intent, Node, PaneId, Target, TreeRow};
         let mut host = hosted();
         let select = |host: &mut radar_core::Host, target: Target| {
@@ -2371,7 +2371,7 @@ pub(crate) mod tests {
     #[test]
     fn context_on_a_tree_row_offers_that_rows_actions() {
         use radar_core::host::Event;
-        use radar_core::view::{Chord, Key};
+        use radar_core::view::Chord;
         use radar_core::view::Intent;
 
         let mut expected = hosted();
@@ -2461,7 +2461,6 @@ pub(crate) mod tests {
 
     #[test]
     fn mr_actions_menu_folds_its_parent_without_expanding_or_acting_on_the_mr() {
-        use radar_core::host::Event;
         use radar_core::view::{Chord, Key};
         use radar_core::view::{Node, PaneId};
 
@@ -2619,8 +2618,7 @@ pub(crate) mod tests {
 
     #[test]
     fn keys_menu() {
-        use radar_core::host::Event;
-        use radar_core::view::{Chord, Key};
+        use radar_core::view::Chord;
         let mut host = hosted();
         // As the app does: a frame first, which selects the first row.
         let _ = crate::tests::shown(&host, 160, 40);
@@ -2668,7 +2666,6 @@ pub(crate) mod tests {
         row: &str,
         value: &str,
     ) {
-        use radar_core::host::Event;
         use radar_core::view::{Chord, Key};
         use radar_core::view::Node;
         let press = |host: &mut radar_core::Host, chord: Chord| {
@@ -2803,7 +2800,7 @@ pub(crate) mod tests {
     #[test]
     fn every_row_and_target_is_taken() {
         use radar_core::check::{Check, Place};
-        use radar_core::view::{Chord, Key};
+        use radar_core::view::Chord;
         let tree = || Place::screen("repos", Pane::Middle);
         let mut places = Vec::new();
         for down in 0..6 {
@@ -2881,7 +2878,7 @@ pub(crate) mod tests {
     #[test]
     fn every_row_and_target_of_the_review_is_taken() {
         use radar_core::check::{Check, Place};
-        use radar_core::view::{Chord, Key};
+        use radar_core::view::Chord;
         let page = || Place::screen("repos", Pane::Middle).down(5).enter();
         let mut places: Vec<Place> = (0..5).map(|t| page().tab(t)).collect();
         places.push(page().tab(1).down(5));
@@ -2898,7 +2895,6 @@ pub(crate) mod tests {
 
     #[test]
     fn choosing_a_row_in_the_keys_menu_presses_its_key() {
-        use radar_core::host::Event;
         use radar_core::view::{Chord, Key};
         let mut host = hosted();
         let press = |host: &mut radar_core::Host, c| {
@@ -2914,7 +2910,6 @@ pub(crate) mod tests {
     #[test]
     fn h_and_l_move_between_panes_and_esc_comes_back() {
         use radar_core::Pane;
-        use radar_core::host::Event;
         use radar_core::view::{Chord, Key};
         let mut host = hosted();
         let press = |host: &mut radar_core::Host, c| {

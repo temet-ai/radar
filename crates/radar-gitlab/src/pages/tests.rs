@@ -622,7 +622,6 @@ fn the_changes_tab_is_two_panes_and_up_past_the_top_of_the_files_is_the_hosts() 
 /// on every item page.
 #[test]
 fn the_arrows_leave_the_changes_tab_for_the_tab_row_and_the_tabs_beside() {
-    use radar_core::host::Event;
     let press = |host: &mut radar_core::Host, code: Key, times: usize| {
         for _ in 0..times {
             let _ = crate::tests::shown(host, 160, 40);

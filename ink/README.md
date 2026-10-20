@@ -1,7 +1,6 @@
 # radar-ink
 
-radar's Ink renderer. The Rust host (`radar`) starts it as a child process when the Ink renderer is
-selected (`RADAR_RENDERER=ink`). While it runs it owns the TTY (stdin and stdout are inherited).
+radar's renderer, the only one. The Rust host (`radar`) starts it as a child process. While it runs it owns the TTY (stdin and stdout are inherited).
 It learns everything over the Unix domain socket named in `RADAR_IPC_SOCKET` (one JSON object per
 newline-terminated UTF-8 line; protocol in `crates/radar-core/src/ipc.rs`) and never reads radar's config,
 state or journal files, opens no database and calls no provider. It exits non-zero on any error so
@@ -27,7 +26,8 @@ The host starts the renderer in this order (`crates/radar-core/src/ipc/superviso
    or the checkout's `ink/dist/radar-ink.js` (walk up from the executable to a folder holding `Cargo.toml` and `ink/`).
    `node` must be on `PATH` (Node 22 or newer).
 
-A missing runtime, node or bundle makes the host print one line and run the Ratatui renderer.
+A missing runtime, node or bundle makes the host print `radar: the renderer did not start: <why>` and
+`run scripts/install to rebuild it`, and exit 1.
 
 Two details of the bundle script, both needed to make a single file work:
 
@@ -74,4 +74,4 @@ reassembled across chunks (multi-byte characters may be split), invalid JSON clo
 | `src/workarea`, `src/media` | The work area; pictures and media blocks |
 | `src/dock` | The agent dock: tabs, transcript rows, tool calls, the composer |
 | `src/terminal` | The terminal tab: a CLI's own screen, drawn from the host's PTY frames |
-| `src/motion` | Motion effects, easing and colour mixing, the same effects Ratatui draws |
+| `src/motion` | Motion effects, easing and colour mixing |

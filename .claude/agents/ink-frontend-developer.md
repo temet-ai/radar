@@ -22,7 +22,7 @@ You work in radar's Ink renderer, `ink/`. The Rust host owns all state and sends
 | styled cells, motion frames, wrap cases, intents per chord and click, screen text per mix | ink/test/cells/, fixtures/motion, fixtures/wrap, input/intents.json, reference/goldens/ | Ink's own goldens, frozen: `INK_UPDATE_GOLDENS=1 npx vitest run test/<file>` rewrites one from Ink (ink/test/cells/README.md lists which test writes which) |
 | protocol types (never edit) | ink/src/protocol/generated/ | radar-core ipc/tests.rs |
 
-A design question is answered by docs/components.md and these goldens, not by what another renderer draws; while crates/radar-core/src/view_tui.rs still exists, the plan's Designs table allows `ink-live start NAME ratatui` to show the old picture, and nothing after its removal.
+A design question is answered by docs/components.md and these goldens. Ink is the only renderer; `ink-live start NAME ink` shows the running picture and `scripts/shots --compare REF` the before and after of a change.
 
 When view data or a protocol type is missing or stale, ask the Rust side to rewrite it; never hand-write one. A golden moves only by rewriting it from Ink and reading the diff; a rename keeps its content and moves its reader in the same commit.
 

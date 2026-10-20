@@ -44,26 +44,6 @@ pub const MAX_INPUT: usize = 64 * 1024;
 /// The most text one [`ToRenderer::Clipboard`] carries, in bytes.
 pub const MAX_CLIPBOARD: usize = 1024 * 1024;
 
-/// Which renderer draws the TUI. `RADAR_RENDERER=ink|ratatui` overrides the
-/// build's default (`radar::DEFAULT_RENDERER`); there is no other switch.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Renderer {
-    Ratatui,
-    Ink,
-}
-
-impl Renderer {
-    /// The renderer `RADAR_RENDERER` names, else `default`. An unknown value
-    /// is not guessed at: the default runs.
-    pub fn chosen(default: Renderer, var: Option<&str>) -> Renderer {
-        match var.map(str::trim) {
-            Some("ink") => Renderer::Ink,
-            Some("ratatui") => Renderer::Ratatui,
-            _ => default,
-        }
-    }
-}
-
 /// The graphics protocol the renderer's terminal draws pictures with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]

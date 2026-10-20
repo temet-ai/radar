@@ -496,10 +496,7 @@ mod unix {
             let runtime = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()?;
-            let result = runtime.block_on(radar_core::runner::main(
-                vec![Box::new(plugin)],
-                radar_core::runner::Renderer::Ratatui,
-            ));
+            let result = runtime.block_on(radar_core::runner::main(vec![Box::new(plugin)]));
             fixture.assert_finished();
             return result;
         }

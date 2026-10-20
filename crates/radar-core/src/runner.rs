@@ -5,8 +5,8 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use crate::design::theme::Tier;
+use crate::ipc::supervisor;
 use anyhow::{Context, Result};
-use ratatui::crossterm::event::{self as ct, KeyEventKind};
 use tokio::sync::mpsc::{UnboundedSender, unbounded_channel};
 
 use crate::host::{Event, Host, HostEffect};
@@ -16,22 +16,12 @@ use crate::journal::{
 };
 use crate::journal_runtime::{JournalRecord, Recording, Sink};
 use crate::log;
-use crate::motion;
 use crate::plugin::{CliExecution, Plugin};
-use crate::select;
 use crate::system::{self, Done, Env};
 use crate::task_completion::{complete_task, tracked_event};
 use crate::terminal_host;
 
 use crate::time;
-
-fn interaction_input(event: &Event) -> bool {
-    match event {
-        Event::Tracked { event, .. } => interaction_input(event),
-        Event::Key(_) | Event::Mouse { .. } | Event::Paste(_) | Event::Intent(_) => true,
-        _ => false,
-    }
-}
 
 pub fn config_path() -> PathBuf {
     config_home().join("config.toml")
@@ -292,16 +282,26 @@ fn restore_caches(host: &mut Host) {
     plugin_cache::install(plugin_cache::Writer::start(db, dir));
 }
 
-pub use crate::ipc::Renderer;
+/// Why Ink did not run: it cannot start (no runtime, bundle or node, a protocol
+/// it refused) or kept crashing. `main` prints the two lines and exits 1.
+#[derive(Debug)]
+pub struct RendererFailed(pub String);
+
+impl std::fmt::Display for RendererFailed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "the renderer did not start: {}", self.0)
+    }
+}
+
+impl std::error::Error for RendererFailed {}
 
 /// radar's licence and the notices of what a release carries (scripts/notices), for `radar licenses`.
 const LICENSE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../LICENSE"));
 const THIRD_PARTY_NOTICES: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../THIRD-PARTY-NOTICES.md"));
 
 /// `radar` with these plugins: the TUI, `radar config …`, or a plugin's commands.
-/// The TUI is drawn by `default` unless `RADAR_RENDERER=ink|ratatui` names
-/// the other (the one switch).
-pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()> {
+/// The TUI is drawn by Ink; where Ink cannot run, radar says why on stderr and exits 1.
+pub async fn main(plugins: Vec<Box<dyn Plugin>>) -> Result<()> {
     let mut cli = clap::Command::new("radar")
         .about("A terminal workspace, built from the parts compiled into it")
         .version(env!("RADAR_BUILD"))
@@ -449,12 +449,7 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
             }
             match matches.subcommand() {
                 None | Some(("setup", _)) => {
-                    let renderer =
-                        Renderer::chosen(default, std::env::var("RADAR_RENDERER").ok().as_deref());
-                    let result = match renderer {
-                        Renderer::Ratatui => run_tui_recorded(host, sink.clone()).await,
-                        Renderer::Ink => run_ink_recorded(host, sink.clone()).await,
-                    };
+                    let result = run_ink_recorded(host, sink.clone()).await;
                     match &result {
                         Ok(()) => log::info("radar quit"),
                         Err(e) => log::error(format!("radar stopped: {e:#}")),
@@ -517,6 +512,13 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
     // The parts' last caches are stored before the journal session ends.
     crate::plugin_cache::finish();
     finish_recording(&mut recording);
+    if let Err(e) = &result
+        && let Some(RendererFailed(why)) = e.downcast_ref::<RendererFailed>()
+    {
+        // The supervisor has put the terminal back; the words go below the shell's prompt line.
+        supervisor::say_not_started(&mut std::io::stderr(), why);
+        std::process::exit(1);
+    }
     result
 }
 
@@ -662,25 +664,14 @@ fn finish_recording(recording: &mut Option<Recording>) {
     }
 }
 
-pub async fn run_tui(host: Host) -> Result<()> {
-    let mut recording = start_recording(SessionOrigin::Tui);
-    let result = run_tui_recorded(host, recording.as_ref().map(|r| r.sink.clone())).await;
-    finish_recording(&mut recording);
-    result
-}
-
 /// The TUI drawn by the Ink renderer in a child process; where it cannot
-/// run, one line says why and the Ratatui renderer runs instead.
+/// run, the error is [`RendererFailed`] with the reason.
 async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
-    use crate::ipc::supervisor::{self, Ended, Supervisor, TtyModes};
+    use crate::ipc::supervisor::{Ended, Supervisor, TtyModes};
     let exe = std::env::current_exe().ok();
     let (program, args) = match supervisor::find_renderer(&|k| std::env::var(k).ok(), exe.as_deref()) {
         Ok(found) => found,
-        Err(why) => {
-            eprintln!("radar: {why}; using the Ratatui renderer");
-            log::warn(format!("RADAR_RENDERER=ink: {why}; Ratatui runs"));
-            return run_tui_recorded(host, journal).await;
-        }
+        Err(why) => return Err(RendererFailed(why.to_string()).into()),
     };
     log::info(format!(
         "Ink renderer: {} {}",
@@ -691,7 +682,8 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     if journal.is_none() {
         host.notify_error("action recording unavailable for this session");
     }
-    let (columns, rows) = ratatui::crossterm::terminal::size().unwrap_or((80, 24));
+    // The renderer reports the real size when it connects.
+    let (columns, rows) = (80, 24);
     let (tx, mut rx) = unbounded_channel::<Event>();
     let ticks = tx.clone();
     tokio::spawn(async move {
@@ -707,7 +699,6 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     tokio::spawn(crate::wake::pump(host.wake_hub(), tx.clone(), crate::wake::COALESCE, || Event::Wake(time::now_secs())));
     let mut bridge = crate::ipc::Bridge::new(host, columns, rows);
     bridge.show_splash();
-    // The look is resolved at the tier the Ratatui runner would draw at.
     bridge.set_tier(Tier::detect());
     let socket = supervisor::socket_path(system::state_home(), std::process::id());
     let mut sup = Supervisor::new(
@@ -728,8 +719,8 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     let clip = journal.clone();
     // The clipboard: the renderer owns the terminal, so it writes OSC 52.
     let mut filter = |event: Event, bridge: &mut crate::ipc::Bridge| -> Option<Event> {
-        // As the Ratatui runner does: a recording that failed (a journal that
-        // could not be opened, a write that failed) says so in the status line.
+        // A recording that failed (a journal that could not be opened, a
+        // write that failed) says so in the status line.
         if let Some(warning) = clip.as_ref().and_then(Sink::take_warning) {
             log::warn(warning);
             bridge.host_mut().notify_error(warning);
@@ -760,633 +751,8 @@ async fn run_ink_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
     let ended = sup.run(&mut bridge, &mut rx, &mut perform_fx, &mut filter).await?;
     match ended {
         Ended::Quit => Ok(()),
-        Ended::FallBack(why) => {
-            // The words are in the status line already (the supervisor
-            // put them there); stderr gets them too.
-            supervisor::say_fall_back(&mut std::io::stderr(), &why);
-            run_tui_recorded(bridge.into_host(), journal).await
-        }
+        Ended::Failed(why) => Err(RendererFailed(why).into()),
     }
-}
-
-async fn run_tui_recorded(mut host: Host, journal: Option<Sink>) -> Result<()> {
-    let stack = terminal_host::Stack::detect();
-    host.terminal = Some(terminal_host::State::new(stack.clone()));
-    if journal.is_some() {
-        host.enable_journal();
-    } else {
-        host.notify_error("action recording unavailable for this session");
-    }
-    let detected = Tier::detect();
-    let mut theme = host.build_theme(detected);
-    let mut theme_cfg = host.colours.cfg.clone();
-    // Motion: effects over each frame, run on a frame tick only while one
-    // runs (crate::motion).
-    let ssh = Env::detect().ssh;
-    let motion_level = |cfg: &crate::theme::ThemeConfig, theme: &crate::theme::Theme| {
-        motion::effective(motion::Level::parse(&cfg.motion), theme.tier(), ssh)
-    };
-    let mut motion = motion::Engine::new(
-        motion_level(&theme_cfg, &theme),
-        Box::new(motion::SystemClock::default()),
-    );
-    host.set_motion_enabled(motion.level() == motion::Level::Full);
-    log::info(format!(
-        "motion {}{}",
-        motion.level().word(),
-        motion::held_back(theme.tier(), ssh).map_or(String::new(), |why| format!(" ({why})"))
-    ));
-    // The startup splash, over the first frames (crate::splash).
-    let mut splash = crate::splash::Splash::new(crate::splash::Setting::parse(&theme_cfg.splash), motion.level());
-    splash.roll(motion.level() == crate::motion::Level::Full, theme.icons().width == 2, host.start_facts());
-    let splash_clock = std::time::Instant::now();
-    let notice_clock_base = host.notices.now_ms();
-    let (tx, mut rx) = unbounded_channel::<Event>();
-    // The left button, kept by the runner: a press that does not move is a
-    // click for the host, a drag selects text (crate::select).
-    let (pointer_tx, mut pointer) = unbounded_channel::<Pointer>();
-
-    // The terminal, drawn through the backend that writes links as OSC 8
-    // hyperlinks, when they are wanted here.
-    ratatui::crossterm::terminal::enable_raw_mode()?;
-    ratatui::crossterm::execute!(
-        std::io::stdout(),
-        ratatui::crossterm::terminal::EnterAlternateScreen
-    )?;
-    let mut terminal = ratatui::Terminal::new(crate::ui::link::Links::new(std::io::stdout()))?;
-    // Pictures: the terminal is asked which graphics it draws, before the
-    // keys' thread reads what it answers.
-    let picked = crate::ui::image::detect(&theme_cfg.images, &|k| std::env::var(k).ok());
-    let pictures = |cfg: &crate::theme::ThemeConfig| match (&picked, cfg.images.as_str()) {
-        (Some(p), on) if on != "off" => {
-            crate::ui::image::start(
-                p.clone(),
-                system::cache_home().map(|d| d.join("radar").join("images")),
-            );
-            log::info(format!("images on: {:?}", p.protocol_type()));
-        }
-        _ => {
-            crate::ui::image::stop();
-            log::info(format!("images off ({})", cfg.images));
-        }
-    };
-    pictures(&theme_cfg);
-
-    // Keys on a thread of their own: nothing blocks the loop (TUI-P5).
-    let keys = tx.clone();
-    std::thread::spawn(move || {
-        loop {
-            let event = match ct::read() {
-                Ok(ct::Event::Key(k)) if k.kind == KeyEventKind::Press => Event::Key(k),
-                Ok(ct::Event::Resize(..)) => Event::Tick(time::now_secs()),
-                Ok(ct::Event::Paste(text)) => Event::Paste(text),
-                // The window lost focus: the pointer is somewhere else.
-                Ok(ct::Event::FocusLost) => {
-                    if pointer_tx.send(Pointer::Gone).is_err() {
-                        break;
-                    }
-                    continue;
-                }
-                Ok(ct::Event::Mouse(m)) => {
-                    use crate::host::MouseKind;
-                    // What the terminal (or a multiplexer between) sent: a
-                    // click is a press then a release, so both must arrive.
-                    if !matches!(m.kind, ct::MouseEventKind::Moved) {
-                        log::debug(|| {
-                            format!(
-                                "mouse {:?} at {},{} {:?}",
-                                m.kind, m.column, m.row, m.modifiers
-                            )
-                        });
-                    }
-                    let at = ratatui::layout::Position::new(m.column, m.row);
-                    // The pointer moved with no button down: what is under
-                    // it is lit (the loop keeps only the latest move).
-                    if matches!(m.kind, ct::MouseEventKind::Moved) {
-                        if pointer_tx.send(Pointer::Move(at)).is_err() {
-                            break;
-                        }
-                        continue;
-                    }
-                    let left = ct::MouseButton::Left;
-                    let kind = match m.kind {
-                        ct::MouseEventKind::Down(ct::MouseButton::Right) => MouseKind::Context,
-                        ct::MouseEventKind::ScrollUp => MouseKind::ScrollUp,
-                        ct::MouseEventKind::ScrollDown => MouseKind::ScrollDown,
-                        ct::MouseEventKind::Down(b)
-                        | ct::MouseEventKind::Drag(b)
-                        | ct::MouseEventKind::Up(b)
-                            if b == left =>
-                        {
-                            let p = match m.kind {
-                                ct::MouseEventKind::Down(_) => Pointer::Down(at, now_ms()),
-                                ct::MouseEventKind::Drag(_) => Pointer::Drag(at),
-                                _ => Pointer::Up,
-                            };
-                            if pointer_tx.send(p).is_err() {
-                                break;
-                            }
-                            continue;
-                        }
-                        // Other buttons: nothing.
-                        _ => continue,
-                    };
-                    Event::Mouse {
-                        kind,
-                        column: m.column,
-                        row: m.row,
-                        at_ms: now_ms(),
-                    }
-                }
-                Ok(_) => continue,
-                Err(_) => break,
-            };
-            if keys.send(event).is_err() {
-                break;
-            }
-        }
-    });
-    let ticks = tx.clone();
-    tokio::spawn(async move {
-        // Fast enough for a smooth spinner; plugins decide for themselves
-        // when a tick is due for real work.
-        let mut every = tokio::time::interval(std::time::Duration::from_millis(200));
-        loop {
-            every.tick().await;
-            if ticks.send(Event::Tick(time::now_secs())).is_err() {
-                break;
-            }
-        }
-    });
-    // A part's news (an agent's streamed text) as it comes, not at the next tick.
-    tokio::spawn(crate::wake::pump(host.wake_hub(), tx.clone(), crate::wake::COALESCE, || Event::Wake(time::now_secs())));
-
-    let links =|cfg: &crate::theme::ThemeConfig| {
-        let on = crate::ui::link::wanted(&cfg.hyperlinks, &|k| std::env::var(k).ok());
-        crate::ui::link::set(on);
-        log::info(format!(
-            "hyperlinks {} ({})",
-            if on { "on" } else { "off" },
-            cfg.hyperlinks
-        ));
-    };
-    links(&theme_cfg);
-    let pointers = |cfg: &crate::theme::ThemeConfig| {
-        let on = crate::ui::pointer::wanted(&cfg.pointer, &|k| std::env::var(k).ok());
-        crate::ui::pointer::set(on);
-        log::info(format!(
-            "mouse pointer shapes {} ({})",
-            if on { "on" } else { "off" },
-            cfg.pointer
-        ));
-    };
-    pointers(&theme_cfg);
-    // A panic gives the terminal back first (ratatui's own hook, which runs
-    // after this one, restores it too), and lands in the log with where it
-    // happened: nobody can read it on a screen that is being redrawn.
-    let previous = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        restore_pointer();
-        let _ = ratatui::crossterm::execute!(
-            std::io::stdout(),
-            ratatui::crossterm::event::DisableMouseCapture,
-            ratatui::crossterm::event::DisableFocusChange,
-            ratatui::crossterm::event::DisableBracketedPaste
-        );
-        ratatui::restore();
-        log::error(format!(
-            "panic: {info}\n{}",
-            std::backtrace::Backtrace::force_capture()
-        ));
-        eprintln!(
-            "radar stopped unexpectedly; details in {}",
-            log::default_path().display()
-        );
-        previous(info);
-    }));
-    // Pastes arrive as one event, not as keystrokes that could trigger keys.
-    // The mouse: clicks, the wheel, and where the pointer is (crossterm's
-    // capture asks for every move, 1003). Focus: the pointer left.
-    let _ = ratatui::crossterm::execute!(
-        std::io::stdout(),
-        ratatui::crossterm::event::EnableBracketedPaste,
-        ratatui::crossterm::event::EnableMouseCapture,
-        ratatui::crossterm::event::EnableFocusChange
-    );
-    log::info(format!("terminal layers: {}", stack.description()));
-    if stack.herdr_pane {
-        let reply = tx.clone();
-        tokio::spawn(async move {
-            let result = terminal_host::route_herdr_right_click().await;
-            match &result {
-                Ok(()) => log::info("Herdr right-clicks routed to this pane"),
-                Err(error) => log::warn(error),
-            }
-            let _ = reply.send(Event::TerminalRoute(result));
-        });
-    }
-    // The left button, the selection it makes and the presses counted.
-    let mut gesture = select::Gesture::default();
-    let mut notice_gesture = NoticeGesture::default();
-    let mut detail_gesture = DetailGesture::default();
-    let bypass = select::bypass_key(std::env::var("TERM_PROGRAM").ok().as_deref());
-    let mut shown = ratatui::buffer::Buffer::empty(ratatui::layout::Rect::ZERO);
-    let mut shown_area = shown.area;
-    // The pointer's shape as last sent, and a pointer event read while
-    // moves were being gathered, to handle next.
-    let mut shape = crate::ui::pointer::Shape::Default;
-    let mut held: Option<Pointer> = None;
-    let mut redraw = true;
-    // The splash's picture is on the screen ([`crate::splash::picture`]).
-    let mut pictured = false;
-    let result = async {
-        loop {
-            host.set_ui_clock_ms(notice_clock_base.saturating_add(splash_clock.elapsed().as_millis() as u64));
-            host.set_notice_motion_enabled(motion.level() != motion::Level::Off);
-            if redraw {
-                let started = std::time::Instant::now();
-                // The splash: its frame now, or the hand-off to the first
-                // screen, which fades in with the screen cue.
-                let over = match splash.step(splash_clock.elapsed(), true, &host.splash_parts(theme.icons())) {
-                    crate::splash::Step::Show(scene) => {
-                        let size = terminal.size().unwrap_or_default();
-                        let frame = crate::splash::frame(&theme, &scene, size.width, size.height);
-                        if frame.is_none() {
-                            splash.input();
-                        }
-                        frame
-                    }
-                    crate::splash::Step::HandOff => {
-                        motion.cue(motion::Cue::Screen, &theme);
-                        None
-                    }
-                    crate::splash::Step::Hidden => None,
-                };
-                // Where the terminal shows kitty's pictures, the scope in
-                // pixels over its cells (written after the frame).
-                let picture = over
-                    .as_ref()
-                    .zip(crate::ui::image::kitty_cell())
-                    .and_then(|(frame, cell)| crate::splash::picture(frame, cell));
-                terminal.draw(|f| {
-                    crate::shell::render(&host, &theme, f);
-                    // What is on screen before the selection is marked: the
-                    // text a selection copies.
-                    shown = f.buffer_mut().clone();
-                    if over.is_some() { motion::frames::context(None, None); }
-                    motion.draw(f.buffer_mut(), &theme);
-                    if over.is_none() { crate::shell::render_notices(&host, &theme, f.buffer_mut()); }
-                    // Over everything: the screen under it keeps its click
-                    // targets, so a click acts on it.
-                    if let Some(frame) = &over {
-                        crate::splash::draw(frame, f.buffer_mut());
-                        if let Some(pic) = &picture {
-                            crate::splash::clear_under(pic, f.buffer_mut());
-                        }
-                    }
-                    if let Some(s) = &gesture.selection {
-                        select::paint(f.buffer_mut(), s, select::style(&theme));
-                    }
-                })?;
-                // The splash's picture over the frame just drawn; once the
-                // splash goes, the picture goes with it.
-                match &picture {
-                    Some(pic) => {
-                        let _ = terminal.backend_mut().write_all(crate::splash::kitty_at(pic).as_bytes());
-                        let _ = terminal.backend_mut().flush();
-                        pictured = true;
-                    }
-                    None if pictured && over.is_none() => {
-                        let _ = terminal.backend_mut().write_all(crate::splash::kitty_hide().as_bytes());
-                        let _ = terminal.backend_mut().flush();
-                        pictured = false;
-                    }
-                    None => {}
-                }
-                // The screen changed size: what was selected is not there.
-                if shown.area != shown_area {
-                    shown_area = shown.area;
-                    detail_gesture.cancel(&mut gesture);
-                    gesture = select::Gesture::default();
-                    host.selecting = None;
-                }
-                if let Some(why) = motion.drew_in(started.elapsed()) {
-                    host.set_motion_enabled(false);
-                    log::info(why);
-                    let _ = tx.send(Event::Notice(why.into()));
-                }
-            }
-            redraw = true;
-            // The pointer: a hand over what a click acts on, a text cursor
-            // while a drag selects.
-            let want = if gesture.selecting() {
-                crate::ui::pointer::Shape::Text
-            } else {
-                host.pointer_shape()
-            };
-            if want != shape && crate::ui::pointer::on() {
-                let mut out = std::io::stdout();
-                let _ = out.write_all(crate::ui::pointer::sequence(want).as_bytes());
-                let _ = out.flush();
-                shape = want;
-            }
-            // A pointer event read while moves were gathered goes first.
-            let input = match held.take() {
-                Some(p) => Input::Pointer(p),
-                None => tokio::select! {
-                    // Only while an effect runs: redraw, then wait again.
-                    () = frame_tick(motion.next_frame().or(splash.next_frame()).or_else(|| (host.notice_frame_needed(shown_area) && !splash.active()).then_some(motion::FRAME))) => continue,
-                    e = rx.recv() => match e {
-                        Some(e) => Input::Event(e),
-                        None => break,
-                    },
-                    p = pointer.recv() => match p {
-                        Some(p) => Input::Pointer(p),
-                        None => break,
-                    },
-                },
-            };
-            host.set_ui_clock_ms(notice_clock_base.saturating_add(splash_clock.elapsed().as_millis() as u64));
-            if let Input::Event(Event::Key(key)) = &input { host.notice_input(key.code == ct::KeyCode::Esc); }
-            // Cancel before local selection handlers or clipboard conversion can
-            // consume this input. Pointer motion alone remains decorative.
-            let actionable = match &input {
-                Input::Event(event) => interaction_input(event),
-                Input::Pointer(Pointer::Down(..) | Pointer::Drag(..) | Pointer::Up) => true,
-                _ => false,
-            };
-            if !actionable && matches!(&input, Input::Event(_)) { motion.background(); }
-            if actionable {
-                motion.input();
-                splash.input();
-                if let Some(line) = splash.take_early_line() { host.show_start_line(line); }
-            }
-            let mut event = match input {
-                Input::Event(e) => e,
-                Input::Pointer(p) => {
-                    match p {
-                        // Only the latest of the moves waiting counts, and
-                        // the screen is drawn again only when what is lit
-                        // changed.
-                        Pointer::Move(mut at) => {
-                            while let Ok(next) = pointer.try_recv() {
-                                match next {
-                                    Pointer::Move(n) => at = n,
-                                    other => {
-                                        held = Some(other);
-                                        break;
-                                    }
-                                }
-                            }
-                            redraw = host.hover(Some(at));
-                            continue;
-                        }
-                        Pointer::Gone => {
-                            detail_gesture.cancel(&mut gesture);
-                            host.selecting = gesture.selecting().then_some(bypass);
-                            redraw = host.hover(None);
-                            continue;
-                        }
-                        Pointer::Down(at, ms) => {
-                            let hit = host.hit_at(at.x, at.y);
-                            // A new press supersedes an unfinished control gesture.
-                            detail_gesture.cancel(&mut gesture);
-                            if notice_gesture.press(hit.clone()) {
-                                gesture.clear();
-                                host.selecting = None;
-                                continue;
-                            }
-                            if let Some(intent) = detail_gesture.press(hit.as_ref(), &mut gesture) {
-                                host.selecting = None;
-                                Event::Intent(intent)
-                            } else {
-                                gesture.down(at, ms, &host.frontend.selectable());
-                                continue;
-                            }
-                        }
-                        Pointer::Drag(head) => {
-                            if notice_gesture.owns_pointer() || detail_gesture.owns_pointer() { continue; }
-                            gesture.drag(head);
-                            // While a drag selects, the status line names the
-                            // key that selects with the terminal instead.
-                            host.selecting = gesture.selecting().then_some(bypass);
-                            continue;
-                        }
-                        Pointer::Up => {
-                            host.selecting = None;
-                            if detail_gesture.release() { continue; }
-                            if let Some(intent) = notice_gesture.release() { Event::Intent(intent) }
-                            else { match gesture.up(&shown) {
-                                select::Released::Copy(text) => {
-                                    Event::Intent(crate::view::Intent::Copy { text })
-                                }
-                                select::Released::Click(at, at_ms) => {
-                                    // Only a physical Down can activate a foot. A redraw
-                                    // may have put one beneath an ordinary row's old press.
-                                    let Some(event) = DetailGesture::row_release(
-                                        at, at_ms, host.hit_at(at.x, at.y).as_ref(),
-                                    ) else { continue; };
-                                    event
-                                },
-                                select::Released::Nothing => continue,
-                            } }
-                        }
-                    }
-                }
-            };
-            // With a selection showing: shift+arrows move its head, ctrl+c
-            // copies it again, any other key (or the wheel) ends it.
-            match &event {
-                Event::Key(k) => match gesture.key(k, host.capturing() || host.menu.is_some(), &shown) {
-                    select::Keyed::Used => continue,
-                    select::Keyed::Copy(text) => {
-                        event = Event::Intent(crate::view::Intent::Copy { text });
-                    }
-                    select::Keyed::Pass => {}
-                },
-                Event::Mouse { kind, .. } if *kind != crate::host::MouseKind::Press => gesture.clear(),
-                _ => {}
-            }
-            // Unwrap before handling terminal clipboard fallbacks; the
-            // reducer still receives the same originating action afterward.
-            let (plain, action, semantic) = match event {
-                Event::Tracked {
-                    action,
-                    semantic,
-                    event,
-                } => (*event, Some(action), semantic),
-                event => (event, None, None),
-            };
-            event = plain;
-            // Only this loop writes to the terminal, between frames.
-            if let Event::ToClipboard { text, note } = event {
-                let mut out = std::io::stdout();
-                let written = out
-                    .write_all(system::osc52(&text, Env::detect().tmux).as_bytes())
-                    .and_then(|_| out.flush());
-                // OSC52 has no acknowledgement from the receiving clipboard.
-                record_outcome(
-                    journal.as_ref(),
-                    action.as_ref(),
-                    if written.is_ok() {
-                        JournalOutcome::Unknown
-                    } else {
-                        JournalOutcome::Failed
-                    },
-                    Some(Reason::Transport),
-                );
-                if note.is_empty() {
-                    continue;
-                }
-                event = Event::Notice(note);
-            }
-            let event = tracked_event(event, action, semantic);
-            for effect in host.update(event) {
-                perform(effect, &tx, journal.as_ref());
-            }
-            if let Some(warning) = journal.as_ref().and_then(Sink::take_warning) {
-                log::warn(warning);
-                host.notify_error(warning);
-            }
-            // Theme edits apply on the next frame, before they are saved.
-            if host.colours.cfg != theme_cfg {
-                if host.colours.cfg.hyperlinks != theme_cfg.hyperlinks {
-                    links(&host.colours.cfg);
-                }
-                if host.colours.cfg.images != theme_cfg.images {
-                    pictures(&host.colours.cfg);
-                }
-                if host.colours.cfg.pointer != theme_cfg.pointer {
-                    if crate::ui::pointer::on() {
-                        restore_pointer();
-                        shape = crate::ui::pointer::Shape::Default;
-                    }
-                    pointers(&host.colours.cfg);
-                }
-                theme_cfg = host.colours.cfg.clone();
-                theme = host.build_theme(detected);
-                motion.set_level(motion_level(&theme_cfg, &theme));
-                host.set_motion_enabled(motion.level() == motion::Level::Full);
-                splash.set_level(motion.level());
-                splash.set_setting(crate::splash::Setting::parse(&theme_cfg.splash));
-            }
-            for cue in host.take_cues() {
-                motion.cue(cue, &theme);
-            }
-            if host.quit {
-                break;
-            }
-        }
-        anyhow::Ok(())
-    }
-    .await;
-    restore_pointer();
-    let _ = ratatui::crossterm::execute!(
-        std::io::stdout(),
-        ratatui::crossterm::event::DisableMouseCapture,
-        ratatui::crossterm::event::DisableFocusChange,
-        ratatui::crossterm::event::DisableBracketedPaste
-    );
-    ratatui::restore();
-    result
-}
-
-/// The terminal's own pointer back, when radar changed it.
-fn restore_pointer() {
-    if crate::ui::pointer::on() {
-        let mut out = std::io::stdout();
-        let _ = out
-            .write_all(crate::ui::pointer::sequence(crate::ui::pointer::Shape::Default).as_bytes());
-        let _ = out.flush();
-    }
-}
-
-/// What the loop waits for: the host's events, or the mouse.
-/// Captured notice ownership survives expiry, replacement and drag until release.
-#[derive(Default)]
-struct NoticeGesture { captured: Option<crate::view::Intent> }
-impl NoticeGesture {
-    fn press(&mut self, hit: Option<crate::host::Hit>) -> bool {
-        use crate::host::{Hit, Host};
-        use crate::view::{Intent, Target};
-        self.captured = match hit {
-            Some(Hit::Notice(id)) => Some(Intent::DismissNotice { id }),
-            Some(Hit::NoticeHistoryOpen) => Some(Intent::Activate { target: Target::new("chrome:notices:open") }),
-            Some(Hit::NoticeHistory(id)) => Some(Intent::Activate { target: Target::new(format!("chrome:notices:id:{id}")) }),
-            Some(Hit::NoticeHistoryKey(key)) => Host::notice_history_key_target(key).map(|target| Intent::Activate { target }),
-            _ => None,
-        };
-        self.owns_pointer()
-    }
-    fn owns_pointer(&self) -> bool { self.captured.is_some() }
-    fn release(&mut self) -> Option<crate::view::Intent> { self.captured.take() }
-}
-
-/// Foot controls activate at physical Down, while their exact displayed target
-/// is still under the pointer. Drag/Up cannot re-hit a replacement frame.
-#[derive(Default)]
-struct DetailGesture { pressed: bool }
-
-impl DetailGesture {
-    fn target(hit: Option<&crate::host::Hit>) -> Option<crate::view::Target> {
-        match hit {
-            Some(crate::host::Hit::Plugin { id, .. })
-                if id.starts_with(crate::view::detail::TARGET_PREFIX) => Some(crate::view::Target::new(id.clone())),
-            _ => None,
-        }
-    }
-
-    fn press(&mut self, hit: Option<&crate::host::Hit>, gesture: &mut select::Gesture) -> Option<crate::view::Intent> {
-        let target = Self::target(hit)?;
-        // `clear` leaves pending presses and multi-click history behind.
-        *gesture = select::Gesture::default();
-        self.pressed = true;
-        Some(crate::view::Intent::Activate { target })
-    }
-
-    fn owns_pointer(&self) -> bool { self.pressed }
-    fn release(&mut self) -> bool { std::mem::take(&mut self.pressed) }
-
-    fn cancel(&mut self, gesture: &mut select::Gesture) {
-        if self.release() { *gesture = select::Gesture::default(); }
-    }
-
-    fn row_release(at: ratatui::layout::Position, at_ms: u64, hit: Option<&crate::host::Hit>) -> Option<Event> {
-        if Self::target(hit).is_some() { return None; }
-        Some(Event::Mouse { kind: crate::host::MouseKind::Press, column: at.x, row: at.y, at_ms })
-    }
-}
-
-enum Input {
-    Event(Event),
-    Pointer(Pointer),
-}
-
-/// The mouse, as the runner keeps it: the left button, and where the
-/// pointer is.
-enum Pointer {
-    Down(ratatui::layout::Position, u64),
-    Drag(ratatui::layout::Position),
-    Up,
-    /// Moved with no button down.
-    Move(ratatui::layout::Position),
-    /// Left the window (the terminal lost focus).
-    Gone,
-}
-
-/// The frame tick: after `every` while motion runs; never when it does not,
-/// so an idle radar draws only on events.
-async fn frame_tick(every: Option<std::time::Duration>) {
-    match every {
-        Some(d) => tokio::time::sleep(d).await,
-        None => std::future::pending().await,
-    }
-}
-
-fn now_ms() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |d| d.as_millis() as u64)
 }
 
 fn record_outcome(
@@ -1698,116 +1064,6 @@ pub(crate) fn write_atomic(path: &std::path::Path, text: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    mod detail_pointer_tests {
-        use super::super::{DetailGesture, NoticeGesture};
-        use crate::host::{Event, Hit};
-        use crate::plugin::Pane;
-        use crate::select::{Area, Gesture, Released};
-        use crate::view::{Intent, Target};
-        use ratatui::buffer::Buffer;
-        use ratatui::layout::{Position, Rect};
-
-        fn foot(serial: u64) -> Hit {
-            Hit::Plugin { plugin: 0, scope: "books", pane: Pane::Detail, id: format!("detail-foot:{serial}:0") }
-        }
-
-        #[test]
-        fn physical_down_activates_once_and_release_cannot_retarget_a_newer_frame() {
-            let mut selection = Gesture::default();
-            let mut control = DetailGesture::default();
-            let old = foot(1);
-            let newer = foot(2);
-            let intent = control.press(Some(&old), &mut selection).unwrap();
-            assert_eq!(intent, Intent::Activate { target: Target::new("detail-foot:1:0") });
-            // Background replacement at the same cell has no role in Drag/Up.
-            assert!(control.owns_pointer(), "drag stays with the already-activated control");
-            assert!(control.release(), "Up is consumed, never resolved against the newer hit");
-            assert!(!control.release(), "a repeated Up cannot fire again");
-            let shown = Buffer::empty(Rect::new(0, 0, 20, 2));
-            assert!(matches!(selection.up(&shown), Released::Nothing));
-            assert_eq!(control.press(Some(&newer), &mut selection), Some(Intent::Activate { target: Target::new("detail-foot:2:0") }));
-            assert!(control.release(), "a second physical press is exactly one new activation");
-        }
-
-        #[test]
-        fn foot_press_cancels_pending_selection_and_word_double_click_history() {
-            let shown = Buffer::with_lines(["watch books"]);
-            let at = Position::new(1, 0);
-            let areas = [Area { rect: shown.area, text: true }];
-            let mut selection = Gesture::default();
-            selection.down(at, 1, &areas);
-            assert!(matches!(selection.up(&shown), Released::Click(..)));
-            selection.down(at, 2, &areas);
-            selection.drag(Position::new(5, 0));
-            assert!(selection.selecting());
-            let mut control = DetailGesture::default();
-            assert!(control.press(Some(&foot(1)), &mut selection).is_some());
-            assert!(!selection.selecting() && selection.selection.is_none());
-            assert!(control.release());
-            assert!(matches!(selection.up(&shown), Released::Nothing));
-            selection.down(at, 3, &areas);
-            assert!(matches!(selection.up(&shown), Released::Click(..)), "the old text click history was reset too");
-        }
-
-        #[test]
-        fn cancel_resize_and_row_release_never_activate_a_new_footer() {
-            let mut control = DetailGesture::default();
-            let mut selection = Gesture::default();
-            let at = Position::new(2, 0);
-            let before = Buffer::with_lines(["before"]);
-            let after = Buffer::empty(Rect::new(0, 0, 3, 2));
-            control.press(Some(&foot(1)), &mut selection);
-            control.cancel(&mut selection);
-            assert!(!control.release());
-            assert!(matches!(selection.up(&after), Released::Nothing));
-            selection.down(at, 10, &[]);
-            let Released::Click(at, ms) = selection.up(&before) else { panic!("ordinary row press"); };
-            assert!(DetailGesture::row_release(at, ms, Some(&foot(2))).is_none(), "new footer at an old row cell is inert");
-            assert!(matches!(DetailGesture::row_release(at, ms, Some(&Hit::Pane(Pane::Middle))), Some(Event::Mouse { .. })));
-        }
-
-        #[test]
-        fn notice_ownership_and_unrelated_text_selection_remain_independent() {
-            let mut control = DetailGesture::default();
-            let mut notice = NoticeGesture::default();
-            let mut selection = Gesture::default();
-            let shown = Buffer::with_lines(["watch books"]);
-            let areas = [Area { rect: shown.area, text: true }];
-            selection.down(Position::new(0, 0), 1, &areas);
-            selection.drag(Position::new(4, 0));
-            assert!(control.press(Some(&Hit::Pane(Pane::Middle)), &mut selection).is_none());
-            control.cancel(&mut selection);
-            assert!(selection.selecting(), "non-control cancellation leaves ordinary selection alone");
-            let hit = Hit::Notice(7);
-            assert!(notice.press(Some(hit.clone())));
-            assert!(control.press(Some(&hit), &mut selection).is_none());
-            assert!(!control.owns_pointer());
-            assert_eq!(notice.release(), Some(Intent::DismissNotice { id: 7 }));
-        }
-    }
-    mod notice_pointer_tests {
-        #[test]
-        fn notice_pointer_capture_survives_expiry_replacement_and_drag_without_retargeting() {
-            let mut notices = crate::notices::Notices::default(); let old = notices.enqueue("old".into());
-            let mut gesture = crate::runner::NoticeGesture::default();
-            assert!(gesture.press(Some(crate::host::Hit::Notice(old.id))));
-            notices.advance_clock(crate::notices::INFO_MS); let new = notices.enqueue("new".into());
-            assert!(gesture.owns_pointer());
-            assert_eq!(gesture.release(), Some(crate::view::Intent::DismissNotice { id: old.id }));
-            assert!(!notices.dismiss(old.id)); assert_eq!(notices.view().active, [new]); assert!(gesture.release().is_none());
-        }
-        #[test]
-        fn history_hint_press_captures_its_stable_command_until_release() {
-            use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-            for (code, target) in [(KeyCode::PageUp, "details_up"), (KeyCode::PageDown, "details_down"), (KeyCode::Esc, "close"), (KeyCode::Down, "older"), (KeyCode::Up, "newer")] {
-                let mut gesture = crate::runner::NoticeGesture::default();
-                assert!(gesture.press(Some(crate::host::Hit::NoticeHistoryKey(crate::key_compat::chord_of(&KeyEvent::new(code, KeyModifiers::NONE)).unwrap()))));
-                assert!(gesture.owns_pointer());
-                assert_eq!(gesture.release(), Some(crate::view::Intent::Activate { target: crate::view::Target::new(format!("chrome:notices:{target}")) }));
-                assert!(gesture.release().is_none());
-            }
-        }
-    }
     use super::{move_folders_from_gg, resolve_config_home, write_atomic};
     use std::path::{Path, PathBuf};
 
@@ -1882,47 +1138,6 @@ mod tests {
         assert_eq!(
             resolve_config_home(None, p("/Users/a"), mac, &leaves, both),
             PathBuf::from("/Users/a/.config/radar")
-        );
-    }
-
-    /// The runner's loop waits on `frame_tick(motion.next_frame())` beside
-    /// its events: a tick comes only while an effect runs. On tokio's paused
-    /// clock: a frame's sleep and the wait for it are virtual, so a loaded
-    /// machine cannot make the frame miss its 120 ms.
-    #[tokio::test(start_paused = true)]
-    async fn the_frame_tick_comes_only_while_an_effect_runs() {
-        use super::frame_tick;
-        use crate::design::theme::Tier;
-        use crate::motion::{Cue, Engine, Level, ManualClock, POPUP_MS, Region, begin, region};
-        use crate::theme::{Theme, ThemeConfig};
-        use ratatui::buffer::Buffer;
-        use ratatui::layout::Rect;
-        use std::time::Duration;
-
-        let theme = Theme::build(&ThemeConfig::default(), Tier::TrueColor, &[]);
-        let clock = ManualClock::default();
-        let mut motion = Engine::new(Level::Subtle, Box::new(clock.clone()));
-        let wait = Duration::from_millis(120);
-        let ticks = |every| tokio::time::timeout(wait, frame_tick(every));
-        assert!(ticks(motion.next_frame()).await.is_err(), "idle: no tick");
-        motion.cue(Cue::Popup, &theme);
-        assert!(
-            ticks(motion.next_frame()).await.is_ok(),
-            "an effect runs: ticks"
-        );
-        let area = Rect::new(0, 0, 20, 6);
-        let mut frame = || {
-            begin();
-            region(Region::Popup, area);
-            motion.draw(&mut Buffer::empty(area), &theme);
-        };
-        frame();
-        clock.advance(u64::from(POPUP_MS));
-        frame();
-        frame();
-        assert!(
-            ticks(motion.next_frame()).await.is_err(),
-            "it ended: idle again"
         );
     }
 

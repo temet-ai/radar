@@ -1,10 +1,11 @@
-//! The real radar binary in a pseudo-terminal, with each renderer (M11
+//! The real radar binary in a pseudo-terminal, drawn by Ink (M11
 //! handover item 4, C4(b)(d), C1(e), C5(e)): the top bar, the repositories
 //! list, a repository's page, the actions menu and the Work screen appear at
-//! 80x24 and 160x40; under Ink, the renderer process is ended by the pid the
+//! 80x24 and 160x40; the renderer process is ended by the pid the
 //! supervisor logged and comes back; after `q`, the terminal is as it was
 //! (alternate screen left, mouse reporting off, the cursor shown, raw mode
-//! off). `RADAR_RENDERER=ratatui` runs the same journey: the way back.
+//! off). With no Ink to start, radar says why in two lines, exits 1 and leaves
+//! the terminal as it found it (the one test here that needs no node).
 //!
 //! Nothing reaches a service: a scratch config names GitLab and Jira with
 //! tokens from variables that are not set, their caches are written in a
@@ -467,18 +468,23 @@ struct Run {
 }
 
 impl Run {
-    fn start(renderer: &str, w: u16, h: u16) -> Self {
-        Self::launch(renderer, w, h, None)
+    fn start(name: &str, w: u16, h: u16) -> Self {
+        Self::launch(name, true, w, h, None)
+    }
+
+    /// radar with no Ink to find: the bundle it is told to use is not a file.
+    fn start_without_ink(name: &str, w: u16, h: u16) -> Self {
+        Self::launch(name, false, w, h, None)
     }
 
     /// radar with a copy of `config` (the operator's), read only: the
     /// environment is kept (tokens come from it), every XDG folder is a
     /// scratch one, and no cache is laid down, so what shows is read live.
-    fn live(renderer: &str, w: u16, h: u16, config: &Path) -> Self {
-        Self::launch(renderer, w, h, Some(config))
+    fn live(name: &str, w: u16, h: u16, config: &Path) -> Self {
+        Self::launch(name, true, w, h, Some(config))
     }
 
-    fn launch(renderer: &str, w: u16, h: u16, live: Option<&Path>) -> Self {
+    fn launch(renderer: &str, with_ink: bool, w: u16, h: u16, live: Option<&Path>) -> Self {
         let name = format!("{}{renderer}-{w}x{h}", if live.is_some() { "live-" } else { "" });
         let scratch = Scratch::new(&name);
         if let Some(config) = live {
@@ -525,13 +531,8 @@ impl Run {
         ] {
             cmd.env(k, v);
         }
-        // "default" sets no RADAR_RENDERER: the build's own choice runs.
-        if renderer != "default" {
-            cmd.env("RADAR_RENDERER", renderer);
-        }
-        if renderer == "ink" || renderer == "default" {
-            cmd.env("RADAR_INK_BUNDLE", bundle());
-        }
+        // A bundle that is named but missing is "no Ink": radar-js is skipped too.
+        cmd.env("RADAR_INK_BUNDLE", if with_ink { bundle() } else { root.join("no-such-bundle/radar-ink.js") });
         cmd.cwd(root.join("home"));
         let child = pair.slave.spawn_command(cmd).expect("radar starts");
         let mut reader = pair.master.try_clone_reader().unwrap();
@@ -769,6 +770,11 @@ fn restored(run: &mut Run) {
 fn restored_within(run: &mut Run, patience: Duration) {
     let status = run.quit_within(patience);
     assert!(status.success(), "{}: radar exited {status:?}", run.name);
+    terminal_as_found(run);
+}
+
+/// The alternate screen is left, mouse reporting off, the cursor shown, raw mode off.
+fn terminal_as_found(run: &mut Run) {
     let s = &run.screen;
     assert!(!s.alt, "{}: the alternate screen is left", run.name);
     assert!(s.mouse.is_empty(), "{}: mouse reporting is off: {:?}", run.name, s.mouse);
@@ -789,7 +795,6 @@ fn restored_within(run: &mut Run, patience: Duration) {
 fn ink_draws_the_journey_restarts_and_restores_the_terminal() {
     let mut run = Run::start("ink", 80, 24);
     run.until("the renderer started", |r| r.renderer_pids().len() == 1);
-    assert!(!run.log().contains("Ratatui runs"), "Ink ran, not the fallback: {}", run.log());
     journey(&mut run);
 
     let first = run.renderer_pids()[0];
@@ -808,36 +813,31 @@ fn ink_draws_the_journey_restarts_and_restores_the_terminal() {
     println!("{}: renderer pids {:?}; captures in {}", run.name, run.renderer_pids(), run.out.display());
 }
 
-/// No `RADAR_RENDERER` at all: the build's default (`radar::DEFAULT_RENDERER`,
-/// Ink since the cutover) draws the journey with its node child running,
-/// and `q` restores the terminal.
+/// No Ink to start (no radar-js, no bundle): radar says why in two lines, exits 1,
+/// starts no renderer and leaves the terminal as it found it. Needs no node.
 #[test]
-#[ignore = "needs node and the Ink bundle (cd ink && npm run bundle); run with --run-ignored all"]
-fn the_default_renderer_is_ink_and_draws_the_journey() {
-    assert!(
-        matches!(radar::DEFAULT_RENDERER, radar_core::runner::Renderer::Ink),
-        "the build's default renderer is Ink"
-    );
-    let mut run = Run::start("default", 80, 24);
-    run.until("the renderer started", |r| r.renderer_pids().len() == 1);
-    assert!(!run.log().contains("Ratatui runs"), "Ink ran, not the fallback: {}", run.log());
-    journey(&mut run);
-    history(&mut run);
-    restored(&mut run);
-    println!("{}: renderer pids {:?}; captures in {}", run.name, run.renderer_pids(), run.out.display());
-}
-
-/// `RADAR_RENDERER=ratatui`, the one way back: the same journey and a
-/// restored terminal.
-#[test]
-#[ignore = "a real terminal for seconds; run with --run-ignored all"]
-fn ratatui_draws_the_same_journey_and_restores_the_terminal() {
-    let mut run = Run::start("ratatui", 80, 24);
-    journey(&mut run);
-    assert!(run.renderer_pids().is_empty(), "no Ink renderer: {}", run.log());
-    history(&mut run);
-    restored(&mut run);
-    println!("{}: captures in {}", run.name, run.out.display());
+fn with_no_ink_radar_says_why_exits_1_and_leaves_the_terminal_as_found() {
+    let mut run = Run::start_without_ink("no-ink", 80, 24);
+    let deadline = Instant::now() + PATIENCE;
+    let status = loop {
+        if let Some(status) = run.child.try_wait().unwrap() {
+            while let Ok(chunk) = run.rx.recv_timeout(Duration::from_millis(150)) {
+                run.take(chunk);
+            }
+            break status;
+        }
+        assert!(Instant::now() < deadline, "{}: radar did not end:\n{}", run.name, run.screen.text());
+        if let Ok(chunk) = run.rx.recv_timeout(Duration::from_millis(100)) {
+            run.take(chunk);
+        }
+    };
+    run.save("exit");
+    let text = run.screen.text();
+    assert_eq!(status.exit_code(), 1, "{}: exit code; the screen is:\n{text}", run.name);
+    assert!(text.contains("radar: the renderer did not start: "), "{}: the reason line:\n{text}", run.name);
+    assert!(text.contains("run scripts/install to rebuild it"), "{}: the fix line:\n{text}", run.name);
+    assert!(run.renderer_pids().is_empty(), "no Ink was started: {}", run.log());
+    terminal_as_found(&mut run);
 }
 
 /// One live run, read only, through Ink at 160x40: a copy of the
@@ -851,15 +851,11 @@ fn live_read_only_through_ink_at_160x40() {
         eprintln!("RADAR_PTY_CONFIG is not set: no live run");
         return;
     };
-    // RADAR_PTY_LIVE_RENDERER=ratatui runs the same, for comparison.
-    let renderer = std::env::var("RADAR_PTY_LIVE_RENDERER").unwrap_or_else(|_| "ink".into());
     // RADAR_PTY_SIZE=WxH starts at another size than 160x40.
     let size = std::env::var("RADAR_PTY_SIZE").unwrap_or_else(|_| "160x40".into());
     let (w, h) = size.split_once('x').map(|(w, h)| (w.parse().unwrap(), h.parse().unwrap())).expect("WxH");
-    let mut run = Run::live(&renderer, w, h, Path::new(&config));
-    if renderer == "ink" {
-        run.until("the renderer started", |r| r.renderer_pids().len() == 1);
-    }
+    let mut run = Run::live("ink", w, h, Path::new(&config));
+    run.until("the renderer started", |r| r.renderer_pids().len() == 1);
     // RADAR_PTY_SCRIPT: steps `keys=>words` separated by ` | `, each waiting
     // until the screen shows every `&`-separated word (and none written `!word`) (live data differs
     // per user, so a walk past the first screens is given, not built in).
@@ -894,7 +890,6 @@ fn live_read_only_through_ink_at_160x40() {
     if !run.missed.is_empty() {
         println!("{}: MISSED {:?}", run.name, run.missed);
     }
-    assert!(!run.log().contains("Ratatui runs"), "Ink ran: {}", run.log());
     // Live reads may be in flight when q is pressed.
     restored_within(&mut run, Duration::from_secs(90));
     println!("{}: quit took {:?}; captures in {}", run.name, run.quit_took, run.out.display());

@@ -211,15 +211,6 @@ fn a_log_line_is_cut_to_its_bound() {
     assert_eq!(text.chars().count(), MAX_LOG);
 }
 
-#[test]
-fn the_renderer_is_the_default_unless_radar_renderer_names_one() {
-    use Renderer::*;
-    assert_eq!(Renderer::chosen(Ratatui, None), Ratatui);
-    assert_eq!(Renderer::chosen(Ratatui, Some("ink")), Ink);
-    assert_eq!(Renderer::chosen(Ink, Some("ratatui")), Ratatui);
-    assert_eq!(Renderer::chosen(Ink, Some("bogus")), Ink);
-}
-
 // --- the TypeScript side ---------------------------------------------------------
 
 fn generated_dir() -> PathBuf {

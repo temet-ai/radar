@@ -2,7 +2,7 @@
 //! the bundle and `node`, starts the child on a Unix socket, drives the
 //! [`Bridge`] from its messages and the host's events, restores the
 //! terminal whenever the child exits, restarts it under the policy, and
-//! says when the Ratatui renderer must take over.
+//! says when the renderer cannot run (radar then stops with the reason).
 //!
 //! The child owns the terminal (raw mode, the alternate screen, mouse
 //! reporting, the cursor, resizes) from when it starts until it exits;
@@ -47,15 +47,16 @@ pub const MAX_QUEUED: usize = 256;
 /// ending a renderer that reads would restart it for nothing.
 pub const STALLED_AFTER: Duration = Duration::from_secs(2);
 
-/// Say on `err` (stderr) why the Ratatui renderer takes over; the same
-/// words are already in the host's status line.
-pub fn say_fall_back(err: &mut dyn Write, why: &str) {
-    let _ = writeln!(err, "radar: {why}");
-    crate::log::warn(why);
+/// Say on `err` (stderr) why radar has no renderer: two lines, the reason and
+/// the way to fix it. radar exits 1 after them.
+pub fn say_not_started(err: &mut dyn Write, why: &str) {
+    let _ = writeln!(err, "radar: the renderer did not start: {why}");
+    let _ = writeln!(err, "run scripts/install to rebuild it");
+    crate::log::warn(format!("the renderer did not start: {why}"));
 }
 
-/// Restarts: at most `max` in any `window`; one more crash and the
-/// Ratatui renderer takes over.
+/// Restarts: at most `max` in any `window`; one more crash and radar
+/// stops with the last crash's reason.
 #[derive(Debug, Clone)]
 pub struct RestartPolicy {
     pub max: usize,
@@ -187,9 +188,9 @@ impl TtyModes {
 pub enum Ended {
     /// The user quit.
     Quit,
-    /// The renderer cannot run (refused, or crashed past the policy): the
-    /// Ratatui renderer takes over; the words say why, in one line.
-    FallBack(String),
+    /// The renderer cannot run (refused, or crashed past the policy): radar
+    /// stops; the words say why, in one line.
+    Failed(String),
 }
 
 /// How one child's run ended.
@@ -264,19 +265,17 @@ impl<W: Write> Supervisor<W> {
             match run {
                 Run::Quit => return Ok(Ended::Quit),
                 Run::Refused(why) => {
-                    bridge.host_mut().notify_error(why.clone());
-                    return Ok(Ended::FallBack(why));
+                    return Ok(Ended::Failed(why));
                 }
                 Run::Crashed(why) if !bridge.host().quit => {
                     crate::log::warn(format!("Ink renderer stopped: {why}"));
                     self.stopped.push(why.clone());
                     if !self.policy.restart(Instant::now()) {
                         let why = format!(
-                            "the Ink renderer stopped {} times in a minute ({why}); using the Ratatui renderer",
+                            "the Ink renderer stopped {} times in a minute: {why}",
                             self.policy.max + 1
                         );
-                        bridge.host_mut().notify_error(why.clone());
-                        return Ok(Ended::FallBack(why));
+                        return Ok(Ended::Failed(why));
                     }
                     bridge.host_mut().notify_error("the renderer stopped and was started again");
                 }

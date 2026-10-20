@@ -194,22 +194,23 @@ async fn a_renderer_that_says_goodbye_ends_the_run_with_the_terminal_put_back() 
 }
 
 #[tokio::test]
-async fn a_renderer_of_another_protocol_is_refused_and_ratatui_takes_over() {
+async fn a_renderer_of_another_protocol_is_refused_and_radar_stops_with_the_reason() {
     let dir = scratch("old");
     let mut sup = supervisor("old", &dir);
     let mut bridge = Bridge::new(fixture::host(), 80, 24);
-    let Ended::FallBack(why) = run(&mut sup, &mut bridge).await else {
+    let Ended::Failed(why) = run(&mut sup, &mut bridge).await else {
         panic!()
     };
-    assert!(why.contains("protocol") && why.contains("RADAR_RENDERER=ratatui"), "{why}");
+    assert!(why.contains("protocol") && !why.contains("RADAR_RENDERER"), "{why}");
     assert_eq!(sup.started.len(), 1, "a refused renderer is not restarted");
     assert_eq!(restores(&sup), 1);
-    // Visible: in the status line the Ratatui renderer opens with, and on
-    // stderr.
-    assert_eq!(bridge.host().message.as_ref().map(|m| m.text.as_str()), Some(why.as_str()));
+    // Visible: on stderr, as two lines.
     let mut err = Vec::new();
-    super::supervisor::say_fall_back(&mut err, &why);
-    assert_eq!(String::from_utf8(err).unwrap(), format!("radar: {why}\n"));
+    super::supervisor::say_not_started(&mut err, &why);
+    assert_eq!(
+        String::from_utf8(err).unwrap(),
+        format!("radar: the renderer did not start: {why}\nrun scripts/install to rebuild it\n")
+    );
 }
 
 #[tokio::test]
@@ -217,12 +218,11 @@ async fn a_renderer_reading_other_views_is_refused_too() {
     let dir = scratch("oldview");
     let mut sup = supervisor("oldview", &dir);
     let mut bridge = Bridge::new(fixture::host(), 80, 24);
-    let Ended::FallBack(why) = run(&mut sup, &mut bridge).await else {
+    let Ended::Failed(why) = run(&mut sup, &mut bridge).await else {
         panic!()
     };
-    assert!(why.contains("views of version") && why.contains("RADAR_RENDERER=ratatui"), "{why}");
+    assert!(why.contains("views of version") && !why.contains("RADAR_RENDERER"), "{why}");
     assert_eq!(sup.started.len(), 1);
-    assert_eq!(bridge.host().message.as_ref().map(|m| m.text.as_str()), Some(why.as_str()));
 }
 
 /// C2(c) over the socket: a renderer that acknowledges each snapshot
@@ -315,19 +315,16 @@ async fn a_renderer_that_crashes_once_is_restarted_and_the_host_keeps_its_state(
 }
 
 #[tokio::test]
-async fn a_renderer_that_keeps_crashing_falls_back_to_ratatui_after_three_restarts() {
+async fn a_renderer_that_keeps_crashing_stops_radar_with_the_last_reason_after_three_restarts() {
     let dir = scratch("crash");
     let mut sup = supervisor("crash", &dir);
     let mut bridge = Bridge::new(fixture::host(), 80, 24);
-    let Ended::FallBack(why) = run(&mut sup, &mut bridge).await else {
+    let Ended::Failed(why) = run(&mut sup, &mut bridge).await else {
         panic!()
     };
-    assert!(why.contains("Ratatui"), "{why}");
+    assert!(why.contains("4 times in a minute") && !why.contains("Ratatui"), "{why}");
     assert_eq!(sup.started.len(), 4, "the first start and three restarts");
     assert_eq!(restores(&sup), 4);
-    // The host is whole for the Ratatui renderer.
-    let host = bridge.into_host();
-    assert!(host.menu_view().is_some());
 }
 
 /// The stall rule itself, on tokio's paused clock: a queue that is full

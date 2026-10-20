@@ -1,6 +1,5 @@
 //! The terminal layers between radar and the user's mouse.
 
-use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Stack {
@@ -88,25 +87,6 @@ impl Stack {
         if self.ghostty { layers.push("Ghostty"); }
         if self.foot { layers.push("Foot"); }
         if layers.is_empty() { "terminal (unidentified)".into() } else { layers.join(" → ") }
-    }
-}
-
-/// Only this pane is changed. Herdr falls back to its pane menu after radar
-/// releases mouse reporting, so the setting remains useful for other TUIs.
-pub async fn route_herdr_right_click() -> Result<(), String> {
-    let binary = std::env::var_os("HERDR_BIN_PATH").unwrap_or_else(|| "herdr".into());
-    let command = tokio::process::Command::new(binary)
-        .args(["pane", "input", "--current", "--right-click", "pane"])
-        .kill_on_drop(true)
-        .output();
-    let output = tokio::time::timeout(Duration::from_secs(2), command)
-        .await
-        .map_err(|_| "Herdr pane routing timed out".to_string())?
-        .map_err(|e| format!("Herdr pane routing unavailable: {e}"))?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err("Herdr could not route right-clicks to this pane".into())
     }
 }
 

@@ -81,7 +81,7 @@ fn a_renderer_of_another_protocol_is_refused_with_words_to_show() {
         panic!("{out:?}")
     };
     assert_eq!((*wanted, *got), (PROTOCOL, PROTOCOL + 1));
-    assert!(message.contains("RADAR_RENDERER=ratatui"), "{message}");
+    assert!(message.contains("install them together") && !message.contains("RADAR_RENDERER"), "{message}");
     // Nothing it sends is acted on.
     let fx = bridge.receive(intent(1, invoke(ASK)));
     assert!(fx.effects.is_empty() && bridge.host().menu.is_none());

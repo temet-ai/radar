@@ -5,10 +5,6 @@
 // One `push` per part, each behind its feature, so a part is one line.
 #![allow(unused_mut, clippy::vec_init_then_push)]
 
-/// The renderer the TUI starts with; `RADAR_RENDERER=ink|ratatui` overrides
-/// it for a run.
-pub const DEFAULT_RENDERER: radar_core::runner::Renderer = radar_core::runner::Renderer::Ink;
-
 /// Every part this build has, in the order the host lists them (screens,
 /// settings, and contributions to each other's screens).
 pub fn parts() -> Vec<Box<dyn radar_core::Plugin>> {

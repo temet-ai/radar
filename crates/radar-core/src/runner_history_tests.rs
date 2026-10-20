@@ -1,12 +1,13 @@
 //! One end-to-end host/runner/ordered-reader slice, with a private test database.
 use super::*;
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Intent, Key};
+
+fn key(chord: Chord) -> Event {
+    Event::Intent(Intent::Key { chord })
+}
 
 fn open(host: &mut Host) -> HostEffect {
-    let mut effects = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('H'),
-        KeyModifiers::NONE,
-    )));
+    let mut effects = host.update(key(Chord::char('H')));
     assert_eq!(effects.len(), 1);
     effects.pop().unwrap()
 }
@@ -50,22 +51,22 @@ async fn history_runner_renders_recorded_outcomes_without_creating_read_events()
     assert!(image.contains("succeeded"));
     // From #26: the detail keeps its scroll through help, and a key with
     // ctrl or alt does not move it.
-    let press = |host: &mut Host, code| {
-        assert!(host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE))).is_empty());
+    let press = |host: &mut Host, k: Key| {
+        assert!(host.update(key(Chord::new(k))).is_empty());
     };
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let first_detail = crate::shell::to_text(&host, 80, 24);
-    press(&mut host, KeyCode::PageDown);
+    press(&mut host, Key::PageDown);
     let scrolled = crate::shell::to_text(&host, 80, 24);
     assert_ne!(first_detail, scrolled);
-    for modifier in [KeyModifiers::CONTROL, KeyModifiers::ALT] {
-        assert!(host.update(Event::Key(KeyEvent::new(KeyCode::Home, modifier))).is_empty());
+    for modified in [Chord { ctrl: true, ..Chord::new(Key::Home) }, Chord { alt: true, ..Chord::new(Key::Home) }] {
+        assert!(host.update(key(modified)).is_empty());
         assert_eq!(crate::shell::to_text(&host, 80, 24), scrolled);
     }
-    press(&mut host, KeyCode::Char('?'));
+    press(&mut host, Key::Char('?'));
     let help_top = crate::shell::to_text(&host, 80, 24);
     assert_ne!(help_top, scrolled, "help shows");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(crate::shell::to_text(&host, 80, 24), scrolled, "back to the same scroll");
     let events = recording
         .sink

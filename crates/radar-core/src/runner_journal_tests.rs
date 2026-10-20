@@ -3,7 +3,7 @@ use super::*;
 use crate::host::{JournalRecord, View};
 use crate::journal::{Journal, Query};
 use crate::plugin::{Effect, Menu, Msg, Outcome, Pane, ScreenSpec};
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Intent, Key};
 
 struct Prepared;
 struct ReadPrepared;
@@ -217,8 +217,8 @@ fn host() -> Host {
     host
 }
 
-fn key(code: KeyCode) -> Event {
-    Event::Key(KeyEvent::new(code, KeyModifiers::NONE))
+fn key(key: Key) -> Event {
+    Event::Intent(Intent::Key { chord: Chord::new(key) })
 }
 
 fn records(effects: &[HostEffect]) -> Vec<JournalRecord> {
@@ -291,7 +291,7 @@ fn has_outcome(records: &[JournalRecord], id: &ActionId, expected: JournalOutcom
 #[tokio::test]
 async fn scoped_actions_restore_following_spawn_emit_and_report_context() {
     let mut host = host();
-    let effects = host.update(key(KeyCode::Char('c')));
+    let effects = host.update(key(Key::Char('c')));
     let records = records(&effects);
     let outer = begun(&records, "probe.change");
     let read = begun(&records, "probe.read");
@@ -342,7 +342,7 @@ async fn scoped_actions_restore_following_spawn_emit_and_report_context() {
 #[tokio::test]
 async fn spawn_action_siblings_complete_out_of_order_without_claiming_unrelated_work() {
     let mut host = host();
-    let effects = host.update(key(KeyCode::Char('u')));
+    let effects = host.update(key(Key::Char('u')));
     let started = records(&effects);
     let first = begun(&started, "probe.first");
     let second = begun(&started, "probe.second");
@@ -383,7 +383,7 @@ async fn spawn_action_siblings_complete_out_of_order_without_claiming_unrelated_
 #[tokio::test]
 async fn spawn_action_result_continuation_retains_its_semantic_action() {
     let mut host = host();
-    let effects = host.update(key(KeyCode::Char('r')));
+    let effects = host.update(key(Key::Char('r')));
     let read = begun(&records(&effects), "probe.read");
     let (preparation, semantic, plugin, task) = spawn(effects);
     assert_eq!(semantic, Some(read.clone()));
@@ -433,7 +433,7 @@ async fn spawn_action_result_continuation_retains_its_semantic_action() {
 #[tokio::test]
 async fn spawn_action_still_runs_when_journaling_is_disabled() {
     let mut host = Host::new(host().plugins, 0).unwrap();
-    let effects = host.update(key(KeyCode::Char('r')));
+    let effects = host.update(key(Key::Char('r')));
     assert!(matches!(
         &effects[..],
         [HostEffect::Spawn { plugin: 0, .. }]
@@ -454,11 +454,11 @@ async fn spawn_action_still_runs_when_journaling_is_disabled() {
 #[tokio::test]
 async fn out_of_order_providers_keep_their_own_action_and_outcome() {
     let mut host = host();
-    let first = host.update(key(KeyCode::Char('a')));
+    let first = host.update(key(Key::Char('a')));
     let first_records = records(&first);
     let (first_action, first_semantic, first_plugin, first_task) = spawn(first);
     host.view = View::Screen(1);
-    let second = host.update(key(KeyCode::Char('a')));
+    let second = host.update(key(Key::Char('a')));
     let second_records = records(&second);
     let (second_action, second_semantic, second_plugin, second_task) = spawn(second);
     assert_ne!(first_action, second_action);
@@ -518,7 +518,7 @@ async fn out_of_order_providers_keep_their_own_action_and_outcome() {
 #[tokio::test]
 async fn bus_fanout_keeps_distinct_provider_children_under_one_emit() {
     let mut host = host();
-    let effects = host.update(key(KeyCode::Char('e')));
+    let effects = host.update(key(Key::Char('e')));
     let records = records(&effects);
     let emit = begun(&records, "bus.emit");
     let deliveries = records
@@ -576,7 +576,7 @@ async fn bus_fanout_keeps_distinct_provider_children_under_one_emit() {
 #[test]
 fn menu_cancel_and_confirmation_retain_the_original_semantic_parent() {
     let mut host = host();
-    let opened = host.update(key(KeyCode::Char('m')));
+    let opened = host.update(key(Key::Char('m')));
     let opened_records = records(&opened);
     let menu = begun(&opened_records, "ui.menu");
     let intent = begun(&opened_records, "probe.change");
@@ -586,7 +586,7 @@ fn menu_cancel_and_confirmation_retain_the_original_semantic_parent() {
         semantic: None,
         event: Box::new(Event::Notice("unrelated".into())),
     });
-    let accepted = host.update(key(KeyCode::Char('y')));
+    let accepted = host.update(key(Key::Char('y')));
     let accepted_records = records(&accepted);
     assert!(has_outcome(
         &accepted_records,
@@ -602,9 +602,9 @@ fn menu_cancel_and_confirmation_retain_the_original_semantic_parent() {
     assert_eq!(parent(&accepted_records, &task), Some(intent));
     assert!(!format!("{opened_records:?}{accepted_records:?}").contains("SECRET"));
 
-    let opened = host.update(key(KeyCode::Char('m')));
+    let opened = host.update(key(Key::Char('m')));
     let menu = begun(&records(&opened), "ui.menu");
-    let cancelled = host.update(key(KeyCode::Esc));
+    let cancelled = host.update(key(Key::Esc));
     assert!(has_outcome(
         &records(&cancelled),
         &menu,
@@ -612,9 +612,9 @@ fn menu_cancel_and_confirmation_retain_the_original_semantic_parent() {
     ));
     assert!(host.menu.is_none());
 
-    let opened = host.update(key(KeyCode::Char('m')));
+    let opened = host.update(key(Key::Char('m')));
     let menu = begun(&records(&opened), "ui.menu");
-    let declined = host.update(key(KeyCode::Char('n')));
+    let declined = host.update(key(Key::Char('n')));
     assert!(has_outcome(
         &records(&declined),
         &menu,
@@ -625,18 +625,18 @@ fn menu_cancel_and_confirmation_retain_the_original_semantic_parent() {
 #[tokio::test]
 async fn typed_menu_keeps_text_private_and_retains_confirmation_and_cancellation() {
     let mut host = host();
-    let opened = records(&host.update(key(KeyCode::Char('t'))));
+    let opened = records(&host.update(key(Key::Char('t'))));
     let menu = begun(&opened, "ui.menu");
     let intent = begun(&opened, "probe.change");
-    assert!(records(&host.update(key(KeyCode::Char('S')))).is_empty());
+    assert!(records(&host.update(key(Key::Char('S')))).is_empty());
     assert!(records(&host.update(Event::Paste("SECRET paste".into()))).is_empty());
-    assert!(records(&host.update(key(KeyCode::Backspace))).is_empty());
+    assert!(records(&host.update(key(Key::Backspace))).is_empty());
     host.update(Event::Tracked {
         action: ActionId::new(),
         semantic: None,
         event: Box::new(Event::Notice("unrelated".into())),
     });
-    let accepted = host.update(key(KeyCode::Enter));
+    let accepted = host.update(key(Key::Enter));
     let accepted_records = records(&accepted);
     assert!(has_outcome(
         &accepted_records,
@@ -667,10 +667,10 @@ async fn typed_menu_keeps_text_private_and_retains_confirmation_and_cancellation
     assert!(has_outcome(&completed, &intent, JournalOutcome::Succeeded));
     assert!(!format!("{opened:?}{accepted_records:?}{completed:?}").contains("SECRET"));
 
-    let reopened = records(&host.update(key(KeyCode::Char('t'))));
+    let reopened = records(&host.update(key(Key::Char('t'))));
     let menu = begun(&reopened, "ui.menu");
     let intent = begun(&reopened, "probe.change");
-    let cancelled = records(&host.update(key(KeyCode::Esc)));
+    let cancelled = records(&host.update(key(Key::Esc)));
     assert!(has_outcome(&cancelled, &menu, JournalOutcome::Cancelled));
     assert!(has_outcome(&cancelled, &intent, JournalOutcome::Cancelled));
     assert!(host.menu.is_none());
@@ -679,7 +679,7 @@ async fn typed_menu_keeps_text_private_and_retains_confirmation_and_cancellation
 #[tokio::test]
 async fn action_effect_retains_its_owner_subject_and_semantic_task_correlation() {
     let mut host = host();
-    let dispatched = host.update(key(KeyCode::Char('d')));
+    let dispatched = host.update(key(Key::Char('d')));
     let dispatched_records = records(&dispatched);
     let dispatch = begun(&dispatched_records, "plugin.action.dispatch");
     let action = begun(&dispatched_records, "plugin.action");
@@ -718,7 +718,7 @@ async fn action_effect_retains_its_owner_subject_and_semantic_task_correlation()
 async fn opaque_completion_is_unknown_and_idle_ticks_are_silent() {
     let mut host = host();
     assert!(records(&host.update(Event::Tick(1))).is_empty());
-    let (action, semantic, plugin, task) = spawn(host.update(key(KeyCode::Char('o'))));
+    let (action, semantic, plugin, task) = spawn(host.update(key(Key::Char('o'))));
     let done = host.update(tracked_event(
         Event::Msg {
             plugin,
@@ -740,24 +740,11 @@ async fn opaque_completion_is_unknown_and_idle_ticks_are_silent() {
 }
 
 /// Typing into a field through `Intent::Key` (Headless, the Ink renderer)
-/// is journalled as the terminal's keys are: nothing per key, the field's
-/// Enter as `input.commit` and its Esc as `input.cancel`.
+/// is journalled with nothing per key, the field's Enter as `input.commit`
+/// and its Esc as `input.cancel`.
 #[test]
-fn typing_through_intents_is_journalled_as_terminal_keys_are() {
-    use crate::view::{Chord, Intent, Key};
-    let press = |host: &mut Host, terminal: bool, k: Key| {
-        let event = if terminal {
-            key(match k {
-                Key::Char(c) => KeyCode::Char(c),
-                Key::Enter => KeyCode::Enter,
-                Key::Esc => KeyCode::Esc,
-                _ => unreachable!(),
-            })
-        } else {
-            Event::Intent(Intent::Key { chord: Chord::new(k) })
-        };
-        records(&host.update(event))
-    };
+fn typing_through_intents_is_journalled_without_a_record_per_key() {
+    let press = |host: &mut Host, k: Key| records(&host.update(key(k)));
     let kinds = |records: &[JournalRecord]| -> Vec<String> {
         records
             .iter()
@@ -767,29 +754,26 @@ fn typing_through_intents_is_journalled_as_terminal_keys_are() {
             })
             .collect()
     };
-    let mut seen = Vec::new();
-    for terminal in [true, false] {
-        let mut host = host();
-        press(&mut host, terminal, Key::Char('t'));
-        assert!(host.menu.as_ref().is_some_and(|m| m.input.is_some()), "a typed menu");
-        for c in "SECRET".chars() {
-            assert!(press(&mut host, terminal, Key::Char(c)).is_empty(), "a key in the field is not recorded");
-        }
-        let accepted = press(&mut host, terminal, Key::Enter);
-        begun(&accepted, "input.commit");
-        press(&mut host, terminal, Key::Char('t'));
-        let cancelled = press(&mut host, terminal, Key::Esc);
-        begun(&cancelled, "input.cancel");
-        assert!(host.menu.is_none());
-        seen.push((kinds(&accepted), kinds(&cancelled)));
+    let mut host = host();
+    press(&mut host, Key::Char('t'));
+    assert!(host.menu.as_ref().is_some_and(|m| m.input.is_some()), "a typed menu");
+    for c in "SECRET".chars() {
+        assert!(press(&mut host, Key::Char(c)).is_empty(), "a key in the field is not recorded");
     }
-    assert_eq!(seen[0], seen[1], "the terminal and intents record the same");
+    let accepted = press(&mut host, Key::Enter);
+    begun(&accepted, "input.commit");
+    press(&mut host, Key::Char('t'));
+    let cancelled = press(&mut host, Key::Esc);
+    begun(&cancelled, "input.cancel");
+    assert!(host.menu.is_none());
+    assert_eq!(kinds(&accepted), ["input.commit"]);
+    assert_eq!(kinds(&cancelled), ["input.cancel"]);
 }
 
 #[test]
 fn state_only_dispatches_are_recorded_without_keys_and_typing_is_not() {
     let mut host = host();
-    let effects = host.update(key(KeyCode::Char('f')));
+    let effects = host.update(key(Key::Char('f')));
     let records = records(&effects);
     let focus = begun(&records, "ui.focus");
     assert!(has_outcome(&records, &focus, JournalOutcome::Succeeded));
@@ -802,7 +786,7 @@ fn state_only_dispatches_are_recorded_without_keys_and_typing_is_not() {
         result: JournalOutcome::Succeeded,
         capturing: true,
     });
-    assert!(host.update(key(KeyCode::Char('S'))).is_empty());
+    assert!(host.update(key(Key::Char('S'))).is_empty());
     assert!(host.update(Event::Paste("SECRET paste".into())).is_empty());
 }
 
@@ -842,10 +826,10 @@ async fn typed_action_runs_from_request_through_confirmation_to_sqlite_outcome()
     let mut recording = Recording::open_at(&temp.path(), SessionOrigin::Tui).unwrap();
     let mut host = host();
     let (tx, mut rx) = unbounded_channel();
-    for effect in host.update(key(KeyCode::Char('m'))) {
+    for effect in host.update(key(Key::Char('m'))) {
         perform(effect, &tx, Some(&recording.sink));
     }
-    for effect in host.update(key(KeyCode::Char('y'))) {
+    for effect in host.update(key(Key::Char('y'))) {
         perform(effect, &tx, Some(&recording.sink));
     }
     // No deadline of its own: the task's answer comes when it is done (nextest
@@ -913,9 +897,9 @@ async fn preparation_menu_and_unrelated_completion_keep_semantic_intent() {
     let mut host = host();
     host.view = View::Screen(1);
     let (other_task, other_semantic, other_plugin, other) =
-        spawn(host.update(key(KeyCode::Char('a'))));
+        spawn(host.update(key(Key::Char('a'))));
     host.view = View::Screen(0);
-    let (prepare_task, semantic, plugin, prepare) = spawn(host.update(key(KeyCode::Char('p'))));
+    let (prepare_task, semantic, plugin, prepare) = spawn(host.update(key(Key::Char('p'))));
     let prepared = host.update(tracked_event(
         Event::Msg {
             plugin,
@@ -944,7 +928,7 @@ async fn preparation_menu_and_unrelated_completion_keep_semantic_intent() {
         JournalOutcome::Failed
     ));
     assert!(host.menu.is_some());
-    let confirmed = host.update(key(KeyCode::Char('y')));
+    let confirmed = host.update(key(Key::Char('y')));
     let (task, resumed_semantic, plugin, work) = spawn(confirmed);
     assert_eq!(resumed_semantic, semantic);
     let done = host.update(tracked_event(
@@ -970,7 +954,7 @@ async fn preparation_menu_and_unrelated_completion_keep_semantic_intent() {
 #[test]
 fn show_and_open_use_scoped_subjects_and_sanitized_targets() {
     let mut host = host();
-    let shown = records(&host.update(key(KeyCode::Char('s'))));
+    let shown = records(&host.update(key(Key::Char('s'))));
     let descriptor = shown
         .iter()
         .find_map(|record| match record {
@@ -982,7 +966,7 @@ fn show_and_open_use_scoped_subjects_and_sanitized_targets() {
         .unwrap();
     assert_eq!(descriptor.subjects[0].key.instance, "instance-one");
     assert_eq!(descriptor.subjects[0].key.id, "42");
-    let opened = records(&host.update(key(KeyCode::Char('v'))));
+    let opened = records(&host.update(key(Key::Char('v'))));
     let descriptor = opened
         .iter()
         .find_map(|record| match record {

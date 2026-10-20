@@ -674,28 +674,19 @@ mod tests {
 
     #[tokio::test(flavor = "current_thread")]
     async fn scratch_history_reads_queued_records_without_audit_writes() {
-        use crate::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use crate::view::{Chord, Intent};
+        let key = |c: char| Event::Intent(Intent::Key { chord: Chord::char(c) });
         let scratch = Scratch::new();
         let mut scenario =
             Scenario::with_journal(Host::new(Vec::new(), 0).unwrap(), &scratch.journal()).unwrap();
         // Pause is an actual host action. Its two records are queued without
         // flushing or waiting before the History request joins the same writer.
-        scenario
-            .dispatch(Event::Key(KeyEvent::new(
-                KeyCode::Char('z'),
-                KeyModifiers::NONE,
-            )))
-            .unwrap();
+        scenario.dispatch(key('z')).unwrap();
         assert!(scenario.host().paused().is_some());
         assert_eq!(scenario.records().len(), 2);
         // Opening and refreshing the actual host overlay goes through the real
         // History effect and its matching request ID, not injected Event pages.
-        scenario
-            .dispatch(Event::Key(KeyEvent::new(
-                KeyCode::Char('H'),
-                KeyModifiers::NONE,
-            )))
-            .unwrap();
+        scenario.dispatch(key('H')).unwrap();
         assert_eq!(scenario.pending_tasks(), 1);
         let loading = scenario.inspect(|host| host.chrome_view(120, 40).history.unwrap());
         assert!(loading.pending && loading.rows.is_empty());
@@ -713,12 +704,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["requested", "succeeded"]
         );
-        scenario
-            .dispatch(Event::Key(KeyEvent::new(
-                KeyCode::Char('r'),
-                KeyModifiers::NONE,
-            )))
-            .unwrap();
+        scenario.dispatch(key('r')).unwrap();
         scenario.settle_io(16, IO_TIMEOUT).await.unwrap();
         let refreshed = scenario.inspect(|host| host.chrome_view(120, 40).history.unwrap());
         assert!(!refreshed.pending && refreshed.error.is_none());

@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
     unpack_runtime();
-    tokio.block_on(radar_core::runner::main(parts, radar::DEFAULT_RENDERER))
+    tokio.block_on(radar_core::runner::main(parts))
 }
 
 /// A release build carries radar's runtime (the Ink renderer and the Claude Code

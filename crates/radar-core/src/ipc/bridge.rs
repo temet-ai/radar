@@ -348,12 +348,12 @@ impl Bridge {
                     let message = if protocol != PROTOCOL {
                         format!(
                             "radar speaks renderer protocol {PROTOCOL}, this Ink renderer {protocol}: \
-                             install them together, or run RADAR_RENDERER=ratatui radar"
+                             install them together"
                         )
                     } else {
                         format!(
                             "radar sends views of version {}, this Ink renderer reads {view}: \
-                             install them together, or run RADAR_RENDERER=ratatui radar",
+                             install them together",
                             crate::view::VERSION
                         )
                     };

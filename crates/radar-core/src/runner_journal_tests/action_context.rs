@@ -226,7 +226,7 @@ fn prepared_context_resolves_once_and_preserves_exact_delivered_input() {
         self_reference.clone(),
     ];
     let (mut host, calls) = fixture(existing.clone(), discovered);
-    let effects = host.update(key(KeyCode::Char('d')));
+    let effects = host.update(key(Key::Char('d')));
     let captured = descriptor(&effects);
     let calls = calls.lock().unwrap();
     assert_eq!(calls.related, ["owner", "notes", "later-owner"]);
@@ -266,7 +266,7 @@ fn context_dedup_uses_full_scoped_identity_without_changing_delivery() {
     let two = reference("a").with("scope", "two");
     let other = reference("a").with("provider", "secondary");
     let (mut host, calls) = fixture(vec![one.clone(), two, one, other], vec![]);
-    let captured = descriptor(&host.update(key(KeyCode::Char('d'))));
+    let captured = descriptor(&host.update(key(Key::Char('d'))));
     assert_eq!(captured.subjects.len(), 4);
     assert_eq!(captured.subjects[1].key.instance, "one");
     assert_eq!(captured.subjects[2].key.instance, "two");
@@ -285,7 +285,7 @@ fn unsupported_and_invalid_owner_snapshots_are_omitted_without_fallback() {
         reference("safe"),
     ]);
     let (mut host, calls) = fixture(subjects, vec![]);
-    let effects = host.update(key(KeyCode::Char('d')));
+    let effects = host.update(key(Key::Char('d')));
     let captured = descriptor(&effects);
     assert_eq!(captured.subjects.len(), 2);
     assert_eq!(captured.subjects[1].key.id, "safe");
@@ -309,7 +309,7 @@ fn context_bound_counts_unrepresented_occurrences_without_capping_delivery() {
     for (count, omitted, truncated) in [(30, 0, false), (31, 0, false), (32, 1, true)] {
         let subjects = (0..count).map(|i| reference(&format!("n{i}"))).collect();
         let (mut host, calls) = fixture(subjects, vec![]);
-        let captured = descriptor(&host.update(key(KeyCode::Char('d'))));
+        let captured = descriptor(&host.update(key(Key::Char('d'))));
         assert_eq!(captured.subjects.len(), (count + 1).min(32));
         assert_eq!(captured.metadata.omitted_subjects, omitted);
         assert_eq!(captured.metadata.truncated, truncated);
@@ -320,7 +320,7 @@ fn context_bound_counts_unrepresented_occurrences_without_capping_delivery() {
     let mut duplicates = subjects.clone();
     duplicates.extend([reference("n0"), reference("n30")]);
     let (mut host, _) = fixture(duplicates, vec![]);
-    let captured = descriptor(&host.update(key(KeyCode::Char('d'))));
+    let captured = descriptor(&host.update(key(Key::Char('d'))));
     assert_eq!(captured.subjects.len(), 32);
     assert_eq!(captured.metadata.omitted_subjects, 0);
     assert!(!captured.metadata.truncated);
@@ -331,7 +331,7 @@ fn context_bound_counts_unrepresented_occurrences_without_capping_delivery() {
         reference("unsupported"),
     ]);
     let (mut host, _) = fixture(subjects, vec![]);
-    let captured = descriptor(&host.update(key(KeyCode::Char('d'))));
+    let captured = descriptor(&host.update(key(Key::Char('d'))));
     assert_eq!(captured.subjects.len(), 32);
     assert_eq!(captured.metadata.omitted_subjects, 3);
     assert!(captured.metadata.truncated && captured.metadata.redacted);
@@ -354,7 +354,7 @@ fn missing_primary_leaves_all_slots_for_valid_context() {
         ready: true,
         calls,
     });
-    let captured = descriptor(&host.update(key(KeyCode::Char('d'))));
+    let captured = descriptor(&host.update(key(Key::Char('d'))));
     assert_eq!(captured.subjects.len(), 32);
     assert!(
         captured
@@ -372,7 +372,7 @@ fn contributed_key_and_menu_capture_the_same_context() {
     for menu in [false, true] {
         let (mut host, calls) = fixture(vec![], vec![reference("a")]);
         let effects = if menu {
-            host.update(key(KeyCode::Char('x')));
+            host.update(key(Key::Char('x')));
             let state = host.menu.as_mut().unwrap();
             state.row = state
                 .menu
@@ -380,9 +380,9 @@ fn contributed_key_and_menu_capture_the_same_context() {
                 .iter()
                 .position(|item| item.label == "SECRET action label")
                 .unwrap();
-            host.update(key(KeyCode::Enter))
+            host.update(key(Key::Enter))
         } else {
-            host.update(key(KeyCode::Char('a')))
+            host.update(key(Key::Char('a')))
         };
         let captured = descriptor(&effects);
         assert_eq!(captured.subjects.len(), 2);
@@ -417,7 +417,7 @@ async fn supplied_context_round_trips_without_creating_map_facts() {
     let temp = TestDir::new();
     let mut recording = Recording::open_at(&temp.path(), SessionOrigin::Tui).unwrap();
     let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
-    for effect in host.update(key(KeyCode::Char('d'))) {
+    for effect in host.update(key(Key::Char('d'))) {
         perform(effect, &tx, Some(&recording.sink));
     }
     recording.finish();

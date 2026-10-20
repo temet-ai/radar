@@ -1,36 +1,34 @@
 #!/usr/bin/env bash
 # Pictures of every place radar draws, from sample data, and a page to look at them.
 #
-#   scripts/shots                       every place at 80x24 and 160x40 into shots/,
-#                                       with shots/index.html (a grid, dark and light)
+#   scripts/shots                       every recorded view fixture at 80x24 and 160x40
+#                                       into shots/, with shots/index.html (a grid,
+#                                       dark and light)
 #   scripts/shots --out DIR             another folder
-#   scripts/shots --compare REF         the same places at git ref REF (built in a
+#   scripts/shots --compare REF         the same places drawn from git ref REF (a
 #                                       temporary worktree) beside the working tree:
 #                                       each place that changed shows before | after,
 #                                       unchanged ones are folded away
-#   scripts/shots --sizes 80x24,120x30  other sizes
+#   scripts/shots --sizes 80x24         other sizes (fixtures exist at 80x24 and 160x40)
 #   scripts/shots --no-png              SVG only (no PNG; browsers show SVG fine)
 #
-# A place is a screen, a settings section or a gallery page (`radar shot --list`).
-# Pictures are SVG (deterministic: two renders of the same screen are the same
-# bytes, so "changed" is a byte comparison) and PNG. Open DIR/index.html.
+# A place is a recorded view fixture (ink/test/fixtures/*.json). Ink draws each one
+# through the whole App to styled cells (ink/tools/shots/draw.test.tsx) and the cells
+# become SVG (ink/tools/shots/svg.ts), then PNG with rsvg-convert. SVG is
+# deterministic: two renders of the same screen are the same bytes, so "changed" is
+# a byte comparison. Open DIR/index.html.
 #
-# If REF is older than `radar shot`, the commits that bring it (the ones touching
-# visual.rs, shot.rs, the gallery stories or a part's demo.rs) are cherry-picked
-# onto it in the temporary worktree, so both sides are drawn by the same tool
-# (story panels added later for newer kit features, commits named
-# `gallery stories: ...`, are left out: the ref's kit may not have them).
+# With --compare, REF is drawn from its own fixtures and its own Ink source; if REF
+# has no ink/tools/shots yet, the working tree's copy is put into the worktree.
 #
-# Works with bash 3.2 (macOS) and GNU or BSD tools. Needs cargo and git;
-# RADAR_BIN=path/to/radar skips the build of the working tree.
+# Works with bash 3.2 (macOS) and GNU or BSD tools. Needs node, git and ink/node_modules
+# (cd ink && npm ci); PNG needs rsvg-convert, else the pictures are SVG.
 
 set -e
 
 cd "$(dirname "$0")/.."
 root=$(pwd)
 
-# Where cargo builds (CARGO_TARGET_DIR if set); the ref's build goes under it.
-target=${CARGO_TARGET_DIR:-$root/target}
 out=shots
 ref=
 sizes=80x24,160x40
@@ -41,18 +39,15 @@ while [ $# -gt 0 ]; do
         --compare) ref=$2; shift 2 ;;
         --sizes) sizes=$2; shift 2 ;;
         --no-png) format=svg; shift ;;
-        -h|--help) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "scripts/shots: unknown option $1 (see --help)" >&2; exit 2 ;;
     esac
 done
 
-size_args=()
-old_ifs=$IFS
-IFS=,
-for s in $sizes; do
-    size_args+=(--size "$s")
-done
-IFS=$old_ifs
+if [ "$format" = both ] && ! command -v rsvg-convert >/dev/null 2>&1; then
+    echo "scripts/shots: rsvg-convert not found, writing SVG only" >&2
+    format=svg
+fi
 
 rm -rf "$out"
 mkdir -p "$out"
@@ -61,43 +56,39 @@ out=$(cd "$out" && pwd)
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/radar-shots.XXXXXX")
 cleanup() {
     if [ -n "${worktree:-}" ] && [ -d "$worktree" ]; then
+        rm -f "$worktree/ink/node_modules"
         git worktree remove --force "$worktree" >/dev/null 2>&1 || true
     fi
     rm -rf "$tmp"
 }
 trap cleanup EXIT
 
-# Build the radar of the tree in $1 into target dir $2; print the binary's path.
-build() {
-    (cd "$1" && CARGO_TARGET_DIR="$2" cargo build -q >&2) || return 1
-    echo "$2/debug/radar"
-}
-
 esc() {
     sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'
 }
 
-# radar shot's places, "name<TAB>title" a line.
+# radar's places, "name<TAB>title" a line, as drawn into folder $1.
 places() {
-    "$1" shot --list
+    cat "$1/places.tsv"
 }
 
-# Draw every place with binary $1 into folder $2.
+# Draw every place of the tree at $1 into folder $2: SVG, then PNG.
 draw() {
     mkdir -p "$2"
-    "$1" shot --out "$2" --format "$format" ${size_args[@]+"${size_args[@]}"} >/dev/null
+    (cd "$1/ink" && FORCE_COLOR=3 SHOTS_OUT="$2" SHOTS_SIZES="$sizes" npx --no-install vitest run --config tools/shots/vitest.config.ts >"$tmp/draw.log" 2>&1) || {
+        cat "$tmp/draw.log" >&2
+        echo "scripts/shots: drawing $1 failed" >&2
+        exit 1
+    }
+    if [ "$format" = both ]; then
+        for svg in "$2"/*.svg; do
+            rsvg-convert "$svg" -o "${svg%.svg}.png"
+        done
+    fi
 }
 
 ext=png
 [ "$format" = svg ] && ext=svg
-
-# --- the working tree -------------------------------------------------------
-if [ -n "${RADAR_BIN:-}" ]; then
-    after_bin=$RADAR_BIN
-else
-    echo "building the working tree..." >&2
-    after_bin=$(build "$root" "$target")
-fi
 
 # --- the page ------------------------------------------------------------------
 page_head() {
@@ -165,8 +156,8 @@ sizes_of() {
 
 if [ -z "$ref" ]; then
     # --- one tree ---------------------------------------------------------------
-    draw "$after_bin" "$out"
-    places "$after_bin" > "$tmp/places"
+    draw "$root" "$out"
+    places "$out" > "$tmp/places"
     {
         page_head
         echo '<header><h1>radar shots</h1><span class="note">'"$(wc -l < "$tmp/places" | tr -d ' ')"' places, from sample data</span><button id="page"></button></header>'
@@ -190,51 +181,22 @@ git rev-parse --verify --quiet "$ref^{commit}" >/dev/null || {
     echo "scripts/shots: $ref is not a git ref" >&2
     exit 2
 }
-worktree="$tmp/ref"
+mkdir -p "$root/.claude/worktrees"
+worktree="$root/.claude/worktrees/shots-ref-$$"
 git worktree add --detach "$worktree" "$ref" >/dev/null 2>&1
-
-if ! grep -q 'pub mod shot' "$worktree/crates/radar-core/src/lib.rs" 2>/dev/null; then
-    # The commits that bring the tooling, oldest first. A commit named
-    # `gallery stories: ...` adds panels for kit features that may be newer
-    # than REF (it would not build there), so it is left out.
-    picks=$(git rev-list --reverse --invert-grep --grep='^gallery stories:' "$ref"..HEAD -- \
-        crates/radar-core/src/visual.rs crates/radar-core/src/shot.rs \
-        crates/radar-core/src/ui/stories.rs crates/radar-gitlab/src/demo.rs)
-    echo "$ref predates radar shot: bringing the tooling onto it ($(echo "$picks" | wc -l | tr -d ' ') commits)" >&2
-    picked=1
-    for c in $picks; do
-        if ! (cd "$worktree" && git -c user.name=shots -c user.email=shots@localhost cherry-pick --no-commit "$c" >/dev/null 2>&1); then
-            picked=0
-            break
-        fi
-        (cd "$worktree" && git -c user.name=shots -c user.email=shots@localhost commit -q --no-verify -m "tooling $c" >/dev/null 2>&1) || true
-    done
-    if [ "$picked" -eq 0 ]; then
-        # Conflicts (the ref changed what the tooling moved). When REF is an
-        # ancestor of HEAD, the tooling is what this branch committed since:
-        # apply that whole difference, so only uncommitted edits show.
-        (cd "$worktree" && git cherry-pick --abort >/dev/null 2>&1; git reset -q --hard "$ref" >/dev/null 2>&1; git clean -fdq) || true
-        if git merge-base --is-ancestor "$ref" HEAD; then
-            echo "conflicts: putting everything committed since $ref on it instead; only uncommitted changes will show as changed" >&2
-            git diff --binary "$ref" HEAD | (cd "$worktree" && git apply) || {
-                echo "scripts/shots: could not apply HEAD's difference from $ref" >&2
-                exit 1
-            }
-        else
-            echo "scripts/shots: could not put the tooling on $ref: conflicts." >&2
-            echo "Compare against a ref that has radar shot, or merge the tooling first." >&2
-            exit 1
-        fi
-    fi
+ln -s "$root/ink/node_modules" "$worktree/ink/node_modules"
+if [ ! -f "$worktree/ink/tools/shots/draw.test.tsx" ]; then
+    echo "$ref predates ink/tools/shots: using the working tree's copy" >&2
+    mkdir -p "$worktree/ink/tools"
+    cp -R "$root/ink/tools/shots" "$worktree/ink/tools/shots"
 fi
 
-echo "building $ref..." >&2
-before_bin=$(build "$worktree" "$target/shots-ref")
-draw "$before_bin" "$out/before"
-draw "$after_bin" "$out/after"
-places "$after_bin" > "$tmp/places"
-places "$before_bin" > "$tmp/places-before"
-
+echo "drawing $ref..." >&2
+draw "$worktree" "$out/before"
+echo "drawing the working tree..." >&2
+draw "$root" "$out/after"
+places "$out/after" > "$tmp/places"
+places "$out/before" > "$tmp/places-before"
 # What changed: a place is changed when any of its SVGs differs, new when only
 # the working tree has it, gone when only the ref does.
 : > "$tmp/changed"

@@ -153,9 +153,12 @@ not repeat the entire journey merely for one more assertion.
 
 Keep goldens for intentional renderer/protocol facts. Reuse existing names and
 sizes when moving a case; inspect every actual diff before any authorized update.
-Never regenerate expected output during an ordinary check. A neutral view is not
-an actual frame, Ratatui parity is not Ink parity, and the headless recipe menu is
-not an interactive renderer. `scripts/check-scenario-renderers` verifies the real
+Never regenerate expected output during an ordinary check. Rust tests check view
+data (`radar_core::headless`, its text form in headless/text.rs) and send clicks as
+`Intent::Select/Activate/Context` on a target, never `Event::Mouse` or `host.hits`;
+pictures are Ink's, in vitest, from view fixtures and Ink's frozen goldens
+(ink/test/cells/README.md). A neutral view is not an actual frame, and the headless
+recipe menu is not an interactive renderer. `scripts/check-scenario-renderers` verifies the real
 GitHub checkpoint producer and its Ink App rendering; it does not cover every UI.
 
 Classify exact compiled cases in narrow manifest scopes and compare real nextest
@@ -218,7 +221,8 @@ Before handoff:
   normal lint gate is `cargo clippy --workspace --all-features --all-targets --keep-going -- -D warnings`;
   report narrower lint as narrower evidence. Run `scripts/check-mixes` only when
   features, `src/lib.rs` or `tests/mix.rs` changed; CI runs it on the pull request.
-- [ ] New golden output inspected; both renderer paths checked when applicable.
+- [ ] New golden output inspected; a test that spans crates is a mix test or a
+  published-boundary contract (view data, IPC), never a lean on another crate's text.
 - [ ] Independent review checks assertion mapping, safety, hidden fixture effects
   and negative evidence. Review is distinct from execution.
 - [ ] Record passed, failed, blocked and never-run commands at the tested commit;

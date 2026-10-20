@@ -2,7 +2,7 @@ import { PACK, SLOTS } from "./generated/pack.js";
 import type { ColourTier } from "../protocol/generated/ColourTier.js";
 
 /** The look the host resolved for this terminal: the colour of every theme slot (core and the parts' own, as
- * `#rrggbb`) and the icon pack in use (name → glyph and the style the icon is drawn in). Ratatui reads these from
+ * `#rrggbb`) and the icon pack in use (name → glyph and the style the icon is drawn in). The host reads these from
  * `Theme`/`icon::Icons`; Ink draws with exactly them and chooses nothing of its own. */
 export interface Look {
   /** The host-resolved capability tier, never inferred from the slot values. */
@@ -66,7 +66,7 @@ export function applyLook(look: Look) {
   current = look;
 }
 
-/** What a run of text is drawn in: colours as `#rrggbb` and the modifiers Ratatui's `Style` carries. */
+/** What a run of text is drawn in: colours as `#rrggbb` and the modifiers the host's `Style` carries. */
 export interface Style {
   color?: string;
   backgroundColor?: string;
@@ -117,7 +117,7 @@ export function specStyle(spec: string | null | undefined): Style {
 
 export type Rgb = [number, number, number];
 
-/** theme::mix: `a` mixed `perMille` of the way toward `b`, each channel rounded half up, as Ratatui rounds it. */
+/** theme::mix: `a` mixed `perMille` of the way toward `b`, each channel rounded half up, as the host rounds it. */
 export const mix = (a: Rgb, b: Rgb, perMille: number): Rgb =>
   a.map((x, i) => Math.floor((x * (1000 - perMille) + b[i]! * perMille + 500) / 1000)) as Rgb;
 

@@ -1,4 +1,4 @@
-// A terminal key as the view contract's Chord (view::Chord): what the Ratatui adapter's `chord_of` produces. While an
+// A terminal key as the view contract's Chord (view::Chord): what the host's key parsing yields. While an
 // editor captures, every key goes to the host as `{intent:"key", chord}`; the shell does not interpret it.
 export type KeyName =
   | { char: string }

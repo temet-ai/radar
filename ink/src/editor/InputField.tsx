@@ -20,7 +20,7 @@ export function cutCells(text: string, cells: number): string {
   return out;
 }
 
-/** What Ratatui's `input::render_field` puts in a row `width` cells wide: the characters from the scroll offset
+/** What the host's `input::render_field` puts in a row `width` cells wide: the characters from the scroll offset
  * (one cell is kept for the caret at the end of the text), and where the caret is in them. */
 export function fieldWindow(text: string, caret: number, width: number): { before: string; at: string; after: string } {
   const chars = Array.from(text);

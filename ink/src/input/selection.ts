@@ -1,5 +1,5 @@
 /**
- * Selecting text with the mouse, inside a pane (issue #51; crates/radar-core/src/select.rs is the Ratatui runner's).
+ * Selecting text with the mouse, inside a pane (issue #51; the host's selection rules).
  *
  * radar captures the mouse, so the terminal cannot select text; the renderer does it instead. A selection belongs to the
  * area the drag started in: a pane's inside (its border, title row and scrollbar column are not part of it), the dock's

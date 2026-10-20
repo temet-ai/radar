@@ -13,11 +13,11 @@ import { cellWidth } from "../chrome/width.js";
 
 /**
  * ui::rich::layout as rows of cells: a document (the host's `RichBlock`s, read from markdown by ui::markdown) laid out
- * `width` cells wide exactly as Ratatui lays out a description, line for line, in theme slots only. The dock's
+ * `width` cells wide exactly as the host lays out a description, line for line, in theme slots only. The dock's
  * transcript is rows of cells (it scrolls by rows), so it lays out an answer with this rather than RichDoc's Boxes.
  *
  * Cells carry no OSC 8 link, so a link's address follows its words, muted, where they differ (ui::rich::Look's `urls`,
- * Ratatui's own fallback for a terminal that cannot open the words). `painted` is the host's highlighting of the
+ * the host's own fallback for a terminal that cannot open the words). `painted` is the host's highlighting of the
  * document's code blocks (DockItem::Assistant `painted`): a block each in document order, a line of runs per line.
  */
 
@@ -433,7 +433,7 @@ export const rowsText = (rows: Cell[][]): string[] => rows.map((r) => r.map((c) 
 
 /** view_tui rich_lines, a `doc` block: the document laid out a column short of the room the block has and the bar
  * before every line; at most `most` lines, then a muted `…`. The block's `urls` falls to `urls`: the address follows
- * the words where links are not written as OSC 8 (Ratatui's `!link::on()`), never on the settings sheet (shell.rs
+ * the words where links are not written as OSC 8 (the host's `!link::on()`), never on the settings sheet (shell.rs
  * gives it `false`). */
 export function docBlockRows(block: Extract<Block, { block: "doc" }>, room: number, plain = false, urls = true): Cell[][] {
   const bar = block.bar ? lineCells([block.bar], plain) : [];

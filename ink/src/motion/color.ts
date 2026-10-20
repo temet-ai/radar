@@ -1,5 +1,5 @@
-// Colour maths of tachyonfx 0.25 (color_space.rs, interpolation.rs), the maths Ratatui's motion engine blends with.
-// A colour is 0xRRGGBB, or RESET (-1) for a cell colour the terminal decides. Ratatui reads Reset as black.
+// Colour maths of tachyonfx 0.25 (color_space.rs, interpolation.rs), the maths the host's motion engine blends with.
+// A colour is 0xRRGGBB, or RESET (-1) for a cell colour the terminal decides. Reset reads as black.
 
 export const RESET = -1;
 

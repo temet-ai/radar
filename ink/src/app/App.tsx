@@ -677,7 +677,7 @@ function SectionBody(p: { section: any; nav: React.ReactNode; navWidth: number; 
   const wide = width >= 120;
   const detailNode = section.detail_blocks?.length ? { node: "rich", blocks: section.detail_blocks } : { node: "document", lines: section.detail ?? [] };
   const mk = (title: string, node: any, w: number, h: number, pane: string) => sectionPane(cx, renderNode, p.focus === pane, title, node, w, h, pane);
-  // Ratatui's Fill constraints round the first share to the nearest cell (136 cells at 3:2 are 82 and 54).
+  // Fill shares round the first share to the nearest cell (136 cells at 3:2 are 82 and 54).
   // The dock sits under the section (under the section and its detail when they stack); narrow, it covers them.
   const split = p.dock ? splitDock(height, width, true, p.dock.rows, p.dock.full) : null;
   const docked = split && split.dock > 0 ? split : null;

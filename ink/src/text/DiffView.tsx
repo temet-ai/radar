@@ -16,7 +16,7 @@ import { bgOf, slotStyle, type Style } from "./look.js";
 import { selectedStyle } from "../nodes/tree.js";
 import { ScrollSink, thumbOf } from "../nodes/index.js";
 
-// ui::diff::DiffView as Ratatui draws it: a mark column (▎ on the cursor's line in accent.primary), the old and new line
+// ui::diff::DiffView as the host lays it out: a mark column (▎ on the cursor's line in accent.primary), the old and new line
 // numbers muted, the sign and the text in the kind's slot; added and removed lines sit on a tint (the diff slot blended
 // into bg.surface), the words that changed within a replaced pair on a stronger one; hunk headings status.info; the
 // cursor line lit with the selection across the row. Side by side: old on the left, new on the right, a removed line
@@ -348,10 +348,10 @@ function DiffBody(p: DiffProps) {
   first = Math.max(0, Math.min(first, Math.max(0, rows.length - h)));
   const shown = rows.slice(first, first + h);
   const width = p.width;
-  // ui::scroll::scrollbar: ║ track (bg.overlay) and █ thumb (accent.muted) when there is more than shows. Ratatui paints
+  // ui::scroll::scrollbar: ║ track (bg.overlay) and █ thumb (accent.muted) when there is more than shows. The host paints
   // it on the pane's border column; Ink's frame is not this node's, so it takes the (blank) last column inside.
   const max = rows.length - h;
-  // A frame that takes the report draws the bar on its border (as Ratatui does); the last column inside stays blank.
+  // A frame that takes the report draws the bar on its border; the last column inside stays blank.
   useLayoutEffect(() => {
     sink?.({ max: Math.max(0, max), at: first });
     return () => sink?.(null);

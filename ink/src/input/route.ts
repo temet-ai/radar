@@ -8,7 +8,7 @@ import type { Tree, TreeRow } from "../nodes/view.js";
  * What a key comes to on a view, mirroring crates/radar-core/src/view_tui.rs (`key`, `section_key`)
  * and view.rs (`rows_step_by`, `tree_step`): movement along a list, table, entries or tree selects
  * the next row through the part, ⏎ activates the selection, any other key is passed on as
- * Intent::Key. test/input/intents.json (Ink's golden, first written from the Ratatui adapter)
+ * Intent::Key. test/input/intents.json (Ink's own golden)
  * pins the pairs.
  */
 
@@ -289,7 +289,7 @@ function rowsOf(body: any): { targets: string[]; selected?: number | null; headi
 
 /**
  * The snapshot as the keys already sent would leave it. Several keys can arrive in one read, before
- * the host's next Snapshot: each must be routed from where the previous one went (Ratatui applies
+ * the host's next Snapshot: each must be routed from where the previous one went (the host applies
  * each key before the next), so a Select or Fold the renderer sent is applied to a copy of the
  * body it targets until a newer snapshot replaces it.
  */
@@ -300,7 +300,7 @@ export function desynced<T extends { focus?: unknown }>(snap: T): T {
 export function afterIntent<T extends { screen?: any; section?: any; focus?: unknown }>(snap: T, intent: Intent): T {
   // Any other intent (a key, activate, invoke...) changes the host's state in ways the renderer cannot foresee
   // (focus moving to another pane, the bar, a page opening): the keys after it in the same read are not routed
-  // from this copy but sent as the plain keys the host moves itself on, as Ratatui's runner sends them.
+  // from this copy but sent as the plain keys the host moves itself on, as the host's runner sends them.
   // OpenAll may be rejected for an unidentified page, or stop early on an owner effect/data change. Interaction
   // metadata is optional, so even an absent context is not proof the whole expansion will complete. Buffered keys
   // after it go raw to the host and use the state it actually reached, just as terminal input does.

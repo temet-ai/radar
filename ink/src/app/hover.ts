@@ -1,4 +1,4 @@
-// ui::hover::paint for Ink: what a click would act on is lit under the pointer, painted over the finished frame as Ratatui
+// ui::hover::paint for Ink: what a click would act on is lit under the pointer, painted over the finished frame as the host's
 // paints it over its buffer (shell.rs hover), not drawn by the components. A pointer that moves to another target is
 // one frame Ink takes from the last one (fast-output reuses a frame whose operations did not change) with the cells of
 // one row restyled: no React render, no row drawn again.
@@ -13,7 +13,7 @@ export type HoverRect = { x: number; y: number; w: number; h: number };
 const same = (a: HoverRect | null, b: HoverRect | null) =>
   a === b || (!!a && !!b && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h);
 
-/** Ratatui's paint over one area of a frame: every cell takes `bg.hover`, or an underline where the tier has no colour
+/** The hover paint over one area of a frame: every cell takes `bg.hover`, or an underline where the tier has no colour
  * for it (the mono tier, plain text); the cursor's cells (bg.selection) and the focused tab's (the accent) stay as
  * drawn. */
 export function paintHover(output: string, width: number, rect: HoverRect, plain = false): string {

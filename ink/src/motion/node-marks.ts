@@ -1,4 +1,4 @@
-// Where a node drew what motion animates, as view_tui marks it for Ratatui: a tree row that has a `glow` key is a row
+// Where a node drew what motion animates, as the host's motion marks it: a tree row that has a `glow` key is a row
 // a sync changed (`motion::row`, one cell high, the node's width), and a node that waits for its first data is a
 // loading panel (`motion::loading`, the whole node: a State node, or a tree with a loading note).
 import type { Node } from "../nodes/view.js";

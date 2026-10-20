@@ -36,7 +36,7 @@ import { chipRuns, chipWordStyle } from "./chips.js";
 import { graphemes } from "../editor/graphemes.js";
 import { mnemonicRange, type Mnemonic } from "./mnemonic.js";
 
-/** One terminal cell as Ratatui's buffer holds it: a character and its style. A wide character is one `Cell` of
+/** One terminal cell as a cell buffer holds it: a character and its style. A wide character is one `Cell` of
  * width 2 (the cell after it is part of it). Rows built from cells are exactly as wide as asked, so backgrounds,
  * bands and selection reach every cell the way `Buffer::set_style` does. */
 export interface Cell {
@@ -612,7 +612,7 @@ export function wrapCells(cs: Cell[], width: number): Cell[][] {
   return lines;
 }
 
-/** Ratatui's Paragraph WordWrapper with trim:false, retaining leading/trailing padding.
+/** The host's word wrapper with trim:false, retaining leading/trailing padding.
  * Unlike document prose wrapping, a padded button may split its first word after the leading cell. */
 export function paragraphCells<T extends Cell>(cells: T[], width: number): T[][] {
   if (width <= 0) return [];

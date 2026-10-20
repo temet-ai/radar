@@ -3,7 +3,7 @@
 // as the hover is (app/hover.ts), never by the components. A shadow dims and never erases: every glyph keeps its place.
 //
 // In full colour each cell's colours are mixed toward bg.base (the shadow's ground toward black); with fewer colours, or
-// none, the cells take SGR dim and the shadow's ground is black. The same numbers as Ratatui's, rounded the same.
+// none, the cells take SGR dim and the shadow's ground is black. The same numbers as the host's ui::scrim, rounded the same.
 import chalk from "chalk";
 import { bgOf, hexRgb, mix, monoTier, slotStyle, type Rgb } from "../text/look.js";
 import { BOLD, DIM, restyle, styleId, styleOf, type Sgr } from "./fast-output.js";

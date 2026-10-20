@@ -21,7 +21,7 @@ export function screenRect(el: DOMElement): { x: number; y: number; w: number; h
 
 /**
  * A box that is a pointer target: after Ink has laid the frame out it registers its rectangle with the
- * registry, so a press on it reaches the host as the same `select` Ratatui's adapter sends for the target.
+ * registry, so a press on it reaches the host as the same `select` intent the view data gives the target.
  * Without a registry (a snapshot test) it is only a box.
  */
 export function HitBox({

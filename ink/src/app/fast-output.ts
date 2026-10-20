@@ -4,7 +4,7 @@
 // (@alcalzone/ansi-tokenize), rebuilds strings from them to clip, applies the Text transformers (chalk), parses again,
 // writes the characters into a grid and finally turns each row back into a string character by character, diffing the
 // ANSI codes of neighbours. At 160x40 with colour that was 50-100 ms of CPU a frame, about 85% of the renderer's work,
-// while Ratatui draws the same screen in about 1 ms.
+// while a cell-grid paint of the same screen takes about 1 ms.
 //
 // This replaces `get()` with the same job done on a grid of (character, style id): the text is scanned once for SGR
 // codes, a Text transformer is not run per line but probed once (it wraps its input in SGR codes: `open + text + close`),
@@ -57,7 +57,7 @@ const ATTR_CODES: Array<[number, number]> = [
 ];
 
 /** A cell's style: colours, attributes, and the address it opens (an OSC 8 hyperlink; "" for none). A link travels
- * with the style, as Ratatui's ui::link carries it in the cell, so clipping, the hover, the selection and the scrim keep
+ * with the style, as the host's ui::link carries it in the cell, so clipping, the hover, the selection and the scrim keep
  * it, and a row closes it where its cells end. */
 type Sgr = { fg: string; bg: string; attr: number; link?: string };
 
@@ -686,7 +686,7 @@ function layersOf(ops: Op[]): Layer[] {
       if (l) out.push({ x: op.x, y: op.y, w: l.w, h: l.h, ...(l.shadowOnly ? { shadowOnly: true } : {}) });
     }
   }
-  // A shadow alone (the tour's card) is painted before a menu's scrim, as Ratatui draws the card first and the scrim after.
+  // A shadow alone (the tour's card) is painted before a menu's scrim, so the card is drawn first and the scrim after.
   return out.sort((a, b) => Number(!!b.shadowOnly) - Number(!!a.shadowOnly));
 }
 

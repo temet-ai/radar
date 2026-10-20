@@ -29,7 +29,7 @@ export class Terminal {
   enter() {
     if (this.entered) return;
     this.entered = true;
-    // The same modes, in the same order, as the Ratatui runner (runner.rs).
+    // The same modes, in the same order, as the host's terminal runner sets them.
     this.out.write(PASTE_ON);
     this.out.write(MOUSE_ON);
     this.out.write(FOCUS_ON);

@@ -87,7 +87,7 @@ export function withNotice(
 ): ChromeView {
   if (!notice) return chrome;
   // The bridge sends each host message's words as a notice too (bridge.rs: icon dropped), so when the snapshot still
-  // holds that message its icon (✓, ×) stays before the words, as Ratatui draws it.
+  // holds that message its icon (✓, ×) stays before the words.
   const held = chrome.status.message;
   const icon = held && held.text === notice ? held.icon : undefined;
   return {
@@ -223,7 +223,7 @@ export function SettingsNavPane({
       style: r.selected ? { ...c.style, ...shade } : { ...shade, ...c.style },
     }));
     const full = r.selected && max === 0 ? inner + 1 : inner;
-    // A name wider than the column is cut one cell short of the band's edge, with no ellipsis (Ratatui's tree widget:
+    // A name wider than the column is cut one cell short of the band's edge, with no ellipsis (the tree widget's rule:
     // "Tools and defau" at 80 columns), and the rest of the row is the band or the selection.
     const kept = clipSegments(cells, Math.max(0, inner - 1));
     const used = kept.reduce((n, c) => n + cellWidth(c.text), 0);

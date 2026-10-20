@@ -62,7 +62,7 @@ export interface WorkAreaProps {
   /** Rows the work area may use (the body's height); defaults to the terminal's rows less the bars. */
   height?: number;
   /**
-   * Which of the M11 panels (map, timeline, tabs, agent, rail) are drawn beside the three panes. Ratatui draws only
+   * Which of the M11 panels (map, timeline, tabs, agent, rail) are drawn beside the three panes. The reference layout draws only
    * nav/middle/detail (view_tui::render_panes), so the app passes "pending": a panel shows only while it holds a
    * question or approval waiting for the user. Default "all" (the layout's own tests).
    */
@@ -85,7 +85,7 @@ function titleOf(s: WorkSection): string {
   return `${s.title}${s.status ? ` (${s.status})` : ""}`;
 }
 
-/** The one cell of padding Ratatui's panels give text of their own (nodes pad themselves). */
+/** The one cell of padding the panels give text of their own (nodes pad themselves). */
 const pad = (el: React.ReactNode) => (el ? <Box paddingX={1}>{el}</Box> : null);
 
 function SectionBox({
@@ -146,7 +146,7 @@ function rowsFor(wants: number[], room: number, ranks: number[] = wants.map((_, 
 }
 
 /**
- * Ratatui's panels (nav, middle, detail by width) with the M11 sections drawn as panels in the same
+ * the base panels (nav, middle, detail by width) with the M11 sections drawn as panels in the same
  * frames: map, timeline, tabs, agent and action rail from the sections the view carries. Wide: the
  * panels, then a band of the sections side by side with resizable proportions. Under 100 columns:
  * one column, a pending question first. Plain-text mode: labelled lines in reading order. Focus is
@@ -178,7 +178,7 @@ export function WorkArea({ screen, capabilities, focus, weights, renderNode, reg
     panes.length ? (
       <ScreenPanes screen={{ ...screen, panes }} focus={paneFocus} width={W} height={h} cx={appCx} renderNode={appRender} />
     ) : null;
-  // What the panes need: the biggest body among those that can show, framed (Ratatui gives them the whole body; the rest is blank).
+  // What the panes need: the biggest body among those that can show, framed (they get the whole body; the rest is blank).
   const paneWant = Math.max(
     3,
     ...sections.filter((s) => s.kind === "other" && s.key.startsWith(`${paneFocus ?? "middle"}:`)).map((s) => want(s, W - 2)),
@@ -187,18 +187,18 @@ export function WorkArea({ screen, capabilities, focus, weights, renderNode, reg
   const a = arrange(W >= NARROW_BELOW ? extras.filter((s) => !s.pending) : extras, W, weights);
 
   if (a.mode === "collapsed") {
-    // One column: a pending question first, then Ratatui's panel, then the rest in reading order. The question
+    // One column: a pending question first, then the base panel, then the rest in reading order. The question
     // and the panel keep what they need; the other panels take the rest in this order of need, and a panel that
     // cannot get three rows is left out and named on the last line (plain-text mode lists everything).
     const sorted = a.columns[0]!.sections;
     const before = sorted.filter((s) => s.pending);
     const rest = sorted.filter((s) => !s.pending);
     // Every panel kept is drawn whole (never squeezed): the question first, then the others in order of need while
-    // they fit with a floor for Ratatui's panel; the rest are named on the last line. Ratatui's panel takes what is left.
+    // they fit with a floor for the base panel; the rest are named on the last line. The base panel takes what is left.
     const floor = panes.length ? Math.min(Math.floor(H / 2), paneWant) : 0;
     let room = H - before.reduce((n, s) => n + want(s, W - 2), 0) - floor;
     const keep = new Set<WorkSection>();
-    // Ratatui's Narrow layout (under 84 columns, view_tui.rs fit()) shows the focused pane alone: there the only
+    // The Narrow layout (under 84 columns) shows the focused pane alone: there the only
     // addition is a pending question; the other M11 panels are reached from plain-text mode and the actions menu.
     const need = W < MEDIUM_FROM ? [] : [...rest].sort((x, y) => NEED[x.kind]! - NEED[y.kind]!);
     need.forEach((s, i) => {

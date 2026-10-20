@@ -75,7 +75,7 @@ function hostFirst(chord: Chord, claimed: string[] | undefined): boolean {
   return !claimed || claimed.includes(chord.key.char);
 }
 
-/** Turns keys and mouse reports into the Intents the Ratatui adapter sends for the same view. */
+/** Turns keys and mouse reports into the Intents the view data names for them. */
 export class InputController {
   private lastClick: { target: string; at: number } | undefined;
   /** Where the arrows already sent have left a menu's selection, until the host's next snapshot replaces the menu. */
@@ -95,7 +95,7 @@ export class InputController {
     private readonly shape: (shape: Shape) => void = () => {},
   ) {
     // A left press inside a pane's text is held until it moves (a selection, copied when let go) or is let go (a click,
-    // handled then, as the Ratatui runner does: runner.rs Pointer::Up).
+    // handled then, as the host's runner does).
     this.selector = new Selector(
       {
         // Footer rectangles are controls even inside a Rich/Extension text selection area.

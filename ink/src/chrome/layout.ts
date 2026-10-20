@@ -167,7 +167,7 @@ export function layoutTopBar(chrome: ChromeView, width: number, y = 0): Laid {
     partW = 0;
   }
   const rightW = partW + modeW;
-  // Ratatui paints the tabs first, then overlays the right-hand words and mode when that side fits.
+  // The tabs are painted first, then overlays the right-hand words and mode when that side fits.
   // Reserve those cells before appending anything so compact tabs cannot push the mode off screen.
   const showRight = rightW < width;
   const leftWidth = Math.max(0, width - (showRight ? rightW : 0));

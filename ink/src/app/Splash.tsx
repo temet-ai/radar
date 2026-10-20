@@ -5,7 +5,7 @@ import { blankUnder } from "../media/splashPicture.js";
 
 /**
  * The startup splash (crates/radar-core/src/splash.rs): the host works out every frame as rows of runs across the whole
- * screen, with their colours resolved, and this draws them as they come, so Ink draws the cells Ratatui paints. Keys
+ * screen, with their colours resolved, and this draws them as they come, so Ink draws the cells the host sends. Keys
  * and clicks still go to the screen under it (the snapshot carries it); the host ends the splash on the first one.
  */
 export function Splash({ view, columns, rows }: { view: SplashView; columns: number; rows: number }) {

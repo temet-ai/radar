@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 /** The rows of a node that are laid out: `count` rows from `first`. A node taller than its room draws only these
- * (with a margin), so a snapshot of a 200-row list costs a screenful, as Ratatui's List/Tree draws only what shows. */
+ * (with a margin), so a snapshot of a 200-row list costs a screenful, as the host's list and tree draw only what shows. */
 export interface Window {
   first: number;
   count: number;
@@ -12,7 +12,7 @@ export const useWindow = () => useContext(WindowContext);
 /** Rows drawn beyond the room, each side. */
 export const MARGIN = 0;
 
-/** Ratatui's scroll rule (ui::rows::list): keep the first row as it was, moving it only to bring the cursor into view,
+/** The scroll rule (ui::rows::list): keep the first row as it was, moving it only to bring the cursor into view,
  * and never past the last full screen. `first` is the row shown first last time. */
 export function firstRow(
   total: number,

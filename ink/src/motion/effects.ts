@@ -74,7 +74,7 @@ export class SweepIn implements Effect {
         cell.bg = faded;
       } else if (a !== 1) {
         const m = circOut(a);
-        const fg = cell.fg < 0 ? 0xc0c0c0 : cell.fg; // Ratatui reads a Reset foreground as White, a Reset background as Black
+        const fg = cell.fg < 0 ? 0xc0c0c0 : cell.fg; // A Reset foreground reads as White, a Reset background as Black
         const bg = cell.bg < 0 ? 0 : cell.bg;
         cell.fg = lerp(faded, fg, m);
         cell.bg = lerp(faded, bg, m);

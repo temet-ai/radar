@@ -165,7 +165,7 @@ function nameRuns(row: TreeRow, plain: boolean | undefined) {
   });
 }
 
-/** One tree row as Ratatui's buffer holds it after BandedTree::render: the tree widget's indent and line, the name
+/** One tree row as a cell buffer holds it after BandedTree::render: the tree widget's indent and line, the name
  * cut to the room the columns leave, the cells under their headings, then the highlight or band over the row, the
  * lines running down past parents. */
 function rowCells(

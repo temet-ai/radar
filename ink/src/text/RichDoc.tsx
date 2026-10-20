@@ -45,7 +45,7 @@ function inlineSeg(run: Inline, shown?: string): Seg {
 const shownText = (run: Inline): string => inlineSeg(run).text ?? "";
 
 /** ui::rich::wrap over a paragraph's runs, one Ink line per wrapped line (a Text per line, cut at the edge), so the
- * document breaks where Ratatui's does. Without a width the Box's own wrap draws it. */
+ * document breaks where the host's wrap does. Without a width the Box's own wrap draws it. */
 function WrappedInlines({ runs, plain, width, prefix, style }: { runs: Inline[]; plain?: boolean; width?: number; prefix?: string; style?: object }) {
   if (!width) {
     return (

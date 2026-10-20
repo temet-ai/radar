@@ -12,7 +12,7 @@ export type { KeyInput, Chord };
 
 /** The `editor` capability: the lines written so far and the one being typed, with the caret. The host owns the
  * text (the part holds it and the write is confirmed there), so this only draws it; keystrokes are sent as
- * `{intent:"key", chord}` with `chordOfKey`, the same chords the Ratatui adapter sends while an editor captures.
+ * `{intent:"key", chord}` with `chordOfKey`, the same chords the host expects while an editor captures.
  * Multi-line caret is `caret` characters into `line`, as view::Editor counts it. */
 export function EditorView({ data, focused }: { data: EditorData; focused: boolean }) {
   return (

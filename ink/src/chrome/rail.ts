@@ -3,7 +3,7 @@
 // accent (a square chip, never a pill). Under each, a line says how it went. The track is lit up to the current stop.
 // Labels are cut to their stop's room in display cells.
 //
-// Ratatui writes into a buffer, each write patching the style of the cells under it; so does this: a grid of cells, and
+// The host writes into a buffer, each write patching the style of the cells under it; so does this: a grid of cells, and
 // the rows read off it as runs of one style.
 
 import { cellWidth, clusters, fit } from "./width.js";

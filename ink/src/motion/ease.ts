@@ -39,7 +39,7 @@ export const flipped = (kind: Ease): Ease =>
 
 const bits = new DataView(new ArrayBuffer(4));
 /** micromath's `sqrt` (tachyonfx uses it for speed): a bit-shift estimate, within about 5% of the true root. The
- * sweep's CircOut is built on it, so its curve is what Ratatui draws and not the exact one. */
+ * sweep's CircOut is built on it, so its curve is the one the host's motion uses and not the exact one. */
 export function fastSqrt(x: number): number {
   if (!(x >= 0)) return NaN;
   bits.setFloat32(0, x);

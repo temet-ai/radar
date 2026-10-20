@@ -94,7 +94,7 @@ export function TabRow({ tabs, on, focused, width, registry, base }: { tabs: Tab
   push(" ".repeat(Math.max(0, width + 1 - 1 - shown.reduce((n, t, i) => n + cellWidth(t.text) + (i > 0 ? 2 : 0), 0))), secondary);
   return (
     <Box ref={ref} width={width + 2} flexShrink={0}>
-      {/* Ratatui writes no background here, so the page's bg.base shows under every cell of the row (live cells, tmux): the leading space, every title, the gaps; the showing title is on the accent only while the row has the keys */}
+      {/* No background is written here, so the page's bg.base shows under every cell of the row (live cells, tmux): the leading space, every title, the gaps; the showing title is on the accent only while the row has the keys */}
       <Text wrap="truncate">
         {pieces.map((p, i) => (
           <Text key={i} {...textProps(p.style)}>{p.text}</Text>

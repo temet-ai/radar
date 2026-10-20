@@ -40,7 +40,7 @@ export function PageTitleLine({
   details: Text;
   width: number;
   plain?: boolean;
-  /** The shell's canvas (bg.base): Ratatui paints it under the whole row, the air before the title and the title too (live cells). */
+  /** The shell's canvas (bg.base): it is painted under the whole row, the air before the title and the title too (live cells). */
   base?: string;
   /** Where a chip among the details registers the cells a press on it acts on. */
   registry?: LineHitSink;

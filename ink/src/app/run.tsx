@@ -53,7 +53,7 @@ export async function run(env: NodeJS.ProcessEnv = process.env): Promise<never> 
   }
   terminal.enter();
   pointerShape.attach((s) => process.stdout.write(s));
-  // In a Herdr pane the right button is Herdr's until the pane is told to pass it on (as the Ratatui runner does).
+  // In a Herdr pane the right button is Herdr's until the pane is told to pass it on (the host's terminal runner does the same).
   routeHerdrRightClick(env, spawn, (err) =>
     err ? session.log("warn", err) : session.log("info", "Herdr right-clicks routed to this pane"),
   );

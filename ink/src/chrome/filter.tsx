@@ -2,7 +2,7 @@ import { bgOf, slotStyle, type Style } from "../text/look.js";
 import { cellsOf, clipCells, lineCells, padCells, type Cell } from "../text/cells.js";
 
 /**
- * The line to type into at the top of a pane (go to `:`, filter `/`), as Ratatui draws it
+ * The line to type into at the top of a pane (go to `:`, filter `/`), as ui::input lays it out
  * (view_tui::draw_field_bar, input::render_field): the mark in three cells (bold accent.secondary), then the field
  * on bg.overlay in bold text.emphasis, scrolled to keep the caret in view, the caret cell reversed; or, when the
  * field does not have the keys (`caret` absent), the words as set in text.emphasis. The hint (what it does) is on

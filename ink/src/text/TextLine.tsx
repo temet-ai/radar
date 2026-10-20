@@ -58,7 +58,7 @@ export function segRunWords(seg: Seg, plain?: boolean, literal = false): string 
   return seg.chip ? ` ${words} ` : words;
 }
 
-/** A Ratatui-style run as Ink <Text> props. */
+/** A styled run (colours and modifiers) as Ink <Text> props. */
 export function textProps(s: Style, over: { inverse?: boolean } = {}) {
   return {
     color: s.color,
@@ -93,7 +93,7 @@ export function SegRun({ seg, plain }: { seg: Seg; plain?: boolean }) {
     // widgets::chip: ` words ` in the tone's colour on the overlay shade.
     return <InkText {...textProps(chipWordStyle(seg))}>{` ${words} `}</InkText>;
   }
-  // A link travels as an OSC 8 hyperlink (text/link.ts), as in Ratatui, not as underlined text.
+  // A link travels as an OSC 8 hyperlink (text/link.ts), not as underlined text.
   return (
     <InkText {...textProps(style, { inverse: seg.marked })}>{hyperlink(seg.link, words)}</InkText>
   );

@@ -52,7 +52,7 @@ export function charWidth(cp: number): number {
   return 1;
 }
 
-/** Cut styled segments to at most `max` cells, with no ellipsis: a cell past the edge is not drawn, as Ratatui's buffer does. */
+/** Cut styled segments to at most `max` cells, with no ellipsis: a cell past the edge is not drawn, as in the host's cell buffer. */
 export function clipSegments<T extends { text: string }>(segs: T[], max: number): T[] {
   const out: T[] = [];
   let w = 0;
@@ -89,7 +89,7 @@ export function fit(s: string, max: number): string {
 }
 
 /** The symbols below U+2E80 that Unicode draws two cells wide (East Asian Width W: the ones with emoji presentation, ✅ ❌
- * ⚪ ⭐), and the few wide ones of the first emoji planes outside U+1F300..1FAFF. Rust's unicode-width, which Ratatui lays
+ * ⚪ ⭐), and the few wide ones of the first emoji planes outside U+1F300..1FAFF. Rust's unicode-width, which the host lays
  * out by, counts them 2; one cell here would leave a row two cells too long. */
 const WIDE: ReadonlyArray<readonly [number, number]> = [
   [0x231a, 0x231b], [0x23e9, 0x23ec], [0x23f0, 0x23f0], [0x23f3, 0x23f3], [0x25fd, 0x25fe], [0x2614, 0x2615],

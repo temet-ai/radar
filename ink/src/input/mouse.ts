@@ -1,5 +1,5 @@
 /**
- * The modes crossterm's EnableMouseCapture sets (the Ratatui runner's): clicks, drags, every move, urxvt and
+ * The modes crossterm's EnableMouseCapture sets (the host runner's): clicks, drags, every move, urxvt and
  * SGR encodings. Reports arrive as SGR: `ESC [ < b ; x ; y M` press, `m` release, button + 32 a move.
  */
 export const MOUSE_ON = "\x1b[?1000h\x1b[?1002h\x1b[?1003h\x1b[?1015h\x1b[?1006h";
@@ -44,7 +44,7 @@ export function parseMouse(data: string): MouseEvent[] {
 
 /**
  * Herdr sits between radar and the user's mouse and keeps right-clicks for its own pane menu unless the pane is told
- * otherwise. The Ratatui runner (terminal_host::route_herdr_right_click) runs `herdr pane input --current
+ * otherwise. The host runner (terminal_host::route_herdr_right_click) runs `herdr pane input --current
  * --right-click pane` once mouse reporting is on; the child that owns the TTY does the same here. True when the
  * environment names a Herdr pane.
  */

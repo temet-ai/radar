@@ -1,4 +1,4 @@
-// Word wrapping exactly as Ratatui's radar-core does it, so a document breaks where it does there.
+// Word wrapping exactly as radar-core's wrap does it, so a document breaks where the host breaks it.
 //   wrapWords   ui::wrap_words (ui/mod.rs): a Wrapped block (the GitHub DESCRIPTION, notes).
 //   wrapPieces  ui::rich::wrap (ui/rich.rs): a document's paragraphs, headings and list items.
 // Both collapse every run of whitespace to one space, never start a continued line with a space, count wide

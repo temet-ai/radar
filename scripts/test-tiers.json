@@ -246,15 +246,6 @@
           ],
           "boundary": "Per-driver event, effect-envelope and completion-task counts remain isolated and cumulative through real tracked completion and settling.",
           "why_not_unit": "Requires actual hosts, reducer dispatch and asynchronous completion scheduling to establish counter ownership and lifetime; isolated arithmetic cannot prove those wiring points."
-        },
-        {
-          "name": "scenario::tests::shell_frame_counts_cover_raw_helpers_and_ignore_neutral_views",
-          "tier": "contract",
-          "parts": [
-            "core"
-          ],
-          "boundary": "Every full shell render helper increments the owned host lifetime frame count while neutral views and other hosts do not.",
-          "why_not_unit": "Must invoke real full-frame shell helpers, including direct render and raw host access, to protect instrumentation coverage; pure views or mocked renderer calls cannot detect an uncounted render path."
         }
       ]
     },
@@ -1703,7 +1694,7 @@
           "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
         },
         {
-          "name": "host::palette_tests::palette_suspends_history_and_outside_click_restores_it",
+          "name": "host::palette_tests::palette_suspends_history_and_closing_it_restores_it",
           "tier": "integration",
           "parts": [
             "core"
@@ -1746,15 +1737,6 @@
           ],
           "boundary": "Real host palette query, scoped navigation, stale-target/confirmation safety, setup/capture/History lifecycle and bounded discovery.",
           "why_not_unit": "Host routing and retained overlay/confirmation state require a real host."
-        },
-        {
-          "name": "host::palette_tests::palette_raw_mouse_double_press_cannot_reuse_old_hits_for_confirmation",
-          "tier": "contract",
-          "parts": [
-            "core"
-          ],
-          "boundary": "Full-shell palette hit registration and raw mouse dispatch invalidate old hits before a replacement confirmation can receive a queued second press.",
-          "why_not_unit": "Requires a real shell frame to populate the host hit map and raw pointer events across the palette-to-confirmation transition; isolated target mapping cannot detect reuse of rendered hits."
         },
         {
           "name": "host::palette_tests::palette_rejects_account_scope_change_even_when_the_subject_is_unchanged",

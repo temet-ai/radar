@@ -1,7 +1,7 @@
 //! What the host does with the intents a frontend with no terminal sends.
 use super::*;
 use crate::ScreenGroup;
-use crate::view::{Intent, ListRow, Node, PaneId, PaneView, ScreenView, Target};
+use crate::view::{Ink, Intent, ListRow, Node, PaneId, PaneView, ScreenView, Seg, Target, Text};
 use std::sync::{Arc, Mutex};
 
 /// The panes the probe's intents arrived in, with the intent.
@@ -43,6 +43,14 @@ impl Plugin for Probe {
             vec![
                 list(PaneId::Nav, &["nav-a", "nav-b"]),
                 list(PaneId::Middle, &["ABC-11", "ABC-12"]),
+                PaneView::new(
+                    PaneId::Detail,
+                    "detail",
+                    Node::Document {
+                        lines: vec![Text::plain("Branch ").push(Seg::new("copy", Ink::Accent).targeted("chip-1"))],
+                        cut: false,
+                    },
+                ),
             ],
         ))
     }
@@ -126,6 +134,29 @@ fn a_panes_own_target_moves_nothing_while_a_menu_is_open() {
         target: Target::new("pane:nav"),
     });
     assert_eq!(host.focus, Pane::Middle);
+}
+
+/// A chip drawn inside a line of the detail pane is a target of that pane,
+/// not of the tree: a press on it from the tree focuses Detail and the part
+/// hears it there (a Ratatui press focused the pane first).
+#[test]
+fn a_select_on_a_chip_in_the_detail_pane_focuses_it_while_the_tree_has_the_keys() {
+    let (mut host, seen) = fixture();
+    host.focus = Pane::Middle;
+    host.bar = true;
+    let select = Intent::Select {
+        target: Target::new("chip-1"),
+    };
+    host.on_intent(select.clone());
+    assert_eq!(host.focus, Pane::Detail);
+    assert!(!host.bar);
+    assert_eq!(seen.lock().unwrap().last(), Some(&(Pane::Detail, select)));
+    host.focus = Pane::Nav;
+    let activate = Intent::Activate {
+        target: Target::new("chip-1"),
+    };
+    host.on_intent(activate.clone());
+    assert_eq!(seen.lock().unwrap().last(), Some(&(Pane::Detail, activate)));
 }
 
 #[test]

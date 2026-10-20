@@ -1749,7 +1749,6 @@ fn list_preview_renders_cached_line_and_fences_action_hits_on_selection_and_refr
         }
         let expected = p.target(Pane::Detail).unwrap().url();
         let (mut host, state) = composed_host(p, true);
-        host.focus = Pane::Detail;
         for (width, height) in [(80, 24), (160, 40)] {
             let text = shown(&host, width, height);
             assert!(text.contains("local folder"));
@@ -1788,8 +1787,6 @@ fn list_preview_renders_cached_line_and_fences_action_hits_on_selection_and_refr
     pulls[0].head_repository = Some(RepositoryId::parse("other/api").unwrap());
     let answer = repository_answer(&p, pulls, true);
     let (mut host, state) = composed_host(p, true);
-    // The chip is in the detail pane; the keys are there when it is pressed.
-    host.focus = Pane::Detail;
     // The target as it was drawn before the list was read again.
     let stale = under_target(&host);
     host.update(Event::Msg {

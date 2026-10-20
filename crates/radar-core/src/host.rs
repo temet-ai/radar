@@ -3444,9 +3444,11 @@ impl Host {
         outcome
     }
 
-    /// The pane of screen `scope` whose rows hold `target`, from the
-    /// screen's view; `None` when no pane's rows name it (a tab, a chrome
-    /// target, a cell).
+    /// The pane of screen `scope` that holds `target` anywhere in its view
+    /// data: a row, a cell, a run inside a line, a control at its foot. A
+    /// page's own frame (the line under its title, its details, its
+    /// notice) is the middle pane's, as Ratatui hit-tests it. `None` when
+    /// nothing in the view names it (a tab, a chrome target).
     fn pane_of_target(&self, p: usize, scope: &str, target: &crate::view::Target) -> Option<Pane> {
         use crate::view::{Node, TreeRow};
         fn in_tree(rows: &[TreeRow], path: &mut Vec<String>, want: &str) -> bool {
@@ -3457,6 +3459,21 @@ impl Host {
                 hit
             })
         }
+        // One walk over the serialized view: a string under a field named
+        // `target` (or `*_target`) is a target. An extension's `data` is
+        // its own payload.
+        fn holds(value: &serde_json::Value, want: &str) -> bool {
+            use serde_json::Value;
+            match value {
+                Value::Array(items) => items.iter().any(|item| holds(item, want)),
+                Value::Object(fields) => fields.iter().any(|(key, item)| match item {
+                    Value::String(s) => (key == "target" || key.ends_with("_target")) && s == want,
+                    _ if key == "data" => false,
+                    _ => holds(item, want),
+                }),
+                _ => false,
+            }
+        }
         if !self.plugins[p].screens().iter().any(|s| s.id == scope) {
             return None;
         }
@@ -3465,15 +3482,17 @@ impl Host {
         // An actual page owns its panes even when that list is empty. Hidden
         // root panes cannot take the page's pointer intent or keyboard focus.
         let panes = view.page.as_ref().map_or(view.panes.as_slice(), |page| &page.panes);
-        panes.iter()
-            .find(|pane| match &pane.body {
-                Node::List { rows, .. } => rows.iter().any(|r| r.target.as_str() == want),
-                Node::Table { rows, .. } => rows.iter().any(|r| r.target.as_str() == want),
-                Node::Entries { rows, .. } => rows.iter().any(|r| r.target.as_str() == want),
-                Node::Tree(tree) => in_tree(&tree.rows, &mut vec![], want),
-                _ => false,
-            })
-            .map(|pane| pane.pane.into())
+        let in_pane = panes.iter().find(|pane| {
+            // A tree row's target is its path, which the rows do not hold.
+            matches!(&pane.body, Node::Tree(tree) if in_tree(&tree.rows, &mut vec![], want))
+                || serde_json::to_value(*pane).is_ok_and(|v| holds(&v, want))
+        });
+        if let Some(pane) = in_pane {
+            return Some(pane.pane.into());
+        }
+        let page = view.page.as_ref()?;
+        let frame = serde_json::to_value((&page.crumbs, &page.title, &page.details, &page.under, &page.notice)).ok()?;
+        holds(&frame, want).then_some(Pane::Middle)
     }
 
     /// The key of the action `action` in the view of the surface the host

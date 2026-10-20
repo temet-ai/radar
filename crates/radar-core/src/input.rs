@@ -1,22 +1,15 @@
 //! The one text input every part of radar uses, so editing behaves the same
-//! everywhere and like a normal line editor: the terminal's own cursor sits
-//! where you type; ← → home end move; alt-← alt-→ (or ctrl-←/→) jump words;
-//! backspace/delete; ctrl-u clears to the start, ctrl-k to the end, ctrl-w
-//! deletes the word before the cursor, ctrl-a/ctrl-e jump to start/end;
+//! everywhere and like a normal line editor: ← → home end move; alt-← alt-→
+//! (or ctrl-←/→, alt-b/alt-f) jump words; backspace/delete; ctrl-u clears to
+//! the start, ctrl-k to the end, ctrl-w deletes the word before the cursor,
+//! ctrl-a/ctrl-e jump to start/end; shift with a movement key selects;
 //! ctrl-z undoes, ctrl-shift-z/ctrl-r redoes; pasting inserts the text.
-//! Editing comes from `ratatui-textarea`; drawing is ours, on one row, with
-//! the text scrolled so the cursor is always visible.
+//!
+//! This is radar's own one-line editor. It holds text, caret and selection;
+//! Ink draws the field from the view data they feed (a menu's typed text and
+//! caret), so nothing here draws.
 
-use std::cell::Cell;
-
-use ratatui::buffer::Buffer;
 use crate::view::Key;
-use ratatui::layout::{Position, Rect};
-use ratatui::style::Modifier;
-use ratatui_textarea::{CursorMove, TextArea};
-use crate::design::theme::Slot;
-
-use crate::theme::Theme;
 
 /// What a key did to the input.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -29,8 +22,23 @@ pub enum Edit {
     Typing,
 }
 
+/// One undo step: the text, the caret and the selection anchor before an edit.
+#[derive(Clone, PartialEq, Eq)]
+struct Snapshot {
+    text: Vec<char>,
+    caret: usize,
+    anchor: Option<usize>,
+}
+
+/// A single line of text with a caret, an optional selection and undo/redo.
+/// Positions count characters from the start.
 pub struct TextInput {
-    area: TextArea<'static>,
+    text: Vec<char>,
+    caret: usize,
+    /// The other end of the selection; the caret is the extent.
+    anchor: Option<usize>,
+    undo: Vec<Snapshot>,
+    redo: Vec<Snapshot>,
 }
 
 impl std::fmt::Debug for TextInput {
@@ -39,56 +47,69 @@ impl std::fmt::Debug for TextInput {
     }
 }
 
+/// A word character: what a word jump or a word delete stops at.
+fn is_word(c: char) -> bool {
+    c.is_alphanumeric() || c == '_'
+}
+
+/// A line has no line breaks: they become spaces.
+fn one_line(text: &str) -> Vec<char> {
+    text.chars()
+        .map(|c| if c == '\n' || c == '\r' { ' ' } else { c })
+        .collect()
+}
+
 impl TextInput {
     /// Start with `value`, cursor at the end.
     pub fn new(value: &str) -> Self {
-        let mut area = TextArea::new(vec![value.to_string()]);
-        area.move_cursor(CursorMove::End);
-        Self { area }
+        let text: Vec<char> = value.chars().filter(|c| *c != '\n' && *c != '\r').collect();
+        Self {
+            caret: text.len(),
+            text,
+            anchor: None,
+            undo: Vec::new(),
+            redo: Vec::new(),
+        }
     }
 
     pub fn value(&self) -> String {
-        self.area.lines().first().cloned().unwrap_or_default()
+        self.text.iter().collect()
     }
 
     /// The cursor's position in characters from the start.
     pub fn cursor(&self) -> usize {
-        self.area.cursor().1
+        self.caret
     }
 
-    /// Put the cursor `at` characters from the start.
+    /// Put the cursor `at` characters from the start (clamped to the text);
+    /// any selection is dropped.
     pub fn set_cursor(&mut self, at: usize) {
-        self.area
-            .move_cursor(CursorMove::Jump(0, at.min(u16::MAX as usize) as u16));
+        self.caret = at.min(self.text.len());
+        self.anchor = None;
     }
 
     /// The selected text as `(anchor, extent)`, counted in characters like
     /// [`TextInput::cursor`], which is the extent; `None` when nothing is
     /// selected.
     pub fn selection(&self) -> Option<(usize, usize)> {
-        let ((_, from), (_, to)) = self.area.selection_range()?;
-        let caret = self.cursor();
-        let anchor = if from == caret { to } else { from };
-        (anchor != caret).then_some((anchor, caret))
+        self.anchor
+            .filter(|a| *a != self.caret)
+            .map(|a| (a, self.caret))
     }
 
     /// Select from `anchor` to `extent` (the caret ends at `extent`); equal
     /// ends select nothing. Typing then replaces the selection and
     /// backspace removes it, as in any line editor.
     pub fn select(&mut self, anchor: usize, extent: usize) {
-        self.area.cancel_selection();
-        if anchor == extent {
-            self.set_cursor(extent);
-            return;
-        }
-        self.set_cursor(anchor);
-        self.area.start_selection();
-        self.set_cursor(extent);
+        let len = self.text.len();
+        let (anchor, extent) = (anchor.min(len), extent.min(len));
+        self.caret = extent;
+        self.anchor = (anchor != extent).then_some(anchor);
     }
 
     /// Drop the selection, keeping the caret.
     pub fn unselect(&mut self) {
-        self.area.cancel_selection();
+        self.anchor = None;
     }
 
     /// A key from a view's intent ([`crate::view::Chord`]): as [`TextInput::key`].
@@ -100,28 +121,60 @@ impl TextInput {
         let Some(key) = key.as_chord() else {
             return Edit::Typing;
         };
-        let ctrl = key.ctrl;
+        let (ctrl, alt) = (key.ctrl, key.alt);
+        // Shift on a movement key extends the selection; a capital letter is
+        // already a different char.
+        let shift = key.shift || matches!(key.key, Key::Char(c) if ctrl && c.is_uppercase());
         match key.key {
             Key::Enter => return Edit::Submit(self.value()),
             Key::Esc => return Edit::Cancel,
-            // Readline, not the library's defaults (where ctrl-u is undo).
-            Key::Char('u') if ctrl => {
-                self.area.delete_line_by_head();
+            Key::Left if ctrl || alt => self.travel(shift, Self::word_start),
+            Key::Right if ctrl || alt => self.travel(shift, Self::word_end),
+            Key::Left => self.travel(shift, |s| s.caret.saturating_sub(1)),
+            Key::Right => self.travel(shift, |s| (s.caret + 1).min(s.text.len())),
+            Key::Home => self.travel(shift, |_| 0),
+            Key::End => self.travel(shift, |s| s.text.len()),
+            Key::Backspace if alt => self.delete_to(Self::word_start),
+            Key::Backspace => {
+                if !self.delete_selection() {
+                    self.delete_to(|s| s.caret.saturating_sub(1));
+                }
             }
-            Key::Char('Z') if ctrl => {
-                self.area.redo();
+            Key::Delete => {
+                if !self.delete_selection() {
+                    self.delete_to(|s| (s.caret + 1).min(s.text.len()));
+                }
             }
-            Key::Char('z') if ctrl => {
-                self.area.undo();
-            }
-            Key::Char('r') if ctrl => {
-                self.area.redo();
-            }
-            // One line only: keys that would start a new line do nothing.
-            Key::Char('m' | 'j') if ctrl => {}
-            _ => {
-                self.area.input(crate::key_compat::key_of(key));
-            }
+            Key::Char(c) if ctrl => match c.to_ascii_lowercase() {
+                'z' if shift => self.redo(),
+                'z' => self.undo(),
+                'r' => self.redo(),
+                'a' => self.travel(false, |_| 0),
+                'e' => self.travel(false, |s| s.text.len()),
+                'b' => self.travel(false, |s| s.caret.saturating_sub(1)),
+                'f' => self.travel(false, |s| (s.caret + 1).min(s.text.len())),
+                'u' => self.delete_to(|_| 0),
+                'k' => self.delete_to(|s| s.text.len()),
+                'w' => self.delete_to(Self::word_start),
+                'h' => {
+                    if !self.delete_selection() {
+                        self.delete_to(|s| s.caret.saturating_sub(1));
+                    }
+                }
+                'd' => {
+                    if !self.delete_selection() {
+                        self.delete_to(|s| (s.caret + 1).min(s.text.len()));
+                    }
+                }
+                // One line only, and no other control key types anything.
+                _ => {}
+            },
+            Key::Char('b') if alt => self.travel(false, Self::word_start),
+            Key::Char('f') if alt => self.travel(false, Self::word_end),
+            Key::Char('d') if alt => self.delete_to(Self::word_end),
+            Key::Char(_) if alt => {}
+            Key::Char(c) => self.insert_str(&c.to_string()),
+            _ => {}
         }
         Edit::Typing
     }
@@ -133,64 +186,138 @@ impl TextInput {
             .filter(|l| !l.is_empty())
             .collect::<Vec<_>>()
             .join(" ");
-        self.area.insert_str(one_line);
+        self.insert_str(&one_line);
     }
 
-    /// Draw on one row, scrolled to keep the cursor in view, and say where
-    /// the terminal cursor goes.
-    pub fn render(
-        &self,
-        theme: &Theme,
-        area: Rect,
-        buf: &mut Buffer,
-        cursor: &Cell<Option<Position>>,
-    ) {
-        render_field(&self.value(), self.cursor(), theme, area, buf, cursor);
-    }
-}
-
-/// Draw a one-line field holding `text` with the caret `caret` characters
-/// in, scrolled to keep the caret in view, and say where the terminal
-/// cursor goes. What [`TextInput::render`] draws, from view data (a menu's
-/// [`crate::view::MenuView::typed`] and its caret).
-pub fn render_field(
-    text: &str,
-    caret: usize,
-    theme: &Theme,
-    area: Rect,
-    buf: &mut Buffer,
-    cursor: &Cell<Option<Position>>,
-) {
-    {
-        if area.width == 0 || area.height == 0 {
+    /// Insert `text` at the caret, replacing the selection if there is one.
+    pub fn insert_str(&mut self, text: &str) {
+        let chars = one_line(text);
+        if chars.is_empty() && self.selection().is_none() {
             return;
         }
-        let row = Rect { height: 1, ..area };
-        let bg = theme.bg(Slot::BgOverlay);
-        for x in row.x..row.x + row.width {
-            buf[(x, row.y)].reset();
+        self.record();
+        self.remove_selected();
+        let at = self.caret;
+        self.caret += chars.len();
+        self.text.splice(at..at, chars);
+    }
+
+    // --- movement ---------------------------------------------------------
+
+    /// Move the caret to where `to` says; with `select` the selection grows
+    /// from where it was, otherwise it is dropped.
+    fn travel(&mut self, select: bool, to: impl Fn(&Self) -> usize) {
+        let target = to(self);
+        if select {
+            self.anchor.get_or_insert(self.caret);
+        } else {
+            self.anchor = None;
         }
-        buf.set_style(row, bg);
+        self.caret = target;
+        if self.anchor == Some(self.caret) {
+            self.anchor = None;
+        }
+    }
 
-        let chars: Vec<char> = text.chars().collect();
-        let col = caret.min(chars.len());
-        let width = row.width as usize;
-        // Keep one cell for the cursor at the end of the text.
-        let offset = (col + 1).saturating_sub(width);
-        let visible: String = chars.iter().skip(offset).take(width).collect();
-        buf.set_stringn(
-            row.x,
-            row.y,
-            &visible,
-            width,
-            theme.bold(Slot::TextEmphasis).patch(bg),
-        );
+    /// The start of the word before the caret.
+    fn word_start(&self) -> usize {
+        let mut i = self.caret;
+        while i > 0 && !is_word(self.text[i - 1]) {
+            i -= 1;
+        }
+        while i > 0 && is_word(self.text[i - 1]) {
+            i -= 1;
+        }
+        i
+    }
 
-        let x = row.x + (col - offset) as u16;
-        // A block cursor in the buffer too, for terminals and snapshots that
-        // do not show the real one.
-        buf[(x, row.y)].set_style(theme.s(Slot::TextEmphasis).add_modifier(Modifier::REVERSED));
-        cursor.set(Some(Position { x, y: row.y }));
+    /// The end of the word after the caret.
+    fn word_end(&self) -> usize {
+        let len = self.text.len();
+        let mut i = self.caret;
+        while i < len && !is_word(self.text[i]) {
+            i += 1;
+        }
+        while i < len && is_word(self.text[i]) {
+            i += 1;
+        }
+        i
+    }
+
+    // --- deleting and history ----------------------------------------------
+
+    /// Delete between the caret and where `to` says (or the selection, if
+    /// there is one). Nothing to delete records nothing.
+    fn delete_to(&mut self, to: impl Fn(&Self) -> usize) {
+        if self.selection().is_some() {
+            self.record();
+            self.remove_selected();
+            return;
+        }
+        let target = to(self);
+        let (from, upto) = (self.caret.min(target), self.caret.max(target));
+        if from == upto {
+            return;
+        }
+        self.record();
+        self.text.drain(from..upto);
+        self.caret = from;
+        self.anchor = None;
+    }
+
+    /// Delete the selection; false when nothing was selected.
+    fn delete_selection(&mut self) -> bool {
+        if self.selection().is_none() {
+            return false;
+        }
+        self.record();
+        self.remove_selected();
+        true
+    }
+
+    fn remove_selected(&mut self) {
+        if let Some((a, b)) = self.selection() {
+            let (from, to) = (a.min(b), a.max(b));
+            self.text.drain(from..to);
+            self.caret = from;
+        }
+        self.anchor = None;
+    }
+
+    fn snapshot(&self) -> Snapshot {
+        Snapshot {
+            text: self.text.clone(),
+            caret: self.caret,
+            anchor: self.anchor,
+        }
+    }
+
+    /// Remember the state before an edit; a new edit forgets what was undone.
+    fn record(&mut self) {
+        self.undo.push(self.snapshot());
+        self.redo.clear();
+    }
+
+    fn restore(&mut self, s: Snapshot) {
+        self.text = s.text;
+        self.caret = s.caret;
+        self.anchor = s.anchor;
+    }
+
+    fn undo(&mut self) {
+        if let Some(before) = self.undo.pop() {
+            self.redo.push(self.snapshot());
+            self.restore(before);
+            self.anchor = None;
+        }
+    }
+
+    fn redo(&mut self) {
+        if let Some(after) = self.redo.pop() {
+            self.undo.push(self.snapshot());
+            self.restore(after);
+            self.anchor = None;
+        }
     }
 }
 
@@ -205,6 +332,23 @@ mod tests {
     fn ctrl(c: char) -> Chord {
         Chord::ctrl(c)
     }
+    fn alt(key: Key) -> Chord {
+        Chord {
+            alt: true,
+            ..Chord::new(key)
+        }
+    }
+    fn shift(key: Key) -> Chord {
+        Chord {
+            shift: true,
+            ..Chord::new(key)
+        }
+    }
+    fn type_in(i: &mut TextInput, text: &str) {
+        for c in text.chars() {
+            i.key(k(Key::Char(c)));
+        }
+    }
 
     #[test]
     fn typing_moving_and_submitting() {
@@ -217,6 +361,49 @@ mod tests {
         assert_eq!(i.cursor(), 1);
         assert_eq!(i.key(k(Key::Enter)), Edit::Submit("_env:TOKEX".into()));
         assert_eq!(i.key(k(Key::Esc)), Edit::Cancel);
+    }
+
+    #[test]
+    fn a_new_input_has_its_cursor_at_the_end_and_no_line_breaks() {
+        let i = TextInput::new("Sam Vimes");
+        assert_eq!(i.cursor(), 9);
+        assert_eq!(i.selection(), None);
+        assert_eq!(TextInput::new("a\nb").value(), "ab");
+    }
+
+    #[test]
+    fn arrows_home_end_and_delete_move_and_remove() {
+        let mut i = TextInput::new("vimes");
+        i.key(k(Key::Left));
+        i.key(k(Key::Left));
+        assert_eq!(i.cursor(), 3);
+        i.key(k(Key::Delete));
+        assert_eq!(i.value(), "vime");
+        i.key(k(Key::Right));
+        i.key(k(Key::Right));
+        i.key(k(Key::Right));
+        assert_eq!(i.cursor(), 4, "right stops at the end");
+        i.key(k(Key::Delete));
+        assert_eq!(i.value(), "vime", "delete at the end does nothing");
+        i.key(k(Key::Home));
+        i.key(k(Key::Left));
+        assert_eq!(i.cursor(), 0, "left stops at the start");
+        i.key(k(Key::Backspace));
+        assert_eq!(i.value(), "vime", "backspace at the start does nothing");
+        i.key(k(Key::End));
+        assert_eq!(i.cursor(), 4);
+    }
+
+    #[test]
+    fn editing_is_by_character_not_byte() {
+        let mut i = TextInput::new("Ankh-Morpork ☕");
+        i.key(k(Key::Backspace));
+        assert_eq!(i.value(), "Ankh-Morpork ");
+        type_in(&mut i, "é☕");
+        assert_eq!(i.cursor(), 15);
+        i.key(k(Key::Left));
+        i.key(k(Key::Backspace));
+        assert_eq!(i.value(), "Ankh-Morpork ☕");
     }
 
     #[test]
@@ -239,6 +426,153 @@ mod tests {
         assert!(!i.value().is_empty(), "ctrl-z undoes");
         i.key(ctrl('m'));
         assert_eq!(i.value().lines().count(), 1, "never more than one line");
+    }
+
+    #[test]
+    fn ctrl_u_k_w_a_e_cut_and_move_around_the_cursor() {
+        let mut i = TextInput::new("night watch patrol");
+        i.set_cursor(11);
+        i.key(ctrl('u'));
+        assert_eq!(
+            i.value(),
+            " patrol",
+            "ctrl-u removes everything before the caret"
+        );
+        assert_eq!(i.cursor(), 0);
+        i.key(ctrl('e'));
+        assert_eq!(i.cursor(), 7);
+        i.key(ctrl('w'));
+        assert_eq!(i.value(), " ", "ctrl-w deletes the word before the caret");
+        let mut j = TextInput::new("night watch");
+        j.set_cursor(5);
+        j.key(ctrl('k'));
+        assert_eq!(
+            j.value(),
+            "night",
+            "ctrl-k removes from the caret to the end"
+        );
+        j.key(ctrl('w'));
+        assert_eq!(j.value(), "");
+        j.key(ctrl('w'));
+        assert_eq!(j.value(), "", "ctrl-w on an empty line does nothing");
+    }
+
+    #[test]
+    fn ctrl_w_skips_spaces_then_takes_the_word() {
+        let mut i = TextInput::new("one two   ");
+        i.key(ctrl('w'));
+        assert_eq!(i.value(), "one ");
+    }
+
+    #[test]
+    fn word_jumps_with_alt_and_ctrl_arrows_and_alt_b_f() {
+        let mut i = TextInput::new("ankh morpork watch");
+        i.key(alt(Key::Left));
+        assert_eq!(i.cursor(), 13);
+        i.key(Chord {
+            ctrl: true,
+            ..Chord::new(Key::Left)
+        });
+        assert_eq!(i.cursor(), 5);
+        i.key(alt(Key::Char('b')));
+        assert_eq!(i.cursor(), 0);
+        i.key(alt(Key::Char('f')));
+        assert_eq!(i.cursor(), 4);
+        i.key(alt(Key::Right));
+        assert_eq!(i.cursor(), 12);
+        i.key(Chord {
+            ctrl: true,
+            ..Chord::new(Key::Right)
+        });
+        assert_eq!(i.cursor(), 18);
+        i.key(alt(Key::Right));
+        assert_eq!(i.cursor(), 18, "a word jump stops at the end");
+    }
+
+    #[test]
+    fn alt_d_and_alt_backspace_delete_a_word_either_way() {
+        let mut i = TextInput::new("ankh morpork");
+        i.set_cursor(0);
+        i.key(alt(Key::Char('d')));
+        assert_eq!(i.value(), " morpork");
+        i.key(ctrl('e'));
+        i.key(alt(Key::Backspace));
+        assert_eq!(i.value(), " ");
+    }
+
+    #[test]
+    fn ctrl_b_f_h_d_are_the_emacs_arrows_and_deletes() {
+        let mut i = TextInput::new("abc");
+        i.key(ctrl('b'));
+        assert_eq!(i.cursor(), 2);
+        i.key(ctrl('h'));
+        assert_eq!(i.value(), "ac");
+        i.key(ctrl('d'));
+        assert_eq!(i.value(), "a");
+        i.key(ctrl('f'));
+        assert_eq!(i.cursor(), 1);
+    }
+
+    #[test]
+    fn other_control_and_alt_keys_type_nothing() {
+        let mut i = TextInput::new("ab");
+        i.key(ctrl('q'));
+        i.key(alt(Key::Char('x')));
+        i.key(k(Key::Tab));
+        i.key(k(Key::PageUp));
+        assert_eq!(i.value(), "ab");
+        assert_eq!(i.cursor(), 2);
+        assert_eq!(i.key(ctrl('m')), Edit::Typing);
+        assert_eq!(i.key(ctrl('j')), Edit::Typing);
+        assert_eq!(i.value(), "ab");
+    }
+
+    #[test]
+    fn undo_and_redo_walk_the_edits() {
+        let mut i = TextInput::new("");
+        type_in(&mut i, "ab");
+        i.key(ctrl('z'));
+        assert_eq!(i.value(), "a");
+        i.key(ctrl('z'));
+        assert_eq!(i.value(), "");
+        i.key(ctrl('z'));
+        assert_eq!(i.value(), "", "undo past the start does nothing");
+        i.key(ctrl('r'));
+        assert_eq!(i.value(), "a");
+        i.key(Chord {
+            shift: true,
+            ..Chord::ctrl('z')
+        });
+        assert_eq!(i.value(), "ab", "ctrl-shift-z redoes too");
+        i.key(ctrl('Z'));
+        assert_eq!(i.value(), "ab", "nothing left to redo");
+        i.key(ctrl('z'));
+        type_in(&mut i, "x");
+        i.key(ctrl('r'));
+        assert_eq!(i.value(), "ax", "a new edit forgets what was undone");
+    }
+
+    #[test]
+    fn undo_restores_the_caret_and_a_cut_line() {
+        let mut i = TextInput::new("night watch");
+        i.set_cursor(5);
+        i.key(ctrl('k'));
+        i.key(ctrl('z'));
+        assert_eq!(i.value(), "night watch");
+        assert_eq!(i.cursor(), 5);
+    }
+
+    #[test]
+    fn paste_inserts_at_the_caret_and_joins_lines_with_spaces() {
+        let mut i = TextInput::new("ad");
+        i.set_cursor(1);
+        i.paste("b\r\nc");
+        assert_eq!(i.value(), "ab cd");
+        assert_eq!(i.cursor(), 4);
+        i.paste("\n\n");
+        assert_eq!(i.value(), "ab cd", "only breaks pastes nothing");
+        i.key(ctrl('z'));
+        assert_eq!(i.value(), "ad", "a paste undoes in one step");
     }
 
     #[test]
@@ -270,14 +604,55 @@ mod tests {
     }
 
     #[test]
-    fn long_text_scrolls_so_the_cursor_stays_visible() {
-        let theme = Theme::new(crate::design::theme::Tier::Mono);
-        let i = TextInput::new("abcdefghijklmnopqrstuvwxyz");
-        let mut buf = Buffer::empty(Rect::new(0, 0, 10, 1));
-        let cursor = Cell::new(None);
-        i.render(&theme, Rect::new(0, 0, 10, 1), &mut buf, &cursor);
-        let shown: String = (0..10).map(|x| buf[(x, 0)].symbol().to_string()).collect();
-        assert_eq!(shown, "rstuvwxyz ");
-        assert_eq!(cursor.get(), Some(Position { x: 9, y: 0 }));
+    fn a_selection_is_clamped_and_delete_and_cut_keys_remove_it() {
+        let mut i = TextInput::new("abc");
+        i.select(1, 99);
+        assert_eq!(i.selection(), Some((1, 3)));
+        i.key(k(Key::Delete));
+        assert_eq!(i.value(), "a");
+        let mut j = TextInput::new("watchman");
+        j.select(0, 5);
+        j.key(ctrl('k'));
+        assert_eq!(j.value(), "man", "a cut key removes just the selection");
+        let mut m = TextInput::new("watchman");
+        m.select(5, 8);
+        m.key(ctrl('w'));
+        assert_eq!(m.value(), "watch");
+        let mut n = TextInput::new("watchman");
+        n.select(0, 5);
+        n.paste("guard");
+        assert_eq!(n.value(), "guardman", "a paste replaces the selection");
+    }
+
+    #[test]
+    fn shift_with_a_movement_key_selects() {
+        let mut i = TextInput::new("ankh morpork");
+        i.key(k(Key::Home));
+        i.key(shift(Key::Right));
+        i.key(shift(Key::Right));
+        assert_eq!(i.selection(), Some((0, 2)));
+        i.key(Chord {
+            shift: true,
+            ctrl: true,
+            ..Chord::new(Key::Right)
+        });
+        assert_eq!(
+            i.selection(),
+            Some((0, 4)),
+            "shift-ctrl-right selects a word"
+        );
+        i.key(shift(Key::End));
+        assert_eq!(i.selection(), Some((0, 12)));
+        i.key(shift(Key::Home));
+        assert_eq!(
+            i.selection(),
+            None,
+            "selecting back to the anchor leaves nothing"
+        );
+        i.key(shift(Key::Left));
+        assert_eq!(i.selection(), None, "the start stops it");
+        i.key(shift(Key::End));
+        i.key(k(Key::Char('!')));
+        assert_eq!(i.value(), "!");
     }
 }

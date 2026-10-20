@@ -631,48 +631,6 @@
       ]
     },
     {
-      "id": "ratatui-cells",
-      "package": "radar",
-      "binary": "ratatui_cells",
-      "prefix": "",
-      "cases": [
-        {
-          "name": "the_cells_match_the_files_or_are_written",
-          "tier": "contract",
-          "parts": [
-            "core",
-            "gitlab",
-            "github",
-            "jira",
-            "slack",
-            "git",
-            "workspace",
-            "workbench",
-            "sessions"
-          ],
-          "boundary": "Recorded cell layout/style parity and rendered selection across screens.",
-          "why_not_unit": "Needs real full-frame rendered cells and existing exhaustive screen recordings; model assertions cannot protect renderer output."
-        },
-        {
-          "name": "each_highlight_shows_in_the_cells",
-          "tier": "contract",
-          "parts": [
-            "core",
-            "gitlab",
-            "github",
-            "jira",
-            "slack",
-            "git",
-            "workspace",
-            "workbench",
-            "sessions"
-          ],
-          "boundary": "Recorded cell layout/style parity and rendered selection across screens.",
-          "why_not_unit": "Needs real full-frame rendered cells and existing exhaustive screen recordings; model assertions cannot protect renderer output."
-        }
-      ]
-    },
-    {
       "id": "github-hosted-fixtures",
       "package": "radar-github",
       "binary": "radar_github",
@@ -1031,8 +989,8 @@
             "core",
             "github"
           ],
-          "boundary": "Held repository refresh and denied detail preserve visible rows and journal failure; one real Ratatui frame and scenario-derived JSON/text checkpoint preserve the renderer contract.",
-          "why_not_unit": "Requires one GitHub plugin, the real host/reducers and disposable SQLite, then exactly one full-frame Ratatui render to compare the scenario-derived visible checkpoint; neither pure model checks nor reducer-only views establish rendered output. Ink parity is a separate external contract."
+          "boundary": "Held repository refresh and denied detail preserve visible rows and journal failure; the scenario-derived view-data JSON checkpoint is compared with the committed Ink fixture and its text form must contain the refreshed pull request. No frame is painted.",
+          "why_not_unit": "Requires one GitHub plugin, the real host/reducers and disposable SQLite, then the host's view data and its text form for the shared scenario checkpoint; neither pure model checks nor reducer-only views establish what the host sends a renderer. Ink drawing of that checkpoint is a separate external contract."
         }
       ]
     },
@@ -1167,8 +1125,8 @@
             "core",
             "jira"
           ],
-          "boundary": "One real host routes captured typing, Enter, Down and Escape and one full Ratatui frame preserves visible filter wording.",
-          "why_not_unit": "Owner-local reducer tests cannot establish host key capture/focus routing or rendered wording; this narrow contract retains one host and one full-frame checkpoint with no provider requests."
+          "boundary": "One real host routes captured typing, Enter, Down and Escape and the view data's text form preserves visible filter wording.",
+          "why_not_unit": "Owner-local reducer tests cannot establish host key capture/focus routing or the wording the host sends; this narrow contract retains one host and one text-form checkpoint with no provider requests."
         }
       ]
     },
@@ -1489,8 +1447,8 @@
             "core",
             "gitlab"
           ],
-          "boundary": "One host routes page keys and confirmation through real rebase/merge request parsing and refreshed reducers, preserving pending wording in one full Ratatui frame.",
-          "why_not_unit": "Owner-local question/effect assertions cannot establish host menu key routing, held write completion and subsequent production refresh ingestion or rendered wording. This narrow contract uses one GitLab plugin and no SQLite."
+          "boundary": "One host routes page keys and confirmation through real rebase/merge request parsing and refreshed reducers, preserving pending wording in the view data's text form.",
+          "why_not_unit": "Owner-local question/effect assertions cannot establish host menu key routing, held write completion and subsequent production refresh ingestion or the pending wording the host sends. This narrow contract uses one GitLab plugin and no SQLite."
         }
       ]
     },
@@ -1658,8 +1616,8 @@
             "core",
             "slack"
           ],
-          "boundary": "One real host preserves reply typing/confirmation goldens and edit/decline recovery with exactly two real shell frames and no provider requests.",
-          "why_not_unit": "Pure plugin assertions cannot establish real host key/menu routing and both unchanged Ratatui goldens. This bounded contract keeps one demo-backed host and a runtime two-frame assertion; it forbids ordinary and tracked provider spawns."
+          "boundary": "One real host preserves reply typing/confirmation view-text goldens and edit/decline recovery with no painted frame and no provider requests.",
+          "why_not_unit": "Pure plugin assertions cannot establish real host key/menu routing and both unchanged view-text goldens. This bounded contract keeps one demo-backed host and a runtime zero-frame assertion; it forbids ordinary and tracked provider spawns."
         }
       ]
     },
@@ -1693,8 +1651,8 @@
             "core",
             "slack"
           ],
-          "boundary": "One real host preserves review-draft routing, edit/drop behavior, six unchanged golden snapshots and the existing escaped-text frame within seven actual shell frames.",
-          "why_not_unit": "Real host events and Ratatui goldens establish routing and visible escaping that isolated model assertions cannot. Local Code/Tracker contract stubs are not sibling-part crate composition. The Recorded transport remains empty and every dispatch forbids provider work; no successful external review is claimed."
+          "boundary": "One real host preserves review-draft routing, edit/drop behavior, unchanged view-text golden snapshots and the existing escaped-text checkpoint with no painted frame.",
+          "why_not_unit": "Real host events and view-text goldens establish routing and visible escaping that isolated model assertions cannot. Local Code/Tracker contract stubs are not sibling-part crate composition. The Recorded transport remains empty and every dispatch forbids provider work; no successful external review is claimed."
         }
       ]
     },
@@ -1711,8 +1669,8 @@
             "core",
             "slack"
           ],
-          "boundary": "One real host executes success and refusal post tasks through Scenario and production reducers, preserves the followed row and unchanged refusal golden in exactly two shell frames.",
-          "why_not_unit": "Host confirmation routing, real task completion and rendered output require a protected contract. Ordered Recorded responses are checked using complete literal post-execution ledgers and queue exhaustion, not strict pre-response request matching. Local Code/Tracker stubs are not sibling-part crates; bootstrap and persistent journal verification are not claimed."
+          "boundary": "One real host executes success and refusal post tasks through Scenario and production reducers, preserves the followed row and unchanged refusal view-text golden with no painted frame.",
+          "why_not_unit": "Host confirmation routing, real task completion and the view data's text output require a protected contract. Ordered Recorded responses are checked using complete literal post-execution ledgers and queue exhaustion, not strict pre-response request matching. Local Code/Tracker stubs are not sibling-part crates; bootstrap and persistent journal verification are not claimed."
         }
       ]
     },

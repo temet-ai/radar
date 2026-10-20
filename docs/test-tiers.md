@@ -119,14 +119,14 @@ legacy setup; they are not pure-builder-only tests. GitLab's corresponding filte
 comparison uses owner-local model values and remains unit. Core's scratch Work
 and History tests use production writers/readers and are integration, while the
 absent-journal completion mapping is unit (no host or database). The GitHub root
-journey is a contract case because it additionally renders one real Ratatui frame
-and checks scenario-derived JSON/text; external Ink verification is separate.
+journey is a contract case because it additionally checks the scenario-derived view
+data against the committed Ink fixture and its text form; Ink's drawing is separate.
 
 The Jira filter migration separates three owner-local reducer cases under
 `tests::filter::unit` from one captured-typing host contract. The reviewed unit
 setup uses `Default`, fixed time and owned `TicketBuilder` values; it does not
-construct the legacy demo plugin. The contract retains one host and one full
-Ratatui frame. These source-level construction counts are not runtime measurements
+construct the legacy demo plugin. The contract retains one host and one
+text-form checkpoint. These source-level construction counts are not runtime measurements
 or compiler-enforced purity. The root `local-work-journey` is integration: it
 requires `git,workbench`, disposable real Git subprocesses and SQLite with two
 plugins, without full-frame rendering. Its declaration is an inventory entry,

@@ -13,6 +13,7 @@ pub mod context;
 pub mod agent_text;
 pub mod design;
 pub mod dock;
+pub mod fetch;
 pub mod health;
 #[cfg(test)]
 mod health_host_tests;
@@ -31,6 +32,7 @@ pub mod motion;
 pub mod notices;
 pub mod palette;
 mod parts;
+pub mod key_compat;
 pub mod plugin;
 mod plugin_cache;
 pub mod runner;

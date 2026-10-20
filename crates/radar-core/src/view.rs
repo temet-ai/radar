@@ -381,6 +381,17 @@ impl Chord {
         }
     }
 
+    /// No control or alt held; shift is ignored (a shifted character is
+    /// already its own character).
+    pub const fn plain(&self) -> bool {
+        !self.ctrl && !self.alt
+    }
+
+    /// No modifier at all.
+    pub const fn bare(&self) -> bool {
+        !self.ctrl && !self.alt && !self.shift
+    }
+
     /// As an actions menu writes it: `d`, `⏎`, `space`, `ctrl-r`, `pgdn`.
     pub fn parse(keys: &str) -> Option<Self> {
         let (keys, ctrl) = keys
@@ -392,6 +403,10 @@ impl Chord {
             "space" => Key::Char(' '),
             "tab" => Key::Tab,
             "shift-tab" => Key::BackTab,
+            "backspace" => Key::Backspace,
+            "delete" => Key::Delete,
+            "home" => Key::Home,
+            "end" => Key::End,
             "←" => Key::Left,
             "→" => Key::Right,
             "↑" => Key::Up,
@@ -2154,6 +2169,7 @@ pub mod detail;
 pub mod diff;
 pub mod doc;
 pub mod kit;
+pub mod scroll;
 
 pub use chrome::{Choice, ChromeView, MenuView};
 

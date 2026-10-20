@@ -24,7 +24,6 @@ use std::pin::Pin;
 use crate::compose::{Adds, Contribution, Offer, Owned, Point, Setup, Showing, Subject};
 use crate::design::help_bar::KeyHint;
 pub use crate::design::theme::SlotValue;
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use serde_json::Value;
 
 use crate::ui::icon::Icon;
@@ -832,37 +831,14 @@ impl Binding {
 }
 
 /// One key, optionally prefixed by `ctrl-`, as shown in an actions menu.
-pub fn parse_key(keys: &str) -> Option<KeyEvent> {
-    let (keys, modifiers) = keys
-        .strip_prefix("ctrl-")
-        .map_or((keys, KeyModifiers::NONE), |key| {
-            (key, KeyModifiers::CONTROL)
-        });
-    let code = match keys {
-        "⏎" | "enter" => KeyCode::Enter,
-        "esc" => KeyCode::Esc,
-        "space" => KeyCode::Char(' '),
-        "tab" => KeyCode::Tab,
-        "shift-tab" => KeyCode::BackTab,
-        "backspace" => KeyCode::Backspace,
-        "delete" => KeyCode::Delete,
-        "home" => KeyCode::Home,
-        "end" => KeyCode::End,
-        "←" => KeyCode::Left,
-        "→" => KeyCode::Right,
-        "↑" => KeyCode::Up,
-        "↓" => KeyCode::Down,
-        "pgup" => KeyCode::PageUp,
-        "pgdn" => KeyCode::PageDown,
-        _ => {
-            let mut chars = keys.chars();
-            match (chars.next(), chars.next()) {
-                (Some(c), None) => KeyCode::Char(c),
-                _ => return None,
-            }
-        }
-    };
-    Some(KeyEvent::new(code, modifiers))
+pub fn parse_chord(keys: &str) -> Option<crate::view::Chord> {
+    crate::view::Chord::parse(keys)
+}
+
+/// [`parse_chord`] as a terminal key. Temporary, for the parts' tests that
+/// still build terminal keys; removed with the terminal path (T15).
+pub fn parse_key(keys: &str) -> Option<ratatui::crossterm::event::KeyEvent> {
+    parse_chord(keys).map(crate::key_compat::key_of)
 }
 
 /// How a key is shown in the keys menu: `' '` is `space`.

@@ -45,7 +45,7 @@ const tree = (n: number, selected: string): Node =>
 
 const glyphs = (col: string[]) => col.join("");
 
-describe("a list, table or log taller than its pane draws Ratatui's scrollbar on the panel's border", () => {
+describe("a list, table or log taller than its pane draws the reference's scrollbar on the panel's border", () => {
   it("list: thumb at the top on the border from the first row, sized as the Scrollbar sizes it", () => {
     const col = edge(inFrame(list(40)));
     const { start, len } = thumbOf(10, 30, 0);

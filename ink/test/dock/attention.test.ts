@@ -11,7 +11,7 @@ import type { DockActivity, DockTab } from "../../src/dock/model.js";
 import type { ChromeView } from "../../src/chrome/types.js";
 
 // The dock's attention states: the activity line above the composer, each tab's state mark, the full-height split, and
-// the status line's chip while a session wants you out of sight (compared with the row Ratatui draws from the same
+// the status line's chip while a session wants you out of sight (compared with the row the reference draws from the same
 // host data, recorded beside it by radar-core's host_dock_tests).
 
 const text = (cs: { ch: string }[]) => cs.map((c) => c.ch).join("");
@@ -99,13 +99,13 @@ describe("the status line's attention chip", () => {
   const recorded = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort() : [];
   const line = (cells: Cell[]) => cells.map((c) => c.text).join("");
   it("is recorded at both sizes", () => expect(recorded).toEqual(["attention_160x40.json", "attention_80x24.json"]));
-  it.each(recorded)("%s: Ink draws the row Ratatui draws, the chip square on its state's ground, one pointer target", (f) => {
-    const { chrome, ratatui } = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as { chrome: ChromeView; ratatui: string };
+  it.each(recorded)("%s: Ink draws the row the reference draws, the chip square on its state's ground, one pointer target", (f) => {
+    const { chrome, row } = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as { chrome: ChromeView; row: string };
     const w = chrome.width;
     // The host's test theme draws with icons off: so does Ink here, then with the pack's glyph.
     try {
       applyLook(defaultLook("off"));
-      expect(line(layoutStatus(chrome, w, chrome.height - 1).cells).trimEnd()).toBe(ratatui.trimEnd());
+      expect(line(layoutStatus(chrome, w, chrome.height - 1).cells).trimEnd()).toBe(row.trimEnd());
     } finally {
       applyLook(defaultLook());
     }

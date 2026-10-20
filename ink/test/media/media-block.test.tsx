@@ -10,7 +10,7 @@ const cases = [
   [{ image: true }, "▣ image"],
 ] as const;
 
-describe("a document's media block, as Ratatui draws it without graphics", () => {
+describe("a document's media block, as the reference draws it without graphics", () => {
   for (const [m, line] of cases) {
     it(line, () => {
       expect(mediaLine(m)).toBe(line);

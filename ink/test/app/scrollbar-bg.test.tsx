@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { freezeClock, mount, tick } from "./harness.js";
 import { parseAnsi } from "../nodes/ansi.js";
 
-// Live at 80x24 (an MR page): a pane's scrollbar on its right border is on the border's bg.surface in Ratatui; Ink drew
+// Live at 80x24 (an MR page): a pane's scrollbar on its right border is on the border's bg.surface in the reference; Ink drew
 // it with no background. Every recorded screen at both sizes: no scrollbar cell (thumb █, track ║) is without one.
 let unfreeze = () => {};
 beforeAll(() => {

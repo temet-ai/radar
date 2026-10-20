@@ -1,4 +1,4 @@
-// The view data setup sends, for the four screens whose Ratatui text is committed in
+// The view data setup sends, for the four screens whose the reference text is committed in
 // crates/radar-core/src/setup/snapshots/. Built from the protocol types the way crates/radar-core/src/setup.rs builds
 // them (heading, blank, tick, sheet, the rail's stops), so a field the host adds shows up here as a type error.
 import type { ChromeView } from "../../src/protocol/generated/ChromeView.js";

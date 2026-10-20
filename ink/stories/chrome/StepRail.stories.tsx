@@ -39,7 +39,7 @@ function Draw({ globals, width }: { globals: Globals; width: number }) {
 }
 
 /**
- * The step rail of setup (`ChromeView.setup.rail`, Ratatui `ui::rail`, the kit's element for the steps of a run along
+ * The step rail of setup (`ChromeView.setup.rail`, the earlier `ui::rail`, the kit's element for the steps of a run along
  * one line). Each stop sits on a track at its own place; under it a line says how it went. It is two rows tall, one
  * cell in from each side of setup's body, and a click on a stop (its slot, both rows) goes back to it.
  *

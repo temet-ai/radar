@@ -43,7 +43,7 @@ function Draw({ args, globals, view, c }: { args: Args; globals: Globals; view: 
 }
 
 /**
- * A page's tab row (`PageView.tabs`, Ratatui `ui::page::tab_row`; Ink app/TabRow.tsx): the tabs' names, the chosen
+ * A page's tab row (`PageView.tabs`, the earlier `ui::page::tab_row`; Ink app/TabRow.tsx): the tabs' names, the chosen
  * one on the selection shade, a window of tabs with the chosen one in view when they do not all fit.
  *
  * **Use it** inside a page (PageBody draws it); the top bar's part tabs are the TopBar.

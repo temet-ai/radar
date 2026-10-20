@@ -1,6 +1,6 @@
-// Ink's motion engine against Ratatui's (crates/radar-core/src/motion.rs, tachyonfx): the same cue over the same plain
+// Ink's motion engine against the recorded reference (crates/radar-core/src/motion.rs, tachyonfx): the same cue over the same plain
 // frame, the same clock, and every cell compared at each frame. The reference is fixtures/ratatui-motion.json,
-// written by test/motion/gen/main.rs (motion.rs's own Engine and ManualClock on motion/tests.rs's 30x8 frame).
+// written once by a generator that is now deleted (motion.rs's own Engine and ManualClock on motion/tests.rs's 30x8 frame).
 import { describe, expect, test } from "vitest";
 import { readFileSync } from "node:fs";
 import {
@@ -82,7 +82,7 @@ function put(g: Grid, x: number, y: number, s: string, fg: number) {
     c.fg = fg;
   });
 }
-// Ratatui's `Buffer::empty` + set_style(bg) leaves unwritten cells with a reset foreground; the fixture records it.
+// The reference's `Buffer::empty` + set_style(bg) leaves unwritten cells with a reset foreground; the fixture records it.
 
 const cues: Record<string, Cue | undefined> = {
   plain: undefined,
@@ -112,7 +112,7 @@ function close(a: number, b: string, where: string) {
     ).toBeLessThanOrEqual(TOL);
 }
 
-describe("Ink motion matches Ratatui's tachyonfx effects", () => {
+describe("Ink motion matches the recorded tachyonfx effects", () => {
   for (const sc of ref.scenarios) {
     test(`${sc.name} (${sc.level})`, () => {
       let now = 0;

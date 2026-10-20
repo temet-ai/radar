@@ -9,7 +9,7 @@ import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
 
 // ui::scrim (crates/radar-core/src/ui/scrim.rs): behind a menu every cell dims, and the menu's box throws a one-cell shadow
-// right of it and below it that keeps every glyph. The numbers are Ratatui's (bg.base #0a0812, text.primary #f8f8f2).
+// right of it and below it that keeps every glyph. The numbers are the reference's (bg.base #0a0812, text.primary #f8f8f2).
 afterEach(() => applyLook(defaultLook()));
 
 const SURFACE = "#12101a";

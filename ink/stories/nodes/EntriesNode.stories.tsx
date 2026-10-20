@@ -28,7 +28,7 @@ const pane80 = paneOf(red80, "why main is red");
 const pane160 = paneOf(red160, "why main is red");
 
 /**
- * Entries (`Node::Entries`, Ratatui `ui::entries::Entries`): selectable rows with lines under them (a failure and the
+ * Entries (`Node::Entries`, the earlier `ui::entries::Entries`): selectable rows with lines under them (a failure and the
  * lines that say why) and lines before them that are never chosen (a heading). The selected entry's lines are kept in
  * view.
  *

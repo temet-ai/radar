@@ -39,7 +39,7 @@ function Draw({ args, globals, c, screen, geometry }: { args: Args; globals: Glo
 }
 
 /**
- * A menu or a question (`MenuView`, Ratatui `shell/menu.rs`), over the body: a framed box with a title, then each
+ * A menu or a question (`MenuView`, the earlier `shell/menu.rs`), over the body: a framed box with a title, then each
  * choice with its key, label and line; headings (HISTORY) are never chosen; a question (`question: true`) is a
  * dialog whose choices are buttons. It sits where a context click opened it (`at`) or centred.
  *

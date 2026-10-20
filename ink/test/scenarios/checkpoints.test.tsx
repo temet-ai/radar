@@ -10,10 +10,10 @@ import { attachMotion } from "../../src/motion/attach.js";
 
 // A production hosted-provider refresh, reduced by Scenario, supplies this checkpoint.
 // tests/provider_scenarios.rs checks these files against a fresh journey and renders
-// the very same checkpoint with Ratatui. This is renderer replay, not socket E2E.
+// the very same checkpoint with the reference. This is renderer replay, not socket E2E.
 // Keep the case explicit: deleting fixtures must fail, never silently skip coverage.
 const checkpoint = new URL("../fixtures/scenarios/github_refresh_120x40.json", import.meta.url);
-const ratatui = new URL("../fixtures/scenarios/github_refresh_120x40.txt", import.meta.url);
+const reference = new URL("../fixtures/scenarios/github_refresh_120x40.txt", import.meta.url);
 type Recording = Pick<Snapshot, "chrome" | "screen" | "section" | "focus"> & {
   width: number;
   height: number;
@@ -57,15 +57,15 @@ afterAll(() => {
 });
 
 describe("scenario-derived renderer checkpoint", () => {
-  it("draws the same visible GitHub refresh text as Ratatui", async () => {
+  it("draws the same visible GitHub refresh text as the reference", async () => {
     expect(fs.existsSync(checkpoint), "missing scenario JSON: regenerate with tests/provider_scenarios.rs").toBe(true);
-    expect(fs.existsSync(ratatui), "missing scenario Ratatui text: regenerate with tests/provider_scenarios.rs").toBe(true);
+    expect(fs.existsSync(reference), "missing scenario reference text: regenerate with tests/provider_scenarios.rs").toBe(true);
     const view: Recording = JSON.parse(fs.readFileSync(checkpoint, "utf8"));
     expect([view.width, view.height]).toEqual([120, 40]);
     expect(view.screen?.scope).toBe("github");
     expect(view.screen?.page).toBeFalsy();
     expect(JSON.stringify(view.screen)).toContain("Patrol the Brass Bridge");
-    const expected = rows(fs.readFileSync(ratatui, "utf8"));
+    const expected = rows(fs.readFileSync(reference, "utf8"));
     expect(expected.join("\n")).toContain("Patrol the Brass Bridge");
 
     // Production attaches the output compositor before rendering App; it paints notices after layout.

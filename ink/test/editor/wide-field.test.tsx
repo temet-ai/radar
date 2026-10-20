@@ -9,7 +9,7 @@ import { textWidth } from "../../src/editor/graphemes.js";
 import { frameAt } from "../nodes/helpers.js";
 
 // Found live (real MR diff, a comment typed as `helé日本`): the field row was padded by characters, so wide characters
-// pushed it two cells past its width and Ink cut it with "…". Ratatui's set_stringn cuts and pads by cells.
+// pushed it two cells past its width and Ink cut it with "…". the reference's set_stringn cuts and pads by cells.
 describe("a field row with wide characters", () => {
   it("is exactly its width in cells, with no ellipsis, whether the caret is inside, at the end or the text overflows", () => {
     for (const [text, caret] of [

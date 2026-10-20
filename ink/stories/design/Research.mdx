@@ -31,9 +31,9 @@ Every proposal here is a **target, not built yet** unless its verdict says shipp
 | Pipeline graph (DAG) | 05 | needs host | all | @dagrejs/dagre 3.1.1 for layout | The host sends jobs and needs; dagre lays them out; Ink rasterises boxes and lines to cells. | #34 |
 | Mermaid diagrams | 05 | needs host | all | beautiful-mermaid 1.1.3 (renderMermaidASCII) | Returns plain lines: easy to place. Spike first: diagram types, bundle size, and its elkjs dependency (EPL-2.0 or GPL). | #40 |
 | Markdown editor with preview | 05 | needs host | all | shiki 4.5 codeToTokens for code blocks | The editor today is one input line. The host must send rendered blocks (ui/markdown.rs makes them) on each edit. | #37 |
-| Pictures: Slack images, avatars | 00 · 04 | port to ink | kitty, Ghostty; WezTerm partial (no placeholders); sixel in foot, WezTerm, Windows Terminal; tmux by passthrough | ratatui-image (Rust, shipped); borrow ink-picture’s detection for Ink | Slack images already draw in the Ratatui renderer (crates/radar-core/src/ui/image.rs: detect, fetch, cache, draw). Ink’s media/kitty.ts is not wired up: port the same flow, with image ids and delete on scroll, resize and screen change. Avatars follow. | #38 |
+| Pictures: Slack images, avatars | 00 · 04 | port to ink | kitty, Ghostty; WezTerm partial (no placeholders); sixel in foot, WezTerm, Windows Terminal; tmux by passthrough | the earlier image crate (Rust, shipped); borrow ink-picture’s detection for Ink | Slack images already drew in the earlier renderer (crates/radar-core/src/ui/image.rs: detect, fetch, cache, draw). Ink’s media/kitty.ts is not wired up: port the same flow, with image ids and delete on scroll, resize and screen change. Avatars follow. | #38 |
 | Display face drawn as a picture | 02 | blocked | as pictures | none | Waits on pictures; the host would also have to set the font into a PNG. |  |
-| Undercurl, coloured underline | 02 | blocked | kitty, Ghostty, WezTerm, iTerm2, foot, Windows Terminal | none | fast-output.ts and frame.ts misread SGR 58 today (its 2;r;g;b sets dim and stray colours). Fix the parser first; Ratatui has no curl. |  |
+| Undercurl, coloured underline | 02 | blocked | kitty, Ghostty, WezTerm, iTerm2, foot, Windows Terminal | none | fast-output.ts and frame.ts misread SGR 58 today (its 2;r;g;b sets dim and stray colours). Fix the parser first; The earlier renderer had no curl. |  |
 | Strikethrough | 02 | shipped | all | none | Already drawn by both renderers. |  |
 | Sized titles (kitty OSC 66) | 02 | blocked | kitty 0.40+ only; Ghostty parses, does not draw (#10333); WezTerm no (#7814) | none | radar’s output drops OSC payloads and Ink measures one row per line. Parked. |  |
 | Unicode letterforms | 02 | blocked | font-dependent; fall back to other fonts | none | Width and baseline mismatches; screen readers spell them out. Decoration only. |  |
@@ -106,7 +106,7 @@ The dagre layout of a pipeline, drawn to cells by the trial's rasteriser:
 
 ## Order
 
-- 1 · Cheap wins Scrim and shadow behind overlays, tinted chips, the gradient focus border and wordmark, fold unroll and the rainbow lap, the tab attention dot. Ink plus the matching Ratatui change. Ink 8's built-in scrolling and shared animation timer come along here.
+- 1 · Cheap wins Scrim and shadow behind overlays, tinted chips, the gradient focus border and wordmark, fold unroll and the rainbow lap, the tab attention dot. Ink plus the matching change to the earlier renderer. Ink 8's built-in scrolling and shared animation timer come along here.
 - 2 · Graph, palette, editor The pipeline graph (dagre, a new graph node from the host), the cross-part command palette (host target list, Ink draws the typed menu it already has), and the editor preview (host sends rendered markdown blocks; shiki colours the code).
 - 3 · Then Port Slack images to Ink, then avatars. Charts from host series data (ink-chart's LineGraph). Mermaid last, after the licence and parity calls. Notices with a lifetime and history, the assemble motion, the icon slot and underlined keys in hints as host changes allow.
 
@@ -124,7 +124,7 @@ The dagre layout of a pipeline, drawn to cells by the trial's rasteriser:
 
 ## Sources and limits
 
-radar code: ink/src/app/fast-output.ts, app/hover.ts, app/Panes.tsx, chrome/layout.ts, text/chips.ts, text/look.ts, nodes/tree.tsx, motion/*, media/*, protocol/generated/*, crates/radar-gitlab/src/goto.rs, docs/GUIDE.md. Terminals: sw.kovidgoyal.net/kitty (text-sizing-protocol, pointer-shapes, changelog), ghostty.org/docs/vt/reference and ghostty-org/ghostty#10333, wezterm.org/escape-sequences and custom_block_glyphs, wezterm issues #7814, #8092, #7924, #7558. Ink 8.0.0: build/write-synchronized.js. npm registry and downloads API for every library. Prior art: Textual (command palette, design, toast), lazygit Config.md, k9s skins, lipgloss, bubbles, harmonica, glamour, ratatui-image, yazi.
+radar code: ink/src/app/fast-output.ts, app/hover.ts, app/Panes.tsx, chrome/layout.ts, text/chips.ts, text/look.ts, nodes/tree.tsx, motion/*, media/*, protocol/generated/*, crates/radar-gitlab/src/goto.rs, docs/GUIDE.md. Terminals: sw.kovidgoyal.net/kitty (text-sizing-protocol, pointer-shapes, changelog), ghostty.org/docs/vt/reference and ghostty-org/ghostty#10333, wezterm.org/escape-sequences and custom_block_glyphs, wezterm issues #7814, #8092, #7924, #7558. Ink 8.0.0: build/write-synchronized.js. npm registry and downloads API for every library. Prior art: Textual (command palette, design, toast), lazygit Config.md, k9s skins, lipgloss, bubbles, harmonica, glamour, the image crate, yazi.
 
 Not verified: Ghostty's kitty-graphics placeholders and animation, octant drawing, mode 2027 per terminal, gh-dash, btop, Dagger and Claude Code details (from memory), and none of the libraries has been tried inside radar's esbuild bundle yet. beautiful-mermaid needs a spike before it is relied on.
 

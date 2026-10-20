@@ -10,7 +10,7 @@ import { freezeClock, mount, tick } from "./harness.js";
 import { parseAnsi } from "../nodes/ansi.js";
 import { frameOf } from "../../src/chrome/Chrome.js";
 
-// Live at 160x40 (an MR page): Ratatui's page head sits on the page's bg.base, so the cells after the line under the
+// Live at 160x40 (an MR page): the reference's page head sits on the page's bg.base, so the cells after the line under the
 // title and the tab row's last column are bg.base; Ink left them with no background. Every recorded page at both sizes:
 // no cell of its head rows (crumbs, title, the line under it, the tabs, the notice) is without a background.
 let unfreeze = () => {};

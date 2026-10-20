@@ -16,7 +16,7 @@ the host -> first terminal write -> frame quiet. Prints one table row per key.
 Hand-run measurement tool (python3 standard library only; not part of `npm test`). Switches by environment:
 PTY_KEYS="Down,Enter,x,Esc,resize" (the keys to press; `resize` changes the width by 10 columns),
 PTY_GAP seconds of quiet before each key, PTY_DUMP=1 prints the last screen, PTY_NO_TAP=1 runs the bundle without
-the tap, PTY_RENDERER=ratatui runs the other renderer. The binary must match the bundle (same commit of the tree).
+the tap. The binary must match the bundle (same commit of the tree).
 """
 import argparse, fcntl, os, pty, select, shutil, struct, sys, tempfile, termios, time
 
@@ -64,7 +64,6 @@ env = {
     "LANG": "C.UTF-8",
     "RADAR_MODE": "read-only",
     "RADAR_NO_WRITES": "1",
-    "RADAR_RENDERER": os.environ.get("PTY_RENDERER", "ink"),
     "RADAR_INK_BUNDLE": os.path.abspath(args.bundle) if os.environ.get("PTY_NO_TAP") else tap,
     "RADAR_PERF_BUNDLE": os.path.abspath(args.bundle),
     "RADAR_PERF_LOG": log,

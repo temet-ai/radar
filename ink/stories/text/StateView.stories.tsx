@@ -21,7 +21,7 @@ function InPane({ args, globals }: { args: Args; globals: Globals }) {
 }
 
 /**
- * A pane's state (`Node::State`, Ratatui `ui::states::empty`): what a pane shows in place of rows when there is
+ * A pane's state (`Node::State`, the earlier `ui::states::empty`): what a pane shows in place of rows when there is
  * nothing yet, a fetch is running, or it failed. The text says what happened and what to do.
  *
  * **Use it** when a whole pane has nothing to show. When the rows must stay selectable (a group with nothing under

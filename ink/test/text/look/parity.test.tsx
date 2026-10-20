@@ -10,10 +10,10 @@ import { mount, tick } from "../../app/harness.js";
 import { parseAnsi, type TCell } from "../../nodes/ansi.js";
 import { applyLook, currentLook, defaultLook } from "../../../src/text/look.js";
 
-// Ink's cells against Ratatui's own, for the same view data. `<screen>_<w>x<h>.json` is what the host sends for a
-// demo-data screen ({width, height, chrome, screen}); `.cells.json` is the Ratatui buffer drawn from the same host
+// Ink's cells against the reference cells, for the same view data. `<screen>_<w>x<h>.json` is what the host sends for a
+// demo-data screen ({width, height, chrome, screen}); `.cells.json` is the reference buffer drawn from the same host
 // state (radar_core::shell::render into a TestBackend at truecolor, icons off): per cell `[symbol, fg, bg, modifiers]`
-// with colours as `#rrggbb` (null = reset) and the modifier bits of ratatui::style::Modifier. Both are written by a
+// with colours as `#rrggbb` (null = reset) and the modifier bits of the reference's Modifier. Both are written by a
 // scratch test over the demo host (see README.md in this folder). The whole App draws the view data and every cell
 // is compared: its character, colours and modifiers. A blank cell shows only its background, underline, reversal
 // and strike, so only those are compared there.
@@ -44,7 +44,7 @@ function nameOf(hex: string | null | undefined): string {
   return names.length ? names.slice(0, 2).join("/") : hex;
 }
 
-/** Colours equal as the terminal shows them: both unset, or the same `#rrggbb`. A cell Ratatui paints on bg.base
+/** Colours equal as the terminal shows them: both unset, or the same `#rrggbb`. A cell the reference paints on bg.base
  * explicitly is not the terminal's own background, so it is not treated as unset. */
 function sameColour(a: string | null | undefined, b: string | null | undefined, _slot?: string) {
   const norm = (c: string | null | undefined) => (c ? c.toLowerCase() : "");
@@ -106,7 +106,7 @@ export function compareCells(ink: TCell[][], rat: RatCell[][], skip: number[] = 
 }
 
 // Table geometry is not a styling matter and is not this file's to fix. At 80x24 the table's columns add up to more than the
-// pane, and Ratatui (ratatui::widgets::Table with Constraint::Length / Min) lets its layout solver squeeze them below their
+// pane, and the reference (a table with Constraint::Length / Min) lets its layout solver squeeze them below their
 // declared widths, so a cell cut by ui::table::cut to its declared width (ending in `…`) is then clipped again by the narrower
 // column: "needs 1 approv", the title column empty. Ink cuts every cell at the declared width ("needs 1 appro…", "ABC-12…").
 // The headings row (7) now agrees; the data row (8) is the one difference. The list must stay exactly this, so fixing the
@@ -114,14 +114,14 @@ export function compareCells(ink: TCell[][], rat: RatCell[][], skip: number[] = 
 const KNOWN_TEXT_ROWS: Record<string, number[]> = {};
 
 // The item page's title and tab rows: the buffer radar_core::shell::render paints has bg.base on every cell, but the bytes the
-// live Ratatui sends (read back through tmux, `ink-live colour`) leave the col-0 air, the title (and its padding) and the
+// live reference sends (read back through tmux, `ink-live colour`) leave the col-0 air, the title (and its padding) and the
 // showing tab on the terminal's own background, and put bg.base only on the crumbs row, the gap and details after the
 // title, and the rest of the tab row. Ink follows the live terminal (acceptance judges that), so the background of these
 // two rows is not compared against the buffer; colours, bold and text still are. Why the two differ is not understood.
 const LIVE_BG_ROWS: Record<string, number[]> = { "table 80x24": [3, 4, 5], "table 160x40": [3, 4, 5] };
 
 const screens = ["tree", "table"];
-describe("Ink's cells against Ratatui's buffer for the same view data", () => {
+describe("Ink's cells against the reference buffer for the same view data", () => {
   for (const name of screens)
     for (const size of ["80x24", "160x40"]) {
       it(`${name} ${size}`, async () => {

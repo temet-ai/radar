@@ -44,7 +44,7 @@ function Draw({ args, globals }: { args: Args; globals: Globals }) {
 
 /**
  * The agent dock under the middle pane (host `DockView`, crates/radar-core/src/dock.rs; Ink only, `src/dock/Dock.tsx`;
- * Ratatui draws the one-line notice in its place). A frame holding the tab row (one tab per session: pack icon, name,
+ * The earlier renderer drew the one-line notice in its place). A frame holding the tab row (one tab per session: pack icon, name,
  * state; the one showing in brackets and bold accent, as the page tab row's), the transcript, the composer and the
  * status line. Every story draws a state the host recorded (ink/test/fixtures/dock, written by radar-core).
  *

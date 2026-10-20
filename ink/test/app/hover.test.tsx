@@ -197,7 +197,7 @@ describe("the chrome under the pointer", () => {
   });
 });
 
-// The styled buffer with the pointer on a tree row (ink/test/cells, scene highlight_hovered-row; first drawn by Ratatui,
+// The styled buffer with the pointer on a tree row (ink/test/cells, scene highlight_hovered-row; first drawn by the reference,
 // now Ink's golden, rewritten from Ink by INK_UPDATE_GOLDENS=1): the whole App draws the same view data, the pointer is
 // moved to the same cell, and the row is compared cell for cell.
 interface RatCell {
@@ -206,9 +206,9 @@ interface RatCell {
   bg?: string;
   mods?: string[];
 }
-describe("the hovered tree row against Ratatui's cells", () => {
+describe("the hovered tree row against the reference's cells", () => {
   for (const size of ["80x24", "160x40"]) {
-    it(`is lit as Ratatui lights it at ${size}`, async () => {
+    it(`is lit as the reference lights it at ${size}`, async () => {
       const file = path.resolve(here, `../cells/highlight_hovered-row-${size}.json`);
       expect(fs.existsSync(file), `${file} is a committed golden`).toBe(true);
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as {

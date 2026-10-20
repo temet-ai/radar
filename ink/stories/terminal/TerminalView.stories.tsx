@@ -54,7 +54,7 @@ function Draw({ rec, end, focused, globals }: Args & { globals: Globals }) {
  * **States:** following a running program; the program ended (how it ended, `r̲estart`); at 80x24 and 160x40.
  *
  * **Rules:** the program's colours are its own; the surface adds nothing but the ended row, whose key sits inside its
- * word. Ctrl+] gives the keys back. Ink only: Ratatui has no terminal tab.
+ * word. Ctrl+] gives the keys back. Ink only: the host has no terminal tab in its own picture.
  */
 const meta = {
   title: "Dock/TerminalView",

@@ -160,7 +160,7 @@ fn a_created_task_reaches_the_map_and_a_pending_confirmation_stays_in_the_view()
 /// The pane shortcuts the host gives this view at both sizes, recorded as
 /// tests/fixtures/<name>_pane_jumps_<w>x<h>.json for the Ink tests; in a
 /// normal run the committed file must still be what the host gives.
-/// (The `<name>_ratatui_<w>x<h>.txt` files beside them are the Ratatui
+/// (The `<name>_reference_<w>x<h>.txt` files beside them are the reference
 /// frames Ink's parity tests read; nothing here writes or checks them now.)
 fn pane_jumps(name: &str, h: &Headless) {
     for (w, ht) in [(80u16, 24u16), (160, 40)] {

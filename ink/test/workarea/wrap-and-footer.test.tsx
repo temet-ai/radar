@@ -7,9 +7,9 @@ import { WorkArea } from "../../src/workarea/WorkArea.js";
 import { sectionsOf, type ScreenLike, type ViewNode } from "../../src/workarea/model.js";
 import { renderNode } from "../../src/nodes/index.js";
 import { textWords } from "../../src/text/TextLine.js";
-import { ratatuiTitles } from "./panels.js";
+import { referenceTitles } from "./panels.js";
 
-// Defect 7 (T13's survey): Work cut its explanatory text with "…" where Ratatui wraps it, and dropped the
+// Defect 7 (T13's survey): Work cut its explanatory text with "…" where the reference wraps it, and dropped the
 // panes' footers ("Groups · page 1"). The class: every recorded Work view, at both sizes, through the same
 // node renderer the app passes in.
 const dir = "../../../crates/radar-workbench/tests/fixtures/";
@@ -36,9 +36,9 @@ const unwrap = (n: ViewNode): ViewNode =>
 const squash = (s: string) => s.replace(/\s+/g, " ");
 
 describe.each(views)("$name", ({ name, screen }) => {
-  // A pane Ratatui does not paint at this size (its Narrow layout shows the focused pane alone) is not asked of Ink.
+  // A pane the reference does not paint at this size (its Narrow layout shows the focused pane alone) is not asked of Ink.
   const shown = (s: { kind: string; title: string }, columns: number, rows: number) =>
-    s.kind !== "other" || ratatuiTitles(name.replace(".json", ""), columns, rows).includes(s.title);
+    s.kind !== "other" || referenceTitles(name.replace(".json", ""), columns, rows).includes(s.title);
   for (const [columns, rows] of [
     [80, 24],
     [160, 40],
@@ -49,7 +49,7 @@ describe.each(views)("$name", ({ name, screen }) => {
       for (const s of sectionsOf(screen)) {
         const body = unwrap(s.body);
         if (body.node !== "document" || !shown(s, columns, rows)) continue;
-        // Ratatui draws no M11 panel under 84 columns (its Narrow layout is the focused pane alone); Ink adds only a pending question there.
+        // The reference draws no M11 panel under 84 columns (its Narrow layout is the focused pane alone); Ink adds only a pending question there.
         if (s.kind !== "other" && !s.pending && columns < 84) continue;
         // A panel a short terminal has no room for is named on the line that says so; every panel that is drawn is whole.
         if (s.kind !== "other" && drawn.split("\n").some((l) => l.startsWith("+ ") && l.includes(s.title))) continue;

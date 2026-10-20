@@ -12,7 +12,7 @@ import { parseAnsi } from "../nodes/ansi.js";
 import type { MenuView } from "../../src/chrome/types.js";
 import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
-// The styled buffer with a menu up (ink/test/cells, scene highlight_menu; first drawn by Ratatui, now Ink's golden,
+// The styled buffer with a menu up (ink/test/cells, scene highlight_menu; first drawn by the reference, now Ink's golden,
 // rewritten from Ink by INK_UPDATE_GOLDENS=1): the screen behind dims and the menu throws a one-cell shadow. The whole
 // App draws the same view data with the same menu, and the body's cells are compared colour for colour, the shadow's
 // glyphs too.
@@ -49,9 +49,9 @@ afterEach(() => {
   applyLook(defaultLook());
 });
 
-describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
+describe("the scrim and shadow behind a menu against the reference's cells", () => {
   for (const size of ["80x24", "160x40"]) {
-    it(`dims and shades as Ratatui does at ${size}`, async () => {
+    it(`dims and shades as the reference does at ${size}`, async () => {
       const file = path.resolve(here, `../cells/highlight_menu-${size}.json`);
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as {
         canvas: { fg: string; bg: string };
@@ -88,7 +88,7 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
       const bodyTop = (rows: Array<Array<{ ch?: string }>>) => rows.findIndex((r) => text(r).startsWith("╭"));
       const inkTop = bodyTop(got), ratTop = bodyTop(scene.rows);
       expect(inkTop, "Ink drew the pane borders").toBeGreaterThan(-1);
-      expect(ratTop, "Ratatui recorded the pane borders").toBeGreaterThan(-1);
+      expect(ratTop, "the reference recorded the pane borders").toBeGreaterThan(-1);
       expect(inkTop, "the scene's source row preserves its body geometry").toBe(ratTop);
       const dy = inkTop - ratTop;
       const inBox = (b: typeof ink, x: number, y: number) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
@@ -110,7 +110,7 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
           if (ch(g) !== ch(want)) return; // the body under the boxes differs where the boxes do
           if ((g?.bg?.toLowerCase() ?? hex(undefined, scene.canvas.bg)) !== hex(want.bg, scene.canvas.bg))
             bad.push(`(${x},${y}): bg ${g?.bg} for ${hex(want.bg, scene.canvas.bg)}`);
-          // ✓ and ✗ on a repo row: Ratatui draws them in the text colour, Ink in their status colour (drift older than
+          // ✓ and ✗ on a repo row: the reference draws them in the text colour, Ink in their status colour (drift older than
           // the scrim, the same without a menu).
           if (ch(want) !== " " && !"✓✗".includes(ch(want)) && g?.fg?.toLowerCase() !== hex(want.fg, scene.canvas.fg))
             bad.push(`(${x},${y}): fg ${g?.fg} for ${hex(want.fg, scene.canvas.fg)}`);

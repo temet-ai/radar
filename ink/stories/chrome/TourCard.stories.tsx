@@ -53,7 +53,7 @@ function Draw({ args, globals, width, height }: { args: Args; globals: Globals; 
 }
 
 /**
- * The tour's card (`ChromeView.tour`, Ratatui `shell/tour.rs`): a panel titled `tour · N of M` over the app at the body's
+ * The tour's card (`ChromeView.tour`, the earlier `shell/tour.rs`): a panel titled `tour · N of M` over the app at the body's
  * lower right, one cell in from the right and from the bottom, with the kit's shadow. Inside, with a cell of padding:
  * the title in bold emphasis, a blank line, the stop's lines, a blank line, what to try in muted words (when there is
  * one), then its keys. It is as wide as its widest line plus 4 (at least 40, at most the body less 2) and as tall as its

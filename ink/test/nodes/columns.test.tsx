@@ -14,7 +14,7 @@ import { cellWidth } from "../../src/chrome/width.js";
 import { frameAt } from "./helpers.js";
 
 // Defect 5 of the live survey: a tree or table must draw its heading row (what is over the names, then each column's
-// heading in capitals) and give the columns the room Ratatui gives them (ui::Columns::fit): the columns take their
+// heading in capitals) and give the columns the room the reference gives them (ui::Columns::fit): the columns take their
 // declared widths and the names get what is left, so "failed" and "main" are not cut to "fai…" and "m…".
 const ctx = (width: number, over: Partial<NodeContext> = {}): NodeContext => ({
   width,
@@ -78,7 +78,7 @@ describe("the tree's heading row", () => {
     expect(out).toMatch(/✗ failed/);
   });
 
-  it("has no heading row without a header or a header target (Ratatui omits it), and none under a note", () => {
+  it("has no heading row without a header or a header target (the reference omits it), and none under a note", () => {
     const bare = { ...(node as object), header: [] } as Node;
     expect(draw(bare, 62).split("\n")[0]).toMatch(/acme-billing-service/);
     const noted = {
@@ -185,7 +185,7 @@ describe("tables", () => {
   });
 });
 
-/** The heading as Ratatui draws it in its column: in capitals, whole, unless an icon before it leaves under `width - 1`
+/** The heading as the reference draws it in its column: in capitals, whole, unless an icon before it leaves under `width - 1`
  * cells for the words (Column::heading_spans clips to the column less its air), when its first cells show. */
 const headingShown = (c: {
   heading: string;
@@ -268,7 +268,7 @@ describe("every tree and table of every recorded fixture", () => {
             `${file}: room for all columns at ${width} but ${shown.length}/${node.columns.length} headings`,
           );
         // a cell whose words fit its declared column is drawn whole when the column is shown; a table that does not
-        // fit gives up width as Ratatui's constraint layout does (test/nodes/columns/), so only a fitting one is held to it
+        // fit gives up width as the reference's constraint layout does (test/nodes/columns/), so only a fitting one is held to it
         const wide =
           tree ||
           (node.columns as { width: number }[]).reduce(

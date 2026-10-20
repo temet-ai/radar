@@ -1,5 +1,5 @@
 // The goldens Ink owns: ink/test/cells (styled scenes), ink/test/fixtures/motion, ink/test/fixtures/wrap and
-// ink/test/input/intents.json. They were first written from Ratatui; they are frozen and committed, and nothing in
+// ink/test/input/intents.json. They were first written from the reference; they are frozen and committed, and nothing in
 // Rust writes them any more. A test that compares Ink with one moves it by rewriting it from Ink's own output:
 //
 //   INK_UPDATE_GOLDENS=1 npx vitest run test/<dir>

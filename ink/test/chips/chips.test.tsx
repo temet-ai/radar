@@ -28,7 +28,7 @@ describe("labelled chips", () => {
       const label = runs[runs.length - 1]!.style;
       for (const r of runs) expect(r.style.backgroundColor).toBe(chipGround(label.color));
     }
-    // widgets::chip_ground: status.success #50fa7b 16% over bg.overlay #1a162a, as Ratatui's test has it
+    // widgets::chip_ground: status.success #50fa7b 16% over bg.overlay #1a162a, as the reference test has it
     expect(chipRuns(bare)[0]!.style.backgroundColor).toBe("#233a37");
     expect(chipRuns(discussed)[0]!.style.backgroundColor).not.toBe(chipRuns(bare)[0]!.style.backgroundColor);
     const [pad, icon, label] = chipRuns(discussed);
@@ -42,12 +42,12 @@ describe("labelled chips", () => {
   });
 });
 
-// Ratatui's own cells for the chip (captured from the real radar, Jira My tickets, ABC-1552's ' ⇆ discussed · 1 ', as
+// The reference's own cells for the chip (captured from the real radar, Jira My tickets, ABC-1552's ' ⇆ discussed · 1 ', as
 // char, fg, bg). Ink's cells for the same segment must match at every column; the icon's glyph depends on the pack in
 // use, so there only its background is compared (its colour is the host look's, equal in the live capture).
-describe("a chip against Ratatui's cells", () => {
+describe("a chip against the reference cells", () => {
   const ref = JSON.parse(
-    fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../fixtures/chips/jira-discussed.ratatui.json"), "utf8"),
+    fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../fixtures/chips/jira-discussed.json"), "utf8"),
   ) as { cells: Array<[string, string | null, string | null]> };
   const hex = (c: string | undefined) => (c ? c.toLowerCase() : null);
 

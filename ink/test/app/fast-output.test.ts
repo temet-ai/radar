@@ -152,7 +152,7 @@ describe("fast Output draws what Ink's Output draws", () => {
     expect(plain(fast).slice(0, 2)).toEqual(plain(slow).slice(0, 2));
     for (const row of plain(fast)) expect(cellWidth(row)).toBeLessThanOrEqual(12);
     expect(plain(fast)[0]).toBe("a⚠️b│x⚠️y⚠️│");
-    // a wide emoji in the last cell is not drawn, as Ratatui's buffer drops it (Ink's own get() writes it: 13 cells)
+    // a wide emoji in the last cell is not drawn, as the reference's buffer drops it (Ink's own get() writes it: 13 cells)
     expect(plain(fast)[2]).toBe("abcdefghijk");
   });
 

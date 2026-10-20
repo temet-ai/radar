@@ -41,7 +41,7 @@ describe("work area layout", () => {
     expect(litTitles(raw(<WorkArea screen={workScreen()} capabilities={caps(160, 40)} focus="pane:tabs" />)).has("Overview")).toBe(true);
   });
 
-  it("under 84 columns only the pending question is added to Ratatui's focused pane", () => {
+  it("under 84 columns only the pending question is added to the reference's focused pane", () => {
     const f = frame(<WorkArea screen={workScreen({ pending: true })} capabilities={caps(80, 24)} />);
     expect(f.split("\n")[0]).toContain("Agent");
     for (const t of ["Map", "Timeline", "Overview", "Next"]) expect(f).not.toContain(`╭ ${t}`);

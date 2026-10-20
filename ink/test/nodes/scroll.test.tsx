@@ -4,7 +4,7 @@ import { render } from "ink";
 import { describe, expect, it } from "vitest";
 import { focusedScroller, renderNode, scrollers, thumbOf, type Node } from "../../src/nodes/index.js";
 
-// Ratatui scrolls a focused Document or Rich pane in the frontend (ui/scroll.rs Scroll::key): ↓ j ↑ k PgUp PgDn
+// The frontend scrolls a focused Document or Rich pane (view/scroll.rs Scroll::key): ↓ j ↑ k PgUp PgDn
 // g G Home End, ↑ at the top is the host's, and a scrollbar runs down the right edge. The node keeps the offset.
 
 class Out extends EventEmitter {
@@ -113,7 +113,7 @@ describe("a Rich pane scrolls the same way", () => {
   });
 });
 
-describe("the thumb is ratatui's", () => {
+describe("the thumb follows the host's Scroll", () => {
   it("fills the track when nothing scrolls far, and sits at the end when scrolled to it", () => {
     expect(thumbOf(10, 20, 0)).toEqual({ start: 0, len: 3 });
     const end = thumbOf(10, 20, 20);
@@ -150,7 +150,7 @@ describe("inside a pane frame the bar is on the right border, as scroll::scrollb
 });
 
 describe("a Rich line block wraps at the padded width (view_tui Node::Rich: ui::scroll::scrolled wraps at padded(inner).width)", () => {
-  // The node's width W: Ratatui pads one cell each side and wraps a line block at W - 2. rich_lines' W - 2 - 1 lays out
+  // The node's width W: the recorded layout pads one cell each side and wraps a line block at W - 2. rich_lines' W - 2 - 1 lays out
   // doc blocks only; a line block is pushed whole (live at 160x40: the api detail's 44-cell !263 line on one row).
   const line = (n: number): Node =>
     ({ node: "rich", blocks: [{ block: "line", text: [{ text: `${"word ".repeat(Math.ceil(n / 5)).slice(0, n - 1)}x` }] }] }) as unknown as Node;

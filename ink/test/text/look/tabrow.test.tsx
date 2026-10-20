@@ -11,7 +11,7 @@ import { booksChrome } from "../../chrome/fixture.js";
 import { parseAnsi } from "../../nodes/ansi.js";
 
 // ui::page::tab_row styles only the cells it writes (`TextSecondary` on an inactive title, bold accent on the showing
-// one) but Ratatui's patch semantics keep the page's bg.base under every cell (shell.rs paints it first): live, in tmux,
+// one) but the reference's patch semantics keep the page's bg.base under every cell (its paint takes it first): live, in tmux,
 // the whole row carries #0a0812 from the leading space on (T22 survey). The earlier version of this test expected none.
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../fixtures");
 let unfreeze = () => {};

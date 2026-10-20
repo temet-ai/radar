@@ -11,7 +11,7 @@ import { applyLook, defaultLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
 import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
-// widgets::chip_ground (#30): a chip stands on its tone's tint. The golden cells (ink/test/cells, first drawn by Ratatui,
+// widgets::chip_ground (#30): a chip stands on its tone's tint. The golden cells (ink/test/cells, first drawn by the earlier renderer,
 // now Ink's, rewritten from Ink by INK_UPDATE_GOLDENS=1) for the GitHub screens carry a muted chip line
 // (' ⌂ local folder  no matching origin…'); the App draws the same view data and each chip cell's ground must be the
 // golden's, and the ground must stop where the golden's does. The host chrome's bars differ from the scene's, so the
@@ -26,7 +26,7 @@ afterEach(() => {
   applyLook(defaultLook());
 });
 
-describe("a chip's ground against Ratatui's cells", () => {
+describe("a chip's ground against the reference cells", () => {
   for (const [surface, size] of [
     ["github_github", "160x40"],
     ["github_github-page1-overview-pull-requests-actions", "80x24"],
@@ -54,8 +54,8 @@ describe("a chip's ground against Ratatui's cells", () => {
         const words = r.slice(xs[0], xs[xs.length - 1]! + 1).map(ch).join("").trim().slice(0, 12);
         const iy = got.findIndex((g) => g.map(ch).join("").includes(words));
         expect(iy, `Ink drew "${words}"`).toBeGreaterThan(-1);
-        // the same columns, and the ground starts where Ratatui's does. Its right end is not compared: where a chip wraps,
-        // Ratatui's word wrap drops the space at the break and Ink's keeps it as one more cell of ground (drift older
+        // the same columns, and the ground starts where the reference's does. Its right end is not compared: where a chip wraps,
+        // the reference's word wrap drops the space at the break and Ink's keeps it as one more cell of ground (drift older
         // than the tint).
         for (const x of [...xs, xs[0]! - 1]) {
           if (r[x]?.ch === "") continue;

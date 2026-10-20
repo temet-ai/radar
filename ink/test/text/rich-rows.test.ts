@@ -7,7 +7,7 @@ import { slotStyle } from "../../src/text/look.js";
 import type { RichBlock } from "../../src/nodes/view.js";
 
 // ui::rich's own layout of the same documents at several widths (ink/test/fixtures/dock/rich-layout.json, written by
-// radar-core's rich_layout_reference): every line Ink lays out for the dock must be the one Ratatui lays out.
+// radar-core's rich_layout_reference): every line Ink lays out for the dock must be the one the reference lays out.
 const ref = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../fixtures/dock/rich-layout.json");
 const samples = JSON.parse(fs.readFileSync(ref, "utf8")) as Array<{ name: string; doc: RichBlock[]; widths: Record<string, string[]> }>;
 

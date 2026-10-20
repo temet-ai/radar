@@ -10,7 +10,7 @@ import { applyLook, bgOf, defaultLook, slotStyle } from "../../src/text/look.js"
 import { styledFrameAt } from "../nodes/helpers.js";
 import { parseAnsi, type TCell } from "../nodes/ansi.js";
 
-// Ratatui's input::render_field: the whole row on bg.overlay, the text in bold text.emphasis, the caret a cell
+// the reference's input::render_field: the whole row on bg.overlay, the text in bold text.emphasis, the caret a cell
 // of text.emphasis REVERSED over the character it is before (a space after the end), the text scrolled so the
 // caret and one cell for it stay in view. EditorView's panel is ui::card::panel (focused) over bg.surface.
 const rowOf = (el: React.ReactElement, width: number, rows = 24): TCell[][] =>
@@ -21,7 +21,7 @@ const str = (cells: TCell[]) => cells.map((c) => c.ch).join("");
 
 afterEach(() => applyLook(defaultLook()));
 
-describe("InputField is Ratatui's render_field", () => {
+describe("InputField is the reference's render_field", () => {
   it("paints the whole row on bg.overlay, text bold in text.emphasis, caret reversed", () => {
     const cells = field("hello world", 5);
     const overlay = bgOf("bg.overlay");

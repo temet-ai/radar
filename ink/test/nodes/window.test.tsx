@@ -49,7 +49,7 @@ describe("a long list draws what shows", () => {
     for (const h of hits)
       expect(lines[h.y]).toContain(h.target.replace("row:", "row number "));
   });
-  it("Ratatui's scroll rule: the first row stays while the cursor is inside, moves by the least to follow it", () => {
+  it("the reference's scroll rule: the first row stays while the cursor is inside, moves by the least to follow it", () => {
     expect(firstRow(200, 5, 24, 0)).toBe(0);
     expect(firstRow(200, 30, 24, 0)).toBe(7);
     expect(firstRow(200, 10, 24, 7)).toBe(7);

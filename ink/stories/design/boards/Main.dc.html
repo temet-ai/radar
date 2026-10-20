@@ -69,7 +69,7 @@ body{margin:0;background:#0a0812}
   <div style="display: flex; flex-direction: column; gap: 28px">
     <div style="display: flex; align-items: baseline; gap: 20px">
       <h2 class="h2">What Ink opens up</h2>
-      <p class="note">The terminal could always do these. Ratatui's widget set kept most of them out of reach; Ink's output buffer and frame clock put them in ours.</p>
+      <p class="note">The terminal could always do these. the earlier renderer's widget set kept most of them out of reach; Ink's output buffer and frame clock put them in ours.</p>
     </div>
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
 
@@ -104,7 +104,7 @@ body{margin:0;background:#0a0812}
       </div>
 
       <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
-        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Pictures</h3><span class="tag ship">shipped in ratatui</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: center"><h3 class="h3">Pictures</h3><span class="tag ship">shipped in the earlier renderer</span></div>
         <div style="display: flex; gap: 18px; align-items: center">
           <div style="width: 126px; height: 90px; border-radius: 3px; background: radial-gradient(circle at 30% 35%, #ff6ac1 0, transparent 45%), radial-gradient(circle at 75% 70%, #80ffea 0, transparent 50%), linear-gradient(135deg, #3c2d55, #12101a); display: flex; align-items: flex-end; padding: 6px; box-sizing: border-box"><span class="term" style="font-size: 11px; line-height: 14px; color: #fff">[preview]</span></div>
           <div class="term">
@@ -112,7 +112,7 @@ body{margin:0;background:#0a0812}
             <div class="r"><span class="s">▣ image </span><span class="a u">graph.png</span></div>
           </div>
         </div>
-        <p class="note">Slack's images already draw in the Ratatui renderer through ratatui-image (kitty, then sixel or iTerm2). Ink needs that ported: its media code exists but is not wired up yet. Avatars and drawn charts come after. The text line is always there.</p>
+        <p class="note">Slack's images already drew in the earlier renderer through the image crate (kitty, then sixel or iTerm2). Ink needs that ported: its media code exists but is not wired up yet. Avatars and drawn charts come after. The text line is always there.</p>
       </div>
 
       <div class="panel" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">

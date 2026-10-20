@@ -36,7 +36,7 @@ describe("media blocks from the host's demo data", () => {
       expect(media.filter((m) => m.image)).toHaveLength(2);
     });
 
-    it(`${size}: a basic terminal draws each block as Ratatui's no-graphics line`, async () => {
+    it(`${size}: a basic terminal draws each block as the reference's no-graphics line`, async () => {
       const [cols, rows] = size.split("x").map(Number) as [number, number];
       const view = JSON.parse(fs.readFileSync(path.join(dir, `jira_ticket-media_${size}.json`), "utf8"));
       const m = mount(cols, rows);
@@ -53,7 +53,7 @@ describe("media blocks from the host's demo data", () => {
         expect(JSON.stringify(m.intents()), "PgDn reaches the host").toContain("page_down");
         return;
       }
-      // Every one of the four blocks is on screen and is Ratatui's line, whole on one row (not wrapped).
+      // Every one of the four blocks is on screen and is the reference's line, whole on one row (not wrapped).
       const all = mediaOf(view);
       expect(all).toHaveLength(4);
       for (const b of all) expect(drawn.some((l) => l.includes(line(b))), `${line(b)} in\n${frame}`).toBe(true);

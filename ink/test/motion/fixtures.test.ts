@@ -1,4 +1,4 @@
-// Ink's motion engine against its motion goldens (ink/test/fixtures/motion/*.json, first written by Ratatui's motion
+// Ink's motion engine against its motion goldens (ink/test/fixtures/motion/*.json, first written by the reference's motion
 // tests, now Ink's: INK_UPDATE_GOLDENS=1 rewrites each file's `rows` and `settle` from Ink's engine): real shell or
 // gallery frames at 80x24, the cue as the bridge sends it, the marks made, and the cells the engine produced at the
 // start, middle and end of each effect. Each file is replayed: the cue, then the same frame drawn at t=0 and at every
@@ -137,7 +137,7 @@ function same(got: Grid, want: Grid, where: string) {
   expect(bad.slice(0, 10), where).toEqual([]);
 }
 
-describe("Ink's motion engine against T31's Ratatui fixtures", () => {
+describe("Ink's motion engine against T31's the reference fixtures", () => {
   it("there are fixtures", () => expect(files.length).toBeGreaterThan(20));
 
   for (const file of files) {
@@ -169,7 +169,7 @@ describe("Ink's motion engine against T31's Ratatui fixtures", () => {
       }
       same(last, gridOf(f.rows), file);
       if (f.moment !== "end" || f.effect === "loading") return; // a waiting panel shimmers on
-      // The effect is over: Ratatui draws one plain frame next (`settle` == `after`), then asks for nothing.
+      // The effect is over: the reference draws one plain frame next (`settle` == `after`), then asks for nothing.
       expect(e.running(), "a plain frame is still to come").toBe(
         f.settle_follows,
       );

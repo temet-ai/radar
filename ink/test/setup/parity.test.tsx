@@ -14,7 +14,7 @@ vi.hoisted(() => {
 import { SCENES } from "./scenes.js";
 
 /**
- * Setup: the sheet above the card (no rail), as the goldens in ./goldens read: Ink's own, frozen from the Ratatui
+ * Setup: the sheet above the card (no rail), as the goldens in ./goldens read: Ink's own, frozen from the the reference
  * text of the same screens before radar-core's setup tests moved to view text (e52f4ce).
  * The scenes are the view data the host sends for them (./scenes.ts). The goldens draw no icons.
  */
@@ -53,7 +53,7 @@ async function draw(scene: (typeof SCENES)[number]) {
   return m;
 }
 
-describe("setup: Ink draws the text Ratatui draws", () => {
+describe("setup: Ink draws the text the reference draws", () => {
   for (const scene of SCENES) {
     it(`${scene.name}: the top bar, the card, the sheet and the key bar`, async () => {
       const m = await draw(scene);

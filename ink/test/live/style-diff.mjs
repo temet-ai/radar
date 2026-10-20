@@ -1,7 +1,7 @@
-// Usage: node style-diff.mjs <ink.ansi> <ratatui.ansi>
+// Usage: node style-diff.mjs <ink.ansi> <reference.ansi>
 // Both files are `tmux capture-pane -e -p` output. Prints every region where the cell
 // styles (fg, bg, bold, dim, italic, underline, reverse, strike) or characters differ,
-// grouped per row into runs. Ratatui is the reference.
+// grouped per row into runs. The second file is the reference.
 import { readFileSync } from 'node:fs';
 
 const NAMED = ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'];

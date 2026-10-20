@@ -28,7 +28,7 @@ const pane80 = paneOf(log80, "log");
 const pane160 = paneOf(log160, "log");
 
 /**
- * A log (`Node::Log`, Ratatui inline loop plus `ui::scroll::scrollbar`): long output such as a job's trace, with a
+ * A log (`Node::Log`, the earlier inline loop plus `ui::scroll::scrollbar`): long output such as a job's trace, with a
  * terminal's colours mapped to theme slots (`LogPaintLine` runs), sections that fold under their titles, `/` matches
  * standing out, and a scrollbar on the frame's right border when it scrolls.
  *

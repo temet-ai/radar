@@ -31,7 +31,7 @@ export function useLookOf(tier: Tier, pack: Pack): string {
   return `${tier}/${pack}`;
 }
 
-/** The terminal's own colours under the tier: the canvas Ratatui paints on (text.primary on bg.base); at mono, a
+/** The terminal's own colours under the tier: the canvas Ink paints on (text.primary on bg.base); at mono, a
  * plain dark terminal. */
 export function canvasOf(tier: Tier): { fg: string; bg: string } {
   const look = lookFor(tier, "off");

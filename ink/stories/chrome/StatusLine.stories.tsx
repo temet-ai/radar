@@ -29,7 +29,7 @@ function Draw({ args: _args, globals, c }: { args: Args; globals: Globals; c: un
 }
 
 /**
- * The status line (`ChromeView.status`, Ratatui `shell::status_line` and `key_hits`): the mode chip with the scope
+ * The status line (`ChromeView.status`, the earlier `shell::status_line` and `key_hits`): the mode chip with the scope
  * (the place the keys act on), then the key hints for that place or a message, and counts at the right. Hints that do
  * not fit are dropped, the `least_needed` first.
  *

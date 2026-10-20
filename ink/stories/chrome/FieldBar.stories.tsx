@@ -29,7 +29,7 @@ function Draw({ args, globals }: { args: Args; globals: Globals }) {
 }
 
 /**
- * The field bar (`PaneView.fields` and `bottom_field`, a `FieldBar`; Ratatui `view_tui::draw_field_bar` with
+ * The field bar (`PaneView.fields` and `bottom_field`, a `FieldBar`; the earlier `view_tui::draw_field_bar` with
  * `input::TextInput`; Ink chrome/filter.tsx, drawn by PaneFrame): the `/` filter and the `:` go-to at the top of a
  * pane. Three rows: the mark ` / `, the typed text on the overlay shade with the caret cell reversed, a hint row and a
  * blank row; the rows under it narrow as you type.

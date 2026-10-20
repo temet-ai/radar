@@ -9,7 +9,7 @@ import { PATH_SEP, hitSpecs } from "../../src/nodes/hits.js";
 import { textWords } from "../../src/text/TextLine.js";
 import { frameAt } from "./helpers.js";
 
-// Q38-T11: body rows must be pointable. Every node Ratatui makes clickable registers its rectangles with the
+// Q38-T11: body rows must be pointable. Every node the reference makes clickable registers its rectangles with the
 // target ids view_tui registers (list/table/entries rows: the row's target; tree rows: the path joined by PATH_SEP,
 // `node:<id>` under pointer_action; log lines: `log:<row>`), at the absolute cells the rows are drawn in.
 type Hit = { x: number; y: number; w: number; h: number; target: string };

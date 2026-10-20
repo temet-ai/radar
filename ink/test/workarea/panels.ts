@@ -61,9 +61,9 @@ export function panels(lines: string[]): Panel[] {
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-/** The titles of the panels Ratatui paints for a recorded Work view at a size (written by radar-workbench's tests/work_area.rs). */
-export function ratatuiTitles(view: string, columns: number, rows: number): string[] {
-  const url = new URL(`../../../crates/radar-workbench/tests/fixtures/${view}_ratatui_${columns}x${rows}.txt`, import.meta.url);
+/** The titles of the panels the reference paints for a recorded Work view at a size (written by radar-workbench's tests/work_area.rs). */
+export function referenceTitles(view: string, columns: number, rows: number): string[] {
+  const url = new URL(`../../../crates/radar-workbench/tests/fixtures/${view}_reference_${columns}x${rows}.txt`, import.meta.url);
   const lines = readFileSync(fileURLToPath(url), "utf8").replace(/\n$/, "").split("\n").slice(1, -1);
   return panels(lines).map((p) => p.title);
 }

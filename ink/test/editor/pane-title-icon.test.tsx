@@ -8,7 +8,7 @@ import { paneTitle } from "../../src/app/Panes.js";
 
 // ui view_tui draw_pane: a pane whose view data carries `title_icon` shows its title with the icon before it (the diff
 // pane: the file's icon, `file_markdown` for docs/README.md in T13's real-host diff view). Found live on a real MR:
-// Ratatui drew `╭ <icon> src/…`, Ink `╭ src/…`.
+// the reference drew `╭ <icon> src/…`, Ink `╭ src/…`.
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../fixtures/diff");
 const before = currentLook();
 beforeAll(() => applyLook(defaultLook("unicode")));

@@ -16,7 +16,7 @@ import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/golde
  * A detail pane's sections (view Block::Section, view_tui section_rows over ui::card::section): the heading in muted
  * capitals, its detail in secondary words, a muted rule to the room's edge, the blocks two cells in, and each
  * action's supplied mnemonic underlined in its word. ink/test/cells/highlight_detail-sections-160x40.json is the styled
- * buffer of a GitLab merge request selected on the first screen (first drawn by Ratatui, now Ink's golden:
+ * buffer of a GitLab merge request selected on the first screen (first drawn by the reference, now Ink's golden:
  * INK_UPDATE_GOLDENS=1 rewrites it from Ink); the whole App draws the same view data and the detail pane's rows, from
  * its first section to the foot of the pane, are compared cell for cell (character, colours, bold, underline).
  */
@@ -54,7 +54,7 @@ const rowText = (cells: Array<{ ch?: string }>) =>
 describe("a detail pane's sections", () => {
   const size = "160x40";
   const file = path.join(cellsDir, `highlight_detail-sections-${size}.json`);
-  it(`Ink's section rows equal Ratatui's cells at ${size}`, async () => {
+  it(`Ink's section rows equal the reference's cells at ${size}`, async () => {
     expect(fs.existsSync(file), `${file} is a committed golden (scene highlight_detail-sections)`).toBe(true);
     const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
     if (scene.view.look) applyHostLook(scene.view.look); else applyLook(defaultLook("off"));
@@ -69,7 +69,7 @@ describe("a detail pane's sections", () => {
     if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, ink);
 
     const at = scene.rows.findIndex((r) => rowText(r).includes(" STATE ─"));
-    expect(at, "Ratatui drew the STATE section").toBeGreaterThan(-1);
+    expect(at, "the reference drew the STATE section").toBeGreaterThan(-1);
     const inkAt = ink.findIndex((r) => rowText(r).includes(" STATE ─"));
     expect(inkAt, "Ink drew the STATE section").toBeGreaterThan(-1);
     // From the detail pane's left border to the cell before its right edge (the scrollbar is not a section's).

@@ -1,7 +1,7 @@
 import { charWidth } from "../../src/chrome/width.js";
 
 /** A terminal cell read back from Ink's output: the character and its style, as `#rrggbb`/`ansi256(n)`/`ansi16(n)`
- * colours and modifiers (the same model as Ratatui's `Buffer` cells). */
+ * colours and modifiers (the same model as the reference's `Buffer` cells). */
 export interface TCell {
   ch: string;
   fg?: string;

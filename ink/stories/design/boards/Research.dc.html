@@ -44,9 +44,9 @@ a{color:#80ffea}a:hover{color:#bffff4}
       <span class="v" style="background:#2b2e4c;color:#82aaff">needs host</span><span class="note">a new field, node or cue in radar-core first</span>
       <span class="v" style="background:#3f2233;color:#ff6363">blocked</span><span class="note">risky or not supported widely enough</span>
       <span class="v" style="background:#2a263e;color:#e9d5ff">shipped</span><span class="note">already true</span>
-      <span class="v" style="background:#3c3a3a;color:#f1fa8c">port to ink</span><span class="note">works in Ratatui; Ink must catch up</span>
+      <span class="v" style="background:#3c3a3a;color:#f1fa8c">port to ink</span><span class="note">works in the earlier renderer; Ink must catch up</span>
     </div>
-    <p class="note">Every look change in Ink also needs the same change in the Ratatui renderer while it remains the reference, so the two stay alike.</p>
+    <p class="note">Every look change in Ink also needs the same change in the earlier renderer, which was the reference until it was retired, so the two stay alike.</p>
   </div>
 
   <div style="display: flex; flex-direction: column; gap: 14px">
@@ -112,7 +112,7 @@ a{color:#80ffea}a:hover{color:#bffff4}
   <div style="display: flex; flex-direction: column; gap: 18px">
     <h2 class="h2">Order</h2>
     <div class="cards">
-      <div class="panel card"><span class="t">1 · Cheap wins</span><p class="note">Scrim and shadow behind overlays, tinted chips, the gradient focus border and wordmark, fold unroll and the rainbow lap, the tab attention dot. Ink plus the matching Ratatui change. Ink 8's built-in scrolling and shared animation timer come along here.</p></div>
+      <div class="panel card"><span class="t">1 · Cheap wins</span><p class="note">Scrim and shadow behind overlays, tinted chips, the gradient focus border and wordmark, fold unroll and the rainbow lap, the tab attention dot. Ink plus the matching change to the earlier renderer. Ink 8's built-in scrolling and shared animation timer come along here.</p></div>
       <div class="panel card"><span class="t">2 · Graph, palette, editor</span><p class="note">The pipeline graph (dagre, a new graph node from the host), the cross-part command palette (host target list, Ink draws the typed menu it already has), and the editor preview (host sends rendered markdown blocks; shiki colours the code).</p></div>
       <div class="panel card"><span class="t">3 · Then</span><p class="note">Port Slack images to Ink, then avatars. Charts from host series data (ink-chart's LineGraph). Mermaid last, after the licence and parity calls. Notices with a lifetime and history, the assemble motion, the icon slot and underlined keys in hints as host changes allow.</p></div>
     </div>
@@ -130,7 +130,7 @@ a{color:#80ffea}a:hover{color:#bffff4}
 
   <div class="panel" style="padding: 22px 24px; display: flex; flex-direction: column; gap: 10px">
     <span class="mono" style="font-weight: 700; color: #fff">Sources and limits</span>
-    <p class="note">radar code: ink/src/app/fast-output.ts, app/hover.ts, app/Panes.tsx, chrome/layout.ts, text/chips.ts, text/look.ts, nodes/tree.tsx, motion/*, media/*, protocol/generated/*, crates/radar-gitlab/src/goto.rs, docs/GUIDE.md. Terminals: sw.kovidgoyal.net/kitty (text-sizing-protocol, pointer-shapes, changelog), ghostty.org/docs/vt/reference and ghostty-org/ghostty#10333, wezterm.org/escape-sequences and custom_block_glyphs, wezterm issues #7814, #8092, #7924, #7558. Ink 8.0.0: build/write-synchronized.js. npm registry and downloads API for every library. Prior art: Textual (command palette, design, toast), lazygit Config.md, k9s skins, lipgloss, bubbles, harmonica, glamour, ratatui-image, yazi.</p>
+    <p class="note">radar code: ink/src/app/fast-output.ts, app/hover.ts, app/Panes.tsx, chrome/layout.ts, text/chips.ts, text/look.ts, nodes/tree.tsx, motion/*, media/*, protocol/generated/*, crates/radar-gitlab/src/goto.rs, docs/GUIDE.md. Terminals: sw.kovidgoyal.net/kitty (text-sizing-protocol, pointer-shapes, changelog), ghostty.org/docs/vt/reference and ghostty-org/ghostty#10333, wezterm.org/escape-sequences and custom_block_glyphs, wezterm issues #7814, #8092, #7924, #7558. Ink 8.0.0: build/write-synchronized.js. npm registry and downloads API for every library. Prior art: Textual (command palette, design, toast), lazygit Config.md, k9s skins, lipgloss, bubbles, harmonica, glamour, the image crate, yazi.</p>
     <p class="note">Not verified: Ghostty's kitty-graphics placeholders and animation, octant drawing, mode 2027 per terminal, gh-dash, btop, Dagger and Claude Code details (from memory), and none of the libraries has been tried inside radar's esbuild bundle yet. beautiful-mermaid needs a spike before it is relied on.</p>
   </div>
 </div>
@@ -165,9 +165,9 @@ class Component extends DCLogic {
       R('Pipeline graph (DAG)', '05', 'host', 'all', '@dagrejs/dagre 3.1.1 for layout', 'The host sends jobs and needs; dagre lays them out; Ink rasterises boxes and lines to cells.'),
       R('Mermaid diagrams', '05', 'host', 'all', 'beautiful-mermaid 1.1.3 (renderMermaidASCII)', 'Returns plain lines: easy to place. Spike first: diagram types, bundle size, and its elkjs dependency (EPL-2.0 or GPL).'),
       R('Markdown editor with preview', '05', 'host', 'all', 'shiki 4.5 codeToTokens for code blocks', 'The editor today is one input line. The host must send rendered blocks (ui/markdown.rs makes them) on each edit.'),
-      R('Pictures: Slack images, avatars', '00 · 04', 'port', 'kitty, Ghostty; WezTerm partial (no placeholders); sixel in foot, WezTerm, Windows Terminal; tmux by passthrough', 'ratatui-image (Rust, shipped); borrow ink-picture’s detection for Ink', 'Slack images already draw in the Ratatui renderer (crates/radar-core/src/ui/image.rs: detect, fetch, cache, draw). Ink’s media/kitty.ts is not wired up: port the same flow, with image ids and delete on scroll, resize and screen change. Avatars follow.'),
+      R('Pictures: Slack images, avatars', '00 · 04', 'port', 'kitty, Ghostty; WezTerm partial (no placeholders); sixel in foot, WezTerm, Windows Terminal; tmux by passthrough', 'the image crate (Rust, shipped); borrow ink-picture’s detection for Ink', 'Slack images already drew in the earlier renderer (crates/radar-core/src/ui/image.rs: detect, fetch, cache, draw). Ink’s media/kitty.ts is not wired up: port the same flow, with image ids and delete on scroll, resize and screen change. Avatars follow.'),
       R('Display face drawn as a picture', '02', 'blocked', 'as pictures', 'none', 'Waits on pictures; the host would also have to set the font into a PNG.'),
-      R('Undercurl, coloured underline', '02', 'blocked', 'kitty, Ghostty, WezTerm, iTerm2, foot, Windows Terminal', 'none', 'fast-output.ts and frame.ts misread SGR 58 today (its 2;r;g;b sets dim and stray colours). Fix the parser first; Ratatui has no curl.'),
+      R('Undercurl, coloured underline', '02', 'blocked', 'kitty, Ghostty, WezTerm, iTerm2, foot, Windows Terminal', 'none', 'fast-output.ts and frame.ts misread SGR 58 today (its 2;r;g;b sets dim and stray colours). Fix the parser first; the earlier renderer had no curl.'),
       R('Strikethrough', '02', 'shipped', 'all', 'none', 'Already drawn by both renderers.'),
       R('Sized titles (kitty OSC 66)', '02', 'blocked', 'kitty 0.40+ only; Ghostty parses, does not draw (#10333); WezTerm no (#7814)', 'none', 'radar’s output drops OSC payloads and Ink measures one row per line. Parked.'),
       R('Unicode letterforms', '02', 'blocked', 'font-dependent; fall back to other fonts', 'none', 'Width and baseline mismatches; screen readers spell them out. Decoration only.'),

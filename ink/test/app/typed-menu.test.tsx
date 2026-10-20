@@ -76,7 +76,7 @@ describe("a typed settings field", () => {
     const rows = m.frame().split("\n");
     const top = rows.findIndex((l) => l.includes(`╭ ${TITLE} ─`));
     expect(top).toBeGreaterThan(0);
-    // Ratatui's field (input::render_field): blank, the caret a reversed cell, not a bar glyph.
+    // the reference's field (input::render_field): blank, the caret a reversed cell, not a bar glyph.
     expect(rows[top + 1]).toMatch(/│ +│/);
     expect(rows.join("\n")).not.toContain("▏");
     expect(line(m, "save")).toMatch(/⏎\s+save\s+esc\s+cancel/);

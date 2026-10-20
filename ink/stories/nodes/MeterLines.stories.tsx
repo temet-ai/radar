@@ -9,7 +9,7 @@ type Args = React.ComponentProps<typeof NodeView>;
 const pane = paneOf(actions160.screen, "api !263");
 
 /**
- * The stage bar (`Block::Meter` in a `Node::Rich`, Ratatui `ui::meter::stages`; Ink nodes/index.tsx MeterLines,
+ * The stage bar (`Block::Meter` in a `Node::Rich`, the earlier `ui::meter::stages`; Ink nodes/index.tsx MeterLines,
  * reached through NodeView): the steps of a run across the width, a bar of `▀` over each stage's mark and name, each
  * in the stage's look (its run state's tone). It sits under a PIPELINE section (`Block::Section`).
  *

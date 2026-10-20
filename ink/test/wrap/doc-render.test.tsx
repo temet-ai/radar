@@ -1,4 +1,4 @@
-// The document and Wrapped nodes drawn through renderNode break where Ratatui's wrap does (no leading space).
+// The document and Wrapped nodes drawn through renderNode break where the reference's wrap does (no leading space).
 import { describe, expect, it } from "vitest";
 import { renderNode, type Node, type NodeContext } from "../../src/nodes/index.js";
 import { frameAt } from "../nodes/helpers.js";
@@ -12,7 +12,7 @@ const draw = (node: Node, inner: number) =>
 const para = (text: string) => ({ t: "para" as const, text: [{ text }] });
 
 describe("document text through the node renderer", () => {
-  it("the GitHub description at 44 cells breaks as Ratatui's snapshot does", () => {
+  it("the GitHub description at 44 cells breaks as the reference's snapshot does", () => {
     const out = draw({ node: "rich", blocks: [{ block: "doc", doc: [para("Responses stay with the repository and commit they were requested for.")] }] } as never, 44);
     expect(out.map((l) => l.trimEnd())).toEqual(["Responses stay with the repository and", "commit they were requested for."]);
   });

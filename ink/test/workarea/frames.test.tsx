@@ -1,4 +1,4 @@
-// The maintainer's screenshot: Ink's Work was stacked plain text; Ratatui draws every pane as a bordered, titled
+// The maintainer's screenshot: Ink's Work was stacked plain text; the reference draws every pane as a bordered, titled
 // panel. Every section the view carries is a panel here, at both sizes, in both recorded Work views.
 import React from "react";
 import { readFileSync } from "node:fs";
@@ -8,7 +8,7 @@ import { render } from "./render.js";
 import { WorkArea } from "../../src/workarea/WorkArea.js";
 import { sectionsOf, type ScreenLike, type ViewNode } from "../../src/workarea/model.js";
 import { renderNode } from "../../src/nodes/index.js";
-import { panels, ratatuiTitles } from "./panels.js";
+import { panels, referenceTitles } from "./panels.js";
 
 
 
@@ -42,13 +42,13 @@ describe.each(["work_view.json", "work_view_pending.json"])("%s", (name) => {
       }
       const hint = lines.find((l) => l.startsWith("+ ")) ?? "";
       for (const s of sectionsOf(screen)) {
-        // Under 84 columns Ratatui shows the focused pane alone (view_tui.rs fit()); see ratatui-parity.test.tsx.
-        if (s.kind === "other" && !ratatuiTitles(name.replace(".json", ""), columns, rows).includes(s.title)) continue;
+        // Under 84 columns the reference shows the focused pane alone (its recorded fit); see panels-match-reference.test.tsx.
+        if (s.kind === "other" && !referenceTitles(name.replace(".json", ""), columns, rows).includes(s.title)) continue;
         const title = s.status && s.kind !== "other" ? `${s.title} (${s.status})` : s.title;
         const mine = drawn.find((p) => p.title === title);
-        // Ratatui draws no M11 panel under 84 columns; only a pending question is added there.
+        // The reference draws no M11 panel under 84 columns; only a pending question is added there.
         if (s.kind !== "other" && !s.pending && columns < 84) {
-          expect(mine, `${title} is not drawn where Ratatui draws only the focused pane`).toBeUndefined();
+          expect(mine, `${title} is not drawn where the reference draws only the focused pane`).toBeUndefined();
           continue;
         }
         // Every shown section is a panel with its full title, or (a short terminal) is named on the line that says it has no room.

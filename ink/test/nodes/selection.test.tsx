@@ -167,7 +167,7 @@ describe("the tree row under the pointer", () => {
     ],
   } as never;
   const at = (hover: string) => hovered(tree, 30, hover);
-  it("is lit with bg.hover on every cell of the row, as Ratatui paints it", () => {
+  it("is lit with bg.hover on every cell of the row, as the reference paints it", () => {
     const rows = at("g\u001fr0");
     const lit = rows[1]!.slice(0, 30); // the last cell is the scrollbar's column: lit too
     expect(lit).toHaveLength(30);

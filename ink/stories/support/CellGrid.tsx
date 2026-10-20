@@ -1,7 +1,7 @@
 import React from "react";
 import { cssColour } from "./colour";
 
-/** One terminal cell: the character and its style (the model of Ratatui's `Buffer` cells and of
+/** One terminal cell: the character and its style (the model of the earlier `Buffer` cells and of
  * test/nodes/ansi.ts). A wide character is followed by a cell with `ch: ""`. */
 export interface Cell {
   ch: string;
@@ -16,7 +16,7 @@ export interface Cell {
 }
 
 export interface Canvas {
-  /** The terminal's own foreground and background (Ratatui's canvas: text.primary on bg.base). */
+  /** The terminal's own foreground and background (the reference canvas: text.primary on bg.base). */
   fg: string;
   bg: string;
 }

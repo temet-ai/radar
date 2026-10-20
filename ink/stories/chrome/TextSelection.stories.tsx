@@ -78,7 +78,7 @@ const scene80 = sceneOf(selection80Cells);
 const scene160 = sceneOf(selection160Cells);
 
 /**
- * Text selected with the mouse (issue #51; Ratatui `select::paint`, Ink `app/selected.ts` over `input/selection.ts`):
+ * Text selected with the mouse (issue #51; the earlier `select::paint`, Ink `app/selected.ts` over `input/selection.ts`):
  * gg captures the mouse, so the terminal cannot select text and the renderer does. A drag starts in the text of a pane
  * and selects from the press to the pane's right edge, every row between from edge to edge, then from the left edge to
  * the pointer, as a terminal's selection runs. It belongs to the pane it started in: the border, the title row and the

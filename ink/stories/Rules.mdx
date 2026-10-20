@@ -14,7 +14,7 @@ rules; where this page and GUIDE disagree, GUIDE wins.
 | Nothing visual is hard-coded | Colours come from theme slots and look words. Tones go through `widgets::tone`. Ink draws only with the look the host sends. |
 | Glyphs come from the icon pack | A part never writes a glyph literal; it names an `Icon`. Marks such as ✓ and ✗ also come from the kit. |
 | Widths are display cells | No `chars().count()`, no `{:<N}` padding. |
-| Both renderers, same picture | While Ratatui is the reference, every look change lands in both renderers. A difference is a defect. |
+| One renderer, its own picture | Ink is radar's only renderer. Its goldens are its own recordings; a look change lands in Ink and its goldens move with it, read in the diff. |
 | **No chevrons for folding** | No ▸ ▾ › ⌄, nerd chevrons, `[+]` or `[-]` as fold marks. The tree lines show open; a folded row ends in `⋯ n`. |
 | **No pill shapes** | Chips, counts, keys, buttons and tags are square: a ground and one space each side. No round caps. |
 | **No left-edge stripes** | No coloured bar down the left of rows or cards. Groups are marked by the heading shade (the tree's group stripe `▌` is on the way out, #45). |

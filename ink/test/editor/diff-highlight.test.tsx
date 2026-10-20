@@ -10,7 +10,7 @@ import { styledFrameAt } from "../nodes/helpers.js";
 import { parseAnsi } from "../nodes/ansi.js";
 import type { DiffLine } from "../../src/nodes/view.js";
 
-// Ratatui highlights a diff's code with syntect (ui::diff::paint); Ink has no grammars, so the host sends each line cut
+// the reference highlights a diff's code with syntect (ui::diff::paint); Ink has no grammars, so the host sends each line cut
 // into runs by token (Node::Diff.painted) and Ink styles them as ui::highlight::Token::style does.
 const lines: DiffLine[] = [
   { kind: "Hunk", old: null, new: null, text: "@@ -1,2 +1,2 @@" },

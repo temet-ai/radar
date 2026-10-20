@@ -5,7 +5,7 @@ import { chromeOf, mount, tick, until, unmountAll } from "../../contract/support
  * Class: keys that arrive in one read go where the same keys typed one by one go. A key the renderer cannot
  * predict (→ moves the host's focus from the nav pane to the middle pane) leaves the keys after it unroutable from
  * the old snapshot: routed there, ↓ ↓ ↓ ⏎ selected and opened rows of the NAV pane (the burst
- * "Right Down Down Down Enter Enter Enter" landed on !264 where Ratatui lands on !263). After such a key the rest
+ * "Right Down Down Down Enter Enter Enter" landed on !264 where the reference lands on !263). After such a key the rest
  * of the read goes to the host as plain keys, which it applies to its own state in order.
  */
 afterEach(unmountAll);

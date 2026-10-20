@@ -31,8 +31,8 @@ function InPane({ args, globals, view, size }: { args: Args; globals: Globals; v
 }
 
 /**
- * One file's changes (`Node::Diff`, Ratatui `ui::diff::DiffView`): hunks with both sides' line numbers, added and
- * removed lines on a tint, the cursor row marked `▎`, code coloured by the host (`painted` runs; Ratatui highlights
+ * One file's changes (`Node::Diff`, the earlier `ui::diff::DiffView`): hunks with both sides' line numbers, added and
+ * removed lines on a tint, the cursor row marked `▎`, code coloured by the host (`painted` runs; the earlier renderer highlights
  * itself with syntect), and blocks under a line (`under`: a thread, a comment being written).
  *
  * **Use it** for a merge request's Changes tab, one file at a time; the files are a tree in the nav pane.

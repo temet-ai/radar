@@ -46,7 +46,7 @@ const s80 = page80Cells as GoldenScene;
 const s160 = page160Cells as GoldenScene;
 
 /**
- * An item's page (`PageView`, Ratatui `ui::page::PageFrame` via `render_page`; Ink app/Panes.tsx `PageBody`,
+ * An item's page (`PageView`, the earlier `ui::page::PageFrame` via `render_page`; Ink app/Panes.tsx `PageBody`,
  * nodes/pagetitle.tsx, app/TabRow.tsx): the breadcrumbs, the title with its details at the right, the line under it,
  * the tab row, then the tab's panes in the page's layout (`PageLayout`: a pane, a split, or responsive by width).
  *

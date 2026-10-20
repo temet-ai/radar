@@ -15,9 +15,9 @@ type Args = React.ComponentProps<typeof NodeView>;
 const merge = paneOf(overview160, "can it merge?");
 
 /**
- * A document (`Node::Document`, Ratatui `widgets::paragraph`; Ink nodes/index.tsx DocumentNode, reached through
+ * A document (`Node::Document`, the earlier `widgets::paragraph`; Ink nodes/index.tsx DocumentNode, reached through
  * NodeView as the shell reaches it): lines of styled text, wrapped between words to the pane, or cut at the edge when
- * `cut` is set (Ratatui ignores `cut` today; Ink honours it). In a settings detail it scrolls in its pane
+ * `cut` is set (the earlier renderer ignored `cut`; Ink honours it). In a settings detail it scrolls in its pane
  * (`scrolls`), with the scrollbar on the frame's border.
  *
  * **Use it** for prose and facts with no rows to choose: a settings field's explanation, "can it merge?", a set-up

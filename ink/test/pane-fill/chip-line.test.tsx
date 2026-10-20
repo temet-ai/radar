@@ -5,7 +5,7 @@ import { chipGround, chipWordStyle } from "../../src/text/chips.js";
 import type { Text } from "../../src/nodes/view.js";
 
 // GitHub repo detail, the line under the title (radar-git's Point::Line): a labelled chip, then plain chips with no icon
-// (the path, ` · on`). Ratatui draws every chip as ` words ` on bg.overlay (widgets::chip), so the shade runs on from the
+// (the path, ` · on`). the reference draws every chip as ` words ` on bg.overlay (widgets::chip), so the shade runs on from the
 // '⌂ local folder' chip under '~/projects/radar' to the end of ` · on `; live capture, cells 26;22;42 under the path
 // where Ink left the pane fill 18;16;26.
 const line: Text = [

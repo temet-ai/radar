@@ -1,6 +1,6 @@
-// Clicking what the work area draws sends Ratatui's intent. In Ratatui the work.* sections are their
+// Clicking what the work area draws sends the reference's intent. In the reference the work.* sections are their
 // fallback documents, so the only targets there are the ones the part gives each row (the map's items,
-// the same `item` targets the list panes use); a press selects the target (view_tui::click).
+// the same `item` targets the list panes use); a press selects the target (the reference's click).
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
@@ -27,7 +27,7 @@ const read = (name: string) =>
       "utf8",
     ),
   );
-const FIXTURES = ["work_view.json"]; // the pending fixture has no map items and Ratatui draws no target on its question
+const FIXTURES = ["work_view.json"]; // the pending fixture has no map items and the reference draws no target on its question
 
 async function press(m: Mounted, x: number, y: number) {
   const before = m.intents().length;
@@ -47,7 +47,7 @@ for (const [w, h] of [
   [100, 30],
 ] as const) {
   describe.each(FIXTURES)(`${w}x${h} %s`, (name) => {
-    it("the app draws no map items while the map holds no question (Ratatui draws only nav/middle/detail)", async () => {
+    it("the app draws no map items while the map holds no question (the reference draws only nav/middle/detail)", async () => {
       const screen = read(name);
       const items = mapItems(screen);
       expect(items.length).toBeGreaterThan(0);

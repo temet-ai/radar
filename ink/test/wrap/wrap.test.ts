@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { textPieces, trimPieces, wrapDoc, wrapPieces, wrapWords } from "../../src/text/wrap.js";
 
 describe("wrapDoc (ui::rich::wrap)", () => {
-  it("breaks the GitHub description where Ratatui's snapshot does, with no leading space", () => {
+  it("breaks the GitHub description where the reference's snapshot does, with no leading space", () => {
     // tests/snapshots/github_links__integrated_preview_160x40.snap: the DESCRIPTION pane, 44 cells.
     expect(wrapDoc("Responses stay with the repository and commit they were requested for.", 44)).toEqual([
       "Responses stay with the repository and",
@@ -66,7 +66,7 @@ describe("wrapWords (ui::wrap_words)", () => {
   });
 });
 
-// The golden cases (ink/test/fixtures/wrap/golden.json, first produced by Ratatui's wrap, now Ink's own): wrap.ts must
+// The golden cases (ink/test/fixtures/wrap/golden.json, first produced by the reference's wrap, now Ink's own): wrap.ts must
 // equal them all. INK_UPDATE_GOLDENS=1 rewrites each case's `lines` from wrap.ts for the text and width it holds.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

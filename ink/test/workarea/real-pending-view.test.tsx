@@ -39,7 +39,7 @@ describe("work area from the recorded real Work view with a pending question", (
     expect(lines[1]).toContain("waiting for you");
     expect(lines[2]).toContain("Waiting for your confirmation: apply the prepared local change?");
     expect(arrange(sectionsOf(screen), 80).columns[0]!.sections[0]!.kind).toBe("agent");
-    // Under 84 columns Ratatui shows the focused pane alone; only the question is added to it.
+    // Under 84 columns the reference shows the focused pane alone; only the question is added to it.
     expect(f).toContain("╭ work items · page 1");
     for (const t of ["actions", "tabs", "timeline", "map"]) expect(f).not.toContain(`╭ ${t}`);
   });

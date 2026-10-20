@@ -7,8 +7,8 @@ import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 
 /**
  * The diff and the editor over view data the real host made on demo data (tests/diff_editor_views.rs writes
- * ink/test/fixtures/diff/<case>_<w>x<h>.json, the snapshot the bridge sends, and <case>_<w>x<h>.txt, the text Ratatui
- * draws for the same host). Each case is drawn by the whole App at its size and its text compared with Ratatui's, row
+ * ink/test/fixtures/diff/<case>_<w>x<h>.json, the snapshot the bridge sends, and <case>_<w>x<h>.txt, the text the reference
+ * draws for the same host). Each case is drawn by the whole App at its size and its text compared with the reference's, row
  * for row (a row's trailing blanks are not cells that differ).
  */
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../fixtures/diff");
@@ -43,7 +43,7 @@ describe("diff and editor view data from the host", () => {
   });
 
   for (const name of cases) {
-    it(`${name}: Ink draws the text Ratatui draws`, async () => {
+    it(`${name}: Ink draws the text the reference draws`, async () => {
       const view = JSON.parse(fs.readFileSync(path.join(dir, `${name}.json`), "utf8"));
       const want = fs.readFileSync(path.join(dir, `${name}.txt`), "utf8");
       const m = mount(view.width, view.height);

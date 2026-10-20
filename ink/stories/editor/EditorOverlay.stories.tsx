@@ -29,7 +29,7 @@ function Draw({ args, globals }: { args: Args; globals: Globals }) {
 }
 
 /**
- * The editor overlay (`Node::Extension` with the `editor` capability in `ScreenView.overlay`; Ratatui
+ * The editor overlay (`Node::Extension` with the `editor` capability in `ScreenView.overlay`; the earlier renderer
  * `view_tui::draw_overlay` and `field`; Ink editor/EditorOverlay.tsx): writing a comment or a description. A focused
  * panel over the foot of the body, titled with what is written, the last lines that fit, then the line being typed
  * as a field with the caret.
@@ -38,7 +38,7 @@ function Draw({ args, globals }: { args: Args; globals: Globals }) {
  * there is text).
  *
  * **States:** one line, several lines (the panel grows up to two thirds of the body), a selection (Ink draws it;
- * Ratatui ignores `selection`), wide characters in the line.
+ * the earlier renderer ignored `selection`), wide characters in the line.
  *
  * **Rules:** the caret is a reversed cell; the title's icon comes from the pack (`Icon::Comment`), not a typed `✎`
  * (the recorded title still carries one, docs/components.md section 4). The host owns the text; the overlay only draws

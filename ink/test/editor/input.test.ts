@@ -27,7 +27,7 @@ const k = (chord: Record<string, unknown>) => ({ intent: "key", chord });
 
 // The class: every key of the contract (view::Key, as view_tui::chord_of maps it) with and without ctrl and alt, sent
 // as a terminal sends it, through the real input path (tokenize, then the controller), reaches the host as the
-// Chord Ratatui makes; keys chord_of has no name for (function keys, Insert) send nothing, and Shift is not in a Chord.
+// Chord the reference makes; keys chord_of has no name for (function keys, Insert) send nothing, and Shift is not in a Chord.
 type NamedKey = Exclude<Key, { char: string }>;
 type Bytes = (ctrl: boolean, alt: boolean, shift: boolean) => string | undefined;
 const xterm = (final: string, tilde = false): Bytes => (ctrl, alt, shift) => {
@@ -61,7 +61,7 @@ const typed = (bytes: string, capturing = true) => {
 };
 const MODS: Array<[boolean, boolean]> = [[false, false], [true, false], [false, true], [true, true]];
 
-describe("a capturing editor gets every key of the contract as Ratatui's chord (characterisation of T10's input path)", () => {
+describe("a capturing editor gets every key of the contract as the reference's chord (characterisation of T10's input path)", () => {
   for (const name of NAMED) {
     for (const [ctrl, alt] of MODS) {
       const bytes = seq(name, ctrl, alt);

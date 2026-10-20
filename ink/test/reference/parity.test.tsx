@@ -12,7 +12,7 @@ import { applyLook, defaultLook } from "../../src/text/look.js";
  * must equal Ink's golden ink/test/reference/goldens/<name>.txt (trailing blanks per line are not drawn).
  * One test per recording, so a run lists every mismatch.
  *
- * Ink owns its picture (retire-ratatui decision 5): the goldens are the Ratatui recordings
+ * Ink owns its picture: the goldens are its own recordings
  * (tests/snapshots/mix__<name>.snap bodies) as they stood when tests/mix.rs moved to the view-data text form,
  * frozen here; tests/mix.rs no longer records a painted frame. A golden moves only when Ink's own drawing does:
  * read the diff before rewriting one.

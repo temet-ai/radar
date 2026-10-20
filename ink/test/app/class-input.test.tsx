@@ -15,7 +15,7 @@ import { scrollers } from "../../src/nodes/index.js";
  *  - a left click sends Select with it (never Context), a right click off every row sends nothing;
  *  - a movement or ⏎ key sends exactly one intent, and a Select/Activate/Fold it sends names a target that is in
  *    the view (a stale or invented target is the host refusing the move);
- *  - except where the focused pane is a Document or Rich node: the frontend scrolls those itself, as Ratatui's
+ *  - except where the focused pane is a Document or Rich node: the frontend scrolls those itself, as the reference's
  *    view_tui::key does (ui::scroll::Scroll::key). A key it takes sends nothing, or Intent::End{pane} for a Rich
  *    pane that the key leaves at its end ("the part may bring more"); a key it does not take (↑ at the top, ⏎)
  *    is passed to the host as a key. The expectation is computed here from the scroller's own offset and range.

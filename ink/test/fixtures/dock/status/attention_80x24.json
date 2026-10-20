@@ -141,5 +141,5 @@
     "version": 1,
     "width": 80
   },
-  "ratatui": " DOCKED   `  review dock needs you +2   PgUp/PgDn scroll   q quit   x menu"
+  "row": " DOCKED   `  review dock needs you +2   PgUp/PgDn scroll   q quit   x menu"
 }

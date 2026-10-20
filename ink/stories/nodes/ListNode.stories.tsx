@@ -28,7 +28,7 @@ function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; 
 }
 
 /**
- * A row list (`Node::List`, Ratatui `ui::rows::RowList`): selectable rows, each with words at the left, an optional
+ * A row list (`Node::List`, the earlier `ui::rows::RowList`): selectable rows, each with words at the left, an optional
  * word at the right (`right`) and a `detail` dropped whole when it does not fit. A heading row (`ListRow.heading`)
  * is never selected; the cursor steps over it.
  *

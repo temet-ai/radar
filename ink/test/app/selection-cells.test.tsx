@@ -12,7 +12,7 @@ import { parseAnsi } from "../nodes/ansi.js";
 import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
 // The styled buffer with text selected by a drag across two rows (ink/test/cells, scene highlight_selection, on
-// bg.selection; first drawn by Ratatui, now Ink's golden, rewritten from Ink by INK_UPDATE_GOLDENS=1): from the press
+// bg.selection; first drawn by the reference, now Ink's golden, rewritten from Ink by INK_UPDATE_GOLDENS=1): from the press
 // to the pane's right edge, then from its left edge
 // to the pointer. The whole App draws the same view data, the same drag is made with the mouse, and every cell of the
 // body is compared for being on bg.selection: the selected cells, the cells beside the pane (its border and
@@ -36,7 +36,7 @@ afterEach(() => {
 const SELECTION = "#44475a";
 const mouse = (code: number, p: Pt, up = false) => `\x1b[<${code};${p.x + 1};${p.y + 1}${up ? "m" : "M"}`;
 
-describe("a drag across two rows of text against Ratatui's cells", () => {
+describe("a drag across two rows of text against the reference's cells", () => {
   for (const size of ["80x24", "160x40"]) {
     it(`selects the same cells at ${size}`, async () => {
       const file = path.resolve(here, `../cells/highlight_selection-${size}.json`);
@@ -85,7 +85,7 @@ describe("a drag across two rows of text against Ratatui's cells", () => {
         for (let x = 0; x < cols; x++) {
           const want = ratSelected(x, y);
           if (want && y >= anchor.y && y <= head.y && x >= bound.x && x < bound.x + bound.width) selected++;
-          if (inkSelected(x, y) !== want) bad.push(`(${x},${y}): ${want ? "not selected in Ink" : `selected in Ink, ${rat(scene.rows[y]![x]!.bg)} in Ratatui`}`);
+          if (inkSelected(x, y) !== want) bad.push(`(${x},${y}): ${want ? "not selected in Ink" : `selected in Ink, ${rat(scene.rows[y]![x]!.bg)} in the reference`}`);
         }
       }
       expect(bad.slice(0, 20)).toEqual([]);

@@ -35,7 +35,7 @@ function Figure({ args, globals, pane, scene }: { args: Args; globals: Globals; 
 }
 
 /**
- * The banded tree (`Node::Tree`, Ratatui `ui::tree::BandedTree`): the one tree every part uses for nested data
+ * The banded tree (`Node::Tree`, the earlier `ui::tree::BandedTree`): the one tree every part uses for nested data
  * (groups, then sources, then items). Each row has a name, cells in the tree's columns (aligned at every depth and
  * dropped by `keep` rank as the width shrinks), optional chips after the name, and a `detail` shown whole or not at
  * all.

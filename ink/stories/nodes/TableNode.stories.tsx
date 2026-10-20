@@ -31,7 +31,7 @@ const mrs160Pane = paneOf(mrs160, "merge requests");
 const reposPane = paneOf(repos80, "repos");
 
 /**
- * A table (`Node::Table`, Ratatui `ui::table::Table`): a flat list of one kind of row with column headings and a
+ * A table (`Node::Table`, the earlier `ui::table::Table`): a flat list of one kind of row with column headings and a
  * cursor. Columns come from `ColumnSpec` (the same `Columns` a tree uses, so a column means the same in both), are
  * dropped by `keep` rank as the width shrinks, and values that do not fit are cut with `…`.
  *

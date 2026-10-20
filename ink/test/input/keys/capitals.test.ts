@@ -6,7 +6,7 @@ import type { Chord, Intent } from "../../../src/chrome/types.js";
 /**
  * Class: a key the host's `on_key` takes before the body's movement (host.rs). An ASCII capital is a screen or
  * source key there (G is GitHub in the Repositories nav pane); only when no screen has it does it reach the part, where
- * `G` is "last row". Ratatui sends the terminal key to the host, which decides; Ink must not answer `G` with its own
+ * `G` is "last row". the reference sends the terminal key to the host, which decides; Ink must not answer `G` with its own
  * Select, or the host never sees it (the walk Repositories → G → GitHub stopped at the last row).
  */
 function ctl(sent: Intent[], screenKeys?: string[]) {

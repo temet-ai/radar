@@ -11,7 +11,7 @@ import { applyLook, defaultLook, type Look } from "../../../src/text/look.js";
 
 // The host resolves every slot at the terminal's colour tier (ipc/look.rs colour_word): `#rrggbb` at truecolor,
 // `ansi256(n)` at 256, a terminal colour's name at 16, "" at mono. Ink must draw the selected row, the focus and the
-// status colours with exactly those words, the way Ratatui's Theme draws the same Color::Indexed / named colours.
+// status colours with exactly those words, the way the reference Theme draws the same Color::Indexed / named colours.
 const base = defaultLook("off");
 const tier = (slots: Record<string, string>): Look => ({ ...base, slots: { ...base.slots, ...slots } });
 

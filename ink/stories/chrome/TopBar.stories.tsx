@@ -28,7 +28,7 @@ function Draw({ args: _args, globals, c }: { args: Args; globals: Globals; c: un
 }
 
 /**
- * The top bar (`ChromeView.top_bar`, Ratatui `shell::top_bar` and `tabs`) and, under it, the sources row
+ * The top bar (`ChromeView.top_bar`, the earlier `shell::top_bar` and `tabs`) and, under it, the sources row
  * (`ChromeView.sources`, `shell::source_tabs`). The bar holds the brand, a tab per part with its key underlined
  * inside the word and an optional attention dot, History and Settings, the sync words and the mode.
  *

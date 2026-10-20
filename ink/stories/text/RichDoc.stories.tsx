@@ -35,7 +35,7 @@ const pane80 = paneOf(ticket80, "overview");
 const pane160 = paneOf(ticket160, "overview");
 
 /**
- * Rich text (`Block::Doc` in a `Node::Rich`, Ratatui `ui::rich`): any service's formatted text (markdown, Jira's
+ * Rich text (`Block::Doc` in a `Node::Rich`, the earlier `ui::rich`): any service's formatted text (markdown, Jira's
  * ADF, Slack's mrkdwn) as one document laid out to the width: paragraphs, headings, lists that hang, quotes,
  * call-outs, code, tables as columns, rules, media; runs with marks, links, mentions and emoji.
  *

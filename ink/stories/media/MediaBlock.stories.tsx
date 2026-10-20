@@ -16,7 +16,7 @@ const firstMedia = doc.findIndex((d) => d.t === "media");
 const allMedia = doc.filter((d) => d.t === "media") as Media[];
 
 /**
- * A picture or a file in a document (`RichBlock` `t: "media"`, a `Media`; Ratatui `ui::rich::media` and `ui::image`;
+ * A picture or a file in a document (`RichBlock` `t: "media"`, a `Media`; the earlier `ui::rich::media` and `ui::image`;
  * Ink media/MediaBlock.tsx). Where no picture is placed it is one fallback line: an icon, the name, the size in pixels
  * when known. Pictures in the terminal (kitty, sixel) are #38; the Ink kitty drawer is not wired yet.
  *

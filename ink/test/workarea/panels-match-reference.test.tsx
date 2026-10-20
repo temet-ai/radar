@@ -1,9 +1,9 @@
-// Ink's Work against Ratatui's own: crates/radar-workbench/src/snapshots/*work_empty_<w>x<h>.snap is what the
-// Ratatui shell paints for a Work view with no items (radar-workbench's test `work_empty`). The recorded view
+// Ink's Work against the recorded reference panels: crates/radar-workbench/src/snapshots/*work_empty_<w>x<h>.snap is what the
+// reference shell paints for a Work view with no items (radar-workbench's test `work_empty`). The recorded view
 // work_view_pending.json carries the same three panes (and, besides, a question the M11 layout puts first), so
-// for each size every panel Ratatui draws must be drawn by Ink with the same top border and title, the same text
-// in it, and the same borders around it. What Ratatui does not draw at that size (its Narrow layout shows the
-// focused pane alone, view_tui.rs fit()) is not asked of Ink either; the M11 panels are Ink's addition.
+// for each size every panel the reference draws must be drawn by Ink with the same top border and title, the same text
+// in it, and the same borders around it. What the reference does not draw at that size (its Narrow layout shows the
+// focused pane alone, its recorded fit) is not asked of Ink either; the M11 panels are Ink's addition.
 import React from "react";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -29,9 +29,9 @@ const unwrap = (n: ViewNode): ViewNode =>
     : n;
 
 /** The painted text of an insta snapshot: header and status lines taken off. */
-const ratatui = (view: string, size: string): string[] => {
-  // written by radar-workbench's tests/work_area.rs from the Ratatui shell (radar_core::shell::to_text) for the same view, drift-checked there
-  const lines = read(`${FIX}${view}_ratatui_${size}.txt`)
+const reference = (view: string, size: string): string[] => {
+  // written by radar-workbench's tests/work_area.rs from the reference shell (radar_core::shell::to_text) for the same view, drift-checked there
+  const lines = read(`${FIX}${view}_reference_${size}.txt`)
     .replace(/\n$/, "")
     .split("\n");
   return lines.slice(1, -1);
@@ -43,10 +43,10 @@ for (const view of ["work_view", "work_view_pending"]) {
     [160, 40],
   ] as const) {
     describe(`${view} ${columns}x${rows}`, () => {
-      // Ratatui's recording had icons off; compare like with like.
+      // The reference recording had icons off; compare like with like.
       applyLook(defaultLook("off"));
       const screen = load(view);
-      const ref = panels(ratatui(view, `${columns}x${rows}`));
+      const ref = panels(reference(view, `${columns}x${rows}`));
       const r = render(
         <WorkArea
           screen={screen}
@@ -63,7 +63,7 @@ for (const view of ["work_view", "work_view_pending"]) {
       const ink = panels(r.lastFrame().split("\n"));
       r.unmount();
 
-      it("Ratatui draws at least one panel (the reference is read)", () => {
+      it("the reference draws at least one panel (the reference is read)", () => {
         expect(ref.length).toBeGreaterThan(0);
       });
 
@@ -74,7 +74,7 @@ for (const view of ["work_view", "work_view_pending"]) {
           const mine = ink.find((q) => q.top === p.top && q.start === p.start);
           expect(
             mine,
-            `an Ink panel with Ratatui's top border ${p.top}`,
+            `an Ink panel with the reference's top border ${p.top}`,
           ).toBeDefined();
           if (!p.covered)
             expect(mine!.bottom, "closed under the same columns").toBe(
@@ -92,7 +92,7 @@ for (const view of ["work_view", "work_view_pending"]) {
         });
       }
 
-      it("the panels Ink adds are the M11 ones; the rest are exactly Ratatui's, in order", () => {
+      it("the panels Ink adds are the M11 ones; the rest are exactly the reference's, in order", () => {
         const own = ink.filter(
           (q) => !/^(map|timeline|tabs|question|actions)\b/.test(q.title),
         );

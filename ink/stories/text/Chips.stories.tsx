@@ -6,7 +6,7 @@ import type { Seg } from "../../src/nodes/view";
 import { Compare } from "../support/Compare";
 import { type Globals } from "../support/stories";
 import tickets160 from "../../test/fixtures/jira_tickets_160x40.json";
-import discussed from "../../test/fixtures/chips/jira-discussed.ratatui.json";
+import discussed from "../../test/fixtures/chips/jira-discussed.json";
 
 type Args = React.ComponentProps<typeof TextLine>;
 
@@ -28,11 +28,11 @@ const chip = recorded.find((s) => s.chip)!;
 const TONES = ["plain", "muted", "accent", "info", "good", "warn", "bad"] as const;
 const everyTone: Seg[] = TONES.flatMap((ink) => [{ ...chip, ink, text: ink, link: null }, { text: " " }]);
 
-/** The width of the recorded `discussed · 1` chip in cells (ink/test/fixtures/chips/jira-discussed.ratatui.json). */
+/** The width of the recorded `discussed · 1` chip in cells (ink/test/fixtures/chips/jira-discussed.json). */
 const discussedWidth = discussed.cells.length;
 
 /**
- * A chip (`Seg.chip`, Ratatui `widgets::chip` and `ui::chips::chip_spans`): a short label after a row's name, on the
+ * A chip (`Seg.chip`, `widgets::chip` and `ui::chips::chip_spans` in the earlier renderer): a short label after a row's name, on the
  * overlay shade, one space each side: ` ` + the icon and its gap in the icon's own colour + `words ` in the tone's
  * colour. A row's `Chips.gives` names the run of the name that gives way to them while it keeps a dozen cells.
  *

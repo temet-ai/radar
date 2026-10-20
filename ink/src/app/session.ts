@@ -20,6 +20,9 @@ export const EXIT_REFUSED = 3;
 /** How long a question's drawing waits for the snapshot the host sends after it (Session.set). */
 export const QUESTION_WAIT_MS = 30;
 
+/** The PaneView.scroll each drawn screen pane (`scope/pane`) was last given to take: a Rows report waits for it. */
+export const appliedScroll = new Map<string, number | null | undefined>();
+
 export type SnapshotState = {
   cursor: number;
   chrome: ChromeView;
@@ -270,8 +273,23 @@ export class Session {
   }
 
   private rowsSent = "";
-  /** What the scrolled panes of screen `scope` laid out (ToHost::Rows): sent only when it changed. */
-  sendRows(scope: string, panes: Array<{ pane: "nav" | "middle" | "detail"; rows: number; content: number; at: number }>) {
+  /** What the scrolled panes of screen `scope` laid out (ToHost::Rows): sent only when it changed. Nothing is sent
+   * while a drawn pane has not yet taken the PaneView.scroll the latest snapshot gives it (the report would put the
+   * part's scroll back where it was), and a pane the snapshot has that is not drawn (detail hidden on a narrow screen)
+   * is reported with rows 0, so the part does not page a pane nobody sees. */
+  sendRows(scope: string, drawn: Array<{ pane: "nav" | "middle" | "detail"; rows: number; content: number; at: number }>) {
+    const snapPanes: any[] = this.state.snapshot?.screen?.panes ?? [];
+    const behind = drawn.some((d) => {
+      const want = snapPanes.find((p) => p.pane === d.pane)?.scroll;
+      return want !== undefined && want !== null && appliedScroll.get(`${scope}/${d.pane}`) !== want;
+    });
+    if (behind) return;
+    const panes = [...drawn];
+    for (const p of snapPanes) {
+      const scrolls = p.body?.node === "document" || (p.body?.node === "extension" && p.body?.capability === "detail");
+      if (scrolls && !drawn.some((d) => d.pane === p.pane)) panes.push({ pane: p.pane, rows: 0, content: 0, at: 0 });
+    }
+    panes.sort((a, b) => a.pane.localeCompare(b.pane));
     const key = JSON.stringify([scope, panes]);
     if (key === this.rowsSent) return;
     this.rowsSent = key;

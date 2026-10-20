@@ -1,10 +1,11 @@
 import React, { createContext, useCallback, useContext, useLayoutEffect, useRef, useState, useId } from "react";
 import { Box, Text, type DOMElement } from "ink";
-import { ScrollBar, ScrollSink, screenAt, type ScrollReport } from "../nodes/index.js";
+import { ScrollBar, ScrollSink, rowsDrawn, screenAt, type ScrollReport } from "../nodes/index.js";
 import { TextLine, SegRun } from "../text/TextLine.js";
 import { textWords, segWords } from "../text/TextLine.js";
 import { cellWidth, fit } from "../chrome/width.js";
 import type { NodeCx, RenderNode } from "./Body.js";
+import { appliedScroll } from "./session.js";
 import { PageTitleLine } from "../nodes/pagetitle.js";
 import { bgOf, currentLook, iconOf, slotStyle } from "../text/look.js";
 import { focusRamp, frameRuns } from "../text/frame.js";
@@ -22,7 +23,7 @@ import { footActionLayout, type FootLayout } from "../nodes/detail.js";
 import { insideOf, selectKindOf, type SelectArea, type SelectKind } from "../input/selection.js";
 
 /**
- * The body of a screen, drawn like the Ratatui adapter (crates/radar-core/src/view_tui.rs): panes framed
+ * The body of a screen: panes framed
  * `╭ title ───╮`, the nav / middle / detail by width (Wide from 120, Medium from `medium_from` or 84, Narrow
  * below), and an item page as crumbs, title and details, the line under it, the tab row, then its panes in
  * their layout. Every pane has its own columns and is clipped to them.
@@ -50,7 +51,7 @@ const WIDE = 120;
 const MEDIUM = 84;
 export const detailWidth = (total: number) => Math.min(60, Math.max(38, Math.floor((total * 30) / 100)));
 
-/** Share `total` among parts: lengths first, then fills by weight (ratatui's Length and Fill). */
+/** Share `total` among parts: lengths first, then fills by weight (a Length and a Fill). */
 export function share(total: number, parts: Array<{ length?: number; fill?: number }>): number[] {
   const fixed = parts.reduce((n, p) => n + (p.length ?? 0), 0);
   const weights = parts.reduce((n, p) => n + (p.length === undefined ? (p.fill ?? 1) : 0), 0);
@@ -183,7 +184,7 @@ export function Framed({ title, width, height, focused, plain, pane, motionPane,
       </> : null}
       {/* scroll::scrollbar: on the panel's right border between the corners, where a node scrolls (after the border so it paints over it) */}
       {bar && bar.max > 0 ? (
-        // on the border's bg.surface, as Ratatui's bar is
+        // on the border's bg.surface
         <BgBox position="absolute" top={1} left={width - 1} backgroundColor={surface}>
           <ScrollBar rows={trackRows} max={bar.max} at={bar.at} plain={plain} />
         </BgBox>
@@ -219,11 +220,11 @@ function PaneContent({ pane, width, height, cx, renderNode }: { pane: Pane; widt
   const room = Math.max(0, height - 2);
   const most = (pane as any).notes_most ?? 2;
   const shows = showsRows(pane.notes ?? [], inner, room, most, cx.plainText);
-  // view_tui: the footer is one row at the foot of what the notes leave, with a blank row above it, while more than two rows are left
+  // The footer is one row at the foot of what the notes leave, with a blank row above it, while more than two rows are left
   const left = room - shows.length;
   const footerRow = pane.footer && pane.footer.length > 0 && left > 2 ? padCells([...cellsOf(" "), ...clipCells(lineCells(pane.footer, cx.plainText), Math.max(0, inner - 2))], inner) : null;
   const tail = shows.length + (footerRow ? 2 : 0);
-  // view_tui draw_pane: the top fields first (FIELD_ROWS each), then the body, the bottom field under it
+  // The top fields first (FIELD_ROWS each), then the body, the bottom field under it
   let used = 0;
   const tops = (pane.fields ?? []).flatMap((f) => {
     const r = fieldRows(f, inner, room - used, cx.plainText);
@@ -244,7 +245,7 @@ function PaneContent({ pane, width, height, cx, renderNode }: { pane: Pane; widt
       {tops.map((r, i) => (
         <CellLine key={`f${i}`} cells={r} plain={cx.plainText} />
       ))}
-      {/* view_tui draw_pane: the head sits a cell in from the left, clipped to the width less two */}
+      {/* The head sits a cell in from the left, clipped to the width less two */}
       {pane.head && pane.head.length > 0 ? <CellLine cells={padCells([...cellsOf(" "), ...clipCells(lineCells(pane.head, cx.plainText), Math.max(0, inner - 2))], inner)} plain={cx.plainText} /> : null}
       <Box ref={bodyRef} flexDirection="column" flexGrow={1} flexShrink={1} overflow="hidden" width={inner} height={bodyH}>
         {/* PaneView.inset: the rows sit a cell in from each side (widgets::padded) */}
@@ -308,16 +309,18 @@ export function detailScrollIdentity(screen: any): string {
   return JSON.stringify([screen.scope ?? "", selected]);
 }
 
-/** The screen's own panes in the universal layout (view_tui.rs render_panes). */
+/** The screen's own panes in the universal layout. */
 export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock }: { screen: any; focus?: string; width: number; height: number; cx: NodeCx; renderNode: RenderNode; dock?: DockSlot }) {
   const panes: Pane[] = screen.panes ?? [];
   // A screen pane's body reports what it laid out for its pane (ToHost::Rows) and goes where the part moved it.
-  const paneCx = (pane: Pane): NodeCx => ({
+  const paneCx = (pane: Pane): NodeCx => (appliedScroll.set(`${screen.scope}/${pane.pane}`, pane.scroll), {
     ...cx,
     pane: pane.pane,
     scrollTo: pane.scroll ?? undefined,
     ...(pane.pane === "detail" ? { scrollIdentity: detailScrollIdentity(screen) } : {}),
   });
+  // A screen with no scrolled pane drawn still reports (rows 0 for the ones it does not draw).
+  useLayoutEffect(() => rowsDrawn());
   const get = (id: string) => panes.find((p) => p.pane === id);
   const nav = get("nav");
   const mid = get("middle");
@@ -389,7 +392,7 @@ function CrumbsLine({ crumbs, width, cx }: { crumbs: any[]; width: number; cx: N
   );
 }
 
-/** Ratatui clips this line at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows. */
+/** This line is clipped at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows. */
 function UnderLine({ text, width, cx }: { text: any[]; width: number; cx: NodeCx }) {
   const ref = useRef<DOMElement>(null);
   const room = Math.max(0, width - 1);
@@ -426,7 +429,7 @@ export function PageBody({ page, focus, width, height, cx, renderNode }: { page:
   const head: React.ReactNode[] = [];
   head.push(<CrumbsLine key="crumbs" crumbs={crumbs} width={width} cx={cx} />);
   head.push(<PageTitleLine key="title" title={title} details={details} width={width} plain={cx.plainText} base={bgOf("bg.base")} registry={cx.registry} />);
-  // Ratatui clips this line at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows.
+  // This line is clipped at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows.
   if (page.under) head.push(<UnderLine key="under" text={page.under} width={width} cx={cx} />);
   if (tabs.length > 0) {
     head.push(<TabRow key="tabs" base={bgOf("bg.base")} tabs={tabs} on={page.tab} focused={!!cx.tabsFocused} width={Math.max(0, width - 2)} registry={cx.registry} />);
@@ -476,7 +479,7 @@ export function PageBody({ page, focus, width, height, cx, renderNode }: { page:
   return (
     <Box flexDirection="column" width={width} height={height} overflow="hidden">
       {/* ui::page::PageFrame draws on the page's bg.base: a cell of these rows no line writes (after the line under the
-          title, the tab row's last column, after the notice) shows it, as in Ratatui */}
+          title, the tab row's last column, after the notice) shows it */}
       <Box flexDirection="column" width={width} flexShrink={0} backgroundColor={bgOf("bg.base")}>
         {head}
       </Box>

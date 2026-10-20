@@ -62,6 +62,18 @@ it("sends the rows each scrolled screen pane laid out, when they change, and goe
   expect(last()?.panes[0]?.at).toBe(0);
   expect(s.at()).toBe(0);
 
+  // A second part move arrives and a report from before Ink drew it goes out meanwhile: it is held, not sent.
+  m.snapshot({ chrome: chrome(130, 16), screen: screen(5), focus: "middle" }, 40);
+  await until(() => s.at() === 5 && last()?.panes[0]?.at === 5);
+  const held = m.sent("rows").length;
+  m.snapshot({ chrome: chrome(130, 16), screen: screen(9), focus: "middle" }, 41);
+  m.session.sendRows("watch", [{ pane: "detail", rows: s.height(), content: s.content(), at: 5 }]);
+  expect(m.sent("rows").length).toBe(held);
+  await until(() => s.at() === 9 && last()?.panes[0]?.at === 9);
+  expect(last()?.panes[0]?.at).toBe(9);
+  m.snapshot({ chrome: chrome(130, 16), screen: screen(0), focus: "middle" }, 42);
+  await until(() => s.at() === 0 && last()?.panes[0]?.at === 0);
+
   // A page over the screen: its panes are not the screen's, nothing is reported for them.
   const before = m.sent("rows").length;
   m.snapshot({ chrome: chrome(130, 16), screen: screen(undefined, { title: "WATCH-12", panes: [detail()], tabs: [], selected_tab: 0 }), focus: "detail" }, 5);
@@ -69,4 +81,13 @@ it("sends the rows each scrolled screen pane laid out, when they change, and goe
   expect(m.sent("ack").some((a: any) => a.cursor === 5)).toBe(true);
   await new Promise((r) => setTimeout(r, 20));
   expect(m.sent("rows").slice(before).every((r: any) => r.panes.length === 0)).toBe(true);
+});
+
+it("reports rows 0 for a detail pane it does not draw (a narrow screen shows only the focused pane)", async () => {
+  const m = mount(60, 16); stop = m.stop;
+  m.welcome();
+  m.snapshot({ chrome: chrome(60, 16), screen: screen(), focus: "middle" }, 1);
+  await until(() => m.sent("rows").length > 0);
+  expect(scrollers().find((s) => s.pane === "detail")).toBeUndefined();
+  expect(m.sent("rows").at(-1)).toEqual({ type: "rows", scope: "watch", panes: [{ pane: "detail", rows: 0, content: 0, at: 0 }] });
 });

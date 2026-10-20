@@ -135,16 +135,8 @@ impl TextInput {
             Key::Home => self.travel(shift, |_| 0),
             Key::End => self.travel(shift, |s| s.text.len()),
             Key::Backspace if alt => self.delete_to(Self::word_start),
-            Key::Backspace => {
-                if !self.delete_selection() {
-                    self.delete_to(|s| s.caret.saturating_sub(1));
-                }
-            }
-            Key::Delete => {
-                if !self.delete_selection() {
-                    self.delete_to(|s| (s.caret + 1).min(s.text.len()));
-                }
-            }
+            Key::Backspace => self.delete_to(|s| s.caret.saturating_sub(1)),
+            Key::Delete => self.delete_to(|s| (s.caret + 1).min(s.text.len())),
             Key::Char(c) if ctrl => match c.to_ascii_lowercase() {
                 'z' if shift => self.redo(),
                 'z' => self.undo(),
@@ -156,16 +148,8 @@ impl TextInput {
                 'u' => self.delete_to(|_| 0),
                 'k' => self.delete_to(|s| s.text.len()),
                 'w' => self.delete_to(Self::word_start),
-                'h' => {
-                    if !self.delete_selection() {
-                        self.delete_to(|s| s.caret.saturating_sub(1));
-                    }
-                }
-                'd' => {
-                    if !self.delete_selection() {
-                        self.delete_to(|s| (s.caret + 1).min(s.text.len()));
-                    }
-                }
+                'h' => self.delete_to(|s| s.caret.saturating_sub(1)),
+                'd' => self.delete_to(|s| (s.caret + 1).min(s.text.len())),
                 // One line only, and no other control key types anything.
                 _ => {}
             },
@@ -263,16 +247,6 @@ impl TextInput {
         self.text.drain(from..upto);
         self.caret = from;
         self.anchor = None;
-    }
-
-    /// Delete the selection; false when nothing was selected.
-    fn delete_selection(&mut self) -> bool {
-        if self.selection().is_none() {
-            return false;
-        }
-        self.record();
-        self.remove_selected();
-        true
     }
 
     fn remove_selected(&mut self) {

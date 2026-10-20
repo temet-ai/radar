@@ -9,8 +9,8 @@ import type { LookIcon } from "./LookIcon.js";
  */
 export type Look = { tier: ColourTier, 
 /**
- * Every slot name → its colour as Ratatui's `Theme::style(name)`
- * resolves it at `tier`, written as Ink's `color` takes it: `#rrggbb`
+ * Every slot name → its colour as `Theme::resolve(name)`
+ * resolves it at `tier` (`Theme::resolve`), written as Ink's `color` takes it: `#rrggbb`
  * at truecolor, `ansi256(n)` at 256, a terminal colour's name at 16
  * (`red`, `redBright`, `blackBright` …), and `""` (no colour, the
  * terminal's own) at mono.

@@ -5,11 +5,11 @@ import type { Target } from "./Target.js";
 /**
  * The mode at the right of the top bar (`read-only`, `edit`).
  */
-export type ModeChip = {
+export type ModeChip = { 
 /**
  * The mode's word (`edit`); its icon is `icon`, never a glyph here.
  */
-text: string, icon?: string | null, ink: Ink,
+text: string, icon?: string | null, ink: Ink, 
 /**
  * Stands out (read only does).
  */

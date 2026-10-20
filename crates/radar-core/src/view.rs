@@ -2129,6 +2129,8 @@ impl TreeNav {
 
 pub mod chrome;
 pub mod detail;
+pub mod diff;
+pub mod doc;
 pub mod kit;
 
 pub use chrome::{Choice, ChromeView, MenuView};

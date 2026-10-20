@@ -8,7 +8,7 @@
 //! `:name:`, and the row's target at the end in `{ }`. An overlay, the open
 //! menu and the status line's keys follow the panes.
 
-use crate::ui::rich;
+use crate::view::doc as rich;
 use crate::view::chrome::{ChromeView, MenuView, StatusLine};
 use crate::view::{Block, CellView, FieldBar, ListRow, Node, PageView, PaneId, PaneView, ScreenView, SectionView, Seg, Target, Text, Tree, TreeRow, PATH_SEP};
 
@@ -255,7 +255,7 @@ impl Out {
                     self.line(&format!("{pad}  {empty}"));
                 }
                 for (i, l) in lines.iter().enumerate() {
-                    use crate::ui::diff::Kind;
+                    use crate::view::diff::Kind;
                     let sign = match l.kind {
                         Kind::Hunk => "@",
                         Kind::Context => " ",
@@ -497,7 +497,7 @@ fn doc_lines(blocks: &[rich::Block], pad: &str, out: &mut Vec<String>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ui::icon::Icon;
+    use crate::design::icon::Icon;
     use crate::view::{Ink, Note, State};
 
     #[test]

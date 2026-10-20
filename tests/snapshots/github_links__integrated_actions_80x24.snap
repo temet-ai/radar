@@ -1,29 +1,66 @@
 ---
 source: tests/github_links.rs
-assertion_line: 309
 expression: text
 ---
- radar    R   J   S   B   History   Settings (,)         synced 25s ago  ✎ edit
-╭ 1 views ╭ acme/api #42 ───────────────────────────────────────────╮──────────╮
-│ Everythi│ ⏎      open its page                                    █ 2 repos  │
-│ acme    │        open on GitHub                                   █ 2 PRs    │
-│         │        copy the link                                    █ open     │
-│         │        refresh configured repositories                  █ draft    │
-│         │ space  toggle the group                                 █ 0 PRs    │
-│         │ +      expand the group                                 █          │
-│         │ -      collapse the group, or the one this row is in    █          │
-│         │ =      expand every held group                          █          │
-│         │ JIRA                                                    █          │
-│         │        view ABC-12                                      █          │
-│         │ SLACK                                                   █          │
-│         │        open discussion thread in #team                  █          │
-│         │ GIT                                                     █          │
-│         │        open current folder in an editor                 █          │
-│         │        open terminal in current folder                  █          │
-│         │        scan configured local folders                    █          │
-│         │        link a matching local folder…                    █          │
-│         │ ~      recent notices (this session)                    █          │
-│         │ HISTORY                                                 ║          │
-│         │        shift recent activity (last 24 hours)            ║          │
-╰─────────╰─────────────────────────────────────────────────────────╯──────────╯
- GITHUB   ↑↓ move   ⏎ choose   esc close                      github jira slack
+bar: radar  <repositories> :issue: jira :chat: slack :branch: branches :log: history :settings: settings  synced 25s ago  ✎ edit {chrome:mode}
+── nav · views ──
+> Everything  2 repos  {view:0}
+  :group: acme  2 repos  {view:1}
+── middle · repositories * ──
+  :group: github.com/acme  2 repos  {group:github.com/acme}
+    :repo: acme/api  2 PRs  {group:github.com/acme/repo:acme/api}
+>     #42  Keep background refreshes tied to their request  open  {group:github.com/acme/repo:acme/api/pull:42}
+      #43  Document the public endpoints  draft  {group:github.com/acme/repo:acme/api/pull:43}
+    :repo: acme/docs  0 PRs  {group:github.com/acme/repo:acme/docs}
+── detail · acme/api #42 ──
+:local: [local folder][/work/source][· on main]
+Keep background refreshes tied to their request
+
+state  open
+author  alice
+from  alice/api:refresh-ownership
+into  acme/api:main
+head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+§ DESCRIPTION
+  ## What changed
+  Responses stay with the repository and commit they were requested for.
+  • Keep the selected pull request stable
+  • Show unavailable checks honestly
+  See the design notes <https://github.com/acme/api/issues/12>.
+
+§ :issue: TICKET
+  ABC-12 · :in_progress: In Progress · Story
+  Add a stats endpoint for the dashboard
+  assigned to :you: you
+
+  What ABC-12 is about.
+
+§ :channel: DISCUSSED IN SLACK
+  #team · 16m ago · no replies
+  :person: Alice E.  https://github.com/acme/api/pull/42
+── menu · acme/api #42 ──
+> open its page  (⏎)
+  open on GitHub  (o)
+  copy the link  (y)
+  refresh configured repositories  (r)
+  toggle the group  (space)
+  expand the group  (+)
+  collapse the group, or the one this row is in  (-)
+  expand every held group  (=)
+  # Jira
+  view ABC-12  (v)
+  # Slack
+  open discussion thread in #team  (t)
+  # Git
+  open current folder in an editor  (e)
+  open terminal in current folder
+  scan configured local folders  (s)
+  link a matching local folder…
+  recent notices (this session)  (~)
+  # History
+  recent activity (last 24 hours)  (H)
+  all activity history
+  history for selected item
+── status · GITHUB ──
+↑↓ move  PgUp/PgDn scroll  ⏎ choose  esc close

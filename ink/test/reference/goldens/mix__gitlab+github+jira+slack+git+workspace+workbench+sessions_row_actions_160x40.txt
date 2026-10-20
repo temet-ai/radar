@@ -1,0 +1,40 @@
+ radar    Repositories   Branches   Work items   History   Settings (,)                                                                  not synced yet  ✎ edit
+╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────╮╭ 3 api !263 ──────────────────────────────────╮
+│ Everything             ││ OPENED BY everyone · 2 repos         STATE               THREADS UPDATED FOR YOU   ││ a / acme/team-a/api / !263                   │
+│ Needs my action        ││A team-a                                                                            ││ Add a stats endpoint                         │
+│ Opened by me           ││  ├─ api                              — no recent run             —       1 MR      ││ stats → main          Alice Examp… · 16m ago │
+│ Opened by teammates    ││  │  └─ !263 Add a stats endpoint  Al needs rebase        —       16m     team      ││                                              │
+│ Opened by bots         ││  └─ web                              — no recent run             —       —         ││ project    api                               │
+│                        ││                                                                                    ││ state      open                              │
+│                        ││                                                                                    ││ approvals  1 required · 0 left               │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ STATE ────────────────────────────────────── │
+│                        ││                                                                                    ││   a teammate's                               │
+│                        ││                                                                                    ││   needs rebase                               │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ PIPELINE  passed ─────────────────────────── │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ CHANGES ──────────────────────────────────── │
+│                        ││                                                                                    ││   1 file  +10 −2                             │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││ THREADS  none ────────────────────────────── │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││──────────────────────────────────────────────│
+│                        ││ every open merge request · listing every repo, also those without                  ││update  merge  approve  open     extra actions│
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ REPOSITORIES   update by rebasing   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate            1 open  gitlab

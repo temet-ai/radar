@@ -1,29 +1,31 @@
 ---
 source: tests/mix.rs
-assertion_line: 134
-expression: "to_text(&started(), 80, 24)"
+expression: text
 ---
- radar    I   History   Settings (,)  local annotations · observations … ✎ edit
-╭ 2 work items · page 1 ───────────────────────────────────────────────────────╮
-│ Press r to load local work.                                                  │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
- WORK ITEMS   PgUp/PgDn scroll   quit   extra actions   ~ notices
+bar: radar  <work items> :log: history :settings: settings  local annotations · observations only  ✎ edit {chrome:mode}
+── nav · local groups ──
+! Groups not loaded
+> All items  {["group","all",null,0,0]}
+_ Groups · page 1
+── middle · work items · page 1 * ──
+(empty) Press r to load local work.
+── detail · linked sources and context ──
+No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+0 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+linked sources
+evidence
+── detail · actions ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

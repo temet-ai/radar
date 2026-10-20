@@ -2,43 +2,26 @@
 source: tests/mix.rs
 expression: text
 ---
- radar    Repositories ●   Slack   Branches   Work items   History   Settings (,)                                                                                                                    not synced yet  ✎ edit
-╭ 1 views ───────────────╮╭ 2 Everything ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮╭ 3 team-a ────────────────────────────────────────────────╮
-│ Everything             ││ OPENED BY everyone · 2 repos                                              STATE               APPROVALS  THREADS UPDATED FOR YOU   ││ a acme/team-a                                            │
-│ Needs my action      1 ││A team-a                                                                                                                            ││                                                          │
-│ Opened by me           ││  ├─ api  firing · 1                                                       — no recent run                        —       1 MR      ││ repos       2 shown · 0 hidden                           │
-│ Opened by teammates    ││  │  └─ !263 Add a stats endpoint  Alice E.                                needs 1 approval    0 of 1     —       16m     review    ││ with MRs    1 repos, in this view                        │
-│ Opened by bots         ││  └─ web                                                                   — no recent run                        —       —         ││ open MRs    1                                            │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││                                                                                                                                    ││                                                          │
-│                        ││─ shows ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────││                                                          │
-│                        ││ every open merge request · listing every repo, also those without                                                                  ││                                                          │
-╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                         1 open · 1 to review  gitlab slack
+bar: radar  <:repo: repositories !> :chat: slack :branch: branches work items :log: history :settings: settings  not synced yet  ✎ edit {chrome:mode}
+── nav · views ──
+> :change: Everything  {view:0}
+  :needs_approval: Needs my action  1  {view:1}
+  :you: Opened by me  {view:2}
+  :team: Opened by teammates  {view:3}
+  :bot: Opened by bots  {view:4}
+── middle · Everything * ──
+OPENED BY :team: everyone · 2 repos  {authors}
+> :group: A team-a  {t:team-a}
+    :repo: api  :alert_firing: [firing · 1]  — no recent run  —  :change: 1 MR  {t:team-a/r:acme/team-a/api}
+      :change: !263 Add a stats endpoint  :person: Alice E.  :needs_approval: needs 1 approval  0 of 1  —  16m  review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+    :repo: web  — no recent run  —  —  {t:team-a/r:acme/team-a/web}
+· every open merge request · listing every repo, also those without
+── detail · team-a ──
+:group: a acme/team-a
+
+repos       2 shown · 0 hidden
+with MRs    1 repos, in this view
+open MRs    1
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+1 open · 1 to review

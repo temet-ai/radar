@@ -1,0 +1,40 @@
+ radar    Branches   History   Settings (,)                                                                                   not synced yet · every 1m  ✎ edit
+╭ 1 views ───────────────╮╭ 2 all ─────────────────────────────────────────────────────────────────────────────╮╭ 3 branches ──────────────────────────────────╮
+│ all                    ││ No clones known yet. Press , for settings, then add a folder under git ›           ││ Select a clone, a worktree or a branch.      │
+│ dirty                  ││ checkouts.                                                                         ││                                              │
+│ ahead of remote        ││                                                                                    ││                                              │
+│ stashes                ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││                                              │
+│                        ││─ shows ────────────────────────────────────────────────────────────────────────────││                                              │
+│                        ││ every clone, its worktrees and its local branches                                  ││                                              │
+╰────────────────────────╯╰────────────────────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────╯
+ BRANCHES   PgUp/PgDn scroll   bulk   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate

@@ -1,45 +1,89 @@
 ---
 source: tests/mix.rs
-assertion_line: 964
-expression: "to_text(&host, 100, 40)"
+expression: text
 ---
- radar    R ●   J   B   I   History   Settings (,)                           not synced yet  ✎ edit
-╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────────────────────────╮
-│ Everything       ╭ api !263 ──────────────────────────────────────────────────╮UPDATED FOR YOU   │
-│ Needs my action  │ ⏎       open its page                                      │                  │
-│ Opened by me     │         open it in GitLab                                  │—       3 MRs     │
-│ Opened by teammat│         copy its link                                      │16m     review    │
-│ Opened by bots   │ ON GITLAB                                                  │16m     review    │
-│                  │         update by rebasing · not behind main               │16m     team      │
-│                  │         merge · needs 1 approval                           │                  │
-│                  │         approve !263…                                      │                  │
-│                  │ /       filter the view by words                           │                  │
-│                  │ .       show only repos with merge requests in the view    │                  │
-│                  │         refresh now                                        │                  │
-│                  │ WITH AN AGENT                                              │                  │
-│                  │         shift ask an agent about it…                       │                  │
-│                  │         review it locally…                                 │                  │
-│                  │ :       go to a tenancy, repo or merge request…            │                  │
-│                  │         show one author's merge requests…                  │                  │
-│                  │ ctrl-r  kept comments…                                     │                  │
-│                  │ space   toggle the group                                   │                  │
-│                  │ +       expand the group                                   │                  │
-│                  │ -       collapse the group, or the one this row is in      │                  │
-│                  │ =       expand every held group                            │                  │
-│                  │ JIRA                                                       │                  │
-│                  │         view ABC-12                                        │                  │
-│                  │ >       move ABC-12 to …                                   │                  │
-│                  │ GIT                                                        │                  │
-│                  │         scan for a checkout · no folders set yet           │                  │
-│                  │         link to a local folder…                            │                  │
-│                  │ WORK                                                       │                  │
-│                  │         add to work item…                                  │                  │
-│                  │ ~       recent notices (this session)                      │                  │
-│                  │ HISTORY                                                    │                  │
-│                  │         shift recent activity (last 24 hours)              │                  │
-│                  │         all activity history                               │                  │
-│                  │         history for selected item                          │                  │
-│                  ╰────────────────────────────────────────────────────────────╯──────────────────│
-│                      ││ every open merge request · listing every repo, also those without        │
-╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   ↑↓ move   ⏎ choose   esc close                    3 open · 2 to review  gitlab jira
+bar: radar  <:repo: repositories !> :issue: jira :branch: branches work items :log: history :settings: settings  not synced yet  ✎ edit {chrome:mode}
+── nav · views ──
+> :change: Everything  {view:0}
+  :needs_approval: Needs my action  2  {view:1}
+  :you: Opened by me  {view:2}
+  :team: Opened by teammates  {view:3}
+  :bot: Opened by bots  {view:4}
+── middle · Everything * ──
+OPENED BY :team: everyone · 1 repo  {authors}
+  :group: A team-a  {t:team-a}
+    :repo: api  — no recent run  —  :change: 3 MRs  {t:team-a/r:acme/team-a/api}
+>     :change: !263 ABC-12: Add a stats endpoint for the dashboard  :person: Alice E.  :needs_approval: needs 1 approval  0 of 1  —  16m  review  :story: ABC-12 · In Review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+      :change: !265 Unrelated change  :person: Alice E.  :needs_approval: needs 1 approval  0 of 1  —  16m  review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!265}
+      :change: !264 Tidy the build  :person: Alice E.  :needs_approval: needs 1 approval  :approved: 1 of 1  —  16m  team  :story: ABC-20 · To Do  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!264}
+· every open merge request · listing every repo, also those without
+── detail · api !263 ──
+<detail>
+:repo: a / acme/team-a/api / !263
+:change: ABC-12: Add a stats endpoint for the dashboard
+:branch: feature/abc-12-stats → main
+:person: Alice Example
+16m ago
+project: api
+state: open
+approvals: 1 required · 1 left
+§ :info: STATE
+  waiting for your review
+  :needs_approval: needs 1 approval
+§ :pipeline: PIPELINE  passed
+
+§ :file: CHANGES
+  1 file  +10 −2
+§ :thread: THREADS  none
+§ :issue: TICKET
+  ABC-12 · :in_progress: In Review · Story
+  Add a stats endpoint for the dashboard
+  assigned to :you: you
+
+  What ABC-12 is about.
+§ ACTIONS
+  update (not behind main)  (u)
+  merge (needs 1 approval)  (m)
+  approve  (e)
+  open  (o)
+  copy link  (y)
+  page  (⏎)
+  extra actions  (x)
+[update] [merge] [approve] [open] [copy link] [page] [extra actions]
+── menu · api !263 ──
+> open its page  (⏎)
+  open it in GitLab  (o)
+  copy its link  (y)
+  # on GitLab
+  update by rebasing · not behind main  (u)
+  merge · needs 1 approval  (m)
+  approve !263…  (e)
+  filter the view by words  (/)
+  show only repos with merge requests in the view  (.)
+  refresh now  (r)
+  # with an agent
+  ask an agent about it…  (A)
+  review it locally…  (i)
+  go to a tenancy, repo or merge request…  (:)
+  show one author's merge requests…  (a)
+  kept comments…  (ctrl-r)
+  toggle the group  (space)
+  expand the group  (+)
+  collapse the group, or the one this row is in  (-)
+  expand every held group  (=)
+  # Jira
+  view ABC-12  (v)
+  move ABC-12 to …  (>)
+  # Git
+  scan for a checkout · no folders set yet  (s)
+  link to a local folder…
+  # Work
+  add to work item…
+  recent notices (this session)  (~)
+  # History
+  recent activity (last 24 hours)  (H)
+  all activity history
+  history for selected item
+── status · REPOSITORIES ──
+↑↓ move  ⏎ choose  esc close
+3 open · 2 to review

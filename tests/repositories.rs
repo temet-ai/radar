@@ -6,8 +6,27 @@
 ))]
 
 use radar_core::Host;
-use radar_core::host::{Event, Hit, MouseKind, View};
+use radar_core::host::{Event, View};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Intent;
+use radar_core::view::chrome::targets;
+
+/// What shows, as the view data's text form: the top bar and source tabs,
+/// the screen, the menu and the status line.
+fn text(host: &Host) -> String {
+    radar_core::headless::host_text_of(host, 100, 30)
+}
+
+/// The labels of the top bar's screen tabs (not history and settings).
+fn screen_tabs(host: &Host) -> Vec<String> {
+    host.chrome_view(100, 30)
+        .top_bar
+        .tabs
+        .into_iter()
+        .filter(|t| t.target.as_str().starts_with("chrome:tab:"))
+        .map(|t| t.label)
+        .collect()
+}
 
 #[test]
 fn one_repositories_tab_switches_between_gitlab_github_and_local_workspaces() {
@@ -32,51 +51,27 @@ fn one_repositories_tab_switches_between_gitlab_github_and_local_workspaces() {
     assert_eq!(host.top_screens(), vec![0]);
     assert_eq!(host.group_screens(0), vec![0, 1, 2]);
 
-    let screen = radar_core::shell::to_text(&host, 100, 30);
-    assert!(
-        screen.lines().next().unwrap().contains("Repositories"),
-        "{screen}"
-    );
-    assert!(
-        screen.lines().nth(1).unwrap().contains("GitLab"),
-        "{screen}"
-    );
-    assert!(
-        screen.lines().nth(1).unwrap().contains("GitHub"),
-        "{screen}"
-    );
-    assert!(
-        screen.lines().nth(1).unwrap().contains("Local workspaces"),
-        "{screen}"
-    );
-    assert_eq!(
-        host.hits
-            .borrow()
-            .iter()
-            .filter(|(_, hit)| matches!(hit, Hit::Tab(View::Screen(_))))
-            .count(),
-        1
-    );
+    // One tab on the bar for the three screens, and their source tabs.
+    let screen = text(&host);
+    assert_eq!(screen_tabs(&host), ["repositories"], "{screen}");
+    let sources: Vec<String> = host.chrome_view(100, 30).sources.into_iter().map(|s| s.label).collect();
+    assert_eq!(sources, ["GitLab", "GitHub", "Local workspaces"], "{screen}");
+    assert!(screen.contains("sources: <GitLab>  GitHub  Local workspaces"), "{screen}");
 
+    // A click on GitHub's source tab.
     let target = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(rect, hit)| (*hit == Hit::SourceTab(View::Screen(1))).then_some(*rect))
-        .unwrap();
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: target.x + 1,
-        row: target.y,
-        at_ms: 1,
-    });
+        .chrome_view(100, 30)
+        .sources
+        .into_iter()
+        .find(|s| s.target == targets::source_tab(1))
+        .expect("GitHub's source tab")
+        .target;
+    host.update(Event::Intent(Intent::Activate { target }));
     assert_eq!(host.view, View::Screen(1));
     assert!(host.sources, "clicking a source focuses its row");
-    let focused = radar_core::shell::to_text(&host, 100, 30);
-    assert!(
-        focused.lines().last().unwrap().contains("sources"),
-        "{focused}"
-    );
+    let focused = text(&host);
+    let status: Vec<&str> = focused.lines().skip_while(|l| !l.starts_with("── status · ")).collect();
+    assert!(status.iter().any(|l| l.contains("sources")), "{focused}");
     host.update(Event::Key(KeyEvent::new(
         KeyCode::Char('R'),
         KeyModifiers::NONE,
@@ -91,13 +86,13 @@ fn one_repositories_tab_switches_between_gitlab_github_and_local_workspaces() {
         KeyModifiers::NONE,
     )));
     assert_eq!(host.view, View::Screen(2));
-    let local = radar_core::shell::to_text(&host, 100, 30);
+    let local = text(&host);
     assert!(local.contains("local repositories"), "{local}");
     assert!(local.contains("acme"), "{local}");
     assert!(local.contains("api"), "{local}");
     host.focus = radar_core::Pane::Middle;
     host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
-    let selected = radar_core::shell::to_text(&host, 100, 30);
+    let selected = text(&host);
     assert!(
         selected.contains("/work/acme/repositories/api"),
         "{selected}"
@@ -173,9 +168,9 @@ fn repositories_key_works_when_gitlab_is_absent() {
         KeyModifiers::NONE,
     )));
     assert_eq!(host.view, View::Screen(0));
-    let top = radar_core::shell::to_text(&host, 100, 30);
-    assert!(
-        top.lines().next().unwrap().contains("Repositories"),
-        "{top}"
-    );
+    let top = text(&host);
+    assert_eq!(screen_tabs(&host), ["repositories"], "{top}");
+    let on: Vec<String> =
+        host.chrome_view(100, 30).top_bar.tabs.into_iter().filter(|t| t.active).map(|t| t.label).collect();
+    assert_eq!(on, ["repositories"], "the tab is on:\n{top}");
 }

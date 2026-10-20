@@ -1,0 +1,24 @@
+ radar    Branches   History   Settings (,)   not synced yet · every 1m  ✎ edit
+╭ 2 all ───────────────────────────────────────────────────────────────────────╮
+│ No clones known yet. Press , for settings, then add a folder under git ›     │
+│ checkouts.                                                                   │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ every clone, its worktrees and its local branches                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ BRANCHES   bulk   +/- expand/collapse   quit   extra actions   ~ notices

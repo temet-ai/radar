@@ -1,29 +1,14 @@
 ---
 source: tests/mix.rs
-assertion_line: 134
-expression: "to_text(&started(), 80, 24)"
+expression: text
 ---
- radar    History   Settings (,)                                         ✎ edit
-╭ 1 set up GitLab ─────────────────────────────────────────────────────────────╮
-│ GitLab is not set up yet.                                                    │
-│                                                                              │
-│ Add a tenancy: a GitLab group or repo whose merge requests to follow.        │
-│                                                                              │
-│ Press ⏎ to set it up in settings, under gitlab.                              │
-│ Press s to walk its setup step.                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   quit   extra actions   ~ notices   ←→↑↓ navigate
+bar: radar  :log: history :settings: settings  ✎ edit {chrome:mode}
+── middle · set up GitLab * ──
+:settings: GitLab is not set up yet.
+
+Add a tenancy: a GitLab group or repo whose merge requests to follow.
+
+Press ⏎ to set it up in settings, under gitlab.
+Press s to walk its setup step.
+── status · REPOSITORIES ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

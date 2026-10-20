@@ -396,13 +396,11 @@
       ],
       "details": [
         {
-          "icon": "in_progress",
-          "look": "status.info bold",
-          "text": "◐"
+          "icon": "in_progress"
         },
         {
           "look": "status.info bold",
-          "text": " In Review"
+          "text": "In Review"
         },
         {
           "ink": "muted",

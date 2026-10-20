@@ -3,13 +3,60 @@
 //! for no parts, each part alone and all parts by `scripts/check-mixes`.
 //!
 //! What is recorded (GUIDE 3, the testing pyramid): the first screen of no
-//! parts, each part alone and all parts, each other screen once, with all
-//! parts, and one screen per icon pack, with all parts.
+//! parts, each part alone and all parts, and each other screen once, with
+//! all parts, as the view data's text form (`radar_core::headless`); keys
+//! are pressed as keys, clicks are the intents a renderer sends on a target.
+//! Ink's picture of each recording is its own (`ink/test/reference`).
 
 use radar_core::Host;
 use radar_core::host::{Event, View};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::shell::to_text;
+use radar_core::view::{Intent, Target};
+
+/// What shows, as the view data's text form (`radar_core::headless`): the
+/// top bar, the screen or settings section with the pane that has the keys
+/// marked, the open menu and the status line. No renderer paints it, so a
+/// look change in Ink moves no recording here; Ink's own pictures of these
+/// screens are its goldens (`ink/test/reference`).
+fn to_text(host: &Host, width: u16, height: u16) -> String {
+    radar_core::headless::host_text_of(host, width, height)
+}
+
+/// The part of the text form under its rule `── <kind> · ...`: the lines
+/// after it up to the next rule.
+fn under_rule<'a>(text: &'a str, kind: &str) -> Vec<&'a str> {
+    let head = format!("── {kind} · ");
+    text.lines()
+        .skip_while(|l| !l.starts_with(&head))
+        .skip(1)
+        .take_while(|l| !l.starts_with("── "))
+        .collect()
+}
+
+/// The tree in the middle pane of the screen showing, as its part sends it.
+fn middle_tree(host: &Host, width: u16, height: u16) -> radar_core::view::Tree {
+    let view = host.displayed_screen(width, height).expect("a screen");
+    let middle = view
+        .panes
+        .into_iter()
+        .find(|p| p.pane == radar_core::view::PaneId::Middle)
+        .expect("the middle pane");
+    match middle.body {
+        radar_core::view::Node::Tree(tree) => tree,
+        other => panic!("not a tree: {other:?}"),
+    }
+}
+
+/// A click, as a renderer sends it: a chrome target (a tab) acts on one
+/// click; a row, a cell or a chip in a line is selected.
+fn click(host: &mut Host, target: Target) -> Vec<radar_core::host::HostEffect> {
+    let intent = if target.as_str().starts_with(radar_core::view::chrome::targets::PREFIX) {
+        Intent::Activate { target }
+    } else {
+        Intent::Select { target }
+    };
+    host.update(Event::Intent(intent))
+}
 
 /// A screen, drawn, and compared with `tests/snapshots/` where `compared`
 /// says.
@@ -173,17 +220,32 @@ fn the_first_screen_starts_through_the_ink_protocol() {
     assert!(bridge.receive(ToHost::Bye).quit, "goodbye ends the run");
 }
 
-/// With an icon pack, the first screen and the settings keep their shape:
-/// icons on the tabs, the sections and the status line. Each pack's glyphs
-/// are radar-core's unit tests; here one screen per pack.
+/// With an icon pack, the first screen and the settings say the same: view
+/// data names its icons (`:branch:`), whatever pack draws them, so a pack
+/// changes nothing a part or the host sends. Each pack's glyphs are
+/// radar-core's unit tests; each pack's picture of this screen is Ink's
+/// (`ink/test/reference/goldens/mix__*_icons_<pack>_start_160x40.txt`).
 fn the_first_screen_and_settings_with(pack: &str) {
+    use radar_core::design::theme::Tier;
+    // What a renderer does before it draws: the host's theme, which sets
+    // the icon pack in use.
+    let shown = |host: &Host| {
+        let _ = host.build_theme(Tier::TrueColor);
+        // The mode chip's words carry a mark the host takes from the pack in
+        // use, as text, not as an icon's name; the rest names its icons.
+        let mode = host.chrome_view(160, 40).top_bar.mode.text;
+        (to_text(host, 160, 40).replace(&mode, "<mode chip>"), mode)
+    };
     let mut host = started();
+    let (off, off_mode) = shown(&host);
     host.colours.cfg.icons = pack.into();
-    record!(
-        every_part(),
-        format!("{}_icons_{pack}_start_160x40", mix_name()),
-        to_text(&host, 160, 40)
-    );
+    let (with, with_mode) = shown(&host);
+    assert_eq!(with, off, "{pack}: the view data names icons, whatever the pack");
+    assert!(off.contains(":settings: settings"), "the tabs name their icons:\n{off}");
+    // The pack was in use: nerd's mark on the mode chip is its own.
+    if pack == "nerd" {
+        assert_ne!(with_mode, off_mode, "the nerd pack was not in use");
+    }
     host.view = View::Settings;
     record!(
         false,
@@ -264,37 +326,41 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
             let mut host = make();
             away(&mut host);
             let top = to_text(&host, 120, 30);
-            let bar = top.lines().next().unwrap_or_default();
+            use radar_core::view::chrome::targets;
             let target = if i < host.screens.len() && host.group_screens(i).len() > 1 {
                 let representative = host.group_screens(i)[0];
                 host.view = View::Screen(representative);
-                let _ = to_text(&host, 120, 30);
-                host.hits
-                    .borrow()
+                let chrome = host.chrome_view(120, 30);
+                chrome
+                    .sources
                     .iter()
-                    .find_map(|(rect, hit)| {
-                        (*hit == radar_core::host::Hit::SourceTab(View::Screen(i))).then_some(*rect)
-                    })
-                    .expect("source tab")
+                    .find(|s| s.target == targets::source_tab(i))
+                    .unwrap_or_else(|| panic!("{name}: {tab}'s source tab: {:?}", chrome.sources))
+                    .target
+                    .clone()
             } else {
-                // By where the bar put the tab, not by its name: on a narrow bar the names
+                // By the tab's target, not by its name: on a narrow bar the names
                 // give way to their keys.
-                let view = if i + 1 == views.len() { View::Settings } else { View::Screen(i) };
-                host.hits
-                    .borrow()
+                let want = if i + 1 == views.len() { targets::settings_tab() } else { targets::screen_tab(i) };
+                host.chrome_view(120, 30)
+                    .top_bar
+                    .tabs
                     .iter()
-                    .find_map(|(rect, hit)| (*hit == radar_core::host::Hit::Tab(view)).then_some(*rect))
-                    .unwrap_or_else(|| panic!("{name}: {tab} in the bar: {bar}"))
+                    .find(|t| t.target == want)
+                    .unwrap_or_else(|| panic!("{name}: {tab} in the bar:\n{top}"))
+                    .target
+                    .clone()
             };
-            host.update(Event::Mouse {
-                kind: radar_core::host::MouseKind::Press,
-                column: target.x,
-                row: target.y,
-                at_ms: 1_000,
-            });
+            click(&mut host, target);
+            // It draws: the screen's own view, or the settings section's.
             let shown = to_text(&host, 120, 30);
             assert!(
-                shown.lines().nth(1).is_some_and(|l| !l.trim().is_empty()),
+                !radar_core::headless::text_of(&host, 120, 30)
+                    .lines()
+                    .take_while(|l| !l.starts_with("── status · "))
+                    .collect::<String>()
+                    .trim()
+                    .is_empty(),
                 "{name}: {tab} draws:\n{shown}"
             );
             // Its key goes to the same place.
@@ -562,13 +628,17 @@ jql = "project = ABC ORDER BY updated DESC"
         press(host, code);
     }
 
-    /// Down the tree on the current screen until a row with `text` is
-    /// highlighted in the tree's own panel, then stop.
+    /// Down the tree on the current screen until the row selected is `text`:
+    /// the detail pane, which shows the selected row, is titled `panel`.
     fn down_to(host: &mut Host, text: &str, panel: &str) {
         for _ in 0..30 {
             let shown = to_text(host, 160, 40);
-            let preview_names_it = shown.lines().skip(1).take(2).any(|l| l.contains(panel));
-            if preview_names_it {
+            let titled = |l: &str| {
+                l.strip_prefix("── detail · ")
+                    .and_then(|t| t.strip_suffix(" ──"))
+                    .is_some_and(|t| t.split(' ').any(|w| w == panel))
+            };
+            if shown.lines().any(titled) {
                 return;
             }
             key(host, KeyCode::Down);
@@ -674,7 +744,11 @@ jql = "project = ABC ORDER BY updated DESC"
         // Jira: a code column from GitLab, only where a ticket has some.
         key(&mut host, KeyCode::Char('J'));
         let shown = to_text(&host, 160, 40);
-        assert!(shown.contains("CODE") && shown.contains("!263 "), "{shown}");
+        let columns: Vec<String> = super::middle_tree(&host, 160, 40).columns.into_iter().map(|c| c.heading).collect();
+        assert!(columns.iter().any(|c| c.eq_ignore_ascii_case("code")), "a code column: {columns:?}");
+        let row = |key: &str| shown.lines().find(|l| l.contains(&format!(":story: {key} "))).unwrap_or_else(|| panic!("{key}:\n{shown}"));
+        assert!(row("ABC-12").contains("!263 review"), "{shown}");
+        assert!(!row("ABC-21").contains('!'), "no code, no chip: {shown}");
         record!(
             super::every_part(),
             format!("{}_joined_tickets_160x40", super::mix_name()),
@@ -782,7 +856,7 @@ jql = "project = ABC ORDER BY updated DESC"
     pub(super) fn a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back() {
         let mut host = both();
         key(&mut host, KeyCode::Char('J'));
-        down_to(&mut host, "ABC-12", "╭ 3 ABC-12 ");
+        down_to(&mut host, "ABC-12", "ABC-12");
         // The detail pane has GitLab's section.
         let shown = to_text(&host, 160, 40);
         assert!(
@@ -792,8 +866,9 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Enter);
         key(&mut host, KeyCode::Char('['));
         let shown = to_text(&host, 160, 40);
+        // The page's tab on: `<Code>`.
         assert!(
-            shown.contains("[Code]") && shown.contains("api !263"),
+            shown.contains(":change: Code>") && shown.contains("> api !263 "),
             "{shown}"
         );
         record!(
@@ -806,7 +881,13 @@ jql = "project = ABC ORDER BY updated DESC"
         assert!(shown.contains("Repositories / a / api / !263"), "{shown}");
         // The merge request's page has Jira's ticket section.
         assert!(
-            shown.contains("TICKET") && shown.contains("ABC-12 · In Review · Story"),
+            shown.contains("TICKET") && shown.contains("ABC-12 · :in_progress: In Review · Story"),
+            "{shown}"
+        );
+        // Jira's section sets the description apart from the lines about
+        // the ticket by one empty line (#27: Jira's own gap, not a host's).
+        assert!(
+            shown.contains("assigned to :you: you\n\nWhat ABC-12 is about.\n"),
             "{shown}"
         );
         record!(
@@ -817,7 +898,7 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Esc);
         let shown = to_text(&host, 160, 40);
         assert!(
-            shown.contains("Jira / acme / ABC / ABC-12") && shown.contains("[Code]"),
+            shown.contains("── page · Jira / acme / ABC / ABC-12 ──") && shown.contains("<:change: Code>"),
             "{shown}"
         );
     }
@@ -900,7 +981,11 @@ jql = "project = ABC ORDER BY updated DESC"
         key(&mut host, KeyCode::Char('v'));
         assert!(to_text(&host, 160, 40).contains("Jira / acme / ABC / ABC-12"));
         key(&mut host, KeyCode::Esc);
-        assert!(to_text(&host, 160, 40).contains("Repositories"));
+        let back = to_text(&host, 160, 40);
+        assert!(
+            back.contains("── status · REPOSITORIES ──") && back.contains("── detail · api !263 ──"),
+            "back on the merge request's row:\n{back}"
+        );
         // >: Jira is asked where it can go (a task, never run here).
         let _ = to_text(&host, 160, 40);
         let fx = host.update(Event::Key(KeyEvent::new(
@@ -1116,9 +1201,9 @@ color = "green"
 #[cfg(feature = "gitlab")]
 #[test]
 fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
-    use radar_core::host::{HostEffect, MouseKind};
+    use radar_core::host::HostEffect;
     use radar_core::plugin::Pane;
-    use radar_core::view::{Intent, PaneId, ScreenView};
+    use radar_core::view::{PaneId, ScreenView};
     let mut host = started();
     host.load_config(Some(repos::GITLAB))
         .expect("the config loads");
@@ -1134,12 +1219,16 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         shown.contains("needs rebase") && shown.contains("stats → main"),
         "{shown}"
     );
-    let footer = shown.lines().rev().nth(2).expect("the pinned detail footer");
+    // The detail pane's pinned foot is its last line.
+    let footer = under_rule(&shown, "detail").last().copied().expect("the pinned detail footer");
     assert!(
-        footer.contains("│update ") && footer.contains("extra actions│"),
+        footer.starts_with("[update] ") && footer.ends_with(" [extra actions]"),
         "the compact rebase control and full menu stay at the detail foot:\n{shown}"
     );
-    assert!(shown.lines().last().unwrap().contains("update by rebasing"), "on the status line:\n{shown}");
+    assert!(
+        under_rule(&shown, "status").iter().any(|l| l.contains("u update by rebasing")),
+        "on the status line:\n{shown}"
+    );
     record!(every_part(), format!("{}_row_actions_160x40", mix_name()), shown);
     // At 80 wide the detail pane is its own screen.
     let mut narrow = host.focus;
@@ -1188,20 +1277,30 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
         "{fx:?}"
     );
-    // A click on the row's STATE asks the same.
+    // A click on the row's STATE asks the same: the target of its row's
+    // STATE cell, as the view shows it.
     let text = to_text(&host, 160, 40);
-    let (y, line) = text
-        .lines()
-        .enumerate()
-        .find(|(_, l)| l.contains("needs rebase") && l.contains("!263"))
-        .expect("its row");
-    let x = line[..line.find("needs rebase").unwrap()].chars().count() as u16;
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: x + 2,
-        row: y as u16,
-        at_ms: 10_000,
-    });
+    assert!(
+        text.lines().any(|l| l.contains("needs rebase") && l.contains("!263")),
+        "its row:\n{text}"
+    );
+    let state = {
+        let view = host.displayed_screen(160, 40).expect("the repositories screen");
+        let middle = view.panes.iter().find(|p| p.pane == PaneId::Middle).expect("the middle pane");
+        let radar_core::view::Node::Tree(tree) = &middle.body else { panic!("the repositories tree: {:?}", middle.body) };
+        fn find(rows: &[radar_core::view::TreeRow]) -> Option<Target> {
+            rows.iter().find_map(|r| {
+                r.cells
+                    .iter()
+                    .find(|c| radar_core::headless::text::text(&c.text).contains("needs rebase"))
+                    .and_then(|c| c.target.clone())
+                    .or_else(|| find(&r.children))
+            })
+        }
+        find(&tree.rows).expect("the STATE cell of !263 has a target")
+    };
+    assert!(state.as_str().ends_with("!263"), "{state:?}");
+    click(&mut host, state);
     assert_eq!(
         host.menu.as_ref().expect("a question").menu.id,
         "act-rebase:acme/team-a/api!263"
@@ -1333,9 +1432,9 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
         press(&mut host, KeyCode::Down);
     }
     let row = to_text(&host, 160, 40);
-    let footer = row.lines().rev().nth(2).expect("the pinned detail footer");
+    let footer = under_rule(&row, "detail").last().copied().expect("the pinned detail footer");
     assert!(
-        footer.contains("extra actions│"),
+        footer.ends_with(" [extra actions]"),
         "the detail footer exposes the full contextual menu:\n{row}"
     );
     // Contributed actions live in the Detail menu, reached through its footer.
@@ -1351,30 +1450,29 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
     press(&mut host, KeyCode::Esc);
     host.focus = focus;
     assert!(
-        row.contains("api  main"),
+        row.contains(":local: api  :branch: main"),
         "the repo row says it is cloned here, on its branch:\n{row}"
     );
     let _ = to_text(&host, 160, 40);
     press(&mut host, KeyCode::Enter);
     let page = to_text(&host, 160, 40);
     assert!(
-        page.contains("checkout  terminal  editor  /work/acme/api · java · on main"),
+        page.contains(":local: checkout  :terminal: terminal  :editor: editor  /work/acme/api · java · :branch: on main"),
         "{page}"
     );
     // A click on `terminal` under the title: the clone is on main, not the
     // merge request's branch, so it asks where to open it.
-    let (y, l) = page
-        .lines()
-        .enumerate()
-        .find(|(_, l)| l.contains("checkout  terminal  editor"))
-        .expect("the line");
-    let x = l[..l.find("terminal").unwrap()].chars().count() as u16;
-    host.update(Event::Mouse {
-        kind: radar_core::host::MouseKind::Press,
-        column: x + 2,
-        row: y as u16,
-        at_ms: 0,
-    });
+    let terminal = host
+        .displayed_screen(160, 40)
+        .and_then(|v| v.page)
+        .and_then(|p| p.under)
+        .expect("the line under the title")
+        .0
+        .into_iter()
+        .find(|s| s.text.trim() == "terminal")
+        .and_then(|s| s.target)
+        .unwrap_or_else(|| panic!("`terminal` under the title has a target:\n{page}"));
+    click(&mut host, terminal);
     assert_eq!(
         host.menu.as_ref().expect("asked where").menu.title,
         "open stats: where?"

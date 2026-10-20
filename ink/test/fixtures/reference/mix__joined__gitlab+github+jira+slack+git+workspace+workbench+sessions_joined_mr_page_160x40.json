@@ -495,7 +495,27 @@
                 "block": "line",
                 "text": [
                   {
-                    "text": "ABC-12 · ◐ In Review · Story"
+                    "look": "accent.secondary",
+                    "text": "ABC-12"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": " · "
+                  },
+                  {
+                    "icon": "in_progress"
+                  },
+                  {
+                    "look": "status.info bold",
+                    "text": "In Review"
+                  },
+                  {
+                    "ink": "muted",
+                    "text": " · "
+                  },
+                  {
+                    "look": "status.success",
+                    "text": "Story"
                   }
                 ]
               },
@@ -503,6 +523,8 @@
                 "block": "line",
                 "text": [
                   {
+                    "ink": "emphasis",
+                    "strong": true,
                     "text": "Add a stats endpoint for the dashboard"
                   }
                 ]
@@ -511,14 +533,27 @@
                 "block": "line",
                 "text": [
                   {
-                    "text": "assigned to you"
+                    "ink": "muted",
+                    "text": "assigned to "
+                  },
+                  {
+                    "icon": "you"
+                  },
+                  {
+                    "look": "accent.primary",
+                    "text": "you"
                   }
                 ]
               },
               {
                 "block": "line",
+                "text": []
+              },
+              {
+                "block": "line",
                 "text": [
                   {
+                    "ink": "secondary",
                     "text": "What ABC-12 is about."
                   }
                 ]
@@ -562,10 +597,7 @@
             "lines": [
               [
                 {
-                  "icon": "needs_approval",
-                  "icon_lead": true,
-                  "ink": "warn",
-                  "text": "◷ "
+                  "icon": "needs_approval"
                 },
                 {
                   "ink": "warn",
@@ -575,10 +607,7 @@
               ],
               [
                 {
-                  "icon": "run_passed",
-                  "icon_lead": true,
-                  "ink": "good",
-                  "text": "✓ "
+                  "icon": "run_passed"
                 },
                 {
                   "ink": "primary",
@@ -587,10 +616,7 @@
               ],
               [
                 {
-                  "icon": "run_passed",
-                  "icon_lead": true,
-                  "ink": "good",
-                  "text": "✓ "
+                  "icon": "run_passed"
                 },
                 {
                   "ink": "primary",
@@ -599,10 +625,7 @@
               ],
               [
                 {
-                  "icon": "needs_approval",
-                  "icon_lead": true,
-                  "ink": "warn",
-                  "text": "◷ "
+                  "icon": "needs_approval"
                 },
                 {
                   "ink": "primary",
@@ -611,10 +634,7 @@
               ],
               [
                 {
-                  "icon": "run_passed",
-                  "icon_lead": true,
-                  "ink": "good",
-                  "text": "✓ "
+                  "icon": "run_passed"
                 },
                 {
                   "ink": "primary",
@@ -623,10 +643,7 @@
               ],
               [
                 {
-                  "icon": "run_passed",
-                  "icon_lead": true,
-                  "ink": "good",
-                  "text": "✓ "
+                  "icon": "run_passed"
                 },
                 {
                   "ink": "primary",

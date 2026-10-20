@@ -1,0 +1,24 @@
+ radar    R   B   I   History   Settings (,)             not synced yet  ✎ edit
+╭ 1 views ─────────────╮╭ 3 api !263 ──────────────────────────────────────────╮
+│ Everything           ││ a / acme/team-a/api / !263                           │
+│ Needs my action      ││ Add a stats endpoint                                 │
+│ Opened by me         ││ stats → main                 Alice Example · 16m ago │
+│ Opened by teammates  ││                                                      │
+│ Opened by bots       ││ project    api                                       │
+│                      ││ state      open                                      │
+│                      ││ approvals  1 required · 0 left                       │
+│                      ││                                                      │
+│                      ││ STATE ────────────────────────────────────────────── │
+│                      ││   a teammate's                                       │
+│                      ││   needs rebase                                       │
+│                      ││                                                      │
+│                      ││ PIPELINE  passed ─────────────────────────────────── │
+│                      ││                                                      │
+│                      ││ CHANGES ──────────────────────────────────────────── │
+│                      ││   1 file  +10 −2                                     │
+│                      ││                                                      │
+│                      ││ THREADS  none ────────────────────────────────────── │
+│                      ││──────────────────────────────────────────────────────│
+│                      ││update  merge  approve  open  copy link  extra actions│
+╰──────────────────────╯╰──────────────────────────────────────────────────────╯
+ REPOSITORIES   update by rebasing   bulk   extra actions   ~ notices    gitlab

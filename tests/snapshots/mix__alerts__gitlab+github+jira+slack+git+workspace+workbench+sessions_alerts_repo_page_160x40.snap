@@ -1,45 +1,14 @@
 ---
 source: tests/mix.rs
-assertion_line: 1578
-expression: shown
+expression: text
 ---
- radar    Repositories ●   Slack   Branches   Work items   History   Settings (,)                                                      ⠷ not synced yet  ✎ edit
- Repositories / a / api
- acme/team-a/api                                                                                                                       firing · 1   main — none
- checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
- Merge requests  Pipelines on main  [Alerts]
-╭ 1 alerts ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ ▲ api-HighErrorRate · prod · P1 · firing #h ##m · #team-alerts                                                                                               │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-│                                                                                                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
- REPOSITORIES   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                          1 open · 1 to review  gitlab slack
+bar: radar  <:repo: repositories !> :chat: slack :branch: branches work items :log: history :settings: settings  (busy)  not synced yet  ✎ edit {chrome:mode}
+── page · Repositories / a / api ──
+:repo: acme/team-a/api  :alert_firing: [firing · 1]  :branch: main — none
+:local: checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts
+:change: Merge requests  :pipeline: Pipelines on main  <Alerts>
+── middle · alerts * ──
+> :alert_firing: ▲ api-HighErrorRate · prod · P1 · firing #h ##m · #team-alerts  <https://acme.slack.com/archives/C0000ALRT1/p1791259750000100>  {row:0}
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+1 open · 1 to review

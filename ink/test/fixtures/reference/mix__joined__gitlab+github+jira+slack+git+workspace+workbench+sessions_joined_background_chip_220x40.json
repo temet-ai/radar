@@ -560,10 +560,7 @@
                           "heading": "state",
                           "text": [
                             {
-                              "icon": "needs_approval",
-                              "icon_lead": true,
-                              "ink": "warn",
-                              "text": "◷ "
+                              "icon": "needs_approval"
                             },
                             {
                               "ink": "warn",
@@ -669,10 +666,7 @@
                           "heading": "state",
                           "text": [
                             {
-                              "icon": "needs_approval",
-                              "icon_lead": true,
-                              "ink": "warn",
-                              "text": "◷ "
+                              "icon": "needs_approval"
                             },
                             {
                               "ink": "warn",
@@ -777,10 +771,7 @@
                           "heading": "state",
                           "text": [
                             {
-                              "icon": "needs_approval",
-                              "icon_lead": true,
-                              "ink": "warn",
-                              "text": "◷ "
+                              "icon": "needs_approval"
                             },
                             {
                               "ink": "warn",
@@ -793,10 +784,7 @@
                           "heading": "approvals",
                           "text": [
                             {
-                              "icon": "approved",
-                              "icon_lead": true,
-                              "ink": "good",
-                              "text": "✓ "
+                              "icon": "approved"
                             },
                             {
                               "ink": "good",

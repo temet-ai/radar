@@ -1,0 +1,40 @@
+ radar    R ●   J   B   I   History   Settings (,)                           not synced yet  ✎ edit
+╭ 1 views ─────────────╮╭ 2 Everything ────────────────────────────────────────────────────────────╮
+│ Everything       ╭ api !263 ──────────────────────────────────────────────────╮UPDATED FOR YOU   │
+│ Needs my action  │ ⏎       open its page                                      │                  │
+│ Opened by me     │         open it in GitLab                                  │—       3 MRs     │
+│ Opened by teammat│         copy its link                                      │16m     review    │
+│ Opened by bots   │ ON GITLAB                                                  │16m     review    │
+│                  │         update by rebasing · not behind main               │16m     team      │
+│                  │         merge · needs 1 approval                           │                  │
+│                  │         approve !263…                                      │                  │
+│                  │ /       filter the view by words                           │                  │
+│                  │ .       show only repos with merge requests in the view    │                  │
+│                  │         refresh now                                        │                  │
+│                  │ WITH AN AGENT                                              │                  │
+│                  │         shift ask an agent about it…                       │                  │
+│                  │         review it locally…                                 │                  │
+│                  │ :       go to a tenancy, repo or merge request…            │                  │
+│                  │         show one author's merge requests…                  │                  │
+│                  │ ctrl-r  kept comments…                                     │                  │
+│                  │ space   toggle the group                                   │                  │
+│                  │ +       expand the group                                   │                  │
+│                  │ -       collapse the group, or the one this row is in      │                  │
+│                  │ =       expand every held group                            │                  │
+│                  │ JIRA                                                       │                  │
+│                  │         view ABC-12                                        │                  │
+│                  │ >       move ABC-12 to …                                   │                  │
+│                  │ GIT                                                        │                  │
+│                  │         scan for a checkout · no folders set yet           │                  │
+│                  │         link to a local folder…                            │                  │
+│                  │ WORK                                                       │                  │
+│                  │         add to work item…                                  │                  │
+│                  │ ~       recent notices (this session)                      │                  │
+│                  │ HISTORY                                                    │                  │
+│                  │         shift recent activity (last 24 hours)              │                  │
+│                  │         all activity history                               │                  │
+│                  │         history for selected item                          │                  │
+│                  ╰────────────────────────────────────────────────────────────╯──────────────────│
+│                      ││ every open merge request · listing every repo, also those without        │
+╰──────────────────────╯╰──────────────────────────────────────────────────────────────────────────╯
+ REPOSITORIES   ↑↓ move   ⏎ choose   esc close                    3 open · 2 to review  gitlab jira

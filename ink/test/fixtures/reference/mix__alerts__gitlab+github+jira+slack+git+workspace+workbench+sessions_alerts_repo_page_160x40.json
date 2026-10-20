@@ -345,7 +345,12 @@
                 "target": "row:0",
                 "text": [
                   {
-                    "text": "▲ api-HighErrorRate · prod · P1 · firing 3h 07m · #team-alerts"
+                    "icon": "alert_firing",
+                    "icon_lead": true,
+                    "text": "▲ "
+                  },
+                  {
+                    "text": "api-HighErrorRate · prod · P1 · firing 3h 07m · #team-alerts"
                   }
                 ]
               }

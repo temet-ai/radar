@@ -7,17 +7,20 @@ import { plain } from "../contract/support.js";
 import { applyLook, defaultLook } from "../../src/text/look.js";
 
 /**
- * C1: the whole Ink App (chrome + screen/section) draws each per-commit recording's view data
+ * C1: the whole Ink App (chrome + screen/section) draws each mix recording's view data
  * (ink/test/fixtures/reference/<name>.json, written by tests/reference_views.rs) at the recorded size, and the text
- * must equal the recording tests/snapshots/<name>.snap (insta header, up to the second `---` line, taken off;
- * trailing blanks per line are not drawn by either side). One test per recording, so a run lists every mismatch.
+ * must equal Ink's golden ink/test/reference/goldens/<name>.txt (trailing blanks per line are not drawn).
+ * One test per recording, so a run lists every mismatch.
+ *
+ * Ink owns its picture (retire-ratatui decision 5): the goldens are the Ratatui recordings
+ * (tests/snapshots/mix__<name>.snap bodies) as they stood when tests/mix.rs moved to the view-data text form,
+ * frozen here; tests/mix.rs no longer records a painted frame. A golden moves only when Ink's own drawing does:
+ * read the diff before rewriting one.
  */
-const root = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../..",
-);
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, "../../..");
 const refDir = path.join(root, "ink/test/fixtures/reference");
-const snapDir = path.join(root, "tests/snapshots");
+const goldenDir = path.join(here, "goldens");
 
 let unfreeze = () => {};
 beforeAll(() => {
@@ -32,17 +35,14 @@ afterEach(() => {
   live = [];
 });
 
-export const recordingBody = (snap: string): string[] => {
-  const lines = snap.split("\n");
-  let seen = 0;
-  let i = 0;
-  for (; i < lines.length && seen < 2; i++) if (lines[i] === "---") seen++;
-  const body = lines.slice(i).map((l) => l.replace(/\s+$/, ""));
+/** A golden's lines: trailing blanks per line and blank lines at the end are not drawn. */
+const goldenLines = (text: string): string[] => {
+  const body = text.split("\n").map((l) => l.replace(/\s+$/, ""));
   while (body.length && body[body.length - 1] === "") body.pop();
   return body;
 };
 
-/** tests/mix.rs masks an alert's age (`firing 3h 07m`) as `#h ##m`, digits only, so the width stays. */
+/** An alert's age (`firing 3h 07m`) is masked as `#h ##m`, digits only, so the width stays; the goldens hold it masked. */
 const aged = (l: string) =>
   l.replace(
     /firing (\d[\ddhms ]*)/g,
@@ -56,22 +56,26 @@ const packOf = (name: string) =>
   (/_icons_(nerd|unicode|emoji)_/.exec(name)?.[1] ?? "off") as
     "nerd" | "unicode" | "emoji" | "off";
 
-const names = fs.existsSync(refDir)
-  ? fs
-      .readdirSync(refDir)
-      .filter((f) => f.endsWith(".json"))
-      .map((f) => f.slice(0, -5))
-      .sort()
-  : [];
+const listed = (dir: string, ext: string) =>
+  fs.existsSync(dir)
+    ? fs
+        .readdirSync(dir)
+        .filter((f) => f.endsWith(ext))
+        .map((f) => f.slice(0, -ext.length))
+        .sort()
+    : [];
+
+const names = listed(refDir, ".json");
 
 describe("Ink draws the recordings", () => {
-  // T1 writes one view-data file per recording (tests/reference_views.rs); none may be missing.
-  it("every recording has reference view data", () => {
-    const recs = fs
-      .readdirSync(snapDir)
-      .filter((f) => f.startsWith("mix__") && f.endsWith(".snap"))
-      .map((f) => f.slice(0, -5));
-    expect(recs.filter((r) => !names.includes(r))).toEqual([]);
+  // Every golden has its view data and every view data file its golden.
+  it("every golden has reference view data, and the other way round", () => {
+    const goldens = listed(goldenDir, ".txt");
+    expect(goldens.length).toBeGreaterThan(0);
+    expect({
+      goldensWithoutViews: goldens.filter((g) => !names.includes(g)),
+      viewsWithoutGoldens: names.filter((n) => !goldens.includes(n)),
+    }).toEqual({ goldensWithoutViews: [], viewsWithoutGoldens: [] });
   });
 
   it("there is reference view data to draw", () => {
@@ -82,9 +86,9 @@ describe("Ink draws the recordings", () => {
     const view = JSON.parse(
       fs.readFileSync(path.join(refDir, `${name}.json`), "utf8"),
     );
-    const snapFile = path.join(snapDir, `${name}.snap`);
-    expect(fs.existsSync(snapFile), `recording ${name}.snap`).toBe(true);
-    const want = recordingBody(fs.readFileSync(snapFile, "utf8")).map(aged);
+    const goldenFile = path.join(goldenDir, `${name}.txt`);
+    expect(fs.existsSync(goldenFile), `golden ${name}.txt`).toBe(true);
+    const want = goldenLines(fs.readFileSync(goldenFile, "utf8")).map(aged);
     applyLook(defaultLook(packOf(name)));
     const m = mount(view.width, view.height);
     live.push(m.stop);

@@ -14,8 +14,12 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 const PR: &str = "https://github.com/acme/api/pull/42";
+/// What shows, as the view data's text form (`radar_core::headless`).
+fn to_text(host: &Host, width: u16, height: u16) -> String {
+    radar_core::headless::host_text_of(host, width, height)
+}
 fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    let _ = radar_core::shell::to_text(host, 160, 40);
+    let _ = to_text(host, 160, 40);
     host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
 }
 fn choose(host: &mut Host, label: &str) -> Vec<HostEffect> {
@@ -111,10 +115,10 @@ fn real_parts_offer_only_source_folder_and_read_only_cached_relationships() {
     let text = line.iter().map(|c| c.text.as_str()).collect::<String>();
     assert!(text.contains("/work/source"));
     assert!(!text.contains("wrong-host") && !text.contains("/work/base"));
-    let text = radar_core::shell::to_text(&host, 160, 40);
-    assert!(text.contains("local folder"));
-    assert!(text.contains("/work/source"));
-    assert!(text.contains("on main"));
+    let text = to_text(&host, 160, 40);
+    assert!(text.contains("local folder"), "{text}");
+    assert!(text.contains("/work/source"), "{text}");
+    assert!(text.contains("on main"), "{text}");
     press(&mut host, KeyCode::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
     let labels: Vec<_> = menu.items.iter().map(|r| r.label.as_str()).collect();
@@ -298,13 +302,13 @@ fn integrated_preview_and_context_menu_render_at_both_widths() {
             if menu {
                 press(&mut host, KeyCode::Char('x'));
             }
-            let text = radar_core::shell::to_text(&host, w, h);
+            let text = to_text(&host, w, h);
             assert_eq!(host.plugins[host.screen().unwrap().0].id(), "github");
             if !menu {
-                assert!(text.contains("GITHUB"));
+                assert!(text.contains("── status · GITHUB ──"), "{text}");
             }
             if menu {
-                assert!(text.contains("Git"));
+                assert!(text.contains("\n  # Git\n"), "git's heading in the menu:\n{text}");
             }
             insta::assert_snapshot!(format!("{name}_{w}x{h}"), text);
             if let Ok(dir) = std::env::var("RADAR_GITHUB_LINKED_RENDER_DIR") {

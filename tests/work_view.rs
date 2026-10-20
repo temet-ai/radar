@@ -139,7 +139,7 @@ impl Fixture {
         }
     }
     fn key(&mut self, key: KeyCode) {
-        let _ = radar_core::shell::to_text(self.frontend.host(), 160, 40);
+        let _ = radar_core::headless::host_text_of(self.frontend.host(), 160, 40);
         let effects = self
             .frontend
             .host_mut()
@@ -288,7 +288,8 @@ fn actual_github_and_git_sources_complete_review_group_navigation_and_restart() 
         );
         fixture.choose("yes");
         let task = fixture.selected_task();
-        assert!(radar_core::shell::to_text(fixture.frontend.host(), 160, 40).contains(TITLE));
+        let shown = radar_core::headless::host_text_of(fixture.frontend.host(), 160, 40);
+        assert!(shown.contains(TITLE), "{shown}");
         let evidence = fixture
             .journal
             .handoff(

@@ -1,0 +1,24 @@
+ radar    R ●   J   B   I   History   Settings (,)  not synced yet · ev… ✎ edit
+╭ 2 Our project ───────────────────────────────────────────────────────────────╮
+│ ASSIGNED TO everyone          TYPE      STATUS          CODE        UPDATED  │
+│acme  acme.atlassian.net                                                      │
+│  ├─ ◐ In Review                                                              │
+│  │  └─ ABC-12 Add a stats end Story     ◐ In Review     !263 review 1h       │
+│  └─ ○ To Do                                                                  │
+│     ├─ ABC-20 Stats page show Story     ○ To Do         !264 team   1h       │
+│     └─ ABC-21 Nothing written Story     ○ To Do                     1h       │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│─ shows ──────────────────────────────────────────────────────────────────────│
+│ what its JQL asks for (settings, views)                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ JIRA   bulk   +/- expand/collapse   extra actions   ~ notices      gitlab jira

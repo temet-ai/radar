@@ -1,0 +1,24 @@
+ radar    History   Settings (,)                                         ✎ edit
+╭ 1 set up Slack ──────────────────────────────────────────────────────────────╮
+│ Slack is not set up yet.                                                     │
+│                                                                              │
+│ Add your workspace token: a user token (xoxp-…), as env:NAME or typed in.    │
+│                                                                              │
+│ Press ⏎ to set it up in settings, under slack.                               │
+│ Press s to walk its setup step.                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ SLACK   quit   extra actions   ~ notices   ←→↑↓ navigate

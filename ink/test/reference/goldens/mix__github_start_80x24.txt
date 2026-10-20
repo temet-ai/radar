@@ -1,0 +1,24 @@
+ radar    History   Settings (,)                                         ✎ edit
+╭ 1 set up GitHub ─────────────────────────────────────────────────────────────╮
+│ GitHub is not set up yet.                                                    │
+│                                                                              │
+│ Create a GitHub group under repositories in settings. Public repositories    │
+│ need no token.                                                               │
+│                                                                              │
+│ Press ⏎ to set it up in settings, under github.                              │
+│ Press s to walk its setup step.                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ GITHUB   quit   extra actions   ~ notices   ←→↑↓ navigate

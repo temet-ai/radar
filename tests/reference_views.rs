@@ -6,19 +6,24 @@
 //! so the Ink renderer can be compared with the recording from the same data.
 //!
 //! The setups are copies of `tests/mix.rs`'s (this file does not change it).
-//! Each recording is built by the same fixtures and key presses, its text is
-//! compared with the `.snap` in `tests/snapshots/` (so the view data is the
-//! data of that very screen), and its views are read at that moment.
+//! Each recording is built by the same fixtures and key presses, its text
+//! (the view data's text form, as `tests/mix.rs` records it) is compared
+//! with the `.snap` in `tests/snapshots/` (so the view data is the data of
+//! that very screen), and its views are read at that moment. Ink draws the
+//! views and compares its picture with its own goldens
+//! (`ink/test/reference/goldens/<recording name>.txt`), not with the `.snap`.
 //!
 //! A recording is made by the build of one mix (`radar::mix()`): the first
 //! screen of no parts, of each part alone and of all parts; everything else
-//! by all parts. Rewrite the files with one build per mix, each a different
-//! feature set (a build is `--no-default-features --features <parts>,demo,test-support`):
+//! by all parts. The icon packs' first screens are written for Ink and have
+//! no `.snap` (view data is the same whatever the pack). Rewrite the files
+//! with one build per mix, each a different feature set (a build is
+//! `--no-default-features --features <parts>,demo,test-support`):
 //!
 //! ```bash
 //! export RADAR_REFERENCE_VIEWS_DIR=$PWD/ink/test/fixtures/reference CARGO_TARGET_DIR=target/fleet
-//! for parts in "" gitlab github jira slack git workspace workbench \
-//!     gitlab,github,jira,slack,git,workspace,workbench; do
+//! for parts in "" gitlab github jira slack git workspace workbench sessions \
+//!     gitlab,github,jira,slack,git,workspace,workbench,sessions; do
 //!   cargo nextest run -p radar --no-default-features --features "${parts:+$parts,}demo,test-support" \
 //!     --test reference_views
 //! done
@@ -34,8 +39,13 @@ use radar_core::Host;
 use radar_core::host::{Event, View};
 use radar_core::ipc::Bridge;
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::shell::to_text;
 use serde_json::{Value, json};
+
+/// The recording's text, as `tests/mix.rs` records it: the view data's text
+/// form (`radar_core::headless::host_text_of`), not a painted frame.
+fn to_text(host: &Host, width: u16, height: u16) -> String {
+    radar_core::headless::host_text_of(host, width, height)
+}
 
 /// One recording: its `tests/snapshots/` name (without `.snap`), its text and
 /// the view data of the host at that moment.
@@ -135,13 +145,18 @@ fn key(host: &mut Host, code: KeyCode) {
     press(host, code);
 }
 
-/// Down the tree until a row with `text` is highlighted in the tree's own
-/// panel (`tests/mix.rs`).
+/// Down the tree until the row selected is `text`: the detail pane is
+/// titled `panel` (`tests/mix.rs`).
 #[cfg(feature = "gitlab")]
 fn down_to(host: &mut Host, text: &str, panel: &str) {
     for _ in 0..30 {
         let shown = to_text(host, 160, 40);
-        if shown.lines().skip(1).take(2).any(|l| l.contains(panel)) {
+        let titled = |l: &str| {
+            l.strip_prefix("── detail · ")
+                .and_then(|t| t.strip_suffix(" ──"))
+                .is_some_and(|t| t.split(' ').any(|w| w == panel))
+        };
+        if shown.lines().any(titled) {
             return;
         }
         key(host, KeyCode::Down);
@@ -174,8 +189,13 @@ fn views(host: &mut Host, width: u16, height: u16) -> Value {
 /// compared with the `.snap` (the host's text, or a function of it).
 fn record(name: String, host: &mut Host, width: u16, height: u16, text: impl FnOnce(String) -> String) -> Recording {
     host.set_view_room(width, height);
+    // The views first: the bridge builds this host's theme, which sets the
+    // thread's icon pack, and the mode chip's words take their mark from
+    // it; read after, the text has this host's pack, not the one of the
+    // recording before (the icon packs' screens).
+    let views = views(host, width, height);
     let shown = to_text(host, width, height);
-    Recording { name, width, height, text: text(shown), views: views(host, width, height) }
+    Recording { name, width, height, text: text(shown), views }
 }
 
 fn plain(text: String) -> String {
@@ -434,7 +454,7 @@ jql = "project = ABC ORDER BY updated DESC"
         // a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back
         let mut host = both();
         key(&mut host, KeyCode::Char('J'));
-        down_to(&mut host, "ABC-12", "╭ 3 ABC-12 ");
+        down_to(&mut host, "ABC-12", "ABC-12");
         key(&mut host, KeyCode::Enter);
         key(&mut host, KeyCode::Char('['));
         out.push(record(name("ticket_code_tab_160x40"), &mut host, 160, 40, plain));
@@ -605,7 +625,7 @@ fn each_recording_has_the_views_of_the_screen_it_recorded() {
         // others (the icon packs of the close) are not compared.
         let kept = snapshots_dir().join(format!("{}.snap", r.name)).exists();
         if kept {
-            assert_eq!(r.text, snapshot_text(&r.name), "{}: not the screen that was recorded", r.name);
+            assert_eq!(r.text.trim_end(), snapshot_text(&r.name), "{}: not the screen that was recorded", r.name);
         }
         assert_eq!(r.views["width"], r.width);
         assert_eq!(r.views["height"], r.height);

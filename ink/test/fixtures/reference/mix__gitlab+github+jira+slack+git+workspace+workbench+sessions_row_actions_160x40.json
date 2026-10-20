@@ -604,10 +604,7 @@
                           "target": "state:m:acme/team-a/api!263",
                           "text": [
                             {
-                              "icon": "rebase",
-                              "icon_lead": true,
-                              "ink": "warn",
-                              "text": "▷ "
+                              "icon": "rebase"
                             },
                             {
                               "ink": "warn",
@@ -620,10 +617,7 @@
                           "heading": "approvals",
                           "text": [
                             {
-                              "icon": "approved",
-                              "icon_lead": true,
-                              "ink": "good",
-                              "text": "✓ "
+                              "icon": "approved"
                             },
                             {
                               "ink": "good",
@@ -892,10 +886,7 @@
                     "block": "line",
                     "text": [
                       {
-                        "icon": "rebase",
-                        "icon_lead": true,
-                        "ink": "warn",
-                        "text": "▷ "
+                        "icon": "rebase"
                       },
                       {
                         "ink": "warn",
@@ -1083,10 +1074,7 @@
                     "block": "line",
                     "text": [
                       {
-                        "icon": "rebase",
-                        "icon_lead": true,
-                        "ink": "warn",
-                        "text": "▷ "
+                        "icon": "rebase"
                       },
                       {
                         "ink": "warn",

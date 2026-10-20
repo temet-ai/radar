@@ -1,35 +1,77 @@
 ---
 source: tests/mix.rs
-assertion_line: 262
 expression: text
 ---
- radar    Branches   Work items   History   Settings (,)                                                         ✎ edit
-╭ 1 settings ──────────╮╭ 2 parts ───────────────────────────────────────────────╮╭ 3 GitLab ──────────────────────────╮
-│General              █││ COMPILED INTO THIS RADAR                               ││ ○ not set up: Add a tenancy: a     █
-│  ├─ parts           █││                                                        ││ GitLab group or repo whose merge   █
-│  ├─ mode            █││ ○ GitLab      not set up                               ││ requests to follow.                █
-│  ├─ appearance      █││ ○ GitHub      not set up                               ││                                    █
-│  ├─ colours         █││ ○ Jira        not set up                               ││ has     merge requests, repos,     █
-│  └─ icons           █││ ○ Slack       not set up                               ││ pipelines, jobs                    █
-│GitLab               █││ ✓ Git         set up                                   ││ opens   merge requests, repos,     █
-│  ├─ connection      █││ ○ Workspace   not set up                               ││ jobs on their own pages            █
-│  ├─ tenancies       █││ ✓ Work        set up                                   ││                                    █
-│  ├─ views           █││ ✓ Agents      set up                                   ││ OTHER PARTS CAN ADD                █
-│  └─ look            █││                                                        ││ · chips on merge request rows      █
-│GitHub               █││                                                        ││ · chips on repo rows and page      █
-│  ├─ connection      █││                                                        ││ · a column on merge request lists  █
-│  └─ repositories    █││                                                        ││ · a column on the repositories     █
-│Jira                 █││                                                        ││ middle pane                        █
-│  ├─ connection      █││                                                        ││ · a section on the merge request   █
-│  ├─ projects        █││                                                        ││ page and detail pane               █
-│  ├─ views           █││                                                        ││ · a tab on the merge request page  █
-│  └─ look            █││                                                        ││ · a tab on the repo page           █
-│Slack                █││                                                        ││ · actions on merge requests        █
-│  ├─ connection      ║││                                                        ││ · actions on repos                 ║
-│  ├─ channels        ║││                                                        ││ · actions on the job page          ║
-│  ├─ review          ║││                                                        ││ · a line on the merge request      ║
-│  ├─ alerts          ║││                                                        ││ page, under its title              ║
-│  └─ look            ║││                                                        ││ · a line on the repo page, under   ║
-│Git                  ║││                                                        ││ its title                          ║
-╰──────────────────────╯╰────────────────────────────────────────────────────────╯╰────────────────────────────────────╯
- SETTINGS   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate
+bar: radar  :branch: branches work items :log: history <:settings: settings>  ✎ edit {chrome:mode}
+── settings · parts · GitLab ──
+  General  {chrome:group:general}
+>   :parts: parts  {chrome:section:0}
+    :mode_edit: mode  {chrome:section:1}
+    :colours: appearance  {chrome:section:2}
+    :colours: colours  {chrome:section:3}
+    :icons: icons  {chrome:section:4}
+  GitLab  {chrome:group:gitlab}
+    :connection: connection  {chrome:section:5}
+    :group: tenancies  {chrome:section:6}
+    :views: views  {chrome:section:7}
+    :look: look  {chrome:section:8}
+  GitHub  {chrome:group:github}
+    connection  {chrome:section:9}
+    repositories  {chrome:section:10}
+  Jira  {chrome:group:jira}
+    :connection: connection  {chrome:section:11}
+    :folder: projects  {chrome:section:12}
+    :views: views  {chrome:section:13}
+    :look: look  {chrome:section:14}
+  Slack  {chrome:group:slack}
+    :connection: connection  {chrome:section:15}
+    :channel: channels  {chrome:section:16}
+    :needs_approval: review  {chrome:section:17}
+    :alert: alerts  {chrome:section:18}
+    :look: look  {chrome:section:19}
+  Git  {chrome:group:git}
+    :local: checkouts  {chrome:section:20}
+    :terminal: terminal  {chrome:section:21}
+    :editor: editors  {chrome:section:22}
+    :link: links  {chrome:section:23}
+    :branch: branches  {chrome:section:24}
+  Workspace  {chrome:group:workspace}
+    :local: workspaces  {chrome:section:25}
+  Agents  {chrome:group:sessions}
+    Tools and defaults  {chrome:section:26}
+── section · parts ──
+  # COMPILED INTO THIS RADAR  {compiled}
+  #  {blank:1}
+> ○ GitLab      not set up  {part:0}
+  ○ GitHub      not set up  {part:1}
+  ○ Jira        not set up  {part:2}
+  ○ Slack       not set up  {part:3}
+  ✓ Git         set up  {part:4}
+  ○ Workspace   not set up  {part:5}
+  ✓ Work        set up  {part:6}
+  ✓ Agents      set up  {part:7}
+── detail · GitLab ──
+○ not set up: Add a tenancy: a GitLab group or repo whose merge requests to follow.
+
+has     merge requests, repos, pipelines, jobs
+opens   merge requests, repos, jobs on their own pages
+
+OTHER PARTS CAN ADD
+· chips on merge request rows
+· chips on repo rows and page
+· a column on merge request lists
+· a column on the repositories middle pane
+· a section on the merge request page and detail pane
+· a tab on the merge request page
+· a tab on the repo page
+· actions on merge requests
+· actions on repos
+· actions on the job page
+· a line on the merge request page, under its title
+· a line on the repo page, under its title
+· a mark on repo rows: the icon and where it is
+
+GITLAB ADDS
+· a Code tab, a code column and merge requests in the detail pane on tickets (once set up)
+── status · SETTINGS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

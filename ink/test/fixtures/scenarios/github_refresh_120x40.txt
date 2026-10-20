@@ -1,4 +1,4 @@
- radar    Repositories   History   Settings (,)                                              synced 0s ago  ◉ read only
+ radar    Repositories   History   Settings (,)                                                synced 0s ago  read only
 ╭ 1 views ───────────────╮╭ 2 repositories ──────────────────────────────────────╮╭ 3 ankh-morpork/watch #12 ──────────╮
 │ Everything     1 repos ││The Watch                                    1 repos  ││ Patrol the Brass Bridge            │
 │ The Watch      1 repos ││  └─ ankh-morpork/watch                      1 PRs    ││                                    │

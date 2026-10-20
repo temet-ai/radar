@@ -57,6 +57,24 @@ afterAll(() => {
 });
 
 describe("scenario-derived renderer checkpoint", () => {
+  it("draws the mode chip's icon from the data when the pack has one (#34)", async () => {
+    const view: Recording = JSON.parse(fs.readFileSync(checkpoint, "utf8"));
+    expect(view.chrome?.top_bar.mode).toMatchObject({ icon: "mode_read", text: "read only" });
+    const glyph = defaultLook("unicode").icons["mode_read"]!.glyph;
+    expect(glyph).not.toBe("");
+    applyLook(defaultLook("unicode"));
+    const renderer = mount(view.width, view.height, {}, {}, () => 0);
+    stop = () => renderer.stop();
+    try {
+      renderer.welcome();
+      renderer.snapshot({ chrome: view.chrome, screen: view.screen, section: view.section, focus: view.focus });
+      await until(() => plain(renderer.frame()).includes("Patrol the Brass Bridge"));
+      expect(rows(renderer.frame())[0]).toMatch(new RegExp(`${glyph} read only$`));
+    } finally {
+      applyLook(defaultLook("off"));
+    }
+  });
+
   it("draws the same visible GitHub refresh text as the reference", async () => {
     expect(fs.existsSync(checkpoint), "missing scenario JSON: regenerate with tests/provider_scenarios.rs").toBe(true);
     expect(fs.existsSync(reference), "missing scenario reference text: regenerate with tests/provider_scenarios.rs").toBe(true);

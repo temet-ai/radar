@@ -281,7 +281,7 @@ export interface NodeContext {
   actions?: readonly ActionSpec[];
   /** Where the node registers the rectangles a pointer press acts on (T10's App clears it each frame). */
   registry?: {
-    add(hit: { x: number; y: number; w: number; h: number; target: string }): void;
+    add(hit: { x: number; y: number; w: number; h: number; target: string; show?: SubjectRef }): void;
     replace?(owner: string, hits: Array<{ x: number; y: number; w: number; h: number; target: string }>): void;
     remove?(owner: string): void;
     /** Where a pane is drawn (HitRegistry.addPane): the wheel and a press on its empty space act on it. */

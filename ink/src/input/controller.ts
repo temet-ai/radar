@@ -385,6 +385,11 @@ export class InputController {
     const double = this.lastClick?.target === target && t - this.lastClick.at <= DOUBLE_CLICK_MS;
     this.lastClick = double ? undefined : { target, at: t };
     this.ui.select(target);
+    // A contributed cell that shows a subject: the host selects its row and shows the subject (Intent show).
+    if (hit.show) {
+      this.sendRaw({ intent: "show", target, subject: hit.show });
+      return;
+    }
     // The chrome (tabs, mode chip, status keys, menu rows) acts on one click; rows select, and
     // two clicks within 400 ms are ⏎ (docs/GUIDE.md 2.5, host.rs on_mouse).
     if (target.startsWith("chrome:")) this.sendRaw({ intent: "activate", target });

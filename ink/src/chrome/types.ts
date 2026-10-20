@@ -1,6 +1,8 @@
 // The host's chrome as view data: the generated types (crates/radar-core/src/view/chrome.rs through
 // ts-rs, ink/src/protocol/generated). Nothing here is hand-typed except the renderer's own Hit.
 
+import type { SubjectRef } from "../protocol/generated/SubjectRef.js";
+
 export type { Ink } from "../protocol/generated/Ink.js";
 export type { Seg } from "../protocol/generated/Seg.js";
 export type { Text } from "../protocol/generated/Text.js";
@@ -27,4 +29,5 @@ export type { SettingsNav } from "../protocol/generated/SettingsNav.js";
 export type { ChromeView } from "../protocol/generated/ChromeView.js";
 
 /** A rectangle of terminal cells (0-based), the target a pointer there acts on. */
-export type Hit = { x: number; y: number; w: number; h: number; target: string };
+// A contributed cell that shows a subject carries it: a press sends `show` on it, not `select`.
+export type Hit = { x: number; y: number; w: number; h: number; target: string; show?: SubjectRef };

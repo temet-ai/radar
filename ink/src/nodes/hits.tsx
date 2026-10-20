@@ -1,6 +1,6 @@
 import React, { useId, useLayoutEffect, useRef, useContext } from "react";
 import { Box, type DOMElement } from "ink";
-import type { Node, NodeContext } from "./view.js";
+import type { Node, NodeContext, SubjectRef } from "./view.js";
 import { visibleRows, treeLayout, treeRowHasColumns } from "./tree.js";
 import { textWords } from "../text/TextLine.js";
 import { cellWidth } from "../chrome/width.js";
@@ -19,9 +19,11 @@ export interface HitSpec {
   w: number;
   h: number;
   target: string;
+  /** A contributed cell's subject, when the cell has no target of its own: a press shows it. */
+  show?: SubjectRef;
 }
 
-/** view_tui::padded: a label's target takes a cell either side of it, within the line, and is at least MIN_TARGET (3)
+/** padded: a label's target takes a cell either side of it, within the line, and is at least MIN_TARGET (3)
  * cells wide. `x`/`w` are the label's cells in a line `within` cells wide; the target's `dx` and `w` come back. */
 export function padded(x: number, w: number, within: number): { dx: number; w: number } {
   let from = Math.max(0, x - 1);
@@ -36,7 +38,7 @@ export function padded(x: number, w: number, within: number): { dx: number; w: n
 /** ui::view's Target::PATH_SEP: a tree row's target is its path's ids joined by it (TreeRow::target_of). */
 export const PATH_SEP = "\u001f";
 
-/** The rectangles Ratatui's view_tui registers (`cx.hit`) for a node, with the target ids it uses, laid out the way
+/** The rectangles a node's rows register as pointer targets, with the target ids they use, laid out the way
  * these components draw: a list's, table's and entries' rows, a tree's rows (`node:<id>` under `pointer_action`),
  * its header target and its contributed cells' targets, a log's lines. Later entries win where they overlap. */
 export function hitSpecs(
@@ -92,7 +94,7 @@ export function hitSpecs(
       });
       if (hasHeader && node.header_target) {
         // the header's words (after its leading space), as far as they show, choose its target: a label, so a cell
-        // either side of it (view_tui draw_tree, Cx::hit_label)
+        // either side of it
         const w = Math.min(
           1 + cellWidth(textWords(node.header ?? [])),
           Math.max(0, namesWidth - 1),
@@ -103,8 +105,10 @@ export function hitSpecs(
         if (!inWin(i)) return;
         const open = (node.open ?? []).some((p) => p.length === path.length && p.every((id, at) => id === path[at]));
         if (!treeRowHasColumns(r, path.length - 1, open, fitted, rowWidth)) return;
+        // A cell with no target of its own that shows a subject acts on its row, and shows the subject.
+        const rowTarget = node.pointer_action ? `node:${path[path.length - 1]}` : path.join(PATH_SEP);
         for (const cell of r.cells ?? []) {
-          if (!cell.target) continue;
+          if (!cell.target && !cell.show) continue;
           let x = namesWidth;
           for (const f of fitted) {
             if (f.column.heading === cell.heading) {
@@ -113,7 +117,8 @@ export function hitSpecs(
                 dy: top + i - f0,
                 w: Math.max(1, f.width - 1),
                 h: 1,
-                target: cell.target,
+                target: cell.target ?? rowTarget,
+                show: cell.target || !cell.show ? undefined : cell.show,
               });
               break;
             }
@@ -216,7 +221,7 @@ export function HitRegion({
       ? { max: sc.total - sc.room, at: win.first }
       : null,
   );
-  // Where this node drew rows a sync changed and a panel waiting for data, for motion (view_tui's motion::row and
+  // Where this node drew rows a sync changed and a panel waiting for data, for motion (motion::row and
   // motion::loading). Nothing is measured while motion is off or the node has neither.
   const markId = useId();
   const scene = useContext(MotionSceneContext);
@@ -229,7 +234,7 @@ export function HitRegion({
     if ((node.node !== "tree" && node.node !== "state") || motion.engine.level === "off" || !ref.current) return;
     const at = screenRect(ref.current);
     if (!at || !Object.values(at).every(Number.isSafeInteger) || at.w <= 0 || at.h <= 0) return;
-    // A waiting panel is marked over the body's whole room, as view_tui marks its inner area, not only its words.
+    // A waiting panel is marked over the body's whole room, as its inner area is marked, not only its words.
     const m = nodeMarks(node, at.x, at.y, at.w, Math.max(at.h, ctx.height ?? 0), win);
     motion.markNode(markId, m.rows, m.loading, scene);
     if (scene && pane && !pane.startsWith("work:") && motion.engine.level === "full") motion.markTree(markId, scene, treeMark(node, pane, at.x, at.y, ctx.width, ctx.height ?? at.h, win));
@@ -256,6 +261,7 @@ export function HitRegion({
         w: s.w,
         h: s.h,
         target: s.target,
+        show: s.show,
       });
   });
   return (

@@ -806,7 +806,7 @@ jql = "project = ABC ORDER BY updated DESC"
         assert!(shown.contains("Repositories / a / api / !263"), "{shown}");
         // The merge request's page has Jira's ticket section.
         assert!(
-            shown.contains("TICKET") && shown.contains("ABC-12 · ◐ In Review · Story"),
+            shown.contains("TICKET") && shown.contains("ABC-12 · In Review · Story"),
             "{shown}"
         );
         record!(
@@ -1131,7 +1131,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
     }
     let shown = to_text(&host, 160, 40);
     assert!(
-        shown.contains("▷ needs rebase") && shown.contains("stats → main"),
+        shown.contains("needs rebase") && shown.contains("stats → main"),
         "{shown}"
     );
     let footer = shown.lines().rev().nth(2).expect("the pinned detail footer");
@@ -1193,9 +1193,9 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
     let (y, line) = text
         .lines()
         .enumerate()
-        .find(|(_, l)| l.contains("▷ needs rebase") && l.contains("!263"))
+        .find(|(_, l)| l.contains("needs rebase") && l.contains("!263"))
         .expect("its row");
-    let x = line[..line.find("▷ needs rebase").unwrap()].chars().count() as u16;
+    let x = line[..line.find("needs rebase").unwrap()].chars().count() as u16;
     host.update(Event::Mouse {
         kind: MouseKind::Press,
         column: x + 2,

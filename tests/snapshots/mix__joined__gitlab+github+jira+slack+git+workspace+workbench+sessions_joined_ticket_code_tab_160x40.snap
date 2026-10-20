@@ -1,11 +1,10 @@
 ---
 source: tests/mix.rs
-assertion_line: 870
-expression: shown
+expression: text
 ---
  radar    Repositories ●   Jira   Branches   Work items   History   Settings (,)                                            ⠷ not synced yet · every 2m  ✎ edit
  Jira / acme / ABC / ABC-12
- Add a stats endpoint for the dashboard                                                                                               ◐ In Review · Story · you
+ Add a stats endpoint for the dashboard                                                                                                 In Review · Story · you
  Acme ABC · updated 1h ago
  Overview  Comments  Links  [Code]
 ╭ 1 code ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮

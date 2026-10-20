@@ -1,7 +1,6 @@
 ---
 source: tests/mix.rs
-assertion_line: 1217
-expression: "to_text(&host, 80, 24)"
+expression: text
 ---
  radar    R   B   I   History   Settings (,)             not synced yet  ✎ edit
 ╭ 1 views ─────────────╮╭ 3 api !263 ──────────────────────────────────────────╮
@@ -15,7 +14,7 @@ expression: "to_text(&host, 80, 24)"
 │                      ││                                                      │
 │                      ││ STATE ────────────────────────────────────────────── │
 │                      ││   a teammate's                                       │
-│                      ││   ▷ needs rebase                                     │
+│                      ││   needs rebase                                       │
 │                      ││                                                      │
 │                      ││ PIPELINE  passed ─────────────────────────────────── │
 │                      ││                                                      │

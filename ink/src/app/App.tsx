@@ -12,7 +12,7 @@ import { MotionSceneContext } from "../motion/scene.js";
 import type { MotionScene } from "../motion/interaction.js";
 import { shellRenderNode, type NodeCx, type RenderNode } from "./Body.js";
 import type { ActionSpec } from "./actions.js";
-import { afterIntent, desynced, screenKey, scrollKey, sectionKey, sheetKey, workingFrom } from "../input/route.js";
+import { afterIntent, desynced, screenKey, scrollKey, sectionKey, sheetKey, typingPane, workingFrom } from "../input/route.js";
 import { onPaneRows, paneRows, scrollerAt, scrollers } from "../nodes/index.js";
 import { layoutNoticeHistory, NOTICE_OPEN } from "../notices/layout.js";
 import { NoticeHistoryOverlay } from "../notices/History.js";
@@ -215,6 +215,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       // Under the history overlay its keys are the overlay's: a question or menu it covers waits (host.rs).
       menu: () => ((live.current.snap?.chrome?.history || live.current.snap?.chrome?.notice_history) ? null : menuShowing(session.state.questions[0]?.menu, live.current.snap?.chrome?.menu)),
       capturing: () => live.current.capturing,
+      partTyping: () => !live.current.snap?.chrome?.history && !live.current.snap?.chrome?.notice_history && !!live.current.snap?.screen && typingPane(live.current.snap.screen as any) !== undefined,
       route: (chord) => {
         // Keys that arrive together are routed one from the other, not all from the newest snapshot.
         const base = live.current.snap;
@@ -422,6 +423,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         (hit) => hover.set(hit, session.plainText),
         (column, row) => session.sendPointer(column, row),
         (shape) => pointerShape.set(shape),
+        (text) => session.sendPaste(text),
       ),
     [view, session, ui],
   );

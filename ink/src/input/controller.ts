@@ -17,6 +17,8 @@ export interface InputView {
   menu(): MenuView | null;
   /** The host is capturing text (an input request or a menu's field): every key goes to it. */
   capturing(): boolean;
+  /** A part's own field or inline row editor on the screen takes the keys (route.ts typingPane): capturing() does not know it. */
+  partTyping?(): boolean;
   /** What a key is on the body showing (view_tui::key / section_key): movement selects, ⏎ activates, the rest is Intent::Key. */
   route(chord: Chord): Intent;
   /** The key on a pane the frontend scrolls itself: "done" when it scrolled (nothing is sent), an Intent to send, or none. */
@@ -93,6 +95,8 @@ export class InputController {
     private readonly pointer: (column: number, row: number) => void = () => {},
     /** The pointer's shape for what it is over (app/pointer.ts): told on every motion report and after every draw. */
     private readonly shape: (shape: Shape) => void = () => {},
+    /** A paste as one message to the host (ToHost::Paste), never as keys. */
+    private readonly sendPaste: (text: string) => void = () => {},
   ) {
     // A left press inside a pane's text is held until it moves (a selection, copied when let go) or is let go (a click,
     // handled then, as the host's runner does).
@@ -125,7 +129,7 @@ export class InputController {
     const chord = chordOf(input, key);
     if (!chord) {
       if (!key.ctrl && !key.meta) {
-        if (this.view.capturing()) this.paste(input);
+        if (this.pastes()) this.paste(input);
         else for (const c of [...input]) this.keyChord({ key: { char: c } });
       }
       return;
@@ -133,14 +137,26 @@ export class InputController {
     this.keyChord(chord, key.shift);
   }
 
+  /** The focus takes text: the host's input, a menu's field, the editor or a part's own field. */
+  private pastes(): boolean {
+    return this.view.capturing() || !!this.view.partTyping?.();
+  }
+
   /**
-   * A paste (TextInput::paste, input.rs): while the host is capturing text it is the text with each run of line
-   * breaks one space, leading and trailing breaks dropped, one character key each; otherwise nothing takes it.
+   * A paste: while the focus captures text it is one message with the whole text (the host cleans it as
+   * TextInput::paste does); the capturing editor keeps its own path, the text with each run of line breaks one space,
+   * one character key each. Nothing capturing: nothing takes it.
    */
   paste(text: string) {
-    if (!this.view.capturing()) return;
-    const cleaned = text.split(/[\r\n]+/).filter((p) => p !== "").join(" ");
-    for (const c of [...cleaned]) this.keyChord({ key: { char: c } });
+    if (!this.pastes()) return;
+    if (this.view.capturing() && this.view.editor?.()) {
+      const cleaned = text.split(/[\r\n]+/).filter((p) => p !== "").join(" ");
+      for (const c of [...cleaned]) this.keyChord({ key: { char: c } });
+      return;
+    }
+    if (text === "") return;
+    this.sendPaste(text);
+    this.view.desync?.();
   }
 
   keyChord(chord: Chord, shift = false, physical = true) {

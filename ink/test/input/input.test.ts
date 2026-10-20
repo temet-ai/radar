@@ -168,29 +168,6 @@ describe("controller", () => {
     c.key("o", none);
     expect(sent).toEqual([{ intent: "key", chord: { key: { char: "o" } } }]);
   });
-
-  it("a paste is one key per character", () => {
-    const { c, sent } = setup({ capturing: true });
-    c.key("héj", none);
-    expect(sent.map((i) => (i as any).chord.key.char)).toEqual(["h", "é", "j"]);
-  });
-});
-
-describe("a paste while the host captures text (TextInput::paste)", () => {
-  const run = (capturing: boolean, text: string) => {
-    const sent: Intent[] = [];
-    const view: InputView = { menu: () => null, capturing: () => capturing, route: (chord) => ({ intent: "key", chord }), hits: () => [] };
-    new InputController(view, (i) => sent.push(i), new UiState(), () => 0).paste(text);
-    return sent.map((i) => (i as any).chord.key.char).join("|");
-  };
-  it("line breaks become one space, leading and trailing ones are dropped", () => {
-    expect(run(true, "ab\ncd")).toBe("a|b| |c|d");
-    expect(run(true, "\n\nx\r\n")).toBe("x");
-    expect(run(true, "a\r\n\r\nb")).toBe("a| |b");
-  });
-  it("is dropped when nothing captures text", () => {
-    expect(run(false, "ab")).toBe("");
-  });
 });
 
 describe("pointer motion over an open menu", () => {

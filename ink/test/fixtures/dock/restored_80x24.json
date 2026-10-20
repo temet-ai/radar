@@ -53,21 +53,18 @@
     "tabs": [
       {
         "id": "s1",
-        "provider": "copilot",
         "icon": "bot",
         "title": "review dock",
         "state": "idle"
       },
       {
         "id": "s2",
-        "provider": "codex",
         "icon": "bot",
         "title": "codex 2",
         "state": "detached"
       },
       {
         "id": "s3",
-        "provider": "claude",
         "icon": "bot",
         "title": "claude 3",
         "state": "resuming"

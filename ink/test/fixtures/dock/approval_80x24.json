@@ -53,14 +53,12 @@
     "tabs": [
       {
         "id": "s1",
-        "provider": "copilot",
         "icon": "bot",
         "title": "review dock",
         "state": "approval"
       },
       {
         "id": "s2",
-        "provider": "codex",
         "icon": "bot",
         "title": "codex",
         "state": "idle"

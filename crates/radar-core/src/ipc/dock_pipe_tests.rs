@@ -76,7 +76,6 @@ fn stream(items: usize, words: usize) -> Run {
     let mut view = DockView { visible: true, active: Some("s1".into()), transcript: transcript(items), ..DockView::default() };
     view.tabs.push(crate::dock::DockTab {
         id: "s1".into(),
-        provider: "fake".into(),
         icon: None,
         title: "one".into(),
         state: crate::dock::SessionState::Streaming,

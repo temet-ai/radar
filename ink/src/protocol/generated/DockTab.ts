@@ -9,12 +9,7 @@ export type DockTab = {
 /**
  * radar's own session id.
  */
-id: string, 
-/**
- * Which CLI: `copilot`, `codex`, `claude`, or `pty` (any CLI's own
- * screen in a terminal tab).
- */
-provider: string, icon?: string | null, title: string, state: SessionState, 
+id: string, icon?: string | null, title: string, state: SessionState, 
 /**
  * A turn ended (done, stopped or failed) since the tab was last shown
  * in the dock: the tab says so until it is seen.

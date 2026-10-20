@@ -53,14 +53,12 @@
     "tabs": [
       {
         "id": "s1",
-        "provider": "copilot",
         "icon": "bot",
         "title": "review dock",
         "state": "idle"
       },
       {
         "id": "t1",
-        "provider": "pty",
         "icon": "terminal",
         "title": "codex --version",
         "state": "idle",

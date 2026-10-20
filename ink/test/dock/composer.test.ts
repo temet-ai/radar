@@ -10,8 +10,8 @@ const view = (over: Partial<DockView> = {}): DockView => ({
   visible: true,
   focused: true,
   tabs: [
-    { id: "a", provider: "copilot", title: "one", state: "idle" },
-    { id: "b", provider: "codex", title: "two", state: "idle" },
+    { id: "a", title: "one", state: "idle" },
+    { id: "b", title: "two", state: "idle" },
   ],
   active: "a",
   composer: { can_send: true, can_stop: false, history: ["first", "second"], commands: [{ name: "model", detail: "" }, { name: "clear", detail: "" }] },
@@ -166,7 +166,7 @@ describe("dock keys", () => {
       expect(r.local.text).toBe("");
     });
     it("a tab whose turn runs is asked about by the host, so its draft stays", () => {
-      const running = view({ tabs: [{ id: "a", provider: "copilot", title: "one", state: "streaming" }, { id: "b", provider: "codex", title: "two", state: "idle" }] });
+      const running = view({ tabs: [{ id: "a", title: "one", state: "streaming" }, { id: "b", title: "two", state: "idle" }] });
       const r = dockKey(emptyLocal("keep me"), running, c("w", { alt: true }));
       expect(r.intents).toEqual([{ dock: "close_tab", id: "a" }]);
       expect(r.local.text).toBe("keep me");
@@ -221,7 +221,7 @@ describe("dock keys", () => {
     expect(dockKey(emptyLocal("x"), view({ attention: "b" }), c("`")).local.text).toBe("x`");
   });
   it("leaves a terminal tab's keys to the terminal", () => {
-    const v = view({ tabs: [{ id: "t", provider: "pty", title: "sh", state: "idle", terminal: { id: "t", socket: "s", columns: 1, rows: 1, state: { state: "running" }, command: "sh", cwd: "/" } }], active: "t" });
+    const v = view({ tabs: [{ id: "t", title: "sh", state: "idle", terminal: { id: "t", socket: "s", columns: 1, rows: 1, state: { state: "running" }, command: "sh", cwd: "/" } }], active: "t" });
     expect(dockKey(emptyLocal(), v, c("a")).handled).toBe(false);
   });
   it("moves a picker's choice and picks it", () => {

@@ -34,7 +34,7 @@ function transcript(n: number): any[] {
 const dock = (items: any[], revision = 1, kept?: { revision: number; items: number }) => ({
   visible: true,
   focused: true,
-  tabs: [{ id: "s1", provider: "fake", icon: "bot", title: "one", state: "streaming" }],
+  tabs: [{ id: "s1", icon: "bot", title: "one", state: "streaming" }],
   active: "s1",
   transcript: items,
   revision,

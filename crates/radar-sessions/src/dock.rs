@@ -368,7 +368,7 @@ fn tab(s: &Session, i: &Inputs<'_>) -> view::DockTab {
             },
         ),
     };
-    view::DockTab { id, provider: s.meta.provider.to_string(), icon: Some(icon), title: s.meta.title.clone(), state, unread, running, terminal }
+    view::DockTab { id, icon: Some(icon), title: s.meta.title.clone(), state, unread, running, terminal }
 }
 
 /// The tabs alone, and the active one: what the status line's chip reads on

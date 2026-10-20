@@ -459,7 +459,7 @@ fn every_item_and_intent_round_trips_through_json() {
 fn tab(id: &str, provider: &str, title: &str, state: dock::SessionState) -> dock::DockTab {
     let icon = if provider == "pty" { crate::ui::icon::Icon::Terminal } else { crate::ui::icon::Icon::Bot };
     let running = (state == dock::SessionState::Streaming).then_some(14);
-    dock::DockTab { id: id.into(), provider: provider.into(), icon: Some(icon), title: title.into(), state, unread: false, running, terminal: None }
+    dock::DockTab { id: id.into(), icon: Some(icon), title: title.into(), state, unread: false, running, terminal: None }
 }
 
 fn unread(mut t: dock::DockTab) -> dock::DockTab {

@@ -57,7 +57,7 @@ describe("the activity line", () => {
 });
 
 describe("tab states", () => {
-  const tab = (t: Partial<DockTab>): DockTab => ({ id: "s", provider: "copilot", title: "review", state: "idle", ...t });
+  const tab = (t: Partial<DockTab>): DockTab => ({ id: "s", title: "review", state: "idle", ...t });
   it("a running tab spins with its turn's seconds, in the kit's frames", () => {
     expect(SPIN).toContain(tabState(tab({ state: "streaming", running: 4 }))!.glyph);
     expect(tabState(tab({ state: "streaming", running: 4 }))!.glyph).not.toBe(tabState(tab({ state: "streaming", running: 5 }))!.glyph);

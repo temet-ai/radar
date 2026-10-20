@@ -53,14 +53,12 @@
     "tabs": [
       {
         "id": "s1",
-        "provider": "copilot",
         "icon": "bot",
         "title": "review dock",
         "state": "approval"
       },
       {
         "id": "s2",
-        "provider": "codex",
         "icon": "bot",
         "title": "codex 2",
         "state": "error",
@@ -68,7 +66,6 @@
       },
       {
         "id": "s3",
-        "provider": "claude",
         "icon": "bot",
         "title": "claude 3",
         "state": "idle",
@@ -76,7 +73,6 @@
       },
       {
         "id": "s4",
-        "provider": "copilot",
         "icon": "bot",
         "title": "copilot 4",
         "state": "streaming",

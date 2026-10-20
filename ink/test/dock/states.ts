@@ -6,7 +6,7 @@ import type { DockItem, DockTab, DockView } from "../../src/dock/model.js";
  * only where it is read from.
  */
 
-const tab = (over: Partial<DockTab> = {}): DockTab => ({ id: "s1", provider: "copilot", icon: "agent", title: "review", state: "idle", ...over });
+const tab = (over: Partial<DockTab> = {}): DockTab => ({ id: "s1", icon: "agent", title: "review", state: "idle", ...over });
 const base = (over: Partial<DockView> = {}): DockView => ({
   visible: true,
   focused: true,
@@ -85,11 +85,11 @@ export const STATES: Record<string, DockView> = {
   error: base({ tabs: [tab({ state: "error" })], transcript: [ask, { item: "error", id: "e1", text: "connection to copilot lost; the session can be resumed" }] }),
   stopped: base({ tabs: [tab({ state: "stopped" })], transcript: [ask, reply, { item: "notice", id: "n1", text: "stopped by you" }] }),
   "two-tabs": base({
-    tabs: [tab(), tab({ id: "s2", provider: "codex", icon: "agent", title: "mr-1234", state: "streaming" })],
+    tabs: [tab(), tab({ id: "s2", icon: "agent", title: "mr-1234", state: "streaming" })],
     transcript: [ask, reply],
   }),
   pty: base({
-    tabs: [tab({ id: "t1", provider: "pty", icon: "terminal", title: "codex login", terminal: { id: "t1", socket: "/tmp/x.sock", columns: 76, rows: 12, state: { state: "running" }, command: "codex login", cwd: "~/radar" } })],
+    tabs: [tab({ id: "t1", icon: "terminal", title: "codex login", terminal: { id: "t1", socket: "/tmp/x.sock", columns: 76, rows: 12, state: { state: "running" }, command: "codex login", cwd: "~/radar" } })],
     active: "t1",
   }),
   "picker-model": base({ picker: { kind: "model", choices: [{ id: "m1", label: "gpt-5", current: true }, { id: "m2", label: "claude-sonnet-4.5", detail: "premium" }, { id: "m3", label: "gemini-3" }] } }),

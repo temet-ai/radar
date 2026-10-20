@@ -163,9 +163,6 @@ pub enum Doing {
 pub struct DockTab {
     /// radar's own session id.
     pub id: String,
-    /// Which CLI: `copilot`, `codex`, `claude`, or `pty` (any CLI's own
-    /// screen in a terminal tab).
-    pub provider: String,
     #[serde(default, skip_serializing_if = "Option::is_none", with = "crate::view::icon_name")]
     #[ts(as = "Option<String>")]
     pub icon: Option<Icon>,

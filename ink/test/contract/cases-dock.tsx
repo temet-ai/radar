@@ -17,7 +17,7 @@ const screenWith = (dock: any) => ({
   ...(dock === undefined ? {} : { dock }),
 });
 
-const tabOf = (over: Record<string, unknown> = {}) => ({ id: "s1", provider: "copilot", icon: "bot", title: "review dock", state: "idle", ...over });
+const tabOf = (over: Record<string, unknown> = {}) => ({ id: "s1", icon: "bot", title: "review dock", state: "idle", ...over });
 const dockOf = (over: Record<string, unknown> = {}): any => ({
   visible: true,
   focused: true,
@@ -39,7 +39,7 @@ const dock = (f: (d: any, on: boolean) => void, needle?: string): Case => (on) =
 const item = (make: (on: boolean) => any, needle?: string): Case => dock((d, on) => (d.transcript = [make(on)]), needle);
 const pick = <T,>(on: boolean, off: T, yes: T): T => (on ? yes : off);
 const ptyTab = (over: Record<string, unknown> = {}) =>
-  tabOf({ id: "t1", provider: "pty", icon: "terminal", title: "codex login", terminal: { id: "t1", socket: "", columns: 78, rows: 12, state: { state: "running" }, command: "codex --version", cwd: "~/projects/radar", ...over } });
+  tabOf({ id: "t1", icon: "terminal", title: "codex login", terminal: { id: "t1", socket: "", columns: 78, rows: 12, state: { state: "running" }, command: "codex --version", cwd: "~/projects/radar", ...over } });
 /** A terminal tab, its view built by `f`. */
 const terminal = (f: (v: any, on: boolean) => void, needle?: string): Case =>
   dock((d, on) => {
@@ -94,10 +94,9 @@ export const DOCK_CASES: Record<string, Case> = {
   // ---- tabs ------------------------------------------------------------------------------------------------
   "DockTab.title": dock((d, on) => (d.tabs = [tabOf({ title: pick(on, "plain", "TABTITLE") })]), "TABTITLE"),
   "DockTab.icon": dock((d, on) => (d.tabs = [tabOf({ icon: pick(on, null, "terminal") })])),
-  "DockTab.provider": dock((d, on) => (d.tabs = [tabOf({ provider: pick(on, "copilot", "codex") })])),
   "DockTab.state": dock((d, on) => (d.tabs = [tabOf({ state: pick(on, "idle", "streaming") })])),
   "DockTab.terminal": dock((d, on) => {
-    const tab: any = on ? ptyTab() : tabOf({ id: "t1", provider: "pty", title: "codex login" });
+    const tab: any = on ? ptyTab() : tabOf({ id: "t1", title: "codex login" });
     d.tabs = [tab];
     d.active = "t1";
   }, "codex --version"),
@@ -221,5 +220,4 @@ export const DOCK_INVISIBLE: Record<string, string> = {
 
 /** Fields the renderer does not draw today (asserted to stay undrawn; the case fails with "now drawn" when one is). */
 export const DOCK_KNOWN_UNDRAWN: Record<string, string> = {
-  "DockTab.provider": "the tab shows the host's icon and title; the provider name is not drawn (the status line has DockStatus.provider)",
 };

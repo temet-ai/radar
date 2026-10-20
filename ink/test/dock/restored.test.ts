@@ -29,7 +29,7 @@ const lapsedAsk: DockItem = {
   state: "lapsed",
   questions: [{ id: "0", header: "Remote", text: "Which remote?", choices: [{ label: "origin" }], free_text: true, multiple: false, answered: true, answer: [] }],
 };
-const tab = (t: Partial<DockTab> = {}): DockTab => ({ id: "a", provider: "copilot", title: "one", state: "idle", ...t });
+const tab = (t: Partial<DockTab> = {}): DockTab => ({ id: "a", title: "one", state: "idle", ...t });
 const view = (over: Partial<DockView> = {}): DockView => ({
   visible: true,
   focused: true,

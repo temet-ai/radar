@@ -16,12 +16,12 @@ const row = (title: string): unknown => ({
     { text: title, ink: "primary" },
     { text: "  ", ink: "muted" },
     { text: "@ ", ink: "muted" },
-    { text: "Alice E.", ink: "muted" },
+    { text: "Vimes S.", ink: "muted" },
   ],
   chips: { gives: 2, text: [{ text: " " }, { text: "reviewed def4567", chip: true, ink: "info" }] },
   cells: [
     { heading: "state", text: t("needs 1 approval") },
-    { heading: "ticket", text: t("ABC-20") },
+    { heading: "ticket", text: t("WATCH-20") },
     { heading: "updated", text: t("2w") },
   ],
 });

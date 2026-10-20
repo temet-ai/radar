@@ -2547,7 +2547,7 @@
           "why_not_unit": "Requires the production host reducer and frontend ownership state to establish exactly-once input and safe replacement behavior."
         },
         {
-          "name": "host::notice_support::tests::suppressed_notices_expire_and_no_notice_frame_timer_survives",
+          "name": "host::notice_support::tests::suppressed_notices_expire_while_a_menu_hides_them",
           "tier": "integration",
           "parts": [
             "core"
@@ -2882,7 +2882,7 @@
       "prefix": "history::view_tests::mnemonic_tests::",
       "cases": [
         {
-          "name": "history::view_tests::mnemonic_tests::history_mnemonics_and_targeted_phrases_survive_wrap_and_scroll",
+          "name": "history::view_tests::mnemonic_tests::history_mnemonics_and_targeted_phrases_are_in_the_view",
           "tier": "unit",
           "parts": [
             "core"

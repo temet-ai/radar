@@ -1,5 +1,5 @@
 /**
- * The modes crossterm's EnableMouseCapture sets (the host runner's): clicks, drags, every move, urxvt and
+ * The mouse modes Ink turns on (1000, 1002, 1003, 1015, 1006): clicks, drags, every move, urxvt and
  * SGR encodings. Reports arrive as SGR: `ESC [ < b ; x ; y M` press, `m` release, button + 32 a move.
  */
 export const MOUSE_ON = "\x1b[?1000h\x1b[?1002h\x1b[?1003h\x1b[?1015h\x1b[?1006h";

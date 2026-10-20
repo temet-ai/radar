@@ -60,9 +60,10 @@ fn one_line(text: &str) -> Vec<char> {
 }
 
 impl TextInput {
-    /// Start with `value`, cursor at the end.
+    /// Start with `value` exactly as given (a restored draft keeps its line
+    /// breaks), cursor at the end. Typed keys and pastes still never add one.
     pub fn new(value: &str) -> Self {
-        let text: Vec<char> = value.chars().filter(|c| *c != '\n' && *c != '\r').collect();
+        let text: Vec<char> = value.chars().collect();
         Self {
             caret: text.len(),
             text,
@@ -338,11 +339,21 @@ mod tests {
     }
 
     #[test]
-    fn a_new_input_has_its_cursor_at_the_end_and_no_line_breaks() {
+    fn a_new_input_has_its_cursor_at_the_end() {
         let i = TextInput::new("Sam Vimes");
         assert_eq!(i.cursor(), 9);
         assert_eq!(i.selection(), None);
-        assert_eq!(TextInput::new("a\nb").value(), "ab");
+    }
+
+    #[test]
+    fn a_restored_value_keeps_its_line_breaks_but_typing_and_paste_add_none() {
+        let mut i = TextInput::new("  Sam\nVimes  ");
+        assert_eq!(i.value(), "  Sam\nVimes  ");
+        assert_eq!(i.cursor(), 13);
+        assert_eq!(i.key(k(Key::Enter)), Edit::Submit("  Sam\nVimes  ".into()));
+        assert_eq!(i.value(), "  Sam\nVimes  ", "enter inserts nothing");
+        i.paste("a\nb");
+        assert_eq!(i.value(), "  Sam\nVimes  a b");
     }
 
     #[test]

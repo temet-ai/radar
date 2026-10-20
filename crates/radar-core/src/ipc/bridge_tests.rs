@@ -2,7 +2,7 @@ use super::fixture::{self, ASK, PAGE, SYNC};
 use super::*;
 use crate::headless::Headless;
 use crate::host::Event;
-use crate::view::Intent;
+use crate::view::{Chord, Intent};
 
 fn hello(protocol: u32) -> ToHost {
     ToHost::Hello {
@@ -425,10 +425,7 @@ fn settle(bridge: &mut Bridge, out: &[ToRenderer]) {
 #[test]
 fn a_screen_switch_sends_one_screen_cue_for_the_body() {
     let mut bridge = motion_bridge("subtle");
-    bridge.update(Event::Key(ratatui::crossterm::event::KeyEvent::new(
-        ratatui::crossterm::event::KeyCode::Char(crate::host::SETTINGS_KEY),
-        ratatui::crossterm::event::KeyModifiers::NONE,
-    )));
+    bridge.update(crate::host::chord_event(Chord::char(crate::host::SETTINGS_KEY)));
     let out = bridge.outgoing();
     let motion = motion_of(&out);
     assert_eq!(motion.len(), 1, "{out:?}");
@@ -476,10 +473,7 @@ fn cues_wait_for_the_snapshot_in_flight_and_arrive_in_order() {
 #[test]
 fn motion_off_sends_the_level_and_no_cues() {
     let mut bridge = motion_bridge("off");
-    bridge.update(Event::Key(ratatui::crossterm::event::KeyEvent::new(
-        ratatui::crossterm::event::KeyCode::Char(crate::host::SETTINGS_KEY),
-        ratatui::crossterm::event::KeyModifiers::NONE,
-    )));
+    bridge.update(crate::host::chord_event(Chord::char(crate::host::SETTINGS_KEY)));
     let out = bridge.outgoing();
     let motion = motion_of(&out);
     assert_eq!(motion.len(), 1);
@@ -503,18 +497,15 @@ fn over_ssh_motion_is_held_back_and_says_why() {
     assert_eq!(m.timings.screen, crate::motion::SCREEN_MS);
 }
 
-fn key(code: ratatui::crossterm::event::KeyCode) -> Event {
-    Event::Key(ratatui::crossterm::event::KeyEvent::new(
-        code,
-        ratatui::crossterm::event::KeyModifiers::NONE,
-    ))
+fn key(code: crate::view::Key) -> Event {
+    crate::host::chord_event(Chord::new(code))
 }
 
 /// T28: a menu appearing is one popup cue for the popup region; moving in
 /// it sends none.
 #[test]
 fn a_menu_sends_one_popup_cue_and_moving_in_it_none() {
-    use ratatui::crossterm::event::KeyCode;
+    use crate::view::Key as Key;
     let mut bridge = motion_bridge("subtle");
     bridge.send(invoke(ASK));
     let out = bridge.outgoing();
@@ -523,7 +514,7 @@ fn a_menu_sends_one_popup_cue_and_moving_in_it_none() {
         [MotionCue::Popup { region: MotionRegion::Popup }]
     );
     settle(&mut bridge, &out);
-    bridge.update(key(KeyCode::Down));
+    bridge.update(key(Key::Down));
     let moved = bridge.outgoing();
     assert!(motion_of(&moved).iter().all(|m| m.cues.is_empty()), "{moved:?}");
 }
@@ -532,7 +523,7 @@ fn a_menu_sends_one_popup_cue_and_moving_in_it_none() {
 /// cue, both for the message region, each once. Message cues run at full.
 #[test]
 fn a_message_comes_and_goes_as_two_cues_at_full() {
-    use ratatui::crossterm::event::KeyCode;
+    use crate::view::Key as Key;
     let mut bridge = motion_bridge("full");
     bridge.update(Event::Notice("copied 12 characters".into()));
     let out = bridge.outgoing();
@@ -545,11 +536,11 @@ fn a_message_comes_and_goes_as_two_cues_at_full() {
     let repeated = bridge.outgoing();
     assert_eq!(motion_of(&repeated)[0].cues, [MotionCue::Message { region: MotionRegion::Message }]);
     settle(&mut bridge, &repeated);
-    bridge.update(key(KeyCode::Char('a')));
+    bridge.update(key(Key::Char('a')));
     let retained = bridge.outgoing();
     assert!(motion_of(&retained).iter().all(|m| m.cues.is_empty()));
     settle(&mut bridge, &retained);
-    bridge.update(key(KeyCode::Esc));
+    bridge.update(key(Key::Esc));
     let gone = bridge.outgoing();
     assert_eq!(
         motion_of(&gone)[0].cues,

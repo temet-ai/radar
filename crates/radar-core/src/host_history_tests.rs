@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 struct State {
     selected: String,
     typing: bool,
-    keys: Vec<KeyEvent>,
+    keys: Vec<Chord>,
     messages: usize,
     intents: usize,
 }
@@ -57,7 +57,7 @@ impl Plugin for Probe {
     fn intent(&mut self, _: &str, _: Pane, intent: &crate::view::Intent) -> Outcome {
         self.0.lock().unwrap().intents += 1;
         if let crate::view::Intent::Key { chord } = intent {
-            self.0.lock().unwrap().keys.push(crate::view_tui::key_of(*chord));
+            self.0.lock().unwrap().keys.push(*chord);
             Outcome::done()
         } else {
             Outcome::Ignored
@@ -78,8 +78,8 @@ fn fixture() -> (Host, Arc<Mutex<State>>) {
         state,
     )
 }
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::host::chord_event(Chord::new(code)))
 }
 fn request(fx: &[HostEffect]) -> &crate::history::Request {
     fx.iter()
@@ -93,34 +93,34 @@ fn request(fx: &[HostEffect]) -> &crate::history::Request {
 fn history_shortcut_keeps_editor_text_and_restores_underlying_navigation() {
     let (mut host, state) = fixture();
     state.lock().unwrap().typing = true;
-    assert!(press(&mut host, KeyCode::Char(HISTORY_KEY)).is_empty());
+    assert!(press(&mut host, Key::Char(HISTORY_KEY)).is_empty());
     assert!(host.history.is_none());
     assert_eq!(
-        state.lock().unwrap().keys.last().unwrap().code,
-        KeyCode::Char(HISTORY_KEY)
+        state.lock().unwrap().keys.last().unwrap().key,
+        Key::Char(HISTORY_KEY)
     );
     state.lock().unwrap().typing = false;
     host.focus = Pane::Detail;
     host.bar = true;
     let before = (host.view, host.focus, host.bar, host.tabs);
     assert!(
-        request(&press(&mut host, KeyCode::Char(HISTORY_KEY)))
+        request(&press(&mut host, Key::Char(HISTORY_KEY)))
             .filter
             .subject
             .is_none()
     );
     assert!(host.history.is_some());
-    press(&mut host, KeyCode::Char('w'));
-    press(&mut host, KeyCode::Char('q'));
+    press(&mut host, Key::Char('w'));
+    press(&mut host, Key::Char('q'));
     assert!(!host.quit);
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(host.history.is_none());
     assert_eq!(before, (host.view, host.focus, host.bar, host.tabs));
 }
 #[test]
 fn history_menu_captures_selected_subject_before_background_selection_changes() {
     let (mut host, state) = fixture();
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let row = host
         .menu
         .as_ref()
@@ -132,7 +132,7 @@ fn history_menu_captures_selected_subject_before_background_selection_changes() 
         .unwrap();
     state.lock().unwrap().selected = "TWO-2".into();
     host.menu.as_mut().unwrap().row = row;
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert_eq!(request(&fx).filter.subject.as_ref().unwrap().id, "ONE-1");
     assert!(host.menu.is_none());
 }
@@ -140,7 +140,7 @@ fn history_menu_captures_selected_subject_before_background_selection_changes() 
 fn history_navigation_is_not_recorded_and_background_completions_are_delivered() {
     let (mut host, state) = fixture();
     host.enable_journal();
-    let opened = press(&mut host, KeyCode::Char(HISTORY_KEY));
+    let opened = press(&mut host, Key::Char(HISTORY_KEY));
     assert_eq!(
         opened.len(),
         1,
@@ -148,10 +148,10 @@ fn history_navigation_is_not_recorded_and_background_completions_are_delivered()
     );
     let first = request(&opened).id;
     for code in [
-        KeyCode::Char('j'),
-        KeyCode::Char('x'),
-        KeyCode::Char('w'),
-        KeyCode::Tab,
+        Key::Char('j'),
+        Key::Char('x'),
+        Key::Char('w'),
+        Key::Tab,
     ] {
         let fx = press(&mut host, code);
         assert!(fx.iter().all(|fx| matches!(fx, HostEffect::History(_))));
@@ -162,19 +162,19 @@ fn history_navigation_is_not_recorded_and_background_completions_are_delivered()
     });
     assert_eq!(state.lock().unwrap().messages, 1);
     assert!(state.lock().unwrap().keys.is_empty());
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(
         host.history.is_some(),
         "first escape returns from local help"
     );
-    press(&mut host, KeyCode::Esc);
-    let second = request(&press(&mut host, KeyCode::Char(HISTORY_KEY))).id;
+    press(&mut host, Key::Esc);
+    let second = request(&press(&mut host, Key::Char(HISTORY_KEY))).id;
     assert!(second > first);
 }
 #[test]
 fn history_settings_has_all_activity_without_a_fake_subject() {
     let mut host = Host::new(vec![], 0).unwrap();
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
     assert!(
         menu.items
@@ -187,7 +187,7 @@ fn history_settings_has_all_activity_without_a_fake_subject() {
             .iter()
             .any(|row| row.label == "history for selected item")
     );
-    let fx = press(&mut host, KeyCode::Char(HISTORY_KEY));
+    let fx = press(&mut host, Key::Char(HISTORY_KEY));
     assert!(request(&fx).filter.subject.is_none());
     host.update(Event::History {
         id: request(&fx).id,
@@ -203,7 +203,7 @@ fn history_does_not_steal_h_from_typed_menus_or_colour_editors() {
         Owner::Host,
         Menu::typed("typed", "type here", ""),
     ));
-    press(&mut host, KeyCode::Char('H'));
+    press(&mut host, Key::Char('H'));
     assert!(host.history.is_none());
     assert_eq!(
         host.menu.as_ref().unwrap().input.as_ref().unwrap().value(),
@@ -212,7 +212,7 @@ fn history_does_not_steal_h_from_typed_menus_or_colour_editors() {
     host.menu = None;
     host.view = View::Settings;
     host.colours.edit = Some(crate::input::TextInput::new(""));
-    press(&mut host, KeyCode::Char('H'));
+    press(&mut host, Key::Char('H'));
     assert!(host.history.is_none());
     assert_eq!(host.colours.edit.as_ref().unwrap().value(), "H");
 }
@@ -220,9 +220,9 @@ fn history_does_not_steal_h_from_typed_menus_or_colour_editors() {
 #[test]
 fn closed_overlay_result_cannot_replace_a_reopened_request() {
     let (mut host, _) = fixture();
-    let old = request(&press(&mut host, KeyCode::Char('H'))).id;
-    press(&mut host, KeyCode::Esc);
-    let current = request(&press(&mut host, KeyCode::Char('H'))).id;
+    let old = request(&press(&mut host, Key::Char('H'))).id;
+    press(&mut host, Key::Esc);
+    let current = request(&press(&mut host, Key::Char('H'))).id;
     host.update(Event::History {
         id: old,
         result: Err(crate::history::ReadError::Disabled),
@@ -238,25 +238,13 @@ fn closed_overlay_result_cannot_replace_a_reopened_request() {
 }
 
 #[test]
-fn history_footer_clicks_work_and_prior_hover_targets_are_cleared() {
+fn history_footer_keys_are_targets_that_close_it_without_reaching_the_part() {
     let (mut host, state) = fixture();
-    *host.hovered.borrow_mut() = Some((ratatui::layout::Rect::new(1, 1, 5, 1), Hit::Mode));
-    host.hits
-        .borrow_mut()
-        .push((ratatui::layout::Rect::new(1, 1, 5, 1), Hit::Mode));
-    press(&mut host, KeyCode::Char('H'));
-    assert!(host.hovered.borrow().is_none());
-    assert!(host.hits.borrow().is_empty());
-    let screen = crate::shell::to_text(&host, 80, 24);
-    let footer = screen.lines().last().unwrap();
-    let x = crate::ui::width(&footer[..footer.find("esc").unwrap()]) as u16;
-    assert_eq!(host.hit_at(x, 23), Some(Hit::History));
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: x,
-        row: 23,
-        at_ms: 10,
-    });
+    press(&mut host, Key::Char('H'));
+    let target = host.history.as_ref().unwrap().key_target("esc");
+    let footer = host.chrome_view(80, 24).history.expect("the overlay's view").footer;
+    assert!(footer.iter().any(|hint| hint.keys_of.iter().any(|key| key.target == target)), "{footer:?}");
+    host.update(Event::Intent(crate::view::Intent::Activate { target }));
     assert!(host.history.is_none());
     assert!(state.lock().unwrap().keys.is_empty());
 }
@@ -265,7 +253,7 @@ fn history_footer_clicks_work_and_prior_hover_targets_are_cleared() {
 fn recent_entry_and_refresh_use_host_time_and_all_activity_remains_unbounded() {
     let (mut host, _) = fixture();
     host.now = 1_792_000_000;
-    let fx = press(&mut host, KeyCode::Char('H'));
+    let fx = press(&mut host, Key::Char('H'));
     let id = request(&fx).id;
     assert_eq!(
         request(&fx).filter.since_ms,
@@ -276,14 +264,14 @@ fn recent_entry_and_refresh_use_host_time_and_all_activity_remains_unbounded() {
         result: Err(crate::history::ReadError::Unavailable),
     });
     host.now += 3600;
-    let refreshed = press(&mut host, KeyCode::Char('r'));
+    let refreshed = press(&mut host, Key::Char('r'));
     assert_eq!(
         request(&refreshed).filter.since_ms,
         Some((host.now - 86_400) * 1000)
     );
     assert!(request(&refreshed).snapshot.is_none());
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Char('x'));
     let row = host
         .menu
         .as_ref()
@@ -294,7 +282,7 @@ fn recent_entry_and_refresh_use_host_time_and_all_activity_remains_unbounded() {
         .position(|row| row.label == "all activity history")
         .unwrap();
     host.menu.as_mut().unwrap().row = row;
-    let all = press(&mut host, KeyCode::Enter);
+    let all = press(&mut host, Key::Enter);
     assert_eq!(
         request(&all).filter,
         crate::journal::work_map::EventFilter::default()
@@ -310,7 +298,7 @@ fn history_masks_the_screen_under_it_from_every_intent() {
     host.enable_journal();
     host.focus = Pane::Nav;
     let before = (host.view, host.focus, host.bar, host.tabs);
-    let first = request(&press(&mut host, KeyCode::Char('H'))).id;
+    let first = request(&press(&mut host, Key::Char('H'))).id;
     let mut headless = crate::headless::Headless::new(host, 80, 24);
     headless.focus(PaneId::Detail);
     assert_eq!(headless.host().focus, Pane::Nav, "no focus moves behind the overlay");
@@ -343,7 +331,7 @@ fn tracked_input_under_history_is_the_overlays_once() {
     use crate::view::{Chord, Intent};
     let (mut host, state) = fixture();
     host.enable_journal();
-    let opened = press(&mut host, KeyCode::Char('H'));
+    let opened = press(&mut host, Key::Char('H'));
     host.update(Event::History {
         id: request(&opened).id,
         result: Err(crate::history::ReadError::Unavailable),
@@ -378,15 +366,8 @@ fn tracked_input_under_history_is_the_overlays_once() {
 #[test]
 fn a_tab_clicked_under_history_closes_it_and_goes_there() {
     let (mut host, _) = fixture();
-    press(&mut host, KeyCode::Char('H'));
-    let _ = crate::shell::to_text(&host, 160, 40);
-    let (x, y) = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(area, hit)| matches!(hit, Hit::Tab(View::Settings)).then_some((area.x, area.y)))
-        .expect("the settings tab");
-    host.update(Event::Mouse { kind: MouseKind::Press, column: x, row: y, at_ms: 1 });
+    press(&mut host, Key::Char('H'));
+    host.update(Event::Intent(crate::view::Intent::Activate { target: crate::view::chrome::targets::settings_tab() }));
     assert!(host.history.is_none());
     assert_eq!(host.view, View::Settings);
 }
@@ -395,7 +376,7 @@ fn a_tab_clicked_under_history_closes_it_and_goes_there() {
 #[test]
 fn history_draws_in_a_tiny_terminal() {
     let (mut host, _) = fixture();
-    press(&mut host, KeyCode::Char('H'));
+    press(&mut host, Key::Char('H'));
     for (width, height) in [(1, 1), (80, 1), (20, 5)] {
         let _ = crate::shell::to_text(&host, width, height);
         let _ = host.chrome_view(width, height);
@@ -416,7 +397,7 @@ fn a_history_target_drawn_for_an_earlier_page_does_nothing() {
         let events = events.map(|n| entry(n, Observed::Requested)).collect();
         host.update(Event::History { id: request.id, result: Ok(Box::new(page(request.filter.clone(), events, more))) });
     };
-    let first = request(&press(&mut host, KeyCode::Char('H'))).clone();
+    let first = request(&press(&mut host, Key::Char('H'))).clone();
     read(&mut host, &first, 1..=5, true);
     let one = host.chrome_view(160, 40).history.unwrap();
     assert_eq!((one.rows.len(), one.selected), (5, Some(0)));
@@ -427,7 +408,7 @@ fn a_history_target_drawn_for_an_earlier_page_does_nothing() {
     };
     let (enter, causal) = (key(&one, "enter"), key(&one, "c"));
     // n: page 2.
-    let next = request(&press(&mut host, KeyCode::Char('n'))).clone();
+    let next = request(&press(&mut host, Key::Char('n'))).clone();
     read(&mut host, &next, 6..=10, false);
     let shown = |host: &Host| {
         let v = host.chrome_view(160, 40).history.unwrap();
@@ -447,8 +428,8 @@ fn a_history_target_drawn_for_an_earlier_page_does_nothing() {
     assert_eq!(shown(&host).2, Some(3));
     let row3_two = now.rows[3].target.clone();
     // Closed and opened again: page 1 at the same place, a new drawing.
-    press(&mut host, KeyCode::Esc);
-    let again = request(&press(&mut host, KeyCode::Char('H'))).clone();
+    press(&mut host, Key::Esc);
+    let again = request(&press(&mut host, Key::Char('H'))).clone();
     read(&mut host, &again, 1..=5, true);
     let reopened = shown(&host);
     for old in [&row3, &row3_two, &enter] {
@@ -457,7 +438,7 @@ fn a_history_target_drawn_for_an_earlier_page_does_nothing() {
     }
     // A refresh: the same rows read again, a new drawing.
     let fresh = host.chrome_view(160, 40).history.unwrap();
-    let refresh = request(&press(&mut host, KeyCode::Char('r'))).clone();
+    let refresh = request(&press(&mut host, Key::Char('r'))).clone();
     read(&mut host, &refresh, 1..=5, true);
     host.update(Event::Intent(Intent::Activate { target: fresh.rows[3].target.clone() }));
     host.update(Event::Intent(Intent::Activate { target: key(&fresh, "enter") }));

@@ -274,7 +274,11 @@ pub struct Badge {
 /// The mode at the right of the top bar (`read-only`, `edit`).
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, ts_rs::TS)]
 pub struct ModeChip {
+    /// The mode's word (`edit`); its icon is `icon`, never a glyph here.
     pub text: String,
+    #[serde(default, skip_serializing_if = "Option::is_none", with = "icon_name")]
+    #[ts(as = "Option<String>")]
+    pub icon: Option<Icon>,
     #[serde(default)]
     pub ink: Ink,
     /// Stands out (read only does).

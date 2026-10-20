@@ -25,7 +25,7 @@ use std::cell::Cell;
 use std::collections::HashMap;
 
 use anyhow::{Result, bail};
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Key};
 use serde_json::Value;
 
 use crate::colours::{Colours, Reply};
@@ -41,7 +41,7 @@ use crate::plugin::{
 };
 use crate::design::help_bar::KeyHint;
 use crate::theme::{Theme, ThemeConfig};
-use crate::widgets::{horizontal, step, vertical};
+use crate::widgets::step;
 
 #[cfg(test)]
 #[path = "host_history_discovery_tests.rs"]
@@ -99,6 +99,12 @@ fn next_item(items: &[MenuItem], from: usize, down: bool) -> usize {
     }
 }
 
+/// A key as the event a renderer sends for it.
+#[cfg(test)]
+pub(crate) fn chord_event(chord: Chord) -> Event {
+    Event::Intent(crate::view::Intent::Key { chord })
+}
+
 /// Keys no contributed action may take: the host's own, moving about
 /// (lists, tabs, pages), and every capital (screens).
 pub(crate) fn host_key(c: char) -> bool {
@@ -108,12 +114,8 @@ pub(crate) fn host_key(c: char) -> bool {
 /// The plain keys a part's own `x` rows press.
 fn own_keys(rows: &[Binding]) -> Vec<char> {
     rows.iter()
-        .filter_map(|b| match crate::plugin::parse_key(&b.keys) {
-            Some(KeyEvent {
-                code: KeyCode::Char(c),
-                modifiers,
-                ..
-            }) if modifiers.difference(KeyModifiers::SHIFT).is_empty() => Some(c),
+        .filter_map(|b| match crate::plugin::parse_chord(&b.keys) {
+            Some(Chord { key: Key::Char(c), ctrl: false, alt: false, .. }) => Some(c),
             _ => None,
         })
         .collect()
@@ -174,7 +176,7 @@ pub struct Return {
 /// What reached the focused part: a terminal key, or an intent from a
 /// frontend that speaks the view contract.
 enum Input {
-    Key(KeyEvent),
+    Key(Chord),
     Intent(crate::view::Intent),
 }
 
@@ -182,9 +184,9 @@ enum Input {
 #[derive(Clone)]
 enum Press {
     /// Press this key.
-    Key(KeyEvent, Option<MenuKeyContext>),
+    Key(Chord, Option<MenuKeyContext>),
     /// A shared tree operation retains the exact held tree and selection.
-    TreeKey(KeyEvent, shared_tree::MenuContext),
+    TreeKey(Chord, shared_tree::MenuContext),
     /// A contributed action: the plugin, the subject, the action's id.
     Act(usize, Subject, String, Option<MenuKeyContext>),
     /// Captured, validated subject scope; reading never follows a later selection.
@@ -364,7 +366,9 @@ pub enum Event {
         semantic: Option<ActionId>,
         event: Box<Event>,
     },
-    Key(KeyEvent),
+    /// A terminal key from the Ratatui runner; `update` turns it into the
+    /// chord intent a renderer sends. Removed with the terminal path.
+    Key(ratatui::crossterm::event::KeyEvent),
     Tick(i64),
     /// A part woke the host ([`crate::wake`]), with the current unix time: the
     /// woken parts take in what their background work brought.
@@ -421,7 +425,7 @@ pub enum Hit {
     Notice(u64),
     NoticeHistory(u64),
     NoticeHistoryOpen,
-    NoticeHistoryKey(KeyEvent),
+    NoticeHistoryKey(Chord),
     /// A history row or key; interpreted only by the active overlay.
     History,
     /// The History tab in the top bar.
@@ -446,7 +450,7 @@ pub enum Hit {
     MenuItem(usize),
     /// A key shown on the status line: a click presses it. The number is
     /// the hint it is part of (`PgUp/PgDn scroll` is one hint, two keys).
-    Key(KeyEvent, usize),
+    Key(Chord, usize),
     /// A row of one of setup's own steps, by its target.
     Setup(String),
     /// A stop of setup's rail.
@@ -845,8 +849,8 @@ impl Host {
                 .is_some_and(|(o, s)| o == Owner::Host && s.id == ICONS_SECTION.id)
     }
 
-    fn colours_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
-        if !self.colours_take(key) && key.code == KeyCode::Esc {
+    fn colours_key(&mut self, key: Chord) -> Vec<HostEffect> {
+        if !self.colours_take(key) && key.key == Key::Esc {
             self.focus = Pane::Nav;
         }
         vec![]
@@ -854,11 +858,11 @@ impl Host {
 
     /// A key for the colours (or icons) section; false when it did not
     /// take it.
-    pub(crate) fn colours_take(&mut self, key: KeyEvent) -> bool {
+    pub(crate) fn colours_take(&mut self, key: Chord) -> bool {
         let reply = if self.on_icons() {
-            self.colours.icons_key(key)
+            self.colours.icons_key(crate::key_compat::key_of(key))
         } else {
-            self.colours.key(key)
+            self.colours.key(crate::key_compat::key_of(key))
         };
         match reply {
             Reply::Ignored => return false,
@@ -920,7 +924,7 @@ impl Host {
     }
 
     /// A key in a typed menu's field.
-    fn typed_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
+    fn typed_key(&mut self, key: Chord) -> Vec<HostEffect> {
         let Some(open) = self.menu.as_mut() else {
             return vec![];
         };
@@ -930,14 +934,14 @@ impl Host {
             open.row = i;
             open.input = Some(crate::input::TextInput::new(&open.menu.items[i].value));
         };
-        match key.code {
-            KeyCode::Esc => {
+        match key.key {
+            Key::Esc => {
                 self.cancel_menu_trace(true);
                 self.menu = None;
                 return vec![];
             }
-            KeyCode::Up | KeyCode::Down if !picks.is_empty() => {
-                let next = match (at, key.code == KeyCode::Down) {
+            Key::Up | Key::Down if !picks.is_empty() => {
+                let next = match (at, key.key == Key::Down) {
                     (None, true) => 0,
                     (None, false) => picks.len() - 1,
                     (Some(a), true) => (a + 1) % picks.len(),
@@ -947,14 +951,14 @@ impl Host {
                 self.typed_changed(false);
                 return vec![];
             }
-            KeyCode::Tab => {
+            Key::Tab => {
                 if let Some(&i) = at.map(|a| &picks[a]).or(picks.first()) {
                     fill(open, i);
                     self.typed_changed(true);
                 }
                 return vec![];
             }
-            KeyCode::Enter => {
+            Key::Enter => {
                 if !open.viewport.usable.get() {
                     return vec![];
                 }
@@ -1001,21 +1005,21 @@ impl Host {
         vec![]
     }
 
-    fn menu_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
+    fn menu_key(&mut self, key: Chord) -> Vec<HostEffect> {
         if self.palette.is_some() {
-            if matches!(key.code, KeyCode::PageUp | KeyCode::PageDown) {
-                if let Some(open) = &mut self.menu { open.viewport.scroll(key.code == KeyCode::PageDown, true); }
+            if matches!(key.key, Key::PageUp | Key::PageDown) {
+                if let Some(open) = &mut self.menu { open.viewport.scroll(key.key == Key::PageDown, true); }
                 return vec![];
             }
             return self.palette_key(key);
         }
         // Reading never submits, selects an offer, or reaches the input's
         // editing shortcuts. Modified keys retain their complete binding.
-        if key.modifiers.is_empty()
-            && matches!(key.code, KeyCode::PageUp | KeyCode::PageDown)
+        if key.bare()
+            && matches!(key.key, Key::PageUp | Key::PageDown)
             && let Some(open) = &self.menu
         {
-            open.viewport.scroll(key.code == KeyCode::PageDown, true);
+            open.viewport.scroll(key.key == Key::PageDown, true);
             return vec![];
         }
         if self.menu.as_ref().is_some_and(|m| m.input.is_some()) {
@@ -1027,38 +1031,38 @@ impl Host {
         let keys_menu = open.owner == Owner::Host && open.menu.id == KEYS_MENU;
         // A modified binding keeps its complete key. In particular Ctrl-R
         // must never take an ordinary menu's `r` action (or vice versa).
-        let modified = !key.modifiers.difference(KeyModifiers::SHIFT).is_empty();
+        let modified = !key.plain();
         let chosen = if modified {
             if keys_menu {
                 self.menu_keys.iter().position(|press| {
                     matches!(press, Some(Press::Key(bound, _) | Press::TreeKey(bound, _))
-                        if bound.code == key.code && bound.modifiers == key.modifiers)
+                        if *bound == key)
                 })
             } else {
                 None
             }
         } else {
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
+            match key.key {
+                Key::Esc | Key::Char('q') => {
                     self.cancel_menu_trace(true);
                     self.menu = None;
                     return vec![];
                 }
                 // The keys that open the keys menu close it again.
-                KeyCode::Char('x' | '?') if keys_menu => {
+                Key::Char('x' | '?') if keys_menu => {
                     self.cancel_menu_trace(true);
                     self.menu = None;
                     return vec![];
                 }
-                KeyCode::Enter => Some(open.row),
-                KeyCode::Char(c) if open.menu.items.iter().any(|i| i.key == Some(c)) => {
+                Key::Enter => Some(open.row),
+                Key::Char(c) if open.menu.items.iter().any(|i| i.key == Some(c)) => {
                     open.menu.items.iter().position(|i| i.key == Some(c))
                 }
                 _ => {
                     // A question's buttons sit in a row: ←/→ (h/l, tab) move
                     // along it too.
-                    let along = open.menu.question.then(|| horizontal(&key)).flatten();
-                    if let Some(down) = vertical(&key).or(along) {
+                    let along = open.menu.question.then(|| key.horizontal()).flatten();
+                    if let Some(down) = key.vertical().or(along) {
                         open.row = next_item(&open.menu.items, open.row, down);
                     }
                     None
@@ -1563,6 +1567,15 @@ impl Host {
     /// Handle one event; then, unless it was a save's answer, save a change
     /// it completed (see [`Host::autosave`]).
     pub fn update(&mut self, event: Event) -> Vec<HostEffect> {
+        // The terminal runner's key is the one edge: from here on the host
+        // knows only chords (removed with the runner's terminal path).
+        let event = match event {
+            Event::Key(key) => match crate::key_compat::chord_of(&key) {
+                Some(chord) => Event::Intent(crate::view::Intent::Key { chord }),
+                None => return vec![],
+            },
+            event => event,
+        };
         self.guard_notice_history_owner();
         if let Some(out) = self.update_notices(&event) {
             self.reconcile_detail_lease();
@@ -1639,8 +1652,7 @@ impl Host {
         let mut input = &event;
         while let Event::Tracked { event, .. } = input { input = event; }
         let opens_palette = match input {
-            Event::Key(key) => palette::shortcut(*key),
-            Event::Intent(crate::view::Intent::Key { chord }) => palette::shortcut(crate::view_tui::key_of(*chord)),
+            Event::Intent(crate::view::Intent::Key { chord }) => palette::shortcut(*chord),
             _ => false,
         };
         if opens_palette && self.menu.is_none() && !self.capturing() {
@@ -1656,22 +1668,18 @@ impl Host {
             }
             let input = matches!(
                 inner,
-                Event::Key(_) | Event::Intent(_) | Event::Paste(_) | Event::Mouse { .. }
+                Event::Intent(_) | Event::Paste(_) | Event::Mouse { .. }
             );
             let mut event = event;
             while input && let Event::Tracked { event: inner, .. } = event {
                 event = *inner;
             }
             match event {
-                Event::Key(key) => {
-                    self.someone_is_there();
-                    return self.history_key(key);
-                }
                 // Ink and Headless send keys as intents: the overlay takes
                 // them as it takes the terminal's.
                 Event::Intent(crate::view::Intent::Key { chord }) => {
                     self.someone_is_there();
-                    return self.history_key(crate::view_tui::key_of(chord));
+                    return self.history_key(chord);
                 }
                 // A chrome target (a tab, a row or key of the overlay) acts;
                 // anything meant for the screen, section or menu under the
@@ -1709,7 +1717,8 @@ impl Host {
                     let key = self
                         .history
                         .as_mut()
-                        .and_then(|history| history.mouse(kind, column, row));
+                        .and_then(|history| history.mouse(kind, column, row))
+                        .and_then(|key| crate::key_compat::chord_of(&key));
                     return key.map_or_else(Vec::new, |key| self.history_key(key));
                 }
                 other => return self.handle_outside_history(other),
@@ -1741,7 +1750,7 @@ impl Host {
         self.trace.current = inherited;
         self.trace.semantic = semantic;
         let menu_before = self.menu.is_some();
-        if menu_before && matches!(event, Event::Key(_) | Event::Mouse { .. } | Event::Intent(_)) {
+        if menu_before && matches!(event, Event::Mouse { .. } | Event::Intent(_)) {
             self.trace.current = self
                 .trace
                 .menu
@@ -1754,14 +1763,6 @@ impl Host {
                 .and_then(|menu| menu.semantic.clone());
         }
         let kind = match &event {
-            Event::Key(k)
-                if !menu_before
-                    && !self.capturing()
-                    && k.code == KeyCode::Char(HISTORY_KEY)
-                    && k.modifiers.difference(KeyModifiers::SHIFT).is_empty() =>
-            {
-                None
-            }
             // The History key as a renderer's intent: not journalled either.
             Event::Intent(crate::view::Intent::Key { chord })
                 if !menu_before
@@ -1771,16 +1772,6 @@ impl Host {
                     && !chord.alt =>
             {
                 None
-            }
-            Event::Key(k)
-                if self.menu.as_ref().is_some_and(|m| m.input.is_some())
-                    || (self.capturing() && self.menu.is_none()) =>
-            {
-                match k.code {
-                    KeyCode::Enter => Some("input.commit"),
-                    KeyCode::Esc => Some("input.cancel"),
-                    _ => None,
-                }
             }
             // The same typing from a renderer (Headless, Ink): journalled as
             // the terminal's keys are.
@@ -1797,8 +1788,8 @@ impl Host {
             // Copying what is selected acts on no screen: its own span is
             // `system.copy.selection`, not a `ui.action` over it.
             Event::Intent(crate::view::Intent::Copy { .. }) => None,
-            Event::Key(_) | Event::Intent(_) if menu_before => Some("ui.menu.action"),
-            Event::Key(_) | Event::Intent(_) => Some("ui.action"),
+            Event::Intent(_) if menu_before => Some("ui.menu.action"),
+            Event::Intent(_) => Some("ui.action"),
             Event::Mouse { .. } if menu_before => Some("ui.menu.action"),
             Event::Mouse { .. } if !menu_before && !self.capturing() => Some("ui.pointer.action"),
             _ => None,
@@ -1994,6 +1985,8 @@ impl Host {
         match event {
             Event::History { .. } => vec![],
             Event::Tracked { event, .. } => self.handle(*event),
+            // `update` turned the terminal's key into an intent already.
+            Event::Key(_) => vec![],
             Event::Tick(now) => {
                 self.now = now;
                 self.frame = self.frame.wrapping_add(1);
@@ -2132,11 +2125,6 @@ impl Host {
                     }
                 }
                 vec![]
-            }
-            Event::Key(key) => {
-                let fx = self.on_key(key);
-                self.someone_is_there();
-                fx
             }
         }
     }
@@ -2422,7 +2410,7 @@ impl Host {
                     }
                 }
                 Effect::Press(c) if depth < BUS_DEPTH => {
-                    out.extend(self.on_key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE)));
+                    out.extend(self.on_key(Chord::char(c)));
                 }
                 Effect::Press(_) => blocked = true,
                 Effect::Act { part, subject, id } if depth < BUS_DEPTH => {
@@ -2790,7 +2778,7 @@ impl Host {
         self.trace.current = parent;
     }
 
-    pub(crate) fn deliver(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
+    pub(crate) fn deliver(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
         self.deliver_input(Input::Key(key))
     }
 
@@ -3000,7 +2988,7 @@ impl Host {
             } else { vec![] };
         }
         if let Intent::Key { chord } = intent {
-            return self.on_key(crate::view_tui::key_of(chord));
+            return self.on_key(chord);
         }
         if let Intent::Dock(dock) = intent {
             return self.on_dock_intent(dock);
@@ -3011,7 +2999,7 @@ impl Host {
         if let Intent::Invoke { action } = &intent && action.starts_with("palette:") {
             let Some(row) = self.palette_row(action) else { return vec![]; };
             self.menu.as_mut().expect("active palette").row = row;
-            return self.palette_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+            return self.palette_key(Chord::new(Key::Enter));
         }
         // The chrome's own targets (a tab, a menu row, a key on the status
         // line, a settings row): what a click on them does.
@@ -3055,7 +3043,7 @@ impl Host {
             }
             self.focus = Pane::Middle;
             self.settings_detail.top();
-            return if activate { self.colours_key(KeyEvent::from(KeyCode::Enter)) } else { vec![] };
+            return if activate { self.colours_key(Chord::new(Key::Enter)) } else { vec![] };
         }
         // A row of Settings' look section (the same card as setup's look).
         if self.setup.is_none()
@@ -3093,7 +3081,7 @@ impl Host {
                 return vec![];
             };
             open.row = i;
-            return self.menu_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+            return self.menu_key(Chord::new(Key::Enter));
         }
         // `pane:<id>` from a renderer that lays the panes out itself (Ink): a
         // press on a pane's empty space, or the wheel over it, focuses that
@@ -3154,7 +3142,7 @@ impl Host {
         if out.is_none()
             && let Some(chord) = invoked.and_then(|action| self.invoked_key(&action))
         {
-            out = Some(self.on_key(crate::view_tui::key_of(chord)));
+            out = Some(self.on_key(chord));
         }
         // A context intent that the part took opens the menu of the keys
         // for what it selected, as a right-click does in the terminal.
@@ -3209,7 +3197,7 @@ impl Host {
             (View::Settings, _) => return None,
         };
         let commit = match &input {
-            Input::Key(key) => matches!(key.code, KeyCode::Enter | KeyCode::Esc),
+            Input::Key(key) => matches!(key.key, Key::Enter | Key::Esc),
             Input::Intent(i) => matches!(
                 i.chord().map(|c| c.key),
                 Some(crate::view::Key::Enter | crate::view::Key::Esc)
@@ -3236,12 +3224,12 @@ impl Host {
         };
         let moved = match &input {
             Input::Key(key) => matches!(
-                key.code,
-                KeyCode::Up
-                    | KeyCode::Down
-                    | KeyCode::Home
-                    | KeyCode::End
-                    | KeyCode::Char('j' | 'k' | 'g' | 'G' | '+' | '-' | '=' | ' ')
+                key.key,
+                Key::Up
+                    | Key::Down
+                    | Key::Home
+                    | Key::End
+                    | Key::Char('j' | 'k' | 'g' | 'G' | '+' | '-' | '=' | ' ')
             ),
             Input::Intent(i) => matches!(
                 i,
@@ -3427,13 +3415,11 @@ impl Host {
     }
 
     /// A terminal key on a screen, translated by the renderer adapter.
-    fn screen_input(&mut self, p: usize, scope: &'static str, key: KeyEvent) -> Outcome {
+    fn screen_input(&mut self, p: usize, scope: &'static str, key: Chord) -> Outcome {
         let Some(view) = self.screen_view(p, scope) else {
             return Outcome::Ignored;
         };
-        let Some(chord) = crate::view_tui::chord_of(&key) else {
-            return Outcome::Ignored;
-        };
+        let chord = key;
         if self.plugins[p].capturing() {
             return self.plugins[p].intent(scope, self.focus, &crate::view::Intent::Key { chord });
         }
@@ -3442,13 +3428,11 @@ impl Host {
         self.routed(p, scope, self.focus, routed, node)
     }
 
-    fn section_input(&mut self, p: usize, scope: &'static str, key: KeyEvent) -> Outcome {
+    fn section_input(&mut self, p: usize, scope: &'static str, key: Chord) -> Outcome {
         let Some(view) = self.section_view(p, scope) else {
             return Outcome::Ignored;
         };
-        let Some(chord) = crate::view_tui::chord_of(&key) else {
-            return Outcome::Ignored;
-        };
+        let chord = key;
         if self.plugins[p].capturing() {
             return self.plugins[p].intent(scope, Pane::Middle, &crate::view::Intent::Key { chord });
         }
@@ -3496,7 +3480,7 @@ impl Host {
         {
             // Through the router the terminal's key goes through (a tree's
             // space folds the selected row there).
-            let key = crate::view_tui::key_of(chord);
+            let key = chord;
             return if section {
                 self.section_input(p, scope, key)
             } else {
@@ -3725,7 +3709,7 @@ impl Host {
             self.last_press = None;
             return vec![];
         }
-        let key = |code| KeyEvent::new(code, KeyModifiers::NONE);
+        let key = |code| Chord::new(code);
         if kind == MouseKind::Context {
             if self.menu.is_some() && !replacing_context || self.capturing() {
                 return vec![];
@@ -3810,8 +3794,8 @@ impl Host {
                     open.viewport.scroll(kind == MouseKind::ScrollDown, false);
                     vec![]
                 }
-                (MouseKind::ScrollUp, _) => self.menu_key(key(KeyCode::Up)),
-                (MouseKind::ScrollDown, _) => self.menu_key(key(KeyCode::Down)),
+                (MouseKind::ScrollUp, _) => self.menu_key(key(Key::Up)),
+                (MouseKind::ScrollDown, _) => self.menu_key(key(Key::Down)),
                 (MouseKind::Context, _) => unreachable!("context clicks are handled above"),
             };
         }
@@ -3852,7 +3836,7 @@ impl Host {
             } else {
                 'j'
             };
-            let fx = self.on_key(key(KeyCode::Char(k)));
+            let fx = self.on_key(key(Key::Char(k)));
             // The wheel past the top stays in the pane; only keys go up
             // into the top bar or a page's tab row.
             self.bar = false;
@@ -3961,7 +3945,7 @@ impl Host {
         if double {
             // On a setup step that is a section, a double click is the
             // row's own ⏎, not setup's "continue".
-            let enter = key(KeyCode::Enter);
+            let enter = key(Key::Enter);
             if self.setup_on_section() {
                 out.extend(self.setup_section_takes(enter).unwrap_or_default());
             } else {
@@ -3971,10 +3955,10 @@ impl Host {
         out
     }
 
-    fn on_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
+    fn on_key(&mut self, key: Chord) -> Vec<HostEffect> {
         self.clear_message_compat();
         // ctrl-c always gets out, even mid-typing or with a menu open.
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+        if key.ctrl && key.key == Key::Char('c') {
             self.quit = true;
             return vec![];
         }
@@ -3991,7 +3975,7 @@ impl Host {
         if self.target().is_some_and(|p| self.plugins[p].capturing()) {
             return self.deliver(key).unwrap_or_default();
         }
-        if key.modifiers.contains(KeyModifiers::CONTROL) {
+        if key.ctrl {
             // Other ctrl keys are the plugin's.
             return self.deliver(key).unwrap_or_default();
         }
@@ -4007,11 +3991,11 @@ impl Host {
         {
             return fx;
         }
-        if key.code == KeyCode::Char('~') && self.notice_history_can_open() {
+        if key.key == Key::Char('~') && self.notice_history_can_open() {
             self.open_notice_history();
             return vec![];
         }
-        if key.code == KeyCode::Char(HISTORY_KEY) {
+        if key.key == Key::Char(HISTORY_KEY) {
             return self.open_recent_history();
         }
         // The page whose tab row had the keys is gone: so is the row.
@@ -4039,10 +4023,10 @@ impl Host {
         if let Some(out) = self.shared_tree_key(key) {
             return out;
         }
-        match key.code {
+        match key.key {
             // Settings are saved as they change; only a failed save leaves
             // something to lose to a stray q: ask first.
-            KeyCode::Char('q') if self.unsaved() => {
+            Key::Char('q') if self.unsaved() => {
                 self.menu = Some(OpenMenu::open(
                     Owner::Host,
                     Menu::new(
@@ -4067,16 +4051,16 @@ impl Host {
                 ));
                 return vec![];
             }
-            KeyCode::Char('q') => {
+            Key::Char('q') => {
                 self.quit = true;
                 return vec![];
             }
-            KeyCode::Char('x' | '?') => {
+            Key::Char('x' | '?') => {
                 self.open_keys_menu();
                 return vec![];
             }
             // The agent dock: shows and takes the keys, then hides.
-            KeyCode::Char(crate::dock::KEY) if key.modifiers.is_empty() && self.dock_owner().is_some() => {
+            Key::Char(crate::dock::KEY) if key.bare() && self.dock_owner().is_some() => {
                 // Where the dock is not drawn (an item page, the work area)
                 // the key shows or hides it for the lists, and the keys stay
                 // here.
@@ -4101,11 +4085,11 @@ impl Host {
                 return out;
             }
             // One pause for every part.
-            KeyCode::Char('z') if key.modifiers.is_empty() => {
+            Key::Char('z') if key.bare() => {
                 self.toggle_pause();
                 return vec![];
             }
-            KeyCode::Char('b') => {
+            Key::Char('b') => {
                 match self.bulk() {
                     Some((p, items)) => {
                         self.menu = Some(OpenMenu::open(
@@ -4118,15 +4102,15 @@ impl Host {
                 return vec![];
             }
             // Saving happens by itself; w still writes the file now.
-            KeyCode::Char('w') => return vec![self.save(true)],
-            KeyCode::Char(SETTINGS_KEY) => {
+            Key::Char('w') => return vec![self.save(true)],
+            Key::Char(SETTINGS_KEY) => {
                 self.view = View::Settings;
                 self.back.clear();
                 self.tabs = false;
                 self.sources = false;
                 return vec![];
             }
-            KeyCode::Char(c) if c.is_ascii_uppercase() => {
+            Key::Char(c) if c.is_ascii_uppercase() => {
                 let group = self
                     .top_screens()
                     .into_iter()
@@ -4154,16 +4138,16 @@ impl Host {
             }
             // Panes, lazydocker's way: tab and shift-tab go round, h l ← →
             // go left and right, a number goes straight to that pane.
-            KeyCode::Tab | KeyCode::BackTab => {
+            Key::Tab | Key::BackTab => {
                 let panes = self.panes();
                 let at = panes.iter().position(|p| *p == self.focus).unwrap_or(0);
                 let n = panes.len();
                 // An item page with one pane and a row of tabs: round the
                 // tabs instead, so the key is never dead on a page.
                 if n == 1 && self.page_tabs().is_some_and(|t| t.names.len() > 1) {
-                    return self.show_tab_beside(key.code == KeyCode::Tab);
+                    return self.show_tab_beside(key.key == Key::Tab);
                 }
-                let next = if key.code == KeyCode::Tab {
+                let next = if key.key == Key::Tab {
                     (at + 1) % n
                 } else {
                     (at + n - 1) % n
@@ -4171,10 +4155,10 @@ impl Host {
                 self.focus = panes[next];
                 return vec![];
             }
-            KeyCode::Char('h' | 'l') | KeyCode::Left | KeyCode::Right => {
+            Key::Char('h' | 'l') | Key::Left | Key::Right => {
                 let panes = self.panes();
                 let at = panes.iter().position(|p| *p == self.focus).unwrap_or(0);
-                let left = matches!(key.code, KeyCode::Char('h') | KeyCode::Left);
+                let left = matches!(key.key, Key::Char('h') | Key::Left);
                 // Past the outer pane: the screen beside, as the top bar
                 // has them (not from inside an item page).
                 let edge = if left { at == 0 } else { at + 1 >= panes.len() };
@@ -4199,7 +4183,7 @@ impl Host {
                 self.focus = panes[next];
                 return vec![];
             }
-            KeyCode::Char(c @ '1'..='9') => {
+            Key::Char(c @ '1'..='9') => {
                 if let Some(jump) = self.pane_jumps().into_iter().find(|jump| jump.key == c) {
                     self.focus = jump.pane.into();
                     return vec![];
@@ -4208,8 +4192,8 @@ impl Host {
             _ => {}
         }
         if self.view == View::Settings {
-            if matches!(key.code, KeyCode::PageUp | KeyCode::PageDown) {
-                if !self.settings_detail.page(key.code == KeyCode::PageDown) {
+            if matches!(key.key, Key::PageUp | Key::PageDown) {
+                if !self.settings_detail.page(key.key == Key::PageDown) {
                     self.notify("nothing to scroll here".into());
                 }
                 return vec![];
@@ -4219,7 +4203,7 @@ impl Host {
             }
         }
         if self.view == View::Settings && self.focus == Pane::Nav
-            && let Some(down) = vertical(&key)
+            && let Some(down) = key.vertical()
         {
             let rows = self.nav_rows();
             let at = rows.iter().position(|r| *r == self.nav_at()).unwrap_or(0);
@@ -4259,7 +4243,7 @@ impl Host {
             if self.look_settings_key(key) {
                 return vec![];
             }
-            if key.code == KeyCode::Esc {
+            if key.key == Key::Esc {
                 self.focus = Pane::Nav;
                 return vec![];
             }
@@ -4280,36 +4264,36 @@ impl Host {
         // A part not set up yet: its screen is the set-up page; ⏎ goes to
         // its settings.
         if let Some(p) = self.setting_up() {
-            if key.code == KeyCode::Enter {
+            if key.key == Key::Enter {
                 self.go_to_settings_of(p);
-            } else if key.code == KeyCode::Char('s')
+            } else if key.key == Key::Char('s')
                 && let Some(step) = self.plugins[p].setup_step()
             {
                 let _ = self.open_setup(Some(step.id));
-            } else if key.code == KeyCode::Esc {
+            } else if key.key == Key::Esc {
                 self.come_back(true);
-            } else if matches!(key.code, KeyCode::Up | KeyCode::Char('k')) {
+            } else if matches!(key.key, Key::Up | Key::Char('k')) {
                 self.above_body();
             }
             return vec![];
         }
         if let Some(fx) = self.deliver(key) {
-            if key.code == KeyCode::Esc {
+            if key.key == Key::Esc {
                 self.come_back(false);
             }
             return fx;
         }
-        if key.code == KeyCode::Esc && self.come_back(true) {
+        if key.key == Key::Esc && self.come_back(true) {
             return vec![];
         }
-        if let KeyCode::Char(c) = key.code
+        if let Key::Char(c) = key.key
             && let Some(fx) = self.contributed_key(c)
         {
             return fx;
         }
         // `+` or `-` in a tree where the row has nothing to open or close:
         // the tree stays as it is, and the status line says why.
-        if let KeyCode::Char(c @ ('+' | '=' | '-')) = key.code
+        if let Key::Char(c @ ('+' | '=' | '-')) = key.key
             && self.folds_here()
         {
             self.nothing_to_fold(c);
@@ -4319,22 +4303,22 @@ impl Host {
         // back out.
         let panes = self.panes();
         let at = panes.iter().position(|p| *p == self.focus).unwrap_or(0);
-        match key.code {
-            KeyCode::Enter if at + 1 < panes.len() && self.focus == Pane::Nav => {
+        match key.key {
+            Key::Enter if at + 1 < panes.len() && self.focus == Pane::Nav => {
                 self.focus = panes[at + 1]
             }
-            KeyCode::Esc if at > 0 => self.focus = panes[at - 1],
+            Key::Esc if at > 0 => self.focus = panes[at - 1],
             // Up past the top of a pane (it could not move): the top bar,
             // on a screen's own panes; inside an item page, nothing.
-            KeyCode::Up | KeyCode::Char('k') if self.on_top_level() => self.above_body(),
+            Key::Up | Key::Char('k') if self.on_top_level() => self.above_body(),
             // Up past the top of an item page's body: its row of tabs.
-            KeyCode::Up | KeyCode::Char('k') if self.page_tabs().is_some() => self.tabs = true,
+            Key::Up | Key::Char('k') if self.page_tabs().is_some() => self.tabs = true,
             // Inside an item page, an arrow nothing took says so (the
             // status line offers them everywhere).
-            KeyCode::Up | KeyCode::Down => self.nothing_to_move_to(),
+            Key::Up | Key::Down => self.nothing_to_move_to(),
             // The status line offers PgUp/PgDn everywhere: where nothing
             // took them, it says so rather than doing nothing.
-            KeyCode::PageUp | KeyCode::PageDown => {
+            Key::PageUp | Key::PageDown => {
                 self.notify("nothing to scroll here".into())
             }
             _ => {}
@@ -4608,7 +4592,7 @@ impl Host {
             _ => ("actions".into(), None),
         };
         // A row that cannot be pressed is not shown.
-        rows.retain(|b| b.is_heading() || crate::plugin::parse_key(&b.keys).is_some());
+        rows.retain(|b| b.is_heading() || crate::plugin::parse_chord(&b.keys).is_some());
         // What the other parts add, under their names.
         let contributed = match self.subject_here().filter(|_| !self.bar && !self.sources && !self.tabs) {
             Some((owner, subject)) => self
@@ -4638,19 +4622,15 @@ impl Host {
             }
             // Typing the key in the menu runs it too, except the keys
             // that move in the menu or close it.
-            if let Some(KeyEvent {
-                code: KeyCode::Char(c),
-                modifiers,
-                ..
-            }) = crate::plugin::parse_key(&b.keys)
-                && modifiers.difference(KeyModifiers::SHIFT).is_empty()
+            if let Some(Chord { key: Key::Char(c), ctrl: false, alt: false, .. }) =
+                crate::plugin::parse_chord(&b.keys)
                 && !matches!(c, 'j' | 'k' | 'q' | 'x' | '?')
             {
                 item.key = Some(c);
             }
             items.push(item);
             presses.push(
-                crate::plugin::parse_key(&b.keys)
+                crate::plugin::parse_chord(&b.keys)
                     .map(|key| match self.tree_menu_context(key) {
                         Some(context) => Press::TreeKey(key, context),
                         None => Press::Key(key, self.menu_key_context(&b.keys)),
@@ -4680,7 +4660,7 @@ impl Host {
             }
         }
         items.push(MenuItem::new('~', "recent notices (this session)", "", items.len().to_string()));
-        presses.push(Some(Press::Key(KeyEvent::new(KeyCode::Char('~'), KeyModifiers::NONE), self.menu_key_context("~"))));
+        presses.push(Some(Press::Key(Chord::new(Key::Char('~')), self.menu_key_context("~"))));
         items.push(MenuItem::heading("History"));
         presses.push(None);
         items.push(MenuItem::new(
@@ -4741,12 +4721,12 @@ impl Host {
         vec![HostEffect::History(Box::new(request))]
     }
 
-    fn history_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+    fn history_key(&mut self, key: Chord) -> Vec<HostEffect> {
+        if key.ctrl && key.key == Key::Char('c') {
             self.quit = true;
             return vec![];
         }
-        if key.code == KeyCode::Esc {
+        if key.key == Key::Esc {
             if self
                 .history
                 .as_mut()
@@ -4766,7 +4746,7 @@ impl Host {
         }
         self.history
             .as_mut()
-            .and_then(|history| history.key(key, self.history_request))
+            .and_then(|history| history.key(crate::key_compat::key_of(key), self.history_request))
             .map(|request| HostEffect::History(Box::new(request)))
             .into_iter()
             .collect()
@@ -4829,16 +4809,16 @@ impl Host {
             .unwrap_or(panes[0]);
     }
 
-    fn sources_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
-        match key.code {
-            KeyCode::Left | KeyCode::Char('h') | KeyCode::BackTab => self.next_source(false),
-            KeyCode::Right | KeyCode::Char('l') | KeyCode::Tab => self.next_source(true),
-            KeyCode::Up | KeyCode::Char('k') => self.enter_bar(),
-            KeyCode::Down | KeyCode::Char('j') | KeyCode::Enter | KeyCode::Esc => {
+    fn sources_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        match key.key {
+            Key::Left | Key::Char('h') | Key::BackTab => self.next_source(false),
+            Key::Right | Key::Char('l') | Key::Tab => self.next_source(true),
+            Key::Up | Key::Char('k') => self.enter_bar(),
+            Key::Down | Key::Char('j') | Key::Enter | Key::Esc => {
                 self.leave_sources()
             }
-            KeyCode::Char('x' | '?') => self.open_keys_menu(),
-            KeyCode::Char(c)
+            Key::Char('x' | '?') => self.open_keys_menu(),
+            Key::Char(c)
                 if c.is_ascii_uppercase()
                     || c.is_ascii_digit()
                     || matches!(c, SETTINGS_KEY | 'q' | 'w') =>
@@ -4871,20 +4851,20 @@ impl Host {
 
     /// A key while the top bar has focus; `None` to go on as usual (the
     /// bar let go of the keys).
-    fn bar_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
-        match key.code {
-            KeyCode::Left | KeyCode::Char('h') => self.next_screen(false),
-            KeyCode::Right | KeyCode::Char('l') => self.next_screen(true),
-            KeyCode::Down
-            | KeyCode::Char('j')
-            | KeyCode::Enter
-            | KeyCode::Esc
-            | KeyCode::Tab
-            | KeyCode::BackTab => self.leave_bar(),
-            KeyCode::Char('x' | '?') => self.open_keys_menu(),
+    fn bar_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        match key.key {
+            Key::Left | Key::Char('h') => self.next_screen(false),
+            Key::Right | Key::Char('l') => self.next_screen(true),
+            Key::Down
+            | Key::Char('j')
+            | Key::Enter
+            | Key::Esc
+            | Key::Tab
+            | Key::BackTab => self.leave_bar(),
+            Key::Char('x' | '?') => self.open_keys_menu(),
             // The host's own keys work as anywhere (a screen's letter,
             // settings, quit, a pane by number); they leave the bar.
-            KeyCode::Char(c)
+            Key::Char(c)
                 if c.is_ascii_uppercase()
                     || c.is_ascii_digit()
                     || matches!(c, SETTINGS_KEY | 'q' | 'w') =>
@@ -4974,19 +4954,19 @@ impl Host {
 
     /// A key while a page's tab row has them; `None` to go on as usual
     /// (the row let go of the keys).
-    fn tabs_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
-        match key.code {
-            KeyCode::Left | KeyCode::Char('h' | '[') | KeyCode::BackTab => {
+    fn tabs_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        match key.key {
+            Key::Left | Key::Char('h' | '[') | Key::BackTab => {
                 return Some(self.show_tab_beside(false));
             }
-            KeyCode::Right | KeyCode::Char('l' | ']') | KeyCode::Tab => {
+            Key::Right | Key::Char('l' | ']') | Key::Tab => {
                 return Some(self.show_tab_beside(true));
             }
-            KeyCode::Down | KeyCode::Char('j') | KeyCode::Enter | KeyCode::Esc => self.tabs = false,
-            KeyCode::Char('x' | '?') => self.open_keys_menu(),
+            Key::Down | Key::Char('j') | Key::Enter | Key::Esc => self.tabs = false,
+            Key::Char('x' | '?') => self.open_keys_menu(),
             // The host's own keys work as anywhere (a screen's letter,
             // settings, quit, a pane by number); they leave the row.
-            KeyCode::Char(c)
+            Key::Char(c)
                 if c.is_ascii_uppercase()
                     || c.is_ascii_digit()
                     || matches!(c, SETTINGS_KEY | 'q' | 'w') =>
@@ -5121,11 +5101,11 @@ pub(crate) fn hint_labels(keys: &str) -> Vec<&str> {
 }
 
 /// The key a status line's key label stands for: `PgUp`, `⏎`, `esc`, `+`.
-fn hint_key(label: &str) -> Option<KeyEvent> {
+fn hint_key(label: &str) -> Option<Chord> {
     if label.chars().count() == 1 {
-        crate::plugin::parse_key(label)
+        crate::plugin::parse_chord(label)
     } else {
-        crate::plugin::parse_key(&label.to_lowercase())
+        crate::plugin::parse_chord(&label.to_lowercase())
     }
 }
 
@@ -5137,7 +5117,7 @@ pub(crate) fn chrome_hint(n: usize, h: &KeyHint<'_>) -> crate::view::chrome::Hin
     let labels = hint_labels(h.keys);
     let keys: Vec<_> = labels
         .iter()
-        .map(|l| hint_key(l).and_then(|k| crate::view_tui::chord_of(&k)))
+        .map(|l| hint_key(l))
         .collect();
     let keys_of = if keys.iter().all(Option::is_some) {
         labels
@@ -5270,8 +5250,10 @@ impl Host {
             },
         });
         let mode = self.mode();
+        let (mode_icon, mode_word) = crate::mode::chip(self);
         bar.mode = c::ModeChip {
-            text: crate::mode::bar_words(self),
+            text: mode_word.into(),
+            icon: Some(mode_icon),
             ink: match mode {
                 crate::writes::Mode::ReadOnly => Ink::Info,
                 crate::writes::Mode::Write => Ink::AccentSecondary,
@@ -5365,7 +5347,7 @@ impl Host {
                 let mut hint = chrome_hint(n, h);
                 if self.notice_history.is_some() {
                     for key in &mut hint.keys_of {
-                        if let Some(target) = Self::notice_history_key_target(crate::view_tui::key_of(key.chord)) { key.target = target; }
+                        if let Some(target) = Self::notice_history_key_target(key.chord) { key.target = target; }
                     }
                 } else if self.palette.is_some() {
                     for (k, key) in hint.keys_of.iter_mut().enumerate() {
@@ -5898,7 +5880,7 @@ impl Host {
         // The history overlay's rows and keys are its own: a row selects, a
         // key does what pressing it does.
         if target.as_str().starts_with(crate::history::targets::PREFIX) {
-            let key = self.history.as_mut().and_then(|h| h.target(target));
+            let key = self.history.as_mut().and_then(|h| h.target(target)).and_then(|key| crate::key_compat::chord_of(&key));
             return match key {
                 Some(key) if activate => self.history_key(key),
                 _ => vec![],
@@ -5930,7 +5912,7 @@ impl Host {
             }
             open.row = i;
             return if activate {
-                self.menu_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+                self.menu_key(Chord::new(Key::Enter))
             } else {
                 vec![]
             };
@@ -6207,19 +6189,19 @@ pub(crate) mod tests {
                 }
                 return Outcome::done();
             }
-            let key = crate::view_tui::key_of(*chord);
-            match key.code {
-                KeyCode::Char('m') => Outcome::Handled(vec![Effect::Menu(Menu::confirm(
+            let key = *chord;
+            match key.key {
+                Key::Char('m') => Outcome::Handled(vec![Effect::Menu(Menu::confirm(
                     "ask", "sure?", "do it", "leave it",
                 ))]),
-                KeyCode::Char('n') => Outcome::Handled(vec![Effect::Menu(Menu::new(
+                Key::Char('n') => Outcome::Handled(vec![Effect::Menu(Menu::new(
                     "long",
                     "long",
                     (0..40)
                         .map(|i| MenuItem::pick(format!("item {i}"), "", i.to_string()))
                         .collect(),
                 ))]),
-                KeyCode::Char('i') if self.with(|l| l.icons) => Outcome::Handled(vec![
+                Key::Char('i') if self.with(|l| l.icons) => Outcome::Handled(vec![
                     Effect::NotifyWith(Icon::RunFailed, "it broke".into()),
                     Effect::Menu(
                         Menu::new(
@@ -6234,7 +6216,7 @@ pub(crate) mod tests {
                         .icon(Icon::Bug),
                     ),
                 ]),
-                KeyCode::Char('g') if self.with(|l| l.writes) => {
+                Key::Char('g') if self.with(|l| l.writes) => {
                     Outcome::Handled(vec![Effect::Menu(Menu::write_plain(
                         "approve",
                         "approve #12?",
@@ -6243,7 +6225,7 @@ pub(crate) mod tests {
                         "leave it",
                     ))])
                 }
-                KeyCode::Char('v') if self.with(|l| l.writes) => {
+                Key::Char('v') if self.with(|l| l.writes) => {
                     Outcome::Handled(vec![Effect::Menu(Menu::write_confirm(
                         "note",
                         "post this on #12?",
@@ -6252,19 +6234,19 @@ pub(crate) mod tests {
                         "drop it",
                     ))])
                 }
-                KeyCode::Char('e') => Outcome::Handled(vec![Effect::Emit {
+                Key::Char('e') => Outcome::Handled(vec![Effect::Emit {
                     topic: "probe.x",
                     payload: json!({"from": self.id}),
                 }]),
-                KeyCode::Char(c @ ('a' | 'y')) => {
+                Key::Char(c @ ('a' | 'y')) => {
                     self.with(|l| l.keys.push(c));
                     Outcome::done()
                 }
-                KeyCode::Char('p') => {
+                Key::Char('p') => {
                     self.with(|l| l.depth += 1);
                     Outcome::done()
                 }
-                KeyCode::Char('c') => {
+                Key::Char('c') => {
                     let mut changes = crate::motion::Changes::default();
                     changes.changed.insert("probe:1".into());
                     Outcome::Handled(vec![
@@ -6394,8 +6376,8 @@ pub(crate) mod tests {
         assert!(crate::shell::to_text(&missing, 80, 24).contains("no view for this screen"));
     }
 
-    fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-        host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+        host.update(crate::host::chord_event(Chord::new(code)))
     }
 
     /// A part that asks for a shelf's name: two offers, `x` refused.
@@ -6464,11 +6446,11 @@ pub(crate) mod tests {
         host.focus = Pane::Middle;
         let typed = |host: &mut Host, s: &str| {
             for c in s.chars() {
-                press(host, KeyCode::Char(c));
+                press(host, Key::Char(c));
             }
         };
         let open = |host: &mut Host| {
-            press(host, KeyCode::Char('n'));
+            press(host, Key::Char('n'));
             assert!(host.menu.as_ref().is_some_and(|m| m.input.is_some()));
         };
         let labels = |host: &Host| -> Vec<String> {
@@ -6486,29 +6468,29 @@ pub(crate) mod tests {
         // q and x are text here, not close and the menu key.
         typed(&mut host, "x");
         assert_eq!(labels(&host), ["✗ x is taken"]);
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert_eq!(host.message.as_deref(), Some("not yet: x is taken"));
         assert!(host.menu.is_some(), "a refusal keeps the field open");
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
         typed(&mut host, "bo");
         assert_eq!(labels(&host), ["✓ a shelf called bo", "books", "boxes"]);
         // ↓ puts the first offer in the field; ⏎ gives that text.
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
         assert_eq!(
             host.menu.as_ref().unwrap().input.as_ref().unwrap().value(),
             "books"
         );
         assert_eq!(labels(&host)[0], "✓ a shelf called books");
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert!(host.menu.is_none());
         // Pasted, then kept as typed.
         open(&mut host);
         host.update(Event::Paste("my shelf".into()));
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         // esc closes and gives nothing.
         open(&mut host);
         typed(&mut host, "q");
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert!(host.menu.is_none());
         assert_eq!(*got.lock().unwrap(), ["name=books", "name=my shelf"]);
         // The dialog asks for the name with what is typed in its field.
@@ -6565,9 +6547,9 @@ pub(crate) mod tests {
     #[test]
     fn keys_reach_the_screen_plugin_and_shift_letters_switch_screens() {
         let (mut host, logs) = host(&[("a", 'A', "a"), ("b", 'B', "b")]);
-        press(&mut host, KeyCode::Char('a'));
-        press(&mut host, KeyCode::Char('B'));
-        press(&mut host, KeyCode::Char('y'));
+        press(&mut host, Key::Char('a'));
+        press(&mut host, Key::Char('B'));
+        press(&mut host, Key::Char('y'));
         assert_eq!(logs[0].lock().unwrap().keys, vec!['a']);
         assert_eq!(logs[1].lock().unwrap().keys, vec!['y']);
     }
@@ -6575,7 +6557,7 @@ pub(crate) mod tests {
     #[test]
     fn bus_events_reach_every_other_plugin_only() {
         let (mut host, logs) = host(&[("a", 'A', "a"), ("b", 'B', "b")]);
-        press(&mut host, KeyCode::Char('e'));
+        press(&mut host, Key::Char('e'));
         assert!(logs[0].lock().unwrap().bus.is_empty());
         assert_eq!(logs[1].lock().unwrap().bus, vec![r#"probe.x {"from":"a"}"#]);
     }
@@ -6586,8 +6568,8 @@ pub(crate) mod tests {
         let file = "# my radar\n\n[a]\nvalue = 3\n\n# b stays as I wrote it\n[b]\nvalue = 0 # zero\n\n\
                     [gone]\nkept = true\n\n[gone.deep]\nx = 1\n";
         host.load_config(Some(file)).unwrap();
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
-        let fx = press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char(SETTINGS_KEY));
+        let fx = press(&mut host, Key::Char('+'));
         let [HostEffect::Save(text)] = &fx[..] else { panic!("{fx:?}") };
         assert!(text.contains("value = 4"), "{text}");
         for kept in ["# my radar", "# b stays as I wrote it", "value = 0 # zero", "[gone]", "kept = true", "[gone.deep]"] {
@@ -6613,15 +6595,15 @@ pub(crate) mod tests {
             .unwrap();
         assert_eq!(logs[0].lock().unwrap().value, 3);
         assert!(!host.dirty());
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
-        let fx = press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char(SETTINGS_KEY));
+        let fx = press(&mut host, Key::Char('+'));
         assert_eq!(logs[0].lock().unwrap().value, 4);
         assert!(host.dirty(), "until the file is written");
         assert!(matches!(&fx[..], [HostEffect::Save(text)] if text.contains("value = 4")));
         host.update(Event::Saved(Ok(())));
         assert!(!host.dirty());
         // w still writes, harmlessly, and says so.
-        let fx = press(&mut host, KeyCode::Char('w'));
+        let fx = press(&mut host, Key::Char('w'));
         assert!(matches!(&fx[..], [HostEffect::Save(text)] if text.contains("value = 4")));
         host.update(Event::Saved(Ok(())));
         assert_eq!(host.message.as_deref(), Some("saved"));
@@ -6653,12 +6635,12 @@ pub(crate) mod tests {
     fn a_completed_change_is_saved_at_once_and_never_mid_typing() {
         let (mut host, logs) = host(&[("a", 'A', "a")]);
         host.load_config(Some("[a]\nvalue = 0\n")).unwrap();
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         assert!(
             host.update(Event::Tick(1)).is_empty(),
             "nothing changed, nothing written"
         );
-        let fx = press(&mut host, KeyCode::Char('+'));
+        let fx = press(&mut host, Key::Char('+'));
         assert!(matches!(&fx[..], [HostEffect::Save(t)] if t.contains("value = 1")));
         assert!(!host.unsaved(), "a save on its way is not a failure");
         host.message = Some("the part's word".into());
@@ -6671,23 +6653,23 @@ pub(crate) mod tests {
         );
 
         // Typing: a change made while typing waits for ⏎.
-        press(&mut host, KeyCode::Char('t'));
+        press(&mut host, Key::Char('t'));
         assert!(
-            press(&mut host, KeyCode::Char('+')).is_empty(),
+            press(&mut host, Key::Char('+')).is_empty(),
             "not mid-typing"
         );
         assert!(
             host.update(Event::Tick(2)).is_empty(),
             "not on a tick mid-typing either"
         );
-        let fx = press(&mut host, KeyCode::Enter);
+        let fx = press(&mut host, Key::Enter);
         assert!(
             matches!(&fx[..], [HostEffect::Save(t)] if t.contains("value = 2")),
             "{fx:?}"
         );
         assert_eq!(logs[0].lock().unwrap().value, 2);
         assert!(
-            press(&mut host, KeyCode::Char('j')).is_empty(),
+            press(&mut host, Key::Char('j')).is_empty(),
             "moving changes nothing"
         );
     }
@@ -6700,20 +6682,20 @@ pub(crate) mod tests {
             h
         };
         let mut host = fresh();
-        press(&mut host, KeyCode::Char('q'));
+        press(&mut host, Key::Char('q'));
         assert!(host.quit, "nothing unsaved: q quits");
 
         // A change saved as it was made: q quits without asking.
         let mut host = fresh();
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
-        press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char('+'));
         host.update(Event::Saved(Ok(())));
-        press(&mut host, KeyCode::Char('q'));
+        press(&mut host, Key::Char('q'));
         assert!(host.quit && host.menu.is_none(), "saved: no question");
 
         let mut host = fresh();
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
-        press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char('+'));
         host.update(Event::Saved(Err("disk full".into())));
         assert!(
             host.message
@@ -6729,8 +6711,8 @@ pub(crate) mod tests {
             let mut host = fresh();
             host.load_config(Some("[theme]\nicons = \"unicode\"\n[a]\nvalue = 0\n")).unwrap();
             let _ = host.build_theme(crate::design::theme::Tier::Mono);
-            press(&mut host, KeyCode::Char(SETTINGS_KEY));
-            press(&mut host, KeyCode::Char('+'));
+            press(&mut host, Key::Char(SETTINGS_KEY));
+            press(&mut host, Key::Char('+'));
             host.update(Event::Saved(Err("disk full".into())));
             let said = host.message.clone().unwrap();
             assert_eq!(said.tone, crate::view::chrome::NoticeTone::Error);
@@ -6744,29 +6726,29 @@ pub(crate) mod tests {
             screen.contains("settings !>") && screen.contains("! unsaved"),
             "{screen}"
         );
-        press(&mut host, KeyCode::Char('q'));
+        press(&mut host, Key::Char('q'));
         assert!(!host.quit && host.menu.is_some(), "unsaved: q asks");
-        press(&mut host, KeyCode::Char('s'));
+        press(&mut host, Key::Char('s'));
         assert!(!host.quit && host.menu.is_none(), "stay");
 
-        press(&mut host, KeyCode::Char('q'));
-        let fx = press(&mut host, KeyCode::Char('w'));
+        press(&mut host, Key::Char('q'));
+        let fx = press(&mut host, Key::Char('w'));
         assert!(matches!(&fx[..], [HostEffect::Save(_)]));
         assert!(!host.quit, "not before the file is written");
         host.update(Event::Saved(Err("disk full".into())));
         assert!(!host.quit, "a failed save keeps you in");
-        press(&mut host, KeyCode::Char('q'));
-        press(&mut host, KeyCode::Char('w'));
+        press(&mut host, Key::Char('q'));
+        press(&mut host, Key::Char('w'));
         host.update(Event::Saved(Ok(())));
         assert!(host.quit);
         assert!(!host.unsaved());
 
         let mut host = fresh();
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
-        press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char('+'));
         host.update(Event::Saved(Err("disk full".into())));
-        press(&mut host, KeyCode::Char('q'));
-        press(&mut host, KeyCode::Char('d'));
+        press(&mut host, Key::Char('q'));
+        press(&mut host, Key::Char('d'));
         assert!(host.quit, "discard changes and quit");
     }
 
@@ -6782,7 +6764,7 @@ pub(crate) mod tests {
     fn a_renderers_press_selects_a_colours_row_and_activates_it() {
         use crate::view::{Intent, Target};
         let (mut host, _) = host(&[("a", 'A', "a")]);
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         host.section = host.sections.iter().position(|(o, s)| *o == Owner::Host && s.id == COLOURS_SECTION.id).unwrap();
         host.focus = Pane::Nav;
         let rows = host.colours.rows();
@@ -6799,7 +6781,7 @@ pub(crate) mod tests {
     #[test]
     fn colours_are_changed_through_menus_and_saved_under_theme() {
         let (mut host, _) = host(&[("a", 'A', "a")]);
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         host.section = host
             .sections
             .iter()
@@ -6814,39 +6796,39 @@ pub(crate) mod tests {
             .iter()
             .position(|(o, _)| *o == Owner::Look)
             .unwrap();
-        press(&mut host, KeyCode::End); // off
-        press(&mut host, KeyCode::Up); // full
-        press(&mut host, KeyCode::Char(' '));
+        press(&mut host, Key::End); // off
+        press(&mut host, Key::Up); // full
+        press(&mut host, Key::Char(' '));
         assert!(host.menu.is_none(), "the card is the choice");
         assert_eq!(host.colours.cfg.motion, "full");
         assert!(host.config_text().contains("motion = \"full\""));
-        press(&mut host, KeyCode::Home); // the first pack: nerd
-        press(&mut host, KeyCode::Down); // plain: unicode
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Home); // the first pack: nerd
+        press(&mut host, Key::Down); // plain: unicode
+        press(&mut host, Key::Enter);
         assert_eq!(host.colours.cfg.icons, "unicode");
         assert!(host.config_text().contains("icons = \"unicode\""));
         host.section = colours_section;
         // The colours section starts at the depth.
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert!(host.menu.is_some(), "⏎ opens a menu");
-        press(&mut host, KeyCode::Char('j'));
-        press(&mut host, KeyCode::Enter); // second item: full colour
+        press(&mut host, Key::Char('j'));
+        press(&mut host, Key::Enter); // second item: full colour
         assert!(host.menu.is_none());
         assert_eq!(host.colours.cfg.colors, "truecolor");
-        press(&mut host, KeyCode::Char('j')); // splash
+        press(&mut host, Key::Char('j')); // splash
         assert!(!host.config_text().contains("splash"), "auto is not written");
-        press(&mut host, KeyCode::Enter);
-        press(&mut host, KeyCode::Char('j'));
-        press(&mut host, KeyCode::Enter); // second item: off
+        press(&mut host, Key::Enter);
+        press(&mut host, Key::Char('j'));
+        press(&mut host, Key::Enter); // second item: off
         assert_eq!(host.colours.cfg.splash, "off");
         assert!(host.config_text().contains("splash = \"off\""));
-        press(&mut host, KeyCode::Char('j')); // first slot: canvas
-        press(&mut host, KeyCode::Enter);
-        press(&mut host, KeyCode::Char('e'));
+        press(&mut host, Key::Char('j')); // first slot: canvas
+        press(&mut host, Key::Enter);
+        press(&mut host, Key::Char('e'));
         for c in "010203".chars() {
-            press(&mut host, KeyCode::Char(c));
+            press(&mut host, Key::Char(c));
         }
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert_eq!(
             host.colours.cfg.slots.get("bg.base").map(String::as_str),
             Some("#010203")
@@ -6857,15 +6839,15 @@ pub(crate) mod tests {
     #[test]
     fn a_plugin_menu_routes_the_choice_back_to_that_plugin() {
         let (mut host, logs) = host(&[("a", 'A', "a"), ("b", 'B', "b")]);
-        press(&mut host, KeyCode::Char('m'));
+        press(&mut host, Key::Char('m'));
         assert_eq!(host.menu.as_ref().unwrap().menu.items.len(), 2);
-        press(&mut host, KeyCode::Char('q'));
+        press(&mut host, Key::Char('q'));
         assert!(
             host.menu.is_none() && !host.quit,
             "q closes the menu, not the app"
         );
-        press(&mut host, KeyCode::Char('m'));
-        press(&mut host, KeyCode::Char('y'));
+        press(&mut host, Key::Char('m'));
+        press(&mut host, Key::Char('y'));
         assert_eq!(logs[0].lock().unwrap().bus, vec!["menu ask yes"]);
         assert!(logs[1].lock().unwrap().bus.is_empty());
     }
@@ -6893,8 +6875,8 @@ pub(crate) mod tests {
         let text = crate::headless::text_of(&host, 80, 24);
         assert!(text.contains("Fixed in **!263**, see"), "{text}");
         assert!(text.contains("- the Tests"), "{text}");
-        press(&mut host, KeyCode::Up);
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Up);
+        press(&mut host, Key::Enter);
         assert_eq!(
             logs[0].lock().unwrap().bus,
             vec!["menu ask yes"],
@@ -7063,7 +7045,7 @@ pub(crate) mod tests {
             let c = format!("{chord:?}");
             let (mut by_key, _) = open();
             let (mut by_intent, logs) = open();
-            let a = by_key.update(Event::Key(crate::view_tui::key_of(chord)));
+            let a = by_key.update(Event::Key(crate::key_compat::key_of(chord)));
             let b = by_intent.update(Event::Intent(Intent::Key { chord }));
             assert_eq!(a.len(), b.len(), "{c}: the same effects");
             assert_eq!(
@@ -7105,7 +7087,7 @@ pub(crate) mod tests {
             let (mut host, log) = writer();
             host.set_env_mode(Some((mode, "RADAR_MODE".into())));
             // An edit: approve.
-            press(&mut host, KeyCode::Char('g'));
+            press(&mut host, Key::Char('g'));
             let shown = labels(&host);
             match mode {
                 Mode::ReadOnly => assert_eq!(
@@ -7129,7 +7111,7 @@ pub(crate) mod tests {
                 Mode::Edit => assert_eq!(shown, ["as you", "yes", "no"]),
             }
             // The answer still reaches the part, which asks the mode before sending.
-            press(&mut host, KeyCode::Char('y'));
+            press(&mut host, Key::Char('y'));
             assert_eq!(
                 log.lock().unwrap().bus.last().map(String::as_str),
                 Some("menu approve yes")
@@ -7139,7 +7121,7 @@ pub(crate) mod tests {
                 mode == Mode::Edit
             );
             // An add: a note.
-            press(&mut host, KeyCode::Char('v'));
+            press(&mut host, Key::Char('v'));
             assert_eq!(
                 labels(&host)
                     .iter()
@@ -7147,9 +7129,9 @@ pub(crate) mod tests {
                 mode == Mode::ReadOnly,
                 "{mode:?}"
             );
-            press(&mut host, KeyCode::Esc);
+            press(&mut host, Key::Esc);
             // The x menu: each action is listed, muted with why while refused.
-            press(&mut host, KeyCode::Char('x'));
+            press(&mut host, Key::Char('x'));
             let rows = labels(&host);
             let muted: Vec<bool> = host
                 .menu
@@ -7185,7 +7167,7 @@ pub(crate) mod tests {
             }
             assert!(rows.iter().all(|row| !row.starts_with("mode:")));
             // Its key still opens the question.
-            press(&mut host, KeyCode::Char('g'));
+            press(&mut host, Key::Char('g'));
             assert_eq!(host.menu.as_ref().unwrap().menu.id, "approve", "{mode:?}");
         }
     }
@@ -7238,7 +7220,7 @@ pub(crate) mod tests {
             host.menu.as_ref().unwrap().menu.title,
             "what radar may change · RADAR_MODE sets it for this run"
         );
-        let fx = press(&mut host, KeyCode::Char('r'));
+        let fx = press(&mut host, Key::Char('r'));
         assert!(
             fx.iter()
                 .any(|e| matches!(e, HostEffect::Save(t) if t.contains("mode = \"read-only\""))),
@@ -7305,9 +7287,9 @@ pub(crate) mod tests {
         assert!(!text.contains("PgUp/PgDn scroll"), "{text}");
         let narrow = crate::headless::host_text_of(&host, 80, 24);
         assert!(narrow.contains("PgUp/PgDn scroll"), "{narrow}");
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert_eq!(host.menu.as_ref().unwrap().menu.id, crate::mode::MODE_MENU);
-        press(&mut host, KeyCode::Char('w'));
+        press(&mut host, Key::Char('w'));
         assert_eq!(host.mode_cfg, Mode::Write);
     }
 
@@ -7331,29 +7313,29 @@ pub(crate) mod tests {
     #[test]
     fn a_question_opens_on_yes_and_arrows_tab_and_hl_move_along_its_buttons() {
         let (mut host, log) = writer();
-        press(&mut host, KeyCode::Char('v'));
+        press(&mut host, Key::Char('v'));
         let row = |host: &Host| host.menu.as_ref().expect("the question is open").row;
         assert_eq!(row(&host), 1, "the note is skipped: y is highlighted");
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!(row(&host), 2);
-        press(&mut host, KeyCode::Char('l'));
+        press(&mut host, Key::Char('l'));
         assert_eq!(row(&host), 3);
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!(row(&host), 3, "the last button");
-        press(&mut host, KeyCode::Left);
+        press(&mut host, Key::Left);
         assert_eq!(row(&host), 2);
-        press(&mut host, KeyCode::BackTab);
+        press(&mut host, Key::BackTab);
         assert_eq!(row(&host), 1);
-        press(&mut host, KeyCode::Tab);
+        press(&mut host, Key::Tab);
         assert_eq!(row(&host), 2);
-        press(&mut host, KeyCode::Char('j'));
+        press(&mut host, Key::Char('j'));
         assert_eq!(row(&host), 3, "j/k move too");
-        press(&mut host, KeyCode::Char('h'));
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Char('h'));
+        press(&mut host, Key::Enter);
         assert_eq!(log.lock().unwrap().bus, vec!["menu note edit"]);
         // A list's items are not along a row: ←/→ leave its highlight alone.
-        press(&mut host, KeyCode::Char('n'));
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Char('n'));
+        press(&mut host, Key::Right);
         assert_eq!(row(&host), 0);
     }
 
@@ -7369,10 +7351,10 @@ pub(crate) mod tests {
         ));
         let row = |host: &Host| host.menu.as_ref().expect("open").row;
         assert_eq!(row(&host), 2);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
         assert_eq!(row(&host), 3, "the arrow moves from the named item");
-        press(&mut host, KeyCode::Up);
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Up);
+        press(&mut host, Key::Up);
         assert_eq!(row(&host), 1);
         let none = OpenMenu::open(Owner::Plugin(0), Menu::new("m", "pick", items.clone()));
         assert_eq!(none.row, 0, "no `at`: the first, as ever");
@@ -7386,13 +7368,13 @@ pub(crate) mod tests {
     #[test]
     fn a_menu_taller_than_the_screen_scrolls_to_the_highlighted_row() {
         let (mut host, logs) = host(&[("a", 'A', "a")]);
-        press(&mut host, KeyCode::Char('n'));
+        press(&mut host, Key::Char('n'));
         assert!(!crate::shell::to_text(&host, 80, 24).contains("item 39"));
         for _ in 0..40 {
-            press(&mut host, KeyCode::Down);
+            press(&mut host, Key::Down);
         }
         assert!(crate::shell::to_text(&host, 80, 24).contains("item 39"));
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert_eq!(logs[0].lock().unwrap().bus, vec!["menu long 39"]);
     }
 
@@ -7404,7 +7386,7 @@ pub(crate) mod tests {
             logs[0].lock().unwrap().inputs.is_empty(),
             "a tick is not input"
         );
-        press(&mut host, KeyCode::Char('y'));
+        press(&mut host, Key::Char('y'));
         host.update(Event::Tick(200));
         host.update(Event::Mouse {
             kind: MouseKind::Press,
@@ -7422,12 +7404,12 @@ pub(crate) mod tests {
     fn z_pauses_every_part_once_and_idle_pauses_itself_until_a_key() {
         let (mut host, _logs) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
         let t0 = host.now;
-        let z = |host: &mut Host| press(host, KeyCode::Char('z'));
+        let z = |host: &mut Host| press(host, Key::Char('z'));
         z(&mut host);
         assert_eq!(host.paused(), Some(crate::mode::Pause::Asked));
         assert_eq!(host.paused_words(), Some("paused · z resumes"));
         // Another key does not undo a pause that was asked for.
-        press(&mut host, KeyCode::Char('j'));
+        press(&mut host, Key::Char('j'));
         assert_eq!(host.paused(), Some(crate::mode::Pause::Asked));
         z(&mut host);
         assert_eq!(host.paused(), None);
@@ -7436,7 +7418,7 @@ pub(crate) mod tests {
         assert_eq!(host.paused(), None);
         host.update(Event::Tick(t0 + 30 * 60));
         assert_eq!(host.paused(), Some(crate::mode::Pause::Idle));
-        press(&mut host, KeyCode::Char('j'));
+        press(&mut host, Key::Char('j'));
         assert_eq!(host.paused(), None);
         // 0 never pauses.
         host.pause.idle_minutes = 0;
@@ -7463,12 +7445,9 @@ pub(crate) mod tests {
     #[test]
     fn ctrl_c_quits_from_anywhere() {
         let (mut host, _) = host(&[("a", 'A', "a")]);
-        press(&mut host, KeyCode::Char('m'));
+        press(&mut host, Key::Char('m'));
         assert!(host.menu.is_some());
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('c'),
-            KeyModifiers::CONTROL,
-        )));
+        host.update(crate::host::chord_event(Chord::ctrl('c')));
         assert!(host.quit);
     }
 
@@ -7514,7 +7493,7 @@ pub(crate) mod tests {
     #[test]
     fn menus_and_messages_draw_a_parts_icons_in_their_own_colour() {
         let mut host = icon_host("unicode");
-        press(&mut host, KeyCode::Char('i'));
+        press(&mut host, Key::Char('i'));
         let theme = host.build_theme(crate::design::theme::Tier::TrueColor);
         let own = |i: Icon| theme.spec(&theme.icons().get(i).style).fg;
         let bug = theme.icons().get(Icon::Bug).glyph.clone();
@@ -7560,7 +7539,7 @@ pub(crate) mod tests {
     #[test]
     fn a_keys_menu_heading_icon_leads_the_menus_title_and_items_keep_theirs() {
         let mut host = icon_host("unicode");
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let open = host.menu.as_ref().expect("the keys menu");
         assert_eq!(
             (open.menu.title.as_str(), open.menu.icon),
@@ -7580,7 +7559,7 @@ pub(crate) mod tests {
     #[test]
     fn with_icons_off_a_parts_icons_take_no_room() {
         let mut host = icon_host("off");
-        press(&mut host, KeyCode::Char('i'));
+        press(&mut host, Key::Char('i'));
         let text = crate::shell::to_text(&host, 80, 24);
         assert!(text.contains(" crash "), "{text}");
         assert!(text.contains(" WHERE"), "{text}");
@@ -7598,9 +7577,9 @@ pub(crate) mod tests {
     fn the_actions_menu_is_for_where_you_are_and_names_it() {
         let (mut host, _) = host(&[("a", 'A', "alpha")]);
         host.load_config(Some("[a]\nvalue = 0\n")).unwrap();
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         host.focus = Pane::Nav;
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let open = host.menu.as_ref().expect("a menu");
         assert_eq!(open.menu.title, "settings");
         let labels: Vec<&str> = open.menu.items.iter().map(|i| i.label.as_str()).collect();
@@ -7624,12 +7603,12 @@ pub(crate) mod tests {
     #[test]
     fn settings_nav_moves_between_sections_of_different_plugins() {
         let (mut host, logs) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         host.focus = Pane::Nav;
-        press(&mut host, KeyCode::Char('j'));
+        press(&mut host, Key::Char('j'));
         assert_eq!(host.current_section().unwrap().1.name, "beta");
-        press(&mut host, KeyCode::Enter);
-        press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Enter);
+        press(&mut host, Key::Char('+'));
         assert_eq!(logs[1].lock().unwrap().value, 1);
     }
 
@@ -7640,7 +7619,7 @@ pub(crate) mod tests {
         let bottom = |host: &Host| crate::headless::text::status(&host.chrome_view(120, 24).status);
         // On alpha's detail pane; the probe takes no ↑, so it is past the top.
         host.focus = Pane::Detail;
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Up);
         assert!(host.bar, "↑ at the top: the bar");
         assert!(
             bottom(&host).contains("←→ screens") && bottom(&host).contains("↓ enter"),
@@ -7648,35 +7627,35 @@ pub(crate) mod tests {
             bottom(&host)
         );
         // j and k do not move in the bar; ← → switch the screen as they go.
-        press(&mut host, KeyCode::Char('k'));
+        press(&mut host, Key::Char('k'));
         assert!(host.bar);
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!((host.view, host.bar), (View::Screen(1), true));
         // Beta was never visited: ↓ goes to its first pane.
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
         assert!(!host.bar);
         assert_eq!(host.focus, Pane::Nav);
         // Back up, left to alpha, ↓: the pane it had.
         host.focus = Pane::Middle;
-        press(&mut host, KeyCode::Char('k'));
+        press(&mut host, Key::Char('k'));
         assert!(host.bar);
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Char('h'));
         assert_eq!(host.view, View::Screen(0));
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert_eq!((host.bar, host.focus), (false, Pane::Detail));
         // Settings is on the bar too; up from the nav's first row gets back.
-        press(&mut host, KeyCode::Up);
-        press(&mut host, KeyCode::Right);
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Up);
+        press(&mut host, Key::Right);
+        press(&mut host, Key::Right);
         assert_eq!(host.view, View::Settings);
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert_eq!((host.bar, host.focus), (false, Pane::Nav));
         for _ in 0..12 {
-            press(&mut host, KeyCode::Up);
+            press(&mut host, Key::Up);
         }
         assert!(host.bar, "up from the nav's first row");
         // The x menu says what the bar's keys do; a screen's letter leaves it.
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let labels: Vec<String> = host
             .menu
             .as_ref()
@@ -7692,18 +7671,18 @@ pub(crate) mod tests {
             "{labels:?}"
         );
         host.menu = None;
-        press(&mut host, KeyCode::Char('A'));
+        press(&mut host, Key::Char('A'));
         assert_eq!((host.view, host.bar), (View::Screen(0), false));
     }
 
     #[test]
     fn inside_an_item_page_up_at_the_top_reaches_its_tab_row_not_the_bar() {
         let (mut host, logs) = host(&[("a", 'A', "alpha")]);
-        press(&mut host, KeyCode::Char('p'));
+        press(&mut host, Key::Char('p'));
         host.focus = Pane::Middle;
         let bottom = |host: &Host| crate::headless::text::status(&host.chrome_view(120, 24).status);
         let tab = || logs[0].lock().unwrap().tab;
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Up);
         assert_eq!(
             (host.bar, host.tabs),
             (false, true),
@@ -7715,18 +7694,18 @@ pub(crate) mod tests {
             bottom(&host)
         );
         // ← → (h l, [ ], tab) show the tab beside, wrapping; the row keeps the keys.
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!((tab(), host.tabs), (1, true));
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Char('h'));
         assert_eq!(tab(), 0);
-        press(&mut host, KeyCode::Left);
+        press(&mut host, Key::Left);
         assert_eq!(tab(), 2, "wraps");
-        press(&mut host, KeyCode::Char(']'));
+        press(&mut host, Key::Char(']'));
         assert_eq!(tab(), 0);
-        press(&mut host, KeyCode::Tab);
+        press(&mut host, Key::Tab);
         assert_eq!((tab(), host.tabs), (1, true));
         // The x menu names the tabs either side; ↓ goes back into the page.
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let labels: Vec<String> = host
             .menu
             .as_ref()
@@ -7745,31 +7724,31 @@ pub(crate) mod tests {
             "{labels:?}"
         );
         host.menu = None;
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
         assert!(!host.tabs);
         assert_eq!(host.focus, Pane::Nav, "→ lands on the tab's first pane");
         // esc on the row leaves the row, not the page.
-        press(&mut host, KeyCode::Up);
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Up);
+        press(&mut host, Key::Esc);
         assert_eq!((host.tabs, logs[0].lock().unwrap().depth), (false, 1));
     }
 
     #[test]
     fn on_an_item_page_h_l_past_the_panes_and_tab_on_one_pane_move_across_the_tabs() {
         let (mut host, logs) = host(&[("a", 'A', "alpha")]);
-        press(&mut host, KeyCode::Char('p'));
+        press(&mut host, Key::Char('p'));
         host.focus = Pane::Middle;
         let tab = || logs[0].lock().unwrap().tab;
         // The first tab has one pane: l goes to the next tab, h back.
-        press(&mut host, KeyCode::Char('l'));
+        press(&mut host, Key::Char('l'));
         assert_eq!((tab(), host.focus, host.tabs), (1, Pane::Nav, false));
-        press(&mut host, KeyCode::Left);
+        press(&mut host, Key::Left);
         assert_eq!(
             (tab(), host.focus),
             (0, Pane::Middle),
             "back, on the tab's last pane"
         );
-        press(&mut host, KeyCode::Tab);
+        press(&mut host, Key::Tab);
         assert_eq!(
             (tab(), host.focus),
             (1, Pane::Nav),
@@ -7777,27 +7756,27 @@ pub(crate) mod tests {
         );
         // A tab with two panes: tab goes round them, h and l move between
         // them and past the edge to the tabs beside.
-        press(&mut host, KeyCode::Tab);
+        press(&mut host, Key::Tab);
         assert_eq!((tab(), host.focus), (1, Pane::Middle));
-        press(&mut host, KeyCode::BackTab);
+        press(&mut host, Key::BackTab);
         assert_eq!((tab(), host.focus), (1, Pane::Nav));
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Char('h'));
         assert_eq!(
             (tab(), host.focus),
             (0, Pane::Middle),
             "past the first pane: the tab before, on its last pane"
         );
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Char('h'));
         assert_eq!(
             (tab(), host.focus),
             (2, Pane::Middle),
             "wraps to the last tab"
         );
-        press(&mut host, KeyCode::Tab);
+        press(&mut host, Key::Tab);
         assert_eq!((tab(), host.focus), (2, Pane::Nav));
-        press(&mut host, KeyCode::Char('l'));
+        press(&mut host, Key::Char('l'));
         assert_eq!((tab(), host.focus), (2, Pane::Middle));
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!(
             (tab(), host.focus),
             (0, Pane::Middle),
@@ -7812,7 +7791,7 @@ pub(crate) mod tests {
     #[test]
     fn a_click_takes_the_keys_back_from_the_bar() {
         let (mut host, _) = host(&[("a", 'A', "alpha")]);
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Up);
         assert!(host.bar);
         let _ = crate::shell::to_text(&host, 80, 24);
         host.update(Event::Mouse {
@@ -7827,7 +7806,7 @@ pub(crate) mod tests {
     #[test]
     fn plus_and_minus_fold_the_settings_navs_groups_and_the_status_line_says_so() {
         let (mut host, _) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         host.focus = Pane::Nav;
         let bottom = |host: &Host| crate::headless::text::status(&host.chrome_view(120, 24).status);
         assert!(
@@ -7837,17 +7816,17 @@ pub(crate) mod tests {
         );
         // `-` on a section folds its group, the cursor to the heading.
         let g = host.nav_at().0;
-        press(&mut host, KeyCode::Char('-'));
+        press(&mut host, Key::Char('-'));
         assert!(host.folded.contains(g));
         assert_eq!(host.nav_at(), (g, None));
-        press(&mut host, KeyCode::Char('-'));
+        press(&mut host, Key::Char('-'));
         assert!(host.folded.contains(g), "folded already: nothing");
-        press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char('+'));
         assert!(!host.folded.contains(g));
-        press(&mut host, KeyCode::Char('+'));
+        press(&mut host, Key::Char('+'));
         assert!(!host.folded.contains(g), "open already: nothing");
-        press(&mut host, KeyCode::Char('-'));
-        press(&mut host, KeyCode::Char('='));
+        press(&mut host, Key::Char('-'));
+        press(&mut host, Key::Char('='));
         assert!(!host.folded.contains(g), "`=` is `+` without shift");
         // Elsewhere, no tree with groups: no hint.
         host.focus = Pane::Detail;
@@ -7861,7 +7840,7 @@ pub(crate) mod tests {
     #[test]
     fn settings_nav_lists_general_first_and_folds_a_group() {
         let (mut host, _) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         host.focus = Pane::Nav;
         let groups: Vec<&str> = host.nav_groups().iter().map(|(g, _)| *g).collect();
         assert_eq!(groups, ["general", "a", "b"]);
@@ -7869,14 +7848,14 @@ pub(crate) mod tests {
         // Opens on the first part's section, not on general's.
         assert_eq!(host.current_section().unwrap().1.name, "alpha");
         // Up stops on the group's heading; space folds it.
-        press(&mut host, KeyCode::Char('k'));
+        press(&mut host, Key::Char('k'));
         assert_eq!(host.nav_at(), ("a", None));
-        press(&mut host, KeyCode::Char(' '));
+        press(&mut host, Key::Char(' '));
         assert!(!host.nav_rows().contains(&("a", Some(host.section))));
         // Down from the folded heading skips its sections.
-        press(&mut host, KeyCode::Char('j'));
+        press(&mut host, Key::Char('j'));
         assert_eq!(host.nav_at(), ("b", None));
-        press(&mut host, KeyCode::Char('j'));
+        press(&mut host, Key::Char('j'));
         assert_eq!(host.current_section().unwrap().1.name, "beta");
         // Going to a part's settings unfolds its group.
         host.go_to_settings_of(0);
@@ -7888,31 +7867,31 @@ pub(crate) mod tests {
         let (mut host, _) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
         assert_eq!(host.view, View::Screen(0));
         host.focus = Pane::Detail;
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!((host.view, host.focus), (View::Screen(1), Pane::Nav));
-        press(&mut host, KeyCode::Char('l'));
+        press(&mut host, Key::Char('l'));
         assert_eq!(host.focus, Pane::Middle, "inside a screen it moves panes");
         host.focus = Pane::Detail;
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!((host.view, host.focus), (View::Settings, Pane::Nav));
         // Settings navigation is an actual tree: left selects the parent,
         // then closes it, then stays at its boundary. h still changes panes.
         let group = host.nav_at().0;
-        press(&mut host, KeyCode::Left);
+        press(&mut host, Key::Left);
         assert_eq!((host.view, host.focus), (View::Settings, Pane::Nav));
         assert!(host.on_heading);
         assert!(!host.folded.contains(group));
-        press(&mut host, KeyCode::Left);
+        press(&mut host, Key::Left);
         assert!(host.folded.contains(group));
-        press(&mut host, KeyCode::Left);
+        press(&mut host, Key::Left);
         assert_eq!((host.view, host.focus), (View::Settings, Pane::Nav));
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Char('h'));
         assert_eq!((host.view, host.focus), (View::Screen(1), Pane::Detail));
         host.view = View::Settings;
         host.focus = Pane::Middle;
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!((host.view, host.focus), (View::Settings, Pane::Detail));
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!(host.view, View::Screen(0), "it wraps round");
     }
 
@@ -7921,33 +7900,33 @@ pub(crate) mod tests {
         use crate::motion::{Changes, Cue};
         let (mut host, _) = host(&[("alpha", 'A', "a"), ("beta", 'B', "b")]);
         assert!(host.take_cues().is_empty());
-        press(&mut host, KeyCode::Char('B'));
+        press(&mut host, Key::Char('B'));
         assert_eq!(host.take_cues(), [Cue::Screen]);
-        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        press(&mut host, Key::Char(SETTINGS_KEY));
         assert_eq!(host.take_cues(), [Cue::Screen], "settings is a screen too");
-        press(&mut host, KeyCode::Char('A'));
+        press(&mut host, Key::Char('A'));
         host.take_cues();
-        press(&mut host, KeyCode::Char('p'));
+        press(&mut host, Key::Char('p'));
         assert_eq!(
             host.take_cues(),
             [Cue::Page],
             "a page opened on the same screen"
         );
-        press(&mut host, KeyCode::Char('m'));
+        press(&mut host, Key::Char('m'));
         assert_eq!(host.take_cues(), [Cue::Popup]);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
         assert!(host.take_cues().is_empty(), "moving in it shows nothing");
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert!(host.take_cues().is_empty(), "closing it is instant");
         host.update(Event::Notice("copied 12 characters".into()));
         assert_eq!(host.take_cues(), [Cue::Message]);
         host.update(Event::Notice("copied 12 characters".into()));
         assert_eq!(host.take_cues(), [Cue::Message], "identical words are a new occurrence");
-        press(&mut host, KeyCode::Char('a'));
+        press(&mut host, Key::Char('a'));
         assert!(host.take_cues().is_empty(), "information remains until expiry or Escape");
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert_eq!(host.take_cues(), [Cue::MessageGone]);
-        press(&mut host, KeyCode::Char('c'));
+        press(&mut host, Key::Char('c'));
         let mut changes = Changes::default();
         changes.changed.insert("probe:1".into());
         assert_eq!(
@@ -7956,8 +7935,8 @@ pub(crate) mod tests {
             "a part's changed rows; an empty change is nothing"
         );
         for _ in 0..100 {
-            press(&mut host, KeyCode::Char('m'));
-            press(&mut host, KeyCode::Esc);
+            press(&mut host, Key::Char('m'));
+            press(&mut host, Key::Esc);
         }
         assert_eq!(
             host.take_cues().len(),

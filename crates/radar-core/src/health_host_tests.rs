@@ -8,7 +8,7 @@ use anyhow::Result;
 
 use crate::health::{Health, Mark, Source, SourceState};
 use crate::host::tests::probe;
-use crate::host::{Event, MouseKind};
+use crate::host::Event;
 use crate::plugin::{Effect, Plugin};
 use crate::view::chrome::{HealthState, targets};
 use crate::view::{Ink, Intent};
@@ -124,15 +124,13 @@ fn a_chip_opens_its_menu_and_refresh_now_asks_the_part_to_sync() {
 }
 
 #[test]
-fn ratatui_draws_the_chips_at_the_far_right_and_a_click_opens_the_menu() {
+fn the_chips_are_view_data_in_order_and_activating_one_opens_its_menu() {
     let (mut host, _) = host();
-    // Icons are off in tests: each chip is its part's name.
-    let text = crate::shell::to_text(&host, 120, 24);
-    let last = text.lines().nth(23).unwrap();
-    assert!(last.ends_with("lab 1/2 vault"), "{last:?}");
-    let x = last[..last.find("vault").unwrap()].chars().count() as u16;
-    host.update(Event::Mouse { kind: MouseKind::Press, column: x, row: 23, at_ms: 0 });
-    let open = host.menu.as_ref().expect("a click on the chip opens its menu");
+    let status = host.chrome_view(120, 24).status;
+    let names: Vec<&str> = status.health.iter().map(|c| c.label.as_str()).collect();
+    assert_eq!(names, ["lab", "vault"], "{status:?}");
+    host.update(Event::Intent(Intent::Activate { target: targets::health("vault") }));
+    let open = host.menu.as_ref().expect("activating the chip opens its menu");
     assert_eq!(open.menu.id, "radar-health:vault");
     assert_eq!(open.menu.title, "vault · signed out");
 }

@@ -109,7 +109,7 @@ fn click_hint(host: &mut Host, code: KeyCode, at_ms: u64) {
         .borrow()
         .iter()
         .find_map(|(area, hit)| {
-            matches!(hit, Hit::Key(key, _) if key.code == code).then_some(*area)
+            matches!(hit, Hit::Key(key, _) if crate::key_compat::key_of(*key).code == code).then_some(*area)
         })
         .expect("the advertised key has a click target");
     host.update(Event::Mouse {

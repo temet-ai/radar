@@ -301,7 +301,7 @@ fn top_bar(host: &Host, theme: &Theme, chrome: &ChromeView, area: Rect, buf: &mu
     }
     // The mode, at all times, at the right end; a click opens its menu.
     let mode = Span::styled(
-        format!(" {} ", bar.mode.text),
+        format!(" {} ", mode_words(&bar.mode)),
         ink_style(theme, bar.mode.ink, bar.mode.strong),
     );
     let mode_w = mode.width() as u16;
@@ -376,6 +376,18 @@ fn top_bar(host: &Host, theme: &Theme, chrome: &ChromeView, area: Rect, buf: &mu
 }
 
 /// A chrome word's style: its ink's slot, bold when strong.
+/// The mode chip's words as the terminal draws them: the pack's icon, else
+/// the symbol, then the word.
+fn mode_words(mode: &crate::view::chrome::ModeChip) -> String {
+    let lead = mode.icon.map_or_else(String::new, icon::plain);
+    let lead = if lead.is_empty() && mode.icon.is_some() {
+        if mode.icon == Some(Icon::ModeRead) { "◉ ".to_string() } else { "✎ ".to_string() }
+    } else {
+        lead
+    };
+    format!("{lead}{}", mode.text)
+}
+
 fn ink_style(theme: &Theme, ink: Ink, strong: bool) -> Style {
     let slot = crate::view_tui::slot(ink).unwrap_or(Slot::TextPrimary);
     if strong { theme.bold(slot) } else { theme.s(slot) }
@@ -1253,7 +1265,7 @@ mod tests {
                 assert!(buf[(start + 1, 0)].modifier.contains(Modifier::UNDERLINED));
                 for x in start..start + 13 {
                     assert!(host.hits.borrow().iter().any(|(rect, hit)| rect.contains(Position::new(x, 0))
-                        && matches!(hit, Hit::Key(key, _) if key.code == KeyCode::Char('x') && key.modifiers.is_empty())),
+                        && matches!(hit, Hit::Key(key, _) if key.key == crate::view::Key::Char('x') && key.bare())),
                         "the whole action word keeps its original input at width {width}, cell {x}");
                 }
             }
@@ -1294,7 +1306,7 @@ mod tests {
                         if let Some(before) = &wide { assert_eq!(&text, before); }
                         wide = Some(text.clone());
                     }
-                    let mode_w = ui::width(&format!(" {} ", chrome.top_bar.mode.text)) as u16;
+                    let mode_w = ui::width(&format!(" {} ", mode_words(&chrome.top_bar.mode))) as u16;
                     if mode_w < width {
                         for x in width - mode_w..width {
                             assert!(!matches!(host.hit_at(x, 0), Some(Hit::Tab(_) | Hit::HistoryTab)),

@@ -35,10 +35,7 @@ impl Plugin for Item {
 #[test]
 fn all_activity_is_discoverable_from_a_screen_without_plugin_actions() {
     let mut host = Host::new(vec![Box::new(Item)], 0).unwrap();
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('x'),
-        KeyModifiers::NONE,
-    )));
+    host.update(crate::host::chord_event(Chord::new(Key::Char('x'))));
     assert!(
         host.menu.as_ref().is_some_and(|menu| menu
             .menu
@@ -51,10 +48,7 @@ fn all_activity_is_discoverable_from_a_screen_without_plugin_actions() {
 #[test]
 fn selected_subject_history_is_discoverable_in_the_context_menu() {
     let mut host = Host::new(vec![Box::new(Item)], 0).unwrap();
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('x'),
-        KeyModifiers::NONE,
-    )));
+    host.update(crate::host::chord_event(Chord::new(Key::Char('x'))));
     assert!(
         host.menu.as_ref().is_some_and(|menu| menu
             .menu

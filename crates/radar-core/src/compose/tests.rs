@@ -5,7 +5,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Key};
 
 use super::*;
 use crate::host::{Event, HostEffect, Owner, View};
@@ -453,8 +453,8 @@ fn host(which: &str) -> (Host, Log) {
     (host, log)
 }
 
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::host::chord_event(Chord::new(code)))
 }
 
 fn screen_name(host: &Host) -> &'static str {
@@ -471,18 +471,18 @@ fn labels(host: &Host) -> Vec<String> {
 #[test]
 fn show_goes_to_the_owner_and_esc_comes_back() {
     let (mut host, _) = host("sn");
-    press(&mut host, KeyCode::Char('N'));
+    press(&mut host, Key::Char('N'));
     host.focus = Pane::Nav;
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('e'));
     assert_eq!(screen_name(&host), "shelf", "shown by its owner");
     assert_eq!(host.focus, Pane::Middle);
     assert_eq!(host.plugins[0].depth("main"), 1);
     // A page of the owner's own on top: esc pops it, and stays.
-    press(&mut host, KeyCode::Char('n'));
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Char('n'));
+    press(&mut host, Key::Esc);
     assert_eq!(screen_name(&host), "shelf");
     // Past the shown page: back where the show came from.
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(screen_name(&host), "notes");
     assert_eq!(host.focus, Pane::Nav, "focus as it was");
     assert!(host.back.is_empty());
@@ -491,9 +491,9 @@ fn show_goes_to_the_owner_and_esc_comes_back() {
 #[test]
 fn the_x_menu_says_where_esc_goes_back_to() {
     let (mut host, _) = host("sn");
-    press(&mut host, KeyCode::Char('N'));
-    press(&mut host, KeyCode::Char('e'));
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('N'));
+    press(&mut host, Key::Char('e'));
+    press(&mut host, Key::Char('x'));
     assert!(
         labels(&host).contains(&"back to notes".to_string()),
         "{:?}",
@@ -504,16 +504,16 @@ fn the_x_menu_says_where_esc_goes_back_to() {
 #[test]
 fn switching_screens_forgets_the_way_back() {
     let (mut host, _) = host("sn");
-    press(&mut host, KeyCode::Char('N'));
-    press(&mut host, KeyCode::Char('e'));
-    press(&mut host, KeyCode::Char('N'));
+    press(&mut host, Key::Char('N'));
+    press(&mut host, Key::Char('e'));
+    press(&mut host, Key::Char('N'));
     assert!(host.back.is_empty());
 }
 
 #[test]
 fn a_link_an_owner_recognises_is_shown_as_what_it_is() {
     let (mut host, _) = host("sn");
-    let fx = press(&mut host, KeyCode::Char('u'));
+    let fx = press(&mut host, Key::Char('u'));
     assert!(fx.is_empty(), "nothing opened in a browser: {fx:?}");
     assert_eq!(host.plugins[0].depth("main"), 1, "its page is open");
     assert_eq!(host.plugins[0].subject("main", Pane::Middle), Some(book(2)));
@@ -523,11 +523,11 @@ fn a_link_an_owner_recognises_is_shown_as_what_it_is() {
 fn with_no_owner_a_link_opens_and_anything_else_says_so() {
     let (mut host, _) = host("s");
     // A note, with no part here that owns notes.
-    let fx = press(&mut host, KeyCode::Char('t'));
+    let fx = press(&mut host, Key::Char('t'));
     assert!(fx.is_empty());
     assert_eq!(host.message.as_deref(), Some("cannot open N-1 here"));
     // A link no part recognises opens as a link.
-    let fx = press(&mut host, KeyCode::Char('v'));
+    let fx = press(&mut host, Key::Char('v'));
     assert!(
         matches!(&fx[..], [HostEffect::Open(u)] if u == "https://elsewhere.example/x"),
         "{fx:?}"
@@ -541,7 +541,7 @@ fn with_no_owner_a_link_opens_and_anything_else_says_so() {
 #[test]
 fn an_app_link_reaches_the_runner_with_its_web_link_beside_it() {
     let (mut host, _) = host("s");
-    let fx = press(&mut host, KeyCode::Char('p'));
+    let fx = press(&mut host, Key::Char('p'));
     assert!(
         matches!(&fx[..], [HostEffect::OpenApp { link, web }]
             if link == "shelf://book?id=2" && *web == format!("{BOOKS}2")),
@@ -556,26 +556,26 @@ fn a_part_not_set_up_has_a_set_up_page_and_adds_nothing() {
     let text = to_text(&host, 80, 24);
     assert!(!text.contains("N-1"), "{text}");
     assert!(!text.contains(" 7 "), "no badge either:\n{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert!(
         !labels(&host).contains(&"Notes".to_string()),
         "{:?}",
         labels(&host)
     );
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     // Showing a note does not reach it.
-    press(&mut host, KeyCode::Char('t'));
+    press(&mut host, Key::Char('t'));
     assert_eq!(host.message.as_deref(), Some("cannot open N-1 here"));
     assert!(log.lock().unwrap().is_empty());
     // Its screen: the set-up page; ⏎ goes to its settings.
-    press(&mut host, KeyCode::Char('N'));
+    press(&mut host, Key::Char('N'));
     let text = to_text(&host, 80, 24);
     assert!(text.contains("Notes is not set up yet."), "{text}");
     assert!(text.contains("Add a notebook to follow."), "{text}");
     assert!(!text.contains("PgUp"), "nothing to scroll:\n{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert_eq!(labels(&host), ["set up Notes in settings", "recent notices (this session)", "History", "recent activity (last 24 hours)", "all activity history"]);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.view, View::Settings);
     assert_eq!(host.current_section().unwrap().1.name, "notebooks");
 }
@@ -720,18 +720,18 @@ fn contributed_keys_and_menu_choices_receive_the_other_parts_relations() {
 
     // On the screen: a contributed key gets both the owner's relation
     // and the other provider's, and its effects still go through the host.
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Char('a'));
     assert_eq!(host.message.as_deref(), Some("read related done"));
 
     // A keyless row in the menu takes the same path.
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let at = labels(&host)
         .iter()
         .position(|l| l == "open related")
         .unwrap();
     assert_eq!(host.menu.as_ref().unwrap().menu.items[at].key, None);
     host.menu.as_mut().unwrap().row = at;
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.message.as_deref(), Some("open related done"));
 
     let related = vec![Subject::new("shelf", "main", "main shelf"), note("N-1")];
@@ -779,7 +779,7 @@ fn the_action_check_uses_the_related_hook_with_no_other_parts() {
 #[test]
 fn contributed_actions_sit_under_their_part_and_lose_keys_others_use() {
     let (mut host, log) = host("snb");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let rows: Vec<(String, String, bool, Option<char>)> = host
         .menu
         .as_ref()
@@ -816,16 +816,16 @@ fn contributed_actions_sit_under_their_part_and_lose_keys_others_use() {
     // Chosen from the menu: the keyless row reaches its part, with the subject.
     let at = rows.iter().position(|r| r.1 == "open N-1").unwrap();
     host.menu.as_mut().unwrap().row = at;
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(fx.is_empty());
     assert_eq!(host.message.as_deref(), Some("open done"));
     // Typed in the menu.
-    press(&mut host, KeyCode::Char('x'));
-    press(&mut host, KeyCode::Char('s'));
+    press(&mut host, Key::Char('x'));
+    press(&mut host, Key::Char('s'));
     // Pressed on the screen, when the owner does not use the key.
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Char('a'));
     // The owner's own key stays the owner's.
-    press(&mut host, KeyCode::Char('o'));
+    press(&mut host, Key::Char('o'));
     assert_eq!(
         *log.lock().unwrap(),
         [
@@ -865,10 +865,10 @@ fn an_owner_lists_the_actions_as_the_menu_keeps_them_and_a_press_does_what_the_k
         ]
     );
     // An effect that presses a key: as typed, so a's action runs.
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let at = labels(&host).iter().position(|l| l == "jump").unwrap();
     host.menu.as_mut().unwrap().row = at;
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(*log.lock().unwrap(), ["bell jump book 1", "bell announce book 1"]);
     // A chip's action, done by the part that added it, by its name.
     let fx = host.route(0, vec![Effect::Act { part: "Bell", subject: book(1), id: "ring".into() }], 0);
@@ -881,7 +881,7 @@ fn alone_a_part_shows_nothing_of_the_others() {
     let (mut host, _) = host("s");
     let text = to_text(&host, 80, 24);
     assert!(text.contains("book 1") && !text.contains('['), "{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert_eq!(labels(&host), ["open it", "recent notices (this session)", "History", "recent activity (last 24 hours)", "all activity history"]);
 }
 
@@ -927,7 +927,7 @@ fn the_parts_section_lists_each_part_and_what_it_adds() {
         .position(|(o, _)| *o == Owner::Parts)
         .unwrap();
     host.focus = Pane::Middle;
-    press(&mut host, KeyCode::Char('j'));
+    press(&mut host, Key::Char('j'));
     let text = to_text(&host, 120, 30);
     assert!(text.contains("✓ Shelf"), "{text}");
     assert!(text.contains("Notes   not set up"), "{text}");
@@ -941,7 +941,7 @@ fn the_parts_section_lists_each_part_and_what_it_adds() {
         !text.contains("note links"),
         "nothing about a kind no part here owns:\n{text}"
     );
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.current_section().unwrap().1.name, "notebooks");
 }
 

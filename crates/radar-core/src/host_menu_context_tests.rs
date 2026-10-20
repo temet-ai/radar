@@ -1,13 +1,13 @@
 //! Opted-in menu keys keep their original target without freezing other actions.
 
 use super::*;
-use crate::plugin::parse_key;
+use crate::plugin::parse_chord;
 use std::sync::{Arc, Mutex};
 
 #[derive(Default)]
 struct State {
     target: Option<String>,
-    keys: Vec<KeyEvent>,
+    keys: Vec<Chord>,
     answers: Vec<String>,
     typing: bool,
 }
@@ -70,26 +70,26 @@ impl Plugin for Probe {
             }
             return Outcome::Ignored;
         };
-        let key = crate::view_tui::key_of(*chord);
+        let key = *chord;
         let mut state = self.0.lock().unwrap();
         state.keys.push(key);
         if state.typing {
-            if key.code == KeyCode::Esc {
+            if key.key == Key::Esc {
                 state.typing = false;
             }
             return Outcome::done();
         }
-        match key.code {
-            KeyCode::Char('y') | KeyCode::Enter => {
+        match key.key {
+            Key::Char('y') | Key::Enter => {
                 Outcome::Handled(state.target.clone().into_iter().map(Effect::Copy).collect())
             }
-            KeyCode::Char('p') => Outcome::Handled(vec![Effect::Menu(Menu::confirm(
+            Key::Char('p') => Outcome::Handled(vec![Effect::Menu(Menu::confirm(
                 "captured",
                 "keep the original?",
                 "keep",
                 "leave",
             ))]),
-            KeyCode::Char('e') => {
+            Key::Char('e') => {
                 state.typing = true;
                 Outcome::done()
             }
@@ -128,7 +128,7 @@ fn fixture() -> (Host, Arc<Mutex<State>>) {
 }
 
 fn press(host: &mut Host, key: &str) -> Vec<HostEffect> {
-    host.update(Event::Key(parse_key(key).unwrap()))
+    host.update(crate::host::chord_event(parse_chord(key).unwrap()))
 }
 
 fn change(host: &mut Host, target: Option<&str>) {
@@ -138,27 +138,17 @@ fn change(host: &mut Host, target: Option<&str>) {
     });
 }
 
+fn context(host: &mut Host, id: &str) -> Vec<HostEffect> {
+    host.update(Event::Intent(crate::view::Intent::Context { target: crate::view::Target::new(id) }))
+}
+
 #[test]
 fn right_click_selects_its_row_without_activating_a_click_action() {
     let (mut host, state) = fixture();
-    host.hits.borrow_mut().push((
-        ratatui::layout::Rect::new(10, 5, 12, 1),
-        Hit::Plugin { plugin: 0, scope: "items", pane: Pane::Middle, id: "row:b".into() },
-    ));
-    assert!(host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: 12,
-        row: 5,
-        at_ms: 0,
-    }).is_empty());
+    assert!(context(&mut host, "row:b").is_empty());
     assert_eq!(host.focus, Pane::Middle);
     assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_B"));
     assert_eq!(host.menu.as_ref().unwrap().menu.id, KEYS_MENU);
-    let _ = crate::shell::to_text(&host, 80, 24);
-    let frame = host.hits.borrow().iter().find_map(|(r, h)|
-        matches!(h, Hit::MenuBox).then_some(*r)
-    ).expect("context menu frame");
-    assert_eq!((frame.x, frame.y), (12, 5));
     assert!(matches!(&press(&mut host, "y")[0], HostEffect::Copy(s) if s == "PRIVATE_TARGET_B"));
     assert_eq!(state.lock().unwrap().keys.len(), 1);
 }
@@ -166,21 +156,10 @@ fn right_click_selects_its_row_without_activating_a_click_action() {
 #[test]
 fn second_right_click_replaces_context_menu_with_clicked_rows_actions() {
     let (mut host, state) = fixture();
-    host.hits.borrow_mut().push((
-        ratatui::layout::Rect::new(10, 5, 12, 1),
-        Hit::Plugin { plugin: 0, scope: "items", pane: Pane::Middle, id: "row:b".into() },
-    ));
-    host.update(Event::Mouse { kind: MouseKind::Context, column: 12, row: 5, at_ms: 0 });
+    context(&mut host, "row:b");
     assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_B"));
-
-    host.hits.borrow_mut().extend([
-        (ratatui::layout::Rect::new(30, 8, 12, 1),
-         Hit::Plugin { plugin: 0, scope: "items", pane: Pane::Middle, id: "row:a".into() }),
-        (ratatui::layout::Rect::new(10, 5, 40, 10), Hit::MenuBox),
-    ]);
-    host.update(Event::Mouse { kind: MouseKind::Context, column: 32, row: 8, at_ms: 1 });
+    context(&mut host, "row:a");
     assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_A"));
-    assert_eq!(host.menu.as_ref().unwrap().anchor, Some(ratatui::layout::Position::new(32, 8)));
     assert!(matches!(&press(&mut host, "y")[0], HostEffect::Copy(s) if s == "PRIVATE_TARGET_A"));
     assert_eq!(state.lock().unwrap().keys.len(), 1);
 }
@@ -188,12 +167,8 @@ fn second_right_click_replaces_context_menu_with_clicked_rows_actions() {
 #[test]
 fn right_clicking_a_non_context_cell_dismisses_the_previous_context_menu() {
     let (mut host, state) = fixture();
-    host.hits.borrow_mut().push((
-        ratatui::layout::Rect::new(10, 5, 12, 1),
-        Hit::Plugin { plugin: 0, scope: "items", pane: Pane::Middle, id: "row:b".into() },
-    ));
-    host.update(Event::Mouse { kind: MouseKind::Context, column: 12, row: 5, at_ms: 0 });
-    host.update(Event::Mouse { kind: MouseKind::Context, column: 50, row: 10, at_ms: 1 });
+    context(&mut host, "row:b");
+    context(&mut host, "elsewhere");
     assert!(host.menu.is_none());
     assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_B"));
     assert!(state.lock().unwrap().keys.is_empty());
@@ -202,38 +177,9 @@ fn right_clicking_a_non_context_cell_dismisses_the_previous_context_menu() {
 #[test]
 fn right_click_on_an_action_cell_does_not_offer_another_rows_actions() {
     let (mut host, state) = fixture();
-    host.hits.borrow_mut().push((
-        ratatui::layout::Rect::new(10, 5, 12, 1),
-        Hit::Plugin { plugin: 0, scope: "items", pane: Pane::Middle, id: "open:b".into() },
-    ));
-    assert!(host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: 12,
-        row: 5,
-        at_ms: 0,
-    }).is_empty());
+    assert!(context(&mut host, "open:b").is_empty());
     assert!(host.menu.is_none());
     assert_eq!(state.lock().unwrap().target.as_deref(), Some("PRIVATE_TARGET_A"));
-}
-
-#[test]
-fn right_click_menu_stays_inside_the_terminal_at_the_bottom_right() {
-    let (mut host, _) = fixture();
-    host.hits.borrow_mut().push((
-        ratatui::layout::Rect::new(78, 22, 2, 1),
-        Hit::Plugin { plugin: 0, scope: "items", pane: Pane::Middle, id: "row:b".into() },
-    ));
-    host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: 79,
-        row: 22,
-        at_ms: 0,
-    });
-    let _ = crate::shell::to_text(&host, 80, 24);
-    let frame = host.hits.borrow().iter().find_map(|(r, h)|
-        matches!(h, Hit::MenuBox).then_some(*r)
-    ).expect("context menu frame");
-    assert!(frame.right() <= 80 && frame.bottom() <= 23, "{frame:?}");
 }
 
 #[test]
@@ -292,7 +238,7 @@ fn unguarded_refresh_direct_keys_and_plugin_prompts_keep_their_own_semantics() {
     press(&mut host, "x");
     change(&mut host, Some("PRIVATE_TARGET_B"));
     press(&mut host, "r");
-    assert_eq!(state.lock().unwrap().keys, [parse_key("r").unwrap()]);
+    assert_eq!(state.lock().unwrap().keys, [parse_chord("r").unwrap()]);
     assert!(matches!(&press(&mut host, "y")[0], HostEffect::Copy(s) if s == "PRIVATE_TARGET_B"));
     press(&mut host, "p");
     change(&mut host, None);

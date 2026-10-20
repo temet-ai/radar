@@ -1,12 +1,12 @@
 //! Modifier bindings must remain discoverable without borrowing a plain key.
 
 use super::*;
-use crate::plugin::{Outcome, parse_key};
+use crate::plugin::{Outcome, parse_chord};
 use std::sync::{Arc, Mutex};
 
 #[derive(Default)]
 struct State {
-    keys: Vec<KeyEvent>,
+    keys: Vec<Chord>,
     typing: bool,
 }
 
@@ -52,13 +52,13 @@ impl Plugin for Recovery {
     }
     fn intent(&mut self, _: &str, _: Pane, intent: &crate::view::Intent) -> Outcome {
         let crate::view::Intent::Key { chord } = intent else { return Outcome::Ignored };
-        let key = crate::view_tui::key_of(*chord);
+        let key = *chord;
         let mut state = self.0.lock().unwrap();
         state.keys.push(key);
-        if key.code == KeyCode::Esc {
+        if key.key == Key::Esc {
             state.typing = false;
         }
-        if key.code == KeyCode::Char('e') {
+        if key.key == Key::Char('e') {
             state.typing = true;
         }
         Outcome::done()
@@ -73,21 +73,21 @@ fn fixture() -> (Host, Arc<Mutex<State>>) {
 }
 
 fn press(host: &mut Host, keys: &str) {
-    host.update(Event::Key(parse_key(keys).unwrap()));
+    host.update(crate::host::chord_event(parse_chord(keys).unwrap()));
 }
 
 #[test]
 fn control_bindings_parse_as_one_complete_key() {
     assert_eq!(
-        parse_key("ctrl-r"),
-        Some(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL))
+        parse_chord("ctrl-r"),
+        Some(Chord::ctrl('r'))
     );
     assert_eq!(
-        parse_key("r"),
-        Some(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE))
+        parse_chord("r"),
+        Some(Chord::new(Key::Char('r')))
     );
     for invalid in ["ctrl-", "ctrl-rr", "ctrl-ctrl-r", "is:review"] {
-        assert_eq!(parse_key(invalid), None, "{invalid}");
+        assert_eq!(parse_chord(invalid), None, "{invalid}");
     }
 }
 
@@ -107,7 +107,7 @@ fn recovery_menu_row_is_visible_and_enter_keeps_its_modifier() {
     assert!(host.menu.is_none());
     assert_eq!(
         state.lock().unwrap().keys,
-        vec![parse_key("ctrl-r").unwrap()]
+        vec![parse_chord("ctrl-r").unwrap()]
     );
 }
 
@@ -121,7 +121,7 @@ fn menu_accelerators_distinguish_control_from_plain_refresh() {
     }
     assert_eq!(
         state.lock().unwrap().keys,
-        ["r", "ctrl-r", "r"].map(|key| parse_key(key).unwrap())
+        ["r", "ctrl-r", "r"].map(|key| parse_chord(key).unwrap())
     );
 }
 
@@ -129,18 +129,12 @@ fn menu_accelerators_distinguish_control_from_plain_refresh() {
 fn combined_modifiers_do_not_borrow_bindings_and_shifted_letters_still_work() {
     let (mut host, state) = fixture();
     press(&mut host, "x");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('r'),
-        KeyModifiers::CONTROL | KeyModifiers::ALT,
-    )));
+    host.update(crate::host::chord_event(Chord { alt: true, ..Chord::ctrl('r') }));
     assert!(host.menu.is_some());
     assert!(state.lock().unwrap().keys.is_empty());
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('Y'),
-        KeyModifiers::SHIFT,
-    )));
+    host.update(crate::host::chord_event(Chord::char('Y')));
     assert!(host.menu.is_none());
-    assert_eq!(state.lock().unwrap().keys, vec![parse_key("Y").unwrap()]);
+    assert_eq!(state.lock().unwrap().keys, vec![parse_chord("Y").unwrap()]);
 }
 
 #[test]
@@ -175,7 +169,7 @@ fn dismissing_reopening_and_clicking_recovery_dispatches_only_once() {
     });
     assert_eq!(
         state.lock().unwrap().keys,
-        vec![parse_key("ctrl-r").unwrap()]
+        vec![parse_chord("ctrl-r").unwrap()]
     );
 }
 
@@ -188,13 +182,8 @@ fn control_shortcuts_do_not_alias_confirmation_choices_or_escape_the_editor() {
     ));
     press(&mut host, "ctrl-y");
     assert!(host.menu.is_some(), "Ctrl-Y is not confirmation by Y");
-    for modifier in [
-        KeyModifiers::ALT,
-        KeyModifiers::SUPER,
-        KeyModifiers::HYPER,
-        KeyModifiers::META,
-    ] {
-        host.update(Event::Key(KeyEvent::new(KeyCode::Char('y'), modifier)));
+    for modifier in [Chord { alt: true, ..Chord::char('y') }] {
+        host.update(crate::host::chord_event(modifier));
         assert!(
             host.menu.is_some(),
             "{modifier:?}-Y is not plain Y confirmation"

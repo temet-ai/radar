@@ -235,7 +235,7 @@ fn full_height_is_host_state_kept_for_the_run_and_a_drag_gives_the_column_back()
 }
 
 fn key(host: &mut Host, c: char) {
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE)));
+    host.update(crate::host::chord_event(Chord::new(Key::Char(c))));
 }
 
 fn shown(host: &Host) -> Option<Box<DockView>> {
@@ -318,12 +318,12 @@ fn on_settings_every_change_to_the_dock_is_sent_to_the_renderer() {
         capabilities: Capabilities { columns: 100, rows: 30, mouse: true, true_colour: true, image: ImageProtocol::None, plain_text: false },
     });
     sent(&mut bridge);
-    bridge.update(Event::Key(KeyEvent::new(KeyCode::Char(SETTINGS_KEY), KeyModifiers::NONE)));
+    bridge.update(crate::host::chord_event(Chord::new(Key::Char(SETTINGS_KEY))));
     let on_settings = sent(&mut bridge);
     assert!(on_settings.last().is_some_and(|s| s.section.is_some() && s.screen.is_none()));
     let dock_sent = |snaps: &[crate::ipc::Snapshot]| snaps.last().and_then(|s| s.dock.clone());
 
-    bridge.update(Event::Key(KeyEvent::new(KeyCode::Char(dock::KEY), KeyModifiers::NONE)));
+    bridge.update(crate::host::chord_event(Chord::new(Key::Char(dock::KEY))));
     let d = dock_sent(&sent(&mut bridge)).expect("the key's show is sent");
     assert!(d.visible && d.focused);
 
@@ -336,7 +336,7 @@ fn on_settings_every_change_to_the_dock_is_sent_to_the_renderer() {
     let d = dock_sent(&sent(&mut bridge)).expect("esc's blur is sent");
     assert!(d.visible && !d.focused, "the keys are Settings' again");
 
-    bridge.update(Event::Key(KeyEvent::new(KeyCode::Char(dock::KEY), KeyModifiers::NONE)));
+    bridge.update(crate::host::chord_event(Chord::new(Key::Char(dock::KEY))));
     let d = dock_sent(&sent(&mut bridge)).expect("the key's focus is sent");
     assert!(d.visible && d.focused);
     bridge.update(Event::Intent(Intent::Dock(DockIntent::Hide)));

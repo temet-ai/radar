@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use super::*;
 use crate::health::{Health, Mark as HealthMark, Source};
-use crate::host::{Event, Hit, MouseKind};
+use crate::host::Event;
 use crate::plugin::{Outcome, Plugin, SectionSpec};
 use crate::view::{Intent, Key};
 
@@ -145,12 +145,12 @@ fn first_run() -> (Host, Arc<Mutex<Vec<String>>>) {
     let (mut host, seen) = fixture();
     host.load_config(None).unwrap();
     assert_eq!(at(&host), At::Welcome, "a first run opens on the welcome");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     (host, seen)
 }
 
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::host::chord_event(Chord::new(code)))
 }
 
 fn at(host: &Host) -> At {
@@ -263,7 +263,7 @@ fn a_first_run_opens_setup_at_the_scan_with_no_rail_and_no_settings_nav() {
 #[test]
 fn yes_looks_ticks_what_it_found_and_each_tick_is_one_step_in_order() {
     let (mut host, _) = first_run();
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     let asks = fx
         .iter()
         .find_map(|e| match e {
@@ -299,14 +299,14 @@ fn yes_looks_ticks_what_it_found_and_each_tick_is_one_step_in_order() {
     let hints = host.chrome_view(160, 40).status.hints;
     assert_eq!(hints[0].label, "start here");
     // ⏎ on Shelves starts there; it is the only tick.
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Step(0));
     assert_eq!((host.current_section().unwrap().0, section_id(&host)), (Owner::Plugin(0), "connection"));
     // esc skips just this step; then the mode, chosen with ⏎; then ready.
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(at(&host), At::Step(1));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Ready);
     let card = words(&host.setup_section_view().unwrap());
     assert_eq!(card[0], "SETUP");
@@ -314,7 +314,7 @@ fn yes_looks_ticks_what_it_found_and_each_tick_is_one_step_in_order() {
     assert!(card.contains(&"SAVED IN  config.toml".to_string()), "{card:?}");
     assert!(card.iter().any(|w| w.contains("yes, show me around")));
     // Leaving saves as Settings does, and shows the first screen.
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(host.setup.is_none());
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Save(_))));
     assert_eq!(host.panes(), vec![Pane::Nav, Pane::Middle, Pane::Detail]);
@@ -323,7 +323,7 @@ fn yes_looks_ticks_what_it_found_and_each_tick_is_one_step_in_order() {
 #[test]
 fn no_looks_for_nothing_and_back_walks_the_screens_backwards() {
     let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(at(&host), At::Choose);
     assert_eq!(host.setup.as_ref().unwrap().scan, Scan::Declined);
     let ticks = |host: &Host| host.setup.as_ref().unwrap().choices.iter().map(|c| c.ticked).collect::<Vec<_>>();
@@ -331,33 +331,33 @@ fn no_looks_for_nothing_and_back_walks_the_screens_backwards() {
     // A scan answering anyway (it was never asked for) changes nothing.
     host.update(Event::Scanned(shelf_found()));
     assert_eq!(ticks(&host), [false; 4]);
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Char('a'));
     assert_eq!(ticks(&host), [true; 4]);
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     assert_eq!(ticks(&host), [false; 4]);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char(' '));
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Char(' '));
     assert_eq!(ticks(&host), [false, false, true, false]);
-    press(&mut host, KeyCode::Char(' '));
+    press(&mut host, Key::Char(' '));
     // ⏎ on the unticked row ticks it and goes to its step, the only one.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Step(0));
     assert_eq!(ticks(&host), [false, false, true, false]);
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Choose);
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Scan);
     // Before the scan, the welcome; nothing before that.
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Welcome);
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Welcome);
     // The scan is asked again (a no is not kept); esc on the chooser is
     // "not now": setup ends.
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Esc);
-    let fx = press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Esc);
+    let fx = press(&mut host, Key::Esc);
     assert!(host.setup.is_none());
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Save(_))));
 }
@@ -366,20 +366,20 @@ fn no_looks_for_nothing_and_back_walks_the_screens_backwards() {
 fn on_a_section_step_the_section_has_its_keys_and_setup_keeps_enter_esc_and_left() {
     let (mut host, seen) = first_run();
     host.open_setup(Some("shelves")).unwrap();
-    press(&mut host, KeyCode::Char('j'));
+    press(&mut host, Key::Char('j'));
     assert_eq!(seen.lock().unwrap().last().unwrap(), "connection select token");
     // space is the section's; where it does nothing there, it is the row's ⏎.
-    press(&mut host, KeyCode::Char(' '));
+    press(&mut host, Key::Char(' '));
     assert_eq!(seen.lock().unwrap()[1..], ["connection space ignored".to_string(), "connection enter".to_string()]);
     // No pane, tab, screen or history key leaves the card.
-    for code in [KeyCode::Tab, KeyCode::Char('h'), KeyCode::Char('l'), KeyCode::Right, KeyCode::Char('1'), KeyCode::Char(',')] {
+    for code in [Key::Tab, Key::Char('h'), Key::Char('l'), Key::Right, Key::Char('1'), Key::Char(',')] {
         press(&mut host, code);
         assert_eq!((host.focus, at(&host)), (Pane::Middle, At::Step(0)), "{code:?}");
     }
-    press(&mut host, KeyCode::Char('H'));
+    press(&mut host, Key::Char('H'));
     assert!(host.history.is_none());
     // ⏎ is setup's: on to ready, as the step was opened alone.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Ready);
     assert_eq!(seen.lock().unwrap().len(), 3, "⏎ never reached the section");
 }
@@ -387,20 +387,20 @@ fn on_a_section_step_the_section_has_its_keys_and_setup_keeps_enter_esc_and_left
 #[test]
 fn back_from_a_step_goes_to_the_one_before_then_the_chooser() {
     let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Char('a'));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Char('a'));
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Step(2));
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Step(1));
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Step(0));
     // Local code has no part offering it here: the host's own card.
     assert!(host.setup_host_step());
     assert_eq!(host.setup_section_view().unwrap().scope, "setup.local");
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Choose);
 }
 
@@ -417,9 +417,9 @@ fn radar_setup_with_a_parts_step_opens_there_alone_without_the_scan() {
     assert_eq!((host.current_section().unwrap().0, section_id(&host)), (Owner::Plugin(0), "connection"));
     let chrome = host.chrome_view(160, 40).setup.unwrap();
     assert_eq!((chrome.title.as_str(), chrome.step.as_deref()), ("Shelves", Some("step 1 of 1")));
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Step(0), "nothing before a step opened alone");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Ready);
 }
 
@@ -439,21 +439,21 @@ fn an_unknown_step_is_refused_with_every_step_named() {
 #[test]
 fn enter_on_a_chooser_row_ticks_it_and_goes_to_its_step() {
     let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     // Local code ticked, then down to Chat, not ticked.
-    press(&mut host, KeyCode::Char(' '));
+    press(&mut host, Key::Char(' '));
     for _ in 0..2 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     assert!(!host.setup.as_ref().unwrap().choices[2].ticked);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let setup = host.setup.as_ref().unwrap();
     assert!(setup.choices[2].ticked);
     let chat = setup.plan.len() - 2; // the mode comes after it
     assert_eq!(at(&host), At::Step(chat), "Chat's step, not the first");
     assert_eq!(host.chrome_view(160, 40).setup.unwrap().title, "Chat");
     // The steps before it are still there, back with ←.
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Step(chat - 1));
 }
 
@@ -468,7 +468,7 @@ fn quitting_during_setup_opens_it_again_at_the_next_start_and_leaving_it_does_no
     // Left (finished or later): not again.
     let mut setup = again;
     setup.open_setup(Some("look")).unwrap();
-    press(&mut setup, KeyCode::Char('f'));
+    press(&mut setup, Key::Char('f'));
     assert!(!setup.config_text().contains("unfinished"));
     let (mut next, _) = fixture();
     next.load_config(Some(&setup.config_text())).unwrap();
@@ -479,7 +479,7 @@ fn quitting_during_setup_opens_it_again_at_the_next_start_and_leaving_it_does_no
 fn finish_later_keeps_the_answers_and_says_where_setup_paused() {
     let (mut host, _) = fixture();
     host.open_setup(Some("look")).unwrap();
-    let fx = press(&mut host, KeyCode::Char('f'));
+    let fx = press(&mut host, Key::Char('f'));
     assert!(host.setup.is_none());
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Save(_))), "{fx:?}");
     let chrome = host.chrome_view(160, 40);
@@ -508,9 +508,9 @@ fn a_sections_enter_help_says_space_on_a_setup_step() {
 fn each_new_step_of_setup_fades_and_sweeps_in() {
     let (mut host, _) = first_run();
     host.take_cues();
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     assert_eq!(host.take_cues(), [], "moving on a step is not a new step");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.take_cues(), [crate::motion::Cue::Screen, crate::motion::Cue::Page]);
 }
 
@@ -523,16 +523,16 @@ fn the_look_step_chooses_icons_theme_and_motion_at_once() {
         assert!(card.iter().any(|l| l.contains(words)), "{words} in {card:#?}");
     }
     // The cursor starts on the first icon pack; down twice is emoji.
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char(' '));
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Char(' '));
     assert_eq!(host.colours.cfg.icons, "emoji");
     // A click on a motion row chooses it.
     let n = host.look_rows().iter().position(|r| *r == LookRow::Motion(Level::Off)).unwrap();
     host.update(Event::Intent(Intent::Activate { target: Target::new(format!("{PREFIX}look:{n}")) }));
     assert_eq!(host.colours.cfg.motion, "off");
     assert!(host.chrome_view(160, 40).status.hints.iter().any(|h| h.label == "choose"));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(at(&host), At::Ready);
 }
 
@@ -560,11 +560,11 @@ fn settings_look_section_chooses_motion_and_says_what_each_level_shows() {
     }
     // Space or ⏎ on a row chooses it, and the file says so.
     for (n, level) in in_order {
-        press(&mut host, KeyCode::Home);
+        press(&mut host, Key::Home);
         for _ in 0..n {
-            press(&mut host, KeyCode::Down);
+            press(&mut host, Key::Down);
         }
-        press(&mut host, if n % 2 == 0 { KeyCode::Char(' ') } else { KeyCode::Enter });
+        press(&mut host, if n % 2 == 0 { Key::Char(' ') } else { Key::Enter });
         assert_eq!(host.colours.cfg.motion, level.word());
         assert!(host.menu.is_none());
     }
@@ -601,11 +601,11 @@ fn shown(host: &Host) -> String {
 #[test]
 fn the_chooser_and_a_parts_step_as_view_text() {
     let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     host.update(Event::Scanned(shelf_found()));
     insta::assert_snapshot!("choose", shown(&host));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Enter);
     insta::assert_snapshot!("part_step", shown(&host));
 }
 
@@ -613,27 +613,25 @@ fn the_chooser_and_a_parts_step_as_view_text() {
 fn the_scan_the_mode_and_ready_as_view_text() {
     let (mut host, _) = first_run();
     insta::assert_snapshot!("scan", shown(&host));
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Enter);
     insta::assert_snapshot!("mode", shown(&host));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     insta::assert_snapshot!("ready", shown(&host));
 }
 
 #[test]
 fn a_click_ticks_a_chooser_row() {
     let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Esc);
-    screen(&host, 160, 40);
-    let area_of = |host: &Host, want: &dyn Fn(&Hit) -> bool| {
-        host.hits.borrow().iter().rev().find(|(_, h)| want(h)).map(|(r, _)| *r).expect("drawn")
+    press(&mut host, Key::Esc);
+    let tick = |host: &mut Host| {
+        host.update(Event::Intent(crate::view::Intent::Activate { target: crate::view::Target::new("setup:choose:2") }));
     };
-    let r = area_of(&host, &|h| matches!(h, Hit::Setup(id) if id == "setup:choose:2"));
-    host.update(Event::Mouse { kind: MouseKind::Press, column: r.x + 2, row: r.y, at_ms: 0 });
+    tick(&mut host);
     assert!(host.setup.as_ref().unwrap().choices[2].ticked);
-    host.update(Event::Mouse { kind: MouseKind::Press, column: r.x + 2, row: r.y, at_ms: 100 });
-    assert!(!host.setup.as_ref().unwrap().choices[2].ticked, "each click ticks, never a double click's ⏎");
+    tick(&mut host);
+    assert!(!host.setup.as_ref().unwrap().choices[2].ticked, "each activation ticks, never a double click's ⏎");
     assert_eq!(at(&host), At::Choose);
 }
 
@@ -666,14 +664,14 @@ fn the_welcome_says_what_radar_and_setup_are_before_anything_is_asked() {
     assert!(card[0].contains("yes, let's set it up") && card[1].contains("not now"), "{card:#?}");
     assert_eq!(view.detail_title, "about radar");
     // Nothing is looked for from here: ⏎ goes to the question.
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(!fx.iter().any(|e| matches!(e, HostEffect::Scan(_))));
     assert_eq!(at(&host), At::Scan);
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(at(&host), At::Welcome);
     // Not now: setup ends and saves.
-    press(&mut host, KeyCode::Down);
-    let fx = press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down);
+    let fx = press(&mut host, Key::Enter);
     assert!(host.setup.is_none());
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Save(_))));
 }
@@ -681,23 +679,23 @@ fn the_welcome_says_what_radar_and_setup_are_before_anything_is_asked() {
 #[test]
 fn every_setup_ends_with_the_mode_and_the_user_chooses_it() {
     let (mut host, _) = first_run();
-    press(&mut host, KeyCode::Esc); // no look for keys
-    press(&mut host, KeyCode::Enter); // ⏎ on local code
+    press(&mut host, Key::Esc); // no look for keys
+    press(&mut host, Key::Enter); // ⏎ on local code
     let setup = host.setup.as_ref().unwrap();
     assert_eq!(setup.plan.last(), Some(&Step::Mode), "the mode is always the last step");
     let last = setup.plan.len() - 1;
     for _ in 0..last {
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
     }
     assert_eq!(at(&host), At::Step(last));
     assert_eq!(host.chrome_view(160, 40).setup.unwrap().heading, "What may radar send?");
     let card = words(&host.setup_section_view().unwrap());
     assert!(card.iter().all(|w| !w.starts_with('●')), "nothing chosen yet: {card:?}");
     // esc does not skip it.
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(at(&host), At::Step(last));
     // ⏎ chooses the row under the cursor (read only, the first) and goes on.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.mode(), crate::writes::Mode::ReadOnly);
     assert_eq!(at(&host), At::Ready);
     assert!(host.config_text().contains("mode = \"read-only\""), "{}", host.config_text());

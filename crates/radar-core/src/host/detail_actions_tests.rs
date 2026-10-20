@@ -156,7 +156,7 @@ mod unit {
 
 mod contract {
     use super::*;
-    use crate::host::{Event, Hit, MouseKind, View};
+    use crate::host::{Event, View};
     use crate::plugin::{Effect, Menu, Msg, Outcome, Plugin, ScreenSpec};
     use std::sync::{Arc, Mutex};
 
@@ -357,7 +357,7 @@ mod contract {
     }
 
     fn press(host: &mut Host, key: &str) {
-        host.update(Event::Key(crate::plugin::parse_key(key).unwrap()));
+        host.update(crate::host::chord_event(crate::plugin::parse_chord(key).unwrap()));
     }
 
     #[test]
@@ -385,27 +385,9 @@ mod contract {
         );
         assert_eq!(host.focus, Pane::Detail);
         assert!(!host.bar && !host.sources && !host.tabs);
-        let _ = crate::shell::to_text(&host, 160, 40);
-        let (rect, hit) = host
-            .hits
-            .borrow()
-            .iter()
-            .find(|(_, hit)| {
-                matches!(hit,
-            Hit::Plugin { id, .. } if id == first.as_str())
-            })
-            .cloned()
-            .expect("real native control hit");
-        host.last_press = Some((hit, 99));
-        for at_ms in [100, 101] {
-            let out = host.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column: rect.x,
-                row: rect.y,
-                at_ms,
-            });
+        for _ in 0..2 {
+            let out = activate(&mut host, &first);
             assert!(matches!(out.as_slice(), [HostEffect::Copy(value)] if value == "Vimes"));
-            assert!(host.last_press.is_none());
         }
         let count = held.lock().unwrap().seen.len();
         assert_eq!(count, 3);
@@ -430,15 +412,6 @@ mod contract {
         ] {
             assert!(host.update(Event::Intent(intent)).is_empty());
         }
-        assert!(
-            host.update(Event::Mouse {
-                kind: MouseKind::Context,
-                column: rect.x,
-                row: rect.y,
-                at_ms: 102
-            })
-            .is_empty()
-        );
         assert_eq!(held.lock().unwrap().seen.len(), count);
         let live = host.displayed_screen(160, 40).unwrap();
         assert_eq!(crate::headless::foot_controls(&live).len(), 2);

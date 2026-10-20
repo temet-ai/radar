@@ -59,8 +59,8 @@ fn fixture(menu: Menu, typing: Option<Typing>) -> (Host, MenuLog) {
     (host, log)
 }
 
-fn press(host: &mut Host, code: KeyCode) {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+fn press(host: &mut Host, code: Key) {
+    host.update(crate::host::chord_event(Chord::new(code)));
 }
 
 fn draw(host: &Host, size: (u16, u16)) -> String {
@@ -146,9 +146,9 @@ fn page_to_edge(host: &mut Host, size: (u16, u16), down: bool) -> String {
         press(
             host,
             if down {
-                KeyCode::PageDown
+                Key::PageDown
             } else {
-                KeyCode::PageUp
+                Key::PageUp
             },
         );
         screen = draw(host, size);
@@ -159,7 +159,7 @@ fn page_to_edge(host: &mut Host, size: (u16, u16), down: bool) -> String {
 fn all_pages(host: &mut Host, size: (u16, u16)) -> String {
     let mut screens = page_to_edge(host, size, false);
     for _ in 0..pages_left(host, true) {
-        press(host, KeyCode::PageDown);
+        press(host, Key::PageDown);
         screens.push('\n');
         screens.push_str(&draw(host, size));
     }
@@ -246,7 +246,7 @@ fn every_confirmation_viewport_contains_consecutive_observation_rows() {
                 "observations occupy consecutive screen rows"
             );
             if page < pages {
-                press(&mut host, KeyCode::PageDown);
+                press(&mut host, Key::PageDown);
             }
         }
         assert!(log.lock().unwrap().is_empty());
@@ -285,7 +285,7 @@ fn assert_modal_hits_inside(host: &Host, size: (u16, u16)) {
 
 #[test]
 fn long_questions_open_at_the_first_note_and_keep_choices_pinned_while_reading() {
-    for (size, answer) in [((80, 24), KeyCode::Enter), ((160, 40), KeyCode::Char('y'))] {
+    for (size, answer) in [((80, 24), Key::Enter), ((160, 40), Key::Char('y'))] {
         let (mut host, log) = fixture(long_question(), None);
         let original = open(&host).menu.clone();
         let selected = open(&host).row;
@@ -330,7 +330,7 @@ fn long_questions_open_at_the_first_note_and_keep_choices_pinned_while_reading()
 
 #[test]
 fn reading_a_narrow_question_preserves_an_explicit_no_default_and_accelerators() {
-    for answer in [KeyCode::Enter, KeyCode::Char('y')] {
+    for answer in [Key::Enter, Key::Char('y')] {
         let (mut host, log) = fixture(long_question().at("no"), None);
         let size = (34, 10);
         let screen = draw(&host, size);
@@ -341,7 +341,7 @@ fn reading_a_narrow_question_preserves_an_explicit_no_default_and_accelerators()
         assert!(!item_rects(&host, selected - 1).is_empty());
         wheel(&mut host, true);
         let _ = draw(&host, size);
-        press(&mut host, KeyCode::PageDown);
+        press(&mut host, Key::PageDown);
         let _ = draw(&host, size);
         assert!(open(&host).viewport.at.get() > 0);
         assert_eq!(open(&host).row, selected);
@@ -351,7 +351,7 @@ fn reading_a_narrow_question_preserves_an_explicit_no_default_and_accelerators()
         assert_choice(
             &log,
             "review",
-            if answer == KeyCode::Enter {
+            if answer == Key::Enter {
                 "no"
             } else {
                 "yes"
@@ -369,12 +369,12 @@ fn overflow_exposes_scroll_keys_and_a_scrollbar_on_its_first_render() {
         screen.contains('█'),
         "overflow needs a visible scrollbar thumb\n{screen}"
     );
-    for code in [KeyCode::PageUp, KeyCode::PageDown] {
+    for code in [Key::PageUp, Key::PageDown] {
         assert!(
             host.hits
                 .borrow()
                 .iter()
-                .any(|(_, hit)| { matches!(hit, Hit::Key(key, _) if key.code == code) }),
+                .any(|(_, hit)| { matches!(hit, Hit::Key(key, _) if key.key == code) }),
             "{code:?} is advertised and clickable on the first frame"
         );
     }
@@ -407,7 +407,7 @@ fn wrapped_label_and_hint_continuations_choose_the_original_item() {
             if at.is_some() {
                 break;
             }
-            press(&mut host, KeyCode::PageDown);
+            press(&mut host, Key::PageDown);
             screen = draw(&host, size);
             at = text_position(&screen, needle);
         }
@@ -458,13 +458,13 @@ fn ordinary_menu_paging_changes_reading_position_without_changing_selection() {
     let size = (34, 10);
     let _ = draw(&host, size);
     let selected = open(&host).row;
-    press(&mut host, KeyCode::PageDown);
+    press(&mut host, Key::PageDown);
     let screen = draw(&host, size);
     assert!(open(&host).viewport.at.get() > 0, "{screen}");
     assert_eq!(open(&host).row, selected);
     assert_eq!(open(&host).menu, menu);
     assert!(log.lock().unwrap().is_empty());
-    press(&mut host, KeyCode::PageUp);
+    press(&mut host, Key::PageUp);
     let _ = draw(&host, size);
     assert_eq!(open(&host).viewport.at.get(), 0);
     wheel(&mut host, true);
@@ -474,7 +474,7 @@ fn ordinary_menu_paging_changes_reading_position_without_changing_selection() {
     wheel(&mut host, false);
     let _ = draw(&host, size);
     assert_eq!(open(&host).viewport.at.get(), 0);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_choice(&log, "pick", "value-00");
 }
 
@@ -556,7 +556,7 @@ fn typed_menu_paging_keeps_the_field_offers_and_normal_editing() {
     let _ = draw(&host, size);
     let original = open(&host).menu.items.clone();
     let cursor = open(&host).input.as_ref().unwrap().cursor();
-    press(&mut host, KeyCode::PageDown);
+    press(&mut host, Key::PageDown);
     let screen = draw(&host, size);
     assert!(
         screen.contains("kept text"),
@@ -568,20 +568,17 @@ fn typed_menu_paging_keeps_the_field_offers_and_normal_editing() {
     assert_eq!(open(&host).input.as_ref().unwrap().cursor(), cursor);
     assert_eq!(open(&host).menu.items, original);
     assert!(log.lock().unwrap().is_empty());
-    press(&mut host, KeyCode::PageUp);
+    press(&mut host, Key::PageUp);
     let _ = draw(&host, size);
     assert_eq!(open(&host).viewport.at.get(), 0);
 
-    press(&mut host, KeyCode::Left);
-    press(&mut host, KeyCode::Char('!'));
+    press(&mut host, Key::Left);
+    press(&mut host, Key::Char('!'));
     assert_eq!(open(&host).input.as_ref().unwrap().value(), "kept tex!t");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(crate::host::chord_event(Chord::ctrl('u')));
     assert_eq!(open(&host).input.as_ref().unwrap().value(), "t");
     let _ = draw(&host, size);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_choice(&log, "name", "t");
 }
 
@@ -604,7 +601,7 @@ fn long_refusal_reasons_are_readable_without_losing_the_typed_value() {
         );
     }
     assert_eq!(open(&host).refused.as_deref(), Some(reason.as_str()));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(open(&host).input.as_ref().unwrap().value(), "kept text");
     assert!(log.lock().unwrap().is_empty());
 }
@@ -682,15 +679,15 @@ fn tiny_terminals_do_not_expose_hidden_actions_and_escape_still_closes() {
                     .iter()
                     .any(|(_, h)| matches!(h, Hit::MenuItem(_)))
             );
-            press(&mut host, KeyCode::Enter);
+            press(&mut host, Key::Enter);
             assert!(host.menu.is_some(), "a hidden choice must not be submitted");
             if open(&host).input.is_none() {
-                press(&mut host, KeyCode::Char('y'));
-                press(&mut host, KeyCode::Char('a'));
+                press(&mut host, Key::Char('y'));
+                press(&mut host, Key::Char('a'));
             }
             assert!(host.menu.is_some());
             assert!(log.lock().unwrap().is_empty());
-            press(&mut host, KeyCode::Esc);
+            press(&mut host, Key::Esc);
             assert!(host.menu.is_none());
         }
     }
@@ -712,10 +709,7 @@ fn paging_and_wheeling_a_write_confirmation_emit_no_effects_and_keep_edit_select
     assert!(open(&host).viewport.more());
 
     assert!(
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::PageDown,
-            KeyModifiers::NONE,
-        )))
+        host.update(crate::host::chord_event(Chord::new(Key::PageDown)))
         .is_empty(),
         "paging only changes the reading position"
     );
@@ -741,7 +735,7 @@ fn paging_and_wheeling_a_write_confirmation_emit_no_effects_and_keep_edit_select
     assert_eq!(open(&host).menu, menu);
     assert!(log.lock().unwrap().is_empty());
 
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.menu.is_none());
     assert_choice(&log, "review", "edit");
 }

@@ -157,20 +157,14 @@ fn fixture() -> (Host, Arc<Mutex<State>>, Arc<Mutex<State>>) {
     .unwrap();
     (host, watch, guild)
 }
-fn key(host: &mut Host, code: KeyCode) {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+fn key(host: &mut Host, code: Key) {
+    host.update(crate::host::chord_event(Chord::new(code)));
 }
 fn open(host: &mut Host) {
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('p'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(crate::host::chord_event(Chord::ctrl('p')));
 }
 fn query(host: &mut Host, text: &str) {
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::CONTROL,
-    )));
+    host.update(crate::host::chord_event(Chord::ctrl('u')));
     host.update(Event::Paste(text.into()));
 }
 
@@ -192,10 +186,10 @@ fn palette_search_is_inert_arrows_preserve_query_and_enter_routes_once() {
         view.palette.as_ref().unwrap().highlights[0],
         vec![0, 1, 2, 3, 4]
     );
-    key(&mut host, KeyCode::Down);
-    key(&mut host, KeyCode::Up);
+    key(&mut host, Key::Down);
+    key(&mut host, Key::Up);
     assert_eq!(host.menu_view().unwrap().typed.as_deref(), Some("guild"));
-    key(&mut host, KeyCode::Enter);
+    key(&mut host, Key::Enter);
     assert!(host.menu.is_none());
     assert_eq!(host.view, View::Screen(1));
     assert_eq!(guild.lock().unwrap().shown.len(), 1);
@@ -233,9 +227,9 @@ fn palette_cancel_empty_results_and_capture_preserve_underlying_state() {
         open(&mut host);
         query(&mut host, "no such cached item");
         assert!(host.menu_view().unwrap().items.is_empty());
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         assert!(host.menu.is_some());
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         assert!(host.palette.is_none());
         assert_eq!(
             (host.view, host.focus, host.bar, host.sources, host.tabs),
@@ -270,7 +264,7 @@ fn palette_actions_keep_freshness_and_confirmation_for_keyboard_and_intents() {
     open(&mut host);
     query(&mut host, "copy selected");
     watch.lock().unwrap().token = "watch-2".into();
-    key(&mut host, KeyCode::Enter);
+    key(&mut host, Key::Enter);
     assert_eq!(watch.lock().unwrap().actions, 1);
     assert!(
         host.message
@@ -285,7 +279,7 @@ fn palette_actions_keep_freshness_and_confirmation_for_keyboard_and_intents() {
     host.update(Event::Intent(crate::view::Intent::Activate { target }));
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "change");
     assert!(watch.lock().unwrap().answers.is_empty());
-    key(&mut host, KeyCode::Char('y'));
+    key(&mut host, Key::Char('y'));
     assert_eq!(watch.lock().unwrap().answers, ["yes"]);
 }
 
@@ -303,10 +297,7 @@ fn palette_revalidates_scoped_destinations_without_browser_fallback() {
         "same subject id at different sites stays distinct"
     );
     watch.lock().unwrap().targets.remove(0);
-    let effects = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
-    )));
+    let effects = host.update(crate::host::chord_event(Chord::new(Key::Enter)));
     assert!(watch.lock().unwrap().shown.is_empty());
     assert!(
         effects.is_empty(),
@@ -335,7 +326,7 @@ fn palette_discovery_prioritizes_actions_then_session_visits_and_bounds_results(
         .filter(|item| item.hint == "watch" || item.hint == "guild")
         .collect();
     assert_eq!(places[0].label, "Guild ledger");
-    key(&mut host, KeyCode::Esc);
+    key(&mut host, Key::Esc);
     watch.lock().unwrap().targets = (0..300)
         .map(|n| Subject::new("watch", n.to_string(), format!("report {n}")))
         .collect();
@@ -344,7 +335,7 @@ fn palette_discovery_prioritizes_actions_then_session_visits_and_bounds_results(
     let view = host.menu_view().unwrap();
     assert_eq!(view.items.len(), crate::view::chrome::MOST);
     assert_eq!(view.palette.unwrap().matched, 300);
-    key(&mut host, KeyCode::Up);
+    key(&mut host, Key::Up);
     assert_eq!(
         host.menu.as_ref().unwrap().row,
         crate::view::chrome::MOST - 1
@@ -352,7 +343,7 @@ fn palette_discovery_prioritizes_actions_then_session_visits_and_bounds_results(
 }
 
 #[test]
-fn palette_suspends_history_and_outside_click_restores_it() {
+fn palette_suspends_history_and_closing_it_restores_it() {
     let (mut host, _, _) = fixture();
     host.open_recent_history();
     let id = host.history_request;
@@ -363,16 +354,11 @@ fn palette_suspends_history_and_outside_click_restores_it() {
         id,
         result: Err(crate::history::ReadError::Unavailable),
     });
-    key(&mut host, KeyCode::Esc);
+    key(&mut host, Key::Esc);
     assert!(host.history.is_some());
     assert!(host.history.as_ref().unwrap().view(80, 24).error.is_some());
     open(&mut host);
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: 0,
-        row: 0,
-        at_ms: 0,
-    });
+    key(&mut host, Key::Esc);
     assert!(host.history.is_some());
     assert!(host.palette.is_none());
     assert!(host.menu.is_none());
@@ -405,7 +391,7 @@ fn background_question_replaces_palette_without_rewriting_its_choices() {
             .collect::<Vec<_>>(),
         ["yes", "no"]
     );
-    key(&mut host, KeyCode::Char('y'));
+    key(&mut host, Key::Char('y'));
     assert_eq!(watch.lock().unwrap().answers, ["yes"]);
 }
 
@@ -454,7 +440,7 @@ fn palette_normalizes_stale_panes_and_background_typed_menu_keeps_its_input() {
     host.last_pane.insert(View::Screen(1), Pane::Nav);
     open(&mut host);
     query(&mut host, "guild / guild");
-    key(&mut host, KeyCode::Enter);
+    key(&mut host, Key::Enter);
     assert_eq!(host.view, View::Screen(1));
     assert_eq!(host.focus, Pane::Middle);
     open(&mut host);
@@ -502,7 +488,7 @@ fn palette_stale_clicks_and_invocations_cannot_answer_a_new_question() {
         "queued palette clicks cannot confirm"
     );
     assert_eq!(host.menu.as_ref().unwrap().menu.id, "change");
-    key(&mut host, KeyCode::Esc);
+    key(&mut host, Key::Esc);
     open(&mut host);
     query(&mut host, "ask before");
     host.update(Event::Intent(click));
@@ -524,7 +510,7 @@ fn palette_stale_clicks_and_invocations_cannot_answer_a_new_question() {
         0,
         "a changed result list cannot reinterpret an old row"
     );
-    key(&mut host, KeyCode::Esc);
+    key(&mut host, Key::Esc);
     host.dock.focused = true;
     open(&mut host);
     assert!(
@@ -534,74 +520,12 @@ fn palette_stale_clicks_and_invocations_cannot_answer_a_new_question() {
 }
 
 #[test]
-fn palette_raw_mouse_double_press_cannot_reuse_old_hits_for_confirmation() {
-    // Opt-in artifacts use this same real host checkpoint; ordinary checks never write.
-    if let Some(out) = std::env::var_os("RADAR_PALETTE_ARTIFACTS") {
-        let out = std::path::PathBuf::from(out);
-        std::fs::create_dir_all(&out).unwrap();
-        for (width, height) in [(80, 24), (160, 40)] {
-            for (scene, search) in [("discovery", ""), ("search", "watch")] {
-                let (mut picture, _, _) = fixture();
-                open(&mut picture);
-                if !search.is_empty() {
-                    query(&mut picture, search);
-                }
-                let name = format!("palette-{scene}-{width}x{height}");
-                std::fs::write(
-                    out.join(format!("{name}.svg")),
-                    crate::shell::to_svg(&picture, width, height),
-                )
-                .unwrap();
-                std::fs::write(
-                    out.join(format!("{name}.txt")),
-                    crate::shell::to_text(&picture, width, height),
-                )
-                .unwrap();
-                let bridge = crate::ipc::Bridge::new(picture, width, height);
-                std::fs::write(
-                    out.join(format!("{name}.json")),
-                    serde_json::to_vec_pretty(&bridge.snapshot_now(0)).unwrap(),
-                )
-                .unwrap();
-            }
-        }
-    }
-    let (mut host, watch, _) = fixture();
-    open(&mut host);
-    query(&mut host, "ask before");
-    let _ = crate::shell::to_text(&host, 80, 24);
-    let rect = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(rect, hit)| matches!(hit, Hit::MenuItem(0)).then_some(*rect))
-        .expect("rendered palette action hit");
-    let press = |at_ms| Event::Mouse {
-        kind: MouseKind::Press,
-        column: rect.x,
-        row: rect.y,
-        at_ms,
-    };
-    host.update(press(1));
-    assert_eq!(host.menu.as_ref().unwrap().menu.id, "change");
-    assert!(
-        host.hits.borrow().is_empty(),
-        "old rendered palette hits are invalidated"
-    );
-    host.update(press(2));
-    assert!(
-        watch.lock().unwrap().answers.is_empty(),
-        "second raw click cannot confirm a different menu"
-    );
-}
-
-#[test]
 fn palette_rejects_account_scope_change_even_when_the_subject_is_unchanged() {
     let (mut host, watch, _) = fixture();
     open(&mut host);
     query(&mut host, "Watch report");
     watch.lock().unwrap().identity_scope = "another account".into();
-    key(&mut host, KeyCode::Enter);
+    key(&mut host, Key::Enter);
     assert!(watch.lock().unwrap().shown.is_empty());
     assert!(
         host.message
@@ -628,7 +552,7 @@ fn palette_footer_click_cannot_confirm_the_next_question() {
     host.menu.as_mut().unwrap().row = row;
     let target = host
         .chrome_target_of(&Hit::Key(
-            KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+            Chord::new(Key::Enter),
             1,
         ))
         .unwrap();

@@ -35,8 +35,8 @@ pub(super) struct State {
     route: (View, Pane, bool, bool, bool),
 }
 
-pub(super) fn shortcut(key: KeyEvent) -> bool {
-    key.code == KeyCode::Char('p') && key.modifiers == KeyModifiers::CONTROL
+pub(super) fn shortcut(key: Chord) -> bool {
+    key.key == Key::Char('p') && key.ctrl && !key.alt
 }
 
 impl Host {
@@ -222,18 +222,18 @@ impl Host {
         self.cancel_menu_trace(true);
     }
 
-    pub(super) fn palette_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
-        if key.code == KeyCode::Esc || shortcut(key) {
+    pub(super) fn palette_key(&mut self, key: Chord) -> Vec<HostEffect> {
+        if key.key == Key::Esc || shortcut(key) {
             self.cancel_palette();
             return vec![];
         }
         let Some(open) = self.menu.as_mut() else {
             return vec![];
         };
-        match key.code {
-            KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab => {
+        match key.key {
+            Key::Up | Key::Down | Key::Tab | Key::BackTab => {
                 if !open.menu.items.is_empty() {
-                    let forward = matches!(key.code, KeyCode::Down | KeyCode::Tab);
+                    let forward = matches!(key.key, Key::Down | Key::Tab);
                     let n = open.menu.items.len();
                     open.row = if open.row >= n {
                         0
@@ -245,7 +245,7 @@ impl Host {
                 }
                 return vec![];
             }
-            KeyCode::Enter => return self.choose_palette(),
+            Key::Enter => return self.choose_palette(),
             _ => {}
         }
         if let Some(input) = open.input.as_mut() {
@@ -289,7 +289,7 @@ impl Host {
                 open.menu.typed = None;
                 open.input = None;
                 open.menu.items[open.row].value = original_value;
-                self.menu_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+                self.menu_key(Chord::new(Key::Enter))
             }
             Destination::Subject(p, subject) => {
                 let current = self.ready(p)

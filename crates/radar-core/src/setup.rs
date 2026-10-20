@@ -20,7 +20,7 @@
 
 use std::path::{Component, Path};
 
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Key};
 
 use crate::design::help_bar::KeyHint;
 use crate::host::{Host, HostEffect, Owner, View};
@@ -589,17 +589,17 @@ impl Host {
 
     /// A key while setup shows, before the host's own keys: `Some` when
     /// setup took it, `None` to let the host and the section have it.
-    pub(crate) fn setup_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
+    pub(crate) fn setup_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
         let setup = self.setup.as_ref()?;
-        if !key.modifiers.difference(KeyModifiers::SHIFT).is_empty() {
+        if !key.plain() {
             return None;
         }
         let at = setup.at;
         // Never the panes, the tabs, history or another screen: setup has
         // one place for the keys.
-        let elsewhere = match key.code {
-            KeyCode::Tab | KeyCode::BackTab | KeyCode::Right => true,
-            KeyCode::Char(c) => {
+        let elsewhere = match key.key {
+            Key::Tab | Key::BackTab | Key::Right => true,
+            Key::Char(c) => {
                 matches!(c, 'h' | 'l' | 'b' | 'z' | 'w' | crate::host::SETTINGS_KEY | crate::host::HISTORY_KEY)
                     || c.is_ascii_digit()
                     || c == crate::dock::KEY
@@ -614,18 +614,18 @@ impl Host {
             return self.setup_section_key(key);
         }
         let look = self.on_look().then(|| self.look_rows().len());
-        if look.is_some() && key.code == KeyCode::Char(' ') {
+        if look.is_some() && key.key == Key::Char(' ') {
             let row = self.setup.as_ref()?.row;
             self.look_choose(row);
             return Some(vec![]);
         }
         let mode = self.on_mode().then_some(crate::writes::Mode::ALL.len());
-        if mode.is_some() && matches!(key.code, KeyCode::Char(' ') | KeyCode::Enter) {
+        if mode.is_some() && matches!(key.key, Key::Char(' ') | Key::Enter) {
             let row = self.setup.as_ref()?.row;
             let chosen = self.setup.as_ref()?.mode.is_some();
             self.mode_choose(row);
             // ⏎ goes on once a mode is chosen (choosing it now if none was).
-            if key.code == KeyCode::Enter && (chosen || self.setup.as_ref()?.mode.is_some()) {
+            if key.key == Key::Enter && (chosen || self.setup.as_ref()?.mode.is_some()) {
                 self.advance(Mark::Done);
             }
             return Some(vec![]);
@@ -638,33 +638,33 @@ impl Host {
             At::Choose => setup.choices.len(),
             At::Step(_) => look.unwrap_or(0),
         };
-        match key.code {
-            KeyCode::Char('q') => return None,
-            KeyCode::Up | KeyCode::Char('k') => setup.row = setup.row.saturating_sub(1),
-            KeyCode::Down | KeyCode::Char('j') => setup.row = (setup.row + 1).min(rows.saturating_sub(1)),
-            KeyCode::Home | KeyCode::Char('g') => setup.row = 0,
-            KeyCode::End | KeyCode::Char('G') => setup.row = rows.saturating_sub(1),
-            KeyCode::Char(' ') if choosing => {
+        match key.key {
+            Key::Char('q') => return None,
+            Key::Up | Key::Char('k') => setup.row = setup.row.saturating_sub(1),
+            Key::Down | Key::Char('j') => setup.row = (setup.row + 1).min(rows.saturating_sub(1)),
+            Key::Home | Key::Char('g') => setup.row = 0,
+            Key::End | Key::Char('G') => setup.row = rows.saturating_sub(1),
+            Key::Char(' ') if choosing => {
                 let row = setup.row;
                 if let Some(c) = setup.choices.get_mut(row) {
                     c.ticked = !c.ticked;
                     setup.touched = true;
                 }
             }
-            KeyCode::Char(c @ ('a' | 'n')) if choosing => {
+            Key::Char(c @ ('a' | 'n')) if choosing => {
                 for choice in &mut setup.choices {
                     choice.ticked = c == 'a';
                 }
                 setup.touched = true;
             }
-            KeyCode::Left => self.setup_back(),
-            KeyCode::Enter => return Some(self.setup_enter()),
-            KeyCode::Esc => return Some(self.setup_esc()),
-            KeyCode::Char('f') if matches!(at, At::Step(_)) => return Some(self.finish_later()),
-            KeyCode::Char('y') if matches!(at, At::Scan | At::Ready) => {
+            Key::Left => self.setup_back(),
+            Key::Enter => return Some(self.setup_enter()),
+            Key::Esc => return Some(self.setup_esc()),
+            Key::Char('f') if matches!(at, At::Step(_)) => return Some(self.finish_later()),
+            Key::Char('y') if matches!(at, At::Scan | At::Ready) => {
                 return Some(vec![HostEffect::Copy("radar setup".into())]);
             }
-            KeyCode::PageUp | KeyCode::PageDown => return None,
+            Key::PageUp | Key::PageDown => return None,
             _ => {}
         }
         Some(vec![])
@@ -673,18 +673,18 @@ impl Host {
     /// A key on a step that is a settings section: `⏎` goes on, `esc`
     /// skips, `←` goes back, `space` chooses (the section's own space, else
     /// its `⏎`); everything else is the section's, then `f` finishes later.
-    fn setup_section_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
-        match key.code {
-            KeyCode::Char('q' | 'x' | '?') | KeyCode::PageUp | KeyCode::PageDown => return None,
-            KeyCode::Enter => {
+    fn setup_section_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        match key.key {
+            Key::Char('q' | 'x' | '?') | Key::PageUp | Key::PageDown => return None,
+            Key::Enter => {
                 self.advance(Mark::Done);
                 return Some(vec![]);
             }
-            KeyCode::Esc => {
+            Key::Esc => {
                 self.advance(Mark::Skipped);
                 return Some(vec![]);
             }
-            KeyCode::Left => {
+            Key::Left => {
                 self.setup_back();
                 return Some(vec![]);
             }
@@ -693,11 +693,11 @@ impl Host {
         if let Some(fx) = self.setup_section_takes(key) {
             return Some(fx);
         }
-        if key.code == KeyCode::Char(' ') {
-            let enter = KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE);
+        if key.key == Key::Char(' ') {
+            let enter = Chord::new(Key::Enter);
             return Some(self.setup_section_takes(enter).unwrap_or_default());
         }
-        if key.code == KeyCode::Char('f') {
+        if key.key == Key::Char('f') {
             return Some(self.finish_later());
         }
         Some(vec![])
@@ -705,7 +705,7 @@ impl Host {
 
     /// A key for the section the step is: the colours' rows, or the part's.
     /// `None` when it did not take it.
-    pub(crate) fn setup_section_takes(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
+    pub(crate) fn setup_section_takes(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
         match self.current_section()? {
             (Owner::Host, _) => self.colours_take(key).then(Vec::new),
             (Owner::Plugin(_), _) => self.deliver(key),
@@ -1083,14 +1083,14 @@ impl Host {
     }
 
     /// A key on Settings' look section: move, or choose (space, ⏎).
-    pub(crate) fn look_settings_key(&mut self, key: KeyEvent) -> bool {
+    pub(crate) fn look_settings_key(&mut self, key: Chord) -> bool {
         let n = self.look_rows().len();
-        match key.code {
-            KeyCode::Up | KeyCode::Char('k') => self.look_row = self.look_row.saturating_sub(1),
-            KeyCode::Down | KeyCode::Char('j') => self.look_row = (self.look_row + 1).min(n.saturating_sub(1)),
-            KeyCode::Home | KeyCode::Char('g') => self.look_row = 0,
-            KeyCode::End | KeyCode::Char('G') => self.look_row = n.saturating_sub(1),
-            KeyCode::Enter | KeyCode::Char(' ') => self.look_choose(self.look_row),
+        match key.key {
+            Key::Up | Key::Char('k') => self.look_row = self.look_row.saturating_sub(1),
+            Key::Down | Key::Char('j') => self.look_row = (self.look_row + 1).min(n.saturating_sub(1)),
+            Key::Home | Key::Char('g') => self.look_row = 0,
+            Key::End | Key::Char('G') => self.look_row = n.saturating_sub(1),
+            Key::Enter | Key::Char(' ') => self.look_choose(self.look_row),
             _ => return false,
         }
         true

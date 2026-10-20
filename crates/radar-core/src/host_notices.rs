@@ -133,32 +133,32 @@ impl Host {
             }
         }
     }
-    pub(super) fn notice_history_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+    pub(super) fn notice_history_key(&mut self, key: Chord) -> Vec<HostEffect> {
+        if key.ctrl && key.key == Key::Char('c') {
             self.quit = true;
             return vec![];
         }
-        match key.code {
-            KeyCode::Esc | KeyCode::Char('~') => {
+        match key.key {
+            Key::Esc | Key::Char('~') => {
                 self.notice_history = None;
                 self.clear_notice_hits();
             }
-            KeyCode::Char('H') => return self.open_recent_history(),
-            KeyCode::Down | KeyCode::Char('j') => {
+            Key::Char('H') => return self.open_recent_history(),
+            Key::Down | Key::Char('j') => {
                 if let Some(s) = &self.notice_history {
                     self.select_notice_history(s.selected.saturating_add(1));
                 }
             }
-            KeyCode::Up | KeyCode::Char('k') => {
+            Key::Up | Key::Char('k') => {
                 if let Some(s) = &self.notice_history {
                     self.select_notice_history(s.selected.saturating_sub(1));
                 }
             }
-            KeyCode::Home | KeyCode::Char('g') => self.select_notice_history(0),
-            KeyCode::End | KeyCode::Char('G') => {
+            Key::Home | Key::Char('g') => self.select_notice_history(0),
+            Key::End | Key::Char('G') => {
                 self.select_notice_history(self.notices.len().saturating_sub(1))
             }
-            KeyCode::PageDown => {
+            Key::PageDown => {
                 if let Some(s) = &mut self.notice_history {
                     s.detail_scroll = s
                         .detail_scroll
@@ -166,7 +166,7 @@ impl Host {
                         .min(crate::notices::TEXT_LIMIT);
                 }
             }
-            KeyCode::PageUp => {
+            Key::PageUp => {
                 if let Some(s) = &mut self.notice_history {
                     s.detail_scroll = s.detail_scroll.saturating_sub(5);
                 }
@@ -183,7 +183,7 @@ impl Host {
         match self.chrome_hit(target) {
             Some(Hit::NoticeHistoryKey(key)) if activate => {
                 // Ink already sent its captured watermark. Never clear unseen newer errors here.
-                if key.code == KeyCode::Esc && !self.notice_input_supported {
+                if key.key == Key::Esc && !self.notice_input_supported {
                     self.notice_input(true);
                 }
                 return self.notice_history_key(key);
@@ -206,27 +206,27 @@ impl Host {
         }
         vec![]
     }
-    pub(crate) fn notice_history_key_target(key: KeyEvent) -> Option<crate::view::Target> {
-        let name = match key.code {
-            KeyCode::Esc => "close",
-            KeyCode::Down | KeyCode::Char('j') => "older",
-            KeyCode::Up | KeyCode::Char('k') => "newer",
-            KeyCode::PageUp => "details_up",
-            KeyCode::PageDown => "details_down",
+    pub(crate) fn notice_history_key_target(key: Chord) -> Option<crate::view::Target> {
+        let name = match key.key {
+            Key::Esc => "close",
+            Key::Down | Key::Char('j') => "older",
+            Key::Up | Key::Char('k') => "newer",
+            Key::PageUp => "details_up",
+            Key::PageDown => "details_down",
             _ => return None,
         };
         Some(crate::view::Target::new(format!("chrome:notices:{name}")))
     }
-    pub(super) fn notice_history_target_key(name: &str) -> Option<KeyEvent> {
+    pub(super) fn notice_history_target_key(name: &str) -> Option<Chord> {
         let code = match name {
-            "close" => KeyCode::Esc,
-            "older" => KeyCode::Down,
-            "newer" => KeyCode::Up,
-            "details_up" => KeyCode::PageUp,
-            "details_down" => KeyCode::PageDown,
+            "close" => Key::Esc,
+            "older" => Key::Down,
+            "newer" => Key::Up,
+            "details_up" => Key::PageUp,
+            "details_down" => Key::PageDown,
             _ => return None,
         };
-        Some(KeyEvent::new(code, KeyModifiers::NONE))
+        Some(Chord::new(code))
     }
     /// Presentation-only input bypasses the action journal. Physical keys keep their ordinary route.
     pub(super) fn update_notices(&mut self, event: &Event) -> Option<Vec<HostEffect>> {
@@ -249,19 +249,12 @@ impl Host {
                 self.sync_message_compat();
                 return Some(vec![]);
             }
-            Event::Key(key) => self.notice_input(key.code == KeyCode::Esc),
             Event::Intent(Intent::Key { chord }) if !self.notice_input_supported => {
                 self.notice_input(chord.key == crate::view::Key::Esc)
             }
             _ => {}
         }
         let opens = match input {
-            Event::Key(key) => {
-                key.code == KeyCode::Char('~')
-                    && !key
-                        .modifiers
-                        .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT)
-            }
             Event::Intent(Intent::Key { chord }) => {
                 chord.key == crate::view::Key::Char('~') && !chord.ctrl && !chord.alt
             }
@@ -273,9 +266,8 @@ impl Host {
         }
         self.notice_history.as_ref()?;
         match input {
-            Event::Key(key) => Some(self.notice_history_key(*key)),
             Event::Intent(Intent::Key { chord }) => {
-                Some(self.notice_history_key(crate::view_tui::key_of(*chord)))
+                Some(self.notice_history_key(*chord))
             }
             Event::Intent(intent @ (Intent::Activate { target } | Intent::Select { target })) => {
                 Some(self.notice_history_target(target, matches!(intent, Intent::Activate { .. })))
@@ -291,7 +283,7 @@ impl Host {
                             }
                         }
                         Some(Hit::NoticeHistoryKey(key)) => {
-                            if key.code == KeyCode::Esc {
+                            if key.key == Key::Esc {
                                 self.notice_input(true);
                             }
                             return Some(self.notice_history_key(key));
@@ -304,14 +296,11 @@ impl Host {
                         _ => {}
                     }
                 } else if matches!(kind, MouseKind::ScrollUp | MouseKind::ScrollDown) {
-                    return Some(self.notice_history_key(KeyEvent::new(
-                        if *kind == MouseKind::ScrollUp {
-                            KeyCode::Up
+                    return Some(self.notice_history_key(Chord::new(if *kind == MouseKind::ScrollUp {
+                            Key::Up
                         } else {
-                            KeyCode::Down
-                        },
-                        KeyModifiers::NONE,
-                    )));
+                            Key::Down
+                        })));
                 }
                 Some(vec![])
             }
@@ -334,8 +323,8 @@ mod tests {
         let (plugin, log) = crate::host::tests::probe("watch", 'W', "watch");
         (Host::new(vec![plugin], 0).unwrap(), log)
     }
-    fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-        host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+        host.update(crate::host::chord_event(Chord::new(code)))
     }
     #[test]
     fn every_effect_occurrence_is_retained_without_recording_raw_text() {
@@ -368,18 +357,18 @@ mod tests {
         let (mut host, _) = probe();
         host.notify("first".into());
         host.notify("second".into());
-        assert!(press(&mut host, KeyCode::Char('~')).is_empty());
+        assert!(press(&mut host, Key::Char('~')).is_empty());
         let chrome = host.chrome_view(80, 24);
         assert_eq!(chrome.notice_history.unwrap().entries.len(), 2);
         assert!(chrome.history.is_none());
         assert!(!chrome.notices_visible);
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert!(host.notice_history.is_none());
         assert!(!host.notices.has_active());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         assert_eq!(host.notices.len(), 2);
         assert!(
-            press(&mut host, KeyCode::Char('H'))
+            press(&mut host, Key::Char('H'))
                 .iter()
                 .any(|e| matches!(e, HostEffect::History(_)))
         );
@@ -390,7 +379,7 @@ mod tests {
     fn history_status_clicks_and_topbar_navigation_match_their_keys() {
         let (mut host, log) = probe();
         host.notify("notice details".repeat(20).into());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         let page = host
             .chrome_view(80, 24)
             .status
@@ -404,7 +393,7 @@ mod tests {
         assert_eq!(host.notice_history.as_ref().unwrap().detail_scroll, 5);
         host.hits.borrow_mut().push((
             ratatui::layout::Rect::new(1, 1, 5, 1),
-            Hit::NoticeHistoryKey(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)),
+            Hit::NoticeHistoryKey(Chord::new(Key::Esc)),
         ));
         host.update(Event::Mouse {
             kind: MouseKind::Press,
@@ -414,7 +403,7 @@ mod tests {
         });
         assert!(host.notice_history.is_none());
         assert!(!host.notices.has_active());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         host.update(Event::Intent(Intent::Activate {
             target: crate::view::chrome::targets::settings_tab(),
         }));
@@ -427,7 +416,7 @@ mod tests {
         for click in [false, true] {
             let (mut host, _) = probe();
             host.notify_error("seen error");
-            press(&mut host, KeyCode::Char('~'));
+            press(&mut host, Key::Char('~'));
             let through_id = host.notices.through_id();
             host.notify_error("newer unseen error");
             let unseen_id = host.notices.through_id();
@@ -461,7 +450,7 @@ mod tests {
     fn history_selection_stays_on_its_occurrence_until_evicted() {
         let (mut host, _) = probe();
         host.notify("reading this notice".into());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         host.notice_history.as_mut().unwrap().detail_scroll = 5;
         host.notify("new arrival".into());
         let selected = host.notice_history.as_ref().unwrap();
@@ -481,29 +470,29 @@ mod tests {
     fn notice_route_respects_editor_menu_and_dock_ownership() {
         let (mut host, log) = probe();
         log.lock().unwrap().typing = true;
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         assert!(host.notice_history.is_none());
         log.lock().unwrap().typing = false;
         log.lock().unwrap().overlay = true;
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         assert!(host.notice_history.is_none());
         log.lock().unwrap().overlay = false;
         host.menu = Some(OpenMenu::open(
             Owner::Host,
             Menu::confirm("confirm", "proceed?", "yes", "no"),
         ));
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         assert!(host.notice_history.is_none());
         host.menu = None;
         host.dock.focused = true;
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         assert!(host.notice_history.is_none());
     }
     #[test]
     fn stale_history_hint_targets_never_choose_a_replacement_confirmation() {
         let (mut host, log) = probe();
         host.notify("notice".into());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         let targets: Vec<_> = host
             .chrome_view(80, 24)
             .status
@@ -541,16 +530,16 @@ mod tests {
     fn background_questions_and_editors_replace_inert_notice_history() {
         let (mut host, log) = probe();
         host.notify("notice".into());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         host.update(Event::Msg {
             plugin: 0,
             msg: Box::new("question"),
         });
         assert!(host.notice_history.is_none());
         assert!(host.menu.as_ref().is_some_and(|open| open.menu.question));
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert!(host.menu.is_none());
-        press(&mut host, KeyCode::Char('~'));
+        press(&mut host, Key::Char('~'));
         log.lock().unwrap().typing = true;
         host.update(Event::Tick(1));
         assert!(host.notice_history.is_none());
@@ -581,7 +570,7 @@ mod tests {
         let area = ratatui::layout::Rect::new(2, 2, 20, 1);
         host.hits.borrow_mut().push((
             area,
-            Hit::Key(KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE), 0),
+            Hit::Key(Chord::new(Key::Char('a')), 0),
         ));
         host.hits.borrow_mut().push((area, Hit::Notice(id)));
         host.update(Event::Mouse {

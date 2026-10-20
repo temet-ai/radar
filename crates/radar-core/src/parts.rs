@@ -3,7 +3,7 @@
 //! user sees what turning one on would bring.
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use crate::view::{Chord, Key};
 use ratatui::layout::Rect;
 use ratatui::text::{Line, Span};
 
@@ -16,15 +16,15 @@ use crate::widgets;
 
 impl Host {
     /// A key in the parts section: move, go to a part's settings, back out.
-    pub(crate) fn parts_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
+    pub(crate) fn parts_key(&mut self, key: Chord) -> Vec<HostEffect> {
         let n = self.plugins.len();
-        if let Some(down) = widgets::vertical(&key) {
+        if let Some(down) = key.vertical() {
             self.parts_row = widgets::step(self.parts_row, n, down);
             return vec![];
         }
-        match key.code {
-            KeyCode::Enter if self.parts_row < n => self.go_to_settings_of(self.parts_row),
-            KeyCode::Esc => self.focus = Pane::Nav,
+        match key.key {
+            Key::Enter if self.parts_row < n => self.go_to_settings_of(self.parts_row),
+            Key::Esc => self.focus = Pane::Nav,
             _ => {}
         }
         vec![]

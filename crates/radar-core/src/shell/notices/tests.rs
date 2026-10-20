@@ -73,7 +73,7 @@ fn late_composite_keeps_retained_frames_clean_and_clicks_consume_the_occurrence(
         clean = text(f.buffer_mut());
         host.hits.borrow_mut().push((
             Rect::new(15, 21, 64, 1),
-            Hit::Key(KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE), 0),
+            Hit::Key(crate::view::Chord::char('q'), 0),
         ));
         engine.draw(f.buffer_mut(), &theme);
         crate::shell::render_notices(&host, &theme, f.buffer_mut());

@@ -4,7 +4,7 @@
 //! try can be tried. `→` goes on, `←` back, `esc` ends it; the key a stop
 //! says to try does what it always does and goes on too.
 
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Key};
 
 use crate::host::{Host, HostEffect, View};
 use crate::view::chrome::TourCard;
@@ -79,12 +79,12 @@ impl Host {
     }
 
     /// The key the stop says to try.
-    fn tour_try(&self, stop: Stop) -> Option<KeyCode> {
+    fn tour_try(&self, stop: Stop) -> Option<Key> {
         match stop {
-            Stop::Screens => self.tour_other_tab().map(|(c, _)| KeyCode::Char(c)),
-            Stop::Panes => Some(KeyCode::Tab),
-            Stop::Keys => Some(KeyCode::Char('x')),
-            Stop::Dock => Some(KeyCode::Char(crate::dock::KEY)),
+            Stop::Screens => self.tour_other_tab().map(|(c, _)| Key::Char(c)),
+            Stop::Panes => Some(Key::Tab),
+            Stop::Keys => Some(Key::Char('x')),
+            Stop::Dock => Some(Key::Char(crate::dock::KEY)),
             Stop::Done => None,
         }
     }
@@ -100,15 +100,15 @@ impl Host {
 
     /// A key while the tour shows: `Some` when the tour took it, `None` to
     /// let the app have it (the key a stop says to try goes on as well).
-    pub(crate) fn tour_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
+    pub(crate) fn tour_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
         let tour = self.tour.as_ref()?;
-        if !key.modifiers.difference(KeyModifiers::SHIFT).is_empty() {
+        if !key.plain() {
             return None;
         }
         let (at, last) = (tour.at, tour.at + 1 == tour.stops.len());
         let stop = tour.stop();
-        match key.code {
-            KeyCode::Right => {
+        match key.key {
+            Key::Right => {
                 if last {
                     self.tour = None;
                 } else {
@@ -116,11 +116,11 @@ impl Host {
                 }
                 Some(vec![])
             }
-            KeyCode::Enter if last => {
+            Key::Enter if last => {
                 self.tour = None;
                 Some(vec![])
             }
-            KeyCode::Left => {
+            Key::Left => {
                 if at == 0 {
                     self.notify("this is the first stop".into());
                 } else {
@@ -128,7 +128,7 @@ impl Host {
                 }
                 Some(vec![])
             }
-            KeyCode::Esc => {
+            Key::Esc => {
                 self.tour = None;
                 Some(vec![])
             }
@@ -228,8 +228,8 @@ impl Host {
             }
         };
         let try_it = match self.tour_try(stop) {
-            Some(KeyCode::Char(c)) => Some(format!("try it: press {c}")),
-            Some(KeyCode::Tab) => Some("try it: press tab".to_string()),
+            Some(Key::Char(c)) => Some(format!("try it: press {c}")),
+            Some(Key::Tab) => Some("try it: press tab".to_string()),
             _ => None,
         };
         let mut keys = Text::new();

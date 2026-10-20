@@ -4,7 +4,7 @@
 use super::{Host, HostEffect, Pane, View, interaction_motion};
 use crate::plugin::{Binding, Outcome};
 use crate::view::{Intent, Key, Node, Tree, TreeRow};
-use ratatui::crossterm::event::KeyEvent;
+use crate::view::Chord;
 
 #[derive(Clone, PartialEq, Eq)]
 pub(super) struct MenuContext {
@@ -56,8 +56,8 @@ impl Host {
     /// top-bar/tab dispatch. A tree keeps left/right at its boundaries on a
     /// screen; on an item page they go on to the pane or tab beside. Up/k
     /// still reach the bar.
-    pub(super) fn shared_tree_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
-        let chord = crate::view_tui::chord_of(&key)?;
+    pub(super) fn shared_tree_key(&mut self, key: Chord) -> Option<Vec<HostEffect>> {
+        let chord = key;
         if !crate::view::tree_key(chord)
             || !matches!(
                 chord.key,
@@ -370,8 +370,8 @@ impl Host {
         }
     }
 
-    pub(super) fn tree_menu_context(&self, key: KeyEvent) -> Option<MenuContext> {
-        let chord = crate::view_tui::chord_of(&key)?;
+    pub(super) fn tree_menu_context(&self, key: Chord) -> Option<MenuContext> {
+        let chord = key;
         if !crate::view::tree_key(chord)
             || !matches!(
                 chord.key,
@@ -391,7 +391,7 @@ impl Host {
         })
     }
 
-    pub(super) fn tree_menu_is_current(&self, key: KeyEvent, context: &MenuContext) -> bool {
+    pub(super) fn tree_menu_is_current(&self, key: Chord, context: &MenuContext) -> bool {
         context.route.is_some() && self.tree_menu_context(key).as_ref() == Some(context)
     }
 

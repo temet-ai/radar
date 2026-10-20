@@ -102,10 +102,7 @@ fn fixture(guarded: bool) -> (Host, Arc<Mutex<State>>) {
     (host, state)
 }
 fn press(host: &mut Host, c: char) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char(c),
-        KeyModifiers::NONE,
-    )))
+    host.update(crate::host::chord_event(Chord::new(Key::Char(c))))
 }
 fn choose(host: &mut Host, enter: bool) -> Vec<HostEffect> {
     if enter {
@@ -119,10 +116,7 @@ fn choose(host: &mut Host, enter: bool) -> Vec<HostEffect> {
             .position(|i| i.label == "open its folder")
             .unwrap();
         host.menu.as_mut().unwrap().row = row;
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
-        )))
+        host.update(crate::host::chord_event(Chord::new(Key::Enter)))
     } else {
         press(host, 'v')
     }
@@ -199,7 +193,7 @@ fn unchanged_refresh_reopen_dismiss_and_direct_key_keep_expected_behavior() {
     state.lock().unwrap().subject = snapshot;
     assert!(matches!(choose(&mut host, false).first(), Some(HostEffect::Copy(s)) if s == "opened"));
     press(&mut host, 'x');
-    host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+    host.update(crate::host::chord_event(Chord::new(Key::Esc)));
     assert_eq!(state.lock().unwrap().calls.len(), 1);
     state.lock().unwrap().generation += 1;
     press(&mut host, 'x');

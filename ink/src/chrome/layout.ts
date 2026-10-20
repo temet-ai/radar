@@ -131,7 +131,7 @@ export function layoutTopBar(chrome: ChromeView, width: number, y = 0): Laid {
     return row;
   };
 
-  const modeCell = { text: ` ${bar.mode.text} `, style: inkOf(bar.mode.ink, !!bar.mode.strong) };
+  const modeCell = { text: modeText(bar.mode), style: inkOf(bar.mode.ink, !!bar.mode.strong) };
   const modeW = cellWidth(modeCell.text);
   const throbber = bar.busy ? [`${SPIN[Math.floor(Date.now() / 100) % SPIN.length]} `] : [];
   const words = bar.words ? `${bar.words.text} ` : "";
@@ -195,7 +195,7 @@ export function layoutSetupTopBar(chrome: ChromeView, setup: NonNullable<ChromeV
   const bar = chrome.top_bar;
   const row = new Row(y);
   row.base = { backgroundColor: bgOf("bg.overlay") };
-  const mode = ` ${bar.mode.text} `;
+  const mode = modeText(bar.mode);
   const step = setup.step ? `${setup.step}  ` : "";
   const rightW = Math.min(cellWidth(step) + cellWidth(mode), width);
   const left: Array<[string, Style]> = [
@@ -217,6 +217,11 @@ export function layoutSetupTopBar(chrome: ChromeView, setup: NonNullable<ChromeV
 
 /** The kit's spinner frames (ui::states::spinner, throbber-widgets-tui's BRAILLE_SIX). */
 export const SPIN = ["⠷", "⠯", "⠟", "⠻", "⠽", "⠾"];
+
+/** The mode chip's cell: its icon (by name, drawn in the pack) and its word, one space either side. */
+function modeText(mode: { text: string; icon?: string | null }): string {
+  return ` ${lead(mode.icon)?.text ?? ""}${mode.text} `;
+}
 
 /** An icon by name as its glyph and a space, in the pack's colour for it; none when the pack has none. */
 function lead(icon: string | null | undefined): { text: string; style: Style } | undefined {

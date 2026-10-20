@@ -64,7 +64,7 @@ fn fixture() -> (Host, Seen) {
     let seen: Seen = Arc::default();
     let mut host = Host::new(vec![Box::new(Probe(seen.clone()))], 0).unwrap();
     host.load_config(Some("")).unwrap();
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('P'), KeyModifiers::NONE)));
+    host.update(crate::host::chord_event(Chord::new(Key::Char('P'))));
     (host, seen)
 }
 
@@ -281,7 +281,7 @@ fn an_activate_on_a_source_tab_ends_where_a_press_on_it_ends() {
     host.on_intent(Intent::Activate { target: tab });
     assert_eq!(host.view, View::Screen(1));
     assert!(host.sources && !host.bar && !host.tabs, "a click focuses the source row");
-    host.on_key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+    host.on_key(Chord::new(Key::Down));
     assert!(!host.sources && !host.bar, "Down leaves the source row for the screen");
     assert_eq!(host.focus, Pane::Nav);
 }
@@ -369,7 +369,7 @@ fn a_frame_marks_each_panes_inside_as_selectable_and_nothing_of_the_chrome() {
 #[test]
 fn an_open_menu_is_the_only_place_a_drag_selects() {
     let (mut host, _) = fixture();
-    host.on_key(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::NONE));
+    host.on_key(Chord::new(Key::Char('x')));
     assert!(host.menu.is_some());
     let _ = crate::shell::to_text(&host, 100, 24);
     let areas = host.frontend.selectable();

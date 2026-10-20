@@ -10,7 +10,7 @@
 use std::cell::Cell;
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crate::view::{Chord, Key};
 use ratatui::layout::{Position, Rect};
 use ratatui::style::Modifier;
 use ratatui_textarea::{CursorMove, TextArea};
@@ -93,32 +93,34 @@ impl TextInput {
 
     /// A key from a view's intent ([`crate::view::Chord`]): as [`TextInput::key`].
     pub fn chord(&mut self, chord: crate::view::Chord) -> Edit {
-        self.key(crate::view_tui::key_of(chord))
+        self.key(chord)
     }
 
-    pub fn key(&mut self, key: KeyEvent) -> Edit {
-        let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
-        let shift = key.modifiers.contains(KeyModifiers::SHIFT);
-        match key.code {
-            KeyCode::Enter => return Edit::Submit(self.value()),
-            KeyCode::Esc => return Edit::Cancel,
+    pub fn key(&mut self, key: impl crate::view::scroll::AsChord) -> Edit {
+        let Some(key) = key.as_chord() else {
+            return Edit::Typing;
+        };
+        let ctrl = key.ctrl;
+        match key.key {
+            Key::Enter => return Edit::Submit(self.value()),
+            Key::Esc => return Edit::Cancel,
             // Readline, not the library's defaults (where ctrl-u is undo).
-            KeyCode::Char('u') if ctrl => {
+            Key::Char('u') if ctrl => {
                 self.area.delete_line_by_head();
             }
-            KeyCode::Char('z' | 'Z') if ctrl && shift => {
+            Key::Char('Z') if ctrl => {
                 self.area.redo();
             }
-            KeyCode::Char('z') if ctrl => {
+            Key::Char('z') if ctrl => {
                 self.area.undo();
             }
-            KeyCode::Char('r') if ctrl => {
+            Key::Char('r') if ctrl => {
                 self.area.redo();
             }
             // One line only: keys that would start a new line do nothing.
-            KeyCode::Char('m' | 'j') if ctrl => {}
+            Key::Char('m' | 'j') if ctrl => {}
             _ => {
-                self.area.input(key);
+                self.area.input(crate::key_compat::key_of(key));
             }
         }
         Edit::Typing
@@ -196,24 +198,24 @@ pub fn render_field(
 mod tests {
     use super::*;
 
-    fn k(code: KeyCode) -> KeyEvent {
-        KeyEvent::new(code, KeyModifiers::NONE)
+    fn k(code: Key) -> Chord {
+        Chord::new(code)
     }
-    fn ctrl(c: char) -> KeyEvent {
-        KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL)
+    fn ctrl(c: char) -> Chord {
+        Chord::ctrl(c)
     }
 
     #[test]
     fn typing_moving_and_submitting() {
         let mut i = TextInput::new("env:TOKEN");
-        i.key(k(KeyCode::Backspace));
-        i.key(k(KeyCode::Char('X')));
+        i.key(k(Key::Backspace));
+        i.key(k(Key::Char('X')));
         assert_eq!(i.value(), "env:TOKEX");
-        i.key(k(KeyCode::Home));
-        i.key(k(KeyCode::Char('_')));
+        i.key(k(Key::Home));
+        i.key(k(Key::Char('_')));
         assert_eq!(i.cursor(), 1);
-        assert_eq!(i.key(k(KeyCode::Enter)), Edit::Submit("_env:TOKEX".into()));
-        assert_eq!(i.key(k(KeyCode::Esc)), Edit::Cancel);
+        assert_eq!(i.key(k(Key::Enter)), Edit::Submit("_env:TOKEX".into()));
+        assert_eq!(i.key(k(Key::Esc)), Edit::Cancel);
     }
 
     #[test]
@@ -251,18 +253,18 @@ mod tests {
         assert_eq!(i.selection(), None);
         assert_eq!(i.cursor(), 6, "unselecting keeps the caret");
         i.select(0, 5);
-        i.key(k(KeyCode::Char('J')));
+        i.key(k(Key::Char('J')));
         assert_eq!(i.value(), "J world", "typing replaces the selection");
         assert_eq!(i.selection(), None);
         i.select(0, 2);
-        i.key(k(KeyCode::Backspace));
+        i.key(k(Key::Backspace));
         assert_eq!(i.value(), "world", "backspace removes it");
         i.key(ctrl('z'));
         assert_eq!(i.value(), "J world", "undo restores the removed text");
         i.select(2, 2);
         assert_eq!(i.selection(), None, "equal ends select nothing");
         i.select(1, 4);
-        i.key(k(KeyCode::Left));
+        i.key(k(Key::Left));
         assert_eq!(i.selection(), None, "a plain movement key clears it");
     }
 

@@ -4,7 +4,7 @@ use crate::plugin::{Effect, Menu, Plugin, ScreenSpec, SectionSpec};
 use crate::view::{
     ActionSpec, Chord, ListRow, PaneId, PaneView, ScreenView, SectionView, Target, TreeNav, ViewCx,
 };
-use ratatui::crossterm::event::{KeyCode, KeyModifiers};
+use crate::view::Key;
 use std::sync::{Arc, Mutex};
 
 fn path(ids: &[&str]) -> Vec<String> {
@@ -217,8 +217,8 @@ fn fixture() -> (Host, Arc<Mutex<State>>) {
     (host, state)
 }
 
-fn press(host: &mut Host, code: KeyCode) {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+fn press(host: &mut Host, code: Key) {
+    host.update(crate::host::chord_event(Chord::new(code)));
 }
 
 #[test]
@@ -226,7 +226,7 @@ fn raw_keys_intents_action_fallback_and_menu_expand_the_same_held_groups() {
     for route in 0..4 {
         let (mut host, state) = fixture();
         match route {
-            0 => press(&mut host, KeyCode::Char('=')),
+            0 => press(&mut host, Key::Char('=')),
             1 => {
                 host.update(Event::Intent(Intent::OpenAll));
             }
@@ -236,8 +236,8 @@ fn raw_keys_intents_action_fallback_and_menu_expand_the_same_held_groups() {
                 }));
             }
             _ => {
-                press(&mut host, KeyCode::Char('x'));
-                press(&mut host, KeyCode::Char('='));
+                press(&mut host, Key::Char('x'));
+                press(&mut host, Key::Char('='));
             }
         }
         let state = state.lock().unwrap();
@@ -262,19 +262,19 @@ fn raw_keys_intents_action_fallback_and_menu_expand_the_same_held_groups() {
 #[test]
 fn horizontal_arrows_keep_tree_ownership_and_buffered_keys_use_current_folds() {
     let (mut host, state) = fixture();
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(host.focus, Pane::Middle);
-    press(&mut host, KeyCode::Right); // Open Watch.
-    press(&mut host, KeyCode::Right); // Select Cases.
-    press(&mut host, KeyCode::Right); // Open Cases.
-    press(&mut host, KeyCode::Right); // Select WATCH-12.
+    press(&mut host, Key::Right); // Open Watch.
+    press(&mut host, Key::Right); // Select Cases.
+    press(&mut host, Key::Right); // Open Cases.
+    press(&mut host, Key::Right); // Select WATCH-12.
     assert_eq!(
         state.lock().unwrap().tree.selected,
         path(&["watch", "cases", "WATCH-12"])
     );
-    press(&mut host, KeyCode::Right); // Leaf: no pane jump.
+    press(&mut host, Key::Right); // Leaf: no pane jump.
     assert_eq!(host.focus, Pane::Middle);
-    press(&mut host, KeyCode::Left); // Select parent; keep it open.
+    press(&mut host, Key::Left); // Select parent; keep it open.
     assert_eq!(
         state.lock().unwrap().tree.selected,
         path(&["watch", "cases"])
@@ -287,30 +287,30 @@ fn horizontal_arrows_keep_tree_ownership_and_buffered_keys_use_current_folds() {
             .open
             .contains(&path(&["watch", "cases"]))
     );
-    press(&mut host, KeyCode::Left); // Close selected Cases.
-    press(&mut host, KeyCode::Down); // Visible next row, not now-hidden WATCH-12.
+    press(&mut host, Key::Left); // Close selected Cases.
+    press(&mut host, Key::Down); // Visible next row, not now-hidden WATCH-12.
     assert_eq!(
         state.lock().unwrap().tree.selected,
         path(&["watch", "vimes"])
     );
-    press(&mut host, KeyCode::Char('-')); // Close/select Watch.
+    press(&mut host, Key::Char('-')); // Close/select Watch.
     assert_eq!(state.lock().unwrap().tree.selected, path(&["watch"]));
     assert!(state.lock().unwrap().tree.open.is_empty());
 }
 
 #[test]
 fn up_and_k_still_reach_the_bar_and_pane_keys_keep_their_original_route() {
-    for key in [KeyCode::Up, KeyCode::Char('k')] {
+    for key in [Key::Up, Key::Char('k')] {
         let (mut host, _) = fixture();
         press(&mut host, key);
         assert!(host.bar);
     }
     for (key, pane) in [
-        (KeyCode::Char('h'), Pane::Nav),
-        (KeyCode::Char('l'), Pane::Detail),
-        (KeyCode::Tab, Pane::Detail),
-        (KeyCode::BackTab, Pane::Nav),
-        (KeyCode::Char('1'), Pane::Nav),
+        (Key::Char('h'), Pane::Nav),
+        (Key::Char('l'), Pane::Detail),
+        (Key::Tab, Pane::Detail),
+        (Key::BackTab, Pane::Nav),
+        (Key::Char('1'), Pane::Nav),
     ] {
         let (mut host, _) = fixture();
         press(&mut host, key);
@@ -323,10 +323,10 @@ fn empty_trees_and_leaf_boundaries_do_not_leak_horizontal_arrows() {
     let (mut host, state) = fixture();
     state.lock().unwrap().tree = Tree::default();
     for code in [
-        KeyCode::Left,
-        KeyCode::Right,
-        KeyCode::Char('='),
-        KeyCode::Char('-'),
+        Key::Left,
+        Key::Right,
+        Key::Char('='),
+        Key::Char('-'),
     ] {
         press(&mut host, code);
         assert_eq!(host.focus, Pane::Middle);
@@ -368,13 +368,13 @@ fn stale_hidden_heading_and_non_group_targets_cannot_change_a_tree() {
 fn menu_replay_does_not_retarget_after_selection_or_held_data_changes() {
     for replace in [false, true] {
         let (mut host, state) = fixture();
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         if replace {
             state.lock().unwrap().tree.rows.pop();
         } else {
             state.lock().unwrap().tree.selected = path(&["guild"]);
         }
-        press(&mut host, KeyCode::Char('='));
+        press(&mut host, Key::Char('='));
         assert!(state.lock().unwrap().calls.is_empty());
         assert!(state.lock().unwrap().tree.open.is_empty());
     }
@@ -433,7 +433,7 @@ fn editors_menus_topbar_dock_and_modified_arrows_keep_precedence() {
             state.capture = !overlay;
             state.overlay = overlay;
         }
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         host.update(Event::Intent(Intent::OpenAll));
         let state = state.lock().unwrap();
         assert!(state.tree.open.is_empty());
@@ -449,12 +449,12 @@ fn editors_menus_topbar_dock_and_modified_arrows_keep_precedence() {
         Owner::Host,
         Menu::confirm("watch-question", "Continue?", "yes", "no"),
     ));
-    press(&mut host, KeyCode::Right);
+    press(&mut host, Key::Right);
     host.update(Event::Intent(Intent::OpenAll));
     assert!(state.lock().unwrap().calls.is_empty());
     host.menu = None;
     host.bar = true;
-    press(&mut host, KeyCode::Right);
+    press(&mut host, Key::Right);
     assert!(state.lock().unwrap().calls.is_empty());
     host.bar = false;
     host.dock.visible = true;
@@ -487,20 +487,20 @@ fn settings_sections_and_navigation_share_open_all_and_parent_operations() {
         .position(|(_, section)| section.id == "cases")
         .unwrap();
     host.focus = Pane::Middle;
-    press(&mut host, KeyCode::Char('='));
+    press(&mut host, Key::Char('='));
     {
         let state = state.lock().unwrap();
         assert_eq!(state.tree.open, state.tree.groups());
     }
     host.focus = Pane::Nav;
     host.on_heading = false;
-    press(&mut host, KeyCode::Char('-'));
+    press(&mut host, Key::Char('-'));
     assert!(host.folded.contains("watch"));
     assert!(host.on_heading);
-    press(&mut host, KeyCode::Right);
+    press(&mut host, Key::Right);
     assert!(!host.folded.contains("watch"));
     assert!(host.on_heading);
-    press(&mut host, KeyCode::Right);
+    press(&mut host, Key::Right);
     assert!(!host.on_heading);
     let selected = host.section;
     for (group, _) in host.nav_groups() {
@@ -643,8 +643,8 @@ fn open_all_and_menu_replay_require_a_concrete_item_page_identity() {
         state.lock().unwrap().ambiguous = true;
         assert!(host.motion_context().is_none());
         if menu {
-            press(&mut host, KeyCode::Char('x'));
-            press(&mut host, KeyCode::Char('='));
+            press(&mut host, Key::Char('x'));
+            press(&mut host, Key::Char('='));
         } else {
             host.update(Event::Intent(Intent::OpenAll));
         }

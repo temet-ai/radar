@@ -387,6 +387,25 @@ impl Chord {
         !self.ctrl && !self.alt
     }
 
+    /// The vim/arrow direction of the key, if it is one: `Some(true)` down.
+    pub const fn vertical(&self) -> Option<bool> {
+        match self.key {
+            Key::Char('j') | Key::Down => Some(true),
+            Key::Char('k') | Key::Up => Some(false),
+            _ => None,
+        }
+    }
+
+    /// The direction along a row: `Some(true)` right (`l`, `→`, `tab`),
+    /// `Some(false)` left (`h`, `←`, `shift-tab`).
+    pub const fn horizontal(&self) -> Option<bool> {
+        match self.key {
+            Key::Char('l') | Key::Right | Key::Tab => Some(true),
+            Key::Char('h') | Key::Left | Key::BackTab => Some(false),
+            _ => None,
+        }
+    }
+
     /// No modifier at all.
     pub const fn bare(&self) -> bool {
         !self.ctrl && !self.alt && !self.shift

@@ -6,7 +6,7 @@
 //! settings row open the same menu.
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use crate::view::{Chord, Key};
 use ratatui::layout::Rect;
 use ratatui::text::{Line, Span};
 
@@ -99,13 +99,13 @@ impl Host {
     }
 
     /// A key in the mode section: ⏎ opens the menu, esc goes back.
-    pub(crate) fn mode_key(&mut self, key: KeyEvent) -> Vec<HostEffect> {
-        match key.code {
-            KeyCode::Down | KeyCode::Char('j') => self.pause.row = 1,
-            KeyCode::Up | KeyCode::Char('k') => self.pause.row = 0,
-            KeyCode::Enter | KeyCode::Char(' ') if self.pause.row == 1 => self.open_idle_menu(),
-            KeyCode::Enter | KeyCode::Char(' ') => self.open_mode_menu(),
-            KeyCode::Esc => self.focus = Pane::Nav,
+    pub(crate) fn mode_key(&mut self, key: Chord) -> Vec<HostEffect> {
+        match key.key {
+            Key::Down | Key::Char('j') => self.pause.row = 1,
+            Key::Up | Key::Char('k') => self.pause.row = 0,
+            Key::Enter | Key::Char(' ') if self.pause.row == 1 => self.open_idle_menu(),
+            Key::Enter | Key::Char(' ') => self.open_mode_menu(),
+            Key::Esc => self.focus = Pane::Nav,
             _ => {}
         }
         vec![]
@@ -281,20 +281,11 @@ pub(crate) fn keys(_: &Host) -> Vec<Binding> {
     ]
 }
 
-/// The top bar's words: `◉ read only`, `✎ write`, `✎ edit` (the pack's
-/// icon, else the symbol).
-pub(crate) fn bar_words(host: &Host) -> String {
+/// The top bar's mode chip: the mode's icon by name and its word. Which
+/// glyph the icon is belongs to the renderer's pack, not to view data.
+pub(crate) fn chip(host: &Host) -> (crate::ui::icon::Icon, &'static str) {
     let m = host.mode();
-    let lead = icon::plain(m.icon());
-    let lead = if lead.is_empty() {
-        match m {
-            Mode::ReadOnly => "◉ ".to_string(),
-            _ => "✎ ".to_string(),
-        }
-    } else {
-        lead
-    };
-    format!("{lead}{}", m.word())
+    (m.icon(), m.word())
 }
 
 /// The one row: `mode   edit`, and who set it. Returns its area.

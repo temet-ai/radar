@@ -1,9 +1,9 @@
 //! Pure verification cases and a small host/plugin dispatch contract.
 
 use super::*;
-use crate::host::{Event, Hit, MouseKind};
+use crate::host::Event;
 use crate::plugin::{Effect, PageTabs, Plugin, ScreenSpec, SectionSpec};
-use crate::view::{Chord, PageView, PaneView, ScreenView, SectionView, Target, TreeNav};
+use crate::view::{Chord, Intent, PageView, PaneView, ScreenView, SectionView, Target, TreeNav};
 use std::sync::{Arc, Mutex};
 
 fn path(parts: &[&str]) -> Vec<String> {
@@ -340,15 +340,12 @@ pub(crate) fn fixture() -> (Host, Arc<Mutex<ProbeState>>) {
 
 mod contract {
     use super::*;
-    use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use crate::view::{Chord, Key};
 
     #[test]
     fn native_keys_and_ink_intents_verify_once_without_changing_activation_semantics() {
         let (mut host, state) = fixture();
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('-'),
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::host::chord_event(Chord::new(Key::Char('-'))));
         let closed = host.take_motion_fold().expect("native routed fold");
         assert_eq!(
             (closed.pane, closed.slot.as_str(), closed.path),
@@ -365,10 +362,7 @@ mod contract {
         assert_eq!(state.lock().unwrap().calls.len(), 2);
         // Native Enter translates to group Activate rather than replacing it
         // with Fold, preserving the same effect and actual final selection.
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::host::chord_event(Chord::new(Key::Enter)));
         assert!(!host.motion_fold().unwrap().after_open);
         let state = state.lock().unwrap();
         assert_eq!(state.calls.len(), 3);
@@ -521,18 +515,12 @@ mod contract {
             .position(|(_, section)| section.id == "cases")
             .unwrap();
         host.focus = Pane::Middle;
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('-'),
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::host::chord_event(Chord::new(Key::Char('-'))));
         let fold = host.take_motion_fold().unwrap();
         assert_eq!((fold.pane, fold.slot.as_str()), (PaneId::Middle, BODY_SLOT));
         assert_eq!(state.lock().unwrap().calls.len(), 1);
         host.focus = Pane::Nav;
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('-'),
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::host::chord_event(Chord::new(Key::Char('-'))));
         let fold = host.take_motion_fold().unwrap();
         assert_eq!(
             (fold.pane, fold.slot.as_str(), fold.path),
@@ -542,15 +530,7 @@ mod contract {
                 path(&["chrome:group:watch"])
             )
         );
-        host.hits
-            .borrow_mut()
-            .push((ratatui::layout::Rect::new(0, 0, 10, 1), Hit::Group("watch")));
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 1,
-            row: 0,
-            at_ms: 1,
-        });
+        host.update(Event::Intent(Intent::Activate { target: Target::new("chrome:group:watch") }));
         assert!(
             host.motion_fold().unwrap().after_open,
             "native settings group click verified"

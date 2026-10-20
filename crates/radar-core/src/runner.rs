@@ -1794,7 +1794,7 @@ mod tests {
             use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
             for (code, target) in [(KeyCode::PageUp, "details_up"), (KeyCode::PageDown, "details_down"), (KeyCode::Esc, "close"), (KeyCode::Down, "older"), (KeyCode::Up, "newer")] {
                 let mut gesture = crate::runner::NoticeGesture::default();
-                assert!(gesture.press(Some(crate::host::Hit::NoticeHistoryKey(KeyEvent::new(code, KeyModifiers::NONE)))));
+                assert!(gesture.press(Some(crate::host::Hit::NoticeHistoryKey(crate::key_compat::chord_of(&KeyEvent::new(code, KeyModifiers::NONE)).unwrap()))));
                 assert!(gesture.owns_pointer());
                 assert_eq!(gesture.release(), Some(crate::view::Intent::Activate { target: crate::view::Target::new(format!("chrome:notices:{target}")) }));
                 assert!(gesture.release().is_none());

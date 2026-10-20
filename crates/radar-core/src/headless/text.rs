@@ -135,6 +135,13 @@ pub fn history(view: &crate::history::HistoryView) -> String {
     out.0
 }
 
+fn mode_words(mode: &crate::view::chrome::ModeChip) -> String {
+    match mode.icon {
+        Some(icon) => format!(":{}: {}", icon.name(), mode.text),
+        None => mode.text.clone(),
+    }
+}
+
 /// The top bar: the brand, the tabs (`<A>` the active one, `!` one that needs
 /// attention), the part's words and the mode chip, then the source tabs.
 pub fn top_bar(bar: &TopBar, sources: &[SourceTab]) -> String {
@@ -156,7 +163,7 @@ pub fn top_bar(bar: &TopBar, sources: &[SourceTab]) -> String {
     let busy = if bar.busy { "(busy)".to_string() } else { String::new() };
     out.line(&format!(
         "bar: {}",
-        join(&[bar.brand.clone(), tabs.join(" "), busy, words, terminal, format!("{} {}", bar.mode.text, target(&bar.mode.target))])
+        join(&[bar.brand.clone(), tabs.join(" "), busy, words, terminal, format!("{} {}", mode_words(&bar.mode), target(&bar.mode.target))])
     ));
     if !sources.is_empty() {
         let names: Vec<String> = sources.iter().map(|s| if s.active { format!("<{}>", s.label) } else { s.label.clone() }).collect();

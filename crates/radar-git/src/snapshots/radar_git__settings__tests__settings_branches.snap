@@ -1,0 +1,25 @@
+---
+source: crates/radar-git/src/settings.rs
+expression: "shot(\"branches\")"
+---
+── section · branches ──
+  + add a convention for a repo   a repo path, a template, a base  {row:0}
+  acme/team-b → {type}/{key}-{slug}  from develop  {row:1}
+  acme/platform-services/billing/payments-gateway → {type}/{key}-{slug}  from develop  {row:2}
+> me         alice  {row:3}
+  branch     {me}/{key}  alice/ABC-12  {row:4}
+  worktree   {clone}-{topic}  ~/code/api-ABC-12  {row:5}
+  after      nothing  {row:6}
+  types      story=feature  {row:7}
+── detail · me ──
+Your name in branch names: {me}.
+
+ACCEPTS
+one word, letters digits - _ .
+
+NOW
+alice
+
+config: [git] me
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

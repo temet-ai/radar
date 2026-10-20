@@ -2067,39 +2067,49 @@ mod tests {
     use radar_core::host::{Event, Host, View as HostView};
     use radar_core::ratatui::crossterm::event::KeyModifiers;
 
-    /// A right click selects the drawn row under it for its menu; the
-    /// pane's blank background selects nothing and opens no menu.
+    /// A context press selects the shown row under it for its menu; the
+    /// pane's blank background selects nothing and opens no menu. Each shown
+    /// row's target is in the text form's braces.
     #[test]
     fn tree_context_selection_requires_a_drawn_row() {
-        use radar_core::check::{Check, Scope};
-        use radar_core::ratatui::layout::Position;
-        use radar_core::view_tui::{Frontend, Scope as ViewScope, click_part};
-        use radar_core::{Outcome, Pane, Plugin, view_tui::PANE_HIT};
+        use radar_core::view::{Intent, Target};
+        use radar_core::{Outcome, Pane, Plugin};
 
         let mut p = branches();
-        let make = || Box::new(branches()) as Box<dyn Plugin>;
-        let mut check = Check::new(&make);
-        check.size = (160, 40);
-        let hits = check.draw(&p, Scope::Screen(SCREEN.id, Pane::Middle));
-        let rows: Vec<&String> = hits
-            .iter()
-            .filter(|(_, pane, id)| *pane == Pane::Middle && id.starts_with("c:"))
-            .map(|(_, _, id)| id)
+        let mut host = hosted();
+        host.plugins[0] = Box::new(branches());
+        let got = crate::tests::shown(&host, 160, 40);
+        let rows: Vec<String> = got
+            .lines()
+            .filter_map(|l| l.rsplit_once('{').and_then(|(_, t)| t.strip_suffix('}')))
+            .filter(|t| t.starts_with("c:"))
+            .map(str::to_string)
             .collect();
-        assert!(rows.len() > 1, "each drawn row is a target: {hits:?}");
-        let (fe, scope) = (Frontend::default(), ViewScope::Screen(SCREEN.id));
+        assert!(rows.len() > 1, "each shown row is a target: {got}");
         let target = rows[1].clone();
         for _ in 0..2 {
-            let out = click_part(&fe, &mut p, scope, Pane::Middle, &target, Position::default(), true, 0);
+            let context = Intent::Context { target: Target::new(&target) };
+            let out = p.intent(SCREEN.id, Pane::Middle, &context);
             assert!(matches!(out, Outcome::Handled(_)));
-            assert_eq!(p.branches.tree.borrow().selected(), TreeRow::path_of(&v::Target::new(&target)));
+            assert_eq!(p.branches.tree.borrow().selected(), TreeRow::path_of(&Target::new(&target)));
         }
-        let blank = click_part(&fe, &mut p, scope, Pane::Middle, PANE_HIT, Position::default(), true, 0);
-        assert!(matches!(blank, Outcome::Ignored));
+        // A press on the pane's blank space is the host's own `pane:middle`
+        // target: the pane is focused and the part hears nothing of it.
+        let clone_row = rows
+            .iter()
+            .find(|t| TreeRow::path_of(&Target::new(t.as_str())).len() == 1)
+            .expect("a clone row");
+        host.focus = Pane::Nav;
+        host.update(Event::Intent(Intent::Select { target: Target::new(clone_row) }));
+        let kept = host.plugins[0].subject(SCREEN.id, Pane::Middle);
+        assert!(kept.is_some(), "the shown row is selected");
+        host.update(Event::Intent(Intent::Select { target: Target::new("pane:middle") }));
+        assert_eq!(host.focus, Pane::Middle);
+        assert!(host.menu.is_none(), "a blank press opens no menu");
         assert_eq!(
-            p.branches.tree.borrow().selected(),
-            TreeRow::path_of(&v::Target::new(&target)),
-            "a blank right click keeps the selection"
+            host.plugins[0].subject(SCREEN.id, Pane::Middle),
+            kept,
+            "a blank press keeps the selection"
         );
     }
 
@@ -2112,9 +2122,9 @@ mod tests {
     }
 
     /// Clones and branches with real-length names, and a column of other
-    /// parts' wide enough to leave little room, at 80x24.
+    
     #[test]
-    fn long_names_end_in_an_ellipsis_and_keep_a_cell_before_the_columns() {
+    fn long_names_stay_whole_in_the_view() {
         let mut p = branches();
         let long = "/work/acme/banking-foreign-exchange-settlement-service";
         let mut c = p.local.index.as_ref().unwrap().checkouts[1].clone();
@@ -2132,12 +2142,13 @@ mod tests {
         host.load_config(Some("")).unwrap();
         host.plugins[0] = Box::new(p);
         host.view = HostView::Screen(0);
-        let text = radar_core::shell::to_text(&host, 80, 24);
-        let line = text.lines().find(|line| line.contains("banking-"))
-            .expect("the long-name checkout is visible");
-        let (_, columns) = line.rsplit_once('…').unwrap_or_else(|| panic!("cut bare: {line}"));
-        assert!(columns.starts_with(' '), "a cell separates the clipped name/chip from the columns: {line}");
-        assert!(columns.trim_start().starts_with('—'), "the first data column is preserved: {line}");
+        let text = crate::tests::shown(&host, 160, 40);
+        // The view holds the names whole; where they are cut is the renderer's.
+        assert!(
+            text.contains("banking-foreign-exchange-settlement-service")
+                && text.contains("alice/ABC-1234-add-corporate-finance-reporting"),
+            "{text}"
+        );
         insta::assert_snapshot!(text);
     }
 
@@ -2171,22 +2182,23 @@ mod tests {
     }
 
     #[test]
-    fn the_screen_at_80x24() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted(), 80, 24));
+    fn the_screen() {
+        let host = hosted();
+        // The sync words are only on the top bar, which the text form leaves out.
+        assert_eq!(
+            crate::tests::top_bar_words(&host).as_deref(),
+            Some("synced 20s ago · every 1m")
+        );
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     #[test]
-    fn the_screen_at_160x40() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted(), 160, 40));
-    }
-
-    #[test]
-    fn the_dirty_view_at_160x40() {
+    fn the_dirty_view() {
         let mut host = hosted();
-        let _ = radar_core::shell::to_text(&host, 160, 40);
+        let _ = crate::tests::shown(&host, 160, 40);
         host.focus = Pane::Nav;
         host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     #[test]
@@ -2217,7 +2229,7 @@ mod tests {
             "No stashes shown in this view.",
         ] {
             host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
-            let text = radar_core::shell::to_text(&host, 160, 40);
+            let text = crate::tests::shown(&host, 160, 40);
             assert!(text.contains(expected), "{text}");
         }
     }
@@ -2233,7 +2245,7 @@ mod tests {
         web.trees.clear();
         let mut host = hosted();
         host.plugins[0] = Box::new(p);
-        let text = radar_core::shell::to_text(&host, 160, 40);
+        let text = crate::tests::shown(&host, 160, 40);
         assert!(
             text.contains("No uncommitted changes shown in this view."),
             "{text}"

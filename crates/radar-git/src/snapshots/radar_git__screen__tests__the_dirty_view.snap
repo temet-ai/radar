@@ -1,0 +1,29 @@
+---
+source: crates/radar-git/src/screen.rs
+expression: "crate::tests::shown(&host, 160, 40)"
+---
+── nav · views * ──
+  :views: all  {view:0}
+> :warning: dirty  1  {view:1}
+  :commit: ahead of remote  2  {view:2}
+  :folder: stashes  1  {view:3}
+── middle · dirty ──
+CLONES · 2 clones, 1 worktree
+> :repo: api  on :branch: alice/ABC-12  ● in use  ↑2  —  :warning: 3 changed  1  3h  {c:/work/acme/api}
+· clones and worktrees with uncommitted changes
+── detail · api ──
+folder   /work/acme/api
+origin   git@example.com:acme/team-a/api.git
+repo     acme/team-a/api
+on       alice/ABC-12
+changes  :warning: 3 changed
+base     main
+
+§ :folder: WORKTREES
+  :folder: /work/acme/api-hotfix  alice/ABC-14
+
+§ :folder: STASHES
+  :folder: On alice/ABC-12: ABC-12-local-2026-10-05
+── status · BRANCHES ──
+PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+1 dirty · 2 ahead

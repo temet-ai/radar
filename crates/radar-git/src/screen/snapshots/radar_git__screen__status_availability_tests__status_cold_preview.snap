@@ -1,0 +1,25 @@
+---
+source: crates/radar-git/src/screen/status_availability_tests.rs
+expression: preview
+---
+── nav · views ──
+  :views: all  {view:0}
+> :warning: dirty  {view:1}
+  :commit: ahead of remote  {view:2}
+  :folder: stashes  {view:3}
+── middle · dirty ──
+CLONES · 1 clone, 1 worktree
+  :repo: api  on :branch: main  ● in use  —  —  clean  —  2961w  {c:/work/acme/api}
+>   :folder: api-hotfix  on :branch: hotfix  —  —  unknown  —  2961w  {c:/work/acme/api/w:/work/acme/api-hotfix}
+· Some clone data could not be read.
+· clones and worktrees with changes or unread status
+── detail · api-hotfix * ──
+folder   /work/acme/api-hotfix
+clone    /work/acme/api
+on       hotfix
+changes  unavailable
+Working tree status could not be read. Read the clones again before removing this worktree.
+
+⏎ makes it the one radar acts on for this repo
+── status · BRANCHES ──
+r retry status  A ask an agent  PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -1,0 +1,34 @@
+---
+source: crates/radar-git/src/screen/removal_tests.rs
+expression: updated
+---
+── nav · views ──
+> :views: all  {view:0}
+  :warning: dirty  1  {view:1}
+  :commit: ahead of remote  {view:2}
+  :folder: stashes  {view:3}
+── middle · all * ──
+CLONES · 2 clones, 1 worktree
+  :repo: api  on :branch: main  ● in use  —  —  clean  —  2961w  {c:/work/acme/api}
+>   :folder: api-hotfix  on :branch: hotfix  —  —  :warning: 2 changed  —  2961w  {c:/work/acme/api/w:/work/acme/api-hotfix}
+    :branch: main  ● here  —  —  clean  —  2961w  {c:/work/acme/api/b:main}
+    :merged: hotfix  ● in api-hotfix  —  —  :warning: 2 changed  —  2961w  {c:/work/acme/api/b:hotfix}
+  :repo: web  on :branch: main  —  —  clean  —  4d  {c:/work/acme/web}
+    :branch: main  ● here  —  —  clean  —  4d  {c:/work/acme/web/b:main}
+· every clone, its worktrees and its local branches
+── detail · api-hotfix ──
+folder   /work/acme/api-hotfix
+clone    /work/acme/api
+on       hotfix
+changes  :warning: 2 changed
+
+⏎ makes it the one radar acts on for this repo
+── question · remove the worktree api-hotfix? ──
+  # 2 files uncommitted in it: lost
+  # the folder /work/acme/api-hotfix is removed
+  # its branch hotfix stays
+> yes  (y)  yes, remove it
+  no  (n)  no, keep it
+── status · BRANCHES ──
+←→ move  ⏎ choose  esc close
+1 dirty

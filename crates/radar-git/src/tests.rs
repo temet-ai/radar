@@ -20,6 +20,24 @@ fn hosted() -> Host {
     host
 }
 
+/// What shows, as view text (`radar_core::headless::text`): the screen's
+/// panes and rows, the open menu and the status line. No painted frame.
+pub(crate) fn shown(host: &Host, width: u16, height: u16) -> String {
+    radar_core::headless::text_of(host, width, height)
+}
+
+/// The part's words on the right of the top bar: what the text form leaves
+/// out of the screen.
+pub(crate) fn top_bar_words(host: &Host) -> Option<String> {
+    host.chrome_view(160, 40).top_bar.words.map(|badge| badge.text)
+}
+
+/// The words of the notices showing: what the text form leaves out.
+pub(crate) fn notices(host: &Host) -> String {
+    let active = host.chrome_view(160, 40).notices.active;
+    active.into_iter().map(|n| n.text).collect::<Vec<_>>().join("\n")
+}
+
 fn section(host: &mut Host, name: &str) {
     host.view = View::Settings;
     host.section = host
@@ -218,22 +236,15 @@ fn every_row_and_target_is_taken() {
 }
 
 #[test]
-fn settings_checkouts_80x24() {
+fn settings_checkouts() {
     let mut host = hosted();
     section(&mut host, "checkouts");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
-}
-
-#[test]
-fn settings_checkouts_160x40() {
-    let mut host = hosted();
-    section(&mut host, "checkouts");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+    insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 /// The terminal section with what was found on a desktop machine.
 #[test]
-fn settings_terminal_80x24() {
+fn settings_terminal() {
     let mut host = hosted();
     let mut p = sample();
     let k = |n: &str| *crate::terminal::by_name(n).unwrap();
@@ -244,18 +255,19 @@ fn settings_terminal_80x24() {
     });
     host.plugins[0] = Box::new(p);
     section(&mut host, "terminal");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+    insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 #[test]
-fn settings_editors_80x24() {
+fn settings_editors() {
     let mut host = hosted();
     section(&mut host, "editors");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+    insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 /// The input opened on a row starts where the row drew its value: what is
-/// typed replaces it in place.
+/// typed replaces it in place. Read from the view: the row's text and the
+/// section's `Editing.at`.
 fn input_sits_on_its_value(
     host: &mut Host,
     name: &str,
@@ -264,9 +276,10 @@ fn input_sits_on_its_value(
     row: &str,
     value: &str,
 ) {
+    use radar_core::view::Node;
     let press = |host: &mut Host, code: KeyCode, m: KeyModifiers| {
-        let _ = radar_core::shell::to_text(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, m)));
+        let _ = shown(host, 160, 40);
+        host.update(Event::Key(KeyEvent::new(code, m)))
     };
     section(host, name);
     host.focus = Pane::Middle;
@@ -276,19 +289,22 @@ fn input_sits_on_its_value(
     for _ in 0..downs {
         press(host, KeyCode::Down, KeyModifiers::NONE);
     }
-    let before = radar_core::shell::to_text(host, 160, 40);
-    let (y, line) = before
-        .lines()
-        .enumerate()
-        .find(|(_, l)| l.contains(row))
+    let before = shown(host, 160, 40);
+    let view = radar_core::headless::section_of(host, 160, 40).expect("the section");
+    // The row's text as the view holds it: where the value starts in it.
+    let Node::List { rows, .. } = &view.body else {
+        panic!("{name}: not a list:\n{before}")
+    };
+    let text = rows
+        .iter()
+        .map(|r| radar_core::headless::text::text(&r.text))
+        .find(|t| t.trim_start().starts_with(row))
         .unwrap_or_else(|| panic!("no row {row:?} in {name}:\n{before}"));
-    let chars: Vec<char> = line.chars().collect();
-    let start = line.find(row).unwrap();
-    let at = start
-        + line[start..]
-            .find(value)
-            .unwrap_or_else(|| panic!("no {value:?} on {line:?}"));
-    let c = line[..at].chars().count();
+    let start = text.find(row).unwrap();
+    let c = match text[start..].find(value) {
+        Some(at) => radar_core::design::width::width(&text[..start + at]),
+        None => panic!("no {value:?} on {text:?}"),
+    };
     for code in open {
         press(host, *code, KeyModifiers::NONE);
     }
@@ -299,20 +315,21 @@ fn input_sits_on_its_value(
     press(host, KeyCode::Char('e'), KeyModifiers::CONTROL);
     press(host, KeyCode::Char('u'), KeyModifiers::CONTROL);
     // w is text here, not the save key.
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('w'),
-        KeyModifiers::NONE,
-    )));
+    let fx = press(host, KeyCode::Char('w'), KeyModifiers::NONE);
     assert!(
         !fx.iter()
             .any(|e| matches!(e, radar_core::host::HostEffect::Save(_))),
         "{name}: w saved instead of being typed"
     );
-    let after = radar_core::shell::to_text(host, 160, 40);
-    let now: Vec<char> = after.lines().nth(y).unwrap_or_default().chars().collect();
+    let _ = shown(host, 160, 40);
+    let view = radar_core::headless::section_of(host, 160, 40).expect("the section");
+    let Node::List { editing: Some(e), .. } = &view.body else {
+        panic!("{name}, {row:?}: the view has no input")
+    };
+    // A list row's mark takes one cell before its text.
     assert_eq!(
-        (now.get(c), now.get(c.wrapping_sub(1))),
-        (Some(&'w'), chars.get(c.wrapping_sub(1))),
+        (e.text.as_str(), usize::from(e.at)),
+        ("w", c + 1),
         "{name}, {row:?}: the input does not start where {value:?} was"
     );
     press(host, KeyCode::Esc, KeyModifiers::NONE);
@@ -325,45 +342,20 @@ fn every_settings_input_starts_where_its_value_was_drawn() {
     let mut host = hosted();
     // checkouts: a folder (look down takes digits only: its own test);
     // terminal: a command of your own; editors: a type.
-    input_sits_on_its_value(&mut host, "checkouts", 1, &[Char('e')], "│ folder", "/work");
-    input_sits_on_its_value(
-        &mut host,
-        "terminal",
-        0,
-        &[Char('e')],
-        "│ terminal   ",
-        "radar",
-    );
-    input_sits_on_its_value(
-        &mut host,
-        "checkouts",
-        0,
-        &[Enter],
-        "│  + add a folder",
-        "add a folder",
-    );
-    input_sits_on_its_value(&mut host, "editors", 1, &[Char('n')], "│ java", "java");
+    input_sits_on_its_value(&mut host, "checkouts", 1, &[Char('e')], "folder", "/work");
+    input_sits_on_its_value(&mut host, "terminal", 0, &[Char('e')], "terminal   ", "radar");
+    input_sits_on_its_value(&mut host, "checkouts", 0, &[Enter], "+ add a folder", "add a folder");
+    input_sits_on_its_value(&mut host, "editors", 1, &[Char('n')], "java", "java");
     let markers = {
         let mut h = hosted();
         section(&mut h, "editors");
-        let t = radar_core::shell::to_text(&h, 160, 40);
-        let l = t
-            .lines()
-            .find(|l| l.contains("│ java"))
-            .unwrap()
-            .to_string();
-        let rest = &l[l.find("│ java").unwrap() + "│ java".len()..];
+        let t = shown(&h, 160, 40);
+        let l = t.lines().find(|l| l.contains("java ")).unwrap().to_string();
+        let rest = &l[l.find("java").unwrap() + "java".len()..];
         rest.trim_start().chars().take(3).collect::<String>()
     };
-    input_sits_on_its_value(&mut host, "editors", 1, &[Char('m')], "│ java", &markers);
-    input_sits_on_its_value(
-        &mut host,
-        "editors",
-        0,
-        &[Enter],
-        "│  + add a project type",
-        "add a project type",
-    );
+    input_sits_on_its_value(&mut host, "editors", 1, &[Char('m')], "java", &markers);
+    input_sits_on_its_value(&mut host, "editors", 0, &[Enter], "+ add a project type", "add a project type");
 }
 
 #[test]

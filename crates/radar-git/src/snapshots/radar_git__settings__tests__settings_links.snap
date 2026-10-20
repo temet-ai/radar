@@ -1,0 +1,25 @@
+---
+source: crates/radar-git/src/settings.rs
+expression: "shot(\"links\")"
+---
+── section · links ──
+  + link a repo to your clone   the repo's path, then the folder  {row:0}
+  acme/team-a/api → /work/acme/api  ✓ main  {row:1}
+> acme/team-b/web → /radar/no/such/web  ✗ no such folder  {row:2}
+  acme/platform-services/billing/payments-gateway → /work/acme/payments-gateway  ⚠ origin: acme/platform-services/billing/payments-g…  {row:3}
+── detail · acme/team-b/web ──
+CHECKED
+:warning: ⚠ no such folder
+
+acme/team-b/web is worked on in /radar/no/such/web.
+
+branch    {type}/{key}-{slug}
+base      develop
+worktrees 0 known
+
+ACCEPTS
+repo: HTTPS URL or legacy path · folder: your clone · branch: a name template · base: a branch
+
+config: [[git.link]] repo, dir, branch, base
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

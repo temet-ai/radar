@@ -1,0 +1,23 @@
+---
+source: crates/radar-git/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · editors ──
+> + add a project type   a name, then its marker files  {row:0}
+  java      build.gradle build.gradle.kts pom.xml  asks  {row:1}
+  python    pyproject.toml setup.py  asks  {row:2}
+  node      package.json  asks  {row:3}
+  rust      Cargo.toml  asks  {row:4}
+  go        go.mod  asks  {row:5}
+── detail · add a project type ──
+Another kind of project, told apart by a file at the top of its checkout, with the editor it opens in.
+
+ACCEPTS
+a name, then its marker files: elixir mix.exs · *.csproj matches by ending
+
+NOW
+5 types
+
+config: [[git.type]]
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

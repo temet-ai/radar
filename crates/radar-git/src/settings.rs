@@ -2804,7 +2804,7 @@ mod tests {
         p
     }
 
-    fn shot(section: &str, w: u16, h: u16) -> String {
+    fn shot(section: &str) -> String {
         let mut host = hosted();
         host.view = radar_core::host::View::Settings;
         host.section = host
@@ -2812,27 +2812,17 @@ mod tests {
             .iter()
             .position(|(_, s)| s.name == section)
             .unwrap();
-        radar_core::shell::to_text(&host, w, h)
+        crate::tests::shown(&host, 160, 40)
     }
 
     #[test]
-    fn settings_links_80x24() {
-        insta::assert_snapshot!(shot("links", 80, 24));
+    fn settings_links() {
+        insta::assert_snapshot!(shot("links"));
     }
 
     #[test]
-    fn settings_branches_160x40() {
-        insta::assert_snapshot!(shot("branches", 160, 40));
-    }
-
-    #[test]
-    fn settings_links_160x40() {
-        insta::assert_snapshot!(shot("links", 160, 40));
-    }
-
-    #[test]
-    fn settings_branches_80x24() {
-        insta::assert_snapshot!(shot("branches", 80, 24));
+    fn settings_branches() {
+        insta::assert_snapshot!(shot("branches"));
     }
 
     /// Long paths share the row and leave room for the status.

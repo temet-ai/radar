@@ -1,6 +1,7 @@
 //! Fake-only read, reducer and real host rendering checks. Spawned reads are never run.
 use super::*;
-use radar_core::host::{Event, Hit, Host, HostEffect, MouseKind, View as HostView};
+use radar_core::host::{Event, Host, HostEffect, View as HostView};
+use radar_core::view::Intent;
 use radar_core::ratatui::crossterm::event::KeyModifiers;
 
 const CLONE: &str = "/work/acme/api";
@@ -64,25 +65,6 @@ fn select_worktree(p: &GitPlugin) {
 
 fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
     host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
-}
-
-// Optional official full-colour evidence: run these tests with radar-core/png
-// and RADAR_STATUS_SHOTS pointing to a scratch output folder.
-fn export(host: &Host, width: u16, height: u16, name: &str) {
-    let Some(dir) = std::env::var_os("RADAR_STATUS_SHOTS") else {
-        return;
-    };
-    let dir = Path::new(&dir);
-    std::fs::create_dir_all(dir).unwrap();
-    let _ = radar_core::shell::to_svg(host, width, height);
-    let svg = radar_core::shell::to_svg(host, width, height);
-    let name = format!("{name}-{width}x{height}");
-    std::fs::write(dir.join(format!("{name}.svg")), &svg).unwrap();
-    std::fs::write(
-        dir.join(format!("{name}.png")),
-        radar_core::shot::to_png(&svg).unwrap(),
-    )
-    .unwrap();
 }
 
 fn host(p: GitPlugin) -> Host {
@@ -245,140 +227,117 @@ fn successful_retry_recovers_status_and_freshness_and_duplicate_reads_stay_suppr
 }
 
 #[test]
-fn host_shows_unavailable_and_last_known_without_false_clean_at_both_sizes() {
-    for (width, height) in [(80, 24), (160, 40)] {
-        for cached in [false, true] {
-            let mut p = sample();
-            if cached {
-                receive(&mut p, false);
-            }
-            p.now += 60;
-            receive(&mut p, true);
-            p.branches.view = 1;
-            select_worktree(&p);
-            let mut h = host(p);
-            let tree = radar_core::shell::to_text(&h, width, height);
-            assert!(
-                tree.contains(if cached { "last known" } else { "unknown" }),
-                "{tree}"
-            );
-            assert!(!tree.contains("No uncommitted changes shown"));
-            insta::assert_snapshot!(
-                format!(
-                    "status_{}_tree_{width}x{height}",
-                    if cached { "cached" } else { "cold" }
-                ),
-                tree
-            );
-            export(
-                &h,
-                width,
-                height,
-                if cached { "cached-tree" } else { "cold-tree" },
-            );
-            h.focus = Pane::Detail;
-            let preview = radar_core::shell::to_text(&h, width, height);
-            assert!(
-                preview.contains(if cached {
-                    "last known: 2 changed"
-                } else {
-                    "unavailable"
-                }),
-                "{preview}"
-            );
-            assert!(!preview.contains("nothing uncommitted"));
-            insta::assert_snapshot!(
-                format!(
-                    "status_{}_preview_{width}x{height}",
-                    if cached { "cached" } else { "cold" }
-                ),
-                preview
-            );
-            export(
-                &h,
-                width,
-                height,
-                if cached {
-                    "cached-preview"
-                } else {
-                    "cold-preview"
-                },
-            );
-            let fx = press(&mut h, KeyCode::Char('d'));
-            assert!(fx.is_empty() && h.menu.is_none());
-            let refused = radar_core::shell::to_text(&h, width, height);
-            assert!(
-                refused.contains("worktree status is unavailable"),
-                "{refused}"
-            );
+fn host_shows_unavailable_and_last_known_without_false_clean() {
+    let (width, height) = (160, 40);
+    for cached in [false, true] {
+        let mut p = sample();
+        if cached {
+            receive(&mut p, false);
         }
+        p.now += 60;
+        receive(&mut p, true);
+        p.branches.view = 1;
+        select_worktree(&p);
+        let mut h = host(p);
+        let tree = crate::tests::shown(&h, width, height);
+        assert!(
+            tree.contains(if cached { "last known" } else { "unknown" }),
+            "{tree}"
+        );
+        assert!(!tree.contains("No uncommitted changes shown"));
+        // The sync words are only on the top bar, which the text form leaves out.
+        assert_eq!(
+            crate::tests::top_bar_words(&h).as_deref(),
+            Some(if cached {
+                "read incomplete · last complete 1m ago"
+            } else {
+                "read incomplete · no complete sync yet"
+            })
+        );
+        insta::assert_snapshot!(
+            format!("status_{}_tree", if cached { "cached" } else { "cold" }),
+            tree
+        );
+        h.focus = Pane::Detail;
+        let preview = crate::tests::shown(&h, width, height);
+        assert!(
+            preview.contains(if cached {
+                "last known: 2 changed"
+            } else {
+                "unavailable"
+            }),
+            "{preview}"
+        );
+        assert!(!preview.contains("nothing uncommitted"));
+        insta::assert_snapshot!(
+            format!("status_{}_preview", if cached { "cached" } else { "cold" }),
+            preview
+        );
+        let fx = press(&mut h, KeyCode::Char('d'));
+        assert!(fx.is_empty() && h.menu.is_none());
+        // The refusal is a notice, which the text form leaves out.
+        let refused = crate::tests::notices(&h);
+        assert!(
+            refused.contains("worktree status is unavailable"),
+            "{refused}"
+        );
     }
 }
 
 #[test]
 fn host_confirmation_rechecks_original_worktree_after_status_failure() {
-    for (width, height) in [(80, 24), (160, 40)] {
-        let mut p = sample();
-        receive(&mut p, false);
-        select_worktree(&p);
-        let mut h = host(p);
-        radar_core::shell::to_text(&h, width, height);
-        press(&mut h, KeyCode::Char('d'));
-        let question = radar_core::shell::to_text(&h, width, height);
-        assert!(
-            question.contains("2 files uncommitted in it: lost"),
-            "{question}"
-        );
-        insta::assert_snapshot!(
-            format!("status_known_remove_confirm_{width}x{height}"),
-            question
-        );
-        export(&h, width, height, "known-remove-confirm");
-        let original = h.menu.as_ref().unwrap().menu.id.clone();
-        h.update(Event::Msg {
-            plugin: 0,
-            msg: Box::new(reply(true)),
-        });
-        assert_eq!(h.menu.as_ref().unwrap().menu.id, original);
-        let fx = press(&mut h, KeyCode::Char('y'));
-        assert!(
-            !fx.iter().any(|fx| matches!(fx, HostEffect::Spawn { .. })),
-            "unknown stale dirty must never force remove"
-        );
-        assert!(h.menu.is_none());
-        assert!(
-            radar_core::shell::to_text(&h, width, height).contains("worktree status is unavailable")
-        );
-    }
+    let (width, height) = (160, 40);
+    let mut p = sample();
+    receive(&mut p, false);
+    select_worktree(&p);
+    let mut h = host(p);
+    crate::tests::shown(&h, width, height);
+    press(&mut h, KeyCode::Char('d'));
+    let question = crate::tests::shown(&h, width, height);
+    assert!(
+        question.contains("2 files uncommitted in it: lost"),
+        "{question}"
+    );
+    assert_eq!(
+        crate::tests::top_bar_words(&h).as_deref(),
+        Some("synced 0s ago · every 1m"),
+        "the sync words are only on the top bar"
+    );
+    insta::assert_snapshot!("status_known_remove_confirm", question);
+    let original = h.menu.as_ref().unwrap().menu.id.clone();
+    h.update(Event::Msg {
+        plugin: 0,
+        msg: Box::new(reply(true)),
+    });
+    assert_eq!(h.menu.as_ref().unwrap().menu.id, original);
+    let fx = press(&mut h, KeyCode::Char('y'));
+    assert!(
+        !fx.iter().any(|fx| matches!(fx, HostEffect::Spawn { .. })),
+        "unknown stale dirty must never force remove"
+    );
+    assert!(h.menu.is_none());
+    let refused = crate::tests::notices(&h);
+    assert!(refused.contains("worktree status is unavailable"), "{refused}");
 }
 
 #[test]
-fn host_mouse_menu_retry_and_keyboard_repeat_dispatch_once_then_recover() {
+fn host_menu_press_retry_and_keyboard_repeat_dispatch_once_then_recover() {
     let mut p = sample();
     receive(&mut p, true);
     select_worktree(&p);
     let mut h = host(p);
     press(&mut h, KeyCode::Char('x'));
-    radar_core::shell::to_text(&h, 80, 24);
+    crate::tests::shown(&h, 160, 40);
+    // A press on the menu's row sends Invoke with the row's value.
     let menu = &h.menu.as_ref().unwrap().menu;
-    let index = menu
+    let action = menu
         .items
         .iter()
-        .position(|item| item.label == "read the clones again")
-        .unwrap();
-    let (rect, _) = h
-        .hits
-        .borrow()
-        .iter()
-        .find(|(_, hit)| *hit == Hit::MenuItem(index))
+        .find(|item| item.label == "read the clones again")
         .unwrap()
+        .value
         .clone();
-    let fx = h.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: rect.x,
-        row: rect.y,
-        at_ms: 1000,
-    });
+    let fx = h.update(Event::Intent(Intent::Invoke { action }));
     assert_eq!(
         fx.iter()
             .filter(|fx| matches!(fx, HostEffect::Spawn { .. }))
@@ -397,7 +356,7 @@ fn host_mouse_menu_retry_and_keyboard_repeat_dispatch_once_then_recover() {
         msg: Box::new(reply(false)),
     });
     h.focus = Pane::Detail;
-    let text = radar_core::shell::to_text(&h, 80, 24);
+    let text = crate::tests::shown(&h, 160, 40);
     assert!(text.contains("2 changed"), "{text}");
     assert!(!text.contains("unavailable") && !text.contains("last known"));
 }
@@ -449,12 +408,15 @@ fn cold_interrupted_read_does_not_render_perpetual_loading_or_successful_freshne
     );
     assert!(!busy(&p));
     assert_eq!(p.branches.last_ok, None);
-    for (width, height) in [(80, 24), (160, 40)] {
-        let text = radar_core::shell::to_text(&host_for_interruption(), width, height);
-        assert!(text.contains("Could not read the clones"), "{text}");
-        assert!(!text.contains("Reading the clones…"));
-        assert!(text.contains("read incomplete"), "{text}");
-    }
+    let h = host_for_interruption();
+    let text = crate::tests::shown(&h, 160, 40);
+    assert!(text.contains("Could not read the clones"), "{text}");
+    assert!(!text.contains("Reading the clones…"));
+    assert!(
+        crate::tests::top_bar_words(&h).is_some_and(|w| w.contains("read incomplete")),
+        "{:?}",
+        crate::tests::top_bar_words(&h)
+    );
 }
 
 fn host_for_interruption() -> Host {

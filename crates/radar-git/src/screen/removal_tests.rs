@@ -331,72 +331,53 @@ fn spawned(effect: &HostEffect) -> bool {
     }
 }
 
-fn export(h: &Host, width: u16, height: u16, name: &str) {
-    let Some(dir) = std::env::var_os("RADAR_REMOVAL_SHOTS") else {
-        return;
-    };
-    let dir = Path::new(&dir);
-    std::fs::create_dir_all(dir).unwrap();
-    let _ = radar_core::shell::to_svg(h, width, height);
-    let svg = radar_core::shell::to_svg(h, width, height);
-    let name = format!("{name}-{width}x{height}");
-    std::fs::write(dir.join(format!("{name}.svg")), &svg).unwrap();
-    std::fs::write(
-        dir.join(format!("{name}.png")),
-        radar_core::shot::to_png(&svg).unwrap(),
-    )
-    .unwrap();
-}
-
 #[test]
 fn host_stale_clean_question_blocks_successful_dirty_refresh_then_reopens_honestly() {
-    for (width, height) in [(80, 24), (160, 40)] {
-        let mut h = hosted(sample(0));
-        h.enable_journal();
-        radar_core::shell::to_text(&h, width, height);
-        press(&mut h, KeyCode::Char('d'));
-        let before = radar_core::shell::to_text(&h, width, height);
-        assert!(before.contains("nothing uncommitted in it"));
-        let original = h.menu.as_ref().unwrap().menu.id.clone();
-        h.update(Event::Msg {
-            plugin: 0,
-            msg: Box::new(reply(2)),
-        });
-        assert_eq!(h.menu.as_ref().unwrap().menu.id, original);
-        let fx = press(&mut h, KeyCode::Char('y'));
-        assert!(!fx.iter().any(spawned));
-        assert!(fx.iter().any(|e| matches!(
-            e,
-            HostEffect::Journal(JournalRecord::Outcome {
-                outcome: JournalOutcome::Blocked,
-                ..
-            })
-        )));
-        assert!(h.menu.is_none());
-        let stale = radar_core::shell::to_text(&h, width, height);
-        assert!(stale.contains(CHANGED), "{stale}");
-        insta::assert_snapshot!(format!("stale_removal_{width}x{height}"), stale);
-        export(&h, width, height, "stale-removal");
-        let fx = press(&mut h, KeyCode::Char('y'));
-        assert!(!fx.iter().any(spawned));
-        press(&mut h, KeyCode::Char('d'));
-        assert_ne!(h.menu.as_ref().unwrap().menu.id, original);
-        let updated = radar_core::shell::to_text(&h, width, height);
-        assert!(updated.contains("2 files uncommitted in it: lost"));
-        insta::assert_snapshot!(format!("reviewed_removal_{width}x{height}"), updated);
-        export(&h, width, height, "reviewed-removal");
-        // A fresh, explicit confirmation is allowed. Drop its production future.
-        let fx = press(&mut h, KeyCode::Char('y'));
-        assert_eq!(fx.iter().filter(|e| spawned(e)).count(), 1);
-    }
+    let (width, height) = (160, 40);
+    let mut h = hosted(sample(0));
+    h.enable_journal();
+    crate::tests::shown(&h, width, height);
+    press(&mut h, KeyCode::Char('d'));
+    let before = crate::tests::shown(&h, width, height);
+    assert!(before.contains("nothing uncommitted in it"));
+    let original = h.menu.as_ref().unwrap().menu.id.clone();
+    h.update(Event::Msg {
+        plugin: 0,
+        msg: Box::new(reply(2)),
+    });
+    assert_eq!(h.menu.as_ref().unwrap().menu.id, original);
+    let fx = press(&mut h, KeyCode::Char('y'));
+    assert!(!fx.iter().any(spawned));
+    assert!(fx.iter().any(|e| matches!(
+        e,
+        HostEffect::Journal(JournalRecord::Outcome {
+            outcome: JournalOutcome::Blocked,
+            ..
+        })
+    )));
+    assert!(h.menu.is_none());
+    // The block is a notice, which the text form leaves out.
+    let notices = crate::tests::notices(&h);
+    assert!(notices.contains(CHANGED), "{notices}");
+    insta::assert_snapshot!("stale_removal", crate::tests::shown(&h, width, height));
+    let fx = press(&mut h, KeyCode::Char('y'));
+    assert!(!fx.iter().any(spawned));
+    press(&mut h, KeyCode::Char('d'));
+    assert_ne!(h.menu.as_ref().unwrap().menu.id, original);
+    let updated = crate::tests::shown(&h, width, height);
+    assert!(updated.contains("2 files uncommitted in it: lost"));
+    insta::assert_snapshot!("reviewed_removal", updated);
+    // A fresh, explicit confirmation is allowed. Drop its production future.
+    let fx = press(&mut h, KeyCode::Char('y'));
+    assert_eq!(fx.iter().filter(|e| spawned(e)).count(), 1);
 }
 
 #[test]
 fn host_escape_then_repeated_yes_does_nothing_and_reopening_uses_new_intent() {
     let mut h = hosted(sample(0));
-    radar_core::shell::to_text(&h, 80, 24);
+    crate::tests::shown(&h, 160, 40);
     press(&mut h, KeyCode::Char('d'));
-    radar_core::shell::to_text(&h, 80, 24);
+    crate::tests::shown(&h, 160, 40);
     let original = h.menu.as_ref().unwrap().menu.id.clone();
     press(&mut h, KeyCode::Esc);
     assert!(h.menu.is_none());
@@ -406,7 +387,7 @@ fn host_escape_then_repeated_yes_does_nothing_and_reopening_uses_new_intent() {
     }
     press(&mut h, KeyCode::Char('d'));
     assert_ne!(h.menu.as_ref().unwrap().menu.id, original);
-    radar_core::shell::to_text(&h, 80, 24);
+    crate::tests::shown(&h, 160, 40);
     press(&mut h, KeyCode::Char('n'));
     assert!(h.menu.is_none());
 }

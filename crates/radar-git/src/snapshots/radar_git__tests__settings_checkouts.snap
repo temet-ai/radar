@@ -1,0 +1,35 @@
+---
+source: crates/radar-git/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · checkouts ──
+> + add a folder to look in   paste or type a folder  {row:0}
+  folder     /work  1 found  {row:1}
+  look down  4 folders  {row:2}
+  last look  2m ago  1 found  {row:3}
+── detail · add a folder ──
+Another folder to look for git checkouts in. radar matches each checkout to its repo by its origin remote.
+
+ACCEPTS
+a full path, or one starting with ~/ (pasted links to files work too)
+
+NOW
+1 folder
+
+config: [git] roots
+
+§ :folder: WHAT IT READS
+  The git checkouts under these folders, as far down as look down.
+  New clones inside them show up at the next look.
+  With git on this machine: branches, changes, ahead, behind.
+§ :branch: WHERE IT SHOWS
+  Branches (B): every branch in these checkouts.
+  A repo or merge request: where it is checked out, e and t.
+  Agents start in the checkout you pick.
+§ :settings: CHANGE IT LATER
+  Settings / git / checkouts
+§ :info: SKIP IT?
+  Branches stay empty until a folder is set.
+  The services work without it.
+── status · SETTINGS ──
+b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -1,10 +1,8 @@
-//! Scrolling: the state a panel keeps while it is drawn through `&self`, a
-//! body drawn through `tui-scrollview`, and the scrollbar on a panel's edge.
-
-use std::cell::Cell;
+//! Scrolling, drawn: a body drawn through `tui-scrollview` and the scrollbar
+//! on a panel's edge. The state ([`Scroll`]) is `view::scroll`'s.
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use ratatui::crossterm::event::KeyEvent;
 use ratatui::layout::{Margin, Position, Rect, Size};
 use ratatui::text::Line;
 use ratatui::widgets::{
@@ -12,111 +10,16 @@ use ratatui::widgets::{
 };
 use tui_scrollview::{ScrollView, ScrollViewState, ScrollbarVisibility};
 
+pub use crate::view::scroll::{AsChord, Scroll};
+
+impl AsChord for KeyEvent {
+    fn as_chord(&self) -> Option<crate::view::Chord> {
+        crate::view_tui::chord_of(self)
+    }
+}
+
 use crate::design::theme::Slot;
 use crate::theme::Theme;
-
-/// How far a panel is scrolled, and how far it can be: kept in `Cell`s so it
-/// can be read and set while drawing (`Plugin::render` takes `&self`). The
-/// room is only known after a frame was drawn.
-#[derive(Debug, Default)]
-pub struct Scroll {
-    at: Cell<u16>,
-    /// (visible rows, furthest offset), from the last frame.
-    room: Cell<(u16, u16)>,
-}
-
-impl Scroll {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// The first row shown.
-    pub fn at(&self) -> u16 {
-        self.at.get()
-    }
-
-    /// The furthest it can scroll, as of the last frame.
-    pub fn max(&self) -> u16 {
-        self.room.get().1
-    }
-
-    /// Rows visible, as of the last frame.
-    pub fn height(&self) -> u16 {
-        self.room.get().0
-    }
-
-    /// Whether there is more than fits.
-    pub fn more(&self) -> bool {
-        self.max() > 0
-    }
-
-    /// Back to the top: a new selection starts there.
-    pub fn top(&self) {
-        self.at.set(0);
-    }
-
-    pub fn set(&self, at: u16) {
-        self.at.set(at);
-    }
-
-    /// Move by `rows`, within what the last frame allowed; whether it
-    /// moved.
-    pub fn by(&self, rows: i32) -> bool {
-        let at = (i32::from(self.at()) + rows).clamp(0, i32::from(self.max()));
-        let moved = at as u16 != self.at();
-        self.at.set(at as u16);
-        moved
-    }
-
-    /// A page down or up, keeping one row of the last page; whether it
-    /// moved (a part reports `PgUp`/`PgDn` not handled when it did not, and
-    /// the host says there is nothing to scroll).
-    pub fn page(&self, down: bool) -> bool {
-        let step = i32::from(self.height().saturating_sub(1).max(1));
-        self.by(if down { step } else { -step })
-    }
-
-    /// Scrolls for `↑↓ j k PgUp PgDn g G Home End`; false for any other key,
-    /// and for `↑` at the top (the host takes it up to the top bar).
-    pub fn key(&self, key: &KeyEvent) -> bool {
-        match key.code {
-            KeyCode::Down | KeyCode::Char('j') => {
-                self.by(1);
-            }
-            // At the top `↑` is not the panel's: the host takes it up to
-            // the top bar.
-            KeyCode::Up | KeyCode::Char('k') if self.at() == 0 => return false,
-            KeyCode::Up | KeyCode::Char('k') => {
-                self.by(-1);
-            }
-            KeyCode::PageDown => return self.page(true),
-            KeyCode::PageUp => return self.page(false),
-            KeyCode::Home | KeyCode::Char('g') => self.top(),
-            KeyCode::End | KeyCode::Char('G') => self.at.set(self.max()),
-            _ => return false,
-        }
-        true
-    }
-
-    /// What a renderer laid out: `rows` of the body show, the content took
-    /// `content` rows, and the first shown is `at` (kept within them). How
-    /// a part's scroll learns its room from whichever renderer draws
-    /// ([`crate::Host::laid_out`]); no frame of the host's is needed.
-    pub fn laid_out(&self, rows: u16, content: u16, at: u16) {
-        let max = content.saturating_sub(rows);
-        self.room.set((rows, max));
-        self.at.set(at.min(max));
-    }
-
-    /// Record what this frame can show and keep the offset within it.
-    pub(crate) fn fit(&self, height: u16, total: u16) -> u16 {
-        let max = total.saturating_sub(height);
-        let at = self.at().min(max);
-        self.at.set(at);
-        self.room.set((height, max));
-        at
-    }
-}
 
 /// The panel's edge around `inner`, one cell out on every side: what a
 /// scrollbar runs down when only the area inside a panel is known (the host

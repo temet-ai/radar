@@ -4,14 +4,14 @@
 //! A part publishes a [`ScreenView`] for each of its screens and a
 //! [`SectionView`] for each settings section: semantic nodes with stable ids
 //! and bounded data, never painted cells. A frontend lays them out and paints
-//! them; the legacy Ratatui runner does so through [`crate::view_tui`], and a
+//! them; the Ink renderer does so over IPC ([`crate::ipc`]), and a
 //! headless consumer ([`crate::headless`]) reads the same descriptions and
 //! drives the same part with [`Intent`]s. What the user does reaches the part
 //! as an [`Intent`] aimed at a [`Target`], never as a terminal event or a
 //! cell position, and the host keeps permission, mode, confirmation and
 //! journal causality whichever frontend sent it.
 //!
-//! Nothing in this module names Ratatui or Crossterm (a test reads the source
+//! Nothing in this module names a terminal library (a test reads the source
 //! to keep it so). Every description carries [`VERSION`]; a frontend that
 //! meets an [`Node::Extension`] it does not know draws its fallback, and an
 //! unknown node degrades visibly without dropping the part's actions.
@@ -514,8 +514,8 @@ pub enum Intent {
     EditUnselect,
     /// Copy screen text the user selected (a drag, a double click, ctrl+c on
     /// a selection): the host puts `text` on the clipboard through the
-    /// ways it knows (a program, else the terminal's OSC 52), as it does
-    /// for a drag in the Ratatui renderer, and says how. The renderer sends
+    /// ways it knows (a program, else the terminal's OSC 52), and says how.
+    /// The renderer sends
     /// the text it drew in the selected cells; more than
     /// [`crate::ipc::MAX_CLIPBOARD`] bytes is refused.
     Copy { text: String },
@@ -1124,7 +1124,7 @@ pub enum Node {
         painted: Vec<Vec<PaintRun>>,
         /// The words that changed within each line of a replaced pair, as
         /// `[from, to)` in characters of the line's text (tabs as four
-        /// spaces), as Ratatui emphasises them; empty when no line has any.
+        /// spaces), for the renderer to emphasise; empty when no line has any.
         /// The bridge fills it with `painted`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         words: Vec<Vec<(u32, u32)>>,
@@ -1229,8 +1229,8 @@ fn paint_cached(lines: &[crate::ui::diff::DiffLine], language: Option<&str>) -> 
     done
 }
 
-/// Each line cut into runs by what the code is, as the Ratatui renderer
-/// feeds its highlighters: context lines to both the old and the new side,
+/// Each line cut into runs by what the code is, as the renderer
+/// takes them: context lines to both the old and the new side,
 /// added lines to the new, removed lines to the old. Nothing when the
 /// language is unknown.
 fn paint_runs(lines: &[crate::ui::diff::DiffLine], language: Option<&str>) -> Vec<Vec<PaintRun>> {
@@ -1346,7 +1346,7 @@ pub enum State {
 
 /// The screen the host shows now, as every renderer is given it: the
 /// part's own screen, or the host's set-up page while the part is not set
-/// up yet (what `parts::setup_page` draws for Ratatui).
+/// up yet.
 pub fn screen_showing(host: &crate::host::Host, width: u16, height: u16) -> Option<ScreenView> {
     let (p, spec) = host.screen()?;
     let view = match host.setting_up() {
@@ -1359,8 +1359,7 @@ pub fn screen_showing(host: &crate::host::Host, width: u16, height: u16) -> Opti
     })
 }
 
-/// The set-up page of a part that is not set up yet (what `parts::setup_page`
-/// draws for Ratatui) as a screen of one pane.
+/// The set-up page of a part that is not set up yet, as a screen of one pane.
 fn setup_screen(host: &crate::host::Host, p: usize, scope: &str) -> crate::view::ScreenView {
     use crate::compose::Setup;
     use crate::view::{Ink, Node, PaneId, PaneView, Seg, Text};
@@ -1854,7 +1853,7 @@ pub struct ScreenView {
     pub overlay: Option<Box<PaneView>>,
     /// The agent dock below the middle pane, on every screen. Filled by the
     /// host ([`crate::dock`]), never by the part whose screen this is; Ink
-    /// draws it, Ratatui draws one line in its place.
+    /// draws it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dock: Option<Box<crate::dock::DockView>>,
 }
@@ -1884,7 +1883,7 @@ impl ScreenView {
     /// Whether the agent dock has a place on this screen: under the middle
     /// pane of a screen of panes. An item's page and the work area (a pane
     /// that is a `work.*` extension) have none; Ink draws no dock there
-    /// (`dockShown`) and Ratatui no notice.
+    /// (`dockShown`).
     pub fn has_dock_place(&self) -> bool {
         self.page.is_none()
             && !self.panes.iter().any(|p| matches!(&p.body, Node::Extension { capability, .. } if capability.starts_with("work.")))
@@ -2188,6 +2187,7 @@ pub mod detail;
 pub mod diff;
 pub mod doc;
 pub mod kit;
+pub mod measure;
 pub mod scroll;
 
 pub use chrome::{Choice, ChromeView, MenuView};

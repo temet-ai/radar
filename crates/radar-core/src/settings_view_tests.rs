@@ -1,15 +1,12 @@
-//! The set-up page and the host-owned settings sections as view data say
-//! what Ratatui draws for the same host state (`parts::render`,
-//! `mode::render`, their detail lines and `parts::setup_page`).
+//! The set-up page and the host-owned settings sections as view data: their
+//! rows, which one is selected, and the detail each selection shows.
 
 use super::*;
 use crate::compose::Setup;
 use crate::design::theme::Tier;
 use crate::host::View;
 use crate::plugin::{Plugin, SectionSpec};
-use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
-use ratatui::text::Line;
+use crate::view::measure;
 
 struct Probe {
     id: &'static str,
@@ -50,20 +47,8 @@ fn goto(host: &mut Host, id: &str) {
     host.section = host.sections.iter().position(|(_, s)| s.id == id).expect("a section");
 }
 
-fn row_text(buf: &Buffer, y: u16) -> String {
-    (0..buf.area.width).map(|x| buf[(x, y)].symbol().to_string()).collect::<String>().trim().to_string()
-}
-
-fn plain(lines: &[Line<'_>]) -> Vec<String> {
-    lines.iter().map(|l| l.spans.iter().map(|s| s.content.as_ref()).collect::<String>().trim_end().to_string()).collect()
-}
-
 fn words(lines: &[Text]) -> Vec<String> {
     lines.iter().map(|l| l.words().trim_end().to_string()).collect()
-}
-
-fn theme(host: &Host) -> crate::theme::Theme {
-    host.build_theme(Tier::Mono)
 }
 
 #[test]
@@ -76,29 +61,25 @@ fn only_the_hosts_own_sections_have_a_view_here() {
 }
 
 #[test]
-fn the_parts_section_lists_each_part_as_ratatui_does() {
+fn the_parts_section_lists_each_part_under_a_heading() {
     let mut host = host();
     goto(&mut host, "parts");
     host.parts_row = 1;
     let view = section_view(&host, Tier::Mono).expect("parts view");
     assert_eq!(view.scope, "parts");
     let Node::List { rows, selected, .. } = &view.body else { panic!("{:?}", view.body) };
-    let t = theme(&host);
-    let area = Rect::new(0, 0, 60, 12);
-    let mut buf = Buffer::empty(area);
-    let hits = crate::parts::render(&host, &t, area, &mut buf, true);
-    assert_eq!(hits.len(), 2);
-    for (k, (rect, i)) in hits.iter().enumerate() {
-        let row = rows.iter().find(|r| r.target.0 == format!("part:{i}")).expect("a row per part");
-        assert_eq!(row.text.words().trim_end(), row_text(&buf, rect.y), "part {k}");
-    }
-    assert_eq!(row_text(&buf, 0), "COMPILED INTO THIS RADAR");
     assert_eq!(rows[0].text.words(), "COMPILED INTO THIS RADAR");
     assert!(rows[0].heading);
+    let parts: Vec<_> = rows.iter().filter(|r| r.target.0.starts_with("part:")).collect();
+    assert_eq!(parts.len(), 2);
+    assert_eq!(parts[0].text.words().trim_end(), "○ Alpha   not set up");
+    assert_eq!(parts[1].text.words().trim_end(), "✓ Beta    set up");
     // Selected: the row of the part the cursor is on, not the heading.
     assert_eq!(rows[selected.unwrap()].target.0, "part:1");
     assert_eq!(view.detail_title, "Beta");
-    assert_eq!(words(&view.detail), plain(&crate::parts::detail_lines(&host, &t)));
+    let detail = words(&view.detail);
+    assert_eq!(detail.first().map(String::as_str), Some("✓ set up"));
+    assert!(detail.iter().any(|l| l == "BETA ADDS"), "{detail:?}");
 }
 
 #[test]
@@ -112,22 +93,25 @@ fn the_parts_detail_names_what_a_part_needs() {
 }
 
 #[test]
-fn the_mode_section_reads_as_ratatui_draws_it() {
+fn the_mode_section_has_its_rows_and_a_detail_for_every_mode() {
     let mut host = host();
     goto(&mut host, "mode");
     let view = section_view(&host, Tier::Mono).expect("mode view");
     let Node::List { rows, selected, .. } = &view.body else { panic!("{:?}", view.body) };
-    let t = theme(&host);
-    let area = Rect::new(0, 0, 60, 12);
-    let mut buf = Buffer::empty(area);
-    crate::mode::render(&host, &t, area, &mut buf, true);
-    // One row per line of the drawing, from its first.
-    for (y, row) in rows.iter().enumerate() {
-        assert_eq!(row.text.words().trim(), row_text(&buf, y as u16), "line {y}");
-    }
+    assert_eq!(rows[0].text.words(), "WHAT RADAR MAY CHANGE");
+    assert_eq!(rows[5].text.words(), "WHEN IDLE");
+    assert!(rows[0].heading && rows[5].heading);
+    assert!(rows[2].text.words().contains(host.mode().word()), "{}", rows[2].text.words());
+    assert!(rows[7].text.words().contains("pause if idle"));
     assert_eq!(rows[selected.unwrap()].target.0, "mode");
     assert_eq!(view.detail_title, "the modes");
-    assert_eq!(words(&view.detail), plain(&crate::mode::detail_lines(&host, &t)));
+    let detail = words(&view.detail);
+    for (k, m) in Mode::ALL.into_iter().enumerate() {
+        assert_eq!(detail[2 * k + 1], format!("    {}", m.about()), "{}", m.word());
+        // The mode in force is the one marked.
+        assert_eq!(view.detail[2 * k].words().starts_with("● "), m == host.mode(), "{}", m.word());
+    }
+    assert!(detail.iter().any(|l| l.starts_with("Local actions")), "{detail:?}");
 }
 
 #[test]
@@ -138,40 +122,33 @@ fn the_pause_row_selected_shows_its_own_detail() {
     let view = section_view(&host, Tier::Mono).unwrap();
     let Node::List { rows, selected, .. } = &view.body else { panic!() };
     assert_eq!(rows[selected.unwrap()].target.0, "pause");
-    assert_eq!(words(&view.detail), plain(&crate::mode::detail_lines(&host, &theme(&host))));
+    let detail = words(&view.detail);
+    assert_eq!(detail.len(), 3);
+    assert!(detail[0].starts_with("Every part stops asking its service"), "{detail:?}");
+    assert!(detail[2].ends_with("[general] idle_minutes"), "{detail:?}");
 }
 
 #[test]
-fn the_colours_section_has_a_row_per_ratatui_row_and_its_detail() {
+fn the_colours_section_has_a_row_per_model_row_and_its_detail() {
     let mut host = host();
     goto(&mut host, "colours");
-    let t = theme(&host);
-    // Every selectable row in turn: its row text and its detail are Ratatui's.
-    let n = host.colours.rows().len();
-    for at in 0..n {
+    // Every selectable row in turn: the list is the model's rows, the
+    // selection is the cursor, and the detail is that row's.
+    let model = host.colours.rows();
+    for at in 0..model.len() {
         host.colours.row = at;
-        if matches!(host.colours.rows()[at], crate::colours::Row::Header(_)) {
+        if matches!(model[at], crate::colours::Row::Header(_)) {
             continue;
         }
         let view = section_view(&host, Tier::Mono).expect("colours view");
         let Node::List { rows, selected, .. } = &view.body else { panic!("{:?}", view.body) };
-        assert_eq!(rows.len(), n);
+        assert_eq!(rows.len(), model.len());
         assert_eq!(*selected, Some(at));
         assert_eq!(view.detail_title, host.colours.detail_title());
-        assert_eq!(words(&view.detail), plain(&host.colours.detail_lines(&t)), "row {at}");
-    }
-    let area = Rect::new(0, 0, 60, n as u16);
-    let mut buf = Buffer::empty(area);
-    let cursor = std::cell::Cell::new(None);
-    host.colours.row = 1;
-    host.colours.render(&t, area, &mut buf, true, &cursor);
-    let view = section_view(&host, Tier::Mono).unwrap();
-    let Node::List { rows, .. } = &view.body else { panic!() };
-    for (y, row) in rows.iter().enumerate() {
-        let right = row.right.as_ref().map(|r| r.words()).unwrap_or_default();
-        let said = format!("{}{}", row.text.words().trim_end(), if right.is_empty() { String::new() } else { format!(" {right}") });
-        let drawn = row_text(&buf, y as u16);
-        assert!(drawn.replace("  ", " ").starts_with(said.replace("  ", " ").split(" yours").next().unwrap().trim()), "row {y}: {drawn:?} vs {said:?}");
+        assert!(!view.detail.is_empty(), "row {at}");
+        for (y, row) in rows.iter().enumerate() {
+            assert_eq!(row.heading, matches!(model[y], crate::colours::Row::Header(_)), "row {y}");
+        }
     }
 }
 
@@ -200,5 +177,27 @@ fn the_icons_section_has_a_row_per_group_and_icon() {
     assert!(rows[0].heading);
     assert!(!rows[selected.unwrap()].heading);
     assert_eq!(view.detail_title, host.colours.icons_detail_title());
-    assert_eq!(words(&view.detail), plain(&host.colours.icons_detail_lines(&theme(&host))));
+    let icon = host.colours.icon_selected();
+    let detail = words(&view.detail);
+    assert_eq!(detail[0], format!("Shows {}.", icon.about()));
+    assert_eq!(detail.last().map(String::as_str), Some(format!("config: [icons] {}", icon.name()).as_str()));
+}
+
+#[test]
+fn a_sections_detail_rows_set_how_far_settings_scrolls() {
+    let mut host = host();
+    goto(&mut host, "mode");
+    let view = section_view(&host, Tier::Mono).unwrap();
+    // Wide enough that no line wraps: a row per line.
+    assert_eq!(measure::detail_rows(&view, 400, measure::SETTINGS_INSET), view.detail.len());
+    // A narrow pane wraps the long lines: more rows than lines.
+    let narrow = measure::detail_rows(&view, 30, measure::SETTINGS_INSET);
+    assert!(narrow > view.detail.len(), "{narrow} rows for {} lines", view.detail.len());
+    // The pane's text room at a 100×30 body is 72×13: it scrolls by the rest.
+    let room = measure::settings_detail_text(measure::Size::new(100, 30));
+    assert_eq!((room.width, room.height), (72, 13));
+    let rows = measure::detail_rows(&view, room.width, measure::SETTINGS_INSET);
+    let scroll = crate::ui::Scroll::new();
+    scroll.fit(room.height, rows as u16);
+    assert_eq!(usize::from(scroll.max()), rows.saturating_sub(usize::from(room.height)));
 }

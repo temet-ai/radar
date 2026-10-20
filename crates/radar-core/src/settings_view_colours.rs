@@ -1,5 +1,5 @@
-//! The host's colours and icons settings sections as view data (what
-//! `Colours::render`, `icons_render` and their detail lines draw).
+//! The host's colours and icons settings sections as view data: a row per
+//! colour slot or icon, and the detail of the row selected.
 
 use super::{kv, section};
 use crate::colours::{Colours, Row};

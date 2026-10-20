@@ -1,8 +1,6 @@
-//! View data for what the host draws itself: the set-up page of a part that is
-//! not set up yet, and the host-owned settings sections (parts, mode). The
-//! Ratatui shell draws these straight into a buffer from the same host state
-//! (`parts::setup_page`, `parts::render`, `mode::render`); a renderer that
-//! draws only view data (Ink) is sent these instead.
+//! View data for what the host owns in settings: the set-up page of a part
+//! that is not set up yet, and the host-owned sections (parts, mode, look,
+//! colours, icons). Built from the host's state; Ink draws them.
 
 use crate::compose::{self, Setup};
 use crate::host::{Host, Owner};
@@ -24,7 +22,7 @@ pub fn section_view(host: &Host, tier: crate::design::theme::Tier) -> Option<Sec
     }
 }
 
-/// A muted capitals heading, as `widgets::heading` draws one.
+/// A muted capitals heading.
 fn heading(words: &str) -> Text {
     Text::new().push(Seg::new(words.to_uppercase(), Ink::Muted).strong())
 }
@@ -87,7 +85,7 @@ fn parts(host: &Host, scope: &str) -> SectionView {
     section(scope, Node::List { rows, selected, editing: None }, title, parts_detail(host))
 }
 
-/// `parts::detail_lines` as view text.
+/// The detail of the part under the cursor, or what a part is.
 fn parts_detail(host: &Host) -> Vec<Text> {
     let Some(p) = host.plugins.get(host.parts_row) else {
         let mut lead = Seg::icon(Icon::Empty);
@@ -187,7 +185,8 @@ fn mode(host: &Host, scope: &str) -> SectionView {
     section(scope, Node::List { rows, selected, editing: None }, "the modes".into(), mode_detail(host))
 }
 
-/// `mode::detail_lines` as view text.
+/// The detail of the mode section: every mode and what it allows, or the
+/// idle pause when its row is selected.
 fn mode_detail(host: &Host) -> Vec<Text> {
     if host.pause.row == 1 {
         return vec![

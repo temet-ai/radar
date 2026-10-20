@@ -112,7 +112,7 @@ mod tests {
     /// what local code is.
     #[test]
     fn a_found_place_is_looked_in_with_enter() {
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key as KeyCode};
         let mut p = GitPlugin::new();
         crate::local::walked(&mut p, vec![("~/ankh-morpork".into(), 3), ("~/watch".into(), 1)]);
         p.local.rows[0] = 1;
@@ -121,7 +121,7 @@ mod tests {
         assert!(body.contains("~/ankh-morpork") && body.contains("3 checkouts") && body.contains("1 checkout\""), "{body}");
         assert!(body.find("~/ankh-morpork") < body.find("~/watch"), "most first");
         assert!(format!("{:?}", view.detail_blocks).contains("WHAT IT READS"));
-        crate::settings::key(&mut p, "checkouts", KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+        crate::settings::key(&mut p, "checkouts", Chord::new(KeyCode::Enter));
         assert_eq!(p.cfg.roots, vec!["~/ankh-morpork".to_string()]);
         let view = crate::settings::section_view(&p, "checkouts", &cx()).unwrap();
         assert_eq!(format!("{:?}", view.body).matches("~/ankh-morpork").count(), 1, "offered no more");

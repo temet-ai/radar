@@ -2,7 +2,7 @@
 //! removal futures are dropped. Only the explicitly injected fake is polled.
 use super::*;
 use radar_core::host::{Event, Host, HostEffect, JournalRecord, View as HostView};
-use radar_core::ratatui::crossterm::event::KeyModifiers;
+use radar_core::view::{Chord, Intent};
 use std::sync::{Arc, Mutex};
 
 const CLONE: &str = "/work/acme/api";
@@ -320,7 +320,7 @@ fn hosted(p: GitPlugin) -> Host {
 }
 
 fn press(h: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    h.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    h.update(Event::Intent(Intent::Key { chord: Chord::new(code) }))
 }
 
 fn spawned(effect: &HostEffect) -> bool {

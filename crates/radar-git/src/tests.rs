@@ -4,7 +4,7 @@
 use radar_core::host::{Event, View};
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Intent, Key as KeyCode};
 use radar_core::ui::chips::words;
 use radar_core::{Contribution, Host, Plugin, Point, Subject};
 
@@ -277,17 +277,17 @@ fn input_sits_on_its_value(
     value: &str,
 ) {
     use radar_core::view::Node;
-    let press = |host: &mut Host, code: KeyCode, m: KeyModifiers| {
+    let press = |host: &mut Host, code: KeyCode, ctrl: bool| {
         let _ = shown(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, m)))
+        host.update(Event::Intent(Intent::Key { chord: Chord { ctrl, ..Chord::new(code) } }))
     };
     section(host, name);
     host.focus = Pane::Middle;
     for _ in 0..20 {
-        press(host, KeyCode::Up, KeyModifiers::NONE);
+        press(host, KeyCode::Up, false);
     }
     for _ in 0..downs {
-        press(host, KeyCode::Down, KeyModifiers::NONE);
+        press(host, KeyCode::Down, false);
     }
     let before = shown(host, 160, 40);
     let view = radar_core::headless::section_of(host, 160, 40).expect("the section");
@@ -306,16 +306,16 @@ fn input_sits_on_its_value(
         None => panic!("no {value:?} on {text:?}"),
     };
     for code in open {
-        press(host, *code, KeyModifiers::NONE);
+        press(host, *code, false);
     }
     assert!(
         host.plugins[0].capturing(),
         "{name}: {open:?} on {row:?} opened no input"
     );
-    press(host, KeyCode::Char('e'), KeyModifiers::CONTROL);
-    press(host, KeyCode::Char('u'), KeyModifiers::CONTROL);
+    press(host, KeyCode::Char('e'), true);
+    press(host, KeyCode::Char('u'), true);
     // w is text here, not the save key.
-    let fx = press(host, KeyCode::Char('w'), KeyModifiers::NONE);
+    let fx = press(host, KeyCode::Char('w'), false);
     assert!(
         !fx.iter()
             .any(|e| matches!(e, radar_core::host::HostEffect::Save(_))),
@@ -332,7 +332,7 @@ fn input_sits_on_its_value(
         ("w", c + 1),
         "{name}, {row:?}: the input does not start where {value:?} was"
     );
-    press(host, KeyCode::Esc, KeyModifiers::NONE);
+    press(host, KeyCode::Esc, false);
     assert!(!host.plugins[0].capturing());
 }
 

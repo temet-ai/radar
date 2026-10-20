@@ -10,7 +10,7 @@ use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Outcome, SectionSpec, key_text};
 #[cfg(test)]
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key as KeyCode};
 use radar_core::system;
 use radar_core::time;
 
@@ -710,7 +710,7 @@ const LABEL: usize = 11;
 const VALUE_AT: u16 = 1 + LABEL as u16;
 
 fn chars(s: &str) -> usize {
-    s.chars().count()
+    radar_core::design::width::width(s)
 }
 
 /// `s` cut to `n` cells, keeping its start and marking the cut with `…`.
@@ -2176,20 +2176,37 @@ fn commit(p: &mut GitPlugin, field: Field, text: String) -> Vec<Effect> {
     }
 }
 
-/// A terminal key in a section, as the Ratatui frontend turns it into an
-/// intent (tests that press keys).
+/// A key in a section, routed as the host routes it: the section's rows say
+/// what the key means (tests that press keys).
 #[cfg(test)]
-pub(crate) fn key(p: &mut GitPlugin, section: &str, key: KeyEvent) -> Outcome {
-    let fe = radar_core::view_tui::Frontend::default();
-    let scope = radar_core::view_tui::Scope::Section(section);
-    radar_core::view_tui::press_part(
-        &fe,
-        p,
-        scope,
-        radar_core::Pane::Middle,
-        key,
-        radar_core::plugin::DEMO_NOW,
-    )
+pub(crate) fn key(p: &mut GitPlugin, section: &str, chord: Chord) -> Outcome {
+    use radar_core::Plugin;
+    use radar_core::view_tui::{Frontend, Routed, section_key, to_part};
+    let fe = Frontend::default();
+    let (width, height) = fe.room();
+    let pane = radar_core::Pane::Middle;
+    let cx = v::ViewCx {
+        now: radar_core::plugin::DEMO_NOW,
+        focus: pane.into(),
+        width,
+        height,
+        parts: radar_core::compose::Parts::none(),
+        icon_lead: fe.lead(),
+        setup: false,
+    };
+    let routed = if p.capturing() {
+        Routed::Intent(v::Intent::Key { chord })
+    } else {
+        match p.section_view(section, &cx) {
+            Some(view) => Routed::Intent(section_key(&view, chord)),
+            None => Routed::Ignored,
+        }
+    };
+    match routed {
+        Routed::Intent(i) => to_part(p, section, pane, &i),
+        Routed::Done => Outcome::done(),
+        Routed::Ignored => Outcome::Ignored,
+    }
 }
 
 /// A key typed into the field being edited: kept, cancelled, or the text
@@ -2354,10 +2371,9 @@ pub fn on_bulk(p: &mut GitPlugin, value: &str) -> Option<Vec<Effect>> {
 mod tests {
     use super::*;
     use crate::demo::sample;
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
 
     fn press(p: &mut GitPlugin, section: &str, code: KeyCode) -> Vec<Effect> {
-        match key(p, section, KeyEvent::new(code, KeyModifiers::NONE)) {
+        match key(p, section, Chord::new(code)) {
             Outcome::Handled(fx) => fx,
             Outcome::Ignored => vec![],
         }

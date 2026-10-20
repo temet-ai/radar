@@ -2,7 +2,7 @@
 use super::*;
 use radar_core::host::{Event, Host, HostEffect, View as HostView};
 use radar_core::view::Intent;
-use radar_core::ratatui::crossterm::event::KeyModifiers;
+use radar_core::view::Chord;
 
 const CLONE: &str = "/work/acme/api";
 const WORKTREE: &str = "/work/acme/api-hotfix";
@@ -64,7 +64,7 @@ fn select_worktree(p: &GitPlugin) {
 }
 
 fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    host.update(Event::Intent(Intent::Key { chord: Chord::new(code) }))
 }
 
 fn host(p: GitPlugin) -> Host {
@@ -156,7 +156,7 @@ fn unknown_or_stale_dirty_worktree_cannot_enable_forced_removal_or_prune() {
         let Outcome::Handled(fx) = key(
             &mut p,
             Pane::Middle,
-            KeyEvent::new(KeyCode::Char('d'), KeyModifiers::NONE),
+            Chord::new(KeyCode::Char('d')),
         ) else {
             panic!("handled refusal")
         };
@@ -217,7 +217,7 @@ fn successful_retry_recovers_status_and_freshness_and_duplicate_reads_stay_suppr
     let Outcome::Handled(fx) = key(
         &mut p,
         Pane::Middle,
-        KeyEvent::new(KeyCode::Char('d'), KeyModifiers::NONE),
+        Chord::new(KeyCode::Char('d')),
     ) else {
         panic!("question")
     };
@@ -480,7 +480,7 @@ fn interrupted_cached_dirty_status_cannot_force_remove_and_preserves_unknowns() 
         let Outcome::Handled(fx) = key(
             &mut p,
             Pane::Middle,
-            KeyEvent::new(KeyCode::Char('d'), KeyModifiers::NONE),
+            Chord::new(KeyCode::Char('d')),
         ) else {
             panic!("handled refusal")
         };
@@ -522,7 +522,7 @@ fn successful_reread_cannot_upgrade_clean_removal_confirmation_to_force() {
     let Outcome::Handled(fx) = key(
         &mut p,
         Pane::Middle,
-        KeyEvent::new(KeyCode::Char('d'), KeyModifiers::NONE),
+        Chord::new(KeyCode::Char('d')),
     ) else {
         panic!("removal question")
     };

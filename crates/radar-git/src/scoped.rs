@@ -1253,15 +1253,15 @@ mod tests {
 
     #[tokio::test]
     async fn link_settings_keyboard_flow_verifies_before_autosave() {
-        use radar_core::plugin::{Outcome, parse_key};
+        use radar_core::plugin::{Outcome, parse_chord};
         let scratch = Scratch::new();
         let dir = scratch.checkout("settings", "git@forge.example:acme/api.git");
         let mut p = GitPlugin::new();
-        p.section_key("links", parse_key("enter").unwrap());
+        p.section_key("links", parse_chord("enter").unwrap());
         p.paste(BASE);
-        p.section_key("links", parse_key("enter").unwrap());
+        p.section_key("links", parse_chord("enter").unwrap());
         p.paste(&dir);
-        let Outcome::Handled(effects) = p.section_key("links", parse_key("enter").unwrap()) else {
+        let Outcome::Handled(effects) = p.section_key("links", parse_chord("enter").unwrap()) else {
             panic!()
         };
         assert!(p.cfg.links.is_empty());

@@ -270,7 +270,7 @@ pub(crate) fn act(p: &mut GitPlugin, s: &Subject, action: &str) -> Vec<Effect> {
 fn ask_checkout(c: &Checkout, branch: &str) -> Vec<Effect> {
     // The page shows the whole path; a long one is its folder here.
     let mut place = local::tilde(&c.dir);
-    if place.chars().count() > 40 {
+    if radar_core::design::width::width(&place) > 40 {
         place = Path::new(&c.dir)
             .file_name()
             .map_or(place, |n| n.to_string_lossy().into_owned());

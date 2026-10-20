@@ -27,6 +27,13 @@ pub const MAX_LINE: usize = 16 * 1024 * 1024;
 /// rest is cut.
 pub const MAX_LOG: usize = 2048;
 
+/// The most panes one [`ToHost::Rows`] carries; the host drops the rest.
+pub const MAX_PANES: usize = 8;
+
+/// The longest scope a [`ToHost::Rows`] names, in characters; the host
+/// cuts the rest (and then knows no such screen).
+pub const MAX_SCOPE: usize = 128;
+
 /// The longest [`ToRenderer::Notice`] text, and an [`InputRequest`]'s
 /// title, in characters; the host cuts the rest.
 pub const MAX_NOTICE: usize = 2048;
@@ -123,6 +130,15 @@ pub enum ToHost {
     },
     /// A line for radar's log: what happened, never what was shown.
     Log { level: LogLevel, text: String },
+    /// What the renderer laid out in the panes of screen `scope` whose
+    /// bodies it scrolls itself: each one's body rows, content rows and
+    /// first row shown ([`crate::view::PaneRows`]). Sent when any of them
+    /// changes; not while a page is open over the screen. At most
+    /// [`MAX_PANES`] panes and [`MAX_SCOPE`] characters of scope.
+    Rows {
+        scope: String,
+        panes: Vec<crate::view::PaneRows>,
+    },
     /// The renderer is leaving (the user quit through it).
     Bye,
     /// The dock's transcript came as a change to a revision the renderer
@@ -408,6 +424,13 @@ impl ToHost {
                 level,
                 text: text.chars().take(MAX_LOG).collect(),
             },
+            ToHost::Rows { scope, mut panes } => {
+                panes.truncate(MAX_PANES);
+                ToHost::Rows {
+                    scope: scope.chars().take(MAX_SCOPE).collect(),
+                    panes,
+                }
+            }
             other => other,
         }
     }

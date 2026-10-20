@@ -961,13 +961,86 @@ mod tests {
         }
         let _ = crate::tests::view_text_in(&p, "repos", Pane::Detail, 160, 6);
         let on = p.tree.borrow().selected().to_vec();
-        // How far the preview can scroll is the renderer's (Ink: ink/test/app/
-        // detail-scroll.test.tsx); here the keys are the preview's, not the tree's.
+        // Moving in the preview is the renderer's (Ink: ink/test/app/
+        // detail-scroll.test.tsx); the keys are the preview's, not the tree's.
         for code in [KeyCode::Down, KeyCode::Char('j'), KeyCode::Char('G'), KeyCode::Up, KeyCode::Char('g')] {
             press(&mut p, Pane::Detail, code);
             assert_eq!(p.tree.borrow().selected(), on, "the tree stays put on {code:?}");
         }
         assert_eq!(p.detail_scroll.at(), 0);
+    }
+
+    /// PgDn from the tree pages the preview by what the renderer laid out
+    /// (#32): the part's scroll learns the preview's rows from the
+    /// renderer's report, the view tells the renderer where to go, and the
+    /// keys menu offers the page keys while there is more.
+    #[test]
+    fn page_down_from_the_tree_pages_the_preview_by_the_rows_the_renderer_laid_out() {
+        use radar_core::headless::Headless;
+        use radar_core::view::{Chord, Intent, Key, PaneId, PaneRows};
+        let mut p = sample();
+        draw(&p);
+        for _ in 0..3 {
+            press(&mut p, Pane::Middle, KeyCode::Down);
+        }
+        let on = p.tree.borrow().selected().to_vec();
+        let now = p.now;
+        let mut host = radar_core::Host::new(vec![Box::new(sample())], now).unwrap();
+        host.load_config(Some("")).unwrap();
+        host.plugins[0] = Box::new(p);
+        let mut ui = Headless::new(host, 160, 40);
+        ui.focus(PaneId::Middle);
+        let page = |ui: &mut Headless, down: bool| {
+            let key = if down { Key::PageDown } else { Key::PageUp };
+            ui.send(Intent::Key { chord: Chord::new(key) })
+        };
+        let at = |ui: &Headless| {
+            let s = radar_core::Plugin::scroll(ui.host().plugins[0].as_ref(), "repos", Pane::Detail).unwrap();
+            (s.at(), s.max(), s.height())
+        };
+        let told = |ui: &Headless| ui.screen().unwrap().pane(PaneId::Detail).unwrap().scroll;
+        let offered = |ui: &Headless| -> Vec<String> {
+            radar_core::Plugin::keys(ui.host().plugins[0].as_ref(), "repos", Pane::Detail)
+                .into_iter()
+                .filter(|b| b.what.starts_with("scroll"))
+                .map(|b| b.what)
+                .collect()
+        };
+        let rows = |at| [PaneRows { pane: PaneId::Detail, rows: 6, content: 20, at }];
+        // Nothing laid out yet: nothing to page, nothing offered.
+        page(&mut ui, true);
+        assert_eq!(at(&ui), (0, 0, 0));
+        assert!(offered(&ui).is_empty());
+        ui.lay_out(&rows(0));
+        assert_eq!(at(&ui), (0, 14, 6));
+        assert_eq!(told(&ui), None, "where the renderer is is not sent back to it");
+        assert_eq!(offered(&ui), ["scroll down a page"]);
+        // A page keeps one row of the last: 5 down.
+        page(&mut ui, true);
+        assert_eq!(at(&ui).0, 5);
+        assert_eq!(told(&ui), Some(5), "the renderer is told to scroll there");
+        assert_eq!(offered(&ui), ["scroll down a page", "scroll up a page"]);
+        ui.lay_out(&rows(5));
+        assert_eq!(told(&ui), None);
+        // The renderer went to the end itself (G): PgDn has nowhere to go.
+        ui.lay_out(&rows(14));
+        assert_eq!(at(&ui).0, 14);
+        page(&mut ui, true);
+        assert_eq!(at(&ui).0, 14);
+        assert_eq!(offered(&ui), ["scroll up a page"]);
+        page(&mut ui, false);
+        assert_eq!(at(&ui).0, 9);
+        assert_eq!(told(&ui), Some(9));
+        // A report about another screen changes nothing.
+        ui.host_mut().laid_out("elsewhere", &rows(0));
+        assert_eq!(at(&ui).0, 9);
+        page(&mut ui, false);
+        page(&mut ui, false);
+        assert_eq!(at(&ui).0, 0);
+        let Some(radar_core::view::Node::Tree(tree)) = ui.screen().unwrap().pane(PaneId::Middle).map(|m| m.body.clone()) else {
+            panic!("the middle pane is a tree");
+        };
+        assert_eq!(tree.selected, on, "the tree stays put");
     }
 
     #[test]

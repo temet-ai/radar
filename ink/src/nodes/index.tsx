@@ -47,6 +47,10 @@ import { slotStyle, specStyle } from "../text/look.js";
 export interface Scroller {
   kind: "document" | "rich";
   focused: boolean;
+  /** The screen pane whose body it is (PaneView.pane), when it is one: what `paneRows` reports for. */
+  pane?: string;
+  /** The rows its content took, as of the last frame. */
+  content(): number;
   /** The first row shown. */
   at(): number;
   /** The furthest it can scroll, as of the last frame (0: everything fits). */
@@ -86,6 +90,31 @@ export const scrollerAt = (x: number, y: number): Scroller | undefined => [...mo
 /** The scroller of the pane that has the keys, if it is a Document or Rich pane. */
 export const focusedScroller = (): Scroller | undefined =>
   [...mounted].reverse().find((s) => s.focused);
+
+/** view::PaneRows: what a screen pane this renderer scrolls laid out. */
+export type PaneRows = { pane: "nav" | "middle" | "detail"; rows: number; content: number; at: number };
+/** What each screen pane drawn now laid out (ToHost::Rows), one per pane, the newest drawn. */
+export function paneRows(): PaneRows[] {
+  const out = new Map<string, PaneRows>();
+  for (const s of mounted) {
+    if (s.pane === "nav" || s.pane === "middle" || s.pane === "detail") out.set(s.pane, { pane: s.pane, rows: s.height(), content: s.content(), at: s.at() });
+  }
+  return [...out.values()].sort((a, b) => a.pane.localeCompare(b.pane));
+}
+let rowsSink: (() => void) | null = null;
+let rowsQueued = false;
+/** Who hears that a scrolled pane drew (App, which sends `paneRows()` when they changed); once per turn of the loop. */
+export function onPaneRows(sink: (() => void) | null) {
+  rowsSink = sink;
+}
+function rowsDrawn() {
+  if (!rowsSink || rowsQueued) return;
+  rowsQueued = true;
+  queueMicrotask(() => {
+    rowsQueued = false;
+    rowsSink?.();
+  });
+}
 
 /** The thumb of ratatui's vertical-right Scrollbar (begin/end symbols off, viewport length unset) on a track of `len`
  * cells for a content `max + 1` long at `at`: its first cell and length. */
@@ -169,9 +198,15 @@ export function Scrolled({
   children,
   fullWidth,
   reportBounds,
+  pane,
+  scrollTo,
 }: {
   fullWidth?: boolean;
   reportBounds?: boolean;
+  /** NodeContext.pane: the screen pane whose body this is. */
+  pane?: string;
+  /** NodeContext.scrollTo (PaneView.scroll): the part moved the scroll here; adopted when it changes. */
+  scrollTo?: number;
   kind: Scroller["kind"];
   id: string;
   total?: number;
@@ -185,18 +220,30 @@ export function Scrolled({
   const [measured, setMeasured] = useState(0);
   const inner = useRef<DOMElement>(null);
   const outer = useRef<DOMElement>(null);
-  const state = useRef({ at: 0, max: 0, id, room, focused, total: 0, rect: null as null | { x: number; y: number; w: number; h: number } });
+  const state = useRef({ at: 0, max: 0, id, room, focused, total: 0, pane, told: undefined as number | undefined, want: undefined as number | undefined, rect: null as null | { x: number; y: number; w: number; h: number } });
   const s = state.current;
   if (s.id !== id) {
     s.id = id;
     s.at = 0;
+  }
+  // PaneView.scroll: the part moved the scroll (a page down from another pane); taken once, when it changes, so the
+  // renderer's own scrolling since is never undone by a snapshot that still says the old place.
+  if (scrollTo !== s.told) {
+    s.told = scrollTo;
+    if (scrollTo !== undefined && scrollTo !== null) s.want = scrollTo;
   }
   const all = total ?? measured;
   // Scroll::fit
   s.room = room;
   s.focused = focused;
   s.total = all;
+  s.pane = pane;
   s.max = Math.max(0, all - room);
+  if (s.want !== undefined) {
+    s.at = s.want;
+    // Kept until the content is measured: before that the furthest it can go is not known.
+    if (total !== undefined || measured > 0) s.want = undefined;
+  }
   s.at = Math.min(s.at, s.max);
   const handle = useRef<Scroller | null>(null);
   if (!handle.current) {
@@ -218,6 +265,10 @@ export function Scrolled({
       get focused() {
         return st.focused;
       },
+      get pane() {
+        return st.pane;
+      },
+      content: () => st.total,
       at: () => st.at,
       max: () => st.max,
       height: () => st.room,
@@ -261,8 +312,11 @@ export function Scrolled({
     mounted.add(h);
     return () => {
       mounted.delete(h);
+      rowsDrawn();
     };
   }, []);
+  // What it laid out may have changed (rows, content, where it is): the App sends what changed (ToHost::Rows).
+  useLayoutEffect(() => rowsDrawn());
   useLayoutEffect(() => {
     // Where it is drawn, for the wheel (scrollerAt).
     const at = screenAt(outer.current);
@@ -349,6 +403,8 @@ function DocumentNode({
     <Scrolled
       kind="document"
       id={ctx.scrollIdentity ?? docId(lines)}
+      pane={ctx.pane}
+      scrollTo={ctx.scrollTo}
       reportBounds={ctx.bodyTrack}
       total={ctx.scrolls ? rows.length : Math.min(rows.length, height)}
       room={height}
@@ -685,6 +741,8 @@ export function NodeView({
         <Scrolled
           kind="rich"
           id={ctx.scrollIdentity ?? richId(node.blocks)}
+          pane={ctx.pane}
+          scrollTo={ctx.scrollTo}
           reportBounds={ctx.bodyTrack}
           room={Math.max(1, ctx.height)}
           width={ctx.width}

@@ -98,6 +98,16 @@ impl Scroll {
         true
     }
 
+    /// What a renderer laid out: `rows` of the body show, the content took
+    /// `content` rows, and the first shown is `at` (kept within them). How
+    /// a part's scroll learns its room from whichever renderer draws
+    /// ([`crate::Host::laid_out`]); no frame of the host's is needed.
+    pub fn laid_out(&self, rows: u16, content: u16, at: u16) {
+        let max = content.saturating_sub(rows);
+        self.room.set((rows, max));
+        self.at.set(at.min(max));
+    }
+
     /// Record what this frame can show and keep the offset within it.
     pub(crate) fn fit(&self, height: u16, total: u16) -> u16 {
         let max = total.saturating_sub(height);

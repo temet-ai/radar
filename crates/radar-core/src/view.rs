@@ -1663,6 +1663,19 @@ impl PageLayout {
     }
 }
 
+/// What a renderer laid out in a pane whose body it scrolls itself: the
+/// body's rows that show, the rows its content took at the pane's width,
+/// and the first row shown. The renderer reports it
+/// ([`crate::ipc::ToHost::Rows`]); the host gives it to the part's scroll
+/// for that pane ([`crate::Plugin::scroll`], [`crate::Host::laid_out`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+pub struct PaneRows {
+    pub pane: PaneId,
+    pub rows: u16,
+    pub content: u16,
+    pub at: u16,
+}
+
 /// A titled pane.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct PaneView {
@@ -1702,6 +1715,13 @@ pub struct PaneView {
     // Pinned, host-admitted controls for the shared detail surface.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub foot_actions: Option<detail::FootActions>,
+    /// The first row of the body to show, when the part moved its scroll
+    /// away from where the renderer last said it was (a page down from
+    /// another pane): the renderer scrolls there. Absent while the
+    /// renderer's own position stands. The host fills it
+    /// ([`crate::Plugin::scroll`]); a part never sets it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scroll: Option<u16>,
 }
 
 impl PaneView {
@@ -1721,6 +1741,7 @@ impl PaneView {
             from: None,
             notes_most: None,
             inset: false,
+            scroll: None,
         }
     }
 }

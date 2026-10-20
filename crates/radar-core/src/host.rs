@@ -614,6 +614,9 @@ pub struct Host {
     /// ([`crate::view_tui`]): scroll offsets and click targets, never a
     /// part's state.
     pub frontend: crate::view_tui::Frontend,
+    /// What the renderer last laid out in the panes it scrolls, and on
+    /// which screen ([`Host::laid_out`]).
+    laid_out: Option<(String, Vec<crate::view::PaneRows>)>,
     /// The last press: what it hit and when, for double clicks.
     last_press: Option<(Hit, u64)>,
     detail_lease: std::cell::RefCell<detail_actions::State>,
@@ -807,6 +810,7 @@ impl Host {
             pointer: None,
             hovered: std::cell::RefCell::new(None),
             frontend: crate::view_tui::Frontend::default(),
+            laid_out: None,
             last_press: None,
             detail_lease: Default::default(),
             saved: toml::Table::new(),
@@ -2118,7 +2122,12 @@ impl Host {
                     }
                     Err(e) => {
                         self.quit_after_save = false;
-                        self.notify_error(format!("✗ settings not saved: {e} · w tries again"));
+                        // The pack's error icon; its symbol in the words only with icons off.
+                        let (icon, mark) = crate::ui::icon::plain_or(crate::ui::icon::Icon::Error, "✗");
+                        self.notify(crate::plugin::Message::error(
+                            icon,
+                            format!("{mark}settings not saved: {e} · w tries again"),
+                        ));
                         self.save_failed = Some(e);
                     }
                 }
@@ -3292,7 +3301,54 @@ impl Host {
         // The one place service text leaves a part for a renderer or the
         // text form: terminal controls go here, for every part.
         crate::view::clean::controls(&mut view);
+        self.mark_scrolls(p, scope, &mut view);
         Some(view)
+    }
+
+    /// What the renderer laid out in the panes of screen `scope` whose
+    /// bodies it scrolls ([`crate::ipc::ToHost::Rows`], or
+    /// [`crate::headless::Headless::lay_out`]): kept, and given to the
+    /// part's scroll of each pane ([`Plugin::scroll`]), so its page keys
+    /// and the keys it offers know how far there is to go. A report about
+    /// a screen other than the one showing changes nothing.
+    pub fn laid_out(&mut self, scope: &str, panes: &[crate::view::PaneRows]) {
+        let Some((p, spec)) = self.screen() else {
+            return;
+        };
+        if spec.id != scope {
+            return;
+        }
+        for rows in panes {
+            if let Some(scroll) = self.plugins[p].scroll(scope, rows.pane.into()) {
+                scroll.laid_out(rows.rows, rows.content, rows.at);
+            }
+        }
+        self.laid_out = Some((scope.to_string(), panes.to_vec()));
+    }
+
+    /// What the renderer last laid out in `pane` of the screen `scope`.
+    pub fn pane_rows(&self, scope: &str, pane: crate::view::PaneId) -> Option<crate::view::PaneRows> {
+        let (on, panes) = self.laid_out.as_ref()?;
+        (on == scope).then(|| panes.iter().find(|r| r.pane == pane).copied()).flatten()
+    }
+
+    /// A pane whose part moved its scroll away from where the renderer
+    /// last showed it (a page down from another pane) says where to
+    /// scroll to ([`crate::view::PaneView::scroll`]); the renderer's own
+    /// position is never sent back to it.
+    fn mark_scrolls(&self, p: usize, scope: &str, view: &mut crate::view::ScreenView) {
+        if view.page.is_some() {
+            return;
+        }
+        for pane in &mut view.panes {
+            let Some(scroll) = self.plugins[p].scroll(scope, pane.pane.into()) else {
+                continue;
+            };
+            let shown = self.pane_rows(scope, pane.pane).map_or(0, |r| r.at);
+            if scroll.at() != shown {
+                pane.scroll = Some(scroll.at());
+            }
+        }
     }
 
     /// Part `p`'s settings section `scope` as a view; `None` while legacy.
@@ -6664,6 +6720,24 @@ pub(crate) mod tests {
                 .as_deref()
                 .is_some_and(|m| m.contains("disk full"))
         );
+        // With icons off the symbol is in the words.
+        let said = host.message.clone().unwrap();
+        assert_eq!((said.icon, said.text.as_str()), (None, "✗ settings not saved: disk full · w tries again"));
+        // With a pack in use the mark is the pack's error icon, not a glyph
+        // in the words (on a thread of its own: the pack is per thread).
+        std::thread::spawn(move || {
+            let mut host = fresh();
+            host.load_config(Some("[theme]\nicons = \"unicode\"\n[a]\nvalue = 0\n")).unwrap();
+            let _ = host.build_theme(crate::design::theme::Tier::Mono);
+            press(&mut host, KeyCode::Char(SETTINGS_KEY));
+            press(&mut host, KeyCode::Char('+'));
+            host.update(Event::Saved(Err("disk full".into())));
+            let said = host.message.clone().unwrap();
+            assert_eq!(said.tone, crate::view::chrome::NoticeTone::Error);
+            assert_eq!((said.icon, said.text.as_str()), (Some(crate::ui::icon::Icon::Error), "settings not saved: disk full · w tries again"));
+        })
+        .join()
+        .unwrap();
         assert!(host.unsaved());
         let screen = crate::headless::host_text_of(&host, 120, 20);
         assert!(

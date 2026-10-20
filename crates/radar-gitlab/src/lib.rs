@@ -1533,6 +1533,11 @@ impl Plugin for GitlabPlugin {
         }
         Some(pictures::fetch(self.cfg.url.clone(), self.cfg.token.clone()))
     }
+    // The preview pages from any pane (PgDn) and offers its page keys by
+    // how far the renderer laid it out; a page keeps its own scroll.
+    fn scroll(&self, screen: &str, pane: Pane) -> Option<&radar_core::ui::Scroll> {
+        (screen == SCREEN.id && pane == Pane::Detail && self.pages.is_empty()).then_some(&self.detail_scroll)
+    }
     // An open page takes the whole body, its keys, clicks and actions.
     fn panes(&self, _: &str) -> Vec<Pane> {
         if self.pages.is_empty() {

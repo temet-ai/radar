@@ -13,7 +13,7 @@ import type { MotionScene } from "../motion/interaction.js";
 import { shellRenderNode, type NodeCx, type RenderNode } from "./Body.js";
 import type { ActionSpec } from "./actions.js";
 import { afterIntent, desynced, screenKey, scrollKey, sectionKey, sheetKey, workingFrom } from "../input/route.js";
-import { scrollerAt, scrollers } from "../nodes/index.js";
+import { onPaneRows, paneRows, scrollerAt, scrollers } from "../nodes/index.js";
 import { layoutNoticeHistory, NOTICE_OPEN } from "../notices/layout.js";
 import { NoticeHistoryOverlay } from "../notices/History.js";
 import { noticeHistoryEscapeTarget } from "../notices/input.js";
@@ -129,6 +129,17 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     session.resize(size.columns, size.rows);
   }, [size.columns, size.rows, session]);
   const controllerRef = useRef<InputController | null>(null);
+
+  // What the screen's scrolled panes laid out goes to the host when it changes (ToHost::Rows): the part's own scroll
+  // learns how far there is to go. Not while a page is open over the screen (its panes are the page's).
+  useEffect(() => {
+    onPaneRows(() => {
+      const screen = session.state.snapshot?.screen;
+      if (!screen || screen.page || session.state.phase !== "ready") return;
+      session.sendRows(screen.scope, paneRows());
+    });
+    return () => onPaneRows(null);
+  }, [session]);
 
   useEffect(() => {
     if (state.phase === "refused" || state.phase === "closed") onExit?.(state.exitCode ?? 1, state.message);

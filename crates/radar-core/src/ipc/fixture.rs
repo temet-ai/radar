@@ -12,6 +12,8 @@ pub(super) struct Probe {
     pub(super) unready: bool,
     /// Pages opened on its screen.
     pub(super) depth: std::cell::Cell<usize>,
+    /// The scroll it keeps for its pane: PgDn pages it.
+    pub(super) scroll: crate::ui::Scroll,
 }
 
 pub(super) const ASK: &str = "probe.items.ask";
@@ -100,6 +102,9 @@ impl Plugin for Probe {
                 self.depth.set(self.depth.get() + 1);
                 Outcome::Handled(vec![])
             }
+            Intent::Key { chord } if chord.key == v::Key::PageDown => {
+                if self.scroll.page(true) { Outcome::done() } else { Outcome::Ignored }
+            }
             Intent::Invoke { action } if action == SYNC => {
                 let mut changes = crate::motion::Changes::default();
                 changes.changed.insert("probe:1".into());
@@ -112,6 +117,9 @@ impl Plugin for Probe {
     }
     fn depth(&self, _: &str) -> usize {
         self.depth.get()
+    }
+    fn scroll(&self, _: &str, pane: Pane) -> Option<&crate::ui::Scroll> {
+        (pane == Pane::Middle).then_some(&self.scroll)
     }
     fn on_menu(&mut self, menu: &str, value: &str) -> Vec<Effect> {
         if menu == "ask" && value == "yes" {
@@ -130,7 +138,7 @@ impl Plugin for Probe {
 
 /// A host with the probe, on its screen.
 pub(super) fn host() -> Host {
-    let mut host = Host::new(vec![Box::new(Probe { unready: false, depth: Default::default() })], 0).unwrap();
+    let mut host = Host::new(vec![Box::new(Probe { unready: false, depth: Default::default(), scroll: Default::default() })], 0).unwrap();
     host.view = View::Screen(0);
     host
 }
@@ -166,7 +174,7 @@ pub(super) fn shape(records: &[JournalRecord]) -> Vec<String> {
 
 /// The same host with the probe not set up yet.
 pub(super) fn unready_host() -> Host {
-    let mut host = Host::new(vec![Box::new(Probe { unready: true, depth: Default::default() })], 0).unwrap();
+    let mut host = Host::new(vec![Box::new(Probe { unready: true, depth: Default::default(), scroll: Default::default() })], 0).unwrap();
     host.view = View::Screen(0);
     host
 }

@@ -44,4 +44,12 @@ notes_most?: number | null,
 /**
  * Its rows sit a cell in from each side (a page's list of rows).
  */
-inset?: boolean, foot_actions?: FootActions | null, };
+inset?: boolean, foot_actions?: FootActions | null, 
+/**
+ * The first row of the body to show, when the part moved its scroll
+ * away from where the renderer last said it was (a page down from
+ * another pane): the renderer scrolls there. Absent while the
+ * renderer's own position stands. The host fills it
+ * ([`crate::Plugin::scroll`]); a part never sets it.
+ */
+scroll?: number | null, };

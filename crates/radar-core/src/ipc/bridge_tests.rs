@@ -303,6 +303,69 @@ fn a_context_menu_opens_where_the_pointer_pressed() {
     assert_eq!(bridge.host().menu.as_ref().map(|m| m.anchor), Some(None));
 }
 
+/// #32: what the renderer laid out reaches the part's scroll, so PgDn
+/// pages it by the rows the renderer has; where the part moved it is sent
+/// back as where to scroll, and the renderer's own position is not.
+#[test]
+fn the_rows_a_renderer_laid_out_reach_the_parts_scroll_and_its_page_comes_back() {
+    use crate::plugin::Pane;
+    use crate::view::{Chord, Key, PaneId, PaneRows};
+    let rows = |scope: &str, at| ToHost::Rows {
+        scope: scope.into(),
+        panes: vec![PaneRows { pane: PaneId::Middle, rows: 10, content: 25, at }],
+    };
+    let scroll = |b: &Bridge| {
+        let s = b.host().plugins[0].scroll("items", Pane::Middle).unwrap();
+        (s.at(), s.max(), s.height())
+    };
+    let told = |out: &[ToRenderer]| {
+        snapshots(out).last().and_then(|s| s.screen.as_ref()).and_then(|s| s.pane(PaneId::Middle)).map(|p| p.scroll)
+    };
+    let mut bridge = Bridge::new(fixture::host(), 80, 24);
+    // Before the hello nothing is taken.
+    bridge.receive(rows("items", 0));
+    assert_eq!(bridge.host().pane_rows("items", PaneId::Middle), None);
+    bridge.receive(hello(PROTOCOL));
+    let out = bridge.outgoing();
+    settle(&mut bridge, &out);
+    // Nothing laid out: PgDn has nowhere to go.
+    let pgdn = || Intent::Key { chord: Chord::new(Key::PageDown) };
+    bridge.receive(intent(1, pgdn()));
+    assert_eq!(scroll(&bridge), (0, 0, 0));
+    let out = bridge.outgoing();
+    settle(&mut bridge, &out);
+    bridge.receive(rows("items", 3));
+    assert_eq!(bridge.host().pane_rows("items", PaneId::Middle).map(|r| (r.rows, r.content, r.at)), Some((10, 25, 3)));
+    assert_eq!(scroll(&bridge), (3, 15, 10));
+    let out = bridge.outgoing();
+    assert_eq!(told(&out).flatten(), None, "the renderer's own place is not sent back: {out:?}");
+    settle(&mut bridge, &out);
+    // A page keeps one row of the last.
+    bridge.receive(intent(2, pgdn()));
+    assert_eq!(scroll(&bridge).0, 12);
+    let out = bridge.outgoing();
+    assert_eq!(told(&out), Some(Some(12)), "the renderer is told where");
+    settle(&mut bridge, &out);
+    bridge.receive(rows("items", 12));
+    let out = bridge.outgoing();
+    assert_eq!(told(&out), Some(None));
+    settle(&mut bridge, &out);
+    // A report about a screen not showing changes nothing.
+    bridge.receive(rows("elsewhere", 0));
+    assert_eq!(scroll(&bridge).0, 12);
+    assert_eq!(bridge.host().pane_rows("items", PaneId::Middle).map(|r| r.at), Some(12));
+}
+
+#[test]
+fn a_rows_report_is_cut_to_its_bounds() {
+    use crate::view::{PaneId, PaneRows};
+    let pane = PaneRows { pane: PaneId::Detail, rows: 1, content: 2, at: 0 };
+    let long = ToHost::Rows { scope: "s".repeat(MAX_SCOPE + 5), panes: vec![pane; MAX_PANES + 3] };
+    let ToHost::Rows { scope, panes } = long.bounded() else { panic!() };
+    assert_eq!(scope.chars().count(), MAX_SCOPE);
+    assert_eq!(panes.len(), MAX_PANES);
+}
+
 /// T2: a part that is not set up shows the host's set-up page, as the
 /// Ratatui shell draws it, not the part's own screen.
 #[test]

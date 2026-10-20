@@ -42,6 +42,8 @@ type Pane = {
   bottom_field?: any | null;
   width?: number | null;
   from?: number | null;
+  /** Where the part moved the body's scroll (PaneView.scroll). */
+  scroll?: number | null;
 };
 
 const WIDE = 120;
@@ -309,7 +311,13 @@ export function detailScrollIdentity(screen: any): string {
 /** The screen's own panes in the universal layout (view_tui.rs render_panes). */
 export function ScreenPanes({ screen, focus, width, height, cx, renderNode, dock }: { screen: any; focus?: string; width: number; height: number; cx: NodeCx; renderNode: RenderNode; dock?: DockSlot }) {
   const panes: Pane[] = screen.panes ?? [];
-  const paneCx = (pane: Pane) => pane.pane === "detail" ? { ...cx, scrollIdentity: detailScrollIdentity(screen) } : cx;
+  // A screen pane's body reports what it laid out for its pane (ToHost::Rows) and goes where the part moved it.
+  const paneCx = (pane: Pane): NodeCx => ({
+    ...cx,
+    pane: pane.pane,
+    scrollTo: pane.scroll ?? undefined,
+    ...(pane.pane === "detail" ? { scrollIdentity: detailScrollIdentity(screen) } : {}),
+  });
   const get = (id: string) => panes.find((p) => p.pane === id);
   const nav = get("nav");
   const mid = get("middle");

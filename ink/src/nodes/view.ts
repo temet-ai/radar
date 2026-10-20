@@ -267,6 +267,10 @@ export interface NodeContext {
   /** A Document scrolls in its pane (the settings detail: ui::scroll::paragraph); elsewhere it is cut (widgets::paragraph). */
   scrolls?: boolean;
   scrollIdentity?: string;
+  /** The screen pane the node is the body of (PaneView.pane): its scroller reports its rows for it (ToHost::Rows). */
+  pane?: string;
+  /** PaneView.scroll: where the part moved the pane's scroll; the scroller goes there when it changes. */
+  scrollTo?: number;
   bodyTrack?: boolean;
   /** The sheet of settings or setup (shell.rs section_detail_lines): a section's heading is laid one cell wider than the
    * text it is wrapped in, so its rule drops to a row of its own. */

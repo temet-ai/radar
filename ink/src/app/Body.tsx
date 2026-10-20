@@ -22,6 +22,9 @@ export type NodeCx = {
   /** Host-owned active-surface digit routing, including logically hidden panes. */
   paneJumps?: readonly { pane: string; key: string }[];
   scrollIdentity?: string;
+  /** NodeContext.pane and .scrollTo: a screen pane's body reports its rows and takes the part's scroll. */
+  pane?: string;
+  scrollTo?: number;
   bodyTrack?: boolean;
   writeMode?: import("../nodes/detail.js").WriteMode;
 };
@@ -46,6 +49,8 @@ export const shellRenderNode: RenderNode = (node, cx) => {
     onIntent: cx.onIntent,
     registry: cx.registry,
     scrollIdentity: cx.scrollIdentity,
+    pane: cx.pane,
+    scrollTo: cx.scrollTo,
     bodyTrack: cx.bodyTrack,
   };
   const body = drawNode(node, ctx);

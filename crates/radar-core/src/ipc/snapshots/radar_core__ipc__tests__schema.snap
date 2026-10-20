@@ -8,6 +8,7 @@ expression: lines.concat()
 {"type":"intent","seq":1,"cursor":2,"intent":{"intent":"select","target":"row:1"}}
 {"type":"ack","cursor":2}
 {"type":"log","level":"warn","text":"slow frame"}
+{"type":"rows","scope":"watch","panes":[{"pane":"detail","rows":30,"content":84,"at":12}]}
 {"type":"bye"}
 {"type":"welcome","protocol":1,"view":1,"cursor":1}
 {"type":"refuse","wanted":1,"got":9,"message":"radar speaks protocol 1, this renderer 9"}

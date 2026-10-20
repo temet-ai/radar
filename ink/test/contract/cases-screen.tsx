@@ -206,6 +206,13 @@ export const SCREEN_CASES: Record<string, Case> = {
     p.notes_most = on ? 1 : null;
   }),
   "PaneView.inset": pane((p, on) => (p.inset = on)),
+  // Where the part moved the body's scroll (#32): the body is drawn from there.
+  "PaneView.scroll": pane((p, on) => {
+    p.body = { node: "extension", capability: "detail", version: 1,
+      data: { header: { path: t("watch"), title: t("WATCH-12") }, sections: Array.from({ length: 60 }, (_, i) => ({ block: "line", text: t(`ROW${i}`) })) },
+      fallback: doc() };
+    p.scroll = on ? 30 : null;
+  }),
   // FieldBar
   "FieldBar.mark": pane((p, on) => (p.fields = [{ mark: pick(on, "?", "!"), text: "field", hint: [] }])),
   "FieldBar.text": pane((p, on) => (p.fields = [{ mark: "?", text: pick(on, "field", "ZZFIELD"), hint: [] }])),

@@ -1284,6 +1284,15 @@ pub trait Plugin: Send {
     fn pictures(&self, _source: &str) -> Option<crate::ui::image::Fetch> {
         None
     }
+    /// The scroll the part keeps for what `pane` of `screen` shows, when it
+    /// moves it itself (a page down from another pane) or offers keys by
+    /// it (`pgdn` while there is more). The host sets its room and position
+    /// from what the renderer laid out ([`crate::Host::laid_out`]) and,
+    /// when the part moves it, tells the renderer where to scroll
+    /// ([`crate::view::PaneView::scroll`]). `None`: the renderer's alone.
+    fn scroll(&self, _screen: &str, _pane: Pane) -> Option<&crate::ui::Scroll> {
+        None
+    }
 
     /// The panes this screen can focus, left to right (`tab` cycles them).
     fn panes(&self, _screen: &str) -> Vec<Pane> {

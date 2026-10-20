@@ -1357,6 +1357,11 @@ impl Plugin for SlackPlugin {
     fn pictures(&self, _source: &str) -> Option<radar_core::ui::image::Fetch> {
         Some(self.pictures())
     }
+    // The preview pages from any pane (PgDn) and offers its page keys by
+    // how far the renderer laid it out; a page keeps its own scroll.
+    fn scroll(&self, screen: &str, pane: Pane) -> Option<&radar_core::ui::Scroll> {
+        (screen == SCREEN.id && pane == Pane::Detail && self.pages.is_empty()).then_some(&self.detail_scroll)
+    }
     fn section_view(&self, section: &str, cx: &radar_core::view::ViewCx<'_>) -> Option<radar_core::view::SectionView> {
         if section == "connection" {
             self.setup_card.set(cx.setup);

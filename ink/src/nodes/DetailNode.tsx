@@ -27,7 +27,7 @@ export function DetailNode({ data, ctx }: { data: DetailContent; ctx: NodeContex
   const height = Math.max(0, ctx.height ?? laid.rows.length);
   if (!height || !ctx.width) return null;
   if (ctx.height === undefined) return <DetailWindow laid={laid} at={0} height={height} ctx={ctx} />;
-  return <Scrolled kind="rich" id={ctx.scrollIdentity ?? JSON.stringify([data.header.path, data.header.title])} total={laid.rows.length} room={height} width={ctx.width} focused={ctx.focused} plain={ctx.plainText} fullWidth>
+  return <Scrolled kind="rich" id={ctx.scrollIdentity ?? JSON.stringify([data.header.path, data.header.title])} total={laid.rows.length} room={height} width={ctx.width} focused={ctx.focused} plain={ctx.plainText} pane={ctx.pane} scrollTo={ctx.scrollTo} fullWidth>
     {(at) => <DetailWindow laid={laid} at={at} height={height} ctx={ctx} />}
   </Scrolled>;
 }

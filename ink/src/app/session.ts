@@ -269,6 +269,15 @@ export class Session {
     this.conn.send({ type: "resize", columns, rows });
   }
 
+  private rowsSent = "";
+  /** What the scrolled panes of screen `scope` laid out (ToHost::Rows): sent only when it changed. */
+  sendRows(scope: string, panes: Array<{ pane: "nav" | "middle" | "detail"; rows: number; content: number; at: number }>) {
+    const key = JSON.stringify([scope, panes]);
+    if (key === this.rowsSent) return;
+    this.rowsSent = key;
+    this.conn.send({ type: "rows", scope, panes });
+  }
+
   /** Presentation-only input also accompanies keys consumed by a local editor or scroll. */
   noticeInput(escape: boolean) {
     if (this.noticeStore.input(escape)) this.set({});

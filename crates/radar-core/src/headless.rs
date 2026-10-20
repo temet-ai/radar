@@ -13,7 +13,7 @@ pub mod text;
 pub use explore::{Capture, CaptureKind, Offered, PageKind, PageReach, capture_of, foot_controls, node_targets, offered, view_problems};
 
 use crate::host::{Event, Host, HostEffect, JournalRecord, Owner};
-use crate::view::{Change, Intent, PaneId, ScreenView, SectionView};
+use crate::view::{Change, Intent, PaneId, PaneRows, ScreenView, SectionView};
 
 /// A registered surface that an independent frontend cannot yet show.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -190,6 +190,15 @@ impl Headless {
     pub fn focus(&mut self, pane: PaneId) {
         if self.host.history.is_none() {
             self.host.focus = pane.into();
+        }
+    }
+
+    /// Say what a renderer laid out in the panes of the screen showing, as
+    /// Ink reports it ([`Host::laid_out`]): how a part's test gives its
+    /// scroll the room a renderer would.
+    pub fn lay_out(&mut self, panes: &[PaneRows]) {
+        if let Some((_, spec)) = self.host.screen() {
+            self.host.laid_out(spec.id, panes);
         }
     }
 

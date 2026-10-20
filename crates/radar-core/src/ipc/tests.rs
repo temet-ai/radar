@@ -42,6 +42,15 @@ fn samples() -> (Vec<ToHost>, Vec<ToRenderer>) {
             level: LogLevel::Warn,
             text: "slow frame".into(),
         },
+        ToHost::Rows {
+            scope: "watch".into(),
+            panes: vec![crate::view::PaneRows {
+                pane: PaneId::Detail,
+                rows: 30,
+                content: 84,
+                at: 12,
+            }],
+        },
         ToHost::Bye,
     ];
     let menu = MenuView {

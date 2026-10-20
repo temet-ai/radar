@@ -7,7 +7,7 @@ fn press(host: &mut Host, code: Key) {
 }
 
 fn host() -> Host {
-    crate::shot::demo_host(vec![]).unwrap()
+    crate::demo::demo_host(vec![]).unwrap()
 }
 
 mod mnemonic_tests {
@@ -15,8 +15,6 @@ use super::*;
 
 #[test]
 fn tour_key_words_supply_whole_grapheme_styles_and_plain_shortcuts() {
-    use ratatui::style::Modifier;
-    let theme = crate::Theme::new(crate::design::theme::Tier::Mono);
     for (key, words, expected, plain) in [
         ("x", "extra actions", "extra actions", "extra actions [x]"),
         ("A", "ask an agent", "shift ask an agent", "shift ask an agent [A]"),
@@ -25,8 +23,6 @@ fn tour_key_words_supply_whole_grapheme_styles_and_plain_shortcuts() {
         let text = keyed(key, words);
         assert_eq!(text.words(), expected);
         assert_eq!(text.plain_words(), plain);
-        let line = crate::view_tui::line(&theme, &text);
-        assert!(line.spans.iter().any(|span| span.style.add_modifier.contains(Modifier::UNDERLINED)));
     }
 }
 

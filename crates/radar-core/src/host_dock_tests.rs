@@ -1,5 +1,5 @@
 //! The agent dock in the host: on every screen, the host's state, routing to
-//! its owner, the Ratatui line; and the fixtures Ink's dock tests draw from.
+//! its owner, the status line; and the fixtures Ink's dock tests draw from.
 use super::*;
 use crate::dock::{self, DockIntent, DockView};
 use crate::view::{Intent, ListRow, Node, PaneId, PaneView, ScreenView};
@@ -100,9 +100,9 @@ fn status_text(host: &Host, w: u16, h: u16) -> String {
     crate::headless::text::status(&host.chrome_view(w, h).status)
 }
 
-/// The status line Ratatui draws (the last row), at `w` x `h`.
+/// The status line the host draws (the last row), at `w` x `h`.
 fn status_row(host: &Host, w: u16, h: u16) -> String {
-    crate::shell::to_text(host, w, h).lines().last().unwrap_or_default().to_string()
+    crate::headless::text_of(host, w, h).lines().last().unwrap_or_default().to_string()
 }
 
 #[test]
@@ -266,7 +266,6 @@ fn no_part_with_a_dock_means_no_dock_and_a_dead_key() {
     key(&mut host, dock::KEY);
     host.update(Event::Intent(Intent::Dock(DockIntent::Send { text: "hi".into() })));
     assert!(!host.dock.visible && got.lock().unwrap().is_empty());
-    assert!(!crate::shell::to_text(&host, 80, 24).contains(dock::NOTICE));
 }
 
 #[test]
@@ -412,40 +411,6 @@ fn the_rest_goes_to_the_part_that_owns_the_dock_and_never_to_a_screen() {
         host.update(Event::Intent(Intent::Dock(intent.clone())));
     }
     assert_eq!(*got.lock().unwrap(), sent);
-}
-
-#[test]
-fn ratatui_says_one_line_where_the_dock_would_be_at_both_sizes() {
-    for (w, h) in [(80u16, 24u16), (160, 40)] {
-        let (mut host, _) = host_with(states().remove("streaming").unwrap(), true);
-        key(&mut host, dock::KEY);
-        let text = crate::shell::to_text(&host, w, h);
-        let lines: Vec<&str> = text.lines().collect();
-        let at: Vec<usize> = lines.iter().enumerate().filter(|(_, l)| l.contains(dock::NOTICE)).map(|(i, _)| i).collect();
-        assert_eq!(at.len(), 1, "{w}x{h}:\n{text}");
-        // Under the body, over the status line; no dock controls drawn.
-        assert_eq!(at[0], usize::from(h) - 2, "{w}x{h}:\n{text}");
-        assert!(!text.contains("approve once"), "{text}");
-        // Under the middle pane only: the nav pane keeps its full height, so
-        // its own column is not covered at the notice's row.
-        if w >= 120 {
-            let row = lines[at[0]];
-            let col = row.find(dock::NOTICE).unwrap();
-            assert!(col >= 20, "notice starts in the middle column: {row}");
-            assert!(row.starts_with('│') || row.starts_with(' ') || row.starts_with('┃') || !row[..col].trim().is_empty(), "{row}");
-        }
-    }
-}
-
-#[test]
-fn a_hidden_dock_takes_no_row_and_the_key_brings_the_notice() {
-    let (mut host, _) = host_with(states().remove("streaming").unwrap(), true);
-    assert!(!shown(&host).unwrap().visible);
-    let hidden = crate::shell::to_text(&host, 80, 24);
-    assert!(!hidden.contains(dock::NOTICE), "{hidden}");
-    key(&mut host, dock::KEY);
-    let open = crate::shell::to_text(&host, 80, 24);
-    assert!(open.contains(dock::NOTICE), "{open}");
 }
 
 #[test]
@@ -802,11 +767,11 @@ fn states() -> std::collections::BTreeMap<&'static str, DockView> {
 }
 
 /// The status line while the dock is hidden and sessions want the user, as
-/// the host sends it, with the row Ratatui draws from it beside it: Ink's
+/// the host sends it, with the row the status line draws from it beside it: Ink's
 /// status line is compared with that row at both sizes. Written with the
 /// dock fixtures (`RADAR_DOCK_FIXTURES_DIR`) as `status/attention_<w>x<h>.json`.
 #[test]
-fn the_attention_chip_is_recorded_with_the_row_ratatui_draws() {
+fn the_attention_chip_is_recorded_with_the_row_the_status_line_draws() {
     let dir = std::env::var("RADAR_DOCK_FIXTURES_DIR").ok().map(std::path::PathBuf::from);
     for (w, h) in [(80u16, 24u16), (160, 40)] {
         let (mut host, _) = host_with(states().remove("attention").unwrap(), true);
@@ -816,7 +781,7 @@ fn the_attention_chip_is_recorded_with_the_row_ratatui_draws() {
         assert_eq!(chip.text, "review dock needs you +2");
         let row = status_row(&host, w, h);
         assert!(row.contains("` ") && row.contains(&chip.text), "{w}x{h}: {row}");
-        let json = serde_json::json!({ "chrome": chrome, "ratatui": row });
+        let json = serde_json::json!({ "chrome": chrome, "row": row });
         if let Some(dir) = &dir {
             let dir = dir.join("status");
             std::fs::create_dir_all(&dir).unwrap();
@@ -833,7 +798,7 @@ fn the_attention_chip_is_recorded_with_the_row_ratatui_draws() {
 /// aligned table, code with a tab and trailing blanks, links, a hard break.
 const EDGES: &str = "# Title one\n\nA paragraph with a verylongwordthatmustbreakacrossthelineedgeforsure and **bold, then** _italic_ ~~gone~~.\n\n1. first\n   - nested *one*\n   - nested two\n2. second with `code span` here\n\n- [ ] todo\n- [x] done\n\n> quoted **text** that goes on long enough to wrap at narrow widths\n>\n> > nested quote\n\n---\n\n| Name | Value | Notes |\n|:--|--:|:-:|\n| a | 1 | short |\n| longer name here | 12345 | a note that wraps |\n\n```\nplain\tcode with tab\n\n\n```\n\nLink <https://example.test/x> and [words](https://example.test/y).  \nhard break";
 
-/// ui::rich's layout of the dock's markdown as Ratatui lays it out (link
+/// ui::rich's layout of the dock's markdown as the recorded layout lays it out (link
 /// addresses after their words, as the dock's cells show them), at several
 /// widths: the reference `ink/src/text/richRows.ts` is held to. With
 /// `RADAR_DOCK_FIXTURES_DIR` set it is written there as `rich-layout.json`.

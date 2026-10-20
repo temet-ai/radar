@@ -1,7 +1,7 @@
 //! The rich document model: one tree for text written in a service's own
 //! format (markdown, a tracker's JSON documents, a chat's markup). A part
 //! converts its format into a [`Doc`]; the renderers lay it out
-//! (`ui::rich::layout` for Ratatui) or send it as it is. This module holds
+//! (`ui::rich::layout`) or send it as it is. This module holds
 //! the data and names no renderer.
 
 use serde::{Deserialize, Serialize};

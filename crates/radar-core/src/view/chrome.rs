@@ -1,7 +1,7 @@
 //! The host's own chrome as view data: the top bar, the source tabs, the
 //! status line, the open menu or question, the message and the settings
 //! navigation. The host produces a [`ChromeView`] for a frame
-//! (`Host::chrome_view`); the Ratatui shell paints from it, a headless
+//! (`Host::chrome_view`); a headless
 //! frontend returns it, and the Ink renderer receives it over IPC.
 //!
 //! Everything here is bounded data: words, icon names, chords and
@@ -158,7 +158,7 @@ pub struct ChromeView {
     pub history: Option<crate::history::HistoryView>,
     /// The capital letters the host takes as screen or source keys, which
     /// a renderer must not use for itself (an unclaimed `G` scrolls a
-    /// document pane to the end, as Ratatui's `Scroll::key` does).
+    /// document pane to the end).
     /// Filled by the host; empty until it is.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub screen_keys: Vec<char>,

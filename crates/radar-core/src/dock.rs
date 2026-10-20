@@ -8,16 +8,11 @@
 //! focus, the height the user dragged to) and sends the result on every
 //! screen as [`crate::view::ScreenView::dock`]. Ink draws it and sends
 //! [`DockIntent`]s; it keeps no state of record, so restarting Ink never
-//! stops an agent. Ratatui draws one line in the dock's place
-//! ([`NOTICE`]), the one recorded exception to "both renderers draw the
-//! same picture".
+//! stops an agent.
 
 use serde::{Deserialize, Serialize};
 
 use crate::ui::icon::Icon;
-
-/// What Ratatui draws in the dock's place.
-pub const NOTICE: &str = "the agent dock needs the Ink renderer";
 
 /// The host key for the dock: shows it with the keys, then (pressed again
 /// with the keys in it) hides it. `esc` in the dock sends [`DockIntent::Blur`].

@@ -25,7 +25,7 @@ async fn history_without_a_writer_returns_a_safe_disabled_state() {
         }
     ));
     assert!(host.update(event).is_empty());
-    let image = crate::shell::to_svg(&host, 80, 24);
+    let image = crate::headless::text_of(&host, 80, 24);
     assert!(image.contains("disabled"));
 }
 #[cfg(unix)]
@@ -46,7 +46,7 @@ async fn history_runner_renders_recorded_outcomes_without_creating_read_events()
     let event = rx.recv().await.unwrap();
     assert!(matches!(&event, Event::History { result: Ok(page), .. } if page.events.len() == 2));
     assert!(host.update(event).is_empty());
-    let image = crate::shell::to_svg(&host, 160, 40);
+    let image = crate::headless::text_of(&host, 160, 40);
     assert!(image.contains("test.pipeline"));
     assert!(image.contains("succeeded"));
     // From #26: the detail keeps its scroll through help, and a key with
@@ -55,19 +55,19 @@ async fn history_runner_renders_recorded_outcomes_without_creating_read_events()
         assert!(host.update(key(Chord::new(k))).is_empty());
     };
     press(&mut host, Key::Enter);
-    let first_detail = crate::shell::to_text(&host, 80, 24);
+    let first_detail = crate::headless::text_of(&host, 80, 24);
     press(&mut host, Key::PageDown);
-    let scrolled = crate::shell::to_text(&host, 80, 24);
+    let scrolled = crate::headless::text_of(&host, 80, 24);
     assert_ne!(first_detail, scrolled);
     for modified in [Chord { ctrl: true, ..Chord::new(Key::Home) }, Chord { alt: true, ..Chord::new(Key::Home) }] {
         assert!(host.update(key(modified)).is_empty());
-        assert_eq!(crate::shell::to_text(&host, 80, 24), scrolled);
+        assert_eq!(crate::headless::text_of(&host, 80, 24), scrolled);
     }
     press(&mut host, Key::Char('?'));
-    let help_top = crate::shell::to_text(&host, 80, 24);
+    let help_top = crate::headless::text_of(&host, 80, 24);
     assert_ne!(help_top, scrolled, "help shows");
     press(&mut host, Key::Esc);
-    assert_eq!(crate::shell::to_text(&host, 80, 24), scrolled, "back to the same scroll");
+    assert_eq!(crate::headless::text_of(&host, 80, 24), scrolled, "back to the same scroll");
     let events = recording
         .sink
         .history(Default::default(), None, None)

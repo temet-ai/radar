@@ -172,10 +172,10 @@ pub struct Chip {
     pub text: String,
     pub tone: Tone,
     /// Where the chip goes, when it is a link: drawn as one the terminal
-    /// opens (`ui::chips::chip`).
+    /// opens (a chip).
     pub url: Option<String>,
     /// An icon before the words, drawn in its own colour on the chip
-    /// (`ui::chips::chip_spans`); nothing with icons off.
+    /// (a chip with an icon); nothing with icons off.
     pub icon: Option<crate::ui::icon::Icon>,
     /// One of the contributor's actions on the subject (an [`Action`]'s
     /// `id`): a click on the chip does it, through `Effect::Act`.
@@ -339,7 +339,7 @@ pub enum Contribution {
     },
     Actions(Vec<Action>),
     /// The line under the subject's title: words in a row, each in its tone
-    /// after its icon (drawn by `ui::chips::words`, not as chips).
+    /// after its icon (drawn as words, not as chips).
     Line(Vec<Chip>),
     /// The row's mark: its icon, and words in place of the owner's detail.
     Mark { icon: crate::ui::icon::Icon, words: Vec<Chip> },
@@ -485,7 +485,7 @@ pub fn act(
 }
 
 /// The other parts, as one drawing sees them: what is here, and what they
-/// add to the subject being drawn. Handed to plugins in [`Cx`](crate::view_tui::Cx).
+/// add to the subject being drawn. Handed to plugins in [`ViewCx`](crate::view::ViewCx).
 #[derive(Clone, Copy)]
 pub struct Parts<'a> {
     plugins: &'a [Box<dyn Plugin>],

@@ -34,20 +34,59 @@ fn mnemonic_fields_default_on_legacy_data_and_fresh_producers_keep_real_keys() {
 
 }
 
-#[test]
-fn the_contract_names_no_terminal_library() {
-    for (file, source) in [
-        ("view.rs", include_str!("../view.rs")),
-        ("view/chrome.rs", include_str!("chrome.rs")),
-    ] {
-        for word in ["ratatui", "crossterm", "Buffer", "Rect", "KeyEvent"] {
-            let used = source
-                .lines()
-                .filter(|l| !l.trim_start().starts_with("//"))
-                .any(|l| l.contains(word));
-            assert!(!used, "{file} uses {word}");
+/// Every `.rs` file and `Cargo.toml` under `dir`, skipping build output.
+fn sources_under(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let name = entry.file_name();
+        if path.is_dir() {
+            if name != "target" && name != "node_modules" {
+                sources_under(&path, out);
+            }
+        } else if path.extension().is_some_and(|e| e == "rs") || name == "Cargo.toml" {
+            out.push(path);
         }
     }
+}
+
+/// Plan decision 6: the host and the parts hold radar's own colour, key and
+/// text types and no terminal library's. The words are written in pieces so
+/// this file does not name them itself.
+#[test]
+fn the_host_and_every_part_name_no_terminal_library() {
+    let libraries = [
+        ["rata", "tui"].concat(),
+        ["cross", "term"].concat(),
+        ["tui", "-tree-widget"].concat(),
+        ["tui", "_tree_widget"].concat(),
+    ];
+    let types = [["Buf", "fer"].concat(), ["Re", "ct"].concat(), ["Key", "Event"].concat()];
+    let crates = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().expect("crates/");
+    let mut files = Vec::new();
+    for member in std::fs::read_dir(crates).expect("the workspace's crates").flatten() {
+        sources_under(&member.path(), &mut files);
+    }
+    assert!(files.len() > 100, "the walk found {} files", files.len());
+    let mut found = Vec::new();
+    for file in &files {
+        let Ok(source) = std::fs::read_to_string(file) else { continue };
+        let shown = file.strip_prefix(crates).unwrap_or(file).display().to_string();
+        for (n, line) in source.lines().enumerate() {
+            let lower = line.to_lowercase();
+            if let Some(word) = libraries.iter().find(|w| lower.contains(w.as_str())) {
+                found.push(format!("{shown}:{} names {word}", n + 1));
+            }
+            if line.trim_start().starts_with("//") {
+                continue;
+            }
+            let mut tokens = line.split(|c: char| !(c.is_alphanumeric() || c == '_'));
+            if let Some(word) = tokens.find(|t| types.iter().any(|w| w == t)) {
+                found.push(format!("{shown}:{} uses {word}", n + 1));
+            }
+        }
+    }
+    assert!(found.is_empty(), "terminal types in the host or a part:\n{}", found.join("\n"));
 }
 
 #[test]
@@ -56,10 +95,7 @@ fn the_plugin_trait_names_no_terminal_type() {
     let start = source.find("pub trait Plugin").expect("the trait");
     let end = start + source[start..].find("\n}\n").expect("its end");
     let body = &source[start..end];
-    for word in [
-        "ratatui", "crossterm", "Buffer", "Rect", "KeyEvent", "MouseEvent", "Frame", "Span", "Line<",
-        "Style",
-    ] {
+    for word in ["MouseEvent", "Frame", "Span", "Line<", "Style"] {
         let used = body
             .lines()
             .filter(|l| !l.trim_start().starts_with("//"))

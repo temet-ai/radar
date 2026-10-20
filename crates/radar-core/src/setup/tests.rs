@@ -1,5 +1,5 @@
 //! Setup's flow, its look for keys, `radar setup <step>`, the rail in the
-//! chrome, and what the Ratatui shell draws for it.
+//! chrome, and the view data a renderer draws for it.
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};

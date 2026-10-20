@@ -619,8 +619,7 @@ fn contributions_come_in_plugin_order_and_never_from_the_drawer() {
     // A cell carries its feeling and what clicking it shows.
     assert_eq!((cells[0].heading.as_str(), cells[0].tone), ("note", Tone::Warn));
     assert_eq!(cells[0].show.as_ref().map(|s| s.id.as_str()), Some("N-1"));
-    let t = crate::Theme::new(crate::design::theme::Tier::Mono);
-    assert_eq!(crate::view_tui::cell_span(&cells[0], &t).content, "N-1 · open");
+    assert_eq!(cells[0].text, "N-1 · open");
     let sections = parts.sections(&book(1));
     assert_eq!(sections[0].0, "Note N-1");
     assert_eq!(
@@ -842,11 +841,10 @@ fn an_owner_lists_the_actions_as_the_menu_keeps_them_and_a_press_does_what_the_k
     let (mut host, log) = host("snb");
     let parts = Parts::new(&host.plugins, Some(0));
     let lines = parts.lines(&book(1));
-    let t = crate::Theme::new(crate::design::theme::Tier::Mono);
     assert_eq!(lines[0].0, "Notes");
-    let (line, at) = crate::ui::chips::words_at(&t, &lines[0].1);
-    assert_eq!(line.to_string(), "noted in N-1");
-    assert_eq!(at, [(0, 9, 0), (9, 3, 1)], "where each chip sits, for clicks");
+    let words: Vec<&str> = lines[0].1.iter().map(|c| c.text.as_str()).collect();
+    assert_eq!(words.concat(), "noted in N-1");
+    assert_eq!(words.iter().map(|w| w.chars().count()).collect::<Vec<_>>(), [9, 3], "one chip each, in order");
     let (icon, words) = parts.mark(&book(1)).expect("a mark");
     assert_eq!((icon, words[0].text.as_str()), (crate::ui::icon::Icon::Comment, "noted"));
     let keys: Vec<(&str, String, Option<char>)> = parts

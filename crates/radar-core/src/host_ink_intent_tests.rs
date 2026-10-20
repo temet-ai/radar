@@ -163,7 +163,7 @@ fn a_panes_own_target_moves_nothing_while_a_menu_is_open() {
 
 /// A chip drawn inside a line of the detail pane is a target of that pane,
 /// not of the tree: a press on it from the tree focuses Detail and the part
-/// hears it there (a Ratatui press focused the pane first).
+/// hears it there.
 #[test]
 fn a_select_on_a_chip_in_the_detail_pane_focuses_it_while_the_tree_has_the_keys() {
     let (mut host, seen) = fixture();
@@ -268,7 +268,7 @@ fn grouped() -> Host {
 }
 
 /// A click on a source tab is an Activate (Ink's controller sends one for every
-/// chrome target) and ends where Ratatui's Press ends: the screen switched and
+/// chrome target) and ends with the screen switched and
 /// the keys on the source row, from which Down enters the screen.
 #[test]
 fn an_activate_on_a_source_tab_ends_where_a_press_on_it_ends() {
@@ -298,8 +298,8 @@ fn copy_records(effects: &[HostEffect]) -> Vec<String> {
         .collect()
 }
 
-/// What the renderer selected is copied by the host, as a drag is in the
-/// Ratatui runner: one effect the runner sends through `copy_ways`, journalled
+/// What the renderer selected is copied by the host: one effect the runner
+/// sends through `copy_ways`, journalled
 /// as `system.copy.selection` (and not as an action on the screen under it).
 #[test]
 fn a_copy_intent_becomes_the_copy_effect_and_is_journalled_as_a_selection() {

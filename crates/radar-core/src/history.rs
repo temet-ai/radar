@@ -1,24 +1,13 @@
 //! A read-only, bounded view of original journal observations. The host owns
 //! request IDs and I/O; this state never opens the journal or follows a link.
 
-use std::cell::{Cell, RefCell};
-
-use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::layout::{Position, Rect};
-use ratatui::text::{Line, Span};
-use ratatui::widgets::{Clear, Paragraph, Widget, Wrap};
 use serde::{Deserialize, Serialize};
 
-use crate::design::theme::Slot;
-use crate::host::MouseKind;
 use crate::journal::work_map::{EventCursor, EventEntry, EventFilter, EventPage, Snapshot};
 use crate::journal::{Origin, Outcome, Reason, SessionOrigin, SubjectKey, SubjectRole, WriteMode};
-use crate::theme::Theme;
-use crate::ui::{Column, Columns, Scroll, scroll, table::Table};
+use crate::ui::Scroll;
 use crate::view::chrome::{Hint, HintKey};
 use crate::view::{Chord, Ink, Key, Seg, Target, Text};
-use crate::widgets;
 
 #[cfg(test)]
 pub(crate) mod tests;
@@ -144,25 +133,15 @@ mod view_tests {
     use super::*;
 
     #[test]
-    fn history_mnemonics_and_targeted_phrases_survive_wrap_and_scroll() {
-        use ratatui::style::Modifier;
+    fn history_mnemonics_and_targeted_phrases_are_in_the_view() {
         let history = loaded();
         let controls = detail_controls(history.drawn);
         assert_eq!(controls.words(), "causal events · action events · all activity");
-        let theme = Theme::new(crate::design::theme::Tier::TrueColor);
-        for width in [8, 18, 80] {
-            let area = Rect::new(0, 0, width, 12);
-            let mut buf = Buffer::empty(area);
-            Paragraph::new(line(&theme, &controls)).wrap(Wrap { trim: false }).render(area, &mut buf);
-            let hits = targeted_viewport(&theme, std::slice::from_ref(&controls), area, 0);
-            for key in ["c", "i", "a"] {
-                assert!(hits.iter().any(|(_, target)| target == &history.key_target(key)), "{width}: {key}");
-            }
-            assert!(hits.iter().all(|(hit, _)| hit.right() <= width && hit.bottom() <= 12));
-            let underlined: String = buf.content.iter().filter(|cell| cell.modifier.contains(Modifier::UNDERLINED)).map(|cell| cell.symbol()).collect();
-            assert_eq!(underlined, "cia", "{width}");
-            let clipped = targeted_viewport(&theme, std::slice::from_ref(&controls), Rect::new(0, 0, width, 1), 1);
-            assert!(clipped.iter().all(|(hit, _)| hit.y == 0 && hit.right() <= width));
+        for key in ["c", "i", "a"] {
+            assert!(
+                controls.0.iter().any(|seg| seg.target.as_ref() == Some(&history.key_target(key))),
+                "{key}"
+            );
         }
         let footer = history.footer();
         for hint in footer.iter().filter(|hint| crate::mnemonic::letter(&hint.keys).is_some()) {
@@ -174,28 +153,6 @@ mod view_tests {
     }
 
     #[test]
-    fn history_paints_its_scroll_from_the_view() {
-        let mut history = loaded();
-        history.focus = Focus::Detail;
-        let theme = Theme::new(crate::design::theme::Tier::Mono);
-        let area = Rect::new(0, 0, 80, 24);
-        let mut buf = Buffer::empty(area);
-        history.render(area, &mut buf, &theme);
-        history.key(KeyEvent::new(KeyCode::PageDown, KeyModifiers::NONE), 2);
-        let view = history.view(80, 24);
-        assert!(view.detail_scroll > 0);
-        // A view scrolled elsewhere paints there, whatever the overlay holds.
-        let mut top = view.clone();
-        top.detail_scroll = 0;
-        let mut a = Buffer::empty(area);
-        history.paint(&top, area, &mut a, &theme);
-        let mut b = Buffer::empty(area);
-        history.paint(&view, area, &mut b, &theme);
-        assert_ne!(a, b);
-        assert_eq!(history.detail_scroll.at(), view.detail_scroll);
-    }
-
-    #[test]
     fn history_targets_select_rows_and_press_shown_keys_only() {
         let mut history = loaded();
         let last = history.view(80, 24).rows.len() - 1;
@@ -204,10 +161,10 @@ mod view_tests {
         assert!(history.target(&history.row_target(last + 1)).is_none());
         assert_eq!(history.selected, last);
         let enter = history.target(&history.key_target("enter")).unwrap();
-        assert_eq!(enter.code, KeyCode::Enter);
+        assert_eq!(enter.key, Key::Enter);
         assert_eq!(
-            history.target(&history.key_target("c")).unwrap().code,
-            KeyCode::Char('c')
+            history.target(&history.key_target("c")).unwrap().key,
+            Key::Char('c')
         );
         // `tab` is not shown while the events have the keys.
         assert!(history.target(&history.key_target("tab")).is_none());
@@ -227,7 +184,7 @@ mod view_tests {
         let key = history.key_target("enter");
         // A refresh: the page those targets were drawn for is gone.
         let refresh = history
-            .key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE), 2)
+            .key(Chord::char('r'), 2)
             .expect("a refresh reads again");
         assert!(history.target(&row).is_none() && history.target(&key).is_none());
         let reloaded = loaded().page.unwrap();
@@ -272,7 +229,7 @@ pub enum HistoryFocus {
 /// is the one shown (a frontend echoes it back, never builds one). Bounded: one
 /// page of at most [`RECORDS_PER_PAGE`] rows, a fixed set of detail fields,
 /// each text already passed through the overlay's allowlist. Nothing here
-/// names a terminal library; the Ratatui overlay paints from it.
+/// names a terminal library; the renderer's overlay draws from it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 pub struct HistoryView {
     pub version: u32,
@@ -441,15 +398,6 @@ pub struct History {
     help_scroll: Scroll,
     /// The drawing the targets handed out now belong to.
     drawn: targets::Drawn,
-    list_area: Cell<Rect>,
-    detail_area: Cell<Rect>,
-    /// Where the painted view's targets landed.
-    hits: RefCell<Vec<(Rect, Target)>>,
-    /// The tests' reading of `hits`: rows by index, keys as pressed.
-    #[cfg(test)]
-    rows: RefCell<Vec<(Rect, usize)>>,
-    #[cfg(test)]
-    keys: RefCell<Vec<(Rect, KeyEvent)>>,
 }
 
 impl History {
@@ -475,13 +423,6 @@ impl History {
                 open: request_id,
                 page: 0,
             },
-            list_area: Cell::new(Rect::default()),
-            detail_area: Cell::new(Rect::default()),
-            hits: RefCell::new(Vec::new()),
-            #[cfg(test)]
-            rows: RefCell::new(Vec::new()),
-            #[cfg(test)]
-            keys: RefCell::new(Vec::new()),
         };
         let request = history.request(request_id, None, 0);
         (history, request)
@@ -532,7 +473,6 @@ impl History {
     /// restarted): the targets handed out before point at nothing now.
     fn redrawn(&mut self) {
         self.drawn.page = self.drawn.page.wrapping_add(1);
-        self.clear_hits();
     }
 
     /// Row `index`'s target in the drawing shown now.
@@ -590,16 +530,13 @@ impl History {
         true
     }
 
-    pub fn key(&mut self, key: KeyEvent, next_id: u64) -> Option<Request> {
+    pub fn key(&mut self, key: Chord, next_id: u64) -> Option<Request> {
         // The host handles Escape and Ctrl-C. Other host/plugin controls never
         // fall through this overlay, including x and ?.
-        if key
-            .modifiers
-            .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT)
-        {
+        if key.ctrl || key.alt {
             return None;
         }
-        if matches!(key.code, KeyCode::Char('x' | '?')) {
+        if matches!(key.key, Key::Char('x' | '?')) {
             self.help = !self.help;
             self.help_scroll.top();
             return None;
@@ -608,26 +545,26 @@ impl History {
             self.help_scroll.key(&key);
             return None;
         }
-        match key.code {
-            KeyCode::Tab | KeyCode::BackTab => {
+        match key.key {
+            Key::Tab | Key::BackTab => {
                 self.focus = if self.focus == Focus::Events {
                     Focus::Detail
                 } else {
                     Focus::Events
                 };
             }
-            KeyCode::Char('h') | KeyCode::Left => self.focus = Focus::Events,
-            KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => self.focus = Focus::Detail,
-            KeyCode::PageUp | KeyCode::PageDown => {
+            Key::Char('h') | Key::Left => self.focus = Focus::Events,
+            Key::Char('l') | Key::Right | Key::Enter => self.focus = Focus::Detail,
+            Key::PageUp | Key::PageDown => {
                 self.detail_scroll.key(&key);
             }
-            KeyCode::Char('a') if self.filter != EventFilter::default() => {
+            Key::Char('a') if self.filter != EventFilter::default() => {
                 return Some(self.restart(EventFilter::default(), next_id));
             }
-            KeyCode::Char('t') if !self.recent => {
+            Key::Char('t') if !self.recent => {
                 return Some(self.restart_recent(next_id));
             }
-            KeyCode::Char('c') => {
+            Key::Char('c') => {
                 if let Some(entry) = self.selected_entry() {
                     let filter = EventFilter {
                         root_action_id: Some(entry.event.root_action_id.clone()),
@@ -638,7 +575,7 @@ impl History {
                     }
                 }
             }
-            KeyCode::Char('i') => {
+            Key::Char('i') => {
                 if let Some(entry) = self.selected_entry() {
                     let filter = EventFilter {
                         action_id: Some(entry.event.action_id.clone()),
@@ -649,19 +586,19 @@ impl History {
                     }
                 }
             }
-            KeyCode::Char('r') if self.pending.is_none() => {
+            Key::Char('r') if self.pending.is_none() => {
                 return Some(if self.recent {
                     self.restart_recent(next_id)
                 } else {
                     self.restart(self.filter.clone(), next_id)
                 });
             }
-            KeyCode::Char('n') if self.pending.is_none() => {
+            Key::Char('n') if self.pending.is_none() => {
                 if let Some(cursor) = self.page.as_ref().and_then(|page| page.next.clone()) {
                     return Some(self.request(next_id, Some(cursor), self.index + 1));
                 }
             }
-            KeyCode::Char('p') if self.pending.is_none() && self.index > 0 => {
+            Key::Char('p') if self.pending.is_none() && self.index > 0 => {
                 return Some(self.request(
                     next_id,
                     self.cursors[self.index - 1].clone(),
@@ -671,10 +608,10 @@ impl History {
             _ if self.focus == Focus::Detail => {
                 self.detail_scroll.key(&key);
             }
-            KeyCode::Char('j') | KeyCode::Down => self.select(self.selected.saturating_add(1)),
-            KeyCode::Char('k') | KeyCode::Up => self.select(self.selected.saturating_sub(1)),
-            KeyCode::Home | KeyCode::Char('g') => self.select(0),
-            KeyCode::End | KeyCode::Char('G') => self.select(self.len().saturating_sub(1)),
+            Key::Char('j') | Key::Down => self.select(self.selected.saturating_add(1)),
+            Key::Char('k') | Key::Up => self.select(self.selected.saturating_sub(1)),
+            Key::Home | Key::Char('g') => self.select(0),
+            Key::End | Key::Char('G') => self.select(self.len().saturating_sub(1)),
             _ => {}
         }
         None
@@ -685,61 +622,6 @@ impl History {
         let was_open = self.help;
         self.help = false;
         was_open
-    }
-
-    /// The events panel and the detail panel as the last paint put them
-    /// (empty when not drawn): where a drag can select.
-    pub fn panes(&self) -> (Rect, Rect) {
-        (self.list_area.get(), self.detail_area.get())
-    }
-
-    /// Only local rendered targets are exposed to the host's hover treatment.
-    pub fn hit_regions(&self) -> Vec<Rect> {
-        self.hits.borrow().iter().map(|(area, _)| *area).collect()
-    }
-
-    /// A new page's rows are not the painted ones; the keys stay where they
-    /// were painted, named in the drawing shown now.
-    fn clear_hits(&self) {
-        let drawn = self.drawn;
-        let mut hits = self.hits.borrow_mut();
-        let kept = hits
-            .drain(..)
-            .filter_map(|(area, target)| match targets::parse(&target)?.1 {
-                targets::Points::Key(label) => Some((area, targets::key(drawn, label))),
-                targets::Points::Row(_) => None,
-            })
-            .collect();
-        *hits = kept;
-        #[cfg(test)]
-        self.rows.borrow_mut().clear();
-    }
-
-    /// Where a target of the painted view landed, for the pointer.
-    fn hit(&self, area: Rect, target: &Target) {
-        #[cfg(test)]
-        {
-            match targets::parse(target).map(|(_, points)| points) {
-                Some(targets::Points::Row(index)) => self.rows.borrow_mut().push((area, index)),
-                Some(targets::Points::Key(label)) => {
-                    let chord = hint_key(self.drawn, label).chord;
-                    self.keys
-                        .borrow_mut()
-                        .push((area, crate::view_tui::key_of(chord)));
-                }
-                None => {}
-            }
-        }
-        self.hits.borrow_mut().push((area, target.clone()));
-    }
-
-    /// The target painted at `at` in the last frame, if any.
-    pub(crate) fn target_at(&self, at: Position) -> Option<Target> {
-        self.hits
-            .borrow()
-            .iter()
-            .find(|(area, _)| area.contains(at))
-            .map(|(_, target)| target.clone())
     }
 
     fn len(&self) -> usize {
@@ -756,209 +638,6 @@ impl History {
 
     fn selected_entry(&self) -> Option<&EventEntry> {
         self.page.as_ref()?.events.get(self.selected)
-    }
-
-    /// Overlay-local hit targets. Blank space focuses a pane without moving
-    /// its selection; the wheel acts only on the panel under the pointer.
-    pub fn mouse(&mut self, kind: MouseKind, column: u16, row: u16) -> Option<KeyEvent> {
-        let at = Position::new(column, row);
-        let target = self.target_at(at);
-        fn points(t: &Target) -> Option<targets::Points<'_>> {
-            targets::parse(t).map(|(_, points)| points)
-        }
-        if matches!(kind, MouseKind::Press)
-            && let Some(target) = target
-                .as_ref()
-                .filter(|t| matches!(points(t), Some(targets::Points::Key(_))))
-        {
-            return self.target(target);
-        }
-        if self.help {
-            match kind {
-                MouseKind::ScrollDown => {
-                    self.help_scroll.by(1);
-                }
-                MouseKind::ScrollUp => {
-                    self.help_scroll.by(-1);
-                }
-                _ => {}
-            }
-            return None;
-        }
-        let focus = if self.list_area.get().contains(at) {
-            Focus::Events
-        } else if self.detail_area.get().contains(at) {
-            Focus::Detail
-        } else {
-            return None;
-        };
-        match kind {
-            MouseKind::Press | MouseKind::Context => {
-                self.focus = focus;
-                if let Some(target) =
-                    target.filter(|t| matches!(points(t), Some(targets::Points::Row(_))))
-                {
-                    self.target(&target);
-                    self.focus = focus;
-                }
-            }
-            MouseKind::ScrollDown | MouseKind::ScrollUp => {
-                self.focus = focus;
-                let down = matches!(kind, MouseKind::ScrollDown);
-                if focus == Focus::Detail {
-                    self.detail_scroll.by(if down { 1 } else { -1 });
-                } else {
-                    self.select(widgets::step(self.selected, self.len(), down));
-                }
-            }
-        }
-        None
-    }
-
-    pub fn render(&self, area: Rect, buf: &mut Buffer, theme: &Theme) {
-        self.paint(&self.view(area.width, area.height), area, buf, theme);
-    }
-
-    /// Paint `view` (this overlay's [`History::view`] at `area`'s size) and
-    /// record where its targets landed, for [`History::mouse`].
-    pub fn paint(&self, view: &HistoryView, area: Rect, buf: &mut Buffer, theme: &Theme) {
-        self.list_area.set(Rect::default());
-        self.detail_area.set(Rect::default());
-        self.hits.borrow_mut().clear();
-        #[cfg(test)]
-        {
-            self.rows.borrow_mut().clear();
-            self.keys.borrow_mut().clear();
-        }
-        Clear.render(area, buf);
-        buf.set_style(
-            area,
-            theme.s(Slot::TextPrimary).patch(theme.bg(Slot::BgBase)),
-        );
-        if area.is_empty() {
-            return;
-        }
-        let title = format!(" {} · {}", view.title, view.boundary);
-        buf.set_line(
-            area.x,
-            area.y,
-            &Line::styled(title, theme.bold(Slot::TextEmphasis)),
-            area.width,
-        );
-        let scope = Paragraph::new(format!(" Scope: {}", view.scope))
-            .style(theme.s(Slot::TextSecondary))
-            .wrap(Wrap { trim: false });
-        let scope_height = u16::try_from(scope.line_count(area.width))
-            .unwrap_or(u16::MAX)
-            .min(2)
-            .min(area.height.saturating_sub(1));
-        scope.render(
-            Rect {
-                y: area.y + 1,
-                height: scope_height,
-                ..area
-            },
-            buf,
-        );
-        let warnings: Vec<_> = view.notes.iter().map(|note| lead(theme, note)).collect();
-        let header = Paragraph::new(warnings).wrap(Wrap { trim: false });
-        // Scope is also fully available in the scrollable details and help.
-        let warning_height = u16::try_from(header.line_count(area.width))
-            .unwrap_or(u16::MAX)
-            .min(area.height.saturating_sub(scope_height + 1));
-        header.render(
-            Rect {
-                y: area.y + scope_height + 1,
-                height: warning_height,
-                ..area
-            },
-            buf,
-        );
-        let header_height = scope_height + warning_height + 1;
-        let body = Rect::new(
-            area.x,
-            area.y + header_height,
-            area.width,
-            area.height.saturating_sub(header_height + 1),
-        );
-        if view.help {
-            let inner = widgets::padded(crate::ui::card::panel_owned(
-                theme, body, buf, &view.help_title,
-                crate::ui::frame::Focus { focused: true, owns_keys: true },
-            ));
-            let lines = view
-                .help_lines
-                .iter()
-                .map(|text| line(theme, text))
-                .collect();
-            let help = scrolled(view.help_scroll);
-            scroll::paragraph(theme, &help, body, inner, buf, lines);
-            adopt(&self.help_scroll, &help);
-        } else if view.split {
-            let left_width = area.width * 3 / 5;
-            self.render_events(
-                view,
-                Rect {
-                    width: left_width,
-                    ..body
-                },
-                buf,
-                theme,
-            );
-            self.render_detail(
-                view,
-                Rect {
-                    x: body.x + left_width,
-                    width: body.width - left_width,
-                    ..body
-                },
-                buf,
-                theme,
-            );
-        } else if view.focus == HistoryFocus::Events {
-            self.render_events(view, body, buf, theme);
-        } else {
-            self.render_detail(view, body, buf, theme);
-        }
-        self.render_footer(
-            view,
-            Rect {
-                y: area.bottom() - 1,
-                height: 1,
-                ..area
-            },
-            buf,
-            theme,
-        );
-    }
-
-    fn render_footer(&self, view: &HistoryView, area: Rect, buf: &mut Buffer, theme: &Theme) {
-        let available = usize::from(area.width.saturating_sub(1));
-        let mut hints: Vec<_> = view.footer.iter().collect();
-        let cost = |hints: &[&Hint]| hints.iter().map(|hint| {
-            widgets::key_hint(theme, &hint.keys, &hint.label, hint.mnemonic_at, hint.mnemonic_shift).iter().map(Span::width).sum::<usize>()
-        }).sum::<usize>() + hints.len().saturating_sub(1) * 3;
-        for label in ["previous page", "next page", "refresh", "page", "details", "events", "move", "scroll"] {
-            if cost(&hints) <= available { break; }
-            hints.retain(|hint| hint.label != label);
-        }
-        if cost(&hints) > available { hints.retain(|hint| hint.keys == "esc"); }
-        if cost(&hints) > available { hints.clear(); }
-        let mut spans = vec![Span::raw(" ")];
-        for hint in hints {
-            let mut hint_spans = widgets::key_hint(theme, &hint.keys, &hint.label, hint.mnemonic_at, hint.mnemonic_shift);
-            let used: usize = spans.iter().map(Span::width).sum();
-            let width: usize = hint_spans.iter().map(Span::width).sum();
-            let gap = usize::from(used > 1) * 3;
-            if used + gap + width > usize::from(area.width) { break; }
-            if gap > 0 { spans.push(Span::raw(" · ")); }
-            let x = area.x + (used + gap) as u16;
-            for (rect, target) in crate::shell::key_hits(hint, Rect::new(x, area.y, width.saturating_add(3) as u16, 1)) {
-                self.hit(rect.intersection(area), target);
-            }
-            spans.append(&mut hint_spans);
-        }
-        buf.set_line(area.x, area.y, &Line::from(spans), area.width);
     }
 
     fn scope(&self) -> String {
@@ -1015,90 +694,6 @@ impl History {
             }
             None => {
                 "No recorded events in this scope. Coverage may be incomplete. Press a for all events or r to refresh."
-            }
-        }
-    }
-
-    fn render_events(&self, view: &HistoryView, area: Rect, buf: &mut Buffer, theme: &Theme) {
-        if area.is_empty() {
-            return;
-        }
-        self.list_area.set(area);
-        let focused = view.focus == HistoryFocus::Events;
-        let mut inner = crate::motion::frames::with_frame(crate::view::PaneId::Middle, "history_events", || crate::ui::card::panel_owned(
-            theme, area, buf, &view.events_title,
-            crate::ui::frame::Focus { focused, owns_keys: focused },
-        ));
-        if view.rows.is_empty() {
-            widgets::empty(buf, inner, theme, &view.state);
-            return;
-        }
-        if view.error.is_some() {
-            let error = Paragraph::new(view.state.as_str())
-                .style(theme.s(Slot::StatusWarning))
-                .wrap(Wrap { trim: true });
-            let h = u16::try_from(error.line_count(inner.width.saturating_sub(2)))
-                .unwrap_or(u16::MAX)
-                .min(inner.height);
-            error.render(widgets::padded(Rect { height: h, ..inner }), buf);
-            inner.y += h;
-            inner.height = inner.height.saturating_sub(h);
-        }
-        if inner.height < 2 || inner.width < 8 {
-            return;
-        }
-        let columns = Columns::new([
-            Column::new("observed UTC", 21).keep(3),
-            Column::new("action", 24).keep(4),
-            Column::flex("subject", 12),
-            Column::new("outcome", 11).keep(5),
-        ])
-        .fit(inner.width.saturating_sub(2) as usize, 0);
-        let [observed, action, subject, outcome] = &COLUMNS;
-        let rows = view
-            .rows
-            .iter()
-            .map(|row| {
-                let ink = crate::view_tui::slot(row.outcome_ink)
-                    .map_or_else(Default::default, |s| theme.s(s));
-                vec![
-                    ((*observed).into(), Span::raw(row.observed.clone())),
-                    ((*action).into(), Span::raw(row.action.clone())),
-                    ((*subject).into(), Span::raw(row.subject.clone())),
-                    ((*outcome).into(), Span::styled(row.outcome.clone(), ink)),
-                ]
-            })
-            .collect();
-        let list = scrolled(view.list_scroll);
-        let hits = Table::new(&columns, rows)
-            .cursor(view.selected.unwrap_or(0))
-            .focused(view.focus == HistoryFocus::Events)
-            .render(theme, area, inner, buf, &list);
-        adopt(&self.list_scroll, &list);
-        for (rect, index) in hits {
-            if let Some(row) = view.rows.get(index) {
-                self.hit(rect, &row.target);
-            }
-        }
-    }
-
-    fn render_detail(&self, view: &HistoryView, area: Rect, buf: &mut Buffer, theme: &Theme) {
-        if area.is_empty() {
-            return;
-        }
-        self.detail_area.set(area);
-        let focused = view.focus == HistoryFocus::Detail;
-        let inner = widgets::padded(crate::motion::frames::with_frame(crate::view::PaneId::Detail, "history_detail", || crate::ui::card::panel_owned(
-            theme, area, buf, &view.detail_title,
-            crate::ui::frame::Focus { focused, owns_keys: focused },
-        )));
-        let lines: Vec<_> = view.detail.iter().map(|text| line(theme, text)).collect();
-        let detail = scrolled(view.detail_scroll);
-        scroll::paragraph(theme, &detail, area, inner, buf, lines);
-        adopt(&self.detail_scroll, &detail);
-        for (rect, target) in targeted_viewport(theme, &view.detail, inner, detail.at()) {
-            if view.detail_keys.iter().any(|key| key.target == target) {
-                self.hit(rect, &target);
             }
         }
     }
@@ -1178,7 +773,7 @@ impl History {
     /// [`History::key`]. A target the overlay does not show now, or one
     /// made for an earlier drawing (another page, before a refresh, an
     /// overlay since closed), does nothing.
-    pub fn target(&mut self, target: &Target) -> Option<KeyEvent> {
+    pub fn target(&mut self, target: &Target) -> Option<Chord> {
         let (drawn, points) = targets::parse(target)?;
         if drawn != self.drawn {
             return None;
@@ -1206,7 +801,7 @@ impl History {
                     .flat_map(|_| ["c", "i", "a"].map(|k| hint_key(drawn, k))),
             )
             .find(|key| key.label == label)?;
-        Some(crate::view_tui::key_of(shown.chord))
+        Some(shown.chord)
     }
 
     fn events_title(&self) -> String {
@@ -1527,79 +1122,6 @@ fn detail_controls(drawn: targets::Drawn) -> Text {
         text.extend(phrase);
     }
     text
-}
-
-/// Ask the same paragraph layout that paints the text for the visible target
-/// cells. The offscreen colour indices are ownership markers, never UI colours;
-/// this bounded viewport mask preserves its exact wrapping, scroll and clipping.
-fn targeted_viewport(theme: &Theme, text: &[Text], area: Rect, scroll: u16) -> Vec<(Rect, Target)> {
-    use ratatui::style::{Color, Style};
-    if area.is_empty() { return vec![]; }
-    let mut targets: Vec<Target> = Vec::new();
-    let lines: Vec<_> = text.iter().map(|text| {
-        let mut runs = Vec::new();
-        for seg in &text.0 {
-            let marker = if let Some(target) = &seg.target {
-                let index = targets.iter().position(|t| t == target).unwrap_or_else(|| {
-                    targets.push(target.clone());
-                    targets.len() - 1
-                });
-                u8::try_from(index).ok().map(Color::Indexed).unwrap_or(Color::Reset)
-            } else { Color::Reset };
-            for mut span in crate::view_tui::spans(theme, &Text::from(vec![seg.clone()])) {
-                span.style = Style::default().fg(marker);
-                runs.push(span);
-            }
-        }
-        Line::from(runs)
-    }).collect();
-    if targets.is_empty() { return vec![]; }
-    let mut mask = Buffer::empty(area);
-    Paragraph::new(lines).wrap(Wrap { trim: false }).scroll((scroll, 0)).render(area, &mut mask);
-    let mut hits = Vec::new();
-    for y in area.y..area.bottom() {
-        let mut x = area.x;
-        while x < area.right() {
-            let Color::Indexed(index) = mask[(x, y)].fg else { x += 1; continue };
-            let Some(target) = targets.get(usize::from(index)) else { x += 1; continue };
-            let from = x;
-            while x < area.right() && mask[(x, y)].fg == Color::Indexed(index) { x += 1; }
-            hits.push((Rect::new(from, y, x - from, 1), target.clone()));
-        }
-    }
-    hits
-}
-
-/// A scroll at the view's offset, for painting one panel from the view.
-fn scrolled(at: u16) -> Scroll {
-    let scroll = Scroll::new();
-    scroll.set(at);
-    scroll
-}
-
-/// Keep what the painted frame learned (the offset as clamped to the room,
-/// and the room) so the overlay's keys move within it.
-fn adopt(own: &Scroll, painted: &Scroll) {
-    own.set(painted.at());
-    own.fit(
-        painted.height(),
-        painted.height().saturating_add(painted.max()),
-    );
-}
-
-/// A view text as a painted line.
-fn line(theme: &Theme, text: &Text) -> Line<'static> {
-    crate::view_tui::line(theme, text)
-}
-
-/// A view text as a painted line one cell in, the gap in its first look.
-fn lead(theme: &Theme, text: &Text) -> Line<'static> {
-    let mut line = line(theme, text);
-    match line.spans.first_mut() {
-        Some(first) => first.content = format!(" {}", first.content).into(),
-        None => line.spans.push(Span::raw(" ")),
-    }
-    line
 }
 
 fn recent_filter(now_ms: i64) -> EventFilter {

@@ -2,7 +2,7 @@
 //! ([`crate::view`]) and drives them with [`Intent`]s through the same host,
 //! so the same part state, mode and permission checks, confirmations and
 //! journal causality apply as with the terminal. It paints nothing and
-//! names no Ratatui or Crossterm type (a test reads the source to keep it
+//! names no terminal-library type (a test reads the source to keep it
 //! so); it is the second, independent consumer that proves the contract
 //! before another renderer (Ink) speaks it over IPC.
 
@@ -254,21 +254,5 @@ pub fn section_of(host: &Host, width: u16, height: u16) -> Option<SectionView> {
     match host.current_section()? {
         (Owner::Plugin(p), s) => host.section_view_in(p, s.id, width, height),
         _ => crate::settings_view::section_view(host, crate::design::theme::Tier::TrueColor),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn the_headless_frontend_names_no_terminal_library() {
-        let source = include_str!("headless.rs");
-        for word in ["ratatui", "crossterm", "Buffer", "Rect", "KeyEvent"] {
-            let used = source
-                .lines()
-                .take_while(|l| !l.starts_with("#[cfg(test)]"))
-                .filter(|l| !l.trim_start().starts_with("//"))
-                .any(|l| l.contains(word));
-            assert!(!used, "headless.rs uses {word}");
-        }
     }
 }

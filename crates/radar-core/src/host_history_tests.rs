@@ -227,14 +227,14 @@ fn closed_overlay_result_cannot_replace_a_reopened_request() {
         id: old,
         result: Err(crate::history::ReadError::Disabled),
     });
-    let screen = crate::shell::to_text(&host, 80, 24);
+    let screen = crate::headless::text_of(&host, 80, 24);
     assert!(screen.contains("Loading recorded observations"));
     assert!(!screen.contains("disabled"));
     host.update(Event::History {
         id: current,
         result: Err(crate::history::ReadError::Disabled),
     });
-    assert!(crate::shell::to_text(&host, 80, 24).contains("disabled"));
+    assert!(crate::headless::text_of(&host, 80, 24).contains("disabled"));
 }
 
 #[test]
@@ -378,7 +378,7 @@ fn history_draws_in_a_tiny_terminal() {
     let (mut host, _) = fixture();
     press(&mut host, Key::Char('H'));
     for (width, height) in [(1, 1), (80, 1), (20, 5)] {
-        let _ = crate::shell::to_text(&host, width, height);
+        let _ = crate::headless::text_of(&host, width, height);
         let _ = host.chrome_view(width, height);
     }
 }

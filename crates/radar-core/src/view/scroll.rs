@@ -129,19 +129,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_scroll_names_no_terminal_library() {
-        let source = include_str!("scroll.rs");
-        let source = &source[..source.find("#[cfg(test)]").unwrap()];
-        for word in ["ratatui", "crossterm", "Buffer", "Rect", "KeyEvent"] {
-            let used = source
-                .lines()
-                .filter(|l| !l.trim_start().starts_with("//"))
-                .any(|l| l.contains(word));
-            assert!(!used, "view/scroll.rs uses {word}");
-        }
-    }
-
-    #[test]
     fn chords_scroll_within_the_room_the_last_frame_gave() {
         let s = Scroll::new();
         s.laid_out(10, 30, 0);

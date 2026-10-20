@@ -492,17 +492,4 @@ mod tests {
         assert!(!host_falls_back(Chord::new(Key::Enter), Pane::Middle));
         assert!(host_falls_back(Chord::new(Key::Esc), Pane::Detail));
     }
-
-    #[test]
-    fn the_check_names_no_terminal_library() {
-        let source = include_str!("check.rs");
-        for word in ["ratatui", "crossterm", "Buffer", "Rect", "KeyEvent", "view_tui"] {
-            let used = source
-                .lines()
-                .take_while(|l| !l.starts_with("#[cfg(test)]"))
-                .filter(|l| !l.trim_start().starts_with("//"))
-                .any(|l| l.contains(word));
-            assert!(!used, "check.rs uses {word}");
-        }
-    }
 }

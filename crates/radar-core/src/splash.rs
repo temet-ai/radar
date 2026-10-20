@@ -2,11 +2,9 @@
 //! build, the `radar` wordmark painted in under it, the parts' names, and the
 //! start line; then it hands off to the first screen.
 //!
-//! Everything both renderers draw is worked out here, as cells: [`frame`]
+//! Everything a renderer draws is worked out here, as cells: [`frame`]
 //! turns a [`Scene`] (what to show, how far into it) into rows of runs with
-//! their colours, which the Ratatui runner paints over its buffer
-//! ([`draw`]) and the bridge sends to Ink ([`view`]), so the two draw the
-//! same cells. The timing lives in [`Splash`], which each runner keeps:
+//! their colours, which the bridge sends to Ink ([`view`]). The timing lives in [`Splash`], which each runner keeps:
 //! when it starts, when it hands off, and that any input ends it at once.
 //!
 //! The design is the first-run canvas's sweep boards (the live sweep and its
@@ -35,14 +33,11 @@
 use std::f64::consts::{PI, TAU};
 use std::time::Duration;
 
-use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
-use ratatui::style::{Color, Modifier, Style as Paint};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use unicode_width::UnicodeWidthChar;
 
-use crate::design::theme::{Slot, Tier};
+use crate::design::theme::{Color, Slot, Tier};
 use crate::motion::Level;
 use crate::theme::Theme;
 
@@ -703,44 +698,6 @@ pub fn picture(frame: &Frame, cell: (u16, u16)) -> Option<Picture> {
     Some(Picture { x: scope.x, y: scope.y, cols: SCOPE_W, rows: SCOPE_H, png })
 }
 
-/// Kitty's graphics command that shows `pic` at the cursor, sized to its
-/// cells, replacing the splash's last picture (the cursor stays put).
-pub fn kitty_show(pic: &Picture) -> String {
-    use base64::Engine as _;
-    let data = base64::engine::general_purpose::STANDARD.encode(&pic.png);
-    let mut out = String::new();
-    let chunks: Vec<&[u8]> = data.as_bytes().chunks(4096).collect();
-    for (i, c) in chunks.iter().enumerate() {
-        let more = u8::from(i + 1 < chunks.len());
-        let head = if i == 0 {
-            format!("a=T,f=100,i={PICTURE_ID},p=1,C=1,c={},r={},q=2,", pic.cols, pic.rows)
-        } else {
-            "q=2,".to_string()
-        };
-        out.push_str(&format!("\x1b_G{head}m={more};{}\x1b\\", std::str::from_utf8(c).unwrap_or("")));
-    }
-    out
-}
-
-/// Kitty's graphics command that takes the splash's picture away.
-pub fn kitty_hide() -> String {
-    format!("\x1b_Ga=d,d=I,i={PICTURE_ID},q=2\x1b\\")
-}
-
-/// Blank the cells `pic` lies over, so no braille shows round its dots.
-pub fn clear_under(pic: &Picture, buf: &mut Buffer) {
-    let area = Rect::new(pic.x, pic.y, pic.cols, pic.rows).intersection(buf.area);
-    for p in area.positions() {
-        buf[p].set_symbol(" ");
-    }
-}
-
-/// [`kitty_show`] at the picture's cell, the cursor saved and put back: what
-/// the runner writes after a frame.
-pub fn kitty_at(pic: &Picture) -> String {
-    format!("\x1b7\x1b[{};{}H{}\x1b8", pic.y + 1, pic.x + 1, kitty_show(pic))
-}
-
 /// The splash as Ink draws it: every row of the screen as runs across its
 /// width, colours written as Ink's `color` takes them (`#rrggbb`,
 /// `ansi256(n)`, a terminal colour's name, `""` for the terminal's own).
@@ -831,7 +788,7 @@ const FIRE_MAX: usize = 36;
 
 impl Inks {
     fn of(theme: &Theme) -> Self {
-        let fg = |s| theme.s(s).fg;
+        let fg = |s: Slot| theme.resolve(s.token_name()).fg;
         let tier = theme.tier();
         let true_colour = tier == Tier::TrueColor;
         let base = fg(Slot::BgBase);
@@ -1635,46 +1592,6 @@ fn draw_fire(grid: &mut Grid, inks: &Inks, t: f64, y: i32) {
     }
 }
 
-/// Paint `frame` over `buf` from its top-left corner.
-pub fn draw(frame: &Frame, buf: &mut Buffer) {
-    let area = buf.area;
-    for (y, runs) in frame.rows.iter().enumerate() {
-        let y = area.y + y as u16;
-        if y >= area.bottom() {
-            break;
-        }
-        let mut x = area.x;
-        for run in runs {
-            let mut paint = Paint::new().fg(run.fg.unwrap_or(Color::Reset)).bg(run.bg.unwrap_or(Color::Reset));
-            if run.bold {
-                paint = paint.add_modifier(Modifier::BOLD);
-            }
-            for c in run.text.chars() {
-                let w = c.width().unwrap_or(0) as u16;
-                if w == 0 || x + w > area.right() {
-                    continue;
-                }
-                let cell = &mut buf[(x, y)];
-                cell.reset();
-                cell.set_char(c).set_style(paint);
-                if w == 2 {
-                    buf[(x + 1, y)].reset();
-                    buf[(x + 1, y)].set_symbol("").set_style(paint);
-                }
-                x += w;
-            }
-        }
-        // Whatever the runs did not reach (a resize between frames) is the base too.
-        let rest = Rect::new(x, y, area.right().saturating_sub(x), 1);
-        for p in rest.positions() {
-            buf[p].reset();
-            if let Some(bg) = frame.rows[0].first().and_then(|r| r.bg) {
-                buf[p].set_bg(bg);
-            }
-        }
-    }
-}
-
 /// `frame` as Ink draws it.
 pub fn view(frame: &Frame) -> SplashView {
     use crate::ipc::look::colour_word;
@@ -1688,8 +1605,8 @@ pub fn view(frame: &Frame) -> SplashView {
                 runs.iter()
                     .map(|r| SplashRun {
                         text: r.text.clone(),
-                        fg: colour_word(r.fg.map(Into::into)),
-                        bg: colour_word(r.bg.map(Into::into)),
+                        fg: colour_word(r.fg),
+                        bg: colour_word(r.bg),
                         bold: r.bold,
                     })
                     .collect()

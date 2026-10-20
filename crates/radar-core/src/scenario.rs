@@ -51,10 +51,6 @@ pub struct ScenarioCosts {
     /// History. Settling does not reset it. This excludes child tasks inside
     /// futures, detached plugin jobs and the journal writer's own work.
     pub spawned_completion_tasks: u64,
-    /// Lifetime calls to `shell::render` on this owned host, including calls
-    /// before the host entered this driver and through raw shell helpers.
-    /// Neutral views, part-only buffers, Ink and other hosts are not counted.
-    pub shell_frames: u64,
 }
 
 /// Restore thread-local permissions even if inspection or reduction panics.
@@ -200,7 +196,6 @@ impl Scenario {
             dispatched_events: self.dispatched_events,
             returned_effect_envelopes: self.returned_effect_envelopes,
             spawned_completion_tasks: self.spawned_completion_tasks,
-            shell_frames: self.host.scenario_shell_frames.get(),
         }
     }
 
@@ -717,7 +712,6 @@ mod tests {
         );
         assert_eq!(scenario.pending_tasks(), 0);
         assert_eq!(scenario.costs().spawned_completion_tasks, 2);
-        assert_eq!(scenario.costs().shell_frames, 0);
         scenario.finish_journal().unwrap();
         let journal = Journal::open(&scratch.journal()).unwrap();
         assert_eq!(journal.query(&Query::default()).unwrap().len(), 2);
@@ -899,7 +893,6 @@ mod tests {
                 // the inner Spawn is not another top-level envelope.
                 returned_effect_envelopes: 4,
                 spawned_completion_tasks: 2,
-                shell_frames: 0,
             }
         );
         assert_eq!(
@@ -908,7 +901,6 @@ mod tests {
                 dispatched_events: 1,
                 returned_effect_envelopes: 2,
                 spawned_completion_tasks: 1,
-                shell_frames: 0,
             }
         );
         assert_eq!(
@@ -952,78 +944,6 @@ mod tests {
         left.finish_journal().unwrap();
         assert!(left.advance_time(1).is_err());
         assert_eq!(left.costs(), finished);
-    }
-
-    #[test]
-    fn shell_frame_counts_cover_raw_helpers_and_ignore_neutral_views() {
-        use crate::design::theme::Tier;
-        use crate::ratatui::{Terminal, backend::TestBackend};
-        use crate::theme::Theme;
-
-        let mut host = Host::new(Vec::new(), 0).unwrap();
-        host.load_config(Some("[theme]\nicons = 'off'\n")).unwrap();
-        let _ = crate::shell::to_text(&host, 80, 24);
-        let mut scenario = Scenario::new(host);
-        assert_eq!(
-            scenario.costs(),
-            ScenarioCosts {
-                shell_frames: 1,
-                ..Default::default()
-            },
-            "frames include the owned host's pre-scenario lifetime"
-        );
-        let other = self::scenario();
-        let _ = scenario.inspect(|host| host.chrome_view(80, 24));
-        assert_eq!(scenario.costs().shell_frames, 1);
-        let _ = crate::shell::to_text(scenario.host(), 80, 24);
-        assert_eq!(scenario.costs().shell_frames, 2, "raw host access counts");
-
-        let renders: [fn(&Host); 5] = [
-            |host| {
-                let _ = crate::shell::to_svg(host, 80, 24);
-            },
-            |host| {
-                let _ = crate::shell::to_styles(host, 80, 24);
-            },
-            |host| {
-                let _ = crate::shell::text_in(host, &Theme::new(Tier::Mono), 80, 24);
-            },
-            |host| {
-                let _ = crate::shell::text_and_cursor(host, &Theme::new(Tier::Mono), 80, 24);
-            },
-            |host| {
-                let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
-                terminal
-                    .draw(|frame| crate::shell::render(host, &Theme::new(Tier::Mono), frame))
-                    .unwrap();
-            },
-        ];
-        for render in renders {
-            let before = scenario.costs();
-            scenario.inspect(render);
-            assert_eq!(
-                scenario.costs(),
-                ScenarioCosts {
-                    shell_frames: before.shell_frames + 1,
-                    ..before
-                },
-                "each actual shell helper invocation renders exactly once"
-            );
-            assert_eq!(other.costs(), ScenarioCosts::default());
-        }
-        // An existing overlay takes render's early return, which still counts.
-        // This sets only renderer input; it does not claim an executed read.
-        scenario.host.history = Some(crate::history::History::new(Default::default(), 1).0);
-        let before = scenario.costs();
-        let _ = scenario.inspect(|host| host.chrome_view(80, 24));
-        assert_eq!(
-            scenario.costs(),
-            before,
-            "neutral overlay view does not render"
-        );
-        let _ = scenario.inspect(|host| crate::shell::to_text(host, 80, 24));
-        assert_eq!(scenario.costs().shell_frames, before.shell_frames + 1);
-        assert_eq!(other.costs(), ScenarioCosts::default());
     }
 
     #[test]

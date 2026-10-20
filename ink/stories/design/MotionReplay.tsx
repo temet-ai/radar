@@ -154,7 +154,7 @@ import { borderForegrounds, composeFold, focusDrain, focusLap, type Border } fro
 type InteractionCell = { ch: string; fg: string; bg: string; mods: string[] };
 type InteractionMark = { area: number[]; title: number[] | null; keep: number[][] };
 export type InteractionCase = { name: string; kind: "fold" | "focus_lap" | "focus_drain"; width: number; height: number; before: InteractionCell[][]; after: InteractionCell[][]; before_mark: InteractionMark; after_mark: InteractionMark; area?: number[]; descendants?: number; open?: boolean; stops?: string[]; frames: Array<{ ms: number; rows: InteractionCell[][] }> };
-const interactionFiles = import.meta.glob<{ cases: InteractionCase[] }>("../../test/motion/fixtures/ratatui-interaction.json", { eager: true, import: "default" });
+const interactionFiles = import.meta.glob<{ cases: InteractionCase[] }>("../../test/motion/fixtures/motion-interaction.json", { eager: true, import: "default" });
 const interactionCases = () => Object.values(interactionFiles).flatMap((f) => f.cases);
 const interactionGrid = (rows: InteractionCell[][], width: number, height: number) => {
   const g = new Grid(width, height);

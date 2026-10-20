@@ -1,5 +1,5 @@
 // Ink's motion engine against the recorded reference (crates/radar-core/src/motion.rs, tachyonfx): the same cue over the same plain
-// frame, the same clock, and every cell compared at each frame. The reference is fixtures/ratatui-motion.json,
+// frame, the same clock, and every cell compared at each frame. The reference is fixtures/motion-engine.json,
 // written once by a generator that is now deleted (motion.rs's own Engine and ManualClock on motion/tests.rs's 30x8 frame).
 import { describe, expect, test } from "vitest";
 import { readFileSync } from "node:fs";
@@ -24,7 +24,7 @@ type Ref = {
 };
 const ref: Ref = JSON.parse(
   readFileSync(
-    new URL("fixtures/ratatui-motion.json", import.meta.url),
+    new URL("fixtures/motion-engine.json", import.meta.url),
     "utf8",
   ),
 );

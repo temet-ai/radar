@@ -9,7 +9,7 @@ import type { Text } from "../../src/nodes/view.js";
 
 type Run = [text: string, fg: string, bg: string, modifiers: string];
 type Capture = { format: number; cases: Array<{ name: string; look: HostLook; rows: Array<{ text: Text; width: number; runs: Run[] }> }> };
-const capture = JSON.parse(fs.readFileSync(fileURLToPath(new URL("../fixtures/chips/tone-acceptance.ratatui.json", import.meta.url)), "utf8")) as Capture;
+const capture = JSON.parse(fs.readFileSync(fileURLToPath(new URL("../fixtures/chips/tone-acceptance.json", import.meta.url)), "utf8")) as Capture;
 const original = currentLook();
 afterEach(() => applyLook(original));
 

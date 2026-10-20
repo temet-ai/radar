@@ -8,7 +8,7 @@ import { borderForegrounds, composeFold, focusDrain, focusLap, type Border } fro
 type Cell = { ch: string; fg: string; bg: string; mods: string[] };
 type Mark = { area: number[]; title: number[] | null; keep: number[][] };
 type Case = { name: string; kind: "fold" | "focus_lap" | "focus_drain"; width: number; height: number; before: Cell[][]; after: Cell[][]; before_mark: Mark; after_mark: Mark; area?: number[]; descendants?: number; open?: boolean; stops?: string[]; frames: Array<{ ms: number; rows: Cell[][] }> };
-const cases: Case[] = JSON.parse(fs.readFileSync(new URL("./fixtures/ratatui-interaction.json", import.meta.url), "utf8")).cases;
+const cases: Case[] = JSON.parse(fs.readFileSync(new URL("./fixtures/motion-interaction.json", import.meta.url), "utf8")).cases;
 const rect = (r: number[]) => ({ x: r[0]!, y: r[1]!, w: r[2]!, h: r[3]! });
 const border = (m: Mark): Border => ({ area: rect(m.area), title: m.title ? rect(m.title) : undefined, keep: m.keep.map(rect) });
 const attrs: Record<string, number> = { bold: 1, dim: 2, italic: 3, underline: 4, underlined: 4, slow_blink: 5, rapid_blink: 6, reversed: 7, inverse: 7, hidden: 8, crossed_out: 9, strike: 9 };

@@ -1,0 +1,4415 @@
+{
+  "cases": [
+    {
+      "look": {
+        "icon_width": 0,
+        "icons": {
+          "action": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "alert": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "alert_firing": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "alert_resolved": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "approved": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "board": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "bot": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "branch": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "bug": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "bulk": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "calendar": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "change": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "channel": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "chat": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "close": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "closed": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "colours": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "comment": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "commit": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "conflict": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "connection": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "copy": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "direct": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "done": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "draft": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "editor": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "empty": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "epic": {
+            "glyph": "",
+            "style": "glow.purple"
+          },
+          "error": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "file": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "file_c": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "file_cpp": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "file_css": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "file_docker": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "file_git": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "file_go": {
+            "glyph": "",
+            "style": "glow.cyan"
+          },
+          "file_html": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "file_image": {
+            "glyph": "",
+            "style": "glow.pink"
+          },
+          "file_java": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "file_javascript": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "file_json": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "file_kotlin": {
+            "glyph": "",
+            "style": "glow.purple"
+          },
+          "file_lock": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "file_markdown": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "file_php": {
+            "glyph": "",
+            "style": "glow.purple"
+          },
+          "file_python": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "file_ruby": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "file_rust": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "file_shell": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "file_sql": {
+            "glyph": "",
+            "style": "glow.pink"
+          },
+          "file_swift": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "file_text": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "file_toml": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "file_typescript": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "file_xml": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "file_yaml": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "fold": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "folder": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "folder_open": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "group": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "icons": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "in_progress": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "info": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "issue": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "job": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "keys": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "label": {
+            "glyph": "",
+            "style": "accent.tertiary"
+          },
+          "link": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "local": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "log": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "look": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "mention": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "menu": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "merged": {
+            "glyph": "",
+            "style": "glow.purple"
+          },
+          "mode_edit": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "mode_read": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "mode_write": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "navigate": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "needs_approval": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "parts": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "person": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "pipeline": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "priority_high": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "priority_highest": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "priority_low": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "priority_lowest": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "priority_medium": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "private_channel": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "quit": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "reaction": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "rebase": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "reply": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "repo": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "resolved": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "run_canceled": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "run_failed": {
+            "glyph": "",
+            "style": "status.error"
+          },
+          "run_manual": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "run_passed": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "run_pending": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "run_running": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "run_skipped": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "scroll": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "search": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "settings": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "site": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "story": {
+            "glyph": "",
+            "style": "status.success"
+          },
+          "subtask": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "task": {
+            "glyph": "",
+            "style": "status.info"
+          },
+          "team": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "terminal": {
+            "glyph": "",
+            "style": "text.secondary"
+          },
+          "thread": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "time": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "todo": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "unread": {
+            "glyph": "",
+            "style": "accent.primary"
+          },
+          "updated": {
+            "glyph": "",
+            "style": "text.muted"
+          },
+          "views": {
+            "glyph": "",
+            "style": "accent.secondary"
+          },
+          "warning": {
+            "glyph": "",
+            "style": "status.warning"
+          },
+          "you": {
+            "glyph": "",
+            "style": "accent.primary"
+          }
+        },
+        "modifiers": {
+          "text.emphasis": "bold"
+        },
+        "pack": "off",
+        "slots": {
+          "accent.muted": "#9580ff",
+          "accent.primary": "#e135ff",
+          "accent.secondary": "#80ffea",
+          "accent.tertiary": "#ff6ac1",
+          "bg.base": "#0a0812",
+          "bg.hover": "#2a263e",
+          "bg.overlay": "#1a162a",
+          "bg.selection": "#44475a",
+          "bg.surface": "#12101a",
+          "data.number": "#ffb86c",
+          "diff.added": "#50fa7b",
+          "diff.removed": "#ff6363",
+          "glow.cyan": "#80ffea",
+          "glow.pink": "#ff00ff",
+          "glow.purple": "#e135ff",
+          "status.error": "#ff6363",
+          "status.info": "#82aaff",
+          "status.success": "#50fa7b",
+          "status.warning": "#f1fa8c",
+          "text.emphasis": "#ffffff",
+          "text.muted": "#6272a4",
+          "text.primary": "#f8f8f2",
+          "text.secondary": "#e9d5ff"
+        },
+        "tier": "truecolor"
+      },
+      "name": "truecolor-off",
+      "rows": [
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " passed ",
+              "#50fa7b",
+              "#233a37",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "good",
+              "text": "passed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 10
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " needs review ",
+              "#f1fa8c",
+              "#3c3a3a",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "warn",
+              "text": "needs review"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 16
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " failed ",
+              "#ff6363",
+              "#3f2233",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "bad",
+              "text": "failed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 10
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " running ",
+              "#82aaff",
+              "#2b2e4c",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "info",
+              "text": "running"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 11
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " merged ",
+              "#6272a4",
+              "#26253e",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "muted",
+              "text": "merged"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 10
+        }
+      ]
+    },
+    {
+      "look": {
+        "icon_width": 1,
+        "icons": {
+          "action": {
+            "glyph": "▷",
+            "style": "accent.secondary"
+          },
+          "alert": {
+            "glyph": "▲",
+            "style": "status.warning"
+          },
+          "alert_firing": {
+            "glyph": "▲",
+            "style": "status.error"
+          },
+          "alert_resolved": {
+            "glyph": "△",
+            "style": "status.success"
+          },
+          "approved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "board": {
+            "glyph": "⊟",
+            "style": "accent.secondary"
+          },
+          "bot": {
+            "glyph": "◙",
+            "style": "text.muted"
+          },
+          "branch": {
+            "glyph": "⎇",
+            "style": "accent.secondary"
+          },
+          "bug": {
+            "glyph": "✱",
+            "style": "status.error"
+          },
+          "bulk": {
+            "glyph": "◫",
+            "style": "text.muted"
+          },
+          "calendar": {
+            "glyph": "▦",
+            "style": "text.muted"
+          },
+          "change": {
+            "glyph": "⇄",
+            "style": "accent.primary"
+          },
+          "channel": {
+            "glyph": "#",
+            "style": "text.secondary"
+          },
+          "chat": {
+            "glyph": "✉",
+            "style": "accent.secondary"
+          },
+          "close": {
+            "glyph": "×",
+            "style": "text.muted"
+          },
+          "closed": {
+            "glyph": "⊘",
+            "style": "status.error"
+          },
+          "colours": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "comment": {
+            "glyph": "✎",
+            "style": "text.secondary"
+          },
+          "commit": {
+            "glyph": "◦",
+            "style": "text.muted"
+          },
+          "conflict": {
+            "glyph": "≠",
+            "style": "status.error"
+          },
+          "connection": {
+            "glyph": "⇌",
+            "style": "status.success"
+          },
+          "copy": {
+            "glyph": "⧉",
+            "style": "accent.secondary"
+          },
+          "direct": {
+            "glyph": "✉",
+            "style": "accent.primary"
+          },
+          "done": {
+            "glyph": "●",
+            "style": "status.success"
+          },
+          "draft": {
+            "glyph": "◌",
+            "style": "text.muted"
+          },
+          "editor": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "empty": {
+            "glyph": "∅",
+            "style": "text.muted"
+          },
+          "epic": {
+            "glyph": "✦",
+            "style": "glow.purple"
+          },
+          "error": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "file": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_c": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_cpp": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_css": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_docker": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_git": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_go": {
+            "glyph": "▫",
+            "style": "glow.cyan"
+          },
+          "file_html": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_image": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_java": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_javascript": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_json": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_kotlin": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_lock": {
+            "glyph": "▫",
+            "style": "text.muted"
+          },
+          "file_markdown": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_php": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_python": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_ruby": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_rust": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_shell": {
+            "glyph": "▫",
+            "style": "status.success"
+          },
+          "file_sql": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_swift": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_text": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_toml": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_typescript": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_xml": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_yaml": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "fold": {
+            "glyph": "±",
+            "style": "text.muted"
+          },
+          "folder": {
+            "glyph": "▪",
+            "style": "accent.secondary"
+          },
+          "folder_open": {
+            "glyph": "▭",
+            "style": "accent.secondary"
+          },
+          "group": {
+            "glyph": "◆",
+            "style": "accent.primary"
+          },
+          "icons": {
+            "glyph": "☺",
+            "style": "status.warning"
+          },
+          "in_progress": {
+            "glyph": "◐",
+            "style": "status.info"
+          },
+          "info": {
+            "glyph": "ℹ",
+            "style": "status.info"
+          },
+          "issue": {
+            "glyph": "◇",
+            "style": "accent.secondary"
+          },
+          "job": {
+            "glyph": "▸",
+            "style": "status.info"
+          },
+          "keys": {
+            "glyph": "⌘",
+            "style": "text.muted"
+          },
+          "label": {
+            "glyph": "⌗",
+            "style": "accent.tertiary"
+          },
+          "link": {
+            "glyph": "↗",
+            "style": "accent.secondary"
+          },
+          "local": {
+            "glyph": "⌂",
+            "style": "text.secondary"
+          },
+          "log": {
+            "glyph": "≣",
+            "style": "text.muted"
+          },
+          "look": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "mention": {
+            "glyph": "@",
+            "style": "accent.primary"
+          },
+          "menu": {
+            "glyph": "≡",
+            "style": "text.muted"
+          },
+          "merged": {
+            "glyph": "◈",
+            "style": "glow.purple"
+          },
+          "mode_edit": {
+            "glyph": "✎",
+            "style": "accent.primary"
+          },
+          "mode_read": {
+            "glyph": "◉",
+            "style": "status.info"
+          },
+          "mode_write": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "navigate": {
+            "glyph": "↔",
+            "style": "text.muted"
+          },
+          "needs_approval": {
+            "glyph": "◎",
+            "style": "status.warning"
+          },
+          "parts": {
+            "glyph": "⊞",
+            "style": "accent.secondary"
+          },
+          "person": {
+            "glyph": "☺",
+            "style": "text.secondary"
+          },
+          "pipeline": {
+            "glyph": "⋮",
+            "style": "status.info"
+          },
+          "priority_high": {
+            "glyph": "↑",
+            "style": "status.error"
+          },
+          "priority_highest": {
+            "glyph": "⇈",
+            "style": "status.error"
+          },
+          "priority_low": {
+            "glyph": "↓",
+            "style": "status.info"
+          },
+          "priority_lowest": {
+            "glyph": "⇊",
+            "style": "status.info"
+          },
+          "priority_medium": {
+            "glyph": "=",
+            "style": "status.warning"
+          },
+          "private_channel": {
+            "glyph": "⊡",
+            "style": "status.warning"
+          },
+          "quit": {
+            "glyph": "✕",
+            "style": "text.muted"
+          },
+          "reaction": {
+            "glyph": "♥",
+            "style": "status.warning"
+          },
+          "rebase": {
+            "glyph": "↻",
+            "style": "status.warning"
+          },
+          "reply": {
+            "glyph": "↩",
+            "style": "accent.secondary"
+          },
+          "repo": {
+            "glyph": "▤",
+            "style": "accent.secondary"
+          },
+          "resolved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_canceled": {
+            "glyph": "⊘",
+            "style": "text.muted"
+          },
+          "run_failed": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "run_manual": {
+            "glyph": "▷",
+            "style": "accent.primary"
+          },
+          "run_passed": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_pending": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "run_running": {
+            "glyph": "●",
+            "style": "status.info"
+          },
+          "run_skipped": {
+            "glyph": "»",
+            "style": "text.muted"
+          },
+          "scroll": {
+            "glyph": "↕",
+            "style": "text.muted"
+          },
+          "search": {
+            "glyph": "⊙",
+            "style": "accent.secondary"
+          },
+          "settings": {
+            "glyph": "⚙",
+            "style": "text.secondary"
+          },
+          "site": {
+            "glyph": "⊕",
+            "style": "accent.secondary"
+          },
+          "story": {
+            "glyph": "▣",
+            "style": "status.success"
+          },
+          "subtask": {
+            "glyph": "↳",
+            "style": "status.info"
+          },
+          "task": {
+            "glyph": "☐",
+            "style": "status.info"
+          },
+          "team": {
+            "glyph": "⚇",
+            "style": "text.secondary"
+          },
+          "terminal": {
+            "glyph": "$",
+            "style": "text.secondary"
+          },
+          "thread": {
+            "glyph": "❝",
+            "style": "accent.secondary"
+          },
+          "time": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "todo": {
+            "glyph": "○",
+            "style": "text.muted"
+          },
+          "unread": {
+            "glyph": "•",
+            "style": "accent.primary"
+          },
+          "updated": {
+            "glyph": "↺",
+            "style": "text.muted"
+          },
+          "views": {
+            "glyph": "▽",
+            "style": "accent.secondary"
+          },
+          "warning": {
+            "glyph": "⚠",
+            "style": "status.warning"
+          },
+          "you": {
+            "glyph": "☻",
+            "style": "accent.primary"
+          }
+        },
+        "modifiers": {
+          "text.emphasis": "bold"
+        },
+        "pack": "unicode",
+        "slots": {
+          "accent.muted": "#9580ff",
+          "accent.primary": "#e135ff",
+          "accent.secondary": "#80ffea",
+          "accent.tertiary": "#ff6ac1",
+          "bg.base": "#0a0812",
+          "bg.hover": "#2a263e",
+          "bg.overlay": "#1a162a",
+          "bg.selection": "#44475a",
+          "bg.surface": "#12101a",
+          "data.number": "#ffb86c",
+          "diff.added": "#50fa7b",
+          "diff.removed": "#ff6363",
+          "glow.cyan": "#80ffea",
+          "glow.pink": "#ff00ff",
+          "glow.purple": "#e135ff",
+          "status.error": "#ff6363",
+          "status.info": "#82aaff",
+          "status.success": "#50fa7b",
+          "status.warning": "#f1fa8c",
+          "text.emphasis": "#ffffff",
+          "text.muted": "#6272a4",
+          "text.primary": "#f8f8f2",
+          "text.secondary": "#e9d5ff"
+        },
+        "tier": "truecolor"
+      },
+      "name": "truecolor-icons",
+      "rows": [
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#50fa7b",
+              "#233a37",
+              ""
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#233a37",
+              ""
+            ],
+            [
+              "passed ",
+              "#50fa7b",
+              "#233a37",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "good",
+              "text": "passed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#f1fa8c",
+              "#3c3a3a",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#3c3a3a",
+              ""
+            ],
+            [
+              "needs review ",
+              "#f1fa8c",
+              "#3c3a3a",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "warn",
+              "text": "needs review"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 18
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#ff6363",
+              "#3f2233",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#3f2233",
+              ""
+            ],
+            [
+              "failed ",
+              "#ff6363",
+              "#3f2233",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "bad",
+              "text": "failed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#82aaff",
+              "#2b2e4c",
+              ""
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#2b2e4c",
+              ""
+            ],
+            [
+              "running ",
+              "#82aaff",
+              "#2b2e4c",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "info",
+              "text": "running"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 13
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#6272a4",
+              "#26253e",
+              ""
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#26253e",
+              ""
+            ],
+            [
+              "merged ",
+              "#6272a4",
+              "#26253e",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "muted",
+              "text": "merged"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        }
+      ]
+    },
+    {
+      "look": {
+        "icon_width": 1,
+        "icons": {
+          "action": {
+            "glyph": "▷",
+            "style": "accent.secondary"
+          },
+          "alert": {
+            "glyph": "▲",
+            "style": "status.warning"
+          },
+          "alert_firing": {
+            "glyph": "▲",
+            "style": "status.error"
+          },
+          "alert_resolved": {
+            "glyph": "△",
+            "style": "status.success"
+          },
+          "approved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "board": {
+            "glyph": "⊟",
+            "style": "accent.secondary"
+          },
+          "bot": {
+            "glyph": "◙",
+            "style": "text.muted"
+          },
+          "branch": {
+            "glyph": "⎇",
+            "style": "accent.secondary"
+          },
+          "bug": {
+            "glyph": "✱",
+            "style": "status.error"
+          },
+          "bulk": {
+            "glyph": "◫",
+            "style": "text.muted"
+          },
+          "calendar": {
+            "glyph": "▦",
+            "style": "text.muted"
+          },
+          "change": {
+            "glyph": "⇄",
+            "style": "accent.primary"
+          },
+          "channel": {
+            "glyph": "#",
+            "style": "text.secondary"
+          },
+          "chat": {
+            "glyph": "✉",
+            "style": "accent.secondary"
+          },
+          "close": {
+            "glyph": "×",
+            "style": "text.muted"
+          },
+          "closed": {
+            "glyph": "⊘",
+            "style": "status.error"
+          },
+          "colours": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "comment": {
+            "glyph": "✎",
+            "style": "text.secondary"
+          },
+          "commit": {
+            "glyph": "◦",
+            "style": "text.muted"
+          },
+          "conflict": {
+            "glyph": "≠",
+            "style": "status.error"
+          },
+          "connection": {
+            "glyph": "⇌",
+            "style": "status.success"
+          },
+          "copy": {
+            "glyph": "⧉",
+            "style": "accent.secondary"
+          },
+          "direct": {
+            "glyph": "✉",
+            "style": "accent.primary"
+          },
+          "done": {
+            "glyph": "●",
+            "style": "status.success"
+          },
+          "draft": {
+            "glyph": "◌",
+            "style": "text.muted"
+          },
+          "editor": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "empty": {
+            "glyph": "∅",
+            "style": "text.muted"
+          },
+          "epic": {
+            "glyph": "✦",
+            "style": "glow.purple"
+          },
+          "error": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "file": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_c": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_cpp": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_css": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_docker": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_git": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_go": {
+            "glyph": "▫",
+            "style": "glow.cyan"
+          },
+          "file_html": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_image": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_java": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_javascript": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_json": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_kotlin": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_lock": {
+            "glyph": "▫",
+            "style": "text.muted"
+          },
+          "file_markdown": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_php": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_python": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_ruby": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_rust": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_shell": {
+            "glyph": "▫",
+            "style": "status.success"
+          },
+          "file_sql": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_swift": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_text": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_toml": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_typescript": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_xml": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_yaml": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "fold": {
+            "glyph": "±",
+            "style": "text.muted"
+          },
+          "folder": {
+            "glyph": "▪",
+            "style": "accent.secondary"
+          },
+          "folder_open": {
+            "glyph": "▭",
+            "style": "accent.secondary"
+          },
+          "group": {
+            "glyph": "◆",
+            "style": "accent.primary"
+          },
+          "icons": {
+            "glyph": "☺",
+            "style": "status.warning"
+          },
+          "in_progress": {
+            "glyph": "◐",
+            "style": "status.info"
+          },
+          "info": {
+            "glyph": "ℹ",
+            "style": "status.info"
+          },
+          "issue": {
+            "glyph": "◇",
+            "style": "accent.secondary"
+          },
+          "job": {
+            "glyph": "▸",
+            "style": "status.info"
+          },
+          "keys": {
+            "glyph": "⌘",
+            "style": "text.muted"
+          },
+          "label": {
+            "glyph": "⌗",
+            "style": "accent.tertiary"
+          },
+          "link": {
+            "glyph": "↗",
+            "style": "accent.secondary"
+          },
+          "local": {
+            "glyph": "⌂",
+            "style": "text.secondary"
+          },
+          "log": {
+            "glyph": "≣",
+            "style": "text.muted"
+          },
+          "look": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "mention": {
+            "glyph": "@",
+            "style": "accent.primary"
+          },
+          "menu": {
+            "glyph": "≡",
+            "style": "text.muted"
+          },
+          "merged": {
+            "glyph": "◈",
+            "style": "glow.purple"
+          },
+          "mode_edit": {
+            "glyph": "✎",
+            "style": "accent.primary"
+          },
+          "mode_read": {
+            "glyph": "◉",
+            "style": "status.info"
+          },
+          "mode_write": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "navigate": {
+            "glyph": "↔",
+            "style": "text.muted"
+          },
+          "needs_approval": {
+            "glyph": "◎",
+            "style": "status.warning"
+          },
+          "parts": {
+            "glyph": "⊞",
+            "style": "accent.secondary"
+          },
+          "person": {
+            "glyph": "☺",
+            "style": "text.secondary"
+          },
+          "pipeline": {
+            "glyph": "⋮",
+            "style": "status.info"
+          },
+          "priority_high": {
+            "glyph": "↑",
+            "style": "status.error"
+          },
+          "priority_highest": {
+            "glyph": "⇈",
+            "style": "status.error"
+          },
+          "priority_low": {
+            "glyph": "↓",
+            "style": "status.info"
+          },
+          "priority_lowest": {
+            "glyph": "⇊",
+            "style": "status.info"
+          },
+          "priority_medium": {
+            "glyph": "=",
+            "style": "status.warning"
+          },
+          "private_channel": {
+            "glyph": "⊡",
+            "style": "status.warning"
+          },
+          "quit": {
+            "glyph": "✕",
+            "style": "text.muted"
+          },
+          "reaction": {
+            "glyph": "♥",
+            "style": "status.warning"
+          },
+          "rebase": {
+            "glyph": "↻",
+            "style": "status.warning"
+          },
+          "reply": {
+            "glyph": "↩",
+            "style": "accent.secondary"
+          },
+          "repo": {
+            "glyph": "▤",
+            "style": "accent.secondary"
+          },
+          "resolved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_canceled": {
+            "glyph": "⊘",
+            "style": "text.muted"
+          },
+          "run_failed": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "run_manual": {
+            "glyph": "▷",
+            "style": "accent.primary"
+          },
+          "run_passed": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_pending": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "run_running": {
+            "glyph": "●",
+            "style": "status.info"
+          },
+          "run_skipped": {
+            "glyph": "»",
+            "style": "text.muted"
+          },
+          "scroll": {
+            "glyph": "↕",
+            "style": "text.muted"
+          },
+          "search": {
+            "glyph": "⊙",
+            "style": "accent.secondary"
+          },
+          "settings": {
+            "glyph": "⚙",
+            "style": "text.secondary"
+          },
+          "site": {
+            "glyph": "⊕",
+            "style": "accent.secondary"
+          },
+          "story": {
+            "glyph": "▣",
+            "style": "status.success"
+          },
+          "subtask": {
+            "glyph": "↳",
+            "style": "status.info"
+          },
+          "task": {
+            "glyph": "☐",
+            "style": "status.info"
+          },
+          "team": {
+            "glyph": "⚇",
+            "style": "text.secondary"
+          },
+          "terminal": {
+            "glyph": "$",
+            "style": "text.secondary"
+          },
+          "thread": {
+            "glyph": "❝",
+            "style": "accent.secondary"
+          },
+          "time": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "todo": {
+            "glyph": "○",
+            "style": "text.muted"
+          },
+          "unread": {
+            "glyph": "•",
+            "style": "accent.primary"
+          },
+          "updated": {
+            "glyph": "↺",
+            "style": "text.muted"
+          },
+          "views": {
+            "glyph": "▽",
+            "style": "accent.secondary"
+          },
+          "warning": {
+            "glyph": "⚠",
+            "style": "status.warning"
+          },
+          "you": {
+            "glyph": "☻",
+            "style": "accent.primary"
+          }
+        },
+        "modifiers": {
+          "text.emphasis": "bold"
+        },
+        "pack": "unicode",
+        "slots": {
+          "accent.muted": "ansi256(105)",
+          "accent.primary": "ansi256(171)",
+          "accent.secondary": "ansi256(122)",
+          "accent.tertiary": "ansi256(205)",
+          "bg.base": "ansi256(232)",
+          "bg.hover": "ansi256(236)",
+          "bg.overlay": "ansi256(235)",
+          "bg.selection": "ansi256(239)",
+          "bg.surface": "ansi256(233)",
+          "data.number": "ansi256(215)",
+          "diff.added": "ansi256(84)",
+          "diff.removed": "ansi256(203)",
+          "glow.cyan": "ansi256(122)",
+          "glow.pink": "ansi256(201)",
+          "glow.purple": "ansi256(171)",
+          "status.error": "ansi256(203)",
+          "status.info": "ansi256(111)",
+          "status.success": "ansi256(84)",
+          "status.warning": "ansi256(228)",
+          "text.emphasis": "ansi256(231)",
+          "text.muted": "ansi256(61)",
+          "text.primary": "ansi256(255)",
+          "text.secondary": "ansi256(189)"
+        },
+        "tier": "256"
+      },
+      "name": "256-icons",
+      "rows": [
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "ansi256(84)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "❝ ",
+              "ansi256(122)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "passed ",
+              "ansi256(84)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "good",
+              "text": "passed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "ansi256(228)",
+              "ansi256(235)",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "ansi256(122)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "needs review ",
+              "ansi256(228)",
+              "ansi256(235)",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "warn",
+              "text": "needs review"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 18
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "ansi256(203)",
+              "ansi256(235)",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "ansi256(122)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "failed ",
+              "ansi256(203)",
+              "ansi256(235)",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "bad",
+              "text": "failed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "ansi256(111)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "❝ ",
+              "ansi256(122)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "running ",
+              "ansi256(111)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "info",
+              "text": "running"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 13
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "ansi256(61)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "❝ ",
+              "ansi256(122)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "merged ",
+              "ansi256(61)",
+              "ansi256(235)",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "muted",
+              "text": "merged"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        }
+      ]
+    },
+    {
+      "look": {
+        "icon_width": 1,
+        "icons": {
+          "action": {
+            "glyph": "▷",
+            "style": "accent.secondary"
+          },
+          "alert": {
+            "glyph": "▲",
+            "style": "status.warning"
+          },
+          "alert_firing": {
+            "glyph": "▲",
+            "style": "status.error"
+          },
+          "alert_resolved": {
+            "glyph": "△",
+            "style": "status.success"
+          },
+          "approved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "board": {
+            "glyph": "⊟",
+            "style": "accent.secondary"
+          },
+          "bot": {
+            "glyph": "◙",
+            "style": "text.muted"
+          },
+          "branch": {
+            "glyph": "⎇",
+            "style": "accent.secondary"
+          },
+          "bug": {
+            "glyph": "✱",
+            "style": "status.error"
+          },
+          "bulk": {
+            "glyph": "◫",
+            "style": "text.muted"
+          },
+          "calendar": {
+            "glyph": "▦",
+            "style": "text.muted"
+          },
+          "change": {
+            "glyph": "⇄",
+            "style": "accent.primary"
+          },
+          "channel": {
+            "glyph": "#",
+            "style": "text.secondary"
+          },
+          "chat": {
+            "glyph": "✉",
+            "style": "accent.secondary"
+          },
+          "close": {
+            "glyph": "×",
+            "style": "text.muted"
+          },
+          "closed": {
+            "glyph": "⊘",
+            "style": "status.error"
+          },
+          "colours": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "comment": {
+            "glyph": "✎",
+            "style": "text.secondary"
+          },
+          "commit": {
+            "glyph": "◦",
+            "style": "text.muted"
+          },
+          "conflict": {
+            "glyph": "≠",
+            "style": "status.error"
+          },
+          "connection": {
+            "glyph": "⇌",
+            "style": "status.success"
+          },
+          "copy": {
+            "glyph": "⧉",
+            "style": "accent.secondary"
+          },
+          "direct": {
+            "glyph": "✉",
+            "style": "accent.primary"
+          },
+          "done": {
+            "glyph": "●",
+            "style": "status.success"
+          },
+          "draft": {
+            "glyph": "◌",
+            "style": "text.muted"
+          },
+          "editor": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "empty": {
+            "glyph": "∅",
+            "style": "text.muted"
+          },
+          "epic": {
+            "glyph": "✦",
+            "style": "glow.purple"
+          },
+          "error": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "file": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_c": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_cpp": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_css": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_docker": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_git": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_go": {
+            "glyph": "▫",
+            "style": "glow.cyan"
+          },
+          "file_html": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_image": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_java": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_javascript": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_json": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_kotlin": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_lock": {
+            "glyph": "▫",
+            "style": "text.muted"
+          },
+          "file_markdown": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_php": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_python": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_ruby": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_rust": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_shell": {
+            "glyph": "▫",
+            "style": "status.success"
+          },
+          "file_sql": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_swift": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_text": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_toml": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_typescript": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_xml": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_yaml": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "fold": {
+            "glyph": "±",
+            "style": "text.muted"
+          },
+          "folder": {
+            "glyph": "▪",
+            "style": "accent.secondary"
+          },
+          "folder_open": {
+            "glyph": "▭",
+            "style": "accent.secondary"
+          },
+          "group": {
+            "glyph": "◆",
+            "style": "accent.primary"
+          },
+          "icons": {
+            "glyph": "☺",
+            "style": "status.warning"
+          },
+          "in_progress": {
+            "glyph": "◐",
+            "style": "status.info"
+          },
+          "info": {
+            "glyph": "ℹ",
+            "style": "status.info"
+          },
+          "issue": {
+            "glyph": "◇",
+            "style": "accent.secondary"
+          },
+          "job": {
+            "glyph": "▸",
+            "style": "status.info"
+          },
+          "keys": {
+            "glyph": "⌘",
+            "style": "text.muted"
+          },
+          "label": {
+            "glyph": "⌗",
+            "style": "accent.tertiary"
+          },
+          "link": {
+            "glyph": "↗",
+            "style": "accent.secondary"
+          },
+          "local": {
+            "glyph": "⌂",
+            "style": "text.secondary"
+          },
+          "log": {
+            "glyph": "≣",
+            "style": "text.muted"
+          },
+          "look": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "mention": {
+            "glyph": "@",
+            "style": "accent.primary"
+          },
+          "menu": {
+            "glyph": "≡",
+            "style": "text.muted"
+          },
+          "merged": {
+            "glyph": "◈",
+            "style": "glow.purple"
+          },
+          "mode_edit": {
+            "glyph": "✎",
+            "style": "accent.primary"
+          },
+          "mode_read": {
+            "glyph": "◉",
+            "style": "status.info"
+          },
+          "mode_write": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "navigate": {
+            "glyph": "↔",
+            "style": "text.muted"
+          },
+          "needs_approval": {
+            "glyph": "◎",
+            "style": "status.warning"
+          },
+          "parts": {
+            "glyph": "⊞",
+            "style": "accent.secondary"
+          },
+          "person": {
+            "glyph": "☺",
+            "style": "text.secondary"
+          },
+          "pipeline": {
+            "glyph": "⋮",
+            "style": "status.info"
+          },
+          "priority_high": {
+            "glyph": "↑",
+            "style": "status.error"
+          },
+          "priority_highest": {
+            "glyph": "⇈",
+            "style": "status.error"
+          },
+          "priority_low": {
+            "glyph": "↓",
+            "style": "status.info"
+          },
+          "priority_lowest": {
+            "glyph": "⇊",
+            "style": "status.info"
+          },
+          "priority_medium": {
+            "glyph": "=",
+            "style": "status.warning"
+          },
+          "private_channel": {
+            "glyph": "⊡",
+            "style": "status.warning"
+          },
+          "quit": {
+            "glyph": "✕",
+            "style": "text.muted"
+          },
+          "reaction": {
+            "glyph": "♥",
+            "style": "status.warning"
+          },
+          "rebase": {
+            "glyph": "↻",
+            "style": "status.warning"
+          },
+          "reply": {
+            "glyph": "↩",
+            "style": "accent.secondary"
+          },
+          "repo": {
+            "glyph": "▤",
+            "style": "accent.secondary"
+          },
+          "resolved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_canceled": {
+            "glyph": "⊘",
+            "style": "text.muted"
+          },
+          "run_failed": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "run_manual": {
+            "glyph": "▷",
+            "style": "accent.primary"
+          },
+          "run_passed": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_pending": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "run_running": {
+            "glyph": "●",
+            "style": "status.info"
+          },
+          "run_skipped": {
+            "glyph": "»",
+            "style": "text.muted"
+          },
+          "scroll": {
+            "glyph": "↕",
+            "style": "text.muted"
+          },
+          "search": {
+            "glyph": "⊙",
+            "style": "accent.secondary"
+          },
+          "settings": {
+            "glyph": "⚙",
+            "style": "text.secondary"
+          },
+          "site": {
+            "glyph": "⊕",
+            "style": "accent.secondary"
+          },
+          "story": {
+            "glyph": "▣",
+            "style": "status.success"
+          },
+          "subtask": {
+            "glyph": "↳",
+            "style": "status.info"
+          },
+          "task": {
+            "glyph": "☐",
+            "style": "status.info"
+          },
+          "team": {
+            "glyph": "⚇",
+            "style": "text.secondary"
+          },
+          "terminal": {
+            "glyph": "$",
+            "style": "text.secondary"
+          },
+          "thread": {
+            "glyph": "❝",
+            "style": "accent.secondary"
+          },
+          "time": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "todo": {
+            "glyph": "○",
+            "style": "text.muted"
+          },
+          "unread": {
+            "glyph": "•",
+            "style": "accent.primary"
+          },
+          "updated": {
+            "glyph": "↺",
+            "style": "text.muted"
+          },
+          "views": {
+            "glyph": "▽",
+            "style": "accent.secondary"
+          },
+          "warning": {
+            "glyph": "⚠",
+            "style": "status.warning"
+          },
+          "you": {
+            "glyph": "☻",
+            "style": "accent.primary"
+          }
+        },
+        "modifiers": {
+          "text.emphasis": "bold"
+        },
+        "pack": "unicode",
+        "slots": {
+          "accent.muted": "blue",
+          "accent.primary": "magentaBright",
+          "accent.secondary": "cyanBright",
+          "accent.tertiary": "magenta",
+          "bg.base": "black",
+          "bg.hover": "black",
+          "bg.overlay": "blackBright",
+          "bg.selection": "blackBright",
+          "bg.surface": "black",
+          "data.number": "yellow",
+          "diff.added": "greenBright",
+          "diff.removed": "redBright",
+          "glow.cyan": "cyanBright",
+          "glow.pink": "magenta",
+          "glow.purple": "magentaBright",
+          "status.error": "redBright",
+          "status.info": "blueBright",
+          "status.success": "greenBright",
+          "status.warning": "yellowBright",
+          "text.emphasis": "whiteBright",
+          "text.muted": "blackBright",
+          "text.primary": "whiteBright",
+          "text.secondary": "white"
+        },
+        "tier": "16"
+      },
+      "name": "16-icons",
+      "rows": [
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "greenBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "❝ ",
+              "cyanBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "passed ",
+              "greenBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "good",
+              "text": "passed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "yellowBright",
+              "blackBright",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "cyanBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "needs review ",
+              "yellowBright",
+              "blackBright",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "warn",
+              "text": "needs review"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 18
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "redBright",
+              "blackBright",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "cyanBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "failed ",
+              "redBright",
+              "blackBright",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "bad",
+              "text": "failed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "blueBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "❝ ",
+              "cyanBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "running ",
+              "blueBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "info",
+              "text": "running"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 13
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "blackBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "❝ ",
+              "cyanBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "merged ",
+              "blackBright",
+              "blackBright",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "muted",
+              "text": "merged"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        }
+      ]
+    },
+    {
+      "look": {
+        "icon_width": 1,
+        "icons": {
+          "action": {
+            "glyph": "▷",
+            "style": "accent.secondary"
+          },
+          "alert": {
+            "glyph": "▲",
+            "style": "status.warning"
+          },
+          "alert_firing": {
+            "glyph": "▲",
+            "style": "status.error"
+          },
+          "alert_resolved": {
+            "glyph": "△",
+            "style": "status.success"
+          },
+          "approved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "board": {
+            "glyph": "⊟",
+            "style": "accent.secondary"
+          },
+          "bot": {
+            "glyph": "◙",
+            "style": "text.muted"
+          },
+          "branch": {
+            "glyph": "⎇",
+            "style": "accent.secondary"
+          },
+          "bug": {
+            "glyph": "✱",
+            "style": "status.error"
+          },
+          "bulk": {
+            "glyph": "◫",
+            "style": "text.muted"
+          },
+          "calendar": {
+            "glyph": "▦",
+            "style": "text.muted"
+          },
+          "change": {
+            "glyph": "⇄",
+            "style": "accent.primary"
+          },
+          "channel": {
+            "glyph": "#",
+            "style": "text.secondary"
+          },
+          "chat": {
+            "glyph": "✉",
+            "style": "accent.secondary"
+          },
+          "close": {
+            "glyph": "×",
+            "style": "text.muted"
+          },
+          "closed": {
+            "glyph": "⊘",
+            "style": "status.error"
+          },
+          "colours": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "comment": {
+            "glyph": "✎",
+            "style": "text.secondary"
+          },
+          "commit": {
+            "glyph": "◦",
+            "style": "text.muted"
+          },
+          "conflict": {
+            "glyph": "≠",
+            "style": "status.error"
+          },
+          "connection": {
+            "glyph": "⇌",
+            "style": "status.success"
+          },
+          "copy": {
+            "glyph": "⧉",
+            "style": "accent.secondary"
+          },
+          "direct": {
+            "glyph": "✉",
+            "style": "accent.primary"
+          },
+          "done": {
+            "glyph": "●",
+            "style": "status.success"
+          },
+          "draft": {
+            "glyph": "◌",
+            "style": "text.muted"
+          },
+          "editor": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "empty": {
+            "glyph": "∅",
+            "style": "text.muted"
+          },
+          "epic": {
+            "glyph": "✦",
+            "style": "glow.purple"
+          },
+          "error": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "file": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_c": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_cpp": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_css": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_docker": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_git": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_go": {
+            "glyph": "▫",
+            "style": "glow.cyan"
+          },
+          "file_html": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_image": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_java": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_javascript": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_json": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_kotlin": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_lock": {
+            "glyph": "▫",
+            "style": "text.muted"
+          },
+          "file_markdown": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_php": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_python": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_ruby": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_rust": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_shell": {
+            "glyph": "▫",
+            "style": "status.success"
+          },
+          "file_sql": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_swift": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_text": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_toml": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_typescript": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_xml": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_yaml": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "fold": {
+            "glyph": "±",
+            "style": "text.muted"
+          },
+          "folder": {
+            "glyph": "▪",
+            "style": "accent.secondary"
+          },
+          "folder_open": {
+            "glyph": "▭",
+            "style": "accent.secondary"
+          },
+          "group": {
+            "glyph": "◆",
+            "style": "accent.primary"
+          },
+          "icons": {
+            "glyph": "☺",
+            "style": "status.warning"
+          },
+          "in_progress": {
+            "glyph": "◐",
+            "style": "status.info"
+          },
+          "info": {
+            "glyph": "ℹ",
+            "style": "status.info"
+          },
+          "issue": {
+            "glyph": "◇",
+            "style": "accent.secondary"
+          },
+          "job": {
+            "glyph": "▸",
+            "style": "status.info"
+          },
+          "keys": {
+            "glyph": "⌘",
+            "style": "text.muted"
+          },
+          "label": {
+            "glyph": "⌗",
+            "style": "accent.tertiary"
+          },
+          "link": {
+            "glyph": "↗",
+            "style": "accent.secondary"
+          },
+          "local": {
+            "glyph": "⌂",
+            "style": "text.secondary"
+          },
+          "log": {
+            "glyph": "≣",
+            "style": "text.muted"
+          },
+          "look": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "mention": {
+            "glyph": "@",
+            "style": "accent.primary"
+          },
+          "menu": {
+            "glyph": "≡",
+            "style": "text.muted"
+          },
+          "merged": {
+            "glyph": "◈",
+            "style": "glow.purple"
+          },
+          "mode_edit": {
+            "glyph": "✎",
+            "style": "accent.primary"
+          },
+          "mode_read": {
+            "glyph": "◉",
+            "style": "status.info"
+          },
+          "mode_write": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "navigate": {
+            "glyph": "↔",
+            "style": "text.muted"
+          },
+          "needs_approval": {
+            "glyph": "◎",
+            "style": "status.warning"
+          },
+          "parts": {
+            "glyph": "⊞",
+            "style": "accent.secondary"
+          },
+          "person": {
+            "glyph": "☺",
+            "style": "text.secondary"
+          },
+          "pipeline": {
+            "glyph": "⋮",
+            "style": "status.info"
+          },
+          "priority_high": {
+            "glyph": "↑",
+            "style": "status.error"
+          },
+          "priority_highest": {
+            "glyph": "⇈",
+            "style": "status.error"
+          },
+          "priority_low": {
+            "glyph": "↓",
+            "style": "status.info"
+          },
+          "priority_lowest": {
+            "glyph": "⇊",
+            "style": "status.info"
+          },
+          "priority_medium": {
+            "glyph": "=",
+            "style": "status.warning"
+          },
+          "private_channel": {
+            "glyph": "⊡",
+            "style": "status.warning"
+          },
+          "quit": {
+            "glyph": "✕",
+            "style": "text.muted"
+          },
+          "reaction": {
+            "glyph": "♥",
+            "style": "status.warning"
+          },
+          "rebase": {
+            "glyph": "↻",
+            "style": "status.warning"
+          },
+          "reply": {
+            "glyph": "↩",
+            "style": "accent.secondary"
+          },
+          "repo": {
+            "glyph": "▤",
+            "style": "accent.secondary"
+          },
+          "resolved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_canceled": {
+            "glyph": "⊘",
+            "style": "text.muted"
+          },
+          "run_failed": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "run_manual": {
+            "glyph": "▷",
+            "style": "accent.primary"
+          },
+          "run_passed": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_pending": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "run_running": {
+            "glyph": "●",
+            "style": "status.info"
+          },
+          "run_skipped": {
+            "glyph": "»",
+            "style": "text.muted"
+          },
+          "scroll": {
+            "glyph": "↕",
+            "style": "text.muted"
+          },
+          "search": {
+            "glyph": "⊙",
+            "style": "accent.secondary"
+          },
+          "settings": {
+            "glyph": "⚙",
+            "style": "text.secondary"
+          },
+          "site": {
+            "glyph": "⊕",
+            "style": "accent.secondary"
+          },
+          "story": {
+            "glyph": "▣",
+            "style": "status.success"
+          },
+          "subtask": {
+            "glyph": "↳",
+            "style": "status.info"
+          },
+          "task": {
+            "glyph": "☐",
+            "style": "status.info"
+          },
+          "team": {
+            "glyph": "⚇",
+            "style": "text.secondary"
+          },
+          "terminal": {
+            "glyph": "$",
+            "style": "text.secondary"
+          },
+          "thread": {
+            "glyph": "❝",
+            "style": "accent.secondary"
+          },
+          "time": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "todo": {
+            "glyph": "○",
+            "style": "text.muted"
+          },
+          "unread": {
+            "glyph": "•",
+            "style": "accent.primary"
+          },
+          "updated": {
+            "glyph": "↺",
+            "style": "text.muted"
+          },
+          "views": {
+            "glyph": "▽",
+            "style": "accent.secondary"
+          },
+          "warning": {
+            "glyph": "⚠",
+            "style": "status.warning"
+          },
+          "you": {
+            "glyph": "☻",
+            "style": "accent.primary"
+          }
+        },
+        "modifiers": {
+          "text.emphasis": "bold"
+        },
+        "pack": "unicode",
+        "slots": {
+          "accent.muted": "",
+          "accent.primary": "",
+          "accent.secondary": "",
+          "accent.tertiary": "",
+          "bg.base": "",
+          "bg.hover": "",
+          "bg.overlay": "",
+          "bg.selection": "",
+          "bg.surface": "",
+          "data.number": "",
+          "diff.added": "",
+          "diff.removed": "",
+          "glow.cyan": "",
+          "glow.pink": "",
+          "glow.purple": "",
+          "status.error": "",
+          "status.info": "",
+          "status.success": "",
+          "status.warning": "",
+          "text.emphasis": "",
+          "text.muted": "",
+          "text.primary": "",
+          "text.secondary": ""
+        },
+        "tier": "mono"
+      },
+      "name": "mono-icons",
+      "rows": [
+        {
+          "runs": [
+            [
+              "| ❝ passed |",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "good",
+              "text": "passed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "",
+              "",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "",
+              "",
+              ""
+            ],
+            [
+              "needs review ",
+              "",
+              "",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "warn",
+              "text": "needs review"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 18
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "",
+              "",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "",
+              "",
+              ""
+            ],
+            [
+              "failed ",
+              "",
+              "",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "bad",
+              "text": "failed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "| ❝ running |",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "info",
+              "text": "running"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 13
+        },
+        {
+          "runs": [
+            [
+              "| ❝ merged |",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "muted",
+              "text": "merged"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        }
+      ]
+    },
+    {
+      "look": {
+        "icon_width": 1,
+        "icons": {
+          "action": {
+            "glyph": "▷",
+            "style": "accent.secondary"
+          },
+          "alert": {
+            "glyph": "▲",
+            "style": "status.warning"
+          },
+          "alert_firing": {
+            "glyph": "▲",
+            "style": "status.error"
+          },
+          "alert_resolved": {
+            "glyph": "△",
+            "style": "status.success"
+          },
+          "approved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "board": {
+            "glyph": "⊟",
+            "style": "accent.secondary"
+          },
+          "bot": {
+            "glyph": "◙",
+            "style": "text.muted"
+          },
+          "branch": {
+            "glyph": "⎇",
+            "style": "accent.secondary"
+          },
+          "bug": {
+            "glyph": "✱",
+            "style": "status.error"
+          },
+          "bulk": {
+            "glyph": "◫",
+            "style": "text.muted"
+          },
+          "calendar": {
+            "glyph": "▦",
+            "style": "text.muted"
+          },
+          "change": {
+            "glyph": "⇄",
+            "style": "accent.primary"
+          },
+          "channel": {
+            "glyph": "#",
+            "style": "text.secondary"
+          },
+          "chat": {
+            "glyph": "✉",
+            "style": "accent.secondary"
+          },
+          "close": {
+            "glyph": "×",
+            "style": "text.muted"
+          },
+          "closed": {
+            "glyph": "⊘",
+            "style": "status.error"
+          },
+          "colours": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "comment": {
+            "glyph": "✎",
+            "style": "text.secondary"
+          },
+          "commit": {
+            "glyph": "◦",
+            "style": "text.muted"
+          },
+          "conflict": {
+            "glyph": "≠",
+            "style": "status.error"
+          },
+          "connection": {
+            "glyph": "⇌",
+            "style": "status.success"
+          },
+          "copy": {
+            "glyph": "⧉",
+            "style": "accent.secondary"
+          },
+          "direct": {
+            "glyph": "✉",
+            "style": "accent.primary"
+          },
+          "done": {
+            "glyph": "●",
+            "style": "status.success"
+          },
+          "draft": {
+            "glyph": "◌",
+            "style": "text.muted"
+          },
+          "editor": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "empty": {
+            "glyph": "∅",
+            "style": "text.muted"
+          },
+          "epic": {
+            "glyph": "✦",
+            "style": "glow.purple"
+          },
+          "error": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "file": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_c": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_cpp": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_css": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_docker": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_git": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_go": {
+            "glyph": "▫",
+            "style": "glow.cyan"
+          },
+          "file_html": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_image": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_java": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_javascript": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_json": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_kotlin": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_lock": {
+            "glyph": "▫",
+            "style": "text.muted"
+          },
+          "file_markdown": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_php": {
+            "glyph": "▫",
+            "style": "glow.purple"
+          },
+          "file_python": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_ruby": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "file_rust": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_shell": {
+            "glyph": "▫",
+            "style": "status.success"
+          },
+          "file_sql": {
+            "glyph": "▫",
+            "style": "glow.pink"
+          },
+          "file_swift": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_text": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_toml": {
+            "glyph": "▫",
+            "style": "text.secondary"
+          },
+          "file_typescript": {
+            "glyph": "▫",
+            "style": "status.info"
+          },
+          "file_xml": {
+            "glyph": "▫",
+            "style": "status.warning"
+          },
+          "file_yaml": {
+            "glyph": "▫",
+            "style": "status.error"
+          },
+          "fold": {
+            "glyph": "±",
+            "style": "text.muted"
+          },
+          "folder": {
+            "glyph": "▪",
+            "style": "accent.secondary"
+          },
+          "folder_open": {
+            "glyph": "▭",
+            "style": "accent.secondary"
+          },
+          "group": {
+            "glyph": "◆",
+            "style": "accent.primary"
+          },
+          "icons": {
+            "glyph": "☺",
+            "style": "status.warning"
+          },
+          "in_progress": {
+            "glyph": "◐",
+            "style": "status.info"
+          },
+          "info": {
+            "glyph": "ℹ",
+            "style": "status.info"
+          },
+          "issue": {
+            "glyph": "◇",
+            "style": "accent.secondary"
+          },
+          "job": {
+            "glyph": "▸",
+            "style": "status.info"
+          },
+          "keys": {
+            "glyph": "⌘",
+            "style": "text.muted"
+          },
+          "label": {
+            "glyph": "⌗",
+            "style": "accent.tertiary"
+          },
+          "link": {
+            "glyph": "↗",
+            "style": "accent.secondary"
+          },
+          "local": {
+            "glyph": "⌂",
+            "style": "text.secondary"
+          },
+          "log": {
+            "glyph": "≣",
+            "style": "text.muted"
+          },
+          "look": {
+            "glyph": "◑",
+            "style": "accent.primary"
+          },
+          "mention": {
+            "glyph": "@",
+            "style": "accent.primary"
+          },
+          "menu": {
+            "glyph": "≡",
+            "style": "text.muted"
+          },
+          "merged": {
+            "glyph": "◈",
+            "style": "glow.purple"
+          },
+          "mode_edit": {
+            "glyph": "✎",
+            "style": "accent.primary"
+          },
+          "mode_read": {
+            "glyph": "◉",
+            "style": "status.info"
+          },
+          "mode_write": {
+            "glyph": "✎",
+            "style": "accent.secondary"
+          },
+          "navigate": {
+            "glyph": "↔",
+            "style": "text.muted"
+          },
+          "needs_approval": {
+            "glyph": "◎",
+            "style": "status.warning"
+          },
+          "parts": {
+            "glyph": "⊞",
+            "style": "accent.secondary"
+          },
+          "person": {
+            "glyph": "☺",
+            "style": "text.secondary"
+          },
+          "pipeline": {
+            "glyph": "⋮",
+            "style": "status.info"
+          },
+          "priority_high": {
+            "glyph": "↑",
+            "style": "status.error"
+          },
+          "priority_highest": {
+            "glyph": "⇈",
+            "style": "status.error"
+          },
+          "priority_low": {
+            "glyph": "↓",
+            "style": "status.info"
+          },
+          "priority_lowest": {
+            "glyph": "⇊",
+            "style": "status.info"
+          },
+          "priority_medium": {
+            "glyph": "=",
+            "style": "status.warning"
+          },
+          "private_channel": {
+            "glyph": "⊡",
+            "style": "status.warning"
+          },
+          "quit": {
+            "glyph": "✕",
+            "style": "text.muted"
+          },
+          "reaction": {
+            "glyph": "♥",
+            "style": "status.warning"
+          },
+          "rebase": {
+            "glyph": "↻",
+            "style": "status.warning"
+          },
+          "reply": {
+            "glyph": "↩",
+            "style": "accent.secondary"
+          },
+          "repo": {
+            "glyph": "▤",
+            "style": "accent.secondary"
+          },
+          "resolved": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_canceled": {
+            "glyph": "⊘",
+            "style": "text.muted"
+          },
+          "run_failed": {
+            "glyph": "✗",
+            "style": "status.error"
+          },
+          "run_manual": {
+            "glyph": "▷",
+            "style": "accent.primary"
+          },
+          "run_passed": {
+            "glyph": "✓",
+            "style": "status.success"
+          },
+          "run_pending": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "run_running": {
+            "glyph": "●",
+            "style": "status.info"
+          },
+          "run_skipped": {
+            "glyph": "»",
+            "style": "text.muted"
+          },
+          "scroll": {
+            "glyph": "↕",
+            "style": "text.muted"
+          },
+          "search": {
+            "glyph": "⊙",
+            "style": "accent.secondary"
+          },
+          "settings": {
+            "glyph": "⚙",
+            "style": "text.secondary"
+          },
+          "site": {
+            "glyph": "⊕",
+            "style": "accent.secondary"
+          },
+          "story": {
+            "glyph": "▣",
+            "style": "status.success"
+          },
+          "subtask": {
+            "glyph": "↳",
+            "style": "status.info"
+          },
+          "task": {
+            "glyph": "☐",
+            "style": "status.info"
+          },
+          "team": {
+            "glyph": "⚇",
+            "style": "text.secondary"
+          },
+          "terminal": {
+            "glyph": "$",
+            "style": "text.secondary"
+          },
+          "thread": {
+            "glyph": "❝",
+            "style": "accent.secondary"
+          },
+          "time": {
+            "glyph": "◷",
+            "style": "text.muted"
+          },
+          "todo": {
+            "glyph": "○",
+            "style": "text.muted"
+          },
+          "unread": {
+            "glyph": "•",
+            "style": "accent.primary"
+          },
+          "updated": {
+            "glyph": "↺",
+            "style": "text.muted"
+          },
+          "views": {
+            "glyph": "▽",
+            "style": "accent.secondary"
+          },
+          "warning": {
+            "glyph": "⚠",
+            "style": "status.warning"
+          },
+          "you": {
+            "glyph": "☻",
+            "style": "accent.primary"
+          }
+        },
+        "modifiers": {
+          "text.emphasis": "bold"
+        },
+        "pack": "unicode",
+        "slots": {
+          "accent.muted": "#9580ff",
+          "accent.primary": "#e135ff",
+          "accent.secondary": "#80ffea",
+          "accent.tertiary": "#ff6ac1",
+          "bg.base": "#0a0812",
+          "bg.hover": "#2a263e",
+          "bg.overlay": "#102030",
+          "bg.selection": "#44475a",
+          "bg.surface": "#12101a",
+          "data.number": "#ffb86c",
+          "diff.added": "#50fa7b",
+          "diff.removed": "#ff6363",
+          "glow.cyan": "#80ffea",
+          "glow.pink": "#ff00ff",
+          "glow.purple": "#e135ff",
+          "status.error": "#ff6363",
+          "status.info": "#82aaff",
+          "status.success": "#f010e0",
+          "status.warning": "#f1fa8c",
+          "text.emphasis": "#ffffff",
+          "text.muted": "#6272a4",
+          "text.primary": "#f8f8f2",
+          "text.secondary": "#e9d5ff"
+        },
+        "tier": "truecolor"
+      },
+      "name": "custom-rgb-icons",
+      "rows": [
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#f010e0",
+              "#341d4c",
+              ""
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#341d4c",
+              ""
+            ],
+            [
+              "passed ",
+              "#f010e0",
+              "#341d4c",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "good",
+              "text": "passed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#f1fa8c",
+              "#34433f",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#34433f",
+              ""
+            ],
+            [
+              "needs review ",
+              "#f1fa8c",
+              "#34433f",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "warn",
+              "text": "needs review"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 18
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#ff6363",
+              "#362b38",
+              "bold"
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#362b38",
+              ""
+            ],
+            [
+              "failed ",
+              "#ff6363",
+              "#362b38",
+              "bold"
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "bad",
+              "text": "failed"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#82aaff",
+              "#223651",
+              ""
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#223651",
+              ""
+            ],
+            [
+              "running ",
+              "#82aaff",
+              "#223651",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "info",
+              "text": "running"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 13
+        },
+        {
+          "runs": [
+            [
+              "|",
+              "",
+              "",
+              ""
+            ],
+            [
+              " ",
+              "#6272a4",
+              "#1d2d43",
+              ""
+            ],
+            [
+              "❝ ",
+              "#80ffea",
+              "#1d2d43",
+              ""
+            ],
+            [
+              "merged ",
+              "#6272a4",
+              "#1d2d43",
+              ""
+            ],
+            [
+              "|",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "text": [
+            {
+              "text": "|"
+            },
+            {
+              "chip": true,
+              "icon": "thread",
+              "ink": "muted",
+              "text": "merged"
+            },
+            {
+              "text": "|"
+            }
+          ],
+          "width": 12
+        }
+      ]
+    }
+  ],
+  "format": 1
+}

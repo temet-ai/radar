@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# ink-live: the real radar binary in a private tmux server, drawn by Ink or Ratatui,
+# ink-live: the real radar binary in a private tmux server, drawn by Ink,
 # driven by keys and SGR mouse sequences, its screen read back as text or colour,
 # and the renderer that actually drew it proven from radar.log.
 #
-#   ink-live start NAME ink|ratatui [WxH]   start (default 160x40); fails if Ink fell back
+#   ink-live start NAME ink [WxH]           start (default 160x40); fails if radar exits at start
+#   RADAR_LIVE_NO_INK=1 ink-live start NAME ink   no Ink reachable: waits for radar's own exit and
+#                                           prints its stderr, exit code and the modes left behind
 #   ink-live keys NAME KEY...               tmux key names (Down, Enter, Escape, x, BTab, ...)
 #   ink-live text NAME                      the screen as text
 #   ink-live colour NAME                    the screen with its SGR colours (capture-pane -e)
@@ -54,16 +56,13 @@ default_bin() {
   fi
   echo "$bin"
 }
-# The parts a default build has, asked of the binary: `radar shot --list` names a settings
-# place per part (settings.<part>.*), and has the demo data only with the shots feature.
+# The parts a default build has, asked of the binary: `radar parts` lists their ids.
 check_parts() {
-  local bin=$1 places missing="" p
-  places=$("$bin" shot --list 2>/dev/null) || die "$bin has no 'shot --list' (no shots feature?): not a default-features radar"
-  for p in gitlab github jira slack git workspace; do
-    printf '%s\n' "$places" | grep -q "^settings\.$p\." || missing="$missing $p"
+  local bin=$1 parts missing="" p
+  parts=$("$bin" parts 2>/dev/null) || die "$bin has no 'parts' command: not a current radar"
+  for p in gitlab github jira slack git workspace workbench; do
+    printf '%s\n' "$parts" | grep -qx "$p" || missing="$missing $p"
   done
-  # Workbench has no settings place; accept the current and previous screen names.
-  printf '%s\n' "$places" | grep -Eq "^work(-items)?[[:space:]]" || missing="$missing workbench"
   [ -z "$missing" ] || die "$bin lacks default parts:$missing. It is a partial feature mix (the gate's target/fleet/debug/radar is one). Unset RADAR_BIN to use the default build, or build: cargo build --release --bin radar"
 }
 need_name() { [ -n "${1:-}" ] || die "a NAME is needed"; [ -d "$(dir_of "$1")" ] || die "no run named $1 (start it first)"; }
@@ -74,8 +73,8 @@ modes() {
 
 start() {
   local name=${1:-} renderer=${2:-} size=${3:-160x40}
-  [ -n "$name" ] || die "start NAME ink|ratatui [WxH]"
-  case "$renderer" in ink|ratatui) ;; *) die "renderer must be ink or ratatui" ;; esac
+  [ -n "$name" ] || die "start NAME ink [WxH]"
+  case "$renderer" in ink) ;; *) die "the renderer is ink: start NAME ink [WxH]" ;; esac
   local w=${size%x*} h=${size#*x}
   local d; d=$(dir_of "$name")
   t "$name" kill-server 2>/dev/null || true
@@ -89,7 +88,10 @@ start() {
   cp "$bin" "$d/bin/radar"
 
   local bundle="$root/ink/dist/radar-ink.js"
-  if [ "$renderer" = ink ]; then
+  if [ "${RADAR_LIVE_NO_INK:-}" = 1 ]; then
+    # A bundle path that is no file: radar finds no renderer (a named bundle skips radar-js too).
+    bundle="$d/no-such-bundle/radar-ink.js"
+  else
     if [ ! -f "$bundle" ] || [ -n "$(find "$root/ink/src" -type f -newer "$bundle" | head -n 1)" ]; then
       echo "ink-live: bundling ink/src (npm run bundle)"
       (cd "$root/ink" && npm run bundle >"$d/bundle.out" 2>&1) || { cat "$d/bundle.out" >&2; die "npm run bundle failed"; }
@@ -119,7 +121,7 @@ start() {
   fi
 
   t "$name" -f /dev/null new-session -d -s radar -x "$w" -y "$h" -c "$d/home" \
-    "env -u HERDR_ENV -u HERDR_PANE_ID -u HERDR_TAB_ID -u HERDR_WORKSPACE_ID -u HERDR_SOCKET_PATH HOME='$home' XDG_CONFIG_HOME='$d/cfg' XDG_STATE_HOME='$d/state' XDG_CACHE_HOME='$d/cache' XDG_DATA_HOME='$d/data' COLORTERM=truecolor LANG=C.UTF-8 RADAR_SANDBOX='${RADAR_SANDBOX-1}' RADAR_MODE=read-only RADAR_NO_WRITES=1 RADAR_RENDERER=$renderer RADAR_INK_BUNDLE='$bundle' '$d/bin/radar'$args 2>'$d/stderr'"
+    "env -u HERDR_ENV -u HERDR_PANE_ID -u HERDR_TAB_ID -u HERDR_WORKSPACE_ID -u HERDR_SOCKET_PATH HOME='$home' XDG_CONFIG_HOME='$d/cfg' XDG_STATE_HOME='$d/state' XDG_CACHE_HOME='$d/cache' XDG_DATA_HOME='$d/data' COLORTERM=truecolor LANG=C.UTF-8 RADAR_SANDBOX='${RADAR_SANDBOX-1}' RADAR_MODE=read-only RADAR_NO_WRITES=1 RADAR_INK_BUNDLE='$bundle' '$d/bin/radar'$args 2>'$d/stderr'"
   t "$name" set-option -t radar remain-on-exit on >/dev/null
 
   local log="$d/state/radar/radar.log" i
@@ -130,23 +132,28 @@ start() {
     [ "$(printf '%s\n' "$s" | grep -c '[^ ]')" -ge 5 ]
   }
   for i in $(seq 1 60); do
-    if [ "$renderer" = ink ]; then
-      if grep -q "Ratatui runs" "$log" 2>/dev/null || grep -q "using the Ratatui renderer" "$d/stderr" 2>/dev/null; then
-        cat "$d/stderr" >&2; die "RADAR_RENDERER=ink fell back to Ratatui (see above); this screen would not be Ink's"
+    if [ "${RADAR_LIVE_NO_INK:-}" = 1 ]; then
+      # No Ink to find: radar must exit by itself with its reason. Report the lines, the exit code and the modes.
+      if [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ]; then
+        echo "ink-live: $name exited without Ink; stderr:"
+        cat "$d/stderr"
+        echo "ink-live: exit code $(t "$name" display -p -t radar '#{pane_dead_status}')"
+        echo "ink-live: after exit: $(modes "$name")"
+        return 0
       fi
+    else
       if grep -q "Ink renderer started, pid" "$log" 2>/dev/null && drawn; then
         echo "ink-live: $name drawn by Ink: $(grep -o 'Ink renderer started, pid [0-9]*' "$log" | tail -n 1), ${w}x${h}, files in $d"
         return 0
       fi
-    elif drawn; then
-      echo "ink-live: $name drawn by Ratatui, ${w}x${h}, files in $d"
-      return 0
+      if [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ]; then
+        cat "$d/stderr" >&2; die "radar exited at start (exit code $(t "$name" display -p -t radar '#{pane_dead_status}'))"
+      fi
     fi
-    [ "$(t "$name" display -p -t radar '#{pane_dead}')" = 1 ] && { cat "$d/stderr" >&2; die "radar exited at start"; }
     sleep 0.25
   done
   cat "$d/stderr" >&2; tail -n 20 "$log" >&2 2>/dev/null || true
-  die "nothing drawn after 15 s"
+  die "nothing drawn after 15 s (with RADAR_LIVE_NO_INK=1: radar did not exit)"
 }
 
 keys() {

@@ -338,6 +338,7 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
         )
         .subcommand(clap::Command::new("terminal").about("Show the terminal layers radar detected"))
         .subcommand(clap::Command::new("licenses").about("Print radar's licence and the licences of what it carries"))
+        .subcommand(clap::Command::new("parts").about("List the parts compiled into this build, one per line"))
         .subcommand(crate::shot::command())
         .subcommand(crate::work_cli::command());
     for p in &plugins {
@@ -361,6 +362,12 @@ pub async fn main(plugins: Vec<Box<dyn Plugin>>, default: Renderer) -> Result<()
     // `radar shot` draws sample data: no config, caches, log or action journal.
     if let Some(("shot", m)) = matches.subcommand() {
         return crate::shot::run(plugins, m);
+    }
+    if matches.subcommand_name() == Some("parts") {
+        for p in &plugins {
+            println!("{}", p.id());
+        }
+        return Ok(());
     }
     if let Some(("work", m)) = matches.subcommand() {
         return work_cli(m).await;

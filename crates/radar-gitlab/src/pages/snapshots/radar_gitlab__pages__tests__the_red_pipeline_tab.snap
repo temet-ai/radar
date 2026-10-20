@@ -1,0 +1,25 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(red_pipeline_tab(), 160, 40)"
+---
+── page · Repositories / b / worker / !342 ──
+:draft: change 342  :you: me · :branch: feature/ABC-342 → main
+:info: Overview  :file: Changes  :thread: Threads !  <:pipeline: Pipeline !>  :commit: Commits
+── middle · pipeline * ──
+  loading…
+  :run_failed: ✗ failed · 6m 12s
+
+  :run_failed: WHY IT IS RED
+> :run_failed: ✗ unit-test               test · 1m 14s · the script failed  {row:0}
+      │ > Task :compileJava
+      │ > Task :test
+      │ StatsControllerTest > returnsTheCachedView() FAILED
+      │     org.opentest4j.AssertionFailedError: expected: <200> but was: <500>
+      │         at StatsControllerTest.java:41
+      │
+      │ 3 tests completed, 1 failed
+  :run_failed: ✗ lint                    test · 1m 14s · the script failed · allowed to fail  {row:1}
+      │ loading its log…
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

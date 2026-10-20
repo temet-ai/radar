@@ -3,7 +3,7 @@ use super::*;
 use crate::log_ownership::JobKey;
 use crate::pages::{self, Fetched, Kind};
 use crate::{GitlabPlugin, Plugin, SCREEN, demo, join, model, screen};
-use radar_core::host::{Event, HostEffect, JournalRecord, MouseKind};
+use radar_core::host::{Event, HostEffect, JournalRecord};
 use radar_core::journal::{ActionEvent, ActionId, Journal, Metadata, Query};
 use radar_core::plugin::{Outcome as KeyOutcome, Pane};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -949,30 +949,20 @@ fn host_show_and_failed_state_click_keep_their_real_causes_and_accepted_scope() 
     let back = records(&press(&mut h, KeyCode::Esc));
     no_host_open(&back);
     all.extend(back);
-    // Use the actual rendered failed-state hit, not an artificial routing call.
-    radar_core::shell::to_text(&h, 180, 45);
-    let area = h
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(r, hit)| match hit {
-            radar_core::host::Hit::Plugin { id, .. } if id.starts_with("state:") => {
-                Some(*r)
-            }
-            _ => None,
-        })
-        .expect("rendered failed-state hit");
-    let clicked = h.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: area.x,
-        row: area.y,
-        at_ms: 1000,
-    });
+    // Use the failed-state target the view shows, not an artificial routing call.
+    let _ = crate::tests::shown(&h, 180, 45);
+    let target = crate::tests::state_targets(plugin(&mut h))
+        .into_iter()
+        .next()
+        .expect("a failed-state target in the view");
+    let clicked = h.update(Event::Intent(radar_core::view::Intent::Select {
+        target: radar_core::view::Target::new(target),
+    }));
     let got = records(&clicked);
     let (clicked_id, _, parent) = begin(&got, OPEN);
-    let (pointer, _, pointer_parent) = begin(&got, "plugin.pointer.action");
+    let (pointer, _, pointer_parent) = begin(&got, "plugin.input");
     assert_eq!(parent, Some(pointer));
-    assert_eq!(pointer_parent, Some(begin(&got, "ui.pointer.action").0));
+    assert_eq!(pointer_parent, Some(begin(&got, "ui.action").0));
     assert_eq!(terminal(&got, &clicked_id), [Outcome::Succeeded]);
     assert_ne!(clicked_id, id);
     assert_eq!(plugin(&mut h).pages.last().unwrap().tab, 3);

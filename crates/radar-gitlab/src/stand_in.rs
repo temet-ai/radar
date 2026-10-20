@@ -7,7 +7,7 @@
 use radar_core::host::{Event, View};
 use radar_core::plugin::{Binding, Effect, Outcome, Pane, ScreenSpec, SectionSpec, Tone};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::shell::to_text;
+use crate::tests::shown as to_text;
 use radar_core::view as v;
 use radar_core::{
     Action, Adds, Chip, Contribution, Host, Owned, Plugin, Point, Row, Showing, Subject,
@@ -214,42 +214,63 @@ fn on_263(host: &mut Host) {
     }
 }
 
+/// The tree's columns as the view holds them (the text form leaves out
+/// their headings and widths).
+fn columns(host: &Host, width: u16) -> Vec<v::ColumnSpec> {
+    let view = host.screen_view_in(0, "repos", width, 40).expect("the screen");
+    let v::Node::Tree(tree) = &view.pane(v::PaneId::Middle).expect("the tree").body else {
+        panic!("the repositories tree")
+    };
+    tree.columns.clone()
+}
+
 #[test]
 fn the_tree_carries_the_trackers_chips_and_column() {
     let mut host = hosted_with_tracker();
-    // Wide: the ticket in a column of its own beside the state, and the
-    // tracker's chip after a shortened title.
-    let text = to_text(&host, 220, 40);
-    assert!(text.contains("TICKET") && text.contains("ABC-12 · Review"), "{text}");
-    assert!(text.contains("tracked"), "{text}");
-    insta::assert_snapshot!("tree_with_tracker_220x40", text);
-    // Narrower: the title keeps its room, the chip gives way, the column stays.
+    // The ticket in a column of its own beside the state, which a renderer
+    // drops whole when the room is short (`keep`, never half a word), and
+    // the tracker's chip after the title.
+    for width in [220, 80] {
+        let ticket = columns(&host, width).into_iter().find(|c| c.heading == "ticket").expect("the tracker's column");
+        assert!(ticket.extra && ticket.keep > 0, "{ticket:?}");
+    }
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("TICKET") && text.contains("ABC-12 · Re"), "{text}");
-    assert!(!text.contains("tracked"), "{text}");
-    insta::assert_snapshot!("tree_with_tracker_160x40", text);
-    // Narrow: the column goes whole, never half a word.
-    let narrow = to_text(&host, 80, 24);
-    assert!(!narrow.contains("TICKET") && !narrow.contains("ABC-12 ·"), "{narrow}");
-    insta::assert_snapshot!("tree_with_tracker_80x24", narrow);
-    // A click on the cell shows the ticket, and selects its row.
-    let text = to_text(&host, 160, 40);
-    let (y, line) = text
-        .lines()
-        .enumerate()
-        .find(|(_, l)| l.contains("!263"))
-        .expect("the row");
-    let x = line[..line.find("ABC-12 · Re").unwrap()].chars().count() as u16;
+    assert!(text.contains("[tracked]") && text.contains("ABC-12 · Review"), "{text}");
+    insta::assert_snapshot!("tree_with_tracker", text);
+    // A press on the cell shows the ticket, and selects its row. The cell
+    // names the subject it shows.
+    let view = host.screen_view(0, "repos").expect("the screen");
+    let v::Node::Tree(tree) = &view.pane(v::PaneId::Middle).expect("the tree").body else {
+        panic!("the repositories tree")
+    };
+    let (path, subject) = tree_paths(&tree.rows)
+        .into_iter()
+        .find_map(|(path, row)| {
+            let cell = row.cells.iter().find(|cell| cell.show.is_some())?;
+            (row.id.contains("!263")).then(|| (path, cell.show.clone().unwrap()))
+        })
+        .expect("the !263 row carries the ticket cell");
+    let _ = to_text(&host, 160, 40);
     host.focus = radar_core::Pane::Middle;
-    host.update(radar_core::host::Event::Mouse {
-        kind: radar_core::host::MouseKind::Press,
-        column: x + 1,
-        row: y as u16,
-        at_ms: 0,
-    });
+    host.update(Event::Intent(v::Intent::Show { target: v::TreeRow::target_of(&path), subject }));
     let text = to_text(&host, 160, 40);
     assert_eq!(host.view, radar_core::host::View::Screen(1), "on the tracker's screen:\n{text}");
     assert!(text.contains("ABC-12"), "its page:\n{text}");
+}
+
+/// Every row of `rows` with its path.
+fn tree_paths(rows: &[v::TreeRow]) -> Vec<(Vec<String>, &v::TreeRow)> {
+    fn walk<'a>(rows: &'a [v::TreeRow], at: &mut Vec<String>, out: &mut Vec<(Vec<String>, &'a v::TreeRow)>) {
+        for row in rows {
+            at.push(row.id.clone());
+            out.push((at.clone(), row));
+            walk(&row.children, at, out);
+            at.pop();
+        }
+    }
+    let mut out = Vec::new();
+    walk(rows, &mut Vec::new(), &mut out);
+    out
 }
 
 #[test]
@@ -260,53 +281,38 @@ fn the_merge_request_page_has_the_trackers_section_and_tab() {
     let text = to_text(&host, 160, 40);
     assert!(text.contains("TICKET ABC-12"), "{text}");
     assert!(text.contains("Commits  Ticket"), "{text}");
-    insta::assert_snapshot!("mr_page_with_tracker_160x40", text);
+    insta::assert_snapshot!("mr_page_with_tracker", text);
     for _ in 0..5 {
         press(&mut host, KeyCode::Char(']'));
     }
     let text = to_text(&host, 160, 40);
-    assert!(text.contains("[Ticket]"), "{text}");
-    insta::assert_snapshot!("mr_page_tracker_tab_160x40", text);
+    assert!(text.contains("Ticket>"), "{text}");
+    insta::assert_snapshot!("mr_page_tracker_tab", text);
     press(&mut host, KeyCode::Char('x'));
-    insta::assert_snapshot!("mr_page_tracker_tab_keys_100x40", to_text(&host, 100, 40));
+    insta::assert_snapshot!("mr_page_tracker_tab_keys", to_text(&host, 160, 40));
 }
 
-/// Click the pinned Detail menu control through the actual native hit map.
-fn preview_menu_at(host: &Host) -> radar_core::ratatui::layout::Position {
-    let text = to_text(host, 160, 40);
-    let (y, line) = text.lines().enumerate()
-        .find(|(_, line)| line.contains("extra actions") && line.ends_with('│'))
-        .unwrap_or_else(|| panic!("no pinned menu control in:\n{text}"));
-    let x = radar_core::ui::width(&line[..line.rfind("extra actions").unwrap()]) as u16;
-    assert_eq!(y, 37, "the actions remain pinned above the Detail frame's bottom");
-    assert!(matches!(host.hit_at(x, y as u16), Some(radar_core::host::Hit::Plugin { pane: Pane::Detail, ref id, .. })
-        if id.starts_with(v::detail::TARGET_PREFIX)), "the native footer has a live Detail hit");
-    radar_core::ratatui::layout::Position { x, y: y as u16 }
+/// The target of the pinned Detail menu control, as the host displays it.
+fn preview_menu_target(host: &Host) -> v::Target {
+    let view = host.displayed_screen(160, 40).expect("the screen");
+    let foot = view.pane(v::PaneId::Detail).and_then(|pane| pane.foot_actions.as_ref()).expect("the pinned actions");
+    assert_eq!(foot.menu.action.label, "extra actions");
+    foot.menu.target.clone().expect("the footer has a live target")
 }
 
 #[test]
-fn another_parts_line_sits_under_the_title_and_its_actions_in_the_preview_act_on_a_click() {
+fn another_parts_line_sits_under_the_title_and_its_actions_in_the_preview_act_on_a_press() {
     let mut host = hosted_with_tracker();
     on_263(&mut host);
     assert_eq!(host.focus, Pane::Middle, "the preview starts unfocused");
-    let at = preview_menu_at(&host);
+    let target = preview_menu_target(&host);
     let before = host.notices.through_id();
-    host.update(Event::Mouse {
-        kind: radar_core::host::MouseKind::Context,
-        column: at.x,
-        row: at.y,
-        at_ms: 0,
-    });
-    assert!(host.menu.is_none(), "a context click does not open or run the control");
+    host.update(Event::Intent(v::Intent::Context { target: target.clone() }));
+    assert!(host.menu.is_none(), "a context press does not open or run the control");
     assert_eq!(host.focus, Pane::Middle);
     assert_eq!(host.notices.through_id(), before);
-    host.update(Event::Mouse {
-        kind: radar_core::host::MouseKind::Press,
-        column: at.x,
-        row: at.y,
-        at_ms: 1000,
-    });
-    assert_eq!(host.focus, Pane::Detail, "one click focuses the control's pane");
+    host.update(Event::Intent(v::Intent::Activate { target }));
+    assert_eq!(host.focus, Pane::Detail, "one press focuses the control's pane");
     assert_eq!(host.notices.through_id(), before, "opening the menu runs no contribution");
     let menu = &host.menu.as_ref().expect("the original contextual menu").menu;
     assert_eq!(menu.id, radar_core::host::KEYS_MENU);
@@ -318,22 +324,16 @@ fn another_parts_line_sits_under_the_title_and_its_actions_in_the_preview_act_on
     assert_eq!(collision.keys, "", "the contribution does not displace GitLab's o");
     assert_eq!(collision.key, None);
     assert!(menu.items.iter().any(|item| item.keys == "o" && item.label == "open it in GitLab"));
+    // The contributed row is in the menu the host shows, and a press on it
+    // is its value chosen.
     let text = to_text(&host, 160, 40);
-    let (y, line) = text.lines().enumerate()
-        .find(|(_, line)| line.contains("start work on ABC-12"))
-        .unwrap_or_else(|| panic!("no contributed menu row in:\n{text}"));
-    let x = radar_core::ui::width(&line[..line.find("start work on ABC-12").unwrap()]) as u16;
-    assert_eq!(host.hit_at(x, y as u16), Some(radar_core::host::Hit::MenuItem(start)));
-    host.update(Event::Mouse {
-        kind: radar_core::host::MouseKind::Press,
-        column: x,
-        row: y as u16,
-        at_ms: 2000,
-    });
+    assert!(text.contains("start work on ABC-12"), "no contributed menu row in:\n{text}");
+    let value = host.menu.as_ref().unwrap().menu.items[start].value.clone();
+    host.update(Event::Intent(v::Intent::Invoke { action: value }));
     assert!(host.menu.is_none());
     assert_eq!(host.message.as_deref(), Some("start: api !263"));
     assert_eq!(host.notices.since(before).map(|notice| notice.text.as_str()).collect::<Vec<_>>(),
-        ["start: api !263"], "one physical activation dispatches the contribution exactly once");
+        ["start: api !263"], "one activation dispatches the contribution exactly once");
     // Its page: the tracker's line under the title.
     press(&mut host, KeyCode::Enter);
     let text = to_text(&host, 160, 40);
@@ -347,20 +347,13 @@ fn contributed_preview_actions_without_an_icon_get_a_generic_action_icon() {
     host.load_config(Some("[theme]\nicons = \"unicode\"\n")).unwrap();
     host.plugins[0] = Box::new(crate::tests::sample());
     on_263(&mut host);
-    let at = preview_menu_at(&host);
-    host.update(Event::Mouse {
-        kind: radar_core::host::MouseKind::Press,
-        column: at.x,
-        row: at.y,
-        at_ms: 0,
-    });
+    let target = preview_menu_target(&host);
+    host.update(Event::Intent(v::Intent::Activate { target }));
     let menu = host.menu_view().expect("full menu shared by native and Ink");
     let action = menu.items.iter().find(|item| item.label == "start work on ABC-12…").unwrap();
     assert_eq!(action.icon, Some(radar_core::ui::icon::Icon::Action));
     assert_eq!(action.keys, "s");
     assert!(action.target.is_some());
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("▷ start work on ABC-12"), "{text}");
 }
 
 #[test]
@@ -378,7 +371,7 @@ fn enter_on_the_ticket_tab_shows_it_and_esc_comes_back_to_the_page() {
     assert_eq!(host.screen().unwrap().1.name, "repositories");
     let text = to_text(&host, 160, 40);
     assert!(
-        text.contains("/ api / !263") && text.contains("[Ticket]"),
+        text.contains("/ api / !263") && text.contains("Ticket>"),
         "{text}"
     );
 }

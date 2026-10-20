@@ -1,0 +1,15 @@
+---
+source: crates/radar-gitlab/src/pages/tests/cached_refresh.rs
+expression: shown
+---
+── page · Repositories / a / api ──
+:repo: acme/team-a/api  :branch: main :run_passed: ✓ passed · last commit :commit: a22afd6f :person: Alice Example · 2h ago
+:change: Merge requests  <:pipeline: Pipelines on main>
+── middle · pipelines on main * ──
+! :error: ✗ could not load: GitLab refresh unavailable
+  status  run  commit    by  took  age
+> :run_failed: ✗ failed  #1842  2c2ea8c3  feat: bulk import  push · Alice E.  12m 28s  2h  {row:0}
+  :run_passed: ✓ passed  #1838  0110f094  chore: update dependencies  schedule · Bob E.  1m 22s  3h  {row:1}
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

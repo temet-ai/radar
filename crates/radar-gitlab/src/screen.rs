@@ -901,10 +901,7 @@ pub(crate) fn fold_keys(p: &GitlabPlugin) -> Vec<Row> {
 mod tests {
     use super::*;
     use crate::tests::sample;
-    use radar_core::ratatui::buffer::Buffer;
     use radar_core::ratatui::crossterm::event::KeyModifiers;
-    use radar_core::ratatui::layout::Rect;
-    use radar_core::view_tui::Cx;
 
     fn press(p: &mut GitlabPlugin, pane: Pane, code: KeyCode) -> Outcome {
         p.key("repos", pane, KeyEvent::new(code, KeyModifiers::NONE))
@@ -951,23 +948,8 @@ mod tests {
     }
 
     fn draw(p: &GitlabPlugin) {
-        // Drawing fills the tree state (what is visible), as the app does.
-        let theme = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-        let cursor = std::cell::Cell::new(None);
-        let hits = std::cell::RefCell::new(Vec::new());
-        let cx = Cx {
-            theme: &theme,
-            now: p.now,
-            focused: true,
-            focus: Pane::Middle,
-            bar: false,
-            tabs: false,
-            cursor: &cursor,
-            hits: &hits,
-            parts: radar_core::Parts::none(),
-        };
-        let mut buf = Buffer::empty(Rect::new(0, 0, 160, 40));
-        p.render("repos", Rect::new(0, 0, 160, 40), &mut buf, &cx);
+        // Showing the screen fills the tree state (what is visible), as the app does.
+        let _ = crate::tests::view_text(p, "repos", 160, 40);
     }
 
     #[test]
@@ -977,32 +959,14 @@ mod tests {
         for _ in 0..3 {
             press(&mut p, Pane::Middle, KeyCode::Down);
         }
-        let theme = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-        let (cursor, hits) = (std::cell::Cell::new(None), std::cell::RefCell::new(vec![]));
-        let cx = Cx {
-            theme: &theme,
-            now: p.now,
-            focused: true,
-            focus: Pane::Detail,
-            bar: false,
-            tabs: false,
-            cursor: &cursor,
-            hits: &hits,
-            parts: radar_core::Parts::none(),
-        };
-        let short = Rect::new(0, 0, 160, 6);
-        p.render("repos", short, &mut Buffer::empty(short), &cx);
+        let _ = crate::tests::view_text_in(&p, "repos", Pane::Detail, 160, 6);
         let on = p.tree.borrow().selected().to_vec();
-        let max = p.detail_scroll.max();
-        press(&mut p, Pane::Detail, KeyCode::Down);
-        press(&mut p, Pane::Detail, KeyCode::Char('j'));
-        assert_eq!(p.detail_scroll.at(), 2.min(max));
-        assert_eq!(p.tree.borrow().selected(), on, "the tree stays put");
-        press(&mut p, Pane::Detail, KeyCode::Char('G'));
-        assert_eq!(p.detail_scroll.at(), max);
-        press(&mut p, Pane::Detail, KeyCode::Up);
-        assert_eq!(p.detail_scroll.at(), max.saturating_sub(1));
-        press(&mut p, Pane::Detail, KeyCode::Char('g'));
+        // How far the preview can scroll is the renderer's (Ink: ink/test/app/
+        // detail-scroll.test.tsx); here the keys are the preview's, not the tree's.
+        for code in [KeyCode::Down, KeyCode::Char('j'), KeyCode::Char('G'), KeyCode::Up, KeyCode::Char('g')] {
+            press(&mut p, Pane::Detail, code);
+            assert_eq!(p.tree.borrow().selected(), on, "the tree stays put on {code:?}");
+        }
         assert_eq!(p.detail_scroll.at(), 0);
     }
 

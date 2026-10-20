@@ -1,0 +1,21 @@
+---
+source: crates/radar-gitlab/src/pages/tests/cached_refresh.rs
+expression: shown
+---
+── page · Repositories / a / web ──
+:repo: acme/team-a/web  :branch: main :run_failed: ✗ failed · active 4d ago
+:change: Merge requests  <:pipeline: Pipelines on main>
+── middle · pipelines on main * ──
+! :error: ✗ could not load: GitLab refresh unavailable
+  status  run  commit    by  took  age
+  :run_failed: ✗ failed  #1842  2c2ea8c3  feat: bulk import  push · Alice E.  12m 28s  2h  {row:1}
+  :run_passed: ✓ passed  #1838  0110f094  chore: update dependencies  schedule · Bob E.  1m 22s  3h  {row:2}
+── middle · why main is red * ──
+> :run_failed: ✗ unit-test               test · 1m 14s · it ran out of time  {row:0}
+      │ no error recognised; its last lines:
+      │ waiting for the stack to settle
+      │ still waiting (19m)
+      │ still waiting (20m)
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

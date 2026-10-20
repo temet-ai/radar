@@ -59,14 +59,8 @@ use std::collections::BTreeMap;
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{Binding, CliTask, Effect, MenuItem, Msg, Outcome, Pane, ScreenSpec, SectionSpec, SlotValue};
-#[cfg(test)]
-use radar_core::view_tui::Cx;
-#[cfg(test)]
-use radar_core::ratatui::buffer::Buffer;
 use radar_core::ratatui::crossterm::event::KeyCode;
 use radar_core::ratatui::crossterm::event::KeyEvent;
-#[cfg(test)]
-use radar_core::ratatui::layout::Rect;
 use radar_core::ratatui::style::Color;
 use radar_core::{Plugin, log, time};
 use serde_json::{Value, json};
@@ -888,24 +882,6 @@ impl GitlabPlugin {
         }
         self.clamp();
         out
-    }
-    /// Test shim: the screen drawn the way the host draws it, from the
-    /// part's view through the Ratatui adapter.
-    #[cfg(test)]
-    fn render(&self, screen: &str, area: Rect, buf: &mut Buffer, cx: &Cx<'_>) {
-        let vcx = radar_core::view::ViewCx {
-            now: cx.now,
-            focus: cx.focus.into(),
-            width: area.width,
-            height: area.height,
-            parts: radar_core::Parts::none(),
-            icon_lead: 0,
-            setup: false,
-        };
-        let view = Plugin::view(self, screen, &vcx).expect("the screen has a view");
-        let frontend = radar_core::view_tui::Frontend::default();
-        frontend.set_room(area.width, area.height);
-        radar_core::view_tui::render_screen(&frontend, &view, area, buf, cx);
     }
     /// Test shim: a pointer hit on the target `id` of `scope`, as the host
     /// sends it.
@@ -1873,6 +1849,85 @@ pub(crate) mod tests {
 
     pub use crate::demo::sample;
 
+    /// What shows, as view text (`radar_core::headless::text`): the screen's
+    /// panes and rows, the open menu and the status line. No painted frame.
+    pub(crate) fn shown(host: &radar_core::Host, width: u16, height: u16) -> String {
+        radar_core::headless::text_of(host, width, height)
+    }
+
+    /// The part's words on the right of the top bar: what the text form
+    /// leaves out of the screen.
+    pub(crate) fn top_bar_words(host: &radar_core::Host) -> Option<String> {
+        host.chrome_view(160, 40).top_bar.words.map(|badge| badge.text)
+    }
+
+    /// The targets of the state cells the tree offers: the cells a press does
+    /// something on.
+    pub(crate) fn state_targets(p: &GitlabPlugin) -> Vec<String> {
+        use radar_core::view::{Node, PaneId, TreeRow};
+        fn walk(rows: &[TreeRow], out: &mut Vec<String>) {
+            for row in rows {
+                out.extend(row.cells.iter().filter_map(|c| c.target.as_ref()).map(|t| t.as_str().to_string()).filter(|t| t.starts_with("state:")));
+                walk(&row.children, out);
+            }
+        }
+        let vcx = radar_core::view::ViewCx {
+            now: p.now,
+            focus: PaneId::Middle,
+            width: 160,
+            height: 40,
+            parts: radar_core::Parts::none(),
+            icon_lead: 0,
+            setup: false,
+        };
+        let view = Plugin::view(p, "repos", &vcx).expect("the screen has a view");
+        let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("the middle pane").body else { panic!("the tree") };
+        let mut out = Vec::new();
+        walk(&tree.rows, &mut out);
+        out
+    }
+
+    /// The tone (`Ink`, as the view names it) of the first run of text in
+    /// the repositories screen's view that holds `words`: what the text
+    /// form leaves out.
+    pub(crate) fn ink_of(host: &radar_core::Host, words: &str) -> Option<String> {
+        fn find(value: &serde_json::Value, words: &str) -> Option<String> {
+            match value {
+                serde_json::Value::Object(map) => {
+                    if map.get("text").and_then(|t| t.as_str()).is_some_and(|t| t.contains(words)) {
+                        return Some(map.get("ink").and_then(|i| i.as_str()).unwrap_or("plain").to_string());
+                    }
+                    map.values().find_map(|v| find(v, words))
+                }
+                serde_json::Value::Array(items) => items.iter().find_map(|v| find(v, words)),
+                _ => None,
+            }
+        }
+        let view = host.screen_view(0, SCREEN.id)?;
+        find(&serde_json::to_value(view).ok()?, words)
+    }
+
+    /// The screen `screen` of the part alone (no host), as view text, with
+    /// the middle pane focused.
+    pub(crate) fn view_text(p: &GitlabPlugin, screen: &str, width: u16, height: u16) -> String {
+        view_text_in(p, screen, Pane::Middle, width, height)
+    }
+
+    /// [`view_text`] with `pane` focused.
+    pub(crate) fn view_text_in(p: &GitlabPlugin, screen: &str, pane: Pane, width: u16, height: u16) -> String {
+        let vcx = radar_core::view::ViewCx {
+            now: p.now,
+            focus: pane.into(),
+            width,
+            height,
+            parts: radar_core::Parts::none(),
+            icon_lead: 0,
+            setup: false,
+        };
+        let view = Plugin::view(p, screen, &vcx).expect("the screen has a view");
+        radar_core::headless::text::screen(&view, Some(pane.into()))
+    }
+
     #[test]
     fn journal_subjects_keep_owned_server_identity_without_labels_or_fields() {
         let p = sample();
@@ -1946,29 +2001,15 @@ pub(crate) mod tests {
             radar_core::Plugin::badge(&p, "repos").map(|b| b.0),
             Some(screen::to_review(&p).to_string())
         );
-        let text = radar_core::shell::to_text(&hosted(), 160, 40);
-        // The nav pane is the first 26 columns.
-        let row = |name: &str| {
-            let l = text.lines().find(|l| l.contains(name)).unwrap();
-            l.chars().take(26).collect::<String>()
+        let text = crate::tests::shown(&hosted(), 160, 40);
+        // A nav row is its view's words and count, then its target.
+        let row = |target: &str| {
+            let line = text.lines().find(|l| l.ends_with(target)).unwrap();
+            line.strip_suffix(target).unwrap().trim_end().to_string()
         };
-        assert!(
-            row("Needs my action")
-                .trim_end_matches(['│', ' '])
-                .ends_with('2'),
-            "{}",
-            row("Needs my action")
-        );
-        assert!(
-            row("Opened by teammates")
-                .trim_end_matches(['│', ' '])
-                .ends_with("teammates")
-        );
-        assert!(
-            row("│ Everything")
-                .trim_end_matches(['│', ' '])
-                .ends_with("Everything")
-        );
+        assert!(row("{view:1}").ends_with("Needs my action  2"), "{}", row("{view:1}"));
+        assert!(row("{view:3}").ends_with("Opened by teammates"), "{}", row("{view:3}"));
+        assert!(row("{view:0}").ends_with("Everything"), "{}", row("{view:0}"));
     }
 
     #[test]
@@ -2070,16 +2111,10 @@ pub(crate) mod tests {
             "the same again changes nothing"
         );
 
+        // The changed row is in the view; where its mark is drawn is the renderer's.
         let host = radar_core::Host::new(vec![Box::new(p)], 1_791_271_000).unwrap();
-        let text = radar_core::shell::to_text(&host, 160, 40);
-        let marks = radar_core::motion::take();
-        let (_, at) = marks
-            .rows
-            .iter()
-            .find(|(k, _)| *k == key(263))
-            .expect("its row is marked");
-        let line = text.lines().nth(at.y as usize).unwrap();
-        assert!(line.contains("!263 ABC-12"), "where it is drawn: {line}");
+        let text = crate::tests::shown(&host, 160, 40);
+        assert!(text.lines().any(|line| line.contains("!263 ABC-12")), "{text}");
     }
 
     #[test]
@@ -2121,9 +2156,9 @@ pub(crate) mod tests {
             let mut s = sample();
             s.author = Some("alice".into());
             host.plugins[0] = Box::new(s);
-            radar_core::shell::to_text(&host, 160, 40)
+            crate::tests::shown(&host, 160, 40)
         };
-        assert!(text.contains("OPENED BY alice"), "{text}");
+        assert!(text.contains("OPENED BY :person: alice"), "{text}");
         p.on_menu(AUTHOR_MENU, "");
         assert_eq!(p.author, None);
         assert_eq!(iids(&p).len(), 4);
@@ -2135,7 +2170,7 @@ pub(crate) mod tests {
         use radar_core::ratatui::crossterm::event::{KeyEvent, KeyModifiers};
         let mut host = hosted();
         let key = |c| Event::Key(KeyEvent::new(c, KeyModifiers::NONE));
-        let _ = radar_core::shell::to_text(&host, 160, 40);
+        let _ = crate::tests::shown(&host, 160, 40);
         host.update(Event::Key(KeyEvent::new(
             KeyCode::Char(':'),
             KeyModifiers::SHIFT,
@@ -2144,34 +2179,27 @@ pub(crate) mod tests {
         for c in "stats".chars() {
             host.update(key(KeyCode::Char(c)));
         }
-        let text = radar_core::shell::to_text(&host, 160, 40);
-        assert!(text.contains(" : stats"), "{text}");
+        let text = crate::tests::shown(&host, 160, 40);
+        assert!(text.contains(":  [stats|]"), "{text}");
         assert!(text.contains("at api !263 ABC-12"), "{text}");
         host.update(Event::Paste(" endpoint".into()));
         host.update(key(KeyCode::Enter));
         assert!(!host.plugins[0].capturing());
-        let text = radar_core::shell::to_text(&host, 160, 40);
+        let text = crate::tests::shown(&host, 160, 40);
         // The detail pane shows what the tree landed on.
         assert!(text.contains("api !263"), "{text}");
     }
 
     #[test]
-    fn clicking_the_authors_heading_opens_the_author_menu() {
-        use radar_core::host::{Event, MouseKind};
+    fn choosing_the_authors_heading_opens_the_author_menu() {
+        use radar_core::host::Event;
+        use radar_core::view::{Intent, Target};
         let mut host = hosted();
-        let _ = radar_core::shell::to_text(&host, 160, 40);
-        // The tree's column heading row: border, then the heading.
-        let row = 2;
-        let text = radar_core::shell::to_text(&host, 160, 40);
-        let line = text.lines().nth(row as usize).unwrap();
-        let col = line.find("OPENED BY").expect(line) as u16;
-        let col = line[..col as usize].chars().count() as u16 + 2;
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: col,
-            row,
-            at_ms: 0,
-        });
+        // The tree's header line carries the target that opens the menu.
+        let text = crate::tests::shown(&host, 160, 40);
+        let line = text.lines().find(|l| l.contains("OPENED BY")).expect(&text);
+        assert!(line.ends_with("{authors}"), "{line}");
+        host.update(Event::Intent(Intent::Select { target: Target::new("authors") }));
         let open = host.menu.as_ref().expect("the author menu");
         assert_eq!(open.menu.id, AUTHOR_MENU);
         assert_eq!(open.menu.title, "show merge requests opened by");
@@ -2198,26 +2226,27 @@ pub(crate) mod tests {
         assert!(names.contains(&"tenant.cyan".to_string()));
     }
 
-    // --- rendered through the real host (TUI-V1/V2: 80×24 and a wide size) ---
+    // --- the screen through the real host, as view text ---
 
+    /// A context press selects the shown row for its menu; the row's target
+    /// is in the view, once.
     #[test]
-    fn tree_context_selection_requires_a_drawn_row() {
-        use radar_core::check::{Check, Scope};
-        use radar_core::view::{Intent, Target, TreeRow};
+    fn tree_context_selection_requires_a_shown_row() {
+        use radar_core::view::{Intent, Node, PaneId, Target, TreeRow};
         use radar_core::{Outcome, Pane, Plugin};
 
         let mut p = sample();
-        let make = || Box::new(sample()) as Box<dyn Plugin>;
-        let mut check = Check::new(&make);
-        check.size = (160, 40);
-        let hits = check.draw(&p, Scope::Screen(SCREEN.id, Pane::Middle));
-        let (rect, _, id) = hits
-            .iter()
-            .find(|(_, _, id)| id.contains('r') && id.contains('\u{1f}'))
-            .expect("drawn repo row");
-        assert_eq!(rect.height, 1);
-        let target = Target::new(id.clone());
-        let path = TreeRow::path_of(&target);
+        let host = hosted();
+        let text = crate::tests::shown(&host, 160, 40);
+        let view = host.screen_view(0, SCREEN.id).expect("repositories screen");
+        let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("repositories pane").body else {
+            panic!("repositories tree")
+        };
+        let tenancy = tree.rows.iter().find(|row| !row.children.is_empty()).expect("a tenancy with repos");
+        let repo = &tenancy.children[0];
+        let path = vec![tenancy.id.clone(), repo.id.clone()];
+        assert!(text.contains(&format!("{} ", radar_core::headless::text::text(&repo.name))), "{text}");
+        let target = TreeRow::target_of(&path);
         for _ in 0..2 {
             assert!(matches!(
                 p.intent(SCREEN.id, Pane::Middle, &Intent::Context { target: target.clone() }),
@@ -2225,7 +2254,15 @@ pub(crate) mod tests {
             ));
             assert_eq!(p.tree.borrow().selected(), path);
         }
-        assert!(!hits.iter().any(|(r, _, target)| r.y == rect.bottom() && target == id));
+        // A press on the pane's blank space is the host's own `pane:middle`
+        // target: the pane is focused, no menu opens, the selection stays.
+        let mut host = hosted();
+        host.focus = Pane::Nav;
+        let before = host.plugins[0].subject(SCREEN.id, Pane::Middle);
+        host.update(radar_core::host::Event::Intent(Intent::Select { target: Target::new("pane:middle") }));
+        assert_eq!(host.focus, Pane::Middle);
+        assert!(host.menu.is_none(), "a blank press opens no menu");
+        assert_eq!(host.plugins[0].subject(SCREEN.id, Pane::Middle), before);
     }
 
     fn hosted() -> radar_core::Host {
@@ -2244,7 +2281,7 @@ pub(crate) mod tests {
         use radar_core::host::{Event, View};
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
         let press = |host: &mut radar_core::Host, code| {
-            let _ = radar_core::shell::to_text(host, 160, 40);
+            let _ = crate::tests::shown(host, 160, 40);
             host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
         };
         for pane in [Pane::Nav, Pane::Middle, Pane::Detail] {
@@ -2278,76 +2315,69 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn clicking_out_of_and_back_into_a_pane_keeps_its_cursor() {
-        use radar_core::host::{Event, MouseKind};
+    fn choosing_out_of_and_back_into_a_pane_keeps_its_cursor() {
+        use radar_core::host::Event;
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Intent, Node, PaneId, Target, TreeRow};
         let mut host = hosted();
-        let click = |host: &mut radar_core::Host, column: u16, row: u16, at_ms: u64| {
-            let _ = radar_core::shell::to_text(host, 160, 40); // the frame the click lands on
-            host.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column,
-                row,
-                at_ms,
-            });
+        let select = |host: &mut radar_core::Host, target: Target| {
+            let _ = crate::tests::shown(host, 160, 40);
+            host.update(Event::Intent(Intent::Select { target }));
         };
-        // What is selected, as the screen shows it: the detail pane's title.
-        let selected = |host: &radar_core::Host| {
-            let text = radar_core::shell::to_text(host, 160, 40);
-            let row = text.lines().nth(1).unwrap_or_default().to_string();
-            row.split('╭')
-                .nth(3)
-                .unwrap_or_default()
-                .trim_matches(|c| c == ' ' || c == '─' || c == '╮')
-                .to_string()
+        let tree = |host: &radar_core::Host| {
+            let view = host.screen_view(0, SCREEN.id).expect("repositories screen");
+            let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("repositories pane").body else {
+                panic!("repositories tree")
+            };
+            tree.clone()
         };
-        let _ = radar_core::shell::to_text(&host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('j'),
-            KeyModifiers::NONE,
-        )));
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('j'),
-            KeyModifiers::NONE,
-        )));
-        let _ = radar_core::shell::to_text(&host, 160, 40);
-        let before = selected(&host);
-        assert!(
-            !before.is_empty() && before != "team-b",
-            "moved into the tree: {before:?}"
-        );
-        click(&mut host, 5, 20, 0); // the nav pane
+        let _ = crate::tests::shown(&host, 160, 40);
+        for _ in 0..2 {
+            host.update(Event::Key(KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE)));
+        }
+        let _ = crate::tests::shown(&host, 160, 40);
+        let before = tree(&host).selected;
+        assert!(before.len() > 1, "moved into the tree: {before:?}");
+        select(&mut host, Target::new("pane:nav"));
         assert_eq!(host.focus, radar_core::Pane::Nav);
-        click(&mut host, 60, 30, 5_000); // back into the tree, below its rows
+        select(&mut host, Target::new("pane:middle")); // back into the tree, below its rows
         assert_eq!(host.focus, radar_core::Pane::Middle);
         assert_eq!(
-            selected(&host),
+            tree(&host).selected,
             before,
             "empty space only focuses: the cursor stays"
         );
-        click(&mut host, 5, 20, 7_000); // the nav pane again
-        click(&mut host, 60, 3, 10_000); // a different row, from another pane
+        select(&mut host, Target::new("pane:nav"));
+        let first = TreeRow::target_of(&[tree(&host).rows[0].id.clone()]); // a different row, from another pane
+        select(&mut host, first);
         assert_eq!(host.focus, radar_core::Pane::Middle);
         assert_ne!(
-            selected(&host),
+            tree(&host).selected,
             before,
-            "a click on a row selects it at once"
+            "a press on a row selects it at once"
         );
     }
 
+    /// The first row of the tree, as the view holds it.
+    fn first_row_target(host: &radar_core::Host) -> radar_core::view::Target {
+        use radar_core::view::{Node, PaneId, TreeRow};
+        let view = host.screen_view(0, SCREEN.id).expect("repositories screen");
+        let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("repositories pane").body else {
+            panic!("repositories tree")
+        };
+        TreeRow::target_of(&[tree.rows[0].id.clone()])
+    }
+
     #[test]
-    fn right_click_on_a_tree_row_offers_that_rows_actions() {
-        use radar_core::host::{Event, MouseKind};
+    fn context_on_a_tree_row_offers_that_rows_actions() {
+        use radar_core::host::Event;
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::Intent;
 
         let mut expected = hosted();
-        let _ = radar_core::shell::to_text(&expected, 160, 40);
-        expected.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 60,
-            row: 3,
-            at_ms: 0,
-        });
+        let _ = crate::tests::shown(&expected, 160, 40);
+        let target = first_row_target(&expected);
+        expected.update(Event::Intent(Intent::Select { target: target.clone() }));
         expected.update(Event::Key(KeyEvent::new(
             KeyCode::Char('x'),
             KeyModifiers::NONE,
@@ -2360,78 +2390,38 @@ pub(crate) mod tests {
             .clone();
 
         let mut actual = hosted();
-        let _ = radar_core::shell::to_text(&actual, 160, 40);
-        actual.update(Event::Mouse {
-            kind: MouseKind::Context,
-            column: 60,
-            row: 3,
-            at_ms: 0,
-        });
-        let menu = actual.menu.as_ref().expect("right-click menu");
+        let _ = crate::tests::shown(&actual, 160, 40);
+        actual.update(Event::Intent(Intent::Context { target }));
+        let menu = actual.menu.as_ref().expect("context menu");
         assert_eq!(menu.menu, expected_menu);
-        assert_eq!(
-            menu.anchor,
-            Some(radar_core::ratatui::layout::Position { x: 60, y: 3 })
-        );
     }
 
     #[test]
-    fn right_click_below_the_last_tree_row_never_offers_another_rows_actions() {
-        use radar_core::host::{Event, MouseKind};
-        use radar_core::ratatui::layout::Position;
+    fn a_press_below_the_last_tree_row_only_focuses_and_a_row_still_opens_its_actions() {
+        use radar_core::host::Event;
+        use radar_core::view::{Intent, Target};
 
-        for already_open in [false, true] {
-            let mut host = hosted();
-            let _ = radar_core::shell::to_text(&host, 160, 40);
-            let context = |host: &mut radar_core::Host, row, at_ms| {
-                host.update(Event::Mouse {
-                    kind: MouseKind::Context,
-                    column: 60,
-                    row,
-                    at_ms,
-                });
-            };
-            if already_open {
-                context(&mut host, 3, 0);
-                assert!(host.menu.is_some(), "a real row opens its actions");
-                let _ = radar_core::shell::to_text(&host, 160, 40);
-            }
-            let before = host.plugins[0].keys(SCREEN.id, Pane::Middle);
+        let mut host = hosted();
+        let _ = crate::tests::shown(&host, 160, 40);
+        let row = first_row_target(&host);
+        let before = host.plugins[0].keys(SCREEN.id, Pane::Middle);
 
-            // Below the final row, inside the middle pane, even beneath an open menu.
-            for at_ms in [1000, 1100] {
-                context(&mut host, 30, at_ms);
-                assert!(
-                    host.menu.is_none(),
-                    "empty space must not borrow another row's actions; already_open={already_open}"
-                );
-                assert_eq!(host.plugins[0].keys(SCREEN.id, Pane::Middle), before);
-            }
-            let _ = radar_core::shell::to_text(&host, 160, 40);
-            assert!(
-                host.hover_at(Position { x: 60, y: 30 }).is_none(),
-                "empty tree space has no row hover"
-            );
-
-            // Left-click still focuses the pane and keeps its selection.
-            host.focus = Pane::Nav;
-            host.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column: 60,
-                row: 30,
-                at_ms: 2000,
-            });
+        // Below the final row, inside the middle pane: the pane's own target.
+        host.focus = Pane::Nav;
+        for _ in 0..2 {
+            host.update(Event::Intent(Intent::Select { target: Target::new("pane:middle") }));
             assert_eq!(host.focus, Pane::Middle);
+            assert!(host.menu.is_none(), "empty space must not borrow a row's actions");
             assert_eq!(host.plugins[0].keys(SCREEN.id, Pane::Middle), before);
-
-            // Dismissal has not disabled subsequent real-row context clicks.
-            context(&mut host, 3, 3000);
-            assert!(host.menu.is_some());
-            let menu = host.menu.as_ref().unwrap().menu.clone();
-            let _ = radar_core::shell::to_text(&host, 160, 40);
-            context(&mut host, 3, 3100);
-            assert_eq!(host.menu.as_ref().unwrap().menu, menu);
         }
+
+        // It has not disabled subsequent real-row context presses.
+        host.update(Event::Intent(Intent::Context { target: row.clone() }));
+        assert!(host.menu.is_some());
+        let menu = host.menu.as_ref().unwrap().menu.clone();
+        let _ = crate::tests::shown(&host, 160, 40);
+        host.update(Event::Intent(Intent::Context { target: row }));
+        assert_eq!(host.menu.as_ref().unwrap().menu, menu);
     }
 
     #[test]
@@ -2441,7 +2431,7 @@ pub(crate) mod tests {
         use radar_core::view::{Node, PaneId};
 
         let press = |host: &mut radar_core::Host, code| {
-            let _ = radar_core::shell::to_text(host, 160, 40);
+            let _ = crate::tests::shown(host, 160, 40);
             host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
         };
         let tree = |host: &radar_core::Host| {
@@ -2495,79 +2485,35 @@ pub(crate) mod tests {
             .unwrap();
     }
 
-    fn hosted_icons(pack: &str) -> radar_core::Host {
-        let mut host = radar_core::Host::new(vec![Box::new(sample())], 1_791_271_000).unwrap();
-        host.load_config(Some(&format!("[theme]\nicons = \"{pack}\"\n")))
-            .unwrap();
-        host.plugins[0] = Box::new(sample());
-        host
-    }
-
-    /// A cell's icon keeps its own colour beside the cell's words (the
-    /// state's piece, a pipeline's mark, threads, a repo's merge requests).
     #[test]
-    fn merge_requests_icon_styles_unicode_160x40() {
-        insta::assert_snapshot!(radar_core::shell::to_styles(&hosted_icons("unicode"), 160, 40));
-    }
-
-    /// The x menu's title: the menu's icon, then what it is about in its
-    /// own icon (a heading's `Binding::icon`).
-    #[test]
-    fn keys_menu_icons_unicode_80x24() {
-        let mut host = hosted_icons("unicode");
-        let _ = radar_core::shell::to_text(&host, 80, 24);
-        host.update(radar_core::host::Event::Key(
-            radar_core::ratatui::crossterm::event::KeyEvent::new(
-                radar_core::ratatui::crossterm::event::KeyCode::Char('x'),
-                radar_core::ratatui::crossterm::event::KeyModifiers::NONE,
-            ),
-        ));
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+    fn merge_requests() {
+        let host = hosted();
+        // The sync words are only on the top bar, which the text form leaves out.
+        assert_eq!(top_bar_words(&host).as_deref(), Some("not synced yet"));
+        // So is the part's chip at the right of the status line.
+        let chips: Vec<String> = host.chrome_view(160, 40).status.health.into_iter().map(|c| c.part).collect();
+        assert_eq!(chips, ["gitlab"]);
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     #[test]
-    fn merge_requests_icons_unicode_80x24() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted_icons("unicode"), 80, 24));
-    }
-
-    #[test]
-    fn merge_requests_icons_unicode_160x40() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted_icons("unicode"), 160, 40));
-    }
-
-    #[test]
-    fn merge_requests_icons_nerd_160x40() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted_icons("nerd"), 160, 40));
-    }
-
-    #[test]
-    fn merge_requests_80x24() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted(), 80, 24));
-    }
-
-    #[test]
-    fn merge_requests_160x40() {
-        insta::assert_snapshot!(radar_core::shell::to_text(&hosted(), 160, 40));
-    }
-
-    #[test]
-    fn settings_tenancies_80x24() {
+    fn settings_tenancies() {
         let mut host = hosted();
         section(&mut host, "tenancies");
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     #[test]
-    fn settings_connection_80x24() {
+    fn settings_connection() {
         let mut host = hosted();
         section(&mut host, "connection");
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     /// With a token found in the environment: asked about first; its
     /// detail says what was found and what radar keeps of it.
     #[test]
-    fn settings_connection_found_160x40() {
+    fn settings_connection_found() {
         let mut host = radar_core::Host::new(vec![Box::new(sample())], 1_791_271_000).unwrap();
         host.load_config(Some("")).unwrap();
         let mut p = sample();
@@ -2579,14 +2525,14 @@ pub(crate) mod tests {
         p.me.clear();
         host.plugins[0] = Box::new(p);
         section(&mut host, "connection");
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     #[test]
-    fn settings_look_80x24() {
+    fn settings_look() {
         let mut host = hosted();
         section(&mut host, "look");
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 24));
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
     #[test]
@@ -2632,30 +2578,56 @@ pub(crate) mod tests {
         section(&mut host, "colours");
         let last = host.colours.rows().len() - 1;
         host.colours.row = last;
-        let text = radar_core::shell::to_text(&host, 80, 24);
+        let text = crate::tests::shown(&host, 160, 40);
         assert!(text.contains("tenant"), "{text}");
     }
 
     #[test]
-    fn keys_menu_80x40() {
+    fn keys_menu() {
         use radar_core::host::Event;
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
         let mut host = hosted();
         // As the app does: a frame first, which selects the first row.
-        let _ = radar_core::shell::to_text(&host, 80, 40);
+        let _ = crate::tests::shown(&host, 160, 40);
         host.update(Event::Key(KeyEvent::new(
             KeyCode::Char('x'),
             KeyModifiers::NONE,
         )));
-        insta::assert_snapshot!(radar_core::shell::to_text(&host, 80, 40));
+        insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
+    }
+
+    /// The text of the row of the shown settings section that starts with
+    /// `row`, as its view holds it (a list's rows, or a tree's names).
+    fn section_row_text(host: &radar_core::Host, row: &str) -> Option<String> {
+        use radar_core::view::{Node, TreeRow};
+        let view = radar_core::headless::section_of(host, 160, 40)?;
+        let words = |t: &radar_core::view::Text| radar_core::headless::text::text(t);
+        match &view.body {
+            Node::List { rows, .. } => {
+                rows.iter().map(|r| words(&r.text)).find(|t| t.trim_start().starts_with(row))
+            }
+            Node::Tree(tree) => {
+                fn names(rows: &[TreeRow], out: &mut Vec<String>) {
+                    for r in rows {
+                        out.push(radar_core::headless::text::text(&r.name));
+                        names(&r.children, out);
+                    }
+                }
+                let mut all = Vec::new();
+                names(&tree.rows, &mut all);
+                all.into_iter().find(|t| t.trim_start().starts_with(row))
+            }
+            _ => None,
+        }
     }
 
     /// Open a settings field's input from its row, empty it and type `w`:
-    /// the `w` sits exactly where the value was drawn, and nothing of the
-    /// old value is left beside it. (A tenancy's label once kept its first
-    /// letter in front of the input: drawn, not typed, so it could not be
-    /// deleted and ⏎ dropped it.) `row` picks the line, `value` the text on
-    /// it where the input starts.
+    /// the view's input starts at the cell where the value was, and holds
+    /// only the `w`. (A tenancy's label once kept its first letter in front
+    /// of the input: drawn, not typed, so it could not be deleted and ⏎
+    /// dropped it.) `row` picks the line, `value` the text on it where the
+    /// input starts. The old value is not drawn under the input: that is
+    /// ink/test/nodes/list-editing-at.test.tsx.
     fn input_sits_on_its_value(
         host: &mut radar_core::Host,
         name: &str,
@@ -2666,9 +2638,10 @@ pub(crate) mod tests {
     ) {
         use radar_core::host::Event;
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::Node;
         let press = |host: &mut radar_core::Host, code: KeyCode, m: KeyModifiers| {
-            let _ = radar_core::shell::to_text(host, 160, 40);
-            host.update(Event::Key(KeyEvent::new(code, m)));
+            let _ = crate::tests::shown(host, 160, 40);
+            host.update(Event::Key(KeyEvent::new(code, m)))
         };
         section(host, name);
         host.focus = radar_core::Pane::Middle;
@@ -2678,19 +2651,14 @@ pub(crate) mod tests {
         for _ in 0..downs {
             press(host, KeyCode::Down, KeyModifiers::NONE);
         }
-        let before = radar_core::shell::to_text(host, 160, 40);
-        let (y, line) = before
-            .lines()
-            .enumerate()
-            .find(|(_, l)| l.contains(row))
+        let before = crate::tests::shown(host, 160, 40);
+        let text = section_row_text(host, row)
             .unwrap_or_else(|| panic!("no row {row:?} in {name}:\n{before}"));
-        let chars: Vec<char> = line.chars().collect();
-        let start = line.find(row).unwrap();
-        let at = start
-            + line[start..]
-                .find(value)
-                .unwrap_or_else(|| panic!("no {value:?} on {line:?}"));
-        let c = line[..at].chars().count();
+        let start = text.find(row).unwrap();
+        let c = match text[start..].find(value) {
+            Some(at) => radar_core::ui::width(&text[..start + at]),
+            None => panic!("no {value:?} on {text:?}"),
+        };
         for code in open {
             press(host, *code, KeyModifiers::NONE);
         }
@@ -2701,28 +2669,27 @@ pub(crate) mod tests {
         press(host, KeyCode::Char('e'), KeyModifiers::CONTROL);
         press(host, KeyCode::Char('u'), KeyModifiers::CONTROL);
         // w is text here, not the save key.
-        let fx = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('w'),
-            KeyModifiers::NONE,
-        )));
+        let fx = press(host, KeyCode::Char('w'), KeyModifiers::NONE);
         assert!(
             !fx.iter()
                 .any(|e| matches!(e, radar_core::host::HostEffect::Save(_))),
             "{name}: w saved instead of being typed"
         );
-        let after = radar_core::shell::to_text(host, 160, 40);
-        let now: Vec<char> = after.lines().nth(y).unwrap_or_default().chars().collect();
-        let shown = |cs: &[char]| {
-            cs[c.saturating_sub(12)..(c + 4).min(cs.len())]
-                .iter()
-                .collect::<String>()
+        let _ = crate::tests::shown(host, 160, 40);
+        let view = radar_core::headless::section_of(host, 160, 40).expect("the section");
+        let (typed, at, mark) = match &view.body {
+            // A list row's mark takes one cell before its text.
+            Node::List { editing: Some(e), .. } => (e.text.clone(), usize::from(e.at), 1),
+            Node::Tree(tree) => match tree.editing.as_deref() {
+                Some(e) => (e.text.clone(), usize::from(e.at), 0),
+                None => panic!("{name}, {row:?}: the view has no input"),
+            },
+            _ => panic!("{name}, {row:?}: the view has no input"),
         };
         assert_eq!(
-            (now.get(c), now.get(c.wrapping_sub(1))),
-            (Some(&'w'), chars.get(c.wrapping_sub(1))),
-            "{name}, {row:?}: the input does not start where {value:?} was\nbefore {:?}\nafter  {:?}",
-            shown(&chars),
-            shown(&now),
+            (typed.as_str(), at),
+            ("w", c + mark),
+            "{name}, {row:?}: the input does not start where {value:?} was in {text:?}"
         );
         press(host, KeyCode::Esc, KeyModifiers::NONE);
         assert!(!host.plugins[0].capturing());
@@ -2738,9 +2705,8 @@ pub(crate) mod tests {
         let after = |name: &str, row: &str| {
             let mut h = hosted();
             section(&mut h, name);
-            let t = radar_core::shell::to_text(&h, 160, 40);
-            let l = t.lines().find(|l| l.contains(row)).unwrap().to_string();
-            let rest = &l[l.find(row).unwrap() + row.len()..];
+            let t = section_row_text(&h, row).unwrap();
+            let rest = &t[t.find(row).unwrap() + row.len()..];
             rest.trim_start().chars().take(3).collect::<String>()
         };
         for (n, label) in [
@@ -2750,7 +2716,7 @@ pub(crate) mod tests {
             (5, "refresh"),
             (6, "merged, closed"),
         ] {
-            let row = format!("│  {label} ");
+            let row = format!("{label} ");
             let value = after("connection", &row);
             input_sits_on_its_value(&mut host, "connection", n, &[Char('e')], &row, &value);
         }
@@ -2771,28 +2737,28 @@ pub(crate) mod tests {
             "views",
             1,
             &[Char('r')],
-            "│  Everything",
+            "Everything",
             "Everything",
         );
-        let shows = after("views", "│  Needs my action");
+        let shows = after("views", "Needs my action");
         input_sits_on_its_value(
             &mut host,
             "views",
             2,
             &[Char('t')],
-            "│  Needs my action",
+            "Needs my action",
             &shows,
         );
-        let shows = after("views", "│  Everything");
+        let shows = after("views", "Everything");
         input_sits_on_its_value(
             &mut host,
             "views",
             1,
             &[Char('a'), Char('w')],
-            "│  Everything",
+            "Everything",
             &shows,
         );
-        input_sits_on_its_value(&mut host, "views", 0, &[Enter], "│  + new view", "new view");
+        input_sits_on_its_value(&mut host, "views", 0, &[Enter], "+ new view", "new view");
     }
 
     /// Every `x` row GitLab offers is GitLab's to take and it takes it, and

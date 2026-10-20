@@ -1,0 +1,16 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(p, 160, 40)"
+---
+── page · Repositories / a ──
+:group: acme/team-a  3 repos · 3 merge requests
+<:repo: Repos>
+── middle · repos * ──
+  repo  main  mrs  last activity
+> :repo: api  :run_passed: ✓ passed  1  16m ago  {row:0}
+  :repo: web  :run_failed: ✗ failed  2  16m ago  {row:1}
+  :repo: docs  :run_passed: ✓ passed  —  4d ago  {row:2}
+_ 1 repo hidden: tools/renovate. Settings › tenancies shows them again.
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

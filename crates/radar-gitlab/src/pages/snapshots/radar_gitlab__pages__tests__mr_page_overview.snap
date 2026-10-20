@@ -1,0 +1,31 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(mr_page(), 160, 40)"
+---
+── page · Repositories / a / api / !263 ──
+:change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
+<:info: Overview>  :file: Changes  :thread: Threads !  :pipeline: Pipeline  :commit: Commits
+── middle · overview * ──
+LABELS  #backend
+
+Closes ABC-12
+## What
+• adds `GET /stats`
+☑ tests
+See the ticket <https://example.com/ABC-12>.
+
+:thread: LATEST ACTIVITY
+[AE] Alice Example · 46m ago · on StatsController.java:21
+Good shout, switching to the cached one.
+── detail · can it merge? ──
+:needs_approval: ◷ needs 1 approval
+:run_passed: ✓ pipeline passed
+:run_passed: ✓ no conflicts, up to date
+:needs_approval: ◷ needs 1 approval (0 of 1)
+:thread: ◆ 1 open thread
+:run_passed: ✓ not a draft
+
+for you: waiting for your review
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

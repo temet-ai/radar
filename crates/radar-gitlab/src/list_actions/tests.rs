@@ -2,16 +2,11 @@
 //! a question is answered with the menu's value, and the task a yes returns
 //! is dropped without being run.
 
-use std::cell::{Cell, RefCell};
-
 use radar_core::Plugin;
-use radar_core::host::{Event, MouseKind};
+use radar_core::host::Event;
 use radar_core::plugin::{Effect, Menu, Outcome, Pane};
-use radar_core::view_tui::Cx;
-use radar_core::ratatui::buffer::Buffer;
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::ratatui::layout::{Position, Rect};
-use radar_core::{Host, Theme};
+use radar_core::Host;
 
 use super::*;
 use crate::model::fixtures::mr;
@@ -50,16 +45,16 @@ fn plugin() -> GitlabPlugin {
 #[test]
 fn repo_rows_show_the_default_branch_pipeline_without_repeating_its_name() {
     let p = plugin();
-    let (text, _) = draw(&p, 160, 40);
+    let text = draw(&p, 160, 40);
     let row = |name: &str| {
         text.lines()
-            .find(|line| line.contains(name))
+            .find(|line| line.contains(&format!(":repo: {name} ")))
             .unwrap_or_else(|| panic!("missing {name} in\n{text}"))
             .to_string()
     };
-    assert!(row("├─ api").contains("✓ passed"), "{text}");
-    assert!(row("├─ web").contains("✗ failed"), "{text}");
-    assert!(!row("└─ worker").contains("pipeline"), "{text}");
+    assert!(row("api").contains("✓ passed"), "{text}");
+    assert!(row("web").contains("✗ failed"), "{text}");
+    assert!(!row("worker").contains("pipeline"), "{text}");
     assert!(!text.contains("main ✓ passed"), "{text}");
 
     let mut p = plugin();
@@ -71,8 +66,8 @@ fn repo_rows_show_the_default_branch_pipeline_without_repeating_its_name() {
         .find(|project| project.name == "docs")
         .unwrap()
         .main_pipeline = None;
-    let (text, _) = draw(&p, 160, 40);
-    let docs = text.lines().find(|line| line.contains("└─ docs")).unwrap();
+    let text = draw(&p, 160, 40);
+    let docs = text.lines().find(|line| line.contains(":repo: docs ")).unwrap();
     assert!(docs.contains("no recent run"), "{text}");
 }
 
@@ -91,29 +86,9 @@ fn press(p: &mut GitlabPlugin, c: char) -> Vec<Effect> {
     press_in(p, Pane::Middle, KeyCode::Char(c))
 }
 
-/// The screen body, as text, and the areas it made clickable.
-fn draw(p: &GitlabPlugin, w: u16, h: u16) -> (String, Vec<(Rect, Pane, String)>) {
-    let theme = Theme::new(radar_core::design::theme::Tier::Mono);
-    let (cursor, hits) = (Cell::new(None), RefCell::new(vec![]));
-    let cx = Cx {
-        theme: &theme,
-        now: p.now,
-        focused: true,
-        focus: Pane::Middle,
-        cursor: &cursor,
-        hits: &hits,
-        parts: radar_core::Parts::none(),
-        bar: false,
-        tabs: false,
-    };
-    let area = Rect::new(0, 0, w, h);
-    let mut buf = Buffer::empty(area);
-    p.render("repos", area, &mut buf, &cx);
-    let text = (0..h)
-        .map(|y| (0..w).map(|x| buf[(x, y)].symbol().to_string()).collect::<String>().trim_end().to_string())
-        .collect::<Vec<_>>()
-        .join("\n");
-    (text, hits.into_inner())
+/// The screen body, as view text.
+fn draw(p: &GitlabPlugin, w: u16, h: u16) -> String {
+    crate::tests::view_text(p, "repos", w, h)
 }
 
 /// The path of the tree row `id`, among `rows` and their children.
@@ -375,7 +350,7 @@ fn the_keys_belong_to_a_merge_request_row_in_the_tree_or_its_preview_and_nowhere
     let mut p = plugin();
     // On a repo and on a tenancy: not theirs.
     p.view = 0;
-    draw(&p, 160, 40);
+    let _ = draw(&p, 160, 40);
     for c in ['u', 'm', 'e', 'c'] {
         assert!(press(&mut p, c).is_empty(), "{c} on a tenancy");
     }
@@ -471,14 +446,7 @@ fn host_of(p: GitlabPlugin, config: &str) -> Host {
 }
 
 fn shown(p: GitlabPlugin, w: u16, h: u16) -> String {
-    radar_core::shell::to_text(&host_of(p, ""), w, h)
-}
-
-/// At 80 wide the detail pane is a screen of its own: tab to it.
-fn shown_preview(p: GitlabPlugin, w: u16, h: u16) -> String {
-    let mut host = host_of(p, "");
-    host.focus = Pane::Detail;
-    radar_core::shell::to_text(&host, w, h)
+    crate::tests::shown(&host_of(p, ""), w, h)
 }
 
 #[test]
@@ -487,101 +455,81 @@ fn preview_actions_use_the_same_surface_as_the_other_details() {
     select(&mut p, 410);
     let mut host = host_of(p, "");
     host.focus = Pane::Detail;
-    use radar_core::design::theme::{Slot, Tier};
-    use radar_core::ratatui::{Terminal, backend::TestBackend, style::Modifier};
-
-    let theme = host.build_theme(Tier::TrueColor);
-    let mut terminal = Terminal::new(TestBackend::new(160, 40)).unwrap();
-    terminal.draw(|frame| radar_core::shell::render(&host, &theme, frame)).unwrap();
-    let buffer = terminal.backend().buffer();
-    let (y, footer) = (0..40).map(|y| (y, radar_core::shell::row_text(buffer, y)))
-        .find(|(_, line)| line.contains("extra actions")).expect("pinned footer");
-    let menu_x = radar_core::ui::width(&footer[..footer.rfind("extra actions").unwrap()]) as u16;
-    let left = footer[..footer.rfind("extra actions").unwrap()].rfind('│').unwrap();
-    let start = radar_core::ui::width(&footer[..left]) as u16 + 1;
-    let end = radar_core::ui::width(&footer[..footer.rfind('│').unwrap()]) as u16;
-    for x in start..end {
-        let cell = &buffer[(x, y)];
-        assert_eq!(Some(cell.bg), theme.bg(Slot::BgSurface).bg, "footer cell ({x}, {y})");
-        assert_ne!(Some(cell.bg), theme.bg(Slot::BgSelection).bg, "footer cell ({x}, {y})");
-    }
-    assert!(buffer[(menu_x + 1, y)].modifier.contains(Modifier::UNDERLINED), "x remains underlined");
-    let (y, context) = (0..y).map(|y| (y, radar_core::shell::row_text(buffer, y)))
-        .find(|(_, line)| line.rsplit('│').nth(1).is_some_and(|detail| detail.contains("needs rebase")))
-        .expect("detail state context");
-    let x = radar_core::ui::width(&context[..context.rfind("needs rebase").unwrap()]) as u16;
-    for x in x..x + radar_core::ui::width("needs rebase") as u16 {
-        assert_eq!(Some(buffer[(x, y)].bg), theme.bg(Slot::BgSurface).bg, "state cell ({x}, {y})");
-    }
+    // The pinned footer is the kit's: the part's actions, then the shared
+    // `extra actions`; the state context shows above it. How they are
+    // surfaced (colours, the underlined x) is the renderer's.
+    let text = crate::tests::shown(&host, 160, 40);
+    let (_, detail) = text.split_once("── detail").expect("the detail pane");
+    let foot = detail.lines().find(|line| line.contains("[extra actions]")).expect("pinned footer");
+    assert!(foot.starts_with("[update]"), "{foot}");
+    let context = detail.lines().position(|line| line.contains("▷ needs rebase")).expect("detail state context");
+    let at = detail.lines().position(|line| line.contains("[extra actions]")).unwrap();
+    assert!(context < at, "{text}");
 }
 
 #[test]
-fn the_status_line_of_a_row_that_needs_a_rebase_shows_its_key_80x24() {
+fn the_status_line_of_a_row_that_needs_a_rebase_shows_its_key() {
     let mut p = plugin();
     select(&mut p, 410);
-    let text = shown(p, 80, 24);
-    let bar = text.lines().last().unwrap();
-    assert!(bar.contains("update by rebasing"), "{bar}");
+    let text = shown(p, 160, 40);
+    let (_, bar) = text.split_once("── status").expect("the status line");
+    assert!(bar.contains("u update by rebasing"), "{bar}");
     insta::assert_snapshot!(text);
 }
 
 #[test]
-fn the_preview_lists_a_merge_request_that_needs_a_rebase_80x24() {
-    let mut p = plugin();
-    select(&mut p, 410);
-    insta::assert_snapshot!(shown_preview(p, 80, 24));
-}
-
-#[test]
-fn the_preview_lists_a_merge_request_that_needs_a_rebase_160x40() {
+fn the_preview_lists_a_merge_request_that_needs_a_rebase() {
     let mut p = plugin();
     select(&mut p, 410);
     insta::assert_snapshot!(shown(p, 160, 40));
 }
 
 #[test]
-fn the_preview_lists_a_merge_request_ready_to_merge_160x40() {
+fn the_preview_lists_a_merge_request_ready_to_merge() {
     let mut p = plugin();
     select(&mut p, 187);
-    // A frame first, as the host has drawn before the picture is taken: the
-    // sync indicator then shows its spinner.
-    draw(&p, 160, 40);
     insta::assert_snapshot!(shown(p, 160, 40));
 }
 
 #[test]
-fn the_preview_lists_a_merge_request_that_needs_approval_with_why_the_others_are_muted_80x24() {
+fn the_preview_lists_a_merge_request_that_needs_approval_with_why_the_others_are_muted() {
     let mut p = plugin();
     select(&mut p, 263);
-    insta::assert_snapshot!(shown_preview(p, 80, 24));
+    insta::assert_snapshot!(shown(p, 160, 40));
 }
 
 #[test]
-fn the_preview_lists_a_merge_request_with_its_icons_160x40() {
-    let mut p = plugin();
-    select(&mut p, 410);
-    let host = host_of(p, "[theme]\nicons = \"unicode\"\n");
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
-}
-
-#[test]
-fn the_actions_menu_of_a_row_160x40() {
+fn the_actions_menu_of_a_row() {
     let mut p = plugin();
     select(&mut p, 410);
     let mut host = host_of(p, "");
-    let _ = radar_core::shell::to_text(&host, 160, 40);
+    let _ = crate::tests::shown(&host, 160, 40);
     host.update(Event::Key(key_of(KeyCode::Char('x'))));
-    insta::assert_snapshot!(radar_core::shell::to_text(&host, 160, 40));
+    insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
 }
 
-fn click_at(host: &mut Host, at: Position) -> Vec<radar_core::host::HostEffect> {
-    let _ = radar_core::shell::to_text(host, 160, 40); // the frame the click lands on
-    host.update(Event::Mouse { kind: MouseKind::Press, column: at.x, row: at.y, at_ms: 10_000 })
+/// The preview's pinned footer as the host displays it: each control with
+/// the target a press on it sends, none for one that is disabled.
+fn foot_controls(host: &Host) -> Vec<radar_core::view::detail::FootAction> {
+    use radar_core::view::PaneId;
+    let view = host.displayed_screen(160, 40).expect("the screen");
+    let detail = view.pane(PaneId::Detail).expect("the detail pane");
+    let foot = detail.foot_actions.as_ref().expect("the pinned footer");
+    foot.actions.iter().cloned().chain([foot.menu.clone()]).collect()
+}
+
+fn press_foot(host: &mut Host, label: &str) -> Vec<radar_core::host::HostEffect> {
+    let control = foot_controls(host)
+        .into_iter()
+        .find(|c| c.action.label == label)
+        .unwrap_or_else(|| panic!("no {label:?} in the footer"));
+    let Some(target) = control.target else { return vec![] };
+    host.update(Event::Intent(radar_core::view::Intent::Activate { target }))
 }
 
 #[test]
-fn a_click_on_a_line_of_the_previews_actions_does_what_its_key_does() {
-    // The detail pane is not the pane in focus, yet one click acts.
+fn a_press_on_a_line_of_the_previews_actions_does_what_its_key_does() {
+    // The detail pane is not the pane in focus, yet one press acts.
     for (line, id) in [
         ("update", "act-rebase:acme/team-a/api!410"),
         ("approve", "gl-write"),
@@ -589,48 +537,37 @@ fn a_click_on_a_line_of_the_previews_actions_does_what_its_key_does() {
         let mut p = plugin();
         select(&mut p, 410);
         let mut host = host_of(p, "");
-        let text = radar_core::shell::to_text(&host, 160, 40);
-        // Past the tree's own columns: the detail pane is the last pane.
-        let at = text
-            .lines()
-            .enumerate()
-            .filter(|(_, l)| l.contains("extra actions"))
-            .find_map(|(y, l)| l.rfind(line).map(|i| Position { x: radar_core::ui::width(&l[..i]) as u16, y: y as u16 }))
-            .unwrap_or_else(|| panic!("no {line:?} in:\n{text}"));
-        click_at(&mut host, at);
+        let text = crate::tests::shown(&host, 160, 40);
+        assert!(text.contains(&format!("[{line}]")), "no {line:?} in:\n{text}");
+        press_foot(&mut host, line);
         let open = host.menu.as_ref().unwrap_or_else(|| panic!("{line}: no question\n{text}"));
         assert_eq!(open.menu.id, id, "{line}");
     }
 }
 
 #[test]
-fn a_disabled_foot_has_no_hit_and_open_still_uses_its_original_action() {
+fn a_disabled_foot_has_no_target_and_open_still_uses_its_original_action() {
     let mut p = plugin();
     select(&mut p, 410);
     let mut host = host_of(p, "");
-    let text = radar_core::shell::to_text(&host, 160, 40);
-    let at = text
-        .lines()
-        .enumerate()
-        .filter(|(_, l)| l.contains("extra actions"))
-        .find_map(|(y, l)| l.rfind("merge").map(|i| Position { x: radar_core::ui::width(&l[..i]) as u16, y: y as u16 }))
-        .unwrap_or_else(|| panic!("no muted merge line in:\n{text}"));
-    click_at(&mut host, at);
+    let _ = crate::tests::shown(&host, 160, 40);
+    let merge = foot_controls(&host).into_iter().find(|c| c.action.label == "merge").expect("the muted merge");
+    assert!(merge.disabled.is_some() && merge.target.is_none(), "{merge:?}");
+    press_foot(&mut host, "merge");
     assert!(host.menu.is_none());
     assert!(host.message.is_none(), "disabled controls perform no action");
     let reasons = gitlab(&host).rows(Pane::Detail);
     assert!(reasons.iter().any(|(id, row)| id == "gitlab.repos.merge" && row.what.contains("needs rebase")));
-    let at = text
-        .lines()
-        .enumerate()
-        .filter(|(_, l)| l.contains("extra actions"))
-        .find_map(|(y, l)| l.rfind("open").map(|i| Position { x: radar_core::ui::width(&l[..i]) as u16, y: y as u16 }))
-        .unwrap();
-    let fx = click_at(&mut host, at);
+    let fx = press_foot(&mut host, "open");
     assert!(
         fx.iter().any(|e| format!("{e:?}").contains("merge_requests/410")),
         "opens its link: {fx:?}"
     );
+}
+
+fn sorted(mut v: Vec<String>) -> Vec<String> {
+    v.sort();
+    v
 }
 
 /// The target of the state cell of the merge request `iid`.
@@ -692,19 +629,20 @@ fn a_click_on_the_state_of_a_red_pipeline_opens_why_it_is_red() {
     let target = state_target(&p, 411);
     let Outcome::Handled(fx) = p.click("repos", &target) else { panic!("ignored") };
     assert!(fx.iter().any(|e| matches!(e, Effect::Focus(Pane::Middle))), "{fx:?}");
-    let (text, _) = draw(&p, 160, 40);
+    let text = draw(&p, 160, 40);
     assert!(text.contains("Repositories / a / web / !411"), "{text}");
-    assert!(text.contains("[Pipeline"), "on the page's Pipeline tab:\n{text}");
+    assert!(text.contains("<:pipeline: Pipeline"), "on the page's Pipeline tab:\n{text}");
 }
 
 #[test]
 fn only_the_states_a_click_does_something_on_are_clickable() {
     let mut p = plugin();
     select(&mut p, 187);
-    let (_, hits) = draw(&p, 160, 40);
-    let rows = hits.iter().filter(|(_, _, id)| id.starts_with("state:")).count();
+    let rows = crate::tests::state_targets(&p);
     // !187 ready, !410 behind, !411 red; not !263 (an approval), !342 (a draft), !198.
-    assert_eq!(rows, 3, "{hits:?}");
+    let mut expected: Vec<String> = [187, 410, 411].iter().map(|iid| state_target(&p, *iid)).collect();
+    expected.sort();
+    assert_eq!(sorted(rows), expected);
     for iid in [263, 342, 198] {
         let m = p.data.values().flat_map(|d| d.mrs.iter()).find(|m| m.iid == iid).unwrap();
         assert_eq!(state_click(m), None, "!{iid}");

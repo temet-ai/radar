@@ -1,0 +1,50 @@
+---
+source: crates/radar-gitlab/src/lib.rs
+expression: "crate::tests::shown(&host, 160, 40)"
+---
+── nav · views ──
+> :change: Everything  {view:0}
+  :needs_approval: Needs my action  2  {view:1}
+  :you: Opened by me  {view:2}
+  :team: Opened by teammates  {view:3}
+  :bot: Opened by bots  {view:4}
+── middle · Everything * ──
+OPENED BY :team: everyone · 4 repos  {authors}
+> :group: B team-b  {t:team-b}
+    :repo: worker  —  :change: 1 MR  {t:team-b/r:acme/team-b/worker}
+      :draft: !342 change 342  :you: you  :draft: ⊘ draft  0 of 1  :thread: 1 open  16m  draft  {t:team-b/r:acme/team-b/worker/m:acme/team-b/worker!342}
+  :group: A team-a   main red in 1  {t:team-a}
+    :repo: api  :run_passed: ✓ passed  4d  :change: 1 MR  {t:team-a/r:acme/team-a/api}
+      :change: !263 ABC-12: Add a stats endpoint for the dashboard  :person: alice  :needs_approval: ◷ needs 1 approval  0 of 1  :thread: 1 open  16m  review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+    :repo: web  :run_failed: ✗ failed  4d  :change: 2 MRs  {t:team-a/r:acme/team-a/web}
+      :change: !187 change 187  :you: you  :run_passed: ✓ ready to merge  :approved: ✓ 1 of 1  :thread: 1 open  16m  ready  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!187}
+      :change: !198 change 198  :bot: group_1_bot_abc  :needs_approval: ◷ needs 1 approval  0 of 1  :thread: 1 open  16m  bot  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!198}
+    :repo: docs  :run_passed: ✓ passed  4d  —  {t:team-a/r:acme/team-a/docs}
+· every open merge request · listing every repo, also those without
+── detail · team-b ──
+:group: b acme/team-b
+
+repos       1 shown · 0 hidden
+with MRs    1 repos, in this view
+open MRs    1
+── menu · team-b ──
+> open its page  (⏎)
+  hide its repos  (space)
+  open the group in GitLab  (o)
+  copy the group's link  (y)
+  filter the view by words  (/)
+  show only repos with merge requests in the view  (.)
+  refresh now  (r)
+  go to a tenancy, repo or merge request…  (:)
+  show one author's merge requests…  (a)
+  kept comments…  (ctrl-r)
+  expand the group  (+)
+  collapse the group, or the one this row is in  (-)
+  expand every held group  (=)
+  recent notices (this session)  (~)
+  # History
+  recent activity (last 24 hours)  (H)
+  all activity history
+── status · REPOSITORIES ──
+↑↓ move  ⏎ choose  esc close
+4 open · 1 to review · 1 ready

@@ -1,0 +1,56 @@
+---
+source: crates/radar-gitlab/src/lib.rs
+expression: "crate::tests::shown(&host, 160, 40)"
+---
+── section · connection ──
+> server          https://gitlab.com  {row:0}
+  base group      acme  {row:1}
+  token           env:GITLAB_TOKEN  {row:2}
+  signed in as    me  {row:3}
+  check           not checked yet  {row:4}
+  refresh         every 1m  {row:5}
+  merged, closed  the last 14 days  {row:6}
+  #  {row:7}
+  #  ACCESS  what radar may do in GitLab  {row:8}
+  :done: [x] read only       merge requests, pipelines, diffs      read_api  {row:9}
+  :todo: [ ] read and write  adds comment, approve, merge, rebase  api  {row:10}
+  #  {row:11}
+  #  FOLLOW  groups and repositories  {row:12}
+  + add a group or repository   paste a link or a path  {row:13}
+  :group: b     acme/team-b   0 repos · 1 open MR  {row:14}
+  :group: a     acme/team-a   4 repos · 3 open MRs  {row:15}
+── detail · server ──
+CHECKED
+not checked yet
+
+NOW
+https://gitlab.com
+
+The GitLab server radar talks to.
+
+ACCEPTS
+https://gitlab.com or your own server's address
+
+config: [gitlab] url
+
+§ :connection: GET A GITLAB TOKEN
+  1 Open GitLab's new-token page:
+  gitlab.com / new token   open · copy
+  name radar · scope from access: read_api
+  2 Pick an expiry date, then Create personal access token.
+  3 Copy the glpat-… value into token, or keep it out of radar's config:
+  $ export GITLAB_TOKEN=glpat-…
+  then the token is env:GITLAB_TOKEN
+§ :terminal: ALREADY USE GLAB?
+  Type glab as the token. Not signed in?
+  $ glab auth login
+§ :site: YOUR OWN GITLAB
+  Set server first; the link above then points at your server's page.
+§ :warning: IF IT IS REFUSED
+  Expired, or without read_api: make a new one with the link.
+  radar shows GitLab's own reason.
+§ :link: MORE
+  GitLab docs: access tokens
+  radar guide: connect GitLab
+── status · SETTINGS ──
+b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate

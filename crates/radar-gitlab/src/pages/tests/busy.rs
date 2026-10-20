@@ -231,10 +231,8 @@ fn host_busy_confirmation_returns_to_editing_and_keeps_original_action_outcome_p
         assert!(!refused_records.iter().any(|record| matches!(record,
             JournalRecord::Outcome { id, outcome, .. }
                 if (id == &pending[0].0 || id == &pending[0].1) && outcome.is_terminal())));
-        for width in [80, 160] {
-            let drawn = radar_core::shell::to_text(&host, width, 40);
-            assert!(drawn.contains("PRIVATE_SECOND_COMMENT"), "{drawn}");
-        }
+        let drawn = crate::tests::shown(&host, 160, 40);
+        assert!(drawn.contains("PRIVATE_SECOND_COMMENT"), "{drawn}");
         journal.extend(records(&host.update(key(KeyCode::Char('!')))));
         journal.extend(records(&host.update(Event::Paste("PRIVATE_PASTE".into()))));
         let completed = host.update(Event::Tracked {

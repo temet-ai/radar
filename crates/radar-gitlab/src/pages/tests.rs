@@ -3,11 +3,7 @@ use crate::GlMsg;
 use crate::model::fixtures;
 use crate::tests::sample;
 use radar_core::Plugin;
-use radar_core::Theme;
-use radar_core::ratatui::buffer::Buffer;
 use radar_core::ratatui::crossterm::event::KeyModifiers;
-use radar_core::ratatui::layout::Rect;
-use radar_core::view_tui::Cx;
 
 /// The page's menu rows as bindings.
 fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<Binding> {
@@ -41,32 +37,25 @@ fn draw(p: &GitlabPlugin, w: u16, h: u16) -> String {
 /// Drawn with `pane` focused: the Changes tab's files keep their cursor
 /// only while they are (`Nav`); otherwise it follows the open file.
 fn draw_in(p: &GitlabPlugin, pane: Pane, w: u16, h: u16) -> String {
-    let theme = Theme::new(radar_core::design::theme::Tier::Mono);
-    let (cursor, hits) = (Cell::new(None), std::cell::RefCell::new(vec![]));
-    let cx = Cx {
-        theme: &theme,
+    crate::tests::view_text_in(p, "repos", pane, w, h)
+}
+
+/// Whether the Changes tab's view lays the files out beside the diff (a
+/// split page layout) rather than the diff alone. The view still holds both
+/// panes; the layout says which are shown.
+fn files_beside_the_diff(p: &GitlabPlugin, width: u16) -> bool {
+    let vcx = radar_core::view::ViewCx {
         now: p.now,
-        focused: true,
-        focus: pane,
-        bar: false,
-        tabs: false,
-        cursor: &cursor,
-        hits: &hits,
+        focus: Pane::Middle.into(),
+        width,
+        height: 40,
         parts: radar_core::Parts::none(),
+        icon_lead: 0,
+        setup: false,
     };
-    let area = Rect::new(0, 0, w, h);
-    let mut buf = Buffer::empty(area);
-    p.render("repos", area, &mut buf, &cx);
-    (0..h)
-        .map(|y| {
-            (0..w)
-                .map(|x| buf[(x, y)].symbol().to_string())
-                .collect::<String>()
-                .trim_end()
-                .to_string()
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
+    let view = Plugin::view(p, "repos", &vcx).expect("the screen has a view");
+    let layout = view.page.expect("a page").layout.expect("a layout");
+    layout != radar_core::view::PageLayout::pane(1)
 }
 
 /// Move the tree's cursor down until `want` is selected.
@@ -105,7 +94,7 @@ fn hosted(p: GitlabPlugin, w: u16, h: u16) -> String {
     let mut host = radar_core::Host::new(vec![Box::new(sample())], p.now).unwrap();
     host.load_config(Some("")).unwrap();
     host.plugins[0] = Box::new(p);
-    radar_core::shell::to_text(&host, w, h)
+    crate::tests::shown(&host, w, h)
 }
 
 #[test]
@@ -154,8 +143,8 @@ fn the_merge_request_page_shows_every_tab() {
     let text = draw(&p, 160, 40);
     for want in [
         "ABC-12: Add a stats endpoint for the dashboard",
-        "alice · feature/ABC-263 → main",
-        "[Overview]  Changes  Threads ●  Pipeline  Commits",
+        "alice · :branch: feature/ABC-263 → main",
+        "<:info: Overview>  :file: Changes  :thread: Threads !  :pipeline: Pipeline  :commit: Commits",
         "can it merge?",
         "◷ needs 1 approval",
         "✓ pipeline passed",
@@ -163,7 +152,7 @@ fn the_merge_request_page_shows_every_tab() {
         "◷ needs 1 approval (0 of 1)",
         "◆ 1 open thread",
         "✓ not a draft",
-        "• adds GET /stats",
+        "• adds `GET /stats`",
         "LATEST ACTIVITY",
         "Alice Example · 46m ago · on StatsController.java:21",
     ] {
@@ -172,7 +161,7 @@ fn the_merge_request_page_shows_every_tab() {
     assert!(!text.contains("<!--") && !text.contains("**"), "{text}");
     let tabs: [&[&str]; 5] = [
         &[
-            "[Changes]",
+            "<:file: Changes>",
             "files · 1 of 5 seen",
             "main/java/acme/stats",
             "+42 −0",
@@ -181,14 +170,14 @@ fn the_merge_request_page_shows_every_tab() {
             "loading…",
         ],
         &[
-            "[Threads ●]",
-            "+ comment on !263",
+            "<:thread: Threads !>",
+            "+ :comment: comment on !263",
             "◆ open · StatsController.java:21",
-            "│ ↳ Alice Example · 46m ago",
+            "│ ↳ :person: Alice Example · 46m ago",
             "✓ resolved · StatsController.java:9",
         ],
         &[
-            "[Pipeline]",
+            "<:pipeline: Pipeline>",
             "pipeline #1843",
             "✓ build",
             "build-artifacts",
@@ -197,12 +186,12 @@ fn the_merge_request_page_shows_every_tab() {
             "allowed to fail",
         ],
         &[
-            "[Commits]",
+            "<:commit: Commits>",
             "9612f87c",
             "Resolve merge conflicts",
             "Alice Example",
         ],
-        &["[Overview]"],
+        &["<:info: Overview>"],
     ];
     for wants in tabs {
         press(&mut p, KeyCode::Char(']'));
@@ -213,19 +202,14 @@ fn the_merge_request_page_shows_every_tab() {
     }
     press(&mut p, KeyCode::Char('['));
     assert!(
-        draw(&p, 160, 40).contains("[Commits]"),
+        draw(&p, 160, 40).contains("<:commit: Commits>"),
         "[ goes back, round"
     );
 }
 
 #[test]
-fn mr_page_overview_160x40() {
+fn mr_page_overview() {
     insta::assert_snapshot!(hosted(mr_page(), 160, 40));
-}
-
-#[test]
-fn mr_page_overview_80x24() {
-    insta::assert_snapshot!(hosted(mr_page(), 80, 24));
 }
 
 /// The sample's !263 page on its Changes tab, its diffs arrived.
@@ -259,12 +243,12 @@ fn changes_page() -> GitlabPlugin {
 }
 
 #[test]
-fn mr_page_changes_160x40() {
+fn mr_page_changes() {
     insta::assert_snapshot!(hosted(changes_page(), 160, 40));
 }
 
 #[test]
-fn mr_page_changes_80x24() {
+fn mr_page_changes_narrow() {
     insta::assert_snapshot!(hosted(changes_page(), 80, 24));
 }
 
@@ -274,7 +258,7 @@ fn the_diff_moves_by_line_hunk_and_file() {
     let text = draw(&p, 160, 40);
     for want in [
         "@@ -0,0 +1,24 @@",
-        "1 + package acme.stats;",
+        "1 +package acme.stats;",
         "StatsController.java · new file",
     ] {
         assert!(text.contains(want), "lacks {want:?}:\n{text}");
@@ -289,9 +273,9 @@ fn the_diff_moves_by_line_hunk_and_file() {
     assert_eq!(p.pages[0].file.get(), 1);
     let text = draw(&p, 160, 40);
     assert!(text.contains("files · 4 of 5 seen"), "{text}");
-    assert!(text.contains("10 10       @Test"), "{text}");
+    assert!(text.contains("10   10      @Test"), "{text}");
     assert!(
-        text.contains("12    -         assertEquals(0, totals());"),
+        text.contains("12      -        assertEquals(0, totals());"),
         "{text}"
     );
     // The build file is the last in the tree, though not in the list.
@@ -418,7 +402,7 @@ fn space_folds_a_folder_and_n_and_n_skip_folders() {
         !text.contains("StatsService.java"),
         "the folder is folded:\n{text}"
     );
-    assert!(text.contains("main/java/acme/stats ⋯ 2"), "the two held files: {text}");
+    assert!(text.contains("main/java/acme/stats  +60 −2  ⋯ 2"), "the two held files: {text}");
     press_in(&mut p, Pane::Nav, KeyCode::Enter);
     assert!(
         draw_in(&p, Pane::Nav, 160, 40).contains("StatsService.java"),
@@ -439,13 +423,13 @@ fn space_folds_a_folder_and_n_and_n_skip_folders() {
     draw_in(&p, Pane::Nav, 160, 40);
     press_in(&mut p, Pane::Nav, KeyCode::Char(' '));
     // (Its name is still in the diff's title.)
-    assert!(!draw(&p, 160, 40).contains("▎ StatsService.java"));
+    assert!(!draw(&p, 160, 40).contains("▎ :file_java: StatsService.java"));
     press(&mut p, KeyCode::Char('n'));
     assert_eq!(p.pages[0].file.get(), 1, "from the service to the test");
     press(&mut p, KeyCode::Char('N'));
     assert_eq!(p.pages[0].file.get(), 2);
     assert!(
-        draw(&p, 160, 40).contains("▎ StatsService.java"),
+        draw(&p, 160, 40).contains("▎ :file_java: StatsService.java"),
         "the folder over the open file opens"
     );
     // Back at the top: the README, then nothing before it.
@@ -548,7 +532,7 @@ fn plus_and_minus_fold_the_files_folders_in_the_files_pane() {
     // On the open file: `-` folds its folder and lands on it.
     press_in(&mut p, Pane::Nav, KeyCode::Char('-'));
     let text = draw(&p, 160, 40);
-    assert!(text.contains("main/java/acme/stats ⋯ 2"), "the two held files: {text}");
+    assert!(text.contains("main/java/acme/stats  +60 −2  ⋯ 2"), "the two held files: {text}");
     assert!(
         p.pages[0]
             .tree
@@ -584,7 +568,7 @@ fn plus_and_minus_fold_the_files_folders_in_the_files_pane() {
     };
     assert_eq!(tree.selected, before_tree.selected);
     assert_eq!(after.panes[1], before.panes[1], "opening keeps the selected file and diff");
-    assert!(radar_core::shell::to_text(&host, 160, 40).contains("StatsService.java"), "= too");
+    assert!(crate::tests::shown(&host, 160, 40).contains("StatsService.java"), "= too");
 }
 
 #[test]
@@ -641,7 +625,7 @@ fn the_arrows_leave_the_changes_tab_for_the_tab_row_and_the_tabs_beside() {
     use radar_core::host::Event;
     let press = |host: &mut radar_core::Host, code: KeyCode, times: usize| {
         for _ in 0..times {
-            let _ = radar_core::shell::to_text(host, 160, 40);
+            let _ = crate::tests::shown(host, 160, 40);
             host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
         }
     };
@@ -707,6 +691,7 @@ fn v_shows_the_diff_side_by_side_and_is_kept_in_the_config() {
 fn f_collapses_the_files_and_the_diff_takes_the_width() {
     let mut p = changes_page();
     draw(&p, 160, 40);
+    assert!(files_beside_the_diff(&p, 160));
     assert_eq!(
         radar_core::Plugin::panes(&p, "repos"),
         vec![Pane::Nav, Pane::Middle]
@@ -717,8 +702,7 @@ fn f_collapses_the_files_and_the_diff_takes_the_width() {
         fx.iter().any(|e| matches!(e, Effect::Focus(Pane::Middle))),
         "{fx:?}"
     );
-    let text = draw(&p, 160, 40);
-    assert!(!text.contains("files ·"), "{text}");
+    assert!(!files_beside_the_diff(&p, 160));
     assert_eq!(radar_core::Plugin::panes(&p, "repos"), vec![Pane::Middle]);
     assert!(
         toml::to_string(&p.cfg)
@@ -733,7 +717,7 @@ fn f_collapses_the_files_and_the_diff_takes_the_width() {
     );
     // From the diff: back again.
     press(&mut p, KeyCode::Char('f'));
-    assert!(draw(&p, 160, 40).contains("files ·"));
+    assert!(files_beside_the_diff(&p, 160));
     assert_eq!(
         radar_core::Plugin::panes(&p, "repos"),
         vec![Pane::Nav, Pane::Middle]
@@ -756,53 +740,35 @@ fn enter_or_a_click_on_a_lines_numbers_starts_a_comment_on_it() {
     p.compose = None;
     // Side by side, a click on the numbers of a line does the same.
     press(&mut p, KeyCode::Char('v'));
-    let theme = Theme::new(radar_core::design::theme::Tier::Mono);
-    let (cursor, hits) = (Cell::new(None), std::cell::RefCell::new(vec![]));
-    let cx = Cx {
-        theme: &theme,
-        now: p.now,
-        focused: true,
-        focus: Pane::Middle,
-        bar: false,
-        tabs: false,
-        cursor: &cursor,
-        hits: &hits,
-        parts: radar_core::Parts::none(),
-    };
-    let mut buf = Buffer::empty(Rect::new(0, 0, 160, 40));
-    p.render("repos", Rect::new(0, 0, 160, 40), &mut buf, &cx);
-    let ids: Vec<String> = hits.borrow().iter().map(|(_, _, id)| id.clone()).collect();
-    let target = ids
-        .iter()
-        .filter(|id| id.starts_with("comment:"))
-        .nth(1)
-        .expect("numbers to click")
-        .clone();
+    // The numbers of a shown line send `comment:<line>`; the first line is
+    // the hunk's heading, which has none.
+    let text = draw(&p, 160, 40);
+    assert!(text.contains("diff "), "{text}");
+    let target = "comment:2".to_string();
     click(&mut p, &target);
-    assert!(p.compose.is_some(), "a click on {target} writes a comment");
+    assert!(p.compose.is_some(), "a press on {target} writes a comment");
 }
 
 #[test]
 fn clicking_a_row_selects_it_and_a_file_opens() {
     let mut p = changes_page();
-    let theme = Theme::new(radar_core::design::theme::Tier::Mono);
-    let (cursor, hits) = (Cell::new(None), std::cell::RefCell::new(vec![]));
-    let cx = Cx {
-        theme: &theme,
+    // The files are rows with targets; the tree sends a pointer press as
+    // `node:<target>` (`pointer_action`), so a folder only moves the cursor.
+    let vcx = radar_core::view::ViewCx {
         now: p.now,
-        focused: true,
-        focus: Pane::Middle,
-        bar: false,
-        tabs: false,
-        cursor: &cursor,
-        hits: &hits,
+        focus: radar_core::view::PaneId::Nav,
+        width: 160,
+        height: 40,
         parts: radar_core::Parts::none(),
+        icon_lead: 0,
+        setup: false,
     };
-    let mut buf = Buffer::empty(Rect::new(0, 0, 160, 40));
-    p.render("repos", Rect::new(0, 0, 160, 40), &mut buf, &cx);
-    let ids: Vec<String> = hits.borrow().iter().map(|h| format!("{h:?}")).collect();
-    assert!(ids.iter().any(|h| h.contains("node:d:docs")), "{ids:?}");
-    assert!(ids.iter().any(|h| h.contains("node:f:4")), "{ids:?}");
+    let view = Plugin::view(&p, "repos", &vcx).expect("the screen has a view");
+    let files = view.page.as_ref().and_then(|page| page.panes.first()).expect("the files pane");
+    assert!(matches!(&files.body, radar_core::view::Node::Tree(tree) if tree.pointer_action));
+    let text = draw_in(&p, Pane::Nav, 160, 40);
+    assert!(text.contains("{d:docs}"), "{text}");
+    assert!(text.contains("{f:4}"), "{text}");
     click(&mut p, "node:d:src");
     assert_eq!(p.pages[0].tree.borrow().selected(), ["d:src".to_string()]);
     assert_eq!(p.pages[0].file.get(), 0, "a folder opens no file");
@@ -820,18 +786,13 @@ fn clicking_a_row_selects_it_and_a_file_opens() {
 }
 
 #[test]
-fn mr_page_changes_folded_160x40() {
+fn mr_page_changes_folded() {
     let mut p = changes_page();
     draw(&p, 160, 40);
     press_in(&mut p, Pane::Nav, KeyCode::Up);
     draw_in(&p, Pane::Nav, 160, 40);
     press_in(&mut p, Pane::Nav, KeyCode::Char(' '));
     insta::assert_snapshot!(hosted(p, 160, 40));
-}
-
-#[test]
-fn mr_page_changes_icons_nerd_160x40() {
-    insta::assert_snapshot!(hosted_icons(changes_page(), "nerd", 160, 40));
 }
 
 #[test]
@@ -845,18 +806,18 @@ fn threads_sit_under_their_lines_open_ones_open_and_resolved_ones_folded() {
     };
     // Under line 9, folded to one line.
     let resolved = at(&text, "✓ resolved · 1 note · Bob E.: Typo in the name.");
-    assert_eq!(resolved, at(&text, "9 + public class StatsControler {") + 1);
+    assert_eq!(resolved, at(&text, "9 +public class StatsControler {") + 1);
     // Under line 21, with its notes.
     press(&mut p, KeyCode::Char('G'));
     let text = draw(&p, 160, 40);
     let open = at(&text, "◆ open thread · 2 notes");
-    assert_eq!(open, at(&text, "21 +     public Totals totals()") + 1);
-    assert!(text.contains("│ Bob Example · 1h ago"), "{text}");
+    assert_eq!(open, at(&text, "21 +    public Totals totals()") + 1);
+    assert!(text.contains("│ :person: Bob Example · 1h ago"), "{text}");
     assert!(
         text.contains("│ Should this read from the cached view?"),
         "{text}"
     );
-    assert!(text.contains("│ ↳ Alice Example · 46m ago"), "{text}");
+    assert!(text.contains("│ ↳ :person: Alice Example · 46m ago"), "{text}");
     // space folds the thread under the cursor's line, and unfolds it.
     for _ in 0..3 {
         press(&mut p, KeyCode::Up);
@@ -1066,7 +1027,7 @@ fn the_threads_tab_comments_on_the_merge_request_and_opens_a_thread_at_its_line(
     let mut p = changes_page();
     press(&mut p, KeyCode::Char(']'));
     let text = draw(&p, 160, 40);
-    assert!(text.contains("+ comment on !263"), "{text}");
+    assert!(text.contains("+ :comment: comment on !263"), "{text}");
     press(&mut p, KeyCode::Char('c'));
     assert_eq!(p.compose.as_ref().unwrap().title(), "✎ comment on !263");
     let text = draw(&p, 160, 40);
@@ -1197,18 +1158,18 @@ fn each_mode_sends_only_the_writes_it_allows_and_the_merge_says_what_it_will_do(
 }
 
 #[test]
-fn mr_page_changes_comment_80x24() {
+fn mr_page_changes_comment_multiline() {
     let mut p = changes_page();
     for _ in 0..21 {
         press(&mut p, KeyCode::Down);
     }
     press(&mut p, KeyCode::Char('c'));
     typed(&mut p, "Switched in 4f2a.\nThanks");
-    insta::assert_snapshot!(hosted(p, 80, 24));
+    insta::assert_snapshot!(hosted(p, 160, 40));
 }
 
 #[test]
-fn mr_page_changes_comment_160x40() {
+fn mr_page_changes_comment() {
     let mut p = changes_page();
     for _ in 0..3 {
         press(&mut p, KeyCode::Down);
@@ -1219,7 +1180,7 @@ fn mr_page_changes_comment_160x40() {
 }
 
 #[test]
-fn mr_page_threads_list_160x40() {
+fn mr_page_threads_list() {
     let mut p = changes_page();
     press(&mut p, KeyCode::Char(']'));
     press(&mut p, KeyCode::Down);
@@ -1227,12 +1188,12 @@ fn mr_page_threads_list_160x40() {
 }
 
 #[test]
-fn mr_page_changes_threads_80x24() {
+fn mr_page_changes_threads() {
     let mut p = changes_page();
     for _ in 0..21 {
         press(&mut p, KeyCode::Down);
     }
-    insta::assert_snapshot!(hosted(p, 80, 24));
+    insta::assert_snapshot!(hosted(p, 160, 40));
 }
 
 #[test]
@@ -1273,11 +1234,11 @@ fn a_file_is_fetched_when_opened_and_a_new_head_drops_the_old_diffs() {
 }
 
 #[test]
-fn mr_page_threads_80x24() {
+fn mr_page_threads() {
     let mut p = mr_page();
     press(&mut p, KeyCode::Char(']'));
     press(&mut p, KeyCode::Char(']'));
-    insta::assert_snapshot!(hosted(p, 80, 24));
+    insta::assert_snapshot!(hosted(p, 160, 40));
 }
 
 #[test]
@@ -1308,7 +1269,7 @@ fn a_repo_page_opens_a_merge_request_and_esc_comes_back_to_it() {
     press(&mut p, KeyCode::Char('['));
     let text = draw(&p, 160, 40);
     assert!(text.contains("Repositories / a / web"), "{text}");
-    assert!(text.contains("[Merge requests]"), "{text}");
+    assert!(text.contains("<:change: Merge requests>"), "{text}");
     assert!(text.contains("Pipelines on main"), "{text}");
     assert!(text.contains("!187") && text.contains("!198"), "{text}");
     press(&mut p, KeyCode::Down);
@@ -1349,7 +1310,7 @@ fn a_repo_page_lists_mains_pipelines() {
     on_runs(&mut p, "acme/team-a/api".into(), Ok(fixtures::runs()));
     let text = draw(&p, 160, 40);
     for want in [
-        "[Pipelines on main]",
+        "<:pipeline: Pipelines on main>",
         "✗ failed",
         "#1842",
         "2c2ea8c3",
@@ -1373,7 +1334,7 @@ fn a_repo_page_lists_mains_pipelines() {
 }
 
 #[test]
-fn repo_page_160x40() {
+fn repo_page() {
     let mut p = sample();
     select(
         &mut p,
@@ -1393,11 +1354,8 @@ fn a_tenancy_page_is_a_table_of_its_repos_and_opens_one() {
         "Repositories / a",
         "acme/team-a",
         "3 repos · 3 merge requests",
-        "[Repos]",
-        "REPO",
-        "MAIN",
-        "MRS",
-        "LAST ACTIVITY",
+        "<:repo: Repos>",
+        "repo  main  mrs  last activity",
         "✗ failed",
         "docs",
         "1 repo hidden: tools/renovate.",
@@ -1424,11 +1382,11 @@ fn a_repo_whose_main_is_red_opens_on_its_pipelines() {
 }
 
 #[test]
-fn tenancy_page_80x24() {
+fn tenancy_page() {
     let mut p = sample();
     select(&mut p, |s| matches!(s, Selected::Tenancy(1)));
     press(&mut p, KeyCode::Enter);
-    insta::assert_snapshot!(hosted(p, 80, 24));
+    insta::assert_snapshot!(hosted(p, 160, 40));
 }
 
 #[test]
@@ -1492,7 +1450,7 @@ fn a_red_pipeline_leads_with_its_failed_jobs_and_the_lines_that_say_why() {
     let p = red_pipeline_tab();
     let text = draw(&p, 160, 40);
     for want in [
-        "[Pipeline ●]",
+        "<:pipeline: Pipeline !>",
         "✗ failed · 6m 12s",
         "WHY IT IS RED",
         "✗ unit-test",
@@ -1570,7 +1528,7 @@ fn a_jobs_page_shows_its_log_at_the_first_error_and_its_sections() {
     for want in [
         "Repositories / b / worker / !342 / unit-test",
         "✗ failed · stage test · 1m 14s · the script failed",
-        "[Log]",
+        "<:log: Log>",
         "Running with gitlab-runner 17.0",
         "─ Preparing the \"docker\" executor · 4s ⋯ 1 line",
         "┌ Executing \"step_script\" stage of the job script · 1m 14s",
@@ -1622,7 +1580,7 @@ fn a_jobs_page_searches_its_log_and_esc_clears_the_search_before_going_back() {
     assert_eq!(b.last().map(|b| b.what.as_str()), Some("clear the search"));
     press(&mut p, KeyCode::Esc);
     assert_eq!(p.pages.len(), 2, "esc cleared the search first");
-    assert!(draw(&p, 160, 40).contains("╭ log ─"));
+    assert!(draw(&p, 160, 40).contains("middle · log"));
     press(&mut p, KeyCode::Esc);
     assert_eq!(p.pages.len(), 1, "then back to !342");
     assert_eq!(p.pages[0].tab, 3, "on its Pipeline tab");
@@ -1716,7 +1674,7 @@ fn mains_red_pipeline_leads_the_repo_pages_pipelines_and_a_long_log_pages_in() {
         }
     );
     let text = draw(&p, 160, 40);
-    assert!(text.contains("[Log]"), "{text}");
+    assert!(text.contains("<:log: Log>"), "{text}");
     assert!(
         text.contains("⋯ 878 KB earlier in the log, loaded when you reach the top"),
         "{text}"
@@ -1756,7 +1714,7 @@ fn mains_red_pipeline_leads_the_repo_pages_pipelines_and_a_long_log_pages_in() {
     assert!(!log.earlier());
     let after = p.pages.last().unwrap().log.line(&log.text);
     assert_eq!(after, before.map(|l| l + 3), "the cursor stays on its line");
-    assert!(draw(&p, 160, 40).contains("[Log]"));
+    assert!(draw(&p, 160, 40).contains("<:log: Log>"));
 }
 
 #[test]
@@ -1793,79 +1751,54 @@ fn the_preview_of_a_red_merge_request_says_which_job_failed_and_why() {
 }
 
 #[test]
-fn red_pipeline_tab_160x40() {
+fn the_red_pipeline_tab() {
     insta::assert_snapshot!(hosted(red_pipeline_tab(), 160, 40));
 }
 
 #[test]
-fn red_pipeline_tab_80x24() {
+fn the_red_pipeline_tab_narrow() {
     insta::assert_snapshot!(hosted(red_pipeline_tab(), 80, 24));
 }
 
-/// Through the real host, with an icon pack chosen in the config.
-fn hosted_icons(p: GitlabPlugin, pack: &str, w: u16, h: u16) -> String {
-    let mut host = radar_core::Host::new(vec![Box::new(sample())], p.now).unwrap();
-    host.load_config(Some(&format!("[theme]\nicons = \"{pack}\"\n")))
-        .unwrap();
-    host.plugins[0] = Box::new(p);
-    radar_core::shell::to_text(&host, w, h)
-}
-
 #[test]
-fn mr_page_overview_icons_unicode_160x40() {
-    insta::assert_snapshot!(hosted_icons(mr_page(), "unicode", 160, 40));
-}
-
-#[test]
-fn mr_page_changes_icons_unicode_160x40() {
-    insta::assert_snapshot!(hosted_icons(changes_page(), "unicode", 160, 40));
-}
-
-#[test]
-fn red_pipeline_tab_icons_unicode_160x40() {
-    insta::assert_snapshot!(hosted_icons(red_pipeline_tab(), "unicode", 160, 40));
-}
-
-#[test]
-fn job_page_160x40() {
+fn the_job_page() {
     insta::assert_snapshot!(hosted(job_page(), 160, 40));
 }
 
 #[test]
-fn job_page_80x24() {
-    insta::assert_snapshot!(hosted(job_page(), 80, 24));
-}
-
-#[test]
-fn neutral_job_log_keeps_search_and_fold_keys_and_click_targets() {
+fn neutral_job_log_keeps_search_and_fold_keys_and_row_targets() {
     let p = job_page();
     let mut host = radar_core::Host::new(vec![Box::new(p)], 1).unwrap();
     host.view = radar_core::host::View::Screen(0);
     host.focus = Pane::Middle;
-    let shown = radar_core::shell::to_text(&host, 80, 24);
+    let shown = crate::tests::shown(&host, 80, 24);
     assert!(shown.contains("StatsControllerTest"), "{shown}");
-    let hit = host.hits.borrow().iter().find_map(|(rect, hit)| match hit {
-        radar_core::host::Hit::Plugin { id, .. } if id.starts_with("log:") => Some(*rect),
-        _ => None,
-    }).expect("a visible log row has a target");
-    host.update(radar_core::host::Event::Mouse {
-        column: hit.x + 1,
-        row: hit.y,
-        kind: radar_core::host::MouseKind::Press,
-        at_ms: 1,
-    });
+    // A shown log row has a target: `log:<row>`, as the text form numbers it.
+    let view = host.screen_view(0, "repos").expect("the screen");
+    let row = view
+        .page
+        .iter()
+        .flat_map(|page| page.panes.iter())
+        .find_map(|pane| match &pane.body {
+            radar_core::view::Node::Log { lines, .. } => lines.first().map(|line| line.row),
+            _ => None,
+        })
+        .expect("a visible log row has a target");
+    host.update(radar_core::host::Event::Intent(radar_core::view::Intent::Select {
+        target: radar_core::view::Target::new(format!("log:{row}")),
+    }));
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Char('/'), KeyModifiers::NONE)));
     host.update(radar_core::host::Event::Paste("TASK".into()));
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
-    let shown = radar_core::shell::to_text(&host, 80, 24);
+    let shown = crate::tests::shown(&host, 80, 24);
     assert!(shown.contains("log · /TASK · 1 of 2"), "{shown}");
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Char('n'), KeyModifiers::NONE)));
-    assert!(radar_core::shell::to_text(&host, 80, 24).contains("log · /TASK · 2 of 2"));
+    assert!(crate::tests::shown(&host, 80, 24).contains("log · /TASK · 2 of 2"));
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Char('g'), KeyModifiers::NONE)));
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE)));
     host.update(radar_core::host::Event::Key(KeyEvent::new(KeyCode::Char(' '), KeyModifiers::NONE)));
-    assert!(radar_core::shell::to_text(&host, 80, 24).contains("Using docker image"));
+    assert!(crate::tests::shown(&host, 80, 24).contains("Using docker image"));
 }
 
 #[test]
@@ -1917,7 +1850,7 @@ This merge request updates one dependency.
 "#;
 
 #[test]
-fn a_dependency_updates_description_reads_as_text_with_its_table_in_columns() {
+fn a_dependency_updates_description_reads_as_text_with_its_table_as_rows() {
     let mut p = mr_page();
     let key = mr_key("acme/team-a/api", 263);
     if let Some((_, d)) = p.mr_pages.get_mut(&key).and_then(|f| f.value.as_mut()) {
@@ -1926,8 +1859,8 @@ fn a_dependency_updates_description_reads_as_text_with_its_table_in_columns() {
     let text = draw(&p, 160, 40);
     for want in [
         "This merge request updates one dependency.",
-        "Package",
-        "acme/widget-lib  1.2.2 -> 1.2.3",
+        "Package | Change | Age | Confidence",
+        "| `1.2.2` -> `1.2.3` |",
         "Release Notes",
         "acme/widget-lib (widget-lib)",
         "• Fixes a crash when the shelf is empty",
@@ -1967,8 +1900,7 @@ fn a_dependency_updates_description_reads_as_text_with_its_table_in_columns() {
             .any(|b| b.keys == "⏎" && b.what.starts_with("follow a link")),
         "the x menu says so"
     );
-    insta::assert_snapshot!("mr_page_update_description_160x40", text);
-    insta::assert_snapshot!("mr_page_update_description_80x24", draw(&p, 80, 24));
+    insta::assert_snapshot!("mr_page_update_description", text);
 }
 
 fn choose_recovery(p: &mut GitlabPlugin, effects: &[Effect], value: &str) -> Vec<Effect> {

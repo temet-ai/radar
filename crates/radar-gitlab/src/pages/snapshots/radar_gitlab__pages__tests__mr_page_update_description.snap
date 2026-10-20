@@ -1,0 +1,31 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: text
+---
+── page · Repositories / a / api / !263 ──
+:change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
+<:info: Overview>  :file: Changes  :thread: Threads !  :pipeline: Pipeline  :commit: Commits
+── middle · overview * ──
+LABELS  #backend
+
+This merge request updates one dependency.
+Package | Change | Age | Confidence
+acme/widget-lib <https://example.com/widget-lib> | `1.2.2` -> `1.2.3` | age <https://example.com/age> | confidence <https://example.com/confidence>
+---
+### Release Notes
+acme/widget-lib (widget-lib)
+  #### v1.2.3 <https://example.com/v1.2.3>
+  • Fixes a crash when the shelf is empty
+
+:thread: LATEST ACTIVITY
+[AE] Alice Example · 46m ago · on StatsController.java:21
+Good shout, switching to the cached one.
+── detail · can it merge? ──
+:needs_approval: ◷ needs 1 approval
+:run_passed: ✓ pipeline passed
+:run_passed: ✓ no conflicts, up to date
+:needs_approval: ◷ needs 1 approval (0 of 1)
+:thread: ◆ 1 open thread
+:run_passed: ✓ not a draft
+
+for you: waiting for your review

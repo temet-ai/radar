@@ -1,0 +1,38 @@
+---
+source: crates/radar-gitlab/src/stand_in.rs
+expression: "to_text(&host, 160, 40)"
+---
+── page · Repositories / a / api / !263 ──
+:change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
+tracked as ABC-12
+:info: Overview  :file: Changes  :thread: Threads !  :pipeline: Pipeline  :commit: Commits  <Ticket>
+── middle · ticket * ──
+> ABC-12  Review  Add a stats endpoint for the dashboard  <https://tracker.example/ABC-12>  {row:0}
+── menu · api !263 ──
+> open ABC-12  (⏎)
+  open ABC-12's link  (o)
+  copy ABC-12's link  (y)
+  refresh this page  (r)
+  # on GitLab
+  update by rebasing onto main…  (u)
+  merge · needs 1 approval  (m)
+  approve !263…  (a)
+  # page
+  next tab: Overview  (])
+  previous tab: Commits  ([)
+  # with an agent
+  ask an agent about it…  (A)
+  review it locally…  (i)
+  back to the middle pane  (esc)
+  kept comments…  (ctrl-r)
+  # Tracker
+  start work on ABC-12…  (s)
+  open ABC-12 in the tracker
+  recent notices (this session)  (~)
+  # History
+  recent activity (last 24 hours)  (H)
+  all activity history
+  history for selected item
+── status · REPOSITORIES ──
+↑↓ move  ⏎ choose  esc close
+4 open · 1 to review · 1 ready

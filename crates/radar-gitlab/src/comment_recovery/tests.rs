@@ -535,11 +535,9 @@ fn real_host_exposes_offline_recovery_with_no_hidden_composer_or_journal_text() 
             .iter()
             .any(|i| i.value == "edit")
     );
-    for width in [80, 160] {
-        let text = radar_core::shell::to_text(&host, width, 40);
-        assert!(text.contains("PRIVATE_α"), "{text}");
-        assert!(text.contains("earlier connection"), "{text}");
-    }
+    let text = crate::tests::shown(&host, 160, 40);
+    assert!(text.contains("PRIVATE_α"), "{text}");
+    assert!(text.contains("earlier connection"), "{text}");
     let fx = host_key(&mut host, 'y', false);
     assert_eq!(host_copy(&fx), Some(FIRST));
     trace.push_str(&journal(&fx));

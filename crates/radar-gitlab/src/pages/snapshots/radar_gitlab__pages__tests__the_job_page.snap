@@ -1,0 +1,24 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(job_page(), 160, 40)"
+---
+── page · Repositories / b / worker / !342 / unit-test ──
+:job: unit-test  :run_failed: ✗ failed · stage test · 1m 14s · the script failed
+<:log: Log>
+── middle · log * ──
+log 1..12 of 12
+     1  Running with gitlab-runner 17.0
+     2  ─ Preparing the "docker" executor · 4s ⋯ 1 line
+     3  ┌ Executing "step_script" stage of the job script · 1m 14s
+     4  │ $ ./gradlew test
+     5  │ > Task :compileJava
+     6  │ > Task :test
+>    7  │ StatsControllerTest > returnsTheCachedView() FAILED
+     8  │     org.opentest4j.AssertionFailedError: expected: <200> but was: <500>
+     9  │         at StatsControllerTest.java:41
+    10  │
+    11  │ 3 tests completed, 1 failed
+    12  ERROR: Job failed: exit code 1
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

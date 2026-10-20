@@ -1,0 +1,22 @@
+---
+source: crates/radar-gitlab/src/pages/tests.rs
+expression: "hosted(p, 160, 40)"
+---
+── page · Repositories / a / api / !263 ──
+:change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
+:info: Overview  :file: Changes  <:thread: Threads !>  :pipeline: Pipeline  :commit: Commits
+── middle · threads * ──
+   + :comment: comment on !263   a comment on the merge request, not on a line  {row:0}
+
+> :thread: ◆ open · StatsController.java:21  {row:1}
+    │ :person: Bob Example · 1h ago
+    │ Should this read from the cached view?
+    │ ↳ :person: Alice Example · 46m ago
+    │ Good shout, switching to the cached one.
+
+  :resolved: ✓ resolved · StatsController.java:9  {row:2}
+    │ :person: Bob Example · 2h ago
+    │ Typo in the name.
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

@@ -1,0 +1,25 @@
+---
+source: crates/radar-gitlab/src/lib.rs
+expression: "crate::tests::shown(&host, 160, 40)"
+---
+── section · tenancies ──
+> + add a tenancy   paste a GitLab group or repo link, or its path  {add}
+  ● b    team-b  0 repos · 0 hidden  {tenancy:0:["acme","team-b"]}
+  ● a    team-a  4 repos · 1 hidden  {tenancy:0:["acme","team-a"]}
+    api  shown  {tenancy:0:["acme","team-a"]/api}
+    docs  shown  {tenancy:0:["acme","team-a"]/docs}
+    tools/renovate  hidden  {tenancy:0:["acme","team-a"]/tools/renovate}
+    web  shown  {tenancy:0:["acme","team-a"]/web}
+── detail · add a tenancy ──
+Track another GitLab group (every repo in it), or one repo on its own.
+
+PASTE OR TYPE ANY OF
+  https://gitlab.com/<base>/tenants/<group>/
+  /<part of base>/tenants/<group>/
+  tenants/<group>
+  a repo's link, or <group>/<repo>
+
+Paths are taken under the base group acme.
+radar offers to check it with GitLab once added; the check says whether it is a group or a repo.
+── status · SETTINGS ──
+b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

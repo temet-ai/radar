@@ -446,8 +446,8 @@ query($project: ID!, $iid: String!) {
         assert_eq!(s.pending_tasks(), 1, "yes spawned the real rebase task");
         held(&mut s, &fixture, "rebase").await;
         assert_eq!(fixture.ledger().len(), before + 1);
-        // The sole full-frame checkpoint preserves the legacy pending wording.
-        let text = s.inspect(|host| radar_core::shell::to_text(host, 160, 40));
+        // The sole text checkpoint preserves the legacy pending wording.
+        let text = s.inspect(|host| crate::tests::shown(host, 160, 40));
         assert!(text.contains("● rebase asked of GitLab…"), "{text}");
         fixture.release("rebase").unwrap();
         s.settle(BUDGET).await.unwrap();
@@ -520,8 +520,8 @@ query($project: ID!, $iid: String!) {
         assert!(s.desktop_effects().is_empty());
         assert_eq!(
             s.costs().shell_frames,
-            1,
-            "confirmation checkpoint: one owned-host Ratatui frame"
+            0,
+            "the confirmation checkpoint reads view text, not a painted frame"
         );
         fixture.assert_finished();
     }

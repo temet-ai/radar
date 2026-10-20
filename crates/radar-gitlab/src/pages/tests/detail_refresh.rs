@@ -4,7 +4,8 @@ use super::*;
 use crate::client::recorded::{Replay, block};
 use crate::client::{Client, FailedJobsRead, MrDetailRead};
 use crate::log_ownership::PipelineRead;
-use radar_core::host::{Event, Hit, HostEffect, MouseKind};
+use radar_core::host::{Event, HostEffect};
+use radar_core::view::{Intent, Target};
 use serde_json::json;
 
 const API: &str = "acme/team-a/api";
@@ -175,142 +176,99 @@ fn fail_diagnosis(p: &mut GitlabPlugin) {
     assert!(!p.failed[&key].loading);
 }
 
-fn shot(host: &radar_core::Host, label: &str, w: u16, h: u16) {
-    let Some(dir) = std::env::var_os("RADAR_DETAIL_REFRESH_SHOTS") else {
-        return;
-    };
-    let dir = std::path::Path::new(&dir);
-    std::fs::create_dir_all(dir).unwrap();
-    let svg = radar_core::shell::to_svg(host, w, h);
-    std::fs::write(dir.join(format!("{label}-{w}x{h}.svg")), &svg).unwrap();
-    std::fs::write(
-        dir.join(format!("{label}-{w}x{h}.png")),
-        radar_core::shot::to_png(&svg).unwrap(),
-    )
-    .unwrap();
-}
-
 fn body(text: &str) -> Vec<&str> {
     text.lines().skip(1).collect()
 }
 
 #[test]
 fn mr_detail_refresh_error_survives_cached_empty_and_nonempty_retry_then_clears() {
+    let (w, h) = (160, 40);
     for (tab, name) in [(mr::THREADS, "threads"), (mr::CHANGES, "changes")] {
         for empty in [false, true] {
             let mut host = mr_host(tab, empty);
-            let before = [(80, 24), (160, 40)].map(|(w, h)| radar_core::shell::to_text(&host, w, h));
+            let before = crate::tests::shown(&host, w, h);
             start_detail(plugin(&mut host));
-            for ((w, h), before) in [(80, 24), (160, 40)].into_iter().zip(&before) {
-                assert_eq!(
-                    body(&radar_core::shell::to_text(&host, w, h)),
-                    body(before),
-                    "healthy cached reads add no loading line"
-                );
-            }
+            assert_eq!(
+                body(&crate::tests::shown(&host, w, h)),
+                body(&before),
+                "healthy cached reads add no loading line"
+            );
             receive_detail(plugin(&mut host), Err(DETAILS_ERROR.into()));
-            for (w, h) in [(80, 24), (160, 40)] {
-                let shown = radar_core::shell::to_text(&host, w, h);
-                assert!(
-                    shown.contains(DETAILS_NOTICE) && shown.contains(DETAILS_ERROR),
-                    "{shown}"
-                );
-                assert!(
-                    shown.contains(match (tab, empty) {
-                        (mr::THREADS, true) => "comment on !263",
-                        (mr::THREADS, false) => "Should this read from the cached view?",
-                        (_, true) => "This merge request changes no files.",
-                        (_, false) => "package acme.stats;",
-                    }),
-                    "{shown}"
-                );
-                assert!(
-                    radar_core::shell::to_styles(&host, w, h)
-                        .lines()
-                        .any(|line| line.contains(DETAILS_NOTICE)
-                            && line.contains("fg:status.error"))
-                );
-                let label = format!("{name}-{}", if empty { "empty" } else { "cached" });
-                insta::assert_snapshot!(format!("detail_refresh_{label}_{w}x{h}"), shown);
-                shot(&host, &label, w, h);
-            }
+            let shown = crate::tests::shown(&host, w, h);
+            assert!(
+                shown.contains(DETAILS_NOTICE) && shown.contains(DETAILS_ERROR),
+                "{shown}"
+            );
+            assert!(
+                shown.contains(match (tab, empty) {
+                    (mr::THREADS, true) => "comment on !263",
+                    (mr::THREADS, false) => "Should this read from the cached view?",
+                    (_, true) => "This merge request changes no files.",
+                    (_, false) => "package acme.stats;",
+                }),
+                "{shown}"
+            );
+            // The notice is in the error tone, as the view names it.
+            assert_eq!(crate::tests::ink_of(&host, DETAILS_NOTICE).as_deref(), Some("bad"));
+            let label = format!("{name}-{}", if empty { "empty" } else { "cached" });
+            insta::assert_snapshot!(format!("detail_refresh_{label}"), shown);
             start_detail(plugin(&mut host));
-            assert!(radar_core::shell::to_text(&host, 80, 24).contains(DETAILS_ERROR));
+            assert!(crate::tests::shown(&host, w, h).contains(DETAILS_ERROR));
             receive_detail(plugin(&mut host), Ok(detail_fixture(empty)));
             assert!(
                 plugin(&mut host).mr_pages[&mr_key(API, IID)]
                     .error
                     .is_none()
             );
-            for ((w, h), before) in [(80, 24), (160, 40)].into_iter().zip(&before) {
-                assert_eq!(body(&radar_core::shell::to_text(&host, w, h)), body(before));
-                shot(
-                    &host,
-                    &format!(
-                        "{name}-recovered-{}",
-                        if empty { "empty" } else { "cached" }
-                    ),
-                    w,
-                    h,
-                );
-            }
+            assert_eq!(body(&crate::tests::shown(&host, w, h)), body(&before));
         }
     }
 }
 
 #[test]
 fn repository_diagnosis_error_survives_cached_empty_and_nonempty_retry_then_clears() {
+    let (w, h) = (160, 40);
     for empty in [false, true] {
         let mut host = repo_host(empty);
         let jobs = why::failed_rows(plugin(&mut host), WEB, 8001);
-        let before = [(80, 24), (160, 40)].map(|(w, h)| radar_core::shell::to_text(&host, w, h));
+        let before = crate::tests::shown(&host, w, h);
         fail_diagnosis(plugin(&mut host));
-        for (w, h) in [(80, 24), (160, 40)] {
-            let shown = radar_core::shell::to_text(&host, w, h);
-            assert!(
-                shown.contains(DIAGNOSIS_ERROR) && shown.contains("#1842"),
-                "{shown}"
-            );
-            if !empty {
-                assert!(shown.contains("unit-test"), "{shown}");
-            }
-            assert!(
-                radar_core::shell::to_styles(&host, w, h)
-                    .lines()
-                    .any(|line| line.contains(DIAGNOSIS_ERROR) && line.contains("fg:status.error"))
-            );
-            let label = if empty {
-                "diagnosis-empty"
-            } else {
-                "diagnosis-cached"
-            };
-            insta::assert_snapshot!(format!("detail_refresh_{label}_{w}x{h}"), shown);
-            shot(&host, label, w, h);
+        let shown = crate::tests::shown(&host, w, h);
+        assert!(
+            shown.contains(DIAGNOSIS_ERROR) && shown.contains("#1842"),
+            "{shown}"
+        );
+        if !empty {
+            assert!(shown.contains("unit-test"), "{shown}");
         }
+        assert_eq!(crate::tests::ink_of(&host, DIAGNOSIS_ERROR).as_deref(), Some("bad"));
+        let label = if empty {
+            "diagnosis-empty"
+        } else {
+            "diagnosis-cached"
+        };
+        insta::assert_snapshot!(format!("detail_refresh_{label}"), shown);
         let request = start_diagnosis(plugin(&mut host));
-        assert!(radar_core::shell::to_text(&host, 80, 24).contains(DIAGNOSIS_ERROR));
+        assert!(crate::tests::shown(&host, w, h).contains(DIAGNOSIS_ERROR));
         receive_diagnosis(plugin(&mut host), request, Ok(jobs));
-        for ((w, h), before) in [(80, 24), (160, 40)].into_iter().zip(&before) {
-            assert_eq!(body(&radar_core::shell::to_text(&host, w, h)), body(before));
-        }
+        assert_eq!(body(&crate::tests::shown(&host, w, h)), body(&before));
     }
 }
 
 #[test]
 fn cold_detail_and_diagnosis_failures_still_show_and_diff_failure_is_independent() {
+    let (w, h) = (160, 40);
     for tab in [mr::THREADS, mr::CHANGES] {
         let mut p = sample();
         push(&mut p, kind());
         p.pages[0].tab = tab;
         receive_detail(&mut p, Err(DETAILS_ERROR.into()));
-        for (w, h) in [(80, 24), (160, 40)] {
-            let shown = draw(&p, w, h);
-            assert!(
-                shown.contains("could not load: details unavailable"),
-                "{shown}"
-            );
-            assert!(!shown.contains(DETAILS_NOTICE));
-        }
+        let shown = draw(&p, w, h);
+        assert!(
+            shown.contains("could not load: details unavailable"),
+            "{shown}"
+        );
+        assert!(!shown.contains(DETAILS_NOTICE));
     }
     let mut host = repo_host(false);
     plugin(&mut host)
@@ -319,7 +277,7 @@ fn cold_detail_and_diagnosis_failures_still_show_and_diff_failure_is_independent
         .unwrap()
         .value = None;
     fail_diagnosis(plugin(&mut host));
-    let shown = radar_core::shell::to_text(&host, 80, 24);
+    let shown = crate::tests::shown(&host, w, h);
     assert!(
         shown.contains(DIAGNOSIS_ERROR) && !shown.contains("unit-test"),
         "{shown}"
@@ -330,37 +288,30 @@ fn cold_detail_and_diagnosis_failures_still_show_and_diff_failure_is_independent
     p.pages[0].tab = mr::CHANGES;
     drop(changes::want(p));
     fail_detail(p);
-    let loading = radar_core::shell::to_text(&host, 80, 24);
+    let loading = crate::tests::shown(&host, w, h);
     assert!(loading.contains(DETAILS_NOTICE) && loading.contains("loading…"));
     receive_diffs(plugin(&mut host), Err("diff unavailable".into()));
-    for (w, h) in [(80, 24), (160, 40)] {
-        let shown = radar_core::shell::to_text(&host, w, h);
-        assert!(
-            shown.contains(DETAILS_NOTICE) && shown.contains("could not load: diff unavailable"),
-            "{shown}"
-        );
-        shot(&host, "independent-diff-error", w, h);
-    }
+    let shown = crate::tests::shown(&host, w, h);
+    assert!(
+        shown.contains(DETAILS_NOTICE) && shown.contains("could not load: diff unavailable"),
+        "{shown}"
+    );
 }
 
-fn targets(host: &radar_core::Host) -> Vec<(Rect, String)> {
-    host.hits
-        .borrow()
-        .iter()
-        .filter_map(|(rect, hit)| match hit {
-            Hit::Plugin { id, .. } => Some((*rect, id.clone())),
-            _ => None,
+/// The `row:<n>` targets the text form shows, with the line of each.
+fn row_targets(shown: &str) -> Vec<(String, String)> {
+    shown
+        .lines()
+        .filter_map(|line| {
+            let (_, target) = line.rsplit_once('{')?;
+            let target = target.strip_suffix('}')?;
+            target.starts_with("row:").then(|| (target.to_string(), line.to_string()))
         })
         .collect()
 }
 
-fn click(host: &mut radar_core::Host, rect: Rect, at_ms: u64) {
-    host.update(Event::Mouse {
-        column: rect.x + 1,
-        row: rect.y,
-        kind: MouseKind::Press,
-        at_ms,
-    });
+fn select(host: &mut radar_core::Host, target: &str) {
+    host.update(Event::Intent(Intent::Select { target: Target::new(target) }));
 }
 
 fn enter(host: &mut radar_core::Host) -> Vec<HostEffect> {
@@ -372,24 +323,19 @@ fn enter(host: &mut radar_core::Host) -> Vec<HostEffect> {
 
 #[test]
 fn detail_error_is_not_a_row_and_thread_comment_and_file_targets_keep_their_identity() {
+    // The files pane is shown at the wide size and folded away at the narrow
+    // one, so the view differs: both sizes.
     for (w, h) in [(80, 24), (160, 40)] {
         let mut host = mr_host(mr::THREADS, false);
         fail_detail(plugin(&mut host));
-        let shown = radar_core::shell::to_text(&host, w, h);
-        let error_y = shown
-            .lines()
-            .position(|l| l.contains(DETAILS_NOTICE))
-            .unwrap() as u16;
-        let rows = targets(&host);
+        let shown = crate::tests::shown(&host, w, h);
+        let rows = row_targets(&shown);
         assert!(
-            rows.iter()
-                .filter(|(_, id)| id.starts_with("row:"))
-                .all(|(r, _)| r.y != error_y)
+            rows.iter().all(|(_, line)| !line.contains(DETAILS_NOTICE)),
+            "the error is not a row:\n{shown}"
         );
-        let row = rows.iter().find(|(_, id)| id == "row:1").unwrap().0;
-        click(&mut host, row, 1000);
-        assert_eq!(plugin(&mut host).pages[0].row.get(), 1);
-        click(&mut host, Rect::new(2, error_y, 1, 1), 2000);
+        assert!(rows.iter().any(|(id, _)| id == "row:1"), "{shown}");
+        select(&mut host, "row:1");
         assert_eq!(plugin(&mut host).pages[0].row.get(), 1);
         enter(&mut host);
         let p = plugin(&mut host);
@@ -400,36 +346,20 @@ fn detail_error_is_not_a_row_and_thread_comment_and_file_targets_keep_their_iden
             "thread still opens its controller file"
         );
         receive_diffs(p, Ok(fixtures::diffs()));
-        let shown = radar_core::shell::to_text(&host, w, h);
+        let shown = crate::tests::shown(&host, w, h);
         assert!(shown.contains(DETAILS_NOTICE));
         if w == 160 {
-            let file = targets(&host)
-                .into_iter()
-                .find(|(_, id)| id == "node:f:2")
-                .unwrap()
-                .0;
-            click(&mut host, file, 3000);
+            assert!(files_beside_the_diff(plugin(&mut host), w));
+            assert!(shown.contains("/f:2}"), "{shown}");
+            select(&mut host, "node:f:2");
             assert_eq!(plugin(&mut host).pages[0].file.get(), 2);
             enter(&mut host);
             assert_eq!(plugin(&mut host).pages[0].file.get(), 2);
         } else {
-            // At narrow width files collapse; rendered diff coordinates remain exact.
-            let (line, index) = targets(&host)
-                .into_iter()
-                .find_map(|(rect, id)| {
-                    let index = id.strip_prefix("line:")?.parse::<usize>().ok()?;
-                    (index > 0 && index != 9 && index != 21).then_some((rect, index))
-                })
-                .unwrap();
-            click(
-                &mut host,
-                Rect {
-                    x: line.x + 12,
-                    width: 1,
-                    ..line
-                },
-                3000,
-            );
+            // At narrow width files collapse; the diff's line targets remain exact.
+            assert!(!files_beside_the_diff(plugin(&mut host), w));
+            let index = 2;
+            select(&mut host, &format!("line:{index}"));
             assert_eq!(plugin(&mut host).pages[0].diff.cursor(), index);
             enter(&mut host);
             assert!(matches!(plugin(&mut host).compose.as_ref().unwrap().target,
@@ -437,13 +367,8 @@ fn detail_error_is_not_a_row_and_thread_comment_and_file_targets_keep_their_iden
         }
         let mut host = mr_host(mr::THREADS, true);
         fail_detail(plugin(&mut host));
-        radar_core::shell::to_text(&host, w, h);
-        let row = targets(&host)
-            .into_iter()
-            .find(|(_, id)| id == "row:0")
-            .unwrap()
-            .0;
-        click(&mut host, row, 1000);
+        crate::tests::shown(&host, w, h);
+        select(&mut host, "row:0");
         enter(&mut host);
         assert!(
             plugin(&mut host).compose.is_none(),
@@ -462,41 +387,30 @@ fn detail_error_is_not_a_row_and_thread_comment_and_file_targets_keep_their_iden
 
 #[test]
 fn diagnosis_error_is_not_a_row_and_job_and_pipeline_targets_keep_their_offsets() {
-    for (w, h) in [(80, 24), (160, 40)] {
-        let mut host = repo_host(false);
-        fail_diagnosis(plugin(&mut host));
-        let shown = radar_core::shell::to_text(&host, w, h);
-        let error_y = shown
-            .lines()
-            .position(|l| l.contains(DIAGNOSIS_ERROR))
-            .unwrap() as u16;
-        let rows = targets(&host);
-        assert!(
-            rows.iter()
-                .filter(|(_, id)| id.starts_with("row:"))
-                .all(|(r, _)| r.y != error_y)
-        );
-        let run = rows.iter().find(|(_, id)| id == "row:2").unwrap().0;
-        assert!(shown.lines().nth(run.y as usize).unwrap().contains("#1838"));
-        click(&mut host, run, 1000);
-        assert_eq!(plugin(&mut host).pages[0].row.get(), 2);
-        click(&mut host, Rect::new(2, error_y, 1, 1), 2000);
-        assert_eq!(plugin(&mut host).pages[0].row.get(), 2);
-        assert!(
-            enter(&mut host)
-                .iter()
-                .any(|fx| matches!(fx, HostEffect::Open(url) if url.ends_with("/-/pipelines/1")))
-        );
-        let job = rows.iter().find(|(_, id)| id == "row:0").unwrap().0;
-        click(&mut host, job, 3000);
-        enter(&mut host);
-        assert_eq!(
-            plugin(&mut host).pages.last().unwrap().kind,
-            Kind::Job {
-                project: WEB.into(),
-                id: 5001
-            }
-        );
-    }
+    let mut host = repo_host(false);
+    fail_diagnosis(plugin(&mut host));
+    let shown = crate::tests::shown(&host, 160, 40);
+    let rows = row_targets(&shown);
+    assert!(
+        rows.iter().all(|(_, line)| !line.contains(DIAGNOSIS_ERROR)),
+        "the error is not a row:\n{shown}"
+    );
+    let (id, line) = rows.iter().find(|(id, _)| id == "row:2").unwrap();
+    assert!(line.contains("#1838"), "{line}");
+    select(&mut host, id);
+    assert_eq!(plugin(&mut host).pages[0].row.get(), 2);
+    assert!(
+        enter(&mut host)
+            .iter()
+            .any(|fx| matches!(fx, HostEffect::Open(url) if url.ends_with("/-/pipelines/1")))
+    );
+    select(&mut host, "row:0");
+    enter(&mut host);
+    assert_eq!(
+        plugin(&mut host).pages.last().unwrap().kind,
+        Kind::Job {
+            project: WEB.into(),
+            id: 5001
+        }
+    );
 }
-

@@ -1,0 +1,31 @@
+---
+source: crates/radar-gitlab/src/stand_in.rs
+expression: text
+---
+── page · Repositories / a / api / !263 ──
+:change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
+tracked as ABC-12
+<:info: Overview>  :file: Changes  :thread: Threads !  :pipeline: Pipeline  :commit: Commits  Ticket
+── middle · overview * ──
+loading…
+
+LABELS  #backend
+
+TICKET ABC-12
+Review · Add a stats endpoint for the dashboard
+
+:thread: LATEST ACTIVITY
+[BE] Bob Example · 1h ago
+Should this read from the cached view? The dashboard polls every 30s.
+── detail · can it merge? ──
+:needs_approval: ◷ needs 1 approval
+:run_passed: ✓ pipeline passed
+:run_passed: ✓ no conflicts, up to date
+:needs_approval: ◷ needs 1 approval (0 of 1)
+:thread: ◆ 1 open thread
+:run_passed: ✓ not a draft
+
+for you: waiting for your review
+── status · REPOSITORIES ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+4 open · 1 to review · 1 ready

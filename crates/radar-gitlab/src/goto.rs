@@ -184,22 +184,9 @@ mod tests {
         key(p, KeyEvent::new(code, KeyModifiers::NONE));
     }
 
+    /// Show the screen, as the app does: the tree learns what is visible.
     fn draw(p: &GitlabPlugin) {
-        let theme = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-        let (cursor, hits) = (std::cell::Cell::new(None), std::cell::RefCell::new(vec![]));
-        let cx = radar_core::view_tui::Cx {
-            theme: &theme,
-            now: p.now,
-            focused: true,
-            focus: radar_core::Pane::Middle,
-            bar: false,
-            tabs: false,
-            cursor: &cursor,
-            hits: &hits,
-            parts: radar_core::Parts::none(),
-        };
-        let area = radar_core::ratatui::layout::Rect::new(0, 0, 160, 40);
-        p.render("repos", area, &mut radar_core::ratatui::buffer::Buffer::empty(area), &cx);
+        let _ = crate::tests::view_text(p, "repos", 160, 40);
     }
 
     #[test]

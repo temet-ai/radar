@@ -7,13 +7,9 @@ use crate::client::{Client, DiffRead, MrDetailRead};
 use crate::{GlMsg, demo, diff_history, page_history, pages};
 use radar_core::journal::{ActionDescriptor, Outcome as JournalOutcome};
 use radar_core::plugin::{Effect, Outcome, Pane};
-use radar_core::view_tui::Cx;
-use radar_core::ratatui::buffer::Buffer;
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::ratatui::layout::Rect;
-use radar_core::{Plugin, Theme};
+use radar_core::Plugin;
 use serde_json::{Value, json};
-use std::cell::{Cell, RefCell};
 
 const PROJECT: &str = "acme/team-a/api";
 const IID: u64 = 263;
@@ -180,24 +176,57 @@ fn diff_receive(
         result,
     }))
 }
+/// Show the page (the part's view is what a renderer draws) and return the
+/// targets it offers: the rows' own, `node:` for a pointer-pressed file
+/// tree, and `line:` / `comment:` for each line of a diff (its numbers).
 fn paint(p: &GitlabPlugin) -> Vec<String> {
-    let theme = Theme::new(radar_core::design::theme::Tier::Mono);
-    let cursor = Cell::new(None);
-    let hits = RefCell::new(vec![]);
-    let cx = Cx {
-        theme: &theme,
+    use radar_core::view::{Node, TreeRow};
+    fn node_ids(rows: &[TreeRow], out: &mut Vec<String>) {
+        for row in rows {
+            out.push(format!("node:{}", row.id));
+            node_ids(&row.children, out);
+        }
+    }
+    fn targets(value: &serde_json::Value, out: &mut Vec<String>) {
+        match value {
+            serde_json::Value::Object(map) => {
+                if let Some(t) = map.get("target").and_then(|t| t.as_str()).filter(|t| !t.is_empty()) {
+                    out.push(t.to_string());
+                }
+                map.values().for_each(|v| targets(v, out));
+            }
+            serde_json::Value::Array(items) => items.iter().for_each(|v| targets(v, out)),
+            _ => {}
+        }
+    }
+    let vcx = radar_core::view::ViewCx {
         now: p.now,
-        focused: true,
-        focus: Pane::Middle,
-        bar: false,
-        tabs: false,
-        cursor: &cursor,
-        hits: &hits,
+        focus: Pane::Middle.into(),
+        width: 160,
+        height: 40,
         parts: radar_core::Parts::none(),
+        icon_lead: 0,
+        setup: false,
     };
-    let area = Rect::new(0, 0, 160, 40);
-    p.render("repos", area, &mut Buffer::empty(area), &cx);
-    hits.into_inner().into_iter().map(|hit| hit.2).collect()
+    let view = Plugin::view(p, "repos", &vcx).expect("the screen has a view");
+    let mut ids = Vec::new();
+    let panes = view.page.as_ref().map_or(view.panes.as_slice(), |page| page.panes.as_slice());
+    for pane in panes {
+        match &pane.body {
+            Node::Tree(tree) if tree.pointer_action => node_ids(&tree.rows, &mut ids),
+            Node::Diff { lines, .. } => {
+                for (i, line) in lines.iter().enumerate() {
+                    ids.push(format!("line:{i}"));
+                    if line.old.is_some() || line.new.is_some() {
+                        ids.push(format!("comment:{i}"));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    targets(&serde_json::to_value(&view).expect("the view serialises"), &mut ids);
+    ids
 }
 
 #[test]

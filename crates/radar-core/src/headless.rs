@@ -221,6 +221,15 @@ pub fn text_of(host: &Host, width: u16, height: u16) -> String {
     body + &text::chrome(&host.chrome_view(width, height))
 }
 
+/// The whole host screen as text: the top bar, settings navigation, setup's
+/// rail and the tour's card ([`text::frame`]), then [`text_of`]. A core
+/// test of the host's own screens reads this; a part's test reads
+/// [`text_of`], which holds what the part shows.
+pub fn host_text_of(host: &Host, width: u16, height: u16) -> String {
+    host.set_view_room(width, height);
+    text::frame(&host.chrome_view(width, height)) + &text_of(host, width, height)
+}
+
 /// [`Headless::screen_text`] for a host a test drives itself.
 pub fn screen_text_of(host: &Host, width: u16, height: u16) -> String {
     host.set_view_room(width, height);

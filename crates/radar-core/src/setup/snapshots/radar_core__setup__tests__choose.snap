@@ -1,0 +1,28 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+expression: shown(&host)
+---
+bar: radar  ✎ edit {chrome:mode}
+── setup · choose ──
+What would you like to set up?
+Tick the ones you use. Each one ticked gets a short step, in this order.
+── section · setup.choose ──
+  # THIS MACHINE  {setup:h:this machine}
+> :todo: ○ :local: local code       checkouts, branches  {setup:choose:0}
+  #  {setup:blank:2}
+  # SERVICES  {setup:h:services}
+  :done: ● :board: Shelves          boxes, labels  token found  {setup:choose:1}
+  #  {setup:blank:5}
+  # AGENTS  {setup:h:agents}
+  :todo: ○ Chat             conversations  {setup:choose:2}
+  #  {setup:blank:8}
+  # OPTIONAL  {setup:h:optional}
+  :todo: ○ :colours: look & terminal  icons, theme, motion  {setup:choose:3}
+── detail · about this step ──
+§ :search: TICKED
+  radar found a token or a sign-in for each service ticked.
+§ :navigate: KEYS
+  ⏎ starts at the row you are on. esc in a step skips it, and ← goes back one.
+  Anything you leave unticked can be set up later in Settings (,).
+── status · SETUP ──
+⏎ start here  space tick  a all  n none  esc not now  ← back

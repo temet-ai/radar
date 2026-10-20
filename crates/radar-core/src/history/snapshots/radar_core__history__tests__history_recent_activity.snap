@@ -1,0 +1,51 @@
+---
+source: crates/radar-core/src/history/tests.rs
+expression: "crate::headless::text::history(&view)"
+---
+── history · History · read only · UTC ──
+snapshot through #100 · recent activity · last 24 hours since 2026-10-10T11:40:00.000Z
+· Recorded observations; coverage may be incomplete. Not task intent or permission.
+── events · page 1 · oldest-first · more pages * ──
+  observed UTC  action  subject  outcome
+> 2026-10-11 10:40:01  card.refresh  sample:card ABC-42  requested  {chrome:history:100.1:row:0}
+  2026-10-11 10:40:02  card.refresh  sample:card ABC-42  started  {chrome:history:100.1:row:1}
+  2026-10-11 10:40:03  card.refresh  sample:card ABC-42  succeeded  {chrome:history:100.1:row:2}
+  2026-10-11 10:40:04  card.details  sample:card ABC-42  requested  {chrome:history:100.1:row:3}
+  2026-10-11 10:40:05  card.details  sample:card ABC-42  started  {chrome:history:100.1:row:4}
+  2026-10-11 10:40:06  card.details  sample:card ABC-42  partial  {chrome:history:100.1:row:5}
+  2026-10-11 10:40:07  card.details  sample:card ABC-42  unknown  {chrome:history:100.1:row:6}
+  2026-10-11 10:40:08  card.details  sample:card ABC-42  failed  {chrome:history:100.1:row:7}
+  2026-10-11 10:40:09  card.details  sample:card ABC-42  blocked  {chrome:history:100.1:row:8}
+  2026-10-11 10:40:10  card.details  sample:card ABC-42  cancelled  {chrome:history:100.1:row:9}
+── event detail ──
+card.refresh
+requested
+Subject: sample:card ABC-42
+causal events · action events · all activity  {chrome:history:100.1:key:c} {chrome:history:100.1:key:i} {chrome:history:100.1:key:a}
+
+Observed UTC 2026-10-11T10:40:01.000Z
+Recorded UTC 2026-10-11T10:40:01.012Z
+Reason       not recorded
+Mode         read only
+
+RECORDED SUBJECTS
+primary: sample:card ABC-42 @ https://one.example.test/
+
+RECORDING SOURCE AND CAUSAL IDS
+Source       part sample
+Session type TUI
+Build        0.1.0
+Action ID    10000000-0000-4000-8000-000000000001
+Parent ID    none (root action)
+Root ID      10000000-0000-4000-8000-000000000001
+Correlation  10000000-0000-4000-8000-000000000001
+Session ID   20000000-0000-4000-8000-000000000001
+Event ID     40000000-0000-4000-8000-000000000001
+Sequence     1
+Requested at sequence 1
+
+Parent and root IDs are explicit causal links. Shared subjects do not imply a shared task.
+
+Scope: recent activity · last 24 hours since 2026-10-10T11:40:00.000Z
+Snapshot through event sequence 100. Refresh starts a new snapshot.
+keys: ↑↓ move  enter details  n next page  p previous page  r refresh  x extra keys  esc close

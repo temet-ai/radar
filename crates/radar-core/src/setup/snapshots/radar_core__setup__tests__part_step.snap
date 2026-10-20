@@ -1,0 +1,15 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+expression: shown(&host)
+---
+bar: radar  ✎ edit {chrome:mode}
+── setup · Shelves ──
+step 2 of 3
+── section · connection ──
+> server   https://shelves.example  {server}
+  token    env:SHELF_TOKEN  {token}
+── detail · about this step ──
+§ :link: A NEW TOKEN
+  1 open the new-token page
+── status · SETUP ──
+⏎ continue  space choose  esc skip this  ← back  f finish later

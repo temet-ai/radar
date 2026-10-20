@@ -6455,12 +6455,12 @@ pub(crate) mod tests {
         press(&mut host, KeyCode::Esc);
         assert!(host.menu.is_none());
         assert_eq!(*got.lock().unwrap(), ["name=books", "name=my shelf"]);
-        // The field is drawn where the dialog starts, the cursor in it.
+        // The dialog asks for the name with what is typed in its field.
         open(&mut host);
         typed(&mut host, "bo");
-        let text = crate::shell::to_text(&host, 80, 24);
+        let text = crate::headless::text_of(&host, 80, 24);
         assert!(
-            text.contains("name the shelf") && text.contains("│ bo"),
+            text.contains("name the shelf") && text.contains("[bo]"),
             "{text}"
         );
         assert!(text.contains("✓ a shelf called bo"), "{text}");
@@ -6665,9 +6665,9 @@ pub(crate) mod tests {
                 .is_some_and(|m| m.contains("disk full"))
         );
         assert!(host.unsaved());
-        let screen = crate::shell::to_text(&host, 120, 20);
+        let screen = crate::headless::host_text_of(&host, 120, 20);
         assert!(
-            screen.contains(&format!("Settings (,) {}", crate::ui::icon::ATTENTION_DOT)) && screen.contains("unsaved · w retries"),
+            screen.contains("settings !>") && screen.contains("! unsaved"),
             "{screen}"
         );
         press(&mut host, KeyCode::Char('q'));
@@ -6816,9 +6816,9 @@ pub(crate) mod tests {
             viewport: Default::default(),
             anchor: None,
         });
-        let text = crate::shell::to_text(&host, 80, 24);
+        let text = crate::headless::text_of(&host, 80, 24);
         assert!(text.contains("Fixed in **!263**, see"), "{text}");
-        assert!(text.contains("  - the Tests"), "{text}");
+        assert!(text.contains("- the Tests"), "{text}");
         press(&mut host, KeyCode::Up);
         press(&mut host, KeyCode::Enter);
         assert_eq!(
@@ -7180,7 +7180,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn the_top_bar_shows_the_mode_at_every_width_and_a_click_opens_its_menu() {
+    fn the_top_bar_shows_the_mode_at_every_width_and_activating_it_opens_its_menu() {
         use crate::writes::Mode;
         let (mut host, _) = host(&[("a", 'A', "a"), ("b", 'B', "b")]);
         host.load_config(Some("")).unwrap();
@@ -7191,26 +7191,15 @@ pub(crate) mod tests {
         ] {
             host.set_env_mode(Some((mode, "RADAR_MODE".into())));
             for w in [80, 160] {
-                let text = crate::shell::to_text(&host, w, 24);
-                let top = text.lines().next().unwrap();
-                assert!(top.trim_end().ends_with(words), "{w}: {top}");
+                let chip = host.chrome_view(w, 24).top_bar.mode;
+                assert_eq!(chip.text, words, "{w}");
+                let top = crate::headless::text::top_bar(&host.chrome_view(w, 24).top_bar, &[]);
+                assert!(top.trim_end().ends_with(&format!("{words} {{chrome:mode}}")), "{w}: {top}");
             }
         }
         host.set_env_mode(None);
-        let _ = crate::shell::to_text(&host, 80, 24);
-        let at = host
-            .hits
-            .borrow()
-            .iter()
-            .find(|(_, h)| *h == Hit::Mode)
-            .map(|(r, _)| (r.x, r.y))
-            .expect("the mode is clickable");
-        host.update(Event::Mouse {
-            kind: crate::host::MouseKind::Press,
-            column: at.0,
-            row: at.1,
-            at_ms: 0,
-        });
+        let chip = host.chrome_view(80, 24).top_bar.mode;
+        host.update(Event::Intent(crate::view::Intent::Activate { target: chip.target }));
         assert_eq!(host.menu.as_ref().unwrap().menu.id, crate::mode::MODE_MENU);
         assert_eq!(labels(&host), ["read only", "write", "edit · now"]);
     }
@@ -7229,16 +7218,19 @@ pub(crate) mod tests {
             .unwrap();
         host.select_section(i);
         host.focus = Pane::Middle;
-        let text = crate::shell::to_text(&host, 160, 40);
+        let text = crate::headless::host_text_of(&host, 160, 40);
         assert!(text.contains("mode    read only"), "{text}");
-        assert!(text.contains("        set by RADAR_MODE "), "{text}");
+        assert!(text.contains("set by RADAR_MODE"), "{text}");
         assert!(
             text.contains("Now RADAR_MODE keeps radar read only for this run"),
             "{text}"
         );
         assert!(text.contains("may add things: comments, replies"), "{text}");
-        insta::assert_snapshot!("settings_mode_160x40", text);
-        insta::assert_snapshot!("settings_mode_80x24", crate::shell::to_text(&host, 80, 24));
+        insta::assert_snapshot!("settings_mode", text);
+        // In a narrower room the detail scrolls, and the status line says so.
+        assert!(!text.contains("PgUp/PgDn scroll"), "{text}");
+        let narrow = crate::headless::host_text_of(&host, 80, 24);
+        assert!(narrow.contains("PgUp/PgDn scroll"), "{narrow}");
         press(&mut host, KeyCode::Enter);
         assert_eq!(host.menu.as_ref().unwrap().menu.id, crate::mode::MODE_MENU);
         press(&mut host, KeyCode::Char('w'));
@@ -7571,13 +7563,7 @@ pub(crate) mod tests {
     fn up_past_the_top_reaches_the_bar_which_switches_screens_and_down_goes_back_to_the_pane_left()
     {
         let (mut host, _) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
-        let bottom = |host: &Host| {
-            crate::shell::to_text(host, 120, 24)
-                .lines()
-                .last()
-                .unwrap()
-                .to_string()
-        };
+        let bottom = |host: &Host| crate::headless::text::status(&host.chrome_view(120, 24).status);
         // On alpha's detail pane; the probe takes no ↑, so it is past the top.
         host.focus = Pane::Detail;
         press(&mut host, KeyCode::Up);
@@ -7641,13 +7627,7 @@ pub(crate) mod tests {
         let (mut host, logs) = host(&[("a", 'A', "alpha")]);
         press(&mut host, KeyCode::Char('p'));
         host.focus = Pane::Middle;
-        let bottom = |host: &Host| {
-            crate::shell::to_text(host, 120, 24)
-                .lines()
-                .last()
-                .unwrap()
-                .to_string()
-        };
+        let bottom = |host: &Host| crate::headless::text::status(&host.chrome_view(120, 24).status);
         let tab = || logs[0].lock().unwrap().tab;
         press(&mut host, KeyCode::Up);
         assert_eq!(
@@ -7775,13 +7755,7 @@ pub(crate) mod tests {
         let (mut host, _) = host(&[("a", 'A', "alpha"), ("b", 'B', "beta")]);
         press(&mut host, KeyCode::Char(SETTINGS_KEY));
         host.focus = Pane::Nav;
-        let bottom = |host: &Host| {
-            crate::shell::to_text(host, 120, 24)
-                .lines()
-                .last()
-                .unwrap()
-                .to_string()
-        };
+        let bottom = |host: &Host| crate::headless::text::status(&host.chrome_view(120, 24).status);
         assert!(
             bottom(&host).contains("+/- expand/collapse"),
             "{}",

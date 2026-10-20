@@ -1,0 +1,22 @@
+---
+source: crates/radar-core/src/setup/tests.rs
+expression: shown(&host)
+---
+bar: radar  ✎ edit {chrome:mode}
+── setup · mode ──
+step 2 of 2
+What may radar send?
+Choose one. Every write is shown and asked before it is sent, in any mode.
+── section · setup.mode ──
+> :todo: ○ :mode_read: read only  {setup:mode:0}
+  :todo: ○ :mode_write: write  {setup:mode:1}
+  :todo: ○ :mode_edit: edit  {setup:mode:2}
+── detail · about this step ──
+§ :info: WHAT EACH ALLOWS
+  Read only: radar reads and sends nothing. A write you start is shown, and not sent.
+  Write: radar may add comments, replies, reactions and new items.
+  Edit: radar may also approve, resolve, move, assign, rebase and merge.
+§ :settings: CHANGE IT LATER
+  The mode is at the top right of every screen; a click on it, or Settings (,), changes it.
+── status · SETUP ──
+⏎ choose and continue  ↑↓ move  ← back

@@ -369,21 +369,17 @@ mod tests {
     }
 
     #[test]
-    fn the_icons_section_lists_every_icon_with_its_glyph_at_both_sizes() {
+    fn the_icons_section_lists_every_icon_with_its_glyph() {
         let host = settings_host("unicode");
         assert!(host.on_icons());
         insta::assert_snapshot!(
-            "icons_section_unicode_80x24",
-            crate::shell::to_text(&host, 80, 24)
-        );
-        insta::assert_snapshot!(
-            "icons_section_unicode_160x40",
-            crate::shell::to_text(&host, 160, 40)
+            "icons_section_unicode",
+            crate::headless::host_text_of(&host, 160, 40)
         );
         let host = settings_host("nerd");
         insta::assert_snapshot!(
-            "icons_section_nerd_160x40",
-            crate::shell::to_text(&host, 160, 40)
+            "icons_section_nerd",
+            crate::headless::host_text_of(&host, 160, 40)
         );
         assert!(
             host.config_text().contains("[icons]"),
@@ -409,7 +405,7 @@ mod tests {
                 KeyModifiers::NONE,
             )));
         };
-        let text = crate::shell::to_text(&host, 160, 40);
+        let text = crate::headless::host_text_of(&host, 160, 40);
         for (pack, needs) in [
             ("nerd", "needs a Nerd Font"),
             ("plain", "any font"),

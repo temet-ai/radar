@@ -1103,14 +1103,6 @@ impl History {
         }
     }
 
-    #[cfg(test)]
-    fn detail_lines(&self, theme: &Theme) -> Vec<Line<'static>> {
-        self.detail_text()
-            .iter()
-            .map(|text| crate::view_tui::line(theme, text))
-            .collect()
-    }
-
     /// The overlay as view data at `width` by `height` cells. Pure: it reads
     /// the state and changes nothing.
     pub fn view(&self, width: u16, height: u16) -> HistoryView {

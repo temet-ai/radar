@@ -10,7 +10,11 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use super::*;
 use crate::host::{Event, HostEffect, Owner, View};
 use crate::plugin::{Binding, Effect, Outcome, Pane, ScreenSpec, SectionSpec, Tone};
-use crate::shell::to_text;
+
+/// What the host shows, as the view text a frontend is given.
+fn to_text(host: &Host, width: u16, height: u16) -> String {
+    crate::headless::host_text_of(host, width, height)
+}
 use crate::view as v;
 use crate::{Host, Plugin};
 
@@ -947,7 +951,7 @@ fn with_no_parts_radar_says_so_in_settings() {
     host.load_config(Some("")).unwrap();
     assert_eq!(host.view, View::Settings);
     host.focus = Pane::Middle;
-    let text = to_text(&host, 100, 24);
+    let text = crate::headless::host_text_of(&host, 100, 24);
     assert!(
         text.contains("No parts are compiled into this build"),
         "{text}"

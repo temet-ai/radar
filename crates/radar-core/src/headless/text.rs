@@ -9,7 +9,7 @@
 //! menu and the status line's keys follow the panes.
 
 use crate::view::doc as rich;
-use crate::view::chrome::{ChromeView, MenuView, StatusLine};
+use crate::view::chrome::{ChromeView, MenuView, NoticeHistoryView, NoticeStateView, NoticeTone, NoticeView, SettingsNav, SetupChrome, SourceTab, StatusLine, TopBar, TourCard};
 use crate::view::{Block, CellView, FieldBar, ListRow, Node, PageView, PaneId, PaneView, ScreenView, SectionView, Seg, Target, Text, Tree, TreeRow, PATH_SEP};
 
 /// A screen: its page or its panes, then its overlay.
@@ -73,6 +73,10 @@ pub fn menu(menu: &MenuView) -> String {
 pub fn status(status: &StatusLine) -> String {
     let mut out = Out::default();
     out.rule(&format!("status · {}", status.scope), false);
+    if let Some(a) = &status.attention {
+        let icon = a.icon.map(|i| format!(":{}: ", i.name())).unwrap_or_default();
+        out.line(&format!("! {} {icon}{}  {}", a.keys, a.text, target(&a.target)));
+    }
     if let Some(m) = &status.message {
         out.line(&m.text);
     }
@@ -87,10 +91,203 @@ pub fn status(status: &StatusLine) -> String {
     out.0
 }
 
-/// The chrome's parts that are not the body: the open menu, then the
-/// status line.
+/// The history overlay: its scope, then the events and the detail (both
+/// panels, whatever the room shows of them) or the keys help, then the
+/// keys along the bottom. The panel that has the keys is starred.
+pub fn history(view: &crate::history::HistoryView) -> String {
+    use crate::history::HistoryFocus;
+    let mut out = Out::default();
+    out.rule(&format!("history · {}", view.title), false);
+    out.line(&format!("{} · {}", view.boundary, view.scope));
+    for note in &view.notes {
+        out.line(&format!("· {}", text(note)));
+    }
+    if view.help {
+        out.rule(&view.help_title, true);
+        for l in &view.help_lines {
+            // The key sits inside its word, underlined; the text names it after.
+            let key = l.0.iter().find_map(|s| s.key_hint.as_ref()).map(|k| format!("({k})")).unwrap_or_default();
+            out.line(&join(&[text(l), key]));
+        }
+    } else {
+        out.rule(&view.events_title, view.focus == HistoryFocus::Events);
+        out.line(&format!("  {}", view.columns.join("  ")));
+        if view.rows.is_empty() {
+            out.line(&format!("  {}", view.state));
+        }
+        for (i, row) in view.rows.iter().enumerate() {
+            let mark = if view.selected == Some(i) { ">" } else { " " };
+            let at = target(&row.target);
+            out.line(&format!("{mark} {}", join(&[row.observed.clone(), row.action.clone(), row.subject.clone(), row.outcome.clone(), at])));
+        }
+        out.rule(&view.detail_title, view.focus == HistoryFocus::Detail);
+        for (i, l) in view.detail.iter().enumerate() {
+            let mut words = text(l);
+            if view.detail_keys_line == Some(i) && !view.detail_keys.is_empty() {
+                let at: Vec<String> = view.detail_keys.iter().map(|k| target(&k.target)).collect();
+                words = join(&[words, at.join(" ")]);
+            }
+            out.line(&words);
+        }
+    }
+    let keys: Vec<String> = view.footer.iter().map(|h| format!("{} {}", h.keys, h.label)).collect();
+    out.line(&format!("keys: {}", keys.join("  ")));
+    out.0
+}
+
+/// The top bar: the brand, the tabs (`<A>` the active one, `!` one that needs
+/// attention), the part's words and the mode chip, then the source tabs.
+pub fn top_bar(bar: &TopBar, sources: &[SourceTab]) -> String {
+    let mut out = Out::default();
+    let tabs: Vec<String> = bar
+        .tabs
+        .iter()
+        .map(|t| {
+            let name = match t.icon {
+                Some(icon) => format!(":{}: {}", icon.name(), t.label),
+                None => t.label.clone(),
+            };
+            let dot = if t.attention { " !" } else { "" };
+            if t.active { format!("<{name}{dot}>") } else { format!("{name}{dot}") }
+        })
+        .collect();
+    let words = bar.words.as_ref().map(|b| b.text.clone()).unwrap_or_default();
+    let terminal = bar.terminal.as_ref().map(|b| b.text.clone()).unwrap_or_default();
+    let busy = if bar.busy { "(busy)".to_string() } else { String::new() };
+    out.line(&format!(
+        "bar: {}",
+        join(&[bar.brand.clone(), tabs.join(" "), busy, words, terminal, format!("{} {}", bar.mode.text, target(&bar.mode.target))])
+    ));
+    if !sources.is_empty() {
+        let names: Vec<String> = sources.iter().map(|s| if s.active { format!("<{}>", s.label) } else { s.label.clone() }).collect();
+        out.line(&format!("sources: {}", names.join("  ")));
+    }
+    out.0
+}
+
+/// Settings navigation: its groups and sections, `>` on the selected one,
+/// each with its target.
+pub fn settings_nav(nav: &SettingsNav) -> String {
+    let mut out = Out::default();
+    out.rule(&format!("settings · {} · {}", nav.section_title, nav.detail_title), false);
+    let mark = |at: &Target| if nav.selected.as_ref() == Some(at) { ">" } else { " " };
+    for group in &nav.groups {
+        let fold = if group.open { "" } else { "  ⋯" };
+        out.line(&format!("{} {}{fold}  {}", mark(&group.target), group.name, target(&group.target)));
+        if group.open {
+            for s in &group.sections {
+                let icon = s.icon.map(|i| format!(":{}: ", i.name())).unwrap_or_default();
+                out.line(&format!("{}   {icon}{}  {}", mark(&s.target), s.name, target(&s.target)));
+            }
+        }
+    }
+    if nav.unsaved {
+        out.line("! unsaved");
+    }
+    out.0
+}
+
+/// Setup's own chrome: the screen, its step, the rail (`>` on the stop
+/// showing, its state in words, a result after it) and the card's heading.
+pub fn setup(setup: &SetupChrome) -> String {
+    let mut out = Out::default();
+    out.rule(&format!("setup · {}", setup.title), false);
+    if let Some(step) = &setup.step {
+        out.line(step);
+    }
+    for (i, stop) in setup.rail.iter().enumerate() {
+        let mark = if setup.current == Some(i) { ">" } else { " " };
+        let icon = stop.icon.map(|i| format!(":{}: ", i.name())).unwrap_or_default();
+        let state = format!("({})", format!("{:?}", stop.state).to_lowercase());
+        out.line(&format!(
+            "{mark} {icon}{}",
+            join(&[stop.label.clone(), state, stop.result.clone().unwrap_or_default(), target(&stop.target)])
+        ));
+    }
+    for words in [&setup.heading, &setup.lead] {
+        if !words.is_empty() {
+            out.line(words);
+        }
+    }
+    out.0
+}
+
+/// The tour's card: the stop, its title and words, what to try, its keys.
+pub fn tour(card: &TourCard) -> String {
+    let mut out = Out::default();
+    out.rule(&format!("tour · {} of {} · {}", card.stop, card.of, card.title), false);
+    for l in &card.lines {
+        out.line(&text(l));
+    }
+    if let Some(t) = &card.try_it {
+        out.line(&format!("try it: {t}"));
+    }
+    out.line(&text(&card.keys));
+    out.0
+}
+
+/// The notices: each active one with its tone (`!` for an error), then the
+/// session's notice history when it is open (`>` on the selected entry, which
+/// counts from the newest) and the entry in detail.
+pub fn notices(state: &NoticeStateView, history: Option<&NoticeHistoryView>) -> String {
+    let mut out = Out::default();
+    let one = |n: &NoticeView| {
+        let mark = if n.tone == NoticeTone::Error { "!" } else { "·" };
+        let icon = n.icon.map(|i| format!(":{}: ", i.name())).unwrap_or_default();
+        format!("{mark} {icon}{}", n.text)
+    };
+    if !state.active.is_empty() {
+        out.rule("notices", false);
+        for n in &state.active {
+            out.line(&one(n));
+        }
+        if state.hidden > 0 {
+            out.line(&format!("+ {} more", state.hidden));
+        }
+    }
+    if let Some(h) = history {
+        out.rule("notice history", false);
+        for (i, n) in h.entries.iter().rev().enumerate() {
+            let mark = if i == h.selected { ">" } else { " " };
+            out.line(&format!("{mark} {}", one(n)));
+        }
+        if h.omitted > 0 {
+            out.line(&format!("+ {} older", h.omitted));
+        }
+        if let Some(d) = &h.detail {
+            out.rule("notice detail", false);
+            out.line(&d.text);
+        }
+    }
+    out.0
+}
+
+/// What the chrome shows above the body: the top bar, the settings
+/// navigation, setup's rail and the tour's card.
+pub fn frame(chrome: &ChromeView) -> String {
+    let mut s = top_bar(&chrome.top_bar, &chrome.sources);
+    if let Some(n) = &chrome.settings {
+        s.push_str(&settings_nav(n));
+    }
+    if let Some(c) = &chrome.setup {
+        s.push_str(&setup(c));
+    }
+    if let Some(t) = &chrome.tour {
+        s.push_str(&tour(t));
+    }
+    // The stack shows only while nothing is over it (a menu, setup, the tour).
+    let stack = NoticeStateView { active: if chrome.notices_visible { chrome.notices.active.clone() } else { vec![] }, ..chrome.notices.clone() };
+    s.push_str(&notices(&stack, chrome.notice_history.as_ref()));
+    s
+}
+
+/// The chrome's parts that are not the body: the history overlay, the
+/// open menu, then the status line.
 pub fn chrome(chrome: &ChromeView) -> String {
     let mut s = String::new();
+    if let Some(h) = &chrome.history {
+        s.push_str(&history(h));
+    }
     if let Some(m) = &chrome.menu {
         s.push_str(&menu(m));
     }
@@ -568,6 +765,113 @@ mod tests {
           # Rota
           see the board <https://watch.example/board>
           ☐ patrol
+        ");
+    }
+
+    #[test]
+    fn the_chrome_above_the_body_reads_as_its_bar_navigation_rail_and_card() {
+        use crate::view::chrome::{BarTab, ModeChip, NavGroup, NavSection, RailStop, StopState};
+        let tab = |label: &str, active: bool, attention: bool| BarTab {
+            label: label.into(),
+            mnemonic: 'x',
+            icon: None,
+            attention,
+            active,
+            target: Target::new(format!("chrome:{label}")),
+        };
+        let bar = TopBar {
+            brand: "radar".into(),
+            tabs: vec![tab("Watch", true, false), tab("History", false, true)],
+            mode: ModeChip { text: "read only".into(), target: Target::new("chrome:mode"), ..Default::default() },
+            ..Default::default()
+        };
+        let sources = vec![
+            SourceTab { label: "Night".into(), active: true, target: Target::new("chrome:source:0") },
+            SourceTab { label: "Day".into(), active: false, target: Target::new("chrome:source:1") },
+        ];
+        insta::assert_snapshot!(top_bar(&bar, &sources), @r"
+        bar: radar  <Watch> History !  read only {chrome:mode}
+        sources: <Night>  Day
+        ");
+
+        let nav = SettingsNav {
+            groups: vec![
+                NavGroup {
+                    id: "general".into(),
+                    name: "General".into(),
+                    open: true,
+                    target: Target::new("chrome:group:general"),
+                    sections: vec![
+                        NavSection { id: "mode".into(), name: "mode".into(), icon: None, target: Target::new("chrome:section:0") },
+                        NavSection { id: "look".into(), name: "look".into(), icon: None, target: Target::new("chrome:section:1") },
+                    ],
+                },
+                NavGroup { id: "watch".into(), name: "Watch".into(), open: false, target: Target::new("chrome:group:watch"), sections: vec![] },
+            ],
+            selected: Some(Target::new("chrome:section:1")),
+            section_title: "look".into(),
+            detail_title: "about".into(),
+            unsaved: true,
+        };
+        insta::assert_snapshot!(settings_nav(&nav), @r"
+        ── settings · look · about ──
+          General  {chrome:group:general}
+            mode  {chrome:section:0}
+        >   look  {chrome:section:1}
+          Watch  ⋯  {chrome:group:watch}
+        ! unsaved
+        ");
+
+        let rail = SetupChrome {
+            title: "Shelves".into(),
+            step: Some("step 2 of 3".into()),
+            rail: vec![
+                RailStop { id: "look".into(), label: "look".into(), icon: None, state: StopState::Done, result: Some("plain".into()), target: Target::new("chrome:setup:0") },
+                RailStop { id: "shelf".into(), label: "Shelves".into(), icon: None, state: StopState::Current, result: None, target: Target::new("chrome:setup:1") },
+            ],
+            current: Some(1),
+            heading: "Where are the shelves?".into(),
+            lead: String::new(),
+        };
+        insta::assert_snapshot!(setup(&rail), @r"
+        ── setup · Shelves ──
+        step 2 of 3
+          look  (done)  plain  {chrome:setup:0}
+        > Shelves  (current)  {chrome:setup:1}
+        Where are the shelves?
+        ");
+
+        let card = TourCard {
+            stop: 2,
+            of: 5,
+            title: "The rota".into(),
+            lines: vec![Text::plain("Sam Vimes keeps it.")],
+            try_it: Some("press J".into()),
+            keys: Text::plain("→ next  esc end the tour"),
+        };
+        let notice = |id: u64, tone: NoticeTone, text: &str| NoticeView { id, tone, icon: None, text: text.into(), created_ms: 0, lifetime_ms: 0 };
+        let state = NoticeStateView {
+            through_id: 2,
+            active: vec![notice(2, NoticeTone::Error, "the Watch house is shut"), notice(1, NoticeTone::Info, "saved")],
+            hidden: 1,
+            ..Default::default()
+        };
+        let history = NoticeHistoryView { entries: vec![notice(1, NoticeTone::Info, "saved"), notice(2, NoticeTone::Error, "the Watch house is shut")], selected: 1, ..Default::default() };
+        insta::assert_snapshot!(notices(&state, Some(&history)), @r"
+        ── notices ──
+        ! the Watch house is shut
+        · saved
+        + 1 more
+        ── notice history ──
+          ! the Watch house is shut
+        > · saved
+        ");
+
+        insta::assert_snapshot!(tour(&card), @r"
+        ── tour · 2 of 5 · The rota ──
+        Sam Vimes keeps it.
+        try it: press J
+        → next  esc end the tour
         ");
     }
 }

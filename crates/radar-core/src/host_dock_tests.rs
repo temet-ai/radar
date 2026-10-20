@@ -94,6 +94,12 @@ fn live_host(view: DockView) -> (Host, Arc<Mutex<DockView>>, Got, Told) {
     (Host::new(vec![Box::new(part)], 0).unwrap(), view, got, told)
 }
 
+/// The status line as view text, in the room `w` x `h`.
+fn status_text(host: &Host, w: u16, h: u16) -> String {
+    host.set_view_room(w, h);
+    crate::headless::text::status(&host.chrome_view(w, h).status)
+}
+
 /// The status line Ratatui draws (the last row), at `w` x `h`.
 fn status_row(host: &Host, w: u16, h: u16) -> String {
     crate::shell::to_text(host, w, h).lines().last().unwrap_or_default().to_string()
@@ -114,9 +120,9 @@ fn a_session_that_needs_you_out_of_sight_puts_a_chip_on_the_status_line_and_the_
     assert_eq!(chip.ink, crate::view::Ink::Warn);
     assert_eq!(chip.keys, dock::KEY.to_string());
     for (w, h) in [(80u16, 24u16), (160, 40)] {
-        let row = status_row(&host, w, h);
-        assert!(row.contains("` ") && row.contains("codex 2 needs you"), "{w}x{h}: {row}");
-        // After the scope chip, before the keys: it never gives way.
+        let row = status_text(&host, w, h);
+        assert!(row.contains("! ` ") && row.contains("codex 2 needs you"), "{w}x{h}: {row}");
+        // After the scope, before the keys: it never gives way.
         assert!(row.find("codex 2").unwrap() < row.find("menu").unwrap_or(usize::MAX), "{row}");
     }
     // The dock key shows the dock on that tab, with the keys.
@@ -132,7 +138,7 @@ fn a_session_that_needs_you_out_of_sight_puts_a_chip_on_the_status_line_and_the_
     // The answer given: nothing wants you, and the key hides the dock as before.
     view.lock().unwrap().tabs[1].state = S::Streaming;
     assert!(host.chrome_status().attention.is_none());
-    assert!(!status_row(&host, 160, 40).contains("needs you"));
+    assert!(!status_text(&host, 160, 40).contains("needs you"));
 }
 
 #[test]

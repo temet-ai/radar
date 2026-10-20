@@ -139,9 +139,9 @@ mod tests {
         let mut host = Host::new(vec![], 0).unwrap();
         host.terminal = Some(State::new(stack(&[("HERDR_ENV", "1"), ("HERDR_PANE_ID", "w1:p1")])));
         host.update(Event::TerminalRoute(Ok(())));
-        assert!(crate::shell::to_text(&host, 80, 24).contains("mouse ✓"));
+        assert!(crate::headless::host_text_of(&host, 80, 24).contains("mouse ✓"));
         host.update(Event::TerminalRoute(Err("pane unavailable".into())));
-        let shown = crate::shell::to_text(&host, 80, 24);
+        let shown = crate::headless::host_text_of(&host, 80, 24);
         assert!(shown.contains("mouse !"));
         assert!(shown.contains("pane unavailable"));
     }

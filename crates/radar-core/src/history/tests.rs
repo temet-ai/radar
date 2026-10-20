@@ -159,70 +159,61 @@ fn text(buf: &Buffer) -> String {
         .join("\n")
 }
 
-fn shot(name: &str, history: &History, width: u16, height: u16) {
-    let buf = draw(history, width, height, &Theme::new(Tier::Mono));
-    let screen = text(&buf);
-    assert_eq!(screen.lines().count(), usize::from(height));
-    for line in screen.lines() {
-        assert!(crate::ui::width(line) <= usize::from(width));
-    }
-    insta::assert_snapshot!(format!("history_{name}_{width}x{height}"), screen);
-    if let Some(path) = std::env::var_os("RADAR_HISTORY_SHOTS") {
-        let path = std::path::PathBuf::from(path);
-        std::fs::create_dir_all(&path).unwrap();
-        let theme = Theme::new(Tier::TrueColor);
-        let buf = draw(history, width, height, &theme);
-        let svg = crate::visual::buffer_to_svg(&buf, &crate::visual::Look::of(&theme));
-        std::fs::write(
-            path.join(format!("history_{name}_{width}x{height}.svg")),
-            &svg,
-        )
-        .unwrap();
-        #[cfg(feature = "png")]
-        std::fs::write(
-            path.join(format!("history_{name}_{width}x{height}.png")),
-            crate::shot::to_png(&svg).unwrap(),
-        )
-        .unwrap();
-    }
+fn shot(name: &str, history: &History) {
+    let view = history.view(160, 40);
+    assert!(view.split, "wide enough for the events and the detail side by side");
+    insta::assert_snapshot!(format!("history_{name}"), crate::headless::text::history(&view));
 }
 
 #[test]
-fn history_screens_at_both_sizes() {
-    for (width, height) in [(80, 24), (160, 40)] {
-        let (mut recent, request) = History::recent(AT + 3_600_000, 100);
-        recent.receive(
-            request.id,
-            Ok(page(request.filter, sample().page.unwrap().events, true)),
-        );
-        shot("recent_activity", &recent, width, height);
-        let (mut recent, request) = History::recent(AT + 3_600_000, 101);
-        recent.receive(request.id, Ok(page(request.filter, vec![], false)));
-        shot("recent_empty", &recent, width, height);
-        let mut all = sample();
-        all.filter = EventFilter::default();
-        all.page.as_mut().unwrap().filter = EventFilter::default();
-        shot("all_activity", &all, width, height);
-        let mut history = sample();
-        shot("events", &history, width, height);
-        press(&mut history, KeyCode::Tab, 2);
-        shot("detail", &history, width, height);
-        press(&mut history, KeyCode::PageDown, 2);
-        shot("detail_scrolled", &history, width, height);
-        press(&mut history, KeyCode::Char('?'), 2);
-        shot("help", &history, width, height);
+fn history_screens_as_view_text() {
+    let (mut recent, request) = History::recent(AT + 3_600_000, 100);
+    recent.receive(
+        request.id,
+        Ok(page(request.filter, sample().page.unwrap().events, true)),
+    );
+    shot("recent_activity", &recent);
+    let (mut recent, request) = History::recent(AT + 3_600_000, 101);
+    recent.receive(request.id, Ok(page(request.filter, vec![], false)));
+    shot("recent_empty", &recent);
+    let mut all = sample();
+    all.filter = EventFilter::default();
+    all.page.as_mut().unwrap().filter = EventFilter::default();
+    shot("all_activity", &all);
+    let mut history = sample();
+    shot("events", &history);
+    press(&mut history, KeyCode::Tab, 2);
+    shot("detail", &history);
+    // The panel scrolls by the room the frontend reports; here it is set.
+    history.detail_scroll.set(4);
+    let scrolled = history.view(160, 40);
+    assert_eq!((scrolled.focus, scrolled.detail_scroll), (HistoryFocus::Detail, 4));
+    press(&mut history, KeyCode::Char('?'), 2);
+    shot("help", &history);
 
-        let (mut history, request) = History::new(EventFilter::default(), 20);
-        shot("loading", &history, width, height);
-        history.receive(request.id, Ok(page(EventFilter::default(), vec![], false)));
-        shot("empty", &history, width, height);
-        let retry = press(&mut history, KeyCode::Char('r'), 21).unwrap();
-        history.receive(retry.id, Err(ReadError::Disabled));
-        shot("disabled", &history, width, height);
-        let retry = press(&mut history, KeyCode::Char('r'), 22).unwrap();
-        history.receive(retry.id, Err(ReadError::Unavailable));
-        shot("unavailable", &history, width, height);
-    }
+    let (mut history, request) = History::new(EventFilter::default(), 20);
+    shot("loading", &history);
+    history.receive(request.id, Ok(page(EventFilter::default(), vec![], false)));
+    shot("empty", &history);
+    let retry = press(&mut history, KeyCode::Char('r'), 21).unwrap();
+    history.receive(retry.id, Err(ReadError::Disabled));
+    shot("disabled", &history);
+    let retry = press(&mut history, KeyCode::Char('r'), 22).unwrap();
+    history.receive(retry.id, Err(ReadError::Unavailable));
+    shot("unavailable", &history);
+}
+
+#[test]
+fn the_room_decides_only_whether_the_panels_sit_side_by_side() {
+    let history = sample();
+    let narrow = history.view(80, 24);
+    let wide = history.view(160, 40);
+    assert!(!narrow.split && wide.split);
+    assert_eq!(
+        crate::headless::text::history(&narrow),
+        crate::headless::text::history(&wide),
+        "the text form reads the same at both sizes"
+    );
 }
 
 #[test]
@@ -293,12 +284,12 @@ fn recent_control_changes_scope_explicitly_and_clamps_the_epoch() {
 }
 
 #[test]
-fn detail_prioritizes_subject_and_safe_facts_and_exposes_scoped_clicks() {
+fn detail_prioritizes_subject_and_safe_facts_and_exposes_scoped_keys() {
     let mut history = sample();
-    let lines = history.detail_lines(&Theme::new(Tier::Mono));
-    let detail = lines
+    let detail = history
+        .detail_text()
         .iter()
-        .map(ToString::to_string)
+        .map(|line| line.words())
         .collect::<Vec<_>>()
         .join("\n");
     assert!(
@@ -306,63 +297,50 @@ fn detail_prioritizes_subject_and_safe_facts_and_exposes_scoped_clicks() {
     );
     assert!(detail.find("Command").unwrap() < detail.find("Action ID").unwrap());
     assert!(detail.find("RECORDED SUBJECTS").unwrap() < detail.find("Action ID").unwrap());
+    history.focus = Focus::Detail;
     for (width, height) in [(80, 24), (160, 40)] {
-        history.focus = Focus::Detail;
-        let buf = draw(&history, width, height, &Theme::new(Tier::Mono));
-        let screen = text(&buf);
+        let view = history.view(width, height);
+        let screen = crate::headless::text::history(&view);
         assert!(screen.contains("tab events"));
         assert!(screen.contains("↑↓ scroll"));
         assert!(screen.contains("refresh"));
         assert!(screen.contains("esc close"));
+        assert_eq!(view.detail_keys_line, Some(3));
+        assert_eq!(view.detail_keys.len(), 3);
         for code in ['c', 'i', 'a'] {
-            let (area, expected) = history
-                .keys
-                .borrow()
+            let shown = view
+                .detail_keys
                 .iter()
-                .find(|(_, key)| key.code == KeyCode::Char(code))
-                .copied()
+                .find(|key| key.label == code.to_string())
                 .unwrap();
-            assert!((area.x..area.right()).any(|x| buf[(x, area.y)].symbol() == code.to_string()
-                && buf[(x, area.y)].modifier.contains(ratatui::style::Modifier::UNDERLINED)), "the whole phrase is clickable and its key is underlined");
-            assert_eq!(
-                history.mouse(MouseKind::Press, area.x, area.y),
-                Some(expected)
-            );
+            let pressed = history.target(&shown.target).unwrap();
+            assert_eq!(pressed.code, KeyCode::Char(code));
         }
     }
 }
 
 #[test]
-fn footer_clicks_open_detail_with_enter_and_return_to_events_with_tab() {
+fn footer_keys_open_detail_with_enter_and_return_to_events_with_tab() {
     let mut history = sample();
-    for (width, height) in [(80, 24), (160, 40)] {
-        let buf = draw(&history, width, height, &Theme::new(Tier::Mono));
-        assert!(text(&buf).contains("enter details"));
-        let (area, _) = history
-            .keys
-            .borrow()
-            .iter()
-            .find(|(_, key)| key.code == KeyCode::Enter)
-            .copied()
-            .unwrap();
-        let key = history.mouse(MouseKind::Press, area.x, area.y).unwrap();
-        assert_eq!(key.code, KeyCode::Enter);
-        assert!(history.key(key, 2).is_none());
-        assert_eq!(history.focus, Focus::Detail);
-        let buf = draw(&history, width, height, &Theme::new(Tier::Mono));
-        assert!(text(&buf).contains("tab events"));
-        let (area, _) = history
-            .keys
-            .borrow()
-            .iter()
-            .find(|(_, key)| key.code == KeyCode::Tab)
-            .copied()
-            .unwrap();
-        let key = history.mouse(MouseKind::Press, area.x, area.y).unwrap();
-        assert_eq!(key.code, KeyCode::Tab);
-        assert!(history.key(key, 3).is_none());
-        assert_eq!(history.focus, Focus::Events);
-    }
+    let shown = |history: &History, label: &str| {
+        history
+            .view(160, 40)
+            .footer
+            .into_iter()
+            .flat_map(|hint| hint.keys_of)
+            .find(|key| key.label == label)
+            .unwrap_or_else(|| panic!("{label} is in the footer"))
+    };
+    assert!(crate::headless::text::history(&history.view(160, 40)).contains("enter details"));
+    let key = history.target(&shown(&history, "enter").target).unwrap();
+    assert_eq!(key.code, KeyCode::Enter);
+    assert!(history.key(key, 2).is_none());
+    assert_eq!(history.focus, Focus::Detail);
+    assert!(crate::headless::text::history(&history.view(160, 40)).contains("tab events"));
+    let key = history.target(&shown(&history, "tab").target).unwrap();
+    assert_eq!(key.code, KeyCode::Tab);
+    assert!(history.key(key, 3).is_none());
+    assert_eq!(history.focus, Focus::Events);
 }
 
 #[test]
@@ -614,10 +592,10 @@ fn a_matching_request_cannot_advance_its_fixed_snapshot() {
 fn detail_uses_allowlisted_facts_without_invented_success_or_payloads() {
     let mut history = sample();
     history.select(6);
-    let lines = history.detail_lines(&Theme::new(Tier::Mono));
-    let detail = lines
+    let detail = history
+        .detail_text()
         .iter()
-        .map(ToString::to_string)
+        .map(|line| line.words())
         .collect::<Vec<_>>()
         .join("\n");
     assert!(detail.contains("unknown"));

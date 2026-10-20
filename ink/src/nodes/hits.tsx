@@ -198,15 +198,21 @@ export function HitRegion({
   const first = useRef(0);
   const sc = scrollOf(node, ctx.width, ctx.height, ctx.plainText);
   let win: Window | null = null;
+  // A body whose heading takes all its room (a table or a tree with a header, one row high) shows no row: the window
+  // is empty, so no row is laid out and no row is a target under the pane's border or the pane below.
+  const noRoom = !!sc && sc.total > 0 && sc.room <= 0;
   if (sc && sc.room > 0 && sc.total > sc.room) {
     first.current = sc.spans
       ? entriesFirst(sc.spans, sc.total, sc.room, sc.cursor < 0 ? null : sc.cursor, first.current)
       : firstRow(sc.total, sc.cursor, sc.room, first.current);
     win = { first: first.current, count: sc.room };
-  } else first.current = 0;
+  } else {
+    first.current = 0;
+    if (noRoom) win = { first: 0, count: 0 };
+  }
   // ui::table / ui::rows: scroll::scrollbar(n - h, first) on the panel's border (trees draw theirs in their last column)
   useScrollReport(
-    win && node.node !== "tree" && sc
+    win && !noRoom && node.node !== "tree" && sc
       ? { max: sc.total - sc.room, at: win.first }
       : null,
   );

@@ -402,6 +402,14 @@ impl Bridge {
                 }
             }
             ToHost::Pointer { column, row } => self.pointer = Some((column, row)),
+            // Text pasted: the host hands it to whatever takes text.
+            ToHost::Paste { text } => {
+                if !self.welcomed {
+                    return out;
+                }
+                self.splash.input();
+                out.effects = self.update(Event::Paste(text));
+            }
             // The part's scroll learns its room; the keys it offers may
             // change with it, so the next snapshot is built again.
             ToHost::Rows { scope, panes } => {

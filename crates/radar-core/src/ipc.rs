@@ -119,6 +119,10 @@ pub enum ToHost {
         scope: String,
         panes: Vec<crate::view::PaneRows>,
     },
+    /// Text pasted into the terminal while the focus takes text: the whole
+    /// string at once, as [`crate::host::Event::Paste`]. At most
+    /// [`MAX_INPUT`] characters; the host ignores it when nothing takes text.
+    Paste { text: String },
     /// The renderer is leaving (the user quit through it).
     Bye,
     /// The dock's transcript came as a change to a revision the renderer
@@ -404,6 +408,9 @@ impl ToHost {
                 level,
                 text: text.chars().take(MAX_LOG).collect(),
             },
+            ToHost::Paste { text } if text.chars().count() > MAX_INPUT => ToHost::Paste {
+                text: text.chars().take(MAX_INPUT).collect(),
+            },
             ToHost::Rows { scope, mut panes } => {
                 panes.truncate(MAX_PANES);
                 ToHost::Rows {
@@ -472,6 +479,8 @@ mod dock_pipe_tests;
 mod fixture;
 #[cfg(test)]
 mod look_tests;
+#[cfg(test)]
+mod paste_tests;
 #[cfg(test)]
 mod supervisor_tests;
 #[cfg(test)]

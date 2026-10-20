@@ -65,10 +65,8 @@ impl GitPlugin {
     }
 
     #[cfg(test)]
-    fn section_key(&mut self, section: &str, key: radar_core::ratatui::crossterm::event::KeyEvent) -> radar_core::plugin::Outcome {
-        radar_core::view_tui::chord_of(&key).map_or(radar_core::plugin::Outcome::Ignored, |chord| {
-            settings::intent(self, section, &radar_core::view::Intent::Key { chord })
-        })
+    fn section_key(&mut self, section: &str, chord: radar_core::view::Chord) -> radar_core::plugin::Outcome {
+        settings::intent(self, section, &radar_core::view::Intent::Key { chord })
     }
 }
 

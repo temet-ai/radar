@@ -16,7 +16,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 
 #[cfg(test)]
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::Key as KeyCode;
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::journal::{ActionDescriptor, Origin, Outcome as JournalOutcome};
@@ -1226,7 +1226,7 @@ fn extra_columns(p: &GitPlugin, cx: &v::ViewCx<'_>) -> Vec<ColumnSpec> {
         for b in &d.branches {
             for cell in cx.parts.cells(&subject_of(&c, &b.name)) {
                 let lead = cell.icon.map_or(0, |i| ui::width(&icon::plain(i)));
-                let w = ((lead + ui::width(&cell.text)).max(cell.heading.chars().count()) + 1).min(24);
+                let w = ((lead + ui::width(&cell.text)).max(ui::width(&cell.heading)) + 1).min(24);
                 let w = w as u16;
                 match out.iter_mut().find(|x| x.heading == cell.heading) {
                     Some(x) => x.width = x.width.max(w),
@@ -1656,22 +1656,41 @@ pub fn intent(p: &mut GitPlugin, pane: Pane, intent: &Intent) -> Outcome {
     }
 }
 
-/// A terminal key on the screen, as the Ratatui frontend turns it into an
-/// intent (tests that press keys).
+/// A key on the screen, routed as the host routes it: the screen's view says
+/// what the key means (tests that press keys).
 #[cfg(test)]
-pub(crate) fn key(
-    p: &mut GitPlugin,
-    pane: Pane,
-    key: radar_core::ratatui::crossterm::event::KeyEvent,
-) -> Outcome {
-    let fe = radar_core::view_tui::Frontend::default();
-    let scope = radar_core::view_tui::Scope::Screen(SCREEN.id);
-    radar_core::view_tui::press_part(&fe, p, scope, pane, key, radar_core::plugin::DEMO_NOW)
+pub(crate) fn key(p: &mut GitPlugin, pane: Pane, chord: radar_core::view::Chord) -> Outcome {
+    use radar_core::Plugin;
+    use radar_core::view_tui::{Frontend, Routed, to_part};
+    let fe = Frontend::default();
+    let (width, height) = fe.room();
+    let cx = v::ViewCx {
+        now: radar_core::plugin::DEMO_NOW,
+        focus: pane.into(),
+        width,
+        height,
+        parts: radar_core::compose::Parts::none(),
+        icon_lead: fe.lead(),
+        setup: false,
+    };
+    let routed = if p.capturing() {
+        Routed::Intent(Intent::Key { chord })
+    } else {
+        match p.view(SCREEN.id, &cx) {
+            Some(view) => radar_core::view_tui::key(&fe, &view, pane.into(), chord),
+            None => Routed::Ignored,
+        }
+    };
+    match routed {
+        Routed::Intent(i) => to_part(p, SCREEN.id, pane, &i),
+        Routed::Done => Outcome::done(),
+        Routed::Ignored => Outcome::Ignored,
+    }
 }
 
 /// A click on a target the screen's view drew (tests).
 #[cfg(test)]
-pub(crate) fn click(p: &mut GitPlugin, id: &str, _: radar_core::ratatui::layout::Position) -> Outcome {
+pub(crate) fn click(p: &mut GitPlugin, id: &str) -> Outcome {
     intent(p, Pane::Middle, &Intent::Select { target: v::Target::new(id) })
 }
 
@@ -2094,9 +2113,9 @@ pub fn on_menu(p: &mut GitPlugin, menu: &str, value: &str) -> Option<Vec<Effect>
 mod tests {
     use super::*;
     use crate::demo::branches;
+    use radar_core::view::Chord;
     use radar_core::Plugin;
     use radar_core::host::{Event, Host, View as HostView};
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
 
     /// A context press selects the shown row under it for its menu; the
     /// pane's blank background selects nothing and opens no menu. Each shown
@@ -2187,7 +2206,7 @@ mod tests {
     }
 
     fn press(p: &mut GitPlugin, pane: Pane, code: KeyCode) -> Vec<Effect> {
-        match key(p, pane, KeyEvent::new(code, KeyModifiers::NONE)) {
+        match key(p, pane, Chord::new(code)) {
             Outcome::Handled(fx) => fx,
             Outcome::Ignored => vec![],
         }
@@ -2231,7 +2250,7 @@ mod tests {
         let mut host = hosted();
         let _ = crate::tests::shown(&host, 160, 40);
         host.focus = Pane::Nav;
-        host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Down) }));
         insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
@@ -2262,7 +2281,7 @@ mod tests {
             "No branches with unpushed commits shown.",
             "No stashes shown in this view.",
         ] {
-            host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+            host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Down) }));
             let text = crate::tests::shown(&host, 160, 40);
             assert!(text.contains(expected), "{text}");
         }
@@ -2315,13 +2334,13 @@ mod tests {
             key(
                 &mut p,
                 Pane::Nav,
-                KeyEvent::new(KeyCode::Up, KeyModifiers::NONE)
+                Chord::new(KeyCode::Up)
             ),
             Outcome::Ignored
         ));
         press(&mut p, Pane::Nav, KeyCode::Down);
         assert_eq!(p.branches.view(), View::Dirty);
-        let _ = click(&mut p, "view:3", radar_core::ratatui::layout::Position::default());
+        let _ = click(&mut p, "view:3");
         assert_eq!(p.branches.view(), View::Stashes);
     }
 
@@ -2493,7 +2512,7 @@ mod tests {
             key(
                 &mut p,
                 Pane::Middle,
-                KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)
+                Chord::new(KeyCode::Enter)
             ),
             Outcome::Ignored
         ));
@@ -2520,7 +2539,7 @@ mod tests {
                 let outcome = key(
                     &mut p,
                     pane,
-                    KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE),
+                    Chord::new(KeyCode::Enter),
                 );
                 if can_use {
                     assert!(matches!(outcome, Outcome::Handled(ref fx)
@@ -2758,15 +2777,9 @@ mod tests {
         let mut host = hosted();
         host.enable_journal();
         for key in ['b', 'p'] {
-            host.update(Event::Key(KeyEvent::new(
-                KeyCode::Char(key),
-                KeyModifiers::NONE,
-            )));
+            host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Char(key)) }));
         }
-        let launched = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('y'),
-            KeyModifiers::NONE,
-        )));
+        let launched = host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Char('y')) }));
         let aggregate = launched
             .iter()
             .find_map(|effect| match effect {
@@ -3167,14 +3180,8 @@ mod tests {
         select(&p, "/work/acme/api", Some("b:spike"));
         host.plugins[0] = Box::new(p);
         host.enable_journal();
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('d'),
-            KeyModifiers::NONE,
-        )));
-        let launched = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('y'),
-            KeyModifiers::NONE,
-        )));
+        host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Char('d')) }));
+        let launched = host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Char('y')) }));
         let [(write_task, write)] = &tracked_read_tasks(&launched)[..] else {
             panic!("one delete task")
         };
@@ -3242,10 +3249,7 @@ mod tests {
         use radar_core::host::{HostEffect, JournalRecord};
         let mut host = hosted();
         host.enable_journal();
-        let launched = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('r'),
-            KeyModifiers::NONE,
-        )));
+        let launched = host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Char('r')) }));
         let tasks = tracked_read_tasks(&launched);
         assert_eq!(tasks.len(), 2);
         let actions: Vec<_> =

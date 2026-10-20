@@ -327,7 +327,7 @@ pub(crate) fn worktree_path(p: &GitPlugin, clone: &str, branch: &str) -> String 
 
 fn place(dir: &str) -> String {
     let mut place = local::tilde(dir);
-    if place.chars().count() > 40 {
+    if radar_core::design::width::width(&place) > 40 {
         place = Path::new(dir)
             .file_name()
             .map_or(place, |n| n.to_string_lossy().into_owned());
@@ -1977,7 +1977,7 @@ mod journal_tests {
     fn park_aggregate_task_steps_and_rescan_keep_independent_host_identities() {
         use radar_core::host::{Event, HostEffect, JournalRecord};
         use radar_core::journal::ActionId;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Intent, Key as KeyCode};
         use radar_core::{Host, Plugin};
 
         struct Harness(GitPlugin);
@@ -2076,10 +2076,7 @@ mod journal_tests {
                 }),
             }),
         });
-        let launched = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('y'),
-            KeyModifiers::NONE,
-        )));
+        let launched = host.update(Event::Intent(Intent::Key { chord: Chord::new(KeyCode::Char('y')) }));
         let (run, semantic) = task(&launched);
         assert_eq!(semantic, Some(aggregate.clone()));
         let result = simulated_park(&i, "SECRET_COMMAND", Err("SECRET_OUTPUT".into()));

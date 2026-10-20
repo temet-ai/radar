@@ -12,7 +12,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::BTreeSet;
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use crate::view::{Chord, Key};
 use ratatui::layout::Rect;
 use ratatui::style::{Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -455,7 +455,7 @@ impl LogState {
     }
 
     /// A key that moves through the log; false for any other.
-    pub fn key(&self, text: &LogText, key: &KeyEvent) -> bool {
+    pub fn key(&self, text: &LogText, key: Chord) -> bool {
         let rows = self.rows(text);
         if rows.is_empty() {
             return false;
@@ -463,20 +463,20 @@ impl LogState {
         let at = self.at(text, &rows);
         let last = rows.len() - 1;
         let page = self.shown.get().saturating_sub(1).max(1);
-        let to = match key.code {
-            KeyCode::Down | KeyCode::Char('j') => (at + 1).min(last),
-            KeyCode::Up | KeyCode::Char('k') => at.saturating_sub(1),
-            KeyCode::PageDown => (at + page).min(last),
-            KeyCode::PageUp => at.saturating_sub(page),
-            KeyCode::Home | KeyCode::Char('g') => 0,
-            KeyCode::End | KeyCode::Char('G') => {
+        let to = match key.key {
+            Key::Down | Key::Char('j') => (at + 1).min(last),
+            Key::Up | Key::Char('k') => at.saturating_sub(1),
+            Key::PageDown => (at + page).min(last),
+            Key::PageUp => at.saturating_sub(page),
+            Key::Home | Key::Char('g') => 0,
+            Key::End | Key::Char('G') => {
                 self.cursor.set(None);
                 return true;
             }
-            KeyCode::Char(' ') => return self.fold(text),
-            KeyCode::Char('+' | '=') => return self.fold_to(text, Some(true)),
-            KeyCode::Char('-') => return self.fold_to(text, Some(false)),
-            KeyCode::Char(c @ ('n' | 'N')) => {
+            Key::Char(' ') => return self.fold(text),
+            Key::Char('+' | '=') => return self.fold_to(text, Some(true)),
+            Key::Char('-') => return self.fold_to(text, Some(false)),
+            Key::Char(c @ ('n' | 'N')) => {
                 if self.matches.borrow().is_empty() {
                     return false;
                 }

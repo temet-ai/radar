@@ -54,6 +54,10 @@ fn press(code: KeyCode) -> KeyEvent {
     KeyEvent::new(code, KeyModifiers::NONE)
 }
 
+fn chord(code: KeyCode) -> crate::view::Chord {
+    crate::key_compat::chord_of(&press(code)).unwrap()
+}
+
 fn sample_nodes(t: &Theme) -> Vec<Node> {
     let leaf = |id: &str, name: &str| {
         Node::new(id, vec![Span::raw(name.to_string())])
@@ -761,7 +765,7 @@ fn a_card_scrolls_within_what_it_holds() {
     s.page(true);
     let out = card_text(80, &s);
     assert!(!out.contains("Sort the atlas"), "{out}");
-    s.key(&press(KeyCode::Char('G')));
+    s.key(&chord(KeyCode::Char('G')));
     let out = card_text(80, &s);
     assert!(out.contains("line 9"), "{out}");
     s.by(100);
@@ -1186,7 +1190,7 @@ fn log_80() {
 #[test]
 fn log_160() {
     let (text, state) = (log_sample(), LogState::new());
-    state.key(&text, &press(KeyCode::Char('g')));
+    state.key(&text, chord(KeyCode::Char('g')));
     state.search(&text, "box 1");
     insta::assert_snapshot!(log_text(160, 12, &text, &state));
 }
@@ -1197,51 +1201,51 @@ fn a_log_starts_at_its_end_folds_sections_and_goes_from_match_to_match() {
     let shown = log_text(60, 10, &text, &state);
     assert!(shown.contains("error: no label left for box 17"), "at the end:\n{shown}");
     // The first section starts folded: its title, the dots, no lines.
-    state.key(&text, &press(KeyCode::Char('g')));
+    state.key(&text, chord(KeyCode::Char('g')));
     let shown = log_text(60, 10, &text, &state);
     assert!(shown.contains("─ Getting the boxes · 4s ⋯ 2 lines"), "{shown}");
     assert!(!shown.contains("fetching box 1"), "{shown}");
     // space on its title opens it; its lines show under a gutter.
-    state.key(&text, &press(KeyCode::Down));
-    state.key(&text, &press(KeyCode::Char(' ')));
+    state.key(&text, chord(KeyCode::Down));
+    state.key(&text, chord(KeyCode::Char(' ')));
     let shown = log_text(60, 10, &text, &state);
     assert!(shown.contains("┌ Getting the boxes · 4s") && shown.contains("│ fetching box 1"), "{shown}");
     // On a line, space folds the section around it and lands on its title.
-    state.key(&text, &press(KeyCode::Down));
-    state.key(&text, &press(KeyCode::Char(' ')));
+    state.key(&text, chord(KeyCode::Down));
+    state.key(&text, chord(KeyCode::Char(' ')));
     assert_eq!(state.line(&text), Some(1));
     assert!(log_text(60, 10, &text, &state).contains("⋯ 2 lines"));
     // A search lands on the first match from the cursor; n and N go round.
     assert_eq!(state.search(&text, "BOX 1"), 13, "box 1 and 10 to 19, and box 17's error, any case");
     assert_eq!(state.line(&text), Some(1), "inside the folded section: it opens");
     assert_eq!(state.found(&text), (1, 13));
-    state.key(&text, &press(KeyCode::Char('N')));
+    state.key(&text, chord(KeyCode::Char('N')));
     assert_eq!(state.line(&text), Some(24), "previous from the first is the last");
-    state.key(&text, &press(KeyCode::Char('n')));
+    state.key(&text, chord(KeyCode::Char('n')));
     assert_eq!(state.line(&text), Some(1));
     state.clear_search();
-    assert!(!state.key(&text, &press(KeyCode::Char('n'))), "no search, n is not the log's");
+    assert!(!state.key(&text, chord(KeyCode::Char('n'))), "no search, n is not the log's");
     // G is the end again; the cursor there sees the top was not reached.
-    state.key(&text, &press(KeyCode::Char('G')));
+    state.key(&text, chord(KeyCode::Char('G')));
     assert!(!state.at_top(&text));
-    state.key(&text, &press(KeyCode::Home));
+    state.key(&text, chord(KeyCode::Home));
     assert!(state.at_top(&text));
 }
 
 #[test]
 fn plus_opens_a_logs_section_and_minus_folds_the_one_the_cursor_is_in() {
     let (text, state) = (log_sample(), LogState::new());
-    state.key(&text, &press(KeyCode::Char('g')));
-    state.key(&text, &press(KeyCode::Down));
-    assert!(!state.key(&text, &press(KeyCode::Char('-'))), "folded already");
-    assert!(state.key(&text, &press(KeyCode::Char('+'))));
+    state.key(&text, chord(KeyCode::Char('g')));
+    state.key(&text, chord(KeyCode::Down));
+    assert!(!state.key(&text, chord(KeyCode::Char('-'))), "folded already");
+    assert!(state.key(&text, chord(KeyCode::Char('+'))));
     assert!(log_text(60, 10, &text, &state).contains("│ fetching box 1"));
-    assert!(!state.key(&text, &press(KeyCode::Char('='))), "open already");
-    state.key(&text, &press(KeyCode::Down));
-    assert!(state.key(&text, &press(KeyCode::Char('-'))), "from a line inside it");
+    assert!(!state.key(&text, chord(KeyCode::Char('='))), "open already");
+    state.key(&text, chord(KeyCode::Down));
+    assert!(state.key(&text, chord(KeyCode::Char('-'))), "from a line inside it");
     assert_eq!(state.line(&text), Some(1), "on its title");
     assert!(log_text(60, 10, &text, &state).contains("⋯ 2 lines"));
-    assert!(state.key(&text, &press(KeyCode::Char('='))));
+    assert!(state.key(&text, chord(KeyCode::Char('='))));
 }
 
 #[test]

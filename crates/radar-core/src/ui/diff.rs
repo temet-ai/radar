@@ -13,7 +13,7 @@ use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use crate::view::{Chord, Key};
 use ratatui::layout::Rect;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -92,18 +92,18 @@ impl DiffState {
 
     /// `↑↓ j k PgUp PgDn g G Home End` over `n` lines; false for any other
     /// key, and for `↑` on the first line (the host takes it up).
-    pub fn key(&self, key: &KeyEvent, n: usize) -> bool {
+    pub fn key(&self, key: Chord, n: usize) -> bool {
         let last = n.saturating_sub(1);
         let at = self.cursor.get().min(last);
         let page = self.height.get().saturating_sub(1).max(1);
-        let to = match key.code {
-            KeyCode::Down | KeyCode::Char('j') => (at + 1).min(last),
-            KeyCode::Up | KeyCode::Char('k') if at == 0 => return false,
-            KeyCode::Up | KeyCode::Char('k') => at - 1,
-            KeyCode::PageDown => (at + page).min(last),
-            KeyCode::PageUp => at.saturating_sub(page),
-            KeyCode::Home | KeyCode::Char('g') => 0,
-            KeyCode::End | KeyCode::Char('G') => last,
+        let to = match key.key {
+            Key::Down | Key::Char('j') => (at + 1).min(last),
+            Key::Up | Key::Char('k') if at == 0 => return false,
+            Key::Up | Key::Char('k') => at - 1,
+            Key::PageDown => (at + page).min(last),
+            Key::PageUp => at.saturating_sub(page),
+            Key::Home | Key::Char('g') => 0,
+            Key::End | Key::Char('G') => last,
             _ => return false,
         };
         self.cursor.set(to);
@@ -113,7 +113,7 @@ impl DiffState {
     /// The same keys side by side ([`split_rows`]): the cursor moves by
     /// rows, staying on the side it is on where the row has a line there
     /// (the new side first).
-    pub fn key_split(&self, key: &KeyEvent, lines: &[DiffLine]) -> bool {
+    pub fn key_split(&self, key: Chord, lines: &[DiffLine]) -> bool {
         let rows = split_rows(lines);
         if rows.is_empty() {
             return false;
@@ -122,14 +122,14 @@ impl DiffState {
         let r = rows.iter().position(|(a, b)| *a == Some(at) || *b == Some(at)).unwrap_or(0);
         let last = rows.len() - 1;
         let page = self.height.get().saturating_sub(1).max(1);
-        let to = match key.code {
-            KeyCode::Down | KeyCode::Char('j') => (r + 1).min(last),
-            KeyCode::Up | KeyCode::Char('k') if r == 0 => return false,
-            KeyCode::Up | KeyCode::Char('k') => r - 1,
-            KeyCode::PageDown => (r + page).min(last),
-            KeyCode::PageUp => r.saturating_sub(page),
-            KeyCode::Home | KeyCode::Char('g') => 0,
-            KeyCode::End | KeyCode::Char('G') => last,
+        let to = match key.key {
+            Key::Down | Key::Char('j') => (r + 1).min(last),
+            Key::Up | Key::Char('k') if r == 0 => return false,
+            Key::Up | Key::Char('k') => r - 1,
+            Key::PageDown => (r + page).min(last),
+            Key::PageUp => r.saturating_sub(page),
+            Key::Home | Key::Char('g') => 0,
+            Key::End | Key::Char('G') => last,
             _ => return false,
         };
         let left = rows[r].0 == Some(at) && rows[r].1 != Some(at);
@@ -678,7 +678,6 @@ impl<'a> DiffView<'a> {
 mod tests {
     use super::*;
     use crate::ui::gallery::SAMPLE_DIFF as SAMPLE;
-    use ratatui::crossterm::event::KeyModifiers;
 
     #[test]
     fn a_unified_diff_is_read_with_both_sides_numbers() {
@@ -705,17 +704,17 @@ mod tests {
     fn the_cursor_moves_by_line_page_and_hunk() {
         let lines = parse(SAMPLE);
         let s = DiffState::new();
-        let key = |c| KeyEvent::new(c, KeyModifiers::NONE);
-        assert!(s.key(&key(KeyCode::Down), lines.len()));
+        let key = |c| Chord::new(c);
+        assert!(s.key(&key(Key::Down), lines.len()));
         assert_eq!(s.cursor(), 1);
         assert!(s.next_hunk(&lines));
         assert_eq!(s.cursor(), 13);
         assert!(!s.next_hunk(&lines), "none after the last");
         assert!(s.previous_hunk(&lines));
         assert_eq!(s.cursor(), 0);
-        assert!(s.key(&key(KeyCode::Char('G')), lines.len()));
+        assert!(s.key(&key(Key::Char('G')), lines.len()));
         assert_eq!(s.cursor(), lines.len() - 1);
-        assert!(!s.key(&key(KeyCode::Char('x')), lines.len()));
+        assert!(!s.key(&key(Key::Char('x')), lines.len()));
     }
 
     #[test]
@@ -750,18 +749,18 @@ mod tests {
         assert_eq!(every, lines.len(), "every line once");
         // The cursor moves by rows and keeps its side.
         let s = DiffState::new();
-        let key = |c| KeyEvent::new(c, KeyModifiers::NONE);
+        let key = |c| Chord::new(c);
         s.set(2);
-        assert!(s.key_split(&key(KeyCode::Down), &lines));
+        assert!(s.key_split(&key(Key::Down), &lines));
         assert_eq!(s.cursor(), 4, "the new side of the paired row");
-        assert!(s.key_split(&key(KeyCode::Down), &lines));
+        assert!(s.key_split(&key(Key::Down), &lines));
         assert_eq!(s.cursor(), 5);
         s.set(3);
-        assert!(s.key_split(&key(KeyCode::Up), &lines));
+        assert!(s.key_split(&key(Key::Up), &lines));
         assert_eq!(s.cursor(), 2);
         s.set(0);
-        assert!(!s.key_split(&key(KeyCode::Up), &lines), "↑ on the first row is the host's");
-        assert!(!s.key(&key(KeyCode::Up), lines.len()), "and on the first line");
+        assert!(!s.key_split(&key(Key::Up), &lines), "↑ on the first row is the host's");
+        assert!(!s.key(&key(Key::Up), lines.len()), "and on the first line");
         // Drawn: both sides of a paired row, a click target each, and the
         // numbers of each.
         let t = Theme::new(crate::design::theme::Tier::Mono);

@@ -15,7 +15,7 @@
 use std::cell::Cell as Flag;
 use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use image::DynamicImage;
 use ratatui::buffer::Buffer;
@@ -354,6 +354,7 @@ pub fn card(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
     use crate::design::theme::Tier;
     use crate::ui::rich::{self, Block, Doc, Inline};
     use ratatui_image::FontSize;

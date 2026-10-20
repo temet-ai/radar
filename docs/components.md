@@ -359,8 +359,8 @@ Found by inventory on 13 October 2026. Each item is a defect against the rules a
     drawn" when fixed. The other fields the contract once listed are drawn, or are in `SCREEN_INVISIBLE` with their
     reason (a motion mark: `Node.state.state` loading and `TreeRow.glow`; hit only: `TreeRow.heading`; the host's:
     `Node.diff.language`; not drawn by `ui::rich` either: `RichBlock.code.lang`, `InlineKind.image.src`).
-    Known drift found on the way: a tree's `Tree.note` is one line with `… ` or `✗ ` marks in Ink, and
-    `widgets::empty` over three rows in Ratatui, whatever its state; a log's `n–m of total` line has no Ratatui twin.
+    Two forms are Ink's, since Ratatui is going: a tree's `Tree.note` is one line, marked `… ` while loading
+    and `✗ ` when it failed; a log shows an `n–m of total` line when it holds more rows than it shows.
 
 ---
 

@@ -66,7 +66,7 @@ Each command is printed before execution. A replay first compiles the selected
 minimal test target with `cargo test --no-run`, then uses the equivalent of:
 
 ```sh
-cargo test --locked --offline --color never --target-dir /path/to/gg/target \
+cargo test --locked --offline --color never --target-dir /path/to/radar/target \
   -p radar --no-default-features --features slack,test-support --test slack_scenarios \
   -- --exact confirmed_reply_waits_for_provider_then_refreshes_and_persists_success \
   --nocapture --test-threads=1

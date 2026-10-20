@@ -82,6 +82,13 @@ The full set is in `docs/components.md` section 1 and GUIDE sections 1.15, 1.18 
 
 ## Working here
 
+- **Maintainers turn on the hooks** once per checkout: `git config core.hooksPath scripts/hooks`.
+  They refuse a commit that adds a word from a private list of client, employer and
+  colleague names kept outside the repository (`~/.config/radar-dev/private-words.txt`, or
+  `RADAR_PRIVATE_WORDS`), a maintainer's own paths, `session_id:` front matter, or a secret
+  gitleaks finds. Without the list they refuse every commit. Contributors need none of this;
+  CI runs gitleaks on every pull request.
+- Worktrees go under `.claude/worktrees/<name>` (ignored by git), never beside the checkout.
 - `scripts/ink-live/ink-live` runs the real radar in tmux with the Ink renderer (or Ratatui)
   and reads its screen as text or colour: the live check for anything visible.
 - A recording of a real agent CLI for the adapter tests is scrubbed with

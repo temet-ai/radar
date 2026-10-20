@@ -16,8 +16,8 @@ unset CARGO_TARGET_DIR
 root="${RADAR_INSTALL_ROOT:-$HOME/.local}"
 bin="$root/bin/radar"
 
-# RADAR_BUILD_DIR builds somewhere else (scripts/deploy-mac uses a temporary
-# folder so the Mac's checkout keeps no target/).
+# RADAR_BUILD_DIR builds somewhere else (a temporary folder, so a checkout
+# keeps no target/).
 build="${RADAR_BUILD_DIR:-target}"
 
 # radar's runtime (the Ink renderer and the Claude Code sidecar as one Node

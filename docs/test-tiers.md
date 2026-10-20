@@ -160,7 +160,7 @@ snapshot probe-helper unit tests live once in the separate `scenario_probes`
 binary, avoiding duplication as multiple journeys reuse the helpers. Snapshot
 probes cannot drive a host or release responses, and empty probe sets must fail.
 
-The [Slack reply consolidation](plans/slack-reply-consolidation.md) adds two
+The Slack reply consolidation adds two
 narrow contract scopes. The shared host case retains one demo-backed host and
 exactly two real frames protecting the unchanged typing/confirmation goldens,
 while requiring no provider requests. The owner acceptance case uses fixed owned
@@ -170,7 +170,7 @@ it does not claim bootstrap, authentication or persistence. The preserved root
 journeys still protect provider/journal lifecycle and exact 429 uncertainty.
 Consolidation source counts and passing inventory are not execution timings.
 
-The [Slack review-draft consolidation](plans/slack-review-consolidation.md)
+The Slack review-draft consolidation
 adds one narrow host contract. One real host retains six unchanged goldens and
 the prior escaped-text frame, with an actual seven-frame lifetime assertion.
 Local Code/Tracker contract stubs are not real sibling-part dependencies. The
@@ -178,7 +178,7 @@ Recorded ledger stays empty and dispatch rejects provider work; edit/drop routin
 and rendered content are the boundary, not a successful external review. Source
 inventory and frame limits are separate from measured runtime verification.
 
-The [Slack review-post consolidation](plans/slack-review-post-consolidation.md)
+The Slack review-post consolidation
 protects success and refusal with one sample-backed host, two actual production
 post tasks/reducers under `Scenario`, and exactly two lifetime shell frames. It
 retains the followed Code-row render and unchanged refusal golden. `Recorded`

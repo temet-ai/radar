@@ -44,6 +44,22 @@ echo "fine" >> a.txt && git add a.txt
 expect refused "a message with a word" git commit -q -m "fix for ZZQ-42"
 expect pass "the same change with a clean message" git commit -q -m "fix"
 
+echo "built in /mnt/data/projects/radar" >> a.txt && git add a.txt
+expect refused "a maintainer's path" git commit -q -m "change"
+git reset -q --hard
+
+printf -- '---\ntitle: t\nsession_id:\n  - 1234\n---\n' > doc.md && git add doc.md
+expect refused "session_id front matter" git commit -q -m "change"
+git reset -q --hard
+rm -f doc.md
+
+if command -v gitleaks >/dev/null 2>&1; then
+    echo 'token = "ghp_'"$(printf 'a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8')"'"' > leak.txt && git add leak.txt
+    expect refused "a secret gitleaks finds" git commit -q -m "change"
+    git reset -q --hard
+    rm -f leak.txt
+fi
+
 mv "$RADAR_PRIVATE_WORDS" "$work/gone.txt"
 echo "more" >> a.txt && git add a.txt
 expect refused "no word list refuses" git commit -q -m "change"

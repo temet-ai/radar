@@ -2,3 +2,9 @@
 /shots
 *.snap.new
 *.pending-snap
+# A maintainer's own working material, never committed.
+/CLAUDE.local.md
+/.claude/settings.local.json
+/.claude/worktrees/
+/.claude/agent-memory/
+/.claude/fleet/

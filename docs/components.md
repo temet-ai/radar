@@ -125,7 +125,7 @@ Ratatui draws no dock: while the dock is shown, it draws one line in the dock's 
 middle pane (`notice_below` in `crates/radar-core/src/view_tui.rs`; the block in
 `crates/radar-core/src/shell.rs`). With the dock hidden it draws no row, so the rows match Ink's.
 That line is the one recorded exception to "both renderers, same picture"
-(operator, 2026-10-13; [plans/agent-dock.md](plans/agent-dock.md)).
+(decided 2026-10-13).
 
 | Dock part | Ratatui | Ink (who draws it) | States (fixtures and stories) |
 |---|---|---|---|

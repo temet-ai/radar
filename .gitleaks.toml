@@ -1,4 +1,4 @@
-# gitleaks for radar (scripts/export-public runs it on the public tree): the default
+# gitleaks for radar (the pre-commit hook and CI run it): the default
 # rules, less the fakes the tests need and the call ids in recorded Copilot streams.
 [extend]
 useDefault = true

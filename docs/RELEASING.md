@@ -21,11 +21,8 @@ this matrix.
 
 ## Distribution
 
-The source is public at [`temet-ai/radar`](https://github.com/temet-ai/radar), and its
-releases are the single source for package managers. The repository it is developed
-in is private; `scripts/export-public --push git@github.com:temet-ai/radar.git` builds
-the public tree from its `main`, checks it (gitleaks, the private word list, personal
-paths, links to what is left out) and pushes it as one commit on the public `main`.
+radar is developed in [`temet-ai/radar`](https://github.com/temet-ai/radar), and its
+releases are the single source for package managers.
 
 The public `temet-ai/homebrew-radar` tap contains `Formula/radar.rb`. After each
 prerelease, render it from that release's
@@ -71,7 +68,7 @@ radar draws its TUI with one of two renderers, chosen by one switch,
 
 - `ratatui`: the Rust runner in the radar process, being retired.
 - `ink`: the Ink/React renderer, a child process that draws the same views
-  over radar's IPC ([ink-ipc.md](plans/ink-ipc.md)).
+  over radar's IPC ([ink-ipc.md](ink-ipc.md)).
 - Unset (or any other value): the build's default, `DEFAULT_RENDERER` in
   `src/lib.rs`: Ink.
 
@@ -102,12 +99,11 @@ still theirs to install, only for the agent they want.
 
 ## Publishing checklist
 
-1. On the private `main`: bump the version, run `scripts/notices`, `cargo nextest run --workspace --all-features`, `cargo clippy --workspace --all-targets --all-features -- -D warnings`, `cargo deny check`, and the Ink and sidecar tests. Commit and push.
-2. `scripts/export-public <new folder> --push git@github.com:temet-ai/radar.git`.
-3. In a clone of `temet-ai/radar`, create and push an annotated tag `v<version>` on that commit.
-4. Wait for the three build jobs and the prerelease publication to succeed.
-5. With the `HOMEBREW_TAP_TOKEN` secret set on `temet-ai/radar` (a token that can write to `temet-ai/homebrew-radar`), the publish job also commits the rendered formula to the tap. Without it the job warns: download `checksums.txt` from the release, run `scripts/render-homebrew-formula <version> temet-ai/radar checksums.txt > Formula/radar.rb` in a clone of the tap, commit and push.
-6. `brew upgrade temet-ai/radar/radar` on Linux and the Mac, and run radar with no `node` on `PATH`: Ink draws it, and Settings → Agents lists the CLIs.
+1. On `main`: bump the version, run `scripts/notices`, `cargo nextest run --workspace --all-features`, `cargo clippy --workspace --all-targets --all-features -- -D warnings`, `cargo deny check`, and the Ink and sidecar tests. Commit and push.
+2. Create and push an annotated tag `v<version>` on that commit.
+3. Wait for the three build jobs and the prerelease publication to succeed.
+4. With the `HOMEBREW_TAP_TOKEN` secret set on `temet-ai/radar` (a token that can write to `temet-ai/homebrew-radar`), the publish job also commits the rendered formula to the tap. Without it the job warns: download `checksums.txt` from the release, run `scripts/render-homebrew-formula <version> temet-ai/radar checksums.txt > Formula/radar.rb` in a clone of the tap, commit and push.
+5. `brew upgrade temet-ai/radar/radar` on Linux and the Mac, and run radar with no `node` on `PATH`: Ink draws it, and Settings → Agents lists the CLIs.
 
 The release workflow needs only the repository's `contents: write` permission
 to publish there; `HOMEBREW_TAP_TOKEN` is the one other credential.

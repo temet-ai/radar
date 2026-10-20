@@ -163,8 +163,8 @@ writes are captured in memory; desktop effects are captured and these particular
 recipes assert that none were requested. No assertion claims a real desktop
 operation completed.
 
-For the driver contracts, strict fixture rules, current limitations and broader
-verification lanes, see [the fixture plan](plans/testing-fixtures.md). These ten
+For the driver contracts and strict fixture rules, see
+[test-tiers.md](test-tiers.md). These ten
 protected integrations supplement the unit suite, feature-mix checks and future
 renderer checkpoints; they do not replace them.
 

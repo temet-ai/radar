@@ -1,14 +1,44 @@
 #!/usr/bin/env bash
-# Refuses a commit that adds a private word: a client's, an employer's or a
-# colleague's name, a real project or ticket key. The words are not in this
-# repository; they are read from $RADAR_PRIVATE_WORDS, else
-# ~/.config/radar-dev/private-words.txt (one extended regex per line, matched
-# without case; blank lines and lines starting with # are skipped).
+# The maintainers' guard on what reaches the public repository. Refuses a
+# commit that adds:
+#   - a private word: a client's, an employer's or a colleague's name, a real
+#     project or ticket key. The words are not in this repository; they are
+#     read from $RADAR_PRIVATE_WORDS, else ~/.config/radar-dev/private-words.txt
+#     (one extended regex per line, matched without case; blank lines and
+#     lines starting with # are skipped);
+#   - a maintainer's own path or session link;
+#   - `session_id:` front matter in a Markdown file;
+#   - a secret gitleaks finds (with .gitleaks.toml), when gitleaks is installed.
 #
 # Checked: every added line of the staged diff, and the staged file paths.
 # Without the word list the commit is refused, so a machine that lost it
 # notices. Turn it on in a checkout with `git config core.hooksPath scripts/hooks`.
 set -euo pipefail
+
+added() {
+    git diff --cached -U0 --no-color --diff-filter=ACMR "$@" | grep -E '^[+]' | grep -v -E '^[+][+][+] ' || true
+}
+
+personal='/Users/dawiddutoit|/home/dawid|/home/unit/|/mnt/data/|claude\.ai/code/session_|dawiddutoit@temet|dawiddutoit/gg([^-a-z]|$)'
+# The hooks themselves name what they look for.
+if hits=$(added -- . ':!scripts/hooks' | grep -n -E "$personal"); [ -n "$hits" ]; then
+    echo "pre-commit: refused, the staged change adds a private path, link or repository name:" >&2
+    printf '%s\n' "$hits" | cut -c1-200 >&2
+    exit 1
+fi
+if hits=$(added -- '*.md' | grep -n -E '^[+]session_id:'); [ -n "$hits" ]; then
+    echo "pre-commit: refused, session_id front matter does not go in this repository" >&2
+    exit 1
+fi
+root=$(git rev-parse --show-toplevel)
+if command -v gitleaks >/dev/null 2>&1; then
+    config=()
+    [ -f "$root/.gitleaks.toml" ] && config=(--config "$root/.gitleaks.toml")
+    if ! gitleaks git --pre-commit --staged ${config[@]+"${config[@]}"} --no-banner --redact >&2; then
+        echo "pre-commit: refused, gitleaks found a secret in the staged change" >&2
+        exit 1
+    fi
+fi
 
 list=${RADAR_PRIVATE_WORDS:-$HOME/.config/radar-dev/private-words.txt}
 if [ ! -s "$list" ]; then
@@ -27,7 +57,7 @@ fi
 hits=$(
     {
         git diff --cached --name-only --diff-filter=ACMR
-        git diff --cached -U0 --no-color --diff-filter=ACMR | grep -E '^[+]' | grep -v -E '^[+][+][+] '
+        added
     } | grep -n -i -E -f "$patterns" || true
 )
 if [ -n "$hits" ]; then

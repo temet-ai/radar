@@ -2,7 +2,7 @@
 source: tests/github_links.rs
 expression: text
 ---
-bar: radar  <repositories> :issue: jira :chat: slack :branch: branches :log: history :settings: settings  synced 25s ago  ✎ edit {chrome:mode}
+bar: radar  <repositories> :issue: jira :chat: slack :branch: branches :log: history :settings: settings  synced 25s ago  :mode_edit: edit {chrome:mode}
 ── nav · views ──
 > Everything  2 repos  {view:0}
   :group: acme  2 repos  {view:1}

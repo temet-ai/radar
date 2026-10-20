@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  <:branch: branches> :log: history :settings: settings  not synced yet · every 1m  ✎ edit {chrome:mode}
+bar: radar  <:branch: branches> :log: history :settings: settings  not synced yet · every 1m  :mode_edit: edit {chrome:mode}
 ── nav · views ──
 > :views: all  {view:0}
   :warning: dirty  {view:1}

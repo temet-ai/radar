@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  :repo: repositories ! <:issue: jira> :branch: branches work items :log: history :settings: settings  not synced yet · every 2m  ✎ edit {chrome:mode}
+bar: radar  :repo: repositories ! <:issue: jira> :branch: branches work items :log: history :settings: settings  not synced yet · every 2m  :mode_edit: edit {chrome:mode}
 ── nav · views ──
 > :search: Our project  {view:0}
 ── middle · Our project * ──

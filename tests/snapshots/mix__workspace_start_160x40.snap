@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  :log: history :settings: settings  ✎ edit {chrome:mode}
+bar: radar  :log: history :settings: settings  :mode_edit: edit {chrome:mode}
 ── middle · set up Workspace * ──
 :settings: Workspace is not set up yet.
 

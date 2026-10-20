@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  <work items> :log: history :settings: settings  local annotations · observations only  ✎ edit {chrome:mode}
+bar: radar  <work items> :log: history :settings: settings  local annotations · observations only  :mode_edit: edit {chrome:mode}
 ── nav · local groups ──
 ! Groups not loaded
 > All items  {["group","all",null,0,0]}

@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  <:repo: repositories !> :chat: slack :branch: branches work items :log: history :settings: settings  (busy)  not synced yet  ✎ edit {chrome:mode}
+bar: radar  <:repo: repositories !> :chat: slack :branch: branches work items :log: history :settings: settings  (busy)  not synced yet  :mode_edit: edit {chrome:mode}
 ── page · Repositories / a / api ──
 :repo: acme/team-a/api  :alert_firing: [firing · 1]  :branch: main — none
 :local: checkout  no local checkout known: add the folders you keep code in, in settings, git › checkouts

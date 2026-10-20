@@ -231,21 +231,17 @@ fn the_first_screen_and_settings_with(pack: &str) {
     // the icon pack in use.
     let shown = |host: &Host| {
         let _ = host.build_theme(Tier::TrueColor);
-        // The mode chip's words carry a mark the host takes from the pack in
-        // use, as text, not as an icon's name; the rest names its icons.
-        let mode = host.chrome_view(160, 40).top_bar.mode.text;
-        (to_text(host, 160, 40).replace(&mode, "<mode chip>"), mode)
+        to_text(host, 160, 40)
     };
     let mut host = started();
-    let (off, off_mode) = shown(&host);
+    let off = shown(&host);
     host.colours.cfg.icons = pack.into();
-    let (with, with_mode) = shown(&host);
+    let with = shown(&host);
     assert_eq!(with, off, "{pack}: the view data names icons, whatever the pack");
     assert!(off.contains(":settings: settings"), "the tabs name their icons:\n{off}");
-    // The pack was in use: nerd's mark on the mode chip is its own.
-    if pack == "nerd" {
-        assert_ne!(with_mode, off_mode, "the nerd pack was not in use");
-    }
+    // The mode chip names its icon too (#34); it is no longer a glyph taken
+    // from the pack in use.
+    assert!(off.contains(":mode_edit: edit"), "the mode chip names its icon:\n{off}");
     host.view = View::Settings;
     record!(
         false,

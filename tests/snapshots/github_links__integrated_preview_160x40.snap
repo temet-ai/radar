@@ -2,7 +2,7 @@
 source: tests/github_links.rs
 expression: text
 ---
-bar: radar  <repositories> :issue: jira :chat: slack :branch: branches :log: history :settings: settings  synced 25s ago  ✎ edit {chrome:mode}
+bar: radar  <repositories> :issue: jira :chat: slack :branch: branches :log: history :settings: settings  synced 25s ago  :mode_edit: edit {chrome:mode}
 ── nav · views ──
 > Everything  2 repos  {view:0}
   :group: acme  2 repos  {view:1}
@@ -37,7 +37,7 @@ head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   What ABC-12 is about.
 
 § :channel: DISCUSSED IN SLACK
-  #team · 16m ago · no replies
-  :person: Alice E.  https://github.com/acme/api/pull/42
+  #team · Alice Example · 16m ago · no replies
+  :person: https://github.com/acme/api/pull/42
 ── status · GITHUB ──
 PgUp/PgDn scroll  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

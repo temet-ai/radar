@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  :log: history :settings: settings  ✎ edit {chrome:mode}
+bar: radar  :log: history :settings: settings  :mode_edit: edit {chrome:mode}
 ── middle · set up GitHub * ──
 :settings: GitHub is not set up yet.
 

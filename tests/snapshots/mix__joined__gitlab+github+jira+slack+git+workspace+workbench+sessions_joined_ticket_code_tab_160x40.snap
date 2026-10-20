@@ -2,7 +2,7 @@
 source: tests/mix.rs
 expression: text
 ---
-bar: radar  :repo: repositories ! <:issue: jira> :branch: branches work items :log: history :settings: settings  (busy)  not synced yet · every 2m  ✎ edit {chrome:mode}
+bar: radar  :repo: repositories ! <:issue: jira> :branch: branches work items :log: history :settings: settings  (busy)  not synced yet · every 2m  :mode_edit: edit {chrome:mode}
 ── page · Jira / acme / ABC / ABC-12 ──
 :story: Add a stats endpoint for the dashboard  :in_progress: In Review · Story · :you: you
 Acme ABC · :updated: updated 1h ago

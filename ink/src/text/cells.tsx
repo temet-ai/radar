@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef } from "react";
-import { Box, type BoxProps } from "ink";
+import { Box, type BoxProps, type DOMElement } from "ink";
 import chalk from "chalk";
 import { foregroundColorNames } from "chalk";
 
@@ -305,7 +305,7 @@ export class Pen {
 export const BgContext = createContext<string | undefined>(undefined);
 export const useBg = () => useContext(BgContext);
 /** <Box> that tells the rows inside it which background they sit on. */
-export function BgBox(props: BoxProps & { children?: React.ReactNode }) {
+export function BgBox(props: BoxProps & { children?: React.ReactNode; ref?: React.Ref<DOMElement> }) {
   const inherited = useContext(BgContext);
   return (
     <BgContext value={props.backgroundColor || inherited}>

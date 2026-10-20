@@ -12,6 +12,7 @@ import { motion } from "../motion/motion.js";
 import { MotionSceneContext, MotionPaneContext } from "../motion/scene.js";
 import { textProps } from "../text/TextLine.js";
 import { TabRow } from "./TabRow.js";
+import { segHits, useLineHits } from "../nodes/lineHits.js";
 import type { TabView } from "../protocol/generated/TabView.js";
 import { bottomFieldRow, fieldRows, FIELD_ROWS } from "../chrome/filter.js";
 import { splitDock } from "../dock/layout.js";
@@ -360,6 +361,54 @@ function layoutOf(page: any): any {
   return page.layout ?? null;
 }
 
+/** The page's breadcrumbs: the last one strong, a chip among them a hit (the separators and the leading space are not). */
+function CrumbsLine({ crumbs, width, cx }: { crumbs: any[]; width: number; cx: NodeCx }) {
+  const ref = useRef<DOMElement>(null);
+  const flat = crumbs.flatMap((c, i) => (i > 0 ? [{ text: " / " }, c] : [c]));
+  useLineHits(ref, cx.registry, segHits(flat, cx.plainText, 1, width));
+  return (
+    <Box ref={ref} width={width} flexShrink={0} backgroundColor={bgOf("bg.base")}>
+      <Text wrap="truncate">
+        {" "}
+        {crumbs.map((c, i) => (
+          <Text key={i}>
+            {i > 0 ? <Text {...textProps(slotStyle("text.muted"))}>{" / "}</Text> : null}
+            <SegRun seg={{ ...c, strong: c.strong || i === crumbs.length - 1 }} plain={cx.plainText} />
+          </Text>
+        ))}
+      </Text>
+    </Box>
+  );
+}
+
+/** Ratatui clips this line at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows. */
+function UnderLine({ text, width, cx }: { text: any[]; width: number; cx: NodeCx }) {
+  const ref = useRef<DOMElement>(null);
+  const room = Math.max(0, width - 1);
+  useLineHits(ref, cx.registry, segHits(text, cx.plainText, 1, room));
+  return (
+    <Box width={room} overflow="hidden">
+      <Box width={1000} flexShrink={0}>
+        <BgBox ref={ref} flexShrink={0} backgroundColor={bgOf("bg.base")}>
+          <Text> </Text>
+          <TextLine text={text} plain={cx.plainText} />
+        </BgBox>
+      </Box>
+    </Box>
+  );
+}
+
+function NoticeLine({ text, width, cx }: { text: any[]; width: number; cx: NodeCx }) {
+  const ref = useRef<DOMElement>(null);
+  useLineHits(ref, cx.registry, segHits(text, cx.plainText, 1, width));
+  return (
+    <BgBox ref={ref} backgroundColor={bgOf("bg.base")}>
+      <Text> </Text>
+      <TextLine text={text} plain={cx.plainText} />
+    </BgBox>
+  );
+}
+
 /** An item page: crumbs, title + details, the line under, the tab row, then the panes in the page's layout. */
 export function PageBody({ page, focus, width, height, cx, renderNode }: { page: any; focus?: string; width: number; height: number; cx: NodeCx; renderNode: RenderNode }) {
   const crumbs: any[] = page.crumbs ?? [];
@@ -367,26 +416,14 @@ export function PageBody({ page, focus, width, height, cx, renderNode }: { page:
   const details: any[] = page.details ?? [];
   const tabs: TabView[] = page.tabs ?? [];
   const head: React.ReactNode[] = [];
-  head.push(
-    <Box key="crumbs" width={width} flexShrink={0} backgroundColor={bgOf("bg.base")}>
-    <Text wrap="truncate">
-      {" "}
-      {crumbs.map((c, i) => (
-        <Text key={i}>
-          {i > 0 ? <Text {...textProps(slotStyle("text.muted"))}>{" / "}</Text> : null}
-          <SegRun seg={{ ...c, strong: c.strong || i === crumbs.length - 1 }} plain={cx.plainText} />
-        </Text>
-      ))}
-    </Text>
-    </Box>,
-  );
-  head.push(<PageTitleLine key="title" title={title} details={details} width={width} plain={cx.plainText} base={bgOf("bg.base")} />);
+  head.push(<CrumbsLine key="crumbs" crumbs={crumbs} width={width} cx={cx} />);
+  head.push(<PageTitleLine key="title" title={title} details={details} width={width} plain={cx.plainText} base={bgOf("bg.base")} registry={cx.registry} />);
   // Ratatui clips this line at the frame's edge with no ellipsis: a wide row inside a box that hides what overflows.
-  if (page.under) head.push(<Box key="under" width={Math.max(0, width - 1)} overflow="hidden"><Box width={1000} flexShrink={0}><BgBox flexShrink={0} backgroundColor={bgOf("bg.base")}><Text> </Text><TextLine text={page.under} plain={cx.plainText} /></BgBox></Box></Box>);
+  if (page.under) head.push(<UnderLine key="under" text={page.under} width={width} cx={cx} />);
   if (tabs.length > 0) {
     head.push(<TabRow key="tabs" base={bgOf("bg.base")} tabs={tabs} on={page.tab} focused={!!cx.tabsFocused} width={Math.max(0, width - 2)} registry={cx.registry} />);
   }
-  if (page.notice) head.push(<BgBox key="notice" backgroundColor={bgOf("bg.base")}><Text> </Text><TextLine text={page.notice} plain={cx.plainText} /></BgBox>);
+  if (page.notice) head.push(<NoticeLine key="notice" text={page.notice} width={width} cx={cx} />);
   const bodyH = Math.max(0, height - head.length);
   const panes: Pane[] = (page.panes ?? []).filter((p: Pane) => p.from == null || width >= p.from);
   const focusId = focus ?? "middle";

@@ -1,5 +1,6 @@
-import React from "react";
-import { Box, Text as InkText } from "ink";
+import React, { useRef } from "react";
+import { Box, Text as InkText, type DOMElement } from "ink";
+import { segHits, useLineHits, type LineHitSink } from "./lineHits.js";
 import type { Seg, Text } from "./view.js";
 import {
   SegRun,
@@ -33,6 +34,7 @@ export function PageTitleLine({
   width,
   plain,
   base,
+  registry,
 }: {
   title: Text;
   details: Text;
@@ -40,10 +42,14 @@ export function PageTitleLine({
   plain?: boolean;
   /** The shell's canvas (bg.base): Ratatui paints it under the whole row, the air before the title and the title too (live cells). */
   base?: string;
+  /** Where a chip among the details registers the cells a press on it acts on. */
+  registry?: LineHitSink;
 }) {
   const room = Math.max(0, width - 2);
   const right = keptDetails(details, room);
   const rw = Math.min(widthOf(right), Math.floor(room / 2));
+  const detailsRef = useRef<DOMElement>(null);
+  useLineHits(detailsRef, registry, segHits(right, plain, 0, rw));
   const lw = Math.max(0, room - rw - 2);
   // view_tui::flat: the line takes the look of its first words that are not an icon (an icon leads, the title follows)
   const first: Seg = title.find((s) => !s.icon) ?? title[0] ?? {};
@@ -69,7 +75,7 @@ export function PageTitleLine({
         />
       </Box>
       <Box flexGrow={1} backgroundColor={base} />
-      <BgBox width={rw} flexShrink={0} overflow="hidden" backgroundColor={base}>
+      <BgBox ref={detailsRef} width={rw} flexShrink={0} overflow="hidden" backgroundColor={base}>
         <TextLine text={right} plain={plain} />
       </BgBox>
       <Box width={1} flexShrink={0} backgroundColor={base}>

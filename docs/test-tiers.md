@@ -278,6 +278,10 @@ scripts/check-test-tiers --nextest /tmp/jira-tests.json --scope jira-fixtures --
 cargo nextest list --locked -p radar --no-default-features --features github,gitlab,jira,test-support --test provider_scenarios --message-format json > /tmp/provider-tests.json
 scripts/check-test-tiers --nextest /tmp/provider-tests.json --scope github-journeys --scope gitlab-journeys --scope jira-journeys
 
+# The Headless and IPC Bridge contract is one root binary with its own scope:
+cargo nextest list --locked -p radar --features gitlab,demo --test headless_bridge --message-format json > /tmp/headless-bridge-tests.json
+scripts/check-test-tiers --nextest /tmp/headless-bridge-tests.json --scope headless-bridge-contract
+
 # Core migrated areas need their explicit test-support feature:
 cargo nextest list --locked -p radar-core --lib --features test-support --message-format json > /tmp/core-tests.json
 scripts/check-test-tiers --nextest /tmp/core-tests.json --scope core-completion --scope core-scenarios

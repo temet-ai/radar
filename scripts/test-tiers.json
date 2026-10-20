@@ -995,6 +995,24 @@
       ]
     },
     {
+      "id": "headless-bridge-contract",
+      "package": "radar",
+      "binary": "headless_bridge",
+      "prefix": "repositories::",
+      "cases": [
+        {
+          "name": "repositories::the_journey_is_the_same_through_headless_and_the_bridge",
+          "tier": "contract",
+          "parts": [
+            "core",
+            "gitlab"
+          ],
+          "boundary": "Headless and ipc::Bridge, the Ink renderer's host protocol side, show the same screen view and send it, record the same journal under the same causal parents, and start the same work over one repositories journey. The demo host loads every compiled part; the journey exercises the gitlab repositories screen. No Ratatui or Node.",
+          "why_not_unit": "Needs the real host reducers, the demo parts' sample data and both frontends' message paths; a pure model or a single reducer cannot show what the bridge sends a renderer or that it matches Headless."
+        }
+      ]
+    },
+    {
       "id": "gitlab-journeys",
       "package": "radar",
       "binary": "provider_scenarios",

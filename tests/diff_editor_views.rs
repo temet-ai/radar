@@ -143,9 +143,12 @@ fn views(host: &Host, width: u16, height: u16) -> Value {
     views
 }
 
+/// Names paired with contents.
+type Named = Vec<(String, String)>;
+
 /// Every file the cases make (name -> contents), and the text form of each
 /// case at its size (`<case>_<w>x<h>` -> text).
-fn files() -> (Vec<(String, String)>, Vec<(String, String)>) {
+fn files() -> (Named, Named) {
     let (mut out, mut shown) = (Vec::new(), Vec::new());
     for case in cases() {
         for (w, h) in case.sizes {

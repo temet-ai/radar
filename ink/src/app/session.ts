@@ -265,7 +265,7 @@ export class Session {
 
   /** A paste, whole, while the focus captures text (ToHost::Paste). */
   sendPaste(text: string) {
-    this.conn.send({ type: "paste", text } as any);
+    this.conn.send({ type: "paste", text });
   }
 
   /** The cell a right-click pressed, for the Context intent that follows (ToHost::Pointer). */

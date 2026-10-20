@@ -614,7 +614,7 @@ pub fn key(p: &mut GitlabPlugin, pane: Pane, key: Chord) -> Outcome {
     }
     match pane {
         Pane::Nav => {
-            if let Some(down) = widgets::vertical(&key) {
+            if let Some(down) = key.vertical() {
                 // ↑ on the first view is the host's: up to the top bar.
                 if !down && p.view == 0 {
                     return Outcome::Ignored;

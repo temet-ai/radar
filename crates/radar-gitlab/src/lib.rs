@@ -2821,7 +2821,7 @@ pub(crate) mod tests {
         // !342's failed job, and a search in its log; web's pipelines.
         let job = tree().down(2).enter().tab(3).enter();
         places.push(job.clone());
-        places.push(job.press(Key::Char('/'), 1).typed("test").enter());
+        places.push(job.press(Chord::char('/'), 1).typed("test").enter());
         places.push(tree().down(6).enter().tab(1));
         places.push(tree().down(6).enter().tab(1).enter());
         let sections: Vec<&'static str> = sample().sections().iter().map(|s| s.id).collect();
@@ -2886,7 +2886,7 @@ pub(crate) mod tests {
         let mut places: Vec<Place> = (0..5).map(|t| page().tab(t)).collect();
         places.push(page().tab(1).down(5));
         places.push(page().tab(1).down(21));
-        places.push(page().tab(1).press(Key::Char('n'), 1));
+        places.push(page().tab(1).press(Chord::char('n'), 1));
         places.push(page().tab(2).down(1));
         places.push(page().tab(2).down(2));
         let make = || Box::new(sample_reviewed()) as Box<dyn Plugin>;

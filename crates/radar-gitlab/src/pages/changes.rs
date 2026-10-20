@@ -532,9 +532,9 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key
         _ => {
             let lines = lines(p, page, project, iid);
             let moved = if page.split_shown.get() {
-                page.diff.key_split(key, &lines)
+                page.diff.key_split(*key, &lines)
             } else {
-                page.diff.key(key, lines.len())
+                page.diff.key(*key, lines.len())
             };
             if !moved {
                 return None;

@@ -116,7 +116,7 @@ function rowsDrawn() {
   });
 }
 
-/** The thumb of ratatui's vertical-right Scrollbar (begin/end symbols off, viewport length unset) on a track of `len`
+/** The thumb of the vertical-right Scrollbar (begin/end symbols off, viewport length unset) on a track of `len`
  * cells for a content `max + 1` long at `at`: its first cell and length. */
 export function thumbOf(
   len: number,
@@ -186,7 +186,7 @@ export function ScrollBar({
 
 /** A body taller than its pane: shows `room` rows from the scroll's offset and the scrollbar in the last column.
  * `total` is the content's height when the caller knows it; otherwise it is measured after layout. The offset is kept
- * across frames while the content stays the same (`id`), as Ratatui keeps a panel's Scroll; new content starts at the top. */
+ * across frames while the content stays the same (`id`), as a panel keeps its Scroll; new content starts at the top. */
 export function Scrolled({
   kind,
   id,
@@ -444,7 +444,7 @@ function MeterLines({
   const names: ReturnType<typeof cellsOf> = [];
   stages.forEach((s, i) => {
     // Layout::horizontal(Fill(1) each).spacing(1): stage i spans [i(W+1)/n, ((i+1)(W+1)-n)/n), its ends rounded
-    // (the same as Ratatui's split for every n up to 6 and width up to 60).
+    // (the same split for every n up to 6 and width up to 60).
     const w = Math.round(((i + 1) * (all + 1) - n) / n) - Math.round((i * (all + 1)) / n);
     const style = plain ? {} : specStyle(s.look);
     bars.push(

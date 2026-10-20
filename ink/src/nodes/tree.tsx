@@ -203,7 +203,10 @@ function rowCells(
     const used = runs.reduce((n, r) => n + widthOfCells(r), 0);
     if (d.length && used + widthOfCells(d) <= nameRoom) runs = [...runs, d];
   }
-  if (row.chips && row.chips.text.length) {
+  // A chip gives way after the extra columns hold their place: once one is dropped for lack of width the chip stays
+  // gone at every narrower width, though the dropped column frees room for the name.
+  const extrasKept = tree.columns.every((c) => !c.extra || fitted.some((f) => f.column === c));
+  if (extrasKept && row.chips && row.chips.text.length) {
     const gives = row.chips.gives;
     const chips = lineCells(row.chips.text, plain);
     if (gives < runs.length) {

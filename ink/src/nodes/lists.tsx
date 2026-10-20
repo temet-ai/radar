@@ -220,7 +220,7 @@ export function TableNode({
           for (const p of fitted) {
             const w = p.width - 1; // the cell of air after the value is not the cell's
             // ui::table cuts a value to the width the column declares (the flex one: what the panel leaves it) with a
-            // `…`, then ratatui's Table clips it again, hard, to the narrower column its layout gave
+            // `…`, then the table clips it again, hard, to the narrower column its layout gave
             const declared = p.column.flex ? flexDeclared : p.column.width - 1;
             line.push(
               ...padCells(

@@ -1,0 +1,1275 @@
+{
+ "about": "Value widths the constraint layout Layout::horizontal(Min(flex)/Length(rest)).flex(Start).spacing(1) (columns = ui::Column::width, air cell included) gives (recorded once from the reference solver, now Ink's own golden); see table-widths.test.ts",
+ "cases": [
+  {
+   "name": "merge-request table (look/table)",
+   "width": 20,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    4,
+    3,
+    7,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 30,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    6,
+    7,
+    1,
+    2,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 40,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    6,
+    7,
+    4,
+    4,
+    3,
+    4
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 50,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    6,
+    7,
+    6,
+    7,
+    6,
+    6
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 60,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    7,
+    7,
+    9,
+    9,
+    9,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 70,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    7,
+    7,
+    11,
+    13,
+    13,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 76,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    7,
+    7,
+    11,
+    16,
+    16,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 80,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    7,
+    7,
+    11,
+    18,
+    18,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 90,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    8,
+    12,
+    11,
+    18,
+    22,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 100,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    8,
+    22,
+    11,
+    18,
+    22,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 120,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    8,
+    42,
+    11,
+    18,
+    22,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 156,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    8,
+    78,
+    11,
+    18,
+    22,
+    7
+   ]
+  },
+  {
+   "name": "merge-request table (look/table)",
+   "width": 158,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    8,
+    12,
+    19,
+    23,
+    8
+   ],
+   "widths": [
+    6,
+    8,
+    80,
+    11,
+    18,
+    22,
+    7
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 20,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    9,
+    3,
+    2,
+    3
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 30,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    9,
+    9,
+    4,
+    5
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 40,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    9,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 50,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    19,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 60,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    29,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 70,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    39,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 76,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    45,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 80,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    49,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 90,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    59,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 100,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    69,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 120,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    89,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 156,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    125,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "repositories table (gitlab repos)",
+   "width": 158,
+   "flex": 0,
+   "columns": [
+    10,
+    12,
+    5,
+    14
+   ],
+   "widths": [
+    127,
+    11,
+    4,
+    13
+   ]
+  },
+  {
+   "name": "generated 0",
+   "width": 23,
+   "flex": 1,
+   "columns": [
+    3,
+    5,
+    17
+   ],
+   "widths": [
+    2,
+    4,
+    15
+   ]
+  },
+  {
+   "name": "generated 1",
+   "width": 62,
+   "flex": 2,
+   "columns": [
+    7,
+    9,
+    3,
+    19,
+    15,
+    9
+   ],
+   "widths": [
+    6,
+    8,
+    3,
+    18,
+    14,
+    8
+   ]
+  },
+  {
+   "name": "generated 2",
+   "width": 9,
+   "flex": 2,
+   "columns": [
+    7,
+    23,
+    7
+   ],
+   "widths": [
+    1,
+    0,
+    6
+   ]
+  },
+  {
+   "name": "generated 3",
+   "width": 35,
+   "flex": 2,
+   "columns": [
+    15,
+    17,
+    3
+   ],
+   "widths": [
+    14,
+    16,
+    3
+   ]
+  },
+  {
+   "name": "generated 4",
+   "width": 22,
+   "flex": -1,
+   "columns": [
+    9,
+    3,
+    7,
+    23,
+    5,
+    15
+   ],
+   "widths": [
+    2,
+    2,
+    3,
+    4,
+    3,
+    3
+   ]
+  },
+  {
+   "name": "generated 5",
+   "width": 78,
+   "flex": -1,
+   "columns": [
+    21,
+    23,
+    13,
+    5,
+    3,
+    13
+   ],
+   "widths": [
+    20,
+    22,
+    12,
+    4,
+    2,
+    12
+   ]
+  },
+  {
+   "name": "generated 6",
+   "width": 41,
+   "flex": -1,
+   "columns": [
+    19,
+    5,
+    7,
+    23,
+    9
+   ],
+   "widths": [
+    11,
+    4,
+    6,
+    8,
+    8
+   ]
+  },
+  {
+   "name": "generated 7",
+   "width": 29,
+   "flex": -1,
+   "columns": [
+    9,
+    9,
+    21,
+    9,
+    17
+   ],
+   "widths": [
+    5,
+    5,
+    5,
+    5,
+    5
+   ]
+  },
+  {
+   "name": "generated 8",
+   "width": 68,
+   "flex": 0,
+   "columns": [
+    17,
+    17,
+    13,
+    21
+   ],
+   "widths": [
+    17,
+    16,
+    12,
+    20
+   ]
+  },
+  {
+   "name": "generated 9",
+   "width": 12,
+   "flex": 0,
+   "columns": [
+    13,
+    21,
+    13,
+    7
+   ],
+   "widths": [
+    9,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 10",
+   "width": 49,
+   "flex": 5,
+   "columns": [
+    15,
+    7,
+    21,
+    17,
+    7,
+    9,
+    9
+   ],
+   "widths": [
+    5,
+    6,
+    5,
+    6,
+    5,
+    8,
+    8
+   ]
+  },
+  {
+   "name": "generated 11",
+   "width": 33,
+   "flex": 0,
+   "columns": [
+    5,
+    9,
+    19
+   ],
+   "widths": [
+    5,
+    8,
+    18
+   ]
+  },
+  {
+   "name": "generated 12",
+   "width": 9,
+   "flex": 0,
+   "columns": [
+    11,
+    15,
+    15,
+    5,
+    23,
+    5,
+    19
+   ],
+   "widths": [
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 13",
+   "width": 35,
+   "flex": 0,
+   "columns": [
+    3,
+    21,
+    19
+   ],
+   "widths": [
+    2,
+    16,
+    15
+   ]
+  },
+  {
+   "name": "generated 14",
+   "width": 38,
+   "flex": 0,
+   "columns": [
+    21,
+    9,
+    17,
+    23
+   ],
+   "widths": [
+    20,
+    5,
+    5,
+    5
+   ]
+  },
+  {
+   "name": "generated 15",
+   "width": 8,
+   "flex": 0,
+   "columns": [
+    21,
+    9,
+    9,
+    17
+   ],
+   "widths": [
+    5,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 16",
+   "width": 25,
+   "flex": -1,
+   "columns": [
+    13,
+    17,
+    7
+   ],
+   "widths": [
+    9,
+    8,
+    6
+   ]
+  },
+  {
+   "name": "generated 17",
+   "width": 36,
+   "flex": 0,
+   "columns": [
+    9,
+    7,
+    13,
+    15,
+    11,
+    9
+   ],
+   "widths": [
+    8,
+    5,
+    4,
+    5,
+    4,
+    5
+   ]
+  },
+  {
+   "name": "generated 18",
+   "width": 21,
+   "flex": -1,
+   "columns": [
+    21,
+    19,
+    17,
+    17,
+    17
+   ],
+   "widths": [
+    3,
+    4,
+    3,
+    4,
+    3
+   ]
+  },
+  {
+   "name": "generated 19",
+   "width": 68,
+   "flex": 0,
+   "columns": [
+    15,
+    21,
+    15,
+    17
+   ],
+   "widths": [
+    15,
+    20,
+    14,
+    16
+   ]
+  },
+  {
+   "name": "generated 20",
+   "width": 23,
+   "flex": 2,
+   "columns": [
+    23,
+    15,
+    21,
+    9,
+    7,
+    5,
+    7
+   ],
+   "widths": [
+    0,
+    0,
+    17,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 21",
+   "width": 18,
+   "flex": 0,
+   "columns": [
+    15,
+    21,
+    7,
+    11
+   ],
+   "widths": [
+    14,
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "name": "generated 22",
+   "width": 14,
+   "flex": -1,
+   "columns": [
+    19,
+    3,
+    9,
+    17,
+    5,
+    15
+   ],
+   "widths": [
+    2,
+    1,
+    2,
+    1,
+    2,
+    1
+   ]
+  },
+  {
+   "name": "generated 23",
+   "width": 8,
+   "flex": -1,
+   "columns": [
+    7,
+    3,
+    19,
+    11
+   ],
+   "widths": [
+    1,
+    2,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "generated 24",
+   "width": 11,
+   "flex": 3,
+   "columns": [
+    13,
+    21,
+    13,
+    5,
+    5,
+    7,
+    17
+   ],
+   "widths": [
+    0,
+    0,
+    0,
+    4,
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "name": "generated 25",
+   "width": 19,
+   "flex": 2,
+   "columns": [
+    9,
+    21,
+    21
+   ],
+   "widths": [
+    0,
+    0,
+    17
+   ]
+  },
+  {
+   "name": "generated 26",
+   "width": 24,
+   "flex": -1,
+   "columns": [
+    9,
+    21,
+    23,
+    13
+   ],
+   "widths": [
+    5,
+    6,
+    5,
+    5
+   ]
+  },
+  {
+   "name": "generated 27",
+   "width": 44,
+   "flex": 0,
+   "columns": [
+    15,
+    3,
+    19,
+    19
+   ],
+   "widths": [
+    14,
+    2,
+    13,
+    12
+   ]
+  },
+  {
+   "name": "generated 28",
+   "width": 23,
+   "flex": 2,
+   "columns": [
+    7,
+    21,
+    21
+   ],
+   "widths": [
+    1,
+    0,
+    20
+   ]
+  },
+  {
+   "name": "generated 29",
+   "width": 16,
+   "flex": 2,
+   "columns": [
+    17,
+    19,
+    13,
+    7,
+    3,
+    5
+   ],
+   "widths": [
+    0,
+    0,
+    11,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 30",
+   "width": 21,
+   "flex": 0,
+   "columns": [
+    13,
+    3,
+    11,
+    3,
+    9
+   ],
+   "widths": [
+    12,
+    1,
+    2,
+    1,
+    1
+   ]
+  },
+  {
+   "name": "generated 31",
+   "width": 14,
+   "flex": 0,
+   "columns": [
+    17,
+    5,
+    11,
+    7,
+    9,
+    11
+   ],
+   "widths": [
+    9,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 32",
+   "width": 99,
+   "flex": -1,
+   "columns": [
+    7,
+    23,
+    19,
+    15,
+    23,
+    17,
+    3
+   ],
+   "widths": [
+    6,
+    18,
+    18,
+    14,
+    19,
+    16,
+    2
+   ]
+  },
+  {
+   "name": "generated 33",
+   "width": 28,
+   "flex": -1,
+   "columns": [
+    23,
+    21,
+    13,
+    7
+   ],
+   "widths": [
+    6,
+    7,
+    6,
+    6
+   ]
+  },
+  {
+   "name": "generated 34",
+   "width": 59,
+   "flex": -1,
+   "columns": [
+    15,
+    3,
+    3,
+    11,
+    15,
+    13,
+    13
+   ],
+   "widths": [
+    3,
+    2,
+    2,
+    10,
+    12,
+    12,
+    12
+   ]
+  },
+  {
+   "name": "generated 35",
+   "width": 36,
+   "flex": 0,
+   "columns": [
+    7,
+    19,
+    19,
+    7
+   ],
+   "widths": [
+    6,
+    11,
+    10,
+    6
+   ]
+  },
+  {
+   "name": "generated 36",
+   "width": 22,
+   "flex": 2,
+   "columns": [
+    9,
+    11,
+    13,
+    17,
+    23,
+    23
+   ],
+   "widths": [
+    3,
+    2,
+    12,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "generated 37",
+   "width": 11,
+   "flex": 4,
+   "columns": [
+    9,
+    11,
+    15,
+    15,
+    21
+   ],
+   "widths": [
+    0,
+    0,
+    0,
+    0,
+    7
+   ]
+  },
+  {
+   "name": "generated 38",
+   "width": 13,
+   "flex": 3,
+   "columns": [
+    15,
+    13,
+    11,
+    17,
+    9
+   ],
+   "widths": [
+    0,
+    0,
+    0,
+    9,
+    0
+   ]
+  },
+  {
+   "name": "generated 39",
+   "width": 27,
+   "flex": -1,
+   "columns": [
+    13,
+    23,
+    3,
+    11,
+    15,
+    9,
+    9
+   ],
+   "widths": [
+    2,
+    2,
+    2,
+    4,
+    4,
+    3,
+    4
+   ]
+  }
+ ]
+}

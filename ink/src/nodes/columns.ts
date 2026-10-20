@@ -52,7 +52,7 @@ export function fitTreeColumns(
   return placed([...own.slice(0, at), ...add, ...own.slice(at)]);
 }
 
-/** The columns of a table in `width` cells (ui::table::Table): none is dropped. Ratatui hands every column to its layout
+/** The columns of a table in `width` cells (ui::table::Table): none is dropped. Every column goes to the layout
  * (`Min` for the flex column, `Length` for the rest, one cell of spacing) and `solveWidths` is that layout. A placed
  * width counts the cell of air after the value, as ui::Column::width does. */
 export function fitTableColumns(
@@ -139,9 +139,9 @@ function simplex(cost: number[], rows: number[][], rhs: number[]): number[] {
   return x;
 }
 
-/** The widths ratatui's `Layout::horizontal(widths).flex(Start).spacing(1)` gives a table's columns in `width` cells.
+/** The widths `Layout::horizontal(widths).flex(Start).spacing(1)` gives a table's columns in `width` cells.
  * `values[i]` is a column's value width (`ColumnSpec.width - 1`: the air cell is the spacing) and `flex` the index of
- * the column given `Constraint::Min`; every other is `Constraint::Length`. Ratatui's solver (cassowary) weighs,
+ * the column given `Constraint::Min`; every other is `Constraint::Length`. The solver (cassowary) weighs,
  * strongest first: the one-cell spacers, `Min` at least its value, each `Length` its value, the flex column growing
  * into what is left, and last (ALL_SEGMENT_GROW) that neighbouring columns match in width. So when all fit the flex
  * column takes what is left; when they do not it keeps its minimum and the `Length`s shrink by the least total, spread
@@ -193,7 +193,7 @@ export function solveWidths(
   const cost = row().map((_, j) => (j >= 2 * n ? 1 : j < n ? -1e-3 * j : 0));
   const u = simplex(cost, rows, rhs);
   const real = values.map((_, i) => u[i] + pin(i));
-  // edges as ratatui rounds them: x * 100 to an integer, back, to an integer
+  // edges as the layout rounds them: x * 100 to an integer, back, to an integer
   const snap = (x: number) => Math.round(Math.round(x * 100) / 100);
   let at = 0;
   return real.map((w) => {

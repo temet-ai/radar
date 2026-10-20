@@ -33,7 +33,7 @@ painted?: Array<Array<PaintRun>>,
 /**
  * The words that changed within each line of a replaced pair, as
  * `[from, to)` in characters of the line's text (tabs as four
- * spaces), as Ratatui emphasises them; empty when no line has any.
+ * spaces), for the renderer to emphasise; empty when no line has any.
  * The bridge fills it with `painted`.
  */
 words?: Array<Array<[number, number]>>, } | { "node": "state", state: State, text: string, } | { "node": "extension", capability: string, version: number, data: JsonValue, fallback: Node, };

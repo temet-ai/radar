@@ -45,7 +45,7 @@ focus: PaneId,
 motion: MotionView, 
 /**
  * The startup splash while it shows: drawn over everything, cell for
- * cell as the Ratatui runner paints it ([`crate::splash`]). Keys and
+ * cell as the splash's own cells give it ([`crate::splash`]). Keys and
  * clicks still go to the screen under it.
  */
 splash?: SplashView, 

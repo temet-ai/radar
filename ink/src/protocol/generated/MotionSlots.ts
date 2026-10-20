@@ -2,7 +2,7 @@
 
 /**
  * The theme slots (names in [`Look::slots`]) the effects blend with, as
- * the Ratatui engine takes them: fades go to `base`, sweeps in over
+ * the motion engine takes them: fades go to `base`, sweeps in over
  * `surface` or `overlay`, the glow is `glow`'s colour.
  */
 export type MotionSlots = { base: string, surface: string, overlay: string, glow: string, text: string, };

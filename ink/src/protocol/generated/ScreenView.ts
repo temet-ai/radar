@@ -34,6 +34,6 @@ overlay?: PaneView | null,
 /**
  * The agent dock below the middle pane, on every screen. Filled by the
  * host ([`crate::dock`]), never by the part whose screen this is; Ink
- * draws it, Ratatui draws one line in its place.
+ * draws it.
  */
 dock?: DockView | null, };

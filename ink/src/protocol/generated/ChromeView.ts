@@ -42,7 +42,7 @@ history?: HistoryView | null,
 /**
  * The capital letters the host takes as screen or source keys, which
  * a renderer must not use for itself (an unclaimed `G` scrolls a
- * document pane to the end, as Ratatui's `Scroll::key` does).
+ * document pane to the end).
  * Filled by the host; empty until it is.
  */
 screen_keys?: Array<string>, 

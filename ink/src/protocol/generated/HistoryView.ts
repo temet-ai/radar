@@ -13,7 +13,7 @@ import type { Text } from "./Text.js";
  * is the one shown (a frontend echoes it back, never builds one). Bounded: one
  * page of at most [`RECORDS_PER_PAGE`] rows, a fixed set of detail fields,
  * each text already passed through the overlay's allowlist. Nothing here
- * names a terminal library; the Ratatui overlay paints from it.
+ * names a terminal library; the renderer's overlay draws from it.
  */
 export type HistoryView = { version: number, 
 /**

@@ -180,7 +180,7 @@ describe.each([
 });
 
 describe("input through the app", () => {
-  it("a plain key is Intent::Key like the the reference adapter's; SGR click on a tab activates its target", async () => {
+  it("a plain key is Intent::Key like the old Rust renderer adapter's; SGR click on a tab activates its target", async () => {
     const m = open(80, 24);
     m.welcome();
     m.snapshot({ screen: { actions: [{ id: "gitlab.mr.open", label: "open", key: { key: { char: "o" } } }], panes: [] } }, 3);
@@ -312,8 +312,8 @@ describe("terminal ownership", () => {
     const out = new Out(80, 24);
     const t = new Terminal(out);
     t.enter();
-    // The bytes the the reference runner writes (runner.rs: EnableBracketedPaste, EnableMouseCapture,
-    // EnableFocusChange; crossterm's EnableMouseCapture is 1000, 1002, 1003, 1015, 1006).
+    // The bytes the old Rust renderer runner writes (runner.rs: EnableBracketedPaste, EnableMouseCapture,
+    // EnableFocusChange; the mouse capture is 1000, 1002, 1003, 1015, 1006).
     expect(out.frames.join("")).toBe("\x1b[?2004h" + "\x1b[?1000h\x1b[?1002h\x1b[?1003h\x1b[?1015h\x1b[?1006h" + "\x1b[?1004h");
     t.restore();
     t.restore();

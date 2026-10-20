@@ -14,7 +14,7 @@ vi.hoisted(() => {
 import { SCENES } from "./scenes.js";
 
 /**
- * Setup: the sheet above the card (no rail), as the goldens in ./goldens read: Ink's own, frozen from the the reference
+ * Setup: the sheet above the card (no rail), as the goldens in ./goldens read: Ink's own, frozen from the old Rust renderer
  * text of the same screens before radar-core's setup tests moved to view text (e52f4ce).
  * The scenes are the view data the host sends for them (./scenes.ts). The goldens draw no icons.
  */

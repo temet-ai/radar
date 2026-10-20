@@ -12,7 +12,7 @@ import type { SplashView } from "../../src/protocol/generated/SplashView.js";
 
 /**
  * The startup splash (crates/radar-core/src/splash.rs), cell for cell. Each file in ink/test/fixtures/splash holds a
- * frame's SplashView as the bridge sends it and the cells the the reference runner painted from the same frame (written by
+ * frame's SplashView as the bridge sends it and the cells the old Rust renderer runner painted from the same frame (written by
  * the radar-core test `the_cells_ink_compares_against_are_the_committed_fixtures`). The whole App draws the snapshot that
  * carries it; every cell's character, background, and for a drawn character its colour and bold, must match.
  */

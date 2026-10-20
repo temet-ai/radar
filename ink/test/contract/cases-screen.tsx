@@ -511,7 +511,7 @@ export const SCREEN_INVISIBLE: Record<string, string> = {
   "TreeRow.heading": "a heading row has no press target and the host never selects it; its cells are drawn as any row's (ui::tree has no heading look); nodes/hits.tsx, test/nodes/hits.test.tsx",
   "RichBlock.code.lang": "ui::rich lays a code block out without a language label or colours (ui/rich.rs `code`); the reference and Ink both draw its lines alone",
   "Node.diff.language": "the host highlights by it and sends `painted` (Node.diff.painted, drawn); Ink has no grammars",
-  "InlineKind.image.src": "ui::rich draws an inline image as its words, muted, and fetches src only for a picture, which comes after the the reference removal (#14)",
+  "InlineKind.image.src": "ui::rich draws an inline image as its words, muted, and fetches src only for a picture, which comes after the old Rust renderer's removal (#14)",
   "ScreenView.version": "view contract version",
   "ScreenView.scope": "the screen's id; the chrome's status chip carries the name shown",
   "ScreenView.actions": "the actions menu is the host's MenuView; these rows only name the keys (input tests)",
@@ -558,6 +558,6 @@ export const SCREEN_INVISIBLE: Record<string, string> = {
  * frame is still unchanged, so the entry goes red, saying "now drawn", when fixed.
  */
 export const SCREEN_KNOWN_UNDRAWN: Record<string, string> = {
-  "Node.rich.pictures": "pictures come after the the reference removal (#14): a picture needs the picture protocol (media/kitty.ts), and the host's bytes",
-  "Media.src": "pictures come after the the reference removal (#14): src is what a picture fetches; without one the line `▣ image <name>  <url>` is drawn from name and url",
+  "Node.rich.pictures": "pictures come after the old Rust renderer's removal (#14): a picture needs the picture protocol (media/kitty.ts), and the host's bytes",
+  "Media.src": "pictures come after the old Rust renderer's removal (#14): src is what a picture fetches; without one the line `▣ image <name>  <url>` is drawn from name and url",
 };

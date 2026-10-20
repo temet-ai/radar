@@ -8,7 +8,7 @@ import { mount, tick } from "../app/harness.js";
 import { parseAnsi } from "../nodes/ansi.js";
 import type { SplashPicture } from "../../src/protocol/generated/SplashPicture.js";
 
-// crates/radar-core/src/splash.rs: kitty_show, kitty_at, kitty_hide and clear_under, the strings the the reference runner writes.
+// crates/radar-core/src/splash.rs: kitty_show, kitty_at, kitty_hide and clear_under, the strings the old Rust renderer runner writes.
 const pic = (png: string): SplashPicture => ({ x: 3, y: 1, cols: 4, rows: 2, id: 7370, png });
 const ESC = "\x1b";
 

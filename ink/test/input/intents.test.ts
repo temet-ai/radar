@@ -10,7 +10,7 @@ import { sortedJson, updatingGoldens } from "../support/goldens.js";
 
 /**
  * intents.json pairs a chord (or a click) on a small recorded view with the Intent it comes to. The pairs were first
- * written from the the reference adapter; the file is Ink's golden now, frozen and committed, and Ink must send the same
+ * written from the old Rust adapter; the file is Ink's golden now, frozen and committed, and Ink must send the same
  * Intent for the same chord and view. INK_UPDATE_GOLDENS=1 rewrites each pair's `intent` from Ink's own routing.
  */
 const file = path.join(path.dirname(fileURLToPath(import.meta.url)), "intents.json");

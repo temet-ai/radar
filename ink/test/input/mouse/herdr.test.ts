@@ -42,7 +42,7 @@ describe("Herdr right-click routing (terminal_host::route_herdr_right_click)", (
   });
 });
 
-describe("mouse modes match crossterm's EnableMouseCapture and are all turned off on exit", () => {
+describe("mouse modes are 1000, 1002, 1003, 1015 and 1006 and are all turned off on exit", () => {
   it("enables 1000, 1002, 1003, 1015, 1006 and disables each", () => {
     for (const n of ["1000", "1002", "1003", "1015", "1006"]) {
       expect(MOUSE_ON).toContain(`\x1b[?${n}h`);

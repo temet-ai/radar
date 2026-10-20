@@ -95,8 +95,6 @@ fn each_ready_part_with_health_has_a_chip_in_the_colour_of_its_state() {
     host.colours.cfg.icons = "nerd".into();
     let theme = host.build_theme(crate::design::theme::Tier::Mono);
     assert_eq!(host.chrome_view_with(120, 30, &theme).status.health[0].glyph, "\u{f0ac}");
-    let last = crate::headless::text_of(&host, 120, 24).lines().nth(23).unwrap().to_string();
-    assert!(last.ends_with("\u{f0ac} 1/2 \u{f0ac}"), "{last:?}");
 }
 
 #[test]
@@ -136,14 +134,12 @@ fn the_chips_are_view_data_in_order_and_activating_one_opens_its_menu() {
 }
 
 #[test]
-fn the_chips_give_way_last_when_the_line_is_narrow() {
+fn the_chips_are_sent_at_every_width_and_ink_gives_them_room() {
     let (host, _) = host();
-    // Room for the keys and the chips.
-    let wide = crate::headless::text_of(&host, 80, 24);
-    assert!(wide.lines().nth(23).unwrap().ends_with("lab 1/2 vault"), "{wide}");
-    // Too narrow: the chips go, the extra-actions word stays.
-    let narrow = crate::headless::text_of(&host, 30, 24);
-    let last = narrow.lines().nth(23).unwrap();
-    assert!(!last.contains("vault"), "{last:?}");
-    assert!(last.contains("extra actions"), "{last:?}");
+    for width in [80, 30] {
+        let status = host.chrome_view(width, 24).status;
+        let names: Vec<&str> = status.health.iter().map(|c| c.label.as_str()).collect();
+        assert_eq!(names, ["lab", "vault"], "{width}: the host sends every chip; Ink gives way");
+        assert!(!status.hints.is_empty(), "{width}: the keys are sent too");
+    }
 }

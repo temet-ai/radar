@@ -5,17 +5,9 @@
 //! right of the top bar; a click there, the `x` menu's `mode…` row and the
 //! settings row open the same menu.
 
-use ratatui::buffer::Buffer;
-use crate::view::{Chord, Key};
-use ratatui::layout::Rect;
-use ratatui::text::{Line, Span};
-
-use crate::design::theme::Slot;
 use crate::host::{Host, HostEffect, OpenMenu, Owner};
 use crate::plugin::{Binding, Menu, MenuItem, Pane, SectionSpec};
-use crate::theme::Theme;
-use crate::ui::icon;
-use crate::widgets;
+use crate::view::{Chord, Key};
 use crate::writes::{self, Mode};
 
 /// The host's own settings section: the mode.
@@ -286,130 +278,4 @@ pub(crate) fn keys(_: &Host) -> Vec<Binding> {
 pub(crate) fn chip(host: &Host) -> (crate::ui::icon::Icon, &'static str) {
     let m = host.mode();
     (m.icon(), m.word())
-}
-
-/// The one row: `mode   edit`, and who set it. Returns its area.
-pub(crate) fn render(
-    host: &Host,
-    t: &Theme,
-    area: Rect,
-    buf: &mut Buffer,
-    focused: bool,
-) -> Option<Rect> {
-    if area.height < 3 {
-        return None;
-    }
-    buf.set_line(
-        area.x + 1,
-        area.y,
-        &widgets::heading(t, "what radar may change"),
-        area.width.saturating_sub(2),
-    );
-    let y = area.y + 2;
-    let m = host.mode();
-    let mut spans = vec![
-        icon::lead(t, m.icon()),
-        Span::styled(crate::ui::pad("mode", 8), t.bold(Slot::TextPrimary)),
-        Span::styled(m.word().to_string(), t.s(Slot::TextPrimary)),
-    ];
-    let style = widgets::row_style(t, focused && host.pause.row == 0, true);
-    widgets::row(
-        buf,
-        area,
-        y,
-        style,
-        Line::from(std::mem::take(&mut spans)),
-        None,
-    );
-    // Below, the pause: one setting for every part.
-    if area.height > 6 {
-        let (hy, py) = (area.y + 5, area.y + 7);
-        buf.set_line(
-            area.x + 1,
-            hy,
-            &widgets::heading(t, "when idle"),
-            area.width.saturating_sub(2),
-        );
-        let line = Line::from(vec![
-            icon::lead(t, crate::ui::icon::Icon::Settings),
-            Span::styled(
-                crate::ui::pad("pause if idle", 14),
-                t.bold(Slot::TextPrimary),
-            ),
-            Span::styled(idle_words(host.pause.idle_minutes), t.s(Slot::TextPrimary)),
-        ]);
-        let style = widgets::row_style(t, focused && host.pause.row == 1, true);
-        widgets::row(buf, area, py, style, line, None);
-    }
-    // Under it, so it is never cut: who set it for this run.
-    if let Some((_, v)) = &host.mode_env
-        && y + 1 < area.y + area.height
-    {
-        let pad = icon::lead_width(t) as u16 + 8;
-        buf.set_line(
-            area.x + 1 + pad,
-            y + 1,
-            &Line::styled(format!("set by {v}"), t.s(Slot::StatusWarning)),
-            area.width.saturating_sub(pad + 2),
-        );
-    }
-    Some(Rect {
-        y,
-        height: 1,
-        ..area
-    })
-}
-
-/// The detail: each mode and what it lets radar do, and how to set it.
-pub(crate) fn detail_lines(host: &Host, t: &Theme) -> Vec<Line<'static>> {
-    if host.pause.row == 1 {
-        return vec![
-            Line::styled(
-                "Every part stops asking its service when nobody has pressed a key or clicked for this long, so a forgotten window stays quiet. Any key resumes it; z pauses and resumes by hand.",
-                t.s(Slot::TextPrimary),
-            ),
-            Line::default(),
-            Line::styled(
-                "whole minutes; never switches it off · [general] idle_minutes",
-                t.s(Slot::TextMuted),
-            ),
-        ];
-    }
-    let now = host.mode();
-    let mut lines = Vec::new();
-    for m in Mode::ALL {
-        let mark = if m == now { "● " } else { "  " };
-        lines.push(Line::from(vec![
-            Span::styled(mark, t.s(Slot::AccentPrimary)),
-            icon::lead(t, m.icon()),
-            Span::styled(m.word(), t.bold(Slot::TextPrimary)),
-        ]));
-        lines.push(Line::styled(
-            format!("    {}", m.about()),
-            t.s(Slot::TextSecondary),
-        ));
-    }
-    lines.push(Line::default());
-    lines.push(Line::styled(
-        "Local actions (check out, an editor, a terminal) and settings work in every mode.",
-        t.s(Slot::TextMuted),
-    ));
-    lines.push(Line::styled(
-        format!(
-            "{} sets it for one run: read-only, write or edit.",
-            writes::MODE_VAR
-        ),
-        t.s(Slot::TextMuted),
-    ));
-    if let Some((env, v)) = &host.mode_env {
-        lines.push(Line::default());
-        lines.push(Line::styled(
-            format!(
-                "Now {v} keeps radar {} for this run; the setting is kept for the next.",
-                env.word()
-            ),
-            t.s(Slot::StatusWarning),
-        ));
-    }
-    lines
 }

@@ -36,7 +36,7 @@ impl Host {
         let body = match self.view {
             View::Screen(_) => {
                 let view = self.screen_view(p, self.screen()?.1.id)?;
-                if crate::view_tui::screen_captures_keys(&view) {
+                if crate::route::screen_captures_keys(&view) {
                     return None;
                 }
                 interaction_motion::screen_node(&view, self.focus)?.clone()
@@ -75,7 +75,7 @@ impl Host {
             && self.ready(p)
             && self
                 .screen_view(p, spec.id)
-                .is_some_and(|view| crate::view_tui::screen_captures_keys(&view))
+                .is_some_and(|view| crate::route::screen_captures_keys(&view))
         {
             return Some(self.deliver(key).unwrap_or_default());
         }
@@ -288,7 +288,7 @@ impl Host {
             || tree.editing.is_some()
             || (self.view != View::Settings
                 && self.screen_view(p, scope).is_some_and(|view| {
-                    crate::view_tui::screen_captures_keys(&view)
+                    crate::route::screen_captures_keys(&view)
                 }))
         {
             return Some(blocked());

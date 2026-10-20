@@ -55,19 +55,19 @@ async fn history_runner_renders_recorded_outcomes_without_creating_read_events()
         assert!(host.update(key(Chord::new(k))).is_empty());
     };
     press(&mut host, Key::Enter);
-    let first_detail = crate::headless::text_of(&host, 80, 24);
+    let detail_scroll = |host: &Host| host.chrome_view(80, 24).history.expect("the overlay").detail_scroll;
     press(&mut host, Key::PageDown);
-    let scrolled = crate::headless::text_of(&host, 80, 24);
-    assert_ne!(first_detail, scrolled);
+    let scrolled = detail_scroll(&host);
     for modified in [Chord { ctrl: true, ..Chord::new(Key::Home) }, Chord { alt: true, ..Chord::new(Key::Home) }] {
         assert!(host.update(key(modified)).is_empty());
-        assert_eq!(crate::headless::text_of(&host, 80, 24), scrolled);
+        assert_eq!(detail_scroll(&host), scrolled);
     }
     press(&mut host, Key::Char('?'));
-    let help_top = crate::headless::text_of(&host, 80, 24);
-    assert_ne!(help_top, scrolled, "help shows");
+    assert!(host.chrome_view(80, 24).history.expect("the overlay").help, "help shows");
     press(&mut host, Key::Esc);
-    assert_eq!(crate::headless::text_of(&host, 80, 24), scrolled, "back to the same scroll");
+    let back = host.chrome_view(80, 24).history.expect("the overlay");
+    assert!(!back.help);
+    assert_eq!(back.detail_scroll, scrolled, "back to the same scroll");
     let events = recording
         .sink
         .history(Default::default(), None, None)

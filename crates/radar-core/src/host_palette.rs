@@ -146,8 +146,6 @@ impl Host {
             .checked_add(1)
             .expect("palette generation exhausted");
         state.generation = self.palette_generation;
-        self.hits.borrow_mut().clear();
-        *self.hovered.borrow_mut() = None;
         let query = open
             .input
             .as_ref()
@@ -206,14 +204,7 @@ impl Host {
         open.viewport.selected.set(None);
     }
 
-    pub(super) fn clear_palette_hits(&mut self) {
-        self.hits.borrow_mut().clear();
-        *self.hovered.borrow_mut() = None;
-        self.last_press = None;
-    }
-
     pub(super) fn cancel_palette(&mut self) {
-        self.clear_palette_hits();
         if let Some(state) = self.palette.take() {
             self.history = state.history;
         }
@@ -282,7 +273,6 @@ impl Host {
                     self.notify_error("that target changed; open the palette again");
                     return vec![];
                 }
-                self.clear_palette_hits();
                 self.palette = None;
                 let open = self.menu.as_mut().expect("palette is open");
                 open.menu.id = KEYS_MENU.into();
@@ -329,7 +319,6 @@ impl Host {
     }
 
     fn finish_palette_navigation(&mut self) {
-        self.clear_palette_hits();
         self.palette = None;
         self.menu = None;
         self.menu_keys.clear();

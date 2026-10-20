@@ -168,13 +168,8 @@ fn control_shortcuts_do_not_alias_confirmation_choices_or_escape_the_editor() {
     ));
     press(&mut host, "ctrl-y");
     assert!(host.menu.is_some(), "Ctrl-Y is not confirmation by Y");
-    for modifier in [Chord { alt: true, ..Chord::char('y') }] {
-        host.update(crate::host::chord_event(modifier));
-        assert!(
-            host.menu.is_some(),
-            "{modifier:?}-Y is not plain Y confirmation"
-        );
-    }
+    host.update(crate::host::chord_event(Chord { alt: true, ..Chord::char('y') }));
+    assert!(host.menu.is_some(), "Alt-Y is not plain Y confirmation");
     press(&mut host, "ctrl-q");
     assert!(host.menu.is_some(), "Ctrl-Q is not plain Q dismissal");
     press(&mut host, "esc");

@@ -97,12 +97,7 @@ impl Host {
         if self.notice_history.is_some() && !self.notice_history_can_open() {
             self.notice_history = None;
             self.history = None;
-            self.clear_notice_hits();
         }
-    }
-    fn clear_notice_hits(&mut self) {
-        self.hits.borrow_mut().clear();
-        *self.hovered.borrow_mut() = None;
     }
     pub(crate) fn reset_notice_input_support(&mut self) {
         self.notice_input_supported = false;
@@ -113,16 +108,8 @@ impl Host {
     pub fn notice_motion_enabled(&self) -> bool {
         self.notice_motion
     }
-    pub fn notice_frame_needed(&self, area: ratatui::layout::Rect) -> bool {
-        let has_sources = matches!(self.view, View::Screen(i) if self.group_screens(i).len() > 1);
-        self.notice_motion
-            && self.notices.has_active()
-            && self.notices_visible()
-            && !crate::shell::notice_content(area, has_sources).is_empty()
-    }
     pub(super) fn open_notice_history(&mut self) {
         self.notice_history = Some(Default::default());
-        self.clear_notice_hits();
     }
     pub(super) fn select_notice_history(&mut self, index: usize) {
         if let Some(selection) = &mut self.notice_history {
@@ -141,7 +128,6 @@ impl Host {
         match key.key {
             Key::Esc | Key::Char('~') => {
                 self.notice_history = None;
-                self.clear_notice_hits();
             }
             Key::Char('H') => return self.open_recent_history(),
             Key::Down | Key::Char('j') => {
@@ -191,7 +177,6 @@ impl Host {
             Some(Hit::Tab(_) | Hit::HistoryTab) if activate => {
                 self.notice_history = None;
                 self.history = None;
-                self.clear_notice_hits();
                 return self.chrome_intent(target, true);
             }
             _ => {}
@@ -271,38 +256,6 @@ impl Host {
             }
             Event::Intent(intent @ (Intent::Activate { target } | Intent::Select { target })) => {
                 Some(self.notice_history_target(target, matches!(intent, Intent::Activate { .. })))
-            }
-            Event::Mouse {
-                kind, column, row, ..
-            } => {
-                if *kind == MouseKind::Press {
-                    match self.hit_at(*column, *row) {
-                        Some(Hit::NoticeHistory(id)) => {
-                            if let Some(index) = self.notices.history_index(id) {
-                                self.select_notice_history(index);
-                            }
-                        }
-                        Some(Hit::NoticeHistoryKey(key)) => {
-                            if key.key == Key::Esc {
-                                self.notice_input(true);
-                            }
-                            return Some(self.notice_history_key(key));
-                        }
-                        Some(hit @ (Hit::Tab(_) | Hit::HistoryTab)) => {
-                            if let Some(target) = self.chrome_target_of(&hit) {
-                                return Some(self.notice_history_target(&target, true));
-                            }
-                        }
-                        _ => {}
-                    }
-                } else if matches!(kind, MouseKind::ScrollUp | MouseKind::ScrollDown) {
-                    return Some(self.notice_history_key(Chord::new(if *kind == MouseKind::ScrollUp {
-                            Key::Up
-                        } else {
-                            Key::Down
-                        })));
-                }
-                Some(vec![])
             }
             Event::Intent(Intent::Copy { .. }) => None,
             Event::Intent(_) | Event::Paste(_) => Some(vec![]),
@@ -391,16 +344,8 @@ mod tests {
             .target;
         host.update(Event::Intent(Intent::Activate { target: page }));
         assert_eq!(host.notice_history.as_ref().unwrap().detail_scroll, 5);
-        host.hits.borrow_mut().push((
-            ratatui::layout::Rect::new(1, 1, 5, 1),
-            Hit::NoticeHistoryKey(Chord::new(Key::Esc)),
-        ));
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 1,
-            row: 1,
-            at_ms: 0,
-        });
+        let esc = Host::notice_history_key_target(Chord::new(Key::Esc)).unwrap();
+        host.update(Event::Intent(Intent::Activate { target: esc }));
         assert!(host.notice_history.is_none());
         assert!(!host.notices.has_active());
         press(&mut host, Key::Char('~'));
@@ -567,18 +512,7 @@ mod tests {
         let (mut host, log) = probe();
         host.notify("information".into());
         let id = host.notices.through_id();
-        let area = ratatui::layout::Rect::new(2, 2, 20, 1);
-        host.hits.borrow_mut().push((
-            area,
-            Hit::Key(Chord::new(Key::Char('a')), 0),
-        ));
-        host.hits.borrow_mut().push((area, Hit::Notice(id)));
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: 3,
-            row: 2,
-            at_ms: 0,
-        });
+        host.update(Event::Intent(Intent::DismissNotice { id }));
         assert!(!host.notices.has_active());
         assert!(log.lock().unwrap().keys.is_empty());
         host.notify("information".into());
@@ -587,29 +521,18 @@ mod tests {
         assert_eq!(host.notices.len(), 2);
     }
     #[test]
-    fn suppressed_notices_expire_and_no_notice_frame_timer_survives() {
+    fn suppressed_notices_expire_while_a_menu_hides_them() {
         let (mut host, _) = probe();
         host.set_notice_motion_enabled(true);
         host.notify("information".into());
-        let area = ratatui::layout::Rect::new(0, 0, 80, 24);
-        assert!(host.notice_frame_needed(area));
-        for (width, height) in [(0, 0), (2, 4), (80, 4), (2, 24)] {
-            assert!(!host.notice_frame_needed(ratatui::layout::Rect::new(0, 0, width, height)));
-        }
-        assert!(host.notice_frame_needed(ratatui::layout::Rect::new(0, 0, 3, 5)));
-        host.set_notice_motion_enabled(false);
-        assert!(!host.notice_frame_needed(area));
-        host.set_notice_motion_enabled(true);
         host.menu = Some(OpenMenu::open(
             Owner::Host,
             Menu::confirm("question", "proceed?", "yes", "no"),
         ));
-        assert!(!host.notice_frame_needed(area));
         assert!(!host.notices_visible());
         host.set_ui_clock_ms(crate::notices::INFO_MS);
         host.menu = None;
         assert!(!host.notices.has_active());
-        assert!(!host.notice_frame_needed(area));
         assert_eq!(host.notices.len(), 1);
     }
 }

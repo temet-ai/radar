@@ -212,7 +212,7 @@ impl Host {
     /// The actual screen, sized after host chrome, with live controls attached.
     /// General fixtures intentionally use `view::screen_showing` instead.
     pub fn displayed_screen(&self, width: u16, height: u16) -> Option<ScreenView> {
-        let body = crate::shell::body_of(self, width, height);
+        let body = self.body_size(width, height);
         self.frontend.set_room(body.width, body.height);
         let Some((owner, spec)) = self.screen() else {
             self.reconcile_detail_lease();
@@ -270,8 +270,6 @@ impl Host {
     /// Only an explicit activation of an exactly current displayed control can run.
     /// Focus changes happen after all admission checks, under the normal input route.
     pub(super) fn activate_detail_control(&mut self, target: &Target) -> Vec<HostEffect> {
-        // Physical-Down capture arrives as an intent, bypassing on_mouse.
-        self.last_press = None;
         let Some((serial, slot)) = parse(target.as_str()) else {
             return vec![];
         };

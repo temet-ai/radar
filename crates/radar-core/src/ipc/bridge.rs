@@ -25,7 +25,7 @@ use super::{
 #[derive(Debug, Default)]
 pub struct Received {
     /// What the host asked for (work to start, files to write): the
-    /// runner performs these as it does for the Ratatui renderer.
+    /// runner performs these.
     pub effects: Vec<HostEffect>,
     /// The renderer said goodbye, or the host quit.
     pub quit: bool,
@@ -62,8 +62,7 @@ pub struct Bridge {
     told_notice_id: u64,
     /// Messages that are never coalesced, oldest first.
     outbox: VecDeque<ToRenderer>,
-    /// The colour tier the look is resolved at, as the Ratatui runner
-    /// detects it.
+    /// The colour tier the look is resolved at, as the runner detects it.
     tier: Tier,
     /// The theme configuration the renderer's look was last resolved from.
     looked: Option<ThemeConfig>,
@@ -75,7 +74,7 @@ pub struct Bridge {
     processed_seq: Option<u64>,
     /// Fresh scene causality, unlike the durable processed acknowledgement.
     scene_origin_seq: Option<u64>,
-    /// Over SSH motion is held back, as the Ratatui runner does.
+    /// Over SSH motion is held back.
     ssh: bool,
     /// The startup splash's timing, and its frame as last worked out.
     splash: Splash,
@@ -179,7 +178,7 @@ impl Bridge {
         if self.welcomed { self.splash.next_frame() } else { None }
     }
 
-    /// The splash's frame now ([`crate::splash`]), as the Ratatui runner
+    /// The splash's frame now ([`crate::splash`]), as the runner
     /// works it out: at the end of its hold it hands off with the screen
     /// cue; where it cannot be drawn (too narrow) it ends at once.
     fn step_splash(&mut self) {
@@ -229,8 +228,8 @@ impl Bridge {
         self.held = None;
     }
 
-    /// The motion level that runs and why it is held back, as the Ratatui
-    /// runner works them out.
+    /// The motion level that runs and why it is held back, as the runner
+    /// works them out.
     fn motion_level(&self) -> (Level, Option<String>) {
         let set = Level::parse(&self.host.colours.cfg.motion);
         let why = motion::held_back(self.tier, self.ssh).map(str::to_string);
@@ -238,7 +237,7 @@ impl Bridge {
     }
 
     /// Move the cues the host raised into those waiting to be sent: only
-    /// ones that run at the level, as the Ratatui engine takes them.
+    /// ones that run at the level.
     fn gather_cues(&mut self) {
         let (level, _) = self.motion_level();
         for cue in self.host.take_cues() {
@@ -262,8 +261,8 @@ impl Bridge {
         }
     }
 
-    /// Resolve the look at `tier` (the runner passes `Tier::detect()`, as
-    /// the Ratatui runner does); the renderer is sent it again.
+    /// Resolve the look at `tier` (the runner passes `Tier::detect()`); the
+    /// renderer is sent it again.
     pub fn set_tier(&mut self, tier: Tier) {
         self.tier = tier;
         self.scene_origin_seq = None;
@@ -296,8 +295,8 @@ impl Bridge {
         &mut self.host
     }
 
-    /// Give the host back (to the Ratatui renderer, when Ink cannot run):
-    /// its parts, state and journal are as the renderer left them.
+    /// Give the host back (when Ink cannot run, so the runner can report
+    /// why): its parts, state and journal are as the renderer left them.
     pub fn into_host(mut self) -> Host {
         self.host.reset_notice_input_support();
         self.host
@@ -399,7 +398,7 @@ impl Bridge {
                 self.scene_origin_seq = (self.processed_seq == Some(seq)).then_some(seq);
                 // A context menu opens where the pointer pressed.
                 if let (true, false, Some((x, y)), Some(open)) = (context, had_menu, pointer, self.host.menu.as_mut()) {
-                    open.anchor = Some((x, y).into());
+                    open.anchor = Some(crate::view::chrome::CellAt { column: x, row: y });
                 }
             }
             ToHost::Pointer { column, row } => self.pointer = Some((column, row)),
@@ -507,8 +506,8 @@ impl Bridge {
     /// The chrome, screen, section and focus as they are now.
     pub fn snapshot_now(&self, cursor: u64) -> Snapshot {
         let (w, h) = (self.width, self.height);
-        // The icon column the views are built for, as the Ratatui shell sets it
-        // before it asks for a view: no frame is drawn here to set it.
+        // The icon column the views are built for, set before a view is
+        // asked for: no frame is drawn here to set it.
         self.host.frontend.set_lead(self.lead());
         // As Headless reads them: the screen showing, or the settings
         // section a part owns. The host keeps its section index while a

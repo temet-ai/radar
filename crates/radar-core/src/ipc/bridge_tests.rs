@@ -33,18 +33,6 @@ fn invoke(action: &str) -> Intent {
     }
 }
 
-#[test]
-fn the_bridge_names_no_terminal_library() {
-    let source = include_str!("bridge.rs");
-    for word in ["ratatui::", "crossterm", "Buffer", "Rect", "KeyEvent"] {
-        let used = source
-            .lines()
-            .filter(|l| !l.trim_start().starts_with("//"))
-            .any(|l| l.contains(word));
-        assert!(!used, "bridge.rs uses {word}");
-    }
-}
-
 /// C2(f): the same intents through Headless and through the bridge record
 /// the same actions with the same causal parents, and ask the same
 /// question.
@@ -81,7 +69,7 @@ fn a_renderer_of_another_protocol_is_refused_with_words_to_show() {
         panic!("{out:?}")
     };
     assert_eq!((*wanted, *got), (PROTOCOL, PROTOCOL + 1));
-    assert!(message.contains("install them together") && !message.contains("RADAR_RENDERER"), "{message}");
+    assert!(message.contains("install them together"), "{message}");
     // Nothing it sends is acted on.
     let fx = bridge.receive(intent(1, invoke(ASK)));
     assert!(fx.effects.is_empty() && bridge.host().menu.is_none());
@@ -203,8 +191,8 @@ fn a_restarted_renderer_is_told_everything_again() {
     assert_eq!(snapshots(&again).len(), 1);
 }
 
-/// T8: the renderer has no highlighter, so a diff is sent painted the way
-/// Ratatui's `paint` feeds its highlighters.
+/// T8: the renderer has no highlighter, so a diff is sent painted: runs of
+/// what the code is, per line.
 #[test]
 fn a_diff_is_painted_for_the_renderer() {
     use crate::ui::diff::{DiffLine, Kind};
@@ -232,7 +220,7 @@ fn a_diff_is_painted_for_the_renderer() {
     assert!(painted[0].is_empty(), "a hunk heading has no runs");
     let text = |l: &Vec<PaintRun>| l.iter().map(|r| r.text.as_str()).collect::<String>();
     assert_eq!(text(&painted[2]), "still open */ let x = 1;");
-    assert_eq!(text(&painted[3]), "    let y = 2;", "tabs are four spaces, as Ratatui paints them");
+    assert_eq!(text(&painted[3]), "    let y = 2;", "tabs are four spaces");
     // The context line opened a comment on both sides; the removed line
     // closed it on the old side only, so the added line is still inside it.
     assert_eq!(painted[2][0].token, "comment");
@@ -248,7 +236,7 @@ fn a_diff_is_painted_for_the_renderer() {
 }
 
 /// The words that changed in a replaced pair are sent with the diff, in
-/// characters, as Ratatui emphasises them; the renderer compares nothing.
+/// characters, for the renderer to emphasise; the renderer compares nothing.
 #[test]
 fn a_diff_is_sent_with_the_words_that_changed() {
     use crate::ui::diff::{DiffLine, Kind};
@@ -282,7 +270,7 @@ fn a_diff_is_sent_with_the_words_that_changed() {
 }
 
 /// T6: a context menu the renderer's right-click opens is anchored where
-/// the pointer pressed, as the Ratatui runner anchors one.
+/// the pointer pressed.
 #[test]
 fn a_context_menu_opens_where_the_pointer_pressed() {
     let mut bridge = Bridge::new(fixture::host(), 80, 24);
@@ -296,7 +284,7 @@ fn a_context_menu_opens_where_the_pointer_pressed() {
     // With one, it opens there; and the pointer is spent by that intent.
     bridge.receive(ToHost::Pointer { column: 60, row: 5 });
     bridge.receive(intent(2, context()));
-    assert_eq!(bridge.host().menu.as_ref().and_then(|m| m.anchor), Some((60, 5).into()));
+    assert_eq!(bridge.host().menu.as_ref().and_then(|m| m.anchor), Some(crate::view::chrome::CellAt { column: 60, row: 5 }));
     assert_eq!(bridge.host().menu_view().and_then(|m| m.at), Some(crate::view::chrome::CellAt { column: 60, row: 5 }));
     bridge.host_mut().menu = None;
     bridge.receive(intent(3, context()));
@@ -366,8 +354,8 @@ fn a_rows_report_is_cut_to_its_bounds() {
     assert_eq!(panes.len(), MAX_PANES);
 }
 
-/// T2: a part that is not set up shows the host's set-up page, as the
-/// Ratatui shell draws it, not the part's own screen.
+/// T2: a part that is not set up shows the host's set-up page, not the
+/// part's own screen.
 #[test]
 fn a_part_not_set_up_is_sent_as_its_set_up_page() {
     let mut bridge = Bridge::new(fixture::unready_host(), 80, 24);
@@ -384,8 +372,8 @@ fn a_part_not_set_up_is_sent_as_its_set_up_page() {
     assert_eq!(ready.panes[0].title, "items");
 }
 
-/// T20: views are built for the icon column the theme draws, as the Ratatui
-/// shell sets it before every view; under Ink no frame is drawn to set it.
+/// T20: views are built for the icon column the theme draws, set before
+/// every view; under Ink no frame is drawn to set it.
 #[test]
 fn views_are_built_for_the_icon_column_of_the_theme() {
     let mut host = fixture::host();
@@ -482,7 +470,7 @@ fn motion_off_sends_the_level_and_no_cues() {
     assert_eq!(motion[0].held_back, None);
 }
 
-/// T28: over SSH the level is off and says why, as the Ratatui runner has it.
+/// T28: over SSH the level is off and says why.
 #[test]
 fn over_ssh_motion_is_held_back_and_says_why() {
     let mut host = fixture::host();
@@ -548,7 +536,7 @@ fn a_message_comes_and_goes_as_two_cues_at_full() {
     );
 }
 
-/// T28: at subtle a message shows no motion, as in the Ratatui engine.
+/// T28: at subtle a message shows no motion.
 #[test]
 fn a_message_sends_no_cue_at_subtle() {
     let mut bridge = motion_bridge("subtle");
@@ -587,7 +575,7 @@ fn splash_bridge(level: &str) -> Bridge {
 
 /// The splash is sent in the first snapshot, a new frame on each frame
 /// tick, and at the end of its hold it hands off: no splash and one screen
-/// cue, so Ink fades the first screen in as Ratatui does.
+/// cue, so Ink fades the first screen in.
 #[test]
 fn the_splash_is_sent_frame_by_frame_then_hands_off_with_the_screen_cue() {
     let mut bridge = splash_bridge("full");

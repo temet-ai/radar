@@ -75,17 +75,11 @@ pub fn prefix<'a>(keys: &'a str, words: &str, at: Option<usize>, shift: bool) ->
 /// Source-scalar range of the complete grapheme containing the supplied index.
 /// Every source scalar counts, including controls that do not paint a cell.
 pub fn grapheme_range(words: &str, at: usize) -> Option<Range<usize>> {
-    use ratatui::{style::Style, text::Span};
-    let span = Span::raw(words);
-    let (mut byte, mut offset) = (0, 0);
-    for grapheme in span.styled_graphemes(Style::default()) {
-        // Ratatui filters control graphemes. Their raw source still advances
-        // the protocol's scalar index; walk each skipped gap just once.
-        let start = grapheme.symbol.as_ptr() as usize - words.as_ptr() as usize;
-        offset += words[byte..start].chars().count();
-        let end = offset + grapheme.symbol.chars().count();
+    use unicode_segmentation::UnicodeSegmentation;
+    let mut offset = 0;
+    for grapheme in words.graphemes(true) {
+        let end = offset + grapheme.chars().count();
         if (offset..end).contains(&at) { return Some(offset..end); }
-        byte = start + grapheme.symbol.len();
         offset = end;
     }
     None

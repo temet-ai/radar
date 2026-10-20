@@ -3,19 +3,12 @@
 //! the selected icon (written to `[icons]`), `r` gives it back to the pack.
 //! Which pack is the colours section's `icons` row.
 
-use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
-use ratatui::layout::{Position, Rect};
-use ratatui::text::{Line, Span};
-
 use crate::colours::{Colours, Reply};
-use crate::design::theme::Slot;
 use crate::input::{Edit, TextInput};
 use crate::plugin::{Binding, SectionSpec};
-use crate::theme::Theme;
 use crate::ui::icon::{self, Glyph, Icon, Icons};
-use crate::ui::rows::{ListRow, Move, RowList, select};
-use crate::widgets;
+use crate::ui::rows::{Move, select};
+use crate::view::{Chord, Key};
 
 /// The host's settings section for icons, under general.
 pub const ICONS_SECTION: SectionSpec = SectionSpec {
@@ -70,7 +63,7 @@ impl Colours {
     }
 
     /// Keys in the icons section.
-    pub fn icons_key(&mut self, key: KeyEvent) -> Reply {
+    pub fn icons_key(&mut self, key: Chord) -> Reply {
         let icon = self.icon_selected();
         if let Some(mut input) = self.edit.take() {
             return match input.key(key) {
@@ -114,14 +107,14 @@ impl Colours {
             };
         }
         let rows = rows();
-        if let Some(mv) = crate::key_compat::chord_of(&key).and_then(|c| Move::from_key(c, self.icon_scroll.height())) {
+        if let Some(mv) = Move::from_key(key, self.icon_scroll.height()) {
             self.icon_row = select(rows.len(), self.icon_row, mv, |i| {
                 matches!(rows[i], IconRow::Icon(_))
             });
             return Reply::Done;
         }
-        match key.code {
-            KeyCode::Enter => {
+        match key.key {
+            Key::Enter => {
                 let now = self.icons_now();
                 let start = self
                     .cfg
@@ -132,7 +125,7 @@ impl Colours {
                 self.edit = Some(TextInput::new(&start));
                 Reply::Done
             }
-            KeyCode::Char('r') if self.cfg.icon_overrides.contains_key(icon.name()) => {
+            Key::Char('r') if self.cfg.icon_overrides.contains_key(icon.name()) => {
                 self.cfg.icon_overrides.remove(icon.name());
                 Reply::Say(format!("{}: the pack's again", icon.name()))
             }
@@ -153,141 +146,8 @@ impl Colours {
         rows
     }
 
-    pub fn icons_render(
-        &self,
-        theme: &Theme,
-        inner: Rect,
-        buf: &mut Buffer,
-        focused: bool,
-        cursor: &std::cell::Cell<Option<Position>>,
-    ) -> Vec<(Rect, usize)> {
-        let now = self.icons_now();
-        let shown = now.width.max(1);
-        let muted = theme.s(Slot::TextMuted);
-        let list: Vec<ListRow> = rows()
-            .into_iter()
-            .map(|r| match r {
-                IconRow::Heading(g) => ListRow::heading(Line::styled(g, muted)),
-                IconRow::Icon(i) => {
-                    let r = now.get(i);
-                    let glyph = if r.glyph.is_empty() {
-                        crate::ui::pad("·", shown)
-                    } else {
-                        r.glyph.clone()
-                    };
-                    let mut row = ListRow::new(Line::from(vec![
-                        Span::raw("  "),
-                        Span::styled(glyph, theme.spec(&r.style)),
-                        Span::raw("  "),
-                        Span::styled(crate::ui::pad(i.name(), 18), theme.s(Slot::TextPrimary)),
-                    ]))
-                    .detail(Span::styled(
-                        i.about().to_string(),
-                        theme.s(Slot::TextSecondary),
-                    ));
-                    if self.cfg.icon_overrides.contains_key(i.name()) {
-                        row = row.right(Span::styled("yours", theme.s(Slot::StatusWarning)));
-                    }
-                    row
-                }
-            })
-            .collect();
-        let drawn = RowList::new(list)
-            .cursor(self.icon_row)
-            .focused(focused)
-            .render_in(theme, inner, buf, &self.icon_scroll);
-        if let Some(input) = &self.edit
-            && let Some((rect, _)) = drawn.iter().find(|(_, i)| *i == self.icon_row)
-        {
-            // The input takes the glyph's place on the row.
-            let x = 3;
-            let area = Rect {
-                x: rect.x + x,
-                width: rect.width.saturating_sub(x + 1),
-                ..*rect
-            };
-            input.render(theme, area, buf, cursor);
-        }
-        drawn
-    }
-
     pub fn icons_detail_title(&self) -> String {
         self.icon_selected().name().to_string()
-    }
-
-    pub fn icons_render_detail(&self, theme: &Theme, inner: Rect, buf: &mut Buffer) {
-        widgets::paragraph(buf, inner, self.icons_detail_lines(theme));
-    }
-
-    /// The selected icon's detail, ready for the host to wrap and scroll.
-    pub fn icons_detail_lines(&self, theme: &Theme) -> Vec<Line<'static>> {
-        let icon = self.icon_selected();
-        let now = self.icons_now();
-        let r = now.get(icon);
-        let text = theme.s(Slot::TextPrimary);
-        let muted = theme.s(Slot::TextMuted);
-        let mut lines = vec![
-            Line::styled(format!("Shows {}.", icon.about()), text),
-            Line::default(),
-        ];
-        let glyph = if r.glyph.is_empty() {
-            "none".to_string()
-        } else {
-            r.glyph.trim_end().to_string()
-        };
-        lines.push(widgets::kv(
-            theme,
-            "now",
-            10,
-            vec![Span::styled(glyph, theme.spec(&r.style))],
-        ));
-        lines.push(widgets::kv(
-            theme,
-            "from",
-            10,
-            vec![Span::styled(r.from.clone(), text)],
-        ));
-        lines.push(widgets::kv(
-            theme,
-            "colour",
-            10,
-            vec![Span::styled(r.style.clone(), text)],
-        ));
-        lines.push(widgets::kv(
-            theme,
-            "pack",
-            10,
-            vec![Span::styled(self.icons_label(), text)],
-        ));
-        lines.push(Line::default());
-        if !now.on() {
-            lines.push(Line::styled(
-                "Icons are off: pick a pack in General › colours, icons.",
-                theme.s(Slot::StatusWarning),
-            ));
-        }
-        lines.push(Line::styled(
-            if self.cfg.icon_overrides.contains_key(icon.name()) {
-                "Yours. ⏎ types another, r gives it back to the pack."
-            } else {
-                "The pack's. ⏎ types your own."
-            },
-            muted,
-        ));
-        lines.push(Line::styled(
-            format!(
-                "A glyph takes at most {} cell{} in this pack; joined emoji, skin tones and flags are refused.",
-                now.width.max(1),
-                if now.width > 1 { "s" } else { "" }
-            ),
-            muted,
-        ));
-        lines.push(Line::default());
-        lines.push(Line::styled(
-            format!("config: [icons] {}", icon.name()),
-            muted,
-        ));
-        lines
     }
 
     /// Put the cursor on the first icon if it is on a heading.
@@ -304,18 +164,16 @@ impl Colours {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ratatui::crossterm::event::KeyModifiers;
-
-    fn press(c: &mut Colours, code: KeyCode) -> Reply {
-        c.icons_key(KeyEvent::new(code, KeyModifiers::NONE))
+    fn press(c: &mut Colours, key: Key) -> Reply {
+        c.icons_key(Chord::new(key))
     }
 
     fn typed(c: &mut Colours, text: &str) -> Reply {
-        press(c, KeyCode::Enter);
+        press(c, Key::Enter);
         let input = c.edit.as_mut().expect("typing");
-        input.key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL));
+        input.key(Chord::ctrl('u'));
         input.paste(text);
-        press(c, KeyCode::Enter)
+        press(c, Key::Enter)
     }
 
     #[test]
@@ -324,14 +182,14 @@ mod tests {
         c.cfg.icons = "unicode".into();
         c.icons_first_row();
         assert_eq!(c.icon_selected(), Icon::ALL[0]);
-        press(&mut c, KeyCode::Down);
+        press(&mut c, Key::Down);
         let icon = c.icon_selected();
         assert!(matches!(typed(&mut c, "R"), Reply::Say(m) if m.contains("is now R")));
         assert!(c.edit.is_none());
         assert_eq!(c.cfg.icon_overrides[icon.name()], Glyph::new("R"));
         assert_eq!(c.icons_now().get(icon).glyph, "R");
         assert!(c.icons_keys().iter().any(|b| b.keys == "r"));
-        assert!(matches!(press(&mut c, KeyCode::Char('r')), Reply::Say(_)));
+        assert!(matches!(press(&mut c, Key::Char('r')), Reply::Say(_)));
         assert!(c.cfg.icon_overrides.is_empty());
     }
 
@@ -400,10 +258,7 @@ mod tests {
             .position(|(o, _)| *o == crate::host::Owner::Look)
             .unwrap();
         let key = |host: &mut crate::Host, code| {
-            host.update(crate::host::Event::Key(KeyEvent::new(
-                code,
-                KeyModifiers::NONE,
-            )));
+            host.update(crate::host::chord_event(Chord::new(code)));
         };
         let text = crate::headless::host_text_of(&host, 160, 40);
         for (pack, needs) in [
@@ -422,12 +277,12 @@ mod tests {
             );
         }
         // Down once is the second pack, plain (unicode); space chooses it.
-        key(&mut host, KeyCode::Down);
-        key(&mut host, KeyCode::Char(' '));
+        key(&mut host, Key::Down);
+        key(&mut host, Key::Char(' '));
         assert_eq!(host.colours.cfg.icons, "unicode");
         assert!(host.menu.is_none(), "no menu: the card is the choice");
-        key(&mut host, KeyCode::Up);
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Up);
+        key(&mut host, Key::Enter);
         assert_eq!(host.colours.cfg.icons, "nerd", "⏎ chooses too");
     }
 
@@ -436,7 +291,7 @@ mod tests {
         let mut c = Colours::default();
         c.icons_first_row();
         for _ in 0..rows().len() {
-            press(&mut c, KeyCode::Down);
+            press(&mut c, Key::Down);
             assert!(matches!(rows()[c.icon_row], IconRow::Icon(_)));
         }
     }

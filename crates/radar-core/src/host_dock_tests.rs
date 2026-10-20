@@ -100,9 +100,9 @@ fn status_text(host: &Host, w: u16, h: u16) -> String {
     crate::headless::text::status(&host.chrome_view(w, h).status)
 }
 
-/// The status line the host draws (the last row), at `w` x `h`.
+/// The status line's chip row in the text form, at `w` x `h`.
 fn status_row(host: &Host, w: u16, h: u16) -> String {
-    crate::headless::text_of(host, w, h).lines().last().unwrap_or_default().to_string()
+    crate::headless::text_of(host, w, h).lines().find(|l| l.starts_with("! ")).unwrap_or_default().to_string()
 }
 
 #[test]

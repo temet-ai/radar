@@ -551,11 +551,14 @@ fn palette_footer_click_cannot_confirm_the_next_question() {
         .unwrap();
     host.menu.as_mut().unwrap().row = row;
     let target = host
-        .chrome_target_of(&Hit::Key(
-            Chord::new(Key::Enter),
-            1,
-        ))
-        .unwrap();
+        .chrome_view(80, 24)
+        .status
+        .hints
+        .into_iter()
+        .flat_map(|h| h.keys_of)
+        .find(|k| k.chord == Chord::new(Key::Enter))
+        .unwrap()
+        .target;
     assert!(target.as_str().starts_with("chrome:palette-key:"));
     let click = crate::view::Intent::Activate { target };
     host.update(Event::Intent(click.clone()));

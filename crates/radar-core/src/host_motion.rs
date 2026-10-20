@@ -235,7 +235,7 @@ impl Host {
         } else {
             None
         };
-        let outcome = crate::view_tui::to_part(self.plugins[p].as_mut(), scope, pane, intent);
+        let outcome = crate::route::to_part(self.plugins[p].as_mut(), scope, pane, intent);
         if let Some((context, before, path, requested)) = before
             && matches!(outcome, Outcome::Handled(_))
             && self.motion_context().as_ref() == Some(&context)

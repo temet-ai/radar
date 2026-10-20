@@ -201,7 +201,7 @@ async fn a_renderer_of_another_protocol_is_refused_and_radar_stops_with_the_reas
     let Ended::Failed(why) = run(&mut sup, &mut bridge).await else {
         panic!()
     };
-    assert!(why.contains("protocol") && !why.contains("RADAR_RENDERER"), "{why}");
+    assert!(why.contains("protocol"), "{why}");
     assert_eq!(sup.started.len(), 1, "a refused renderer is not restarted");
     assert_eq!(restores(&sup), 1);
     // Visible: on stderr, as two lines.
@@ -221,7 +221,7 @@ async fn a_renderer_reading_other_views_is_refused_too() {
     let Ended::Failed(why) = run(&mut sup, &mut bridge).await else {
         panic!()
     };
-    assert!(why.contains("views of version") && !why.contains("RADAR_RENDERER"), "{why}");
+    assert!(why.contains("views of version"), "{why}");
     assert_eq!(sup.started.len(), 1);
 }
 
@@ -322,7 +322,7 @@ async fn a_renderer_that_keeps_crashing_stops_radar_with_the_last_reason_after_t
     let Ended::Failed(why) = run(&mut sup, &mut bridge).await else {
         panic!()
     };
-    assert!(why.contains("4 times in a minute") && !why.contains("Ratatui"), "{why}");
+    assert!(why.contains("4 times in a minute"), "{why}");
     assert_eq!(sup.started.len(), 4, "the first start and three restarts");
     assert_eq!(restores(&sup), 4);
 }

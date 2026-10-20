@@ -2084,6 +2084,42 @@ fn every_action_slack_adds_acts_and_the_draft_page_rows_are_taken() {
 /// input is on that row, and only there, with `w` typed into it (a stray
 /// first letter would look typed but could not be deleted, and ⏎ would
 /// drop it). `row` picks the line by its label.
+/// The settings input open: the words of the row it is on, and how many
+/// cells into that row it starts (`Editing.at`, `TreeEditing.at`).
+fn open_input(host: &Host) -> Option<(String, u16)> {
+    use radar_core::view::{Node, TreeRow};
+    fn find<'a>(rows: &'a [TreeRow], path: &[String]) -> Option<&'a TreeRow> {
+        let (first, rest) = path.split_first()?;
+        let row = rows.iter().find(|r| &r.id == first)?;
+        if rest.is_empty() { Some(row) } else { find(&row.children, rest) }
+    }
+    let section = radar_core::headless::section_of(host, 160, 40)?;
+    match &section.body {
+        Node::List { rows, editing: Some(e), .. } => Some((rows.get(e.row)?.text.words(), e.at)),
+        Node::Tree(tree) => {
+            let e = tree.editing.as_ref()?;
+            Some((find(&tree.rows, &e.path)?.name.words(), e.at))
+        }
+        _ => None,
+    }
+}
+
+/// `input_opens_on_its_row`, and the input starts on the cells `value` was
+/// drawn in: `at` is a cell plus the width of the row's words before it.
+/// That Ink puts the field `at` cells into the row, the caret on its
+/// character, is ink/test/nodes/list-editing-at.test.tsx.
+fn input_sits_on_its_value(host: &mut Host, name: &str, downs: usize, open: &[KeyCode], row: &str, value: &str) {
+    input_opens_on_its_row(host, name, downs, open, row);
+    for code in open {
+        host.update(Event::Key(KeyEvent::new(*code, KeyModifiers::NONE)));
+    }
+    let (words, at) = open_input(host).unwrap_or_else(|| panic!("{name}: no input open on {row:?}"));
+    let before = words.find(value).unwrap_or_else(|| panic!("{name}: no {value:?} on {words:?}"));
+    // A row is drawn a cell in from the pane's edge, its words after that cell.
+    assert_eq!(usize::from(at), 1 + radar_core::ui::width(&words[..before]), "{name}, {row:?}: the input starts off its value in {words:?}");
+    host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+}
+
 fn input_opens_on_its_row(host: &mut Host, name: &str, downs: usize, open: &[KeyCode], row: &str) {
     let key = |host: &mut Host, code: KeyCode, m: KeyModifiers| {
         let _ = shown(host, 160, 40);
@@ -2124,22 +2160,22 @@ fn input_opens_on_its_row(host: &mut Host, name: &str, downs: usize, open: &[Key
 }
 
 #[test]
-fn every_settings_input_opens_on_its_row_holding_what_is_typed() {
+fn every_settings_input_starts_where_its_value_was_drawn() {
     use KeyCode::{Char, Enter};
     let mut host = hosted();
     // connection: the api, the token, how often to read, how far back.
-    input_opens_on_its_row(&mut host, "connection", 1, &[Char('e')], "api ");
-    input_opens_on_its_row(&mut host, "connection", 2, &[Char('e')], "token ");
-    input_opens_on_its_row(&mut host, "connection", 5, &[Char('e')], "refresh ");
-    input_opens_on_its_row(&mut host, "connection", 6, &[Char('e')], "read back ");
+    input_sits_on_its_value(&mut host, "connection", 1, &[Char('e')], "api ", "https://slack.com");
+    input_sits_on_its_value(&mut host, "connection", 2, &[Char('e')], "token ", "xoxp");
+    input_sits_on_its_value(&mut host, "connection", 5, &[Char('e')], "refresh ", "every 2m");
+    input_sits_on_its_value(&mut host, "connection", 6, &[Char('e')], "read back ", "7 days");
     // channels: the add row, a channel's alias and purpose.
-    input_opens_on_its_row(&mut host, "channels", 0, &[Enter], "+ add a channel");
-    input_opens_on_its_row(&mut host, "channels", 2, &[Char('e')], "├─ alias ");
-    input_opens_on_its_row(&mut host, "channels", 3, &[Char('e')], "├─ purpose ");
+    input_sits_on_its_value(&mut host, "channels", 0, &[Enter], "+ add a channel", "add a channel");
+    input_sits_on_its_value(&mut host, "channels", 2, &[Char('e')], "├─ alias ", "team");
+    input_sits_on_its_value(&mut host, "channels", 3, &[Char('e')], "├─ purpose ", "where");
     // review: the template, the link text, how long before asking again.
-    input_opens_on_its_row(&mut host, "review", 2, &[Char('e')], "template ");
-    input_opens_on_its_row(&mut host, "review", 3, &[Char('e')], "link text ");
-    input_opens_on_its_row(&mut host, "review", 5, &[Char('e')], "ask again");
+    input_sits_on_its_value(&mut host, "review", 2, &[Char('e')], "template ", "{group}");
+    input_sits_on_its_value(&mut host, "review", 3, &[Char('e')], "link text ", "mr");
+    input_sits_on_its_value(&mut host, "review", 5, &[Char('e')], "ask again", "after 2");
 }
 
 #[test]

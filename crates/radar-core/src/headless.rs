@@ -225,7 +225,8 @@ pub fn screen_text_of(host: &Host, width: u16, height: u16) -> String {
     crate::view::screen_showing(host, width, height).map(|s| text::screen(&s, Some(host.focus.into()))).unwrap_or_default()
 }
 
-fn section_of(host: &Host, width: u16, height: u16) -> Option<SectionView> {
+/// [`Headless::section`] for a host a test drives itself.
+pub fn section_of(host: &Host, width: u16, height: u16) -> Option<SectionView> {
     // Setup's own steps (a step that is a section is that section).
     if host.setup_host_step() {
         return host.setup_section_view();

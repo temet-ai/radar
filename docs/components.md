@@ -85,7 +85,7 @@ Those two lists are the live parity backlog.
 
 | View type | Ratatui | Ink | Parity gaps (Ink unless said) |
 |---|---|---|---|
-| `Node::List`, `ListRow` | `view_tui::draw_node` → `ui::rows::RowList` | `nodes/lists.tsx` `ListNode` | `ListRow.heading`, `ListRow.link`, `Editing.at` not drawn |
+| `Node::List`, `ListRow` | `view_tui::draw_node` → `ui::rows::RowList` | `nodes/lists.tsx` `ListNode` | none known |
 | `Node::Tree`, `TreeRow`, `Chips`, `TreeLook`, `Note` | `view_tui::draw_tree` → `ui::tree::BandedTree` | `nodes/tree.tsx` `TreeNode`, `nodes/columns.ts`, `nodes/headrow.tsx` | `TreeLook.*`, row `chips`, `glow`, `heading`, `ordered_columns`, `name_width`, `TreeEditing.at` not drawn |
 | `Node::Table`, `TableRow`, `ColumnSpec`, `CellView` | → `ui::table::Table` | `nodes/lists.tsx` `TableNode` | `ColumnSpec.extra` |
 | `Node::Entries`, `EntryView` | → `ui::entries::Entries` | `nodes/lists.tsx` `EntriesNode` | none known |
@@ -107,7 +107,7 @@ Those two lists are the live parity backlog.
 | `MenuView`, `Choice` | `shell/menu.rs` | `chrome/layout.ts` `layoutMenu`, `Chrome.tsx` `MenuBox` | `change` deliberately undrawn |
 | `SettingsNav` | `shell::settings` | `chrome/layout.ts` `layoutNav` | none known |
 | `HistoryView` | `history.rs` | `chrome/history.ts` | `pending` deliberately undrawn |
-| `Text`, `Seg`, `Ink`, `Tone` | `view_tui::span`, `words`, `slot` | `text/TextLine.tsx`, `text/cells.tsx` | `link` listed undrawn (OSC 8 only); `marked` and `look` are drawn |
+| `Text`, `Seg`, `Ink`, `Tone` | `view_tui::span`, `words`, `slot` | `text/TextLine.tsx`, `text/cells.tsx` | `link` is an OSC 8 hyperlink (`text/link.ts`); `marked` and `look` are drawn |
 | `Media` | `ui::rich::media`, `ui::image` | `media/MediaBlock.tsx` (fallback line only; kitty drawer not wired) | pictures: #38 |
 
 Ink draws a few things that have no view type behind them: scrollbars and scroll state,
@@ -353,14 +353,12 @@ Found by inventory on 13 October 2026. Each item is a defect against the rules a
 13. **GUIDE names that no longer exist**: GUIDE 2.1 and 2.2 cite `shell::hints`;
     the work is in `status_line` and `key_hits`.
 14. **Dead ratatui render in a part**: `radar-workspace/src/screen.rs` (`#[allow(dead_code)]`).
-15. **`KNOWN_UNDRAWN` entries**: `SCREEN_KNOWN_UNDRAWN` holds `Seg.link` and `ListRow.link` (Ratatui writes a
-    link as an OSC 8 hyperlink and its native cells carry no underline, so Ink has no look of its own until it
-    writes OSC 8 too), and `Node.rich.pictures` and `Media.src` (pictures come after the Ratatui removal, #14; without
-    one the line `▣ image <name>  <url>` is drawn). `DOCK_KNOWN_UNDRAWN` holds `DockTab.provider` (the host will stop
-    sending it). Each goes red with "now drawn" when fixed. The other fields the contract once listed are drawn, or
-    are in `SCREEN_INVISIBLE` with their reason (a motion mark: `Node.state.state` loading and `TreeRow.glow`; hit
-    only: `TreeRow.heading`; the host's: `Node.diff.language`; not drawn by `ui::rich` either: `RichBlock.code.lang`,
-    `InlineKind.image.src`).
+15. **`KNOWN_UNDRAWN` entries**: `SCREEN_KNOWN_UNDRAWN` holds `Node.rich.pictures` and `Media.src` only: pictures come
+    after the Ratatui removal (#14) and need the host to send the picture's bytes, which the protocol has no message for;
+    without one the line `▣ image <name>  <url>` is drawn. `DOCK_KNOWN_UNDRAWN` is empty. Each entry goes red with "now
+    drawn" when fixed. The other fields the contract once listed are drawn, or are in `SCREEN_INVISIBLE` with their
+    reason (a motion mark: `Node.state.state` loading and `TreeRow.glow`; hit only: `TreeRow.heading`; the host's:
+    `Node.diff.language`; not drawn by `ui::rich` either: `RichBlock.code.lang`, `InlineKind.image.src`).
     Known drift found on the way: a tree's `Tree.note` is one line with `… ` or `✗ ` marks in Ink, and
     `widgets::empty` over three rows in Ratatui, whatever its state; a log's `n–m of total` line has no Ratatui twin.
 

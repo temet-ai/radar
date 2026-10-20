@@ -35,6 +35,19 @@ os.makedirs(out, exist_ok=True)
 home = os.path.join(out, "home")
 for d in ("", ".config", ".local/state", ".cache", ".local/share"):
     os.makedirs(os.path.join(home, d), exist_ok=True)
+# PTY_OFFLINE=1: start on ink-live's offline data (GitLab acme/team-a, Jira ABC-12) instead of a first run, so the
+# keys move through real screens (J, R, B, W switch screens there).
+if os.environ.get("PTY_OFFLINE"):
+    offline = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../scripts/ink-live/assets/offline")
+    os.makedirs(os.path.join(home, ".config/radar"), exist_ok=True)
+    os.makedirs(os.path.join(home, ".local/state/radar"), exist_ok=True)
+    shutil.copy(os.path.join(offline, "config.toml"), os.path.join(home, ".config/radar/config.toml"))
+    for f in ("gitlab.json", "jira.json"):
+        shutil.copy(os.path.join(offline, f), os.path.join(home, ".local/state/radar", f))
+    # PTY_CONFIG_EXTRA: TOML appended to that config (e.g. `[theme]\nmotion = "off"` to time a frame without motion).
+    if os.environ.get("PTY_CONFIG_EXTRA"):
+        with open(os.path.join(home, ".config/radar/config.toml"), "a") as c:
+            c.write("\n" + os.environ["PTY_CONFIG_EXTRA"].replace("\\n", "\n") + "\n")
 log = os.path.join(out, "ipc.log")
 open(log, "w").close()
 tap = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ipc-tap.mjs")

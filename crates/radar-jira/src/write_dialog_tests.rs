@@ -116,20 +116,17 @@ impl Run {
         }));
         effects
     }
-    fn key(&mut self, key: KeyCode) -> Vec<HostEffect> {
-        self.event(Event::Key(KeyEvent::new(key, KeyModifiers::NONE)))
+    fn key(&mut self, key: Key) -> Vec<HostEffect> {
+        self.event(crate::key_event(Chord::new(key)))
     }
     fn char(&mut self, key: char) -> Vec<HostEffect> {
-        self.key(KeyCode::Char(key))
+        self.key(Key::Char(key))
     }
     fn paste(&mut self, text: &str) {
         self.event(Event::Paste(text.into()));
     }
     fn review(&mut self) {
-        self.event(Event::Key(KeyEvent::new(
-            KeyCode::Char('s'),
-            KeyModifiers::CONTROL,
-        )));
+        self.event(crate::key_event(Chord { ctrl: true, ..Chord::new(Key::Char('s')) }));
     }
     fn capture(&mut self, kind: Kind, target: &str, effects: Vec<HostEffect>) -> Pending {
         let contexts = spawns(&effects);
@@ -307,7 +304,7 @@ fn late_types_moves_and_who_leave_comment_and_its_review_exactly_owned() {
             let pending = r.launch(kind);
             r.char('c');
             r.paste(BODY);
-            r.key(KeyCode::Left);
+            r.key(Key::Left);
             if reviewing {
                 r.review();
             }
@@ -357,10 +354,10 @@ fn late_action_reads_leave_create_summary_description_and_review_exact() {
             r.char('1');
             r.paste("  SECRET_SUMMARY  ");
             if stage > 0 {
-                r.key(KeyCode::Enter);
+                r.key(Key::Enter);
                 r.paste(BODY);
             }
-            r.key(KeyCode::Left);
+            r.key(Key::Left);
             if stage == 2 {
                 r.review();
             }
@@ -427,7 +424,7 @@ fn repeated_requests_and_reverse_order_replies_never_revive_old_dialogs() {
     r.assert_skipped(&old);
     r.char('1');
     assert!(matches!(r.editor().1, Draft::Summary { project, .. } if project == "DEF"));
-    r.key(KeyCode::Esc);
+    r.key(Key::Esc);
     // A repeated launch is deduplicated, and explicit later input supersedes it.
     let next = r.project('1', "ABC");
     r.char('n');
@@ -446,7 +443,7 @@ fn escape_cancels_pending_read_and_does_not_lock_out_a_new_action_after_a_menu()
     for kind in [Kind::Types, Kind::Moves, Kind::Who] {
         let mut r = Run::new(true);
         let pending = r.launch(kind);
-        r.key(KeyCode::Esc);
+        r.key(Key::Esc);
         r.reply(&pending, false);
         assert!(r.menu().is_none());
         r.assert_skipped(&pending);
@@ -458,7 +455,7 @@ fn escape_cancels_pending_read_and_does_not_lock_out_a_new_action_after_a_menu()
             r.char('1');
         }
         let old_menu = r.menu().unwrap().id;
-        r.key(KeyCode::Esc);
+        r.key(Key::Esc);
         r.char('c');
         r.paste(BODY);
         let editor = r.editor();
@@ -623,10 +620,7 @@ fn contributed_host_action_consumes_only_its_originating_input_and_later_global_
         r.host.load_config(Some("")).unwrap();
         r.host.plugins[0] = Box::new(crate::demo::sample());
         r.host.enable_journal();
-        r.event(Event::Key(KeyEvent::new(
-            KeyCode::Char('Z'),
-            KeyModifiers::SHIFT,
-        )));
+        r.event(crate::key_event(Chord::new(Key::Char('Z'))));
         // Host resolves Jira's contributed move key from the fixture subject.
         let effects = r.char('>');
         let pending = r.capture(Kind::Moves, "ABC-12", effects);
@@ -649,7 +643,7 @@ fn stale_reply_does_not_release_a_new_same_target_request_or_reapply_its_menu() 
     let mut r = Run::new(true);
     let old = r.launch(Kind::Types);
     r.char('x');
-    r.key(KeyCode::Esc);
+    r.key(Key::Esc);
     r.reply(&old, false);
     let new = r.launch(Kind::Types);
     let asking = r.p().asking.clone();

@@ -132,9 +132,9 @@ fn non_open_navigation_and_rejected_show_record_no_transition() {
     assert!(p.pages.is_empty());
 
     page::open(&mut p, "acme", "ABC-12");
-    for code in [KeyCode::Enter, KeyCode::Char('r'), KeyCode::Esc] {
+    for code in [Key::Enter, Key::Char('r'), Key::Esc] {
         let radar_core::plugin::Outcome::Handled(fx) =
-            page::key(&mut p, KeyEvent::new(code, KeyModifiers::NONE))
+            page::key(&mut p, Chord::new(code))
         else {
             panic!("page key handled")
         };

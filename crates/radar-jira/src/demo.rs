@@ -192,11 +192,10 @@ pub(crate) fn media_detail(p: &JiraPlugin) -> Detail {
 #[cfg(test)]
 mod media_fixtures {
     use super::*;
-    use radar_core::host::Event;
 
-    fn press(host: &mut radar_core::Host, code: KeyCode) {
+    fn press(host: &mut radar_core::Host, code: Key) {
         let _ = crate::tests::shown(&*host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        host.update(crate::key_event(Chord::new(code)));
     }
 
     /// The sample's host with ABC-13's page open, reached by keys alone.
@@ -208,10 +207,10 @@ mod media_fixtures {
             let shown = crate::tests::shown(&host, 160, 40);
             let middle = shown.split("── middle").nth(1).unwrap_or_default();
             if middle.lines().find(|l| l.starts_with("> ")).is_some_and(|l| l.contains(":ABC-13}")) {
-                press(&mut host, KeyCode::Enter);
+                press(&mut host, Key::Enter);
                 return (host, downs);
             }
-            press(&mut host, KeyCode::Down);
+            press(&mut host, Key::Down);
         }
         panic!("ABC-13 never selected");
     }

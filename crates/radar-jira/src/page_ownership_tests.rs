@@ -2,7 +2,6 @@ use super::*;
 use crate::{JiraMsg, client::DetailRead, demo, tests, write_context};
 use radar_core::Plugin;
 use radar_core::journal::{ActionDescriptor, Outcome as JournalOutcome};
-use radar_core::ratatui::crossterm::event::KeyModifiers;
 
 const SITE: &str = "acme";
 const KEY: &str = "ABC-12";
@@ -10,8 +9,8 @@ const KEY: &str = "ABC-12";
 fn id() -> String {
     detail_key(SITE, KEY)
 }
-fn event(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn event(code: Key) -> Chord {
+    Chord::new(code)
 }
 
 fn launch(p: &mut JiraPlugin) -> (Read, ActionDescriptor) {
@@ -507,7 +506,7 @@ fn settings_immediately_clear_stacked_held_extras_and_enter_before_redraw_is_ine
             _ => "renamed",
         };
         p.edit = Some((target, radar_core::input::TextInput::new(value)));
-        crate::settings::key(p, "connection", event(KeyCode::Enter));
+        crate::settings::key(p, "connection", event(Key::Enter));
         assert!(p.details.is_empty());
         assert_eq!(p.pages.len(), 2);
         for page in &p.pages {
@@ -515,9 +514,9 @@ fn settings_immediately_clear_stacked_held_extras_and_enter_before_redraw_is_ine
             assert!(page.tab < TABS.len());
             assert_eq!(page.row.get(), 0);
         }
-        assert!(matches!(key(p, event(KeyCode::Enter)), Outcome::Handled(fx) if fx.is_empty()));
-        key(p, event(KeyCode::Esc));
-        assert!(matches!(key(p, event(KeyCode::Enter)), Outcome::Handled(fx) if fx.is_empty()));
+        assert!(matches!(key(p, event(Key::Enter)), Outcome::Handled(fx) if fx.is_empty()));
+        key(p, event(Key::Esc));
+        assert!(matches!(key(p, event(Key::Enter)), Outcome::Handled(fx) if fx.is_empty()));
     }
 }
 
@@ -661,7 +660,7 @@ fn automatic_noops_stay_empty_and_missing_site_manual_refresh_is_accurate() {
         assert!(fetch(&mut p, SITE, KEY, force).is_empty());
     }
     assert!(
-        matches!(key(&mut p, event(KeyCode::Char('r'))), Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notify(message)] if message == "already asking Jira"))
+        matches!(key(&mut p, event(Key::Char('r'))), Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notify(message)] if message == "already asking Jira"))
     );
     p.cfg.sites.clear();
     p.cfg.views.clear();
@@ -672,7 +671,7 @@ fn automatic_noops_stay_empty_and_missing_site_manual_refresh_is_accurate() {
     assert!(p.tick(now).is_empty());
     assert!(p.tick(now + 1).is_empty());
     assert!(
-        matches!(key(&mut p, event(KeyCode::Char('r'))), Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notify(message)] if message == "Jira site is no longer configured"))
+        matches!(key(&mut p, event(Key::Char('r'))), Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notify(message)] if message == "Jira site is no longer configured"))
     );
 }
 

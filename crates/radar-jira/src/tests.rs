@@ -176,9 +176,9 @@ pub(crate) fn shown(host: &radar_core::Host, w: u16, h: u16) -> String {
     radar_core::headless::text_of(host, w, h)
 }
 
-fn press(host: &mut radar_core::Host, code: KeyCode) -> Vec<HostEffect> {
+fn press(host: &mut radar_core::Host, code: Key) -> Vec<HostEffect> {
     let _ = shown(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    host.update(crate::key_event(Chord::new(code)))
 }
 
 /// ↑ on the first row of each pane reaches the top bar; → changes the
@@ -189,19 +189,19 @@ fn up_from_the_top_of_each_pane_reaches_the_bar_and_down_comes_back() {
     for pane in [Pane::Nav, Pane::Middle, Pane::Detail] {
         let mut host = hosted();
         host.focus = pane;
-        press(&mut host, KeyCode::Char('g'));
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Char('g'));
+        press(&mut host, Key::Up);
         assert!(host.bar, "{pane:?}: ↑ at the top reaches the bar");
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!(host.view, View::Settings);
-        press(&mut host, KeyCode::Left);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Left);
+        press(&mut host, Key::Down);
         assert_eq!((host.view, host.bar, host.focus), (View::Screen(0), false, pane));
     }
     let mut host = hosted();
     open_ticket(&mut host, "ABC-12");
-    press(&mut host, KeyCode::Char('g'));
-    press(&mut host, KeyCode::Up);
+    press(&mut host, Key::Char('g'));
+    press(&mut host, Key::Up);
     assert!(!host.bar, "inside a page");
 }
 
@@ -215,27 +215,27 @@ fn plus_and_minus_fold_the_tree_and_minus_on_a_ticket_closes_its_status() {
         if jira(&host).tree.borrow().selected().len() >= 3 {
             break;
         }
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let ticket = jira(&host).tree.borrow().selected().to_vec();
     assert!(ticket.len() >= 3, "{ticket:?}");
     let group = ticket[..ticket.len() - 1].to_vec();
     // The epic has its stories under it: `-` closes it first, then its status.
-    press(&mut host, KeyCode::Char('-'));
+    press(&mut host, Key::Char('-'));
     assert_eq!(jira(&host).tree.borrow().selected(), ticket.as_slice());
     assert!(!jira(&host).tree.borrow().is_open(&ticket));
-    press(&mut host, KeyCode::Char('-'));
+    press(&mut host, Key::Char('-'));
     assert_eq!(jira(&host).tree.borrow().selected(), group.as_slice());
     assert!(!jira(&host).tree.borrow().is_open(&group));
-    press(&mut host, KeyCode::Char('+'));
+    press(&mut host, Key::Char('+'));
     assert!(jira(&host).tree.borrow().is_open(&group));
-    press(&mut host, KeyCode::Char('-'));
-    press(&mut host, KeyCode::Char('='));
+    press(&mut host, Key::Char('-'));
+    press(&mut host, Key::Char('='));
     assert!(jira(&host).tree.borrow().is_open(&group));
     // An already-open group owns `+` as a quiet no-op under the shared
     // contract: it must not change the selected subject, folds, or pane.
     let before = jira(&host).tree.borrow().clone();
-    let effects = press(&mut host, KeyCode::Char('+'));
+    let effects = press(&mut host, Key::Char('+'));
     assert_eq!(*jira(&host).tree.borrow(), before);
     assert_eq!(host.focus, Pane::Middle);
     assert!(effects.is_empty(), "opening an open group must not start other work");
@@ -244,7 +244,7 @@ fn plus_and_minus_fold_the_tree_and_minus_on_a_ticket_closes_its_status() {
 
 fn typed(host: &mut radar_core::Host, s: &str) {
     for c in s.chars() {
-        press(host, KeyCode::Char(c));
+        press(host, Key::Char(c));
     }
 }
 
@@ -269,10 +269,10 @@ fn selected_line(host: &radar_core::Host) -> Option<String> {
 fn open_ticket(host: &mut radar_core::Host, key: &str) {
     for _ in 0..20 {
         if selected_line(host).is_some_and(|l| l.contains(&format!(":{key}}}"))) {
-            press(host, KeyCode::Enter);
+            press(host, Key::Enter);
             return;
         }
-        press(host, KeyCode::Down);
+        press(host, Key::Down);
     }
     panic!("{key} never selected:\n{}", shown(host, 160, 40));
 }
@@ -304,7 +304,7 @@ fn jira_screen() {
 fn the_preview_of_a_ticket_has_its_description_and_acceptance_criteria() {
     let mut host = hosted();
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let got = shown(&host, 160, 40);
     for want in [
@@ -337,8 +337,8 @@ fn views_in_the_rail_are_words_never_jql() {
 #[test]
 fn moving_in_the_rail_switches_the_view_and_fetches_it() {
     let mut host = hosted();
-    press(&mut host, KeyCode::Char('1'));
-    let fx = press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Char('1'));
+    let fx = press(&mut host, Key::Down);
     assert_eq!(jira(&host).view, 1);
     assert_eq!(spawned(&fx), 2, "This sprint, from both sites");
     let got = shown(&host, 160, 40);
@@ -380,37 +380,37 @@ fn typed_words_and_the_picked_assignee_leave_out_sites_with_nothing_found() {
 #[test]
 fn the_assignee_menu_picks_one_person_or_nobody() {
     let mut host = hosted();
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Char('a'));
     let menu = host.menu.as_ref().expect("the assignee menu");
     let labels: Vec<&str> = menu.menu.items.iter().map(|i| i.label.as_str()).collect();
     assert_eq!(labels, ["everyone", "nobody", "Alice Example", "Bob Example"]);
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     let keys: Vec<String> = jira(&host).visible().iter().map(|it| it.t.key.clone()).collect();
     assert_eq!(keys, ["ABC-20"]);
     let got = shown(&host, 160, 40);
     assert!(got.lines().any(|l| l.starts_with("ASSIGNED TO") && l.contains("nobody")), "{got}");
     // esc in the tree brings everyone back.
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(jira(&host).assignee, None);
 }
 
 #[test]
 fn go_to_jumps_to_a_key_and_opens_one_not_in_the_view() {
     let mut host = hosted();
-    press(&mut host, KeyCode::Char(':'));
+    press(&mut host, Key::Char(':'));
     assert!(host.plugins[0].capturing());
     typed(&mut host, "abc-20");
     let got = shown(&host, 160, 40);
     assert!(got.contains("at ABC-20 Stats page shows yesterday twice"), "{got}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing());
     assert!(shown(&host, 160, 40).contains("── detail · ABC-20 ──"));
     // A key the view does not have: its page, fetched from the site watching it.
-    press(&mut host, KeyCode::Char(':'));
+    press(&mut host, Key::Char(':'));
     host.update(Event::Paste("XYZ-99".into()));
     let got = shown(&host, 160, 40);
     assert!(got.contains("not in this view") && !got.contains("opens its page"), "{got}");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert_eq!(spawned(&fx), 1);
     let page = jira(&host).pages.last().expect("a page");
     assert_eq!((page.site.as_str(), page.key.as_str()), ("beta", "XYZ-99"));
@@ -420,18 +420,18 @@ fn go_to_jumps_to_a_key_and_opens_one_not_in_the_view() {
 fn pgdn_from_any_pane_keeps_the_tree_selection_and_moving_shows_the_next_preview() {
     let mut host = hosted();
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let selected = jira(&host).tree.borrow().selected().to_vec();
-    host.update(Event::Key(KeyEvent::new(KeyCode::PageDown, KeyModifiers::NONE)));
+    host.update(crate::key_event(Chord::new(Key::PageDown)));
     assert_eq!(jira(&host).tree.borrow().selected(), selected, "PgDn scrolls the preview, not the tree");
     // In a focused detail pane, ↓ moves through it, not to the next ticket.
-    press(&mut host, KeyCode::Char('3'));
+    press(&mut host, Key::Char('3'));
     let before = jira(&host).tree.borrow().selected().to_vec();
-    host.update(Event::Key(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE)));
+    host.update(crate::key_event(Chord::new(Key::Up)));
     assert_eq!(jira(&host).tree.borrow().selected(), before);
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Down);
     let got = shown(&host, 160, 14);
     let path = jira(&host).tree.borrow().selected().to_vec();
     let key = path.last().and_then(|id| id.rsplit(':').next()).unwrap_or_default().to_string();
@@ -810,7 +810,7 @@ fn offer_host(mcp_text: &str, row: usize) -> radar_core::Host {
     host.plugins[0] = Box::new(p);
     section(&mut host, "connection");
     for _ in 0..row {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     host
 }
@@ -836,7 +836,7 @@ fn an_mcp_json_site_is_added_reading_its_variables_and_says_where_from() {
     }
     assert!(got.contains("acceptance criteria in"), "{got}");
     assert!(got.contains("── detail · found in /work/acme/.mcp.json ──"), "{got}");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(spawned(&fx) >= 1, "checked and fetched at once");
     let s = jira(&host).cfg.sites.last().unwrap().clone();
     assert_eq!(
@@ -854,7 +854,7 @@ fn an_mcp_json_token_typed_in_is_left_there_and_its_variable_asked_for() {
     let mut host = offer_host(MCP_TYPED, 0);
     let got = shown(&host, 160, 40);
     assert!(got.contains("Its token is typed into the file: radar does not"), "{got}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let s = jira(&host).cfg.sites.last().unwrap().clone();
     assert_eq!(s.token, "", "never copied");
     assert!(matches!(jira(&host).edit, Some((Target::SiteToken(_), _))), "asks for the env: name");
@@ -877,15 +877,15 @@ fn page_host() -> radar_core::Host {
 fn enter_opens_the_ticket_page_and_fetches_it() {
     let mut host = hosted();
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert_eq!(spawned(&fx), 1);
     assert!(host.plugins[0].busy("tickets"));
     let got = shown(&host, 160, 40);
     assert!(got.contains("Jira / acme / ABC / ABC-12"), "{got}");
     assert_eq!(host.plugins[0].panes("tickets"), vec![Pane::Middle]);
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(jira(&host).pages.is_empty());
     assert!(shown(&host, 160, 40).contains("── detail · ABC-12 ──"), "back on the same row");
 }
@@ -908,27 +908,27 @@ fn the_screen_and_the_settings_sections_have_icons() {
 #[test]
 fn ticket_page_comments() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Char(']'));
     insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 #[test]
 fn ticket_page_links() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char(']'));
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Char(']'));
+    press(&mut host, Key::Char(']'));
     insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
 #[test]
 fn ticket_page_code_from_jiras_development_panel() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char('['));
+    press(&mut host, Key::Char('['));
     let got = shown(&host, 160, 40);
     assert!(got.contains("Code>") && got.contains("api !263"), "{got}");
     insta::assert_snapshot!(got);
     // ⏎ shows its merge request: with no part here that owns one, its link.
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(
         fx.iter().any(|e| matches!(e, HostEffect::Open(u) if u.ends_with("/merge_requests/263"))),
         "{fx:?}"
@@ -938,31 +938,31 @@ fn ticket_page_code_from_jiras_development_panel() {
 #[test]
 fn links_open_a_linked_tickets_page_and_esc_comes_back() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char(']'));
-    press(&mut host, KeyCode::Char(']'));
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    let fx = press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Char(']'));
+    press(&mut host, Key::Char(']'));
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    let fx = press(&mut host, Key::Enter);
     assert_eq!(spawned(&fx), 1);
     assert!(shown(&host, 160, 40).contains("Jira / acme / ABC / ABC-15"));
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(shown(&host, 160, 40).contains("Jira / acme / ABC / ABC-12"));
     // The web link opens in the browser.
-    press(&mut host, KeyCode::Down);
-    let fx = press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down);
+    let fx = press(&mut host, Key::Enter);
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Open(u) if u == "https://example.com/design")));
 }
 
 #[test]
 fn scrolling_to_the_end_of_the_comments_brings_older_ones() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Char(']'));
     let _ = shown(&host, 160, 14);
     let got = shown(&host, 160, 14);
     assert!(got.contains("1 older: they load as you scroll down") || got.contains("comments"), "{got}");
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Char('G'), KeyModifiers::NONE)));
+    let fx = host.update(crate::key_event(Chord::new(Key::Char('G'))));
     assert_eq!(spawned(&fx), 1, "the next page of comments");
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Char('G'), KeyModifiers::NONE)));
+    let fx = host.update(crate::key_event(Chord::new(Key::Char('G'))));
     assert_eq!(spawned(&fx), 0, "once");
     let p = jira_mut(&mut host);
     let read = p.details[&detail_key("acme", "ABC-12")].more.unwrap();
@@ -1003,9 +1003,9 @@ fn selecting_a_tab_switches_to_it() {
 fn keys_menu() {
     let mut host = hosted();
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     insta::assert_snapshot!(shown(&host, 160, 40));
 }
 
@@ -1069,7 +1069,7 @@ fn msg(host: &mut radar_core::Host, m: JiraMsg) -> Vec<HostEffect> {
 
 fn ctrl(host: &mut radar_core::Host, c: char) -> Vec<HostEffect> {
     let _ = shown(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL)))
+    host.update(crate::key_event(Chord { ctrl: true, ..Chord::new(Key::Char(c)) }))
 }
 
 fn moves() -> Vec<model::Transition> {
@@ -1096,7 +1096,7 @@ fn menu_text(host: &radar_core::Host) -> Vec<String> {
 #[test]
 fn t_asks_where_a_ticket_can_go_offers_the_usual_next_first_and_asks_before_moving() {
     let mut host = page_host();
-    let fx = press(&mut host, KeyCode::Char('t'));
+    let fx = press(&mut host, Key::Char('t'));
     assert_eq!(spawned(&fx), 1, "Jira is asked for the moves");
     assert!(host.plugins[0].busy("tickets"));
     let read = jira(&host).dialogs.current_read();
@@ -1106,20 +1106,20 @@ fn t_asks_where_a_ticket_can_go_offers_the_usual_next_first_and_asks_before_movi
         menu_text(&host),
         ["now ◐ In Progress", "1 ◐ In Review Jira's “Start review”", "2 ● Done", "3 ○ To Do Jira's “Back to do”"]
     );
-    press(&mut host, KeyCode::Char('1'));
+    press(&mut host, Key::Char('1'));
     let open = host.menu.as_ref().expect("asked first");
     assert_eq!(open.menu.title, "move ABC-12 to In Review?");
     assert_eq!(menu_text(&host)[0], "◐ In Progress → ◐ In Review (Jira's “Start review”)");
     insta::assert_snapshot!("move_confirm", shown(&host, 160, 40));
-    let fx = press(&mut host, KeyCode::Char('n'));
+    let fx = press(&mut host, Key::Char('n'));
     assert_eq!(spawned(&fx), 0, "no: nothing sent");
     assert_eq!(host.message.as_deref(), Some("nothing sent"));
     // Again, and yes: sent once, got as asked, then Jira's answer.
-    press(&mut host, KeyCode::Char('t'));
+    press(&mut host, Key::Char('t'));
     let read = jira(&host).dialogs.current_read();
     msg(&mut host, JiraMsg::Moves { read, site: "acme".into(), key: "ABC-12".into(), result: Ok(moves()) });
-    press(&mut host, KeyCode::Char('1'));
-    let fx = press(&mut host, KeyCode::Char('y'));
+    press(&mut host, Key::Char('1'));
+    let fx = press(&mut host, Key::Char('y'));
     assert_eq!(spawned(&fx), 1);
     assert!(shown(&host, 160, 40).contains(":run_running: asking Jira to move ABC-12 to In Review…"));
     let change = jira(&host).change.clone();
@@ -1158,7 +1158,7 @@ fn a_long_list_of_moves_is_grouped_with_headings_that_are_never_chosen() {
         t("32", "Won't do", Category::Done),
     ];
     let mut host = page_host();
-    press(&mut host, KeyCode::Char('t'));
+    press(&mut host, Key::Char('t'));
     let read = jira(&host).dialogs.current_read();
     msg(&mut host, JiraMsg::Moves { read, site: "acme".into(), key: "ABC-12".into(), result: Ok(long) });
     let got = menu_text(&host);
@@ -1168,10 +1168,10 @@ fn a_long_list_of_moves_is_grouped_with_headings_that_are_never_chosen() {
     // It opens on the usual next move; Down moves over headings to the
     // next move, and ⏎ asks about it.
     assert_eq!(host.menu.as_ref().unwrap().row, 2, "{got:?}");
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Enter);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "move ABC-12 to Backlog?");
 }
 
@@ -1203,11 +1203,11 @@ fn a_dispatched_change_error_is_said_as_unconfirmed_on_the_page() {
 #[test]
 fn c_composes_a_comment_shows_exactly_what_will_post_and_posts_once() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char('c'));
+    press(&mut host, Key::Char('c'));
     assert!(host.plugins[0].capturing());
     typed(&mut host, "Fixed in **!263**, see https://example.com/x");
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Enter);
     typed(&mut host, "- tests");
     insta::assert_snapshot!("comment_composer", shown(&host, 160, 40));
     // q and x are text here, not the host's.
@@ -1229,10 +1229,10 @@ fn c_composes_a_comment_shows_exactly_what_will_post_and_posts_once() {
     );
     insta::assert_snapshot!("comment_confirm", shown(&host, 160, 40));
     // e: back to writing, nothing lost.
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('e'));
     assert!(host.plugins[0].capturing());
     ctrl(&mut host, 's');
-    let fx = press(&mut host, KeyCode::Char('y'));
+    let fx = press(&mut host, Key::Char('y'));
     assert_eq!(spawned(&fx), 1, "sent once");
     assert!(!host.plugins[0].capturing(), "the composer is closed");
     // Jira refused: the text is kept for c, and nothing is sent again.
@@ -1257,9 +1257,9 @@ fn c_composes_a_comment_shows_exactly_what_will_post_and_posts_once() {
         "{:?}",
         host.message
     );
-    press(&mut host, KeyCode::Char('c'));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('c'));
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Char('e'));
     assert_eq!(
         jira(&host).compose.as_ref().unwrap().text(),
         "Fixed in **!263**, see https://example.com/x\n\n- tests qx"
@@ -1269,19 +1269,19 @@ fn c_composes_a_comment_shows_exactly_what_will_post_and_posts_once() {
 #[test]
 fn a_declined_comment_is_kept_for_c() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char('c'));
+    press(&mut host, Key::Char('c'));
     typed(&mut host, "not yet");
     ctrl(&mut host, 's');
-    let fx = press(&mut host, KeyCode::Char('n'));
+    let fx = press(&mut host, Key::Char('n'));
     assert_eq!(spawned(&fx), 0);
     assert_eq!(
         host.message.as_deref(),
         Some("nothing sent; original text kept · ctrl-r")
     );
     assert!(!host.plugins[0].capturing(), "the composer is closed");
-    press(&mut host, KeyCode::Char('c'));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('c'));
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Char('e'));
     assert_eq!(jira(&host).compose.as_ref().unwrap().text(), "not yet");
 }
 
@@ -1292,7 +1292,7 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         let mut host = page_host();
         host.set_env_mode(Some((mode, "RADAR_MODE".into())));
         // A comment adds: write and edit send it.
-        press(&mut host, KeyCode::Char('c'));
+        press(&mut host, Key::Char('c'));
         typed(&mut host, "hello");
         ctrl(&mut host, 's');
         let got = menu_text(&host);
@@ -1310,7 +1310,7 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         } else {
             assert_eq!(got.len(), 4, "{mode:?}: no note: {got:?}");
         }
-        let fx = press(&mut host, KeyCode::Char('y'));
+        let fx = press(&mut host, Key::Char('y'));
         assert_eq!(spawned(&fx), usize::from(mode != Mode::ReadOnly), "{mode:?}: comment");
         if mode == Mode::ReadOnly {
             assert_eq!(
@@ -1319,22 +1319,22 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
                     "✗ Jira did not comment on ABC-12: not sent: radar is read only; original text kept · ctrl-r"
                 )
             );
-            press(&mut host, KeyCode::Char('c'));
-            press(&mut host, KeyCode::Enter);
-            press(&mut host, KeyCode::Char('e'));
+            press(&mut host, Key::Char('c'));
+            press(&mut host, Key::Enter);
+            press(&mut host, Key::Char('e'));
             assert_eq!(
                 jira(&host).compose.as_ref().unwrap().text(),
                 "hello",
                 "kept"
             );
-            press(&mut host, KeyCode::Esc);
-            press(&mut host, KeyCode::Char('y'));
+            press(&mut host, Key::Esc);
+            press(&mut host, Key::Char('y'));
         }
         // A move changes what is there: only edit sends it.
         let mut host = page_host();
         host.set_env_mode(Some((mode, "RADAR_MODE".into())));
         // The x menu lists it, muted with why while the mode refuses it.
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let row = menu_text(&host).into_iter().find(|l| l.contains("another status")).unwrap();
         match mode {
             Mode::ReadOnly => assert!(row.ends_with("· radar is read only"), "{row}"),
@@ -1343,18 +1343,18 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         }
         let comment = menu_text(&host).into_iter().find(|l| l.contains("comment on")).unwrap();
         assert_eq!(comment.contains("·"), mode == Mode::ReadOnly, "{mode:?}: {comment}");
-        press(&mut host, KeyCode::Esc);
-        press(&mut host, KeyCode::Char('t'));
+        press(&mut host, Key::Esc);
+        press(&mut host, Key::Char('t'));
         let read = jira(&host).dialogs.current_read();
         msg(&mut host, JiraMsg::Moves { read, site: "acme".into(), key: "ABC-12".into(), result: Ok(moves()) });
-        press(&mut host, KeyCode::Char('1'));
+        press(&mut host, Key::Char('1'));
         let note = menu_text(&host)[1].clone();
         match mode {
             Mode::ReadOnly => assert_eq!(note, "radar is read only (set by RADAR_MODE): nothing will be sent"),
             Mode::Write => assert_eq!(note, "radar is in write mode (set by RADAR_MODE): this needs edit mode, nothing will be sent"),
             Mode::Edit => assert_eq!(note, "y yes yes, move it"),
         }
-        let fx = press(&mut host, KeyCode::Char('y'));
+        let fx = press(&mut host, Key::Char('y'));
         assert_eq!(spawned(&fx), usize::from(mode == Mode::Edit), "{mode:?}: move");
         if mode != Mode::Edit {
             assert!(
@@ -1390,7 +1390,7 @@ fn starting_work_asks_once_and_the_mode_decides_what_y_sends() {
         assert_eq!(host.menu.as_ref().unwrap().menu.title, "start ABC-12 on Jira?");
         assert_eq!(got[0], "assignee: Bob Example → you (Alice Example)", "{mode:?}");
         assert_eq!(got[1], "status: To Do → In Review", "{mode:?}: the first move into progress");
-        let fx = press(&mut host, KeyCode::Char('y'));
+        let fx = press(&mut host, Key::Char('y'));
         match mode {
             Mode::Edit => assert_eq!(spawned(&fx), 1, "the assignment goes first, the move after its answer"),
             _ => {
@@ -1409,20 +1409,20 @@ fn starting_work_asks_once_and_the_mode_decides_what_y_sends() {
 #[test]
 fn esc_in_the_composer_asks_before_dropping_text() {
     let mut host = page_host();
-    press(&mut host, KeyCode::Char('c'));
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Char('c'));
+    press(&mut host, Key::Esc);
     assert!(!host.plugins[0].capturing(), "nothing typed: closed at once");
-    press(&mut host, KeyCode::Char('c'));
+    press(&mut host, Key::Char('c'));
     typed(&mut host, "half a thought");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "stop: drop the comment?");
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     assert_eq!(jira(&host).compose.as_ref().unwrap().text(), "half a thought");
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Char('y'));
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Char('y'));
     assert!(jira(&host).compose.is_none());
     // An empty comment is never sent.
-    press(&mut host, KeyCode::Char('c'));
+    press(&mut host, Key::Char('c'));
     let fx = ctrl(&mut host, 's');
     assert_eq!(spawned(&fx), 0);
     assert!(host.menu.is_none());
@@ -1432,9 +1432,9 @@ fn esc_in_the_composer_asks_before_dropping_text() {
 fn n_makes_a_new_ticket_from_project_type_summary_and_description() {
     let mut host = hosted();
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    let fx = press(&mut host, KeyCode::Char('n'));
+    let fx = press(&mut host, Key::Char('n'));
     assert_eq!(spawned(&fx), 1, "ABC's types are asked, ABC being the ticket's project");
     let types = vec![
         model::IssueType { id: "10001".into(), name: "Story".into(), subtask: false },
@@ -1443,12 +1443,12 @@ fn n_makes_a_new_ticket_from_project_type_summary_and_description() {
     let read = jira(&host).dialogs.current_read();
     msg(&mut host, JiraMsg::Types { read, site: "acme".into(), project: "ABC".into(), result: Ok(types) });
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "a new ticket in ABC: which type?");
-    press(&mut host, KeyCode::Char('2'));
+    press(&mut host, Key::Char('2'));
     assert!(host.plugins[0].capturing());
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().is_some_and(|m| m.starts_with("not yet")), "a summary is needed");
     typed(&mut host, "Stats count twice");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     typed(&mut host, "Seen on the dashboard.");
     insta::assert_snapshot!("new_ticket_description", shown(&host, 160, 40));
     ctrl(&mut host, 's');
@@ -1458,25 +1458,25 @@ fn n_makes_a_new_ticket_from_project_type_summary_and_description() {
         ["Bug · Stats count twice", "", "Seen on the dashboard.", "y yes yes, create it", "e edit keep writing", "n no no, drop it"]
     );
     // Declined, it is kept for N: the summary, then the description.
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     assert_eq!(
         host.message.as_deref(),
         Some("nothing sent; original text kept · ctrl-r")
     );
-    press(&mut host, KeyCode::Char('n'));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('n'));
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Char('e'));
     assert_eq!(
         jira(&host).compose.as_ref().unwrap().text(),
         "Stats count twice"
     );
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(
         jira(&host).compose.as_ref().unwrap().text(),
         "Seen on the dashboard."
     );
     ctrl(&mut host, 's');
-    let fx = press(&mut host, KeyCode::Char('y'));
+    let fx = press(&mut host, Key::Char('y'));
     assert_eq!(spawned(&fx), 1);
     let change = write::Change::Create {
         site: "acme".into(),
@@ -1497,10 +1497,10 @@ fn n_makes_a_new_ticket_from_project_type_summary_and_description() {
 #[test]
 fn n_with_several_watched_projects_asks_which_first() {
     let mut host = hosted();
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "a new ticket in which project?");
     assert_eq!(menu_text(&host), ["1 ABC on acme", "2 DEF on acme"]);
-    let fx = press(&mut host, KeyCode::Char('2'));
+    let fx = press(&mut host, Key::Char('2'));
     assert_eq!(spawned(&fx), 1, "DEF's types");
 }
 
@@ -1509,23 +1509,23 @@ fn i_assigns_to_you_after_asking_and_says_when_it_is_yours_already() {
     let mut host = hosted();
     // ABC-12 is Alice's, and Alice is who acme's token is.
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    press(&mut host, KeyCode::Char('i'));
+    press(&mut host, Key::Char('i'));
     assert_eq!(host.message.as_deref(), Some("ABC-12 is already yours"));
     assert!(host.menu.is_none());
     // ABC-20 is nobody's.
     let mut host = hosted();
     open_ticket(&mut host, "ABC-20");
-    press(&mut host, KeyCode::Char('i'));
+    press(&mut host, Key::Char('i'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "assign ABC-20 to you?");
     assert_eq!(menu_text(&host)[0], "unassigned → Alice Example (you)");
-    let fx = press(&mut host, KeyCode::Char('y'));
+    let fx = press(&mut host, Key::Char('y'));
     assert_eq!(spawned(&fx), 1);
     // On beta, who you are is asked first.
     let mut host = hosted();
     open_ticket(&mut host, "XYZ-7");
-    let fx = press(&mut host, KeyCode::Char('i'));
+    let fx = press(&mut host, Key::Char('i'));
     assert_eq!(spawned(&fx), 1);
     assert!(host.menu.is_none());
     let read = jira(&host).dialogs.current_read();
@@ -1651,7 +1651,7 @@ fn settings_sites_selected_site() {
     section(&mut host, "connection");
     // Past the two found and the add row, acme: its address.
     for _ in 0..4 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     insta::assert_snapshot!(shown(&host, 160, 40));
 }
@@ -1670,9 +1670,9 @@ fn a_sites_rows_are_in_the_order_every_part_has_and_its_check_asks_jira() {
     assert!(!got.contains("pause if idle"), "the host's now");
     // Past the two found, the add row, acme and five of its rows: its check.
     for _ in 0..8 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert_eq!(spawned(&fx), 1, "asks Jira");
     assert!(shown(&host, 160, 40).contains("asking Jira…"));
 }
@@ -1692,7 +1692,7 @@ fn projects_section_uses_neutral_tree_with_selectable_site_rows() {
     assert!(!tree.rows[0].heading);
     assert_eq!(tree.selected, ["s:acme", "add"]);
     assert!(tree.open.contains(&vec!["s:acme".into()]));
-    let down = radar_core::view_tui::section_key(&view, radar_core::view::Chord::new(radar_core::view::Key::Down));
+    let down = radar_core::view::tree_step(tree, radar_core::view::Chord::new(radar_core::view::Key::Down)).unwrap();
     settings::projects_intent(&mut p, &down);
     assert!(matches!(settings::project_rows(&p)[p.section_rows[1]], settings::ProjRow::Colour(0)));
     let wire = serde_json::to_string(&view).unwrap();
@@ -1703,13 +1703,13 @@ fn projects_section_uses_neutral_tree_with_selectable_site_rows() {
 fn home_end_and_pages_in_projects_keep_a_selected_visible_tree_row() {
     let mut host = hosted();
     section(&mut host, "projects");
-    for k in [KeyCode::End, KeyCode::Home, KeyCode::PageDown, KeyCode::PageUp, KeyCode::Down, KeyCode::Up] {
+    for k in [Key::End, Key::Home, Key::PageDown, Key::PageUp, Key::Down, Key::Up] {
         press(&mut host, k);
         let p = jira(&host);
         let radar_core::view::Node::Tree(tree) = settings::projects_view(p, 100, p.now).body else { panic!("projects tree") };
         assert!(tree.visible().iter().any(|(path, _)| *path == tree.selected), "{k:?}");
     }
-    press(&mut host, KeyCode::Home);
+    press(&mut host, Key::Home);
     let p = jira(&host);
     assert!(matches!(crate::settings::project_rows(p)[p.section_rows[1]], crate::settings::ProjRow::Site(0)));
 }
@@ -1745,7 +1745,7 @@ fn connection_section_exposes_rows_and_detail_as_neutral_data() {
     assert_eq!(tree.selected, vec![format!("row:{at}")]);
     assert_eq!(tree.visible().len(), settings::site_rows(&p).len(), "a site's fields sit under it");
     assert!(!view.detail.is_empty());
-    let next = radar_core::view_tui::section_key(&view, radar_core::view::Chord::new(radar_core::view::Key::Down));
+    let next = radar_core::view::tree_step(tree, radar_core::view::Chord::new(radar_core::view::Key::Down)).unwrap();
     settings::connection_intent(&mut p, &next);
     assert_eq!(p.section_rows[0], 1);
     assert!(serde_json::to_string(&view).unwrap().contains("\"scope\":\"connection\""));
@@ -1769,8 +1769,9 @@ fn look_section_is_renderer_neutral_and_skips_group_headings() {
     let wire = serde_json::to_string(&view).unwrap();
     assert!(wire.contains("\"scope\":\"look\""));
     assert!(wire.contains("jira.look.kept_text"), "recovery remains reachable from neutral actions");
-    let down = radar_core::view_tui::section_key(&view, radar_core::view::Chord::new(radar_core::view::Key::Down));
-    assert_eq!(down, radar_core::view::Intent::Select { target: radar_core::view::Target::new("row:2") });
+    let step = radar_core::view::rows_step(rows, 1, radar_core::view::Chord::new(radar_core::view::Key::Down));
+    assert_eq!(step, Some(2));
+    let down = radar_core::view::Intent::Select { target: rows[2].target.clone() };
     settings::look_intent(&mut p, &down);
     assert_eq!(p.section_rows[3], 2);
 }
@@ -1780,7 +1781,7 @@ fn an_offer_from_the_environment_adds_a_site_that_reads_the_variables() {
     let mut host = hosted();
     section(&mut host, "connection");
     // Below the .mcp.json's offer.
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     let got = shown(&host, 160, 40);
     assert!(got.contains("? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, JIRA_OTHER_API_TOKEN). Use it?"), "{got}");
     assert!(got.contains("── detail · found in your environment ──"), "{got}");
@@ -1789,7 +1790,7 @@ fn an_offer_from_the_environment_adds_a_site_that_reads_the_variables() {
     }
     assert!(got.contains("shows the values or saves them"), "{got}");
     assert!(!got.contains("other.atlassian.net") && !got.contains("not-a-real-token"), "{got}");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(spawned(&fx) >= 1, "checked at once");
     let s = jira(&host).cfg.sites.last().unwrap().clone();
     assert_eq!((s.name.as_str(), s.url.as_str(), s.token.as_str()), ("other", "env:JIRA_OTHER_URL", "env:JIRA_OTHER_API_TOKEN"));
@@ -1801,33 +1802,33 @@ fn adding_a_site_by_typing_validates_and_moves_on_to_its_email() {
     let mut host = hosted();
     section(&mut host, "connection");
     // Past what was found (a .mcp.json's site, the environment's): the add row.
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing());
     typed(&mut host, "gamma");
     let got = shown(&host, 160, 40);
     assert!(got.contains(":error: not a web address"), "{got}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().is_some_and(|m| m.starts_with("not yet:")), "{:?}", host.message);
     for _ in 0..5 {
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
     }
     host.update(Event::Paste("https://gamma.atlassian.net/jira/software/projects/GAM/boards/2\n".into()));
     assert!(shown(&host, 160, 40).contains(":run_passed: the site gamma.atlassian.net"));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let p = jira(&host);
     assert_eq!(p.cfg.sites.last().unwrap().url, "https://gamma.atlassian.net");
     assert!(matches!(p.edit, Some((Target::SiteEmail(2), _))), "its email next");
     let s = p.cfg.sites.last().unwrap();
     assert_eq!((s.email.as_str(), s.token.as_str()), ("env:JIRA_EMAIL", "env:JIRA_TOKEN"), "the team's names");
     assert!(shown(&host, 160, 40).contains("env:JIRA_EMAIL"), "the input starts from it");
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    host.update(crate::key_event(Chord { ctrl: true, ..Chord::new(Key::Char('u')) }));
     typed(&mut host, "alice@example.com");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let open = host.menu.as_ref().expect("asks to check");
     assert_eq!(open.menu.title, "check gamma now?");
-    let fx = press(&mut host, KeyCode::Char('y'));
+    let fx = press(&mut host, Key::Char('y'));
     assert_eq!(spawned(&fx), 1);
 }
 
@@ -1891,11 +1892,11 @@ fn watching_a_project_from_a_pasted_link_offers_a_check() {
     let mut host = hosted();
     section(&mut host, "projects");
     // acme's heading is skipped; its add row first.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing());
     host.update(Event::Paste("https://acme.atlassian.net/browse/OPS-4".into()));
     assert!(shown(&host, 160, 40).contains(":run_passed: will watch OPS on acme"));
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(spawned(&fx) >= 1, "the view refreshes with it");
     assert!(jira(&host).cfg.sites[0].watches("OPS"));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "check OPS on acme now?");
@@ -1926,16 +1927,16 @@ fn the_acceptance_criteria_field_is_picked_among_fields_named_like_it() {
 fn a_view_condition_is_built_from_menus_in_words() {
     let mut host = hosted();
     section(&mut host, "views");
-    press(&mut host, KeyCode::Down); // My tickets
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Down); // My tickets
+    press(&mut host, Key::Char('a'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "add a condition");
-    press(&mut host, KeyCode::Char('t'));
+    press(&mut host, Key::Char('t'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "which type?");
     // Bug, from the tickets seen.
     let at = host.menu.as_ref().unwrap().menu.items.iter().position(|i| i.label == "Bug").unwrap();
     host.menu.as_mut().unwrap().row = at;
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Char('e'));
     let v = &jira(&host).cfg.views[0];
     assert_eq!(v.when, ["assignee:me", "status:open", "-type:Bug"]);
     let got = shown(&host, 160, 40);
@@ -1947,26 +1948,26 @@ fn a_view_condition_is_built_from_menus_in_words() {
 fn jql_typed_by_hand_is_kept_only_once_jira_reads_it() {
     let mut host = hosted();
     section(&mut host, "views");
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char('t'));
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Char('t'));
     assert!(host.plugins[0].capturing());
-    press(&mut host, KeyCode::Char('u'));
+    press(&mut host, Key::Char('u'));
     // ctrl-u clears to the start of the line.
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    host.update(crate::key_event(Chord { ctrl: true, ..Chord::new(Key::Char('u')) }));
     typed(&mut host, "sprnt = 1");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(host.message.as_deref().is_some_and(|m| m.starts_with("not yet:")));
     assert_eq!(spawned(&fx), 1, "Jira is asked about it");
     let p = jira_mut(&mut host);
     p.on_msg(Box::new(JiraMsg::Jql { text: "sprnt = 1".into(), result: Ok(vec!["The field 'sprnt' does not exist.".into()]) }));
     assert!(shown(&host, 160, 40).contains(":error: Jira says: The field 'sprnt' does not exist."));
     for _ in 0..9 {
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
     }
     typed(&mut host, "project = ABC");
     let p = jira_mut(&mut host);
     p.on_msg(Box::new(JiraMsg::Jql { text: "project = ABC".into(), result: Ok(vec![]) }));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(jira(&host).cfg.views[0].jql, "project = ABC");
     assert!(!shown(&host, 160, 40).contains("project = ABC ORDER"), "the nav pane never shows JQL");
 }
@@ -1975,15 +1976,15 @@ fn jql_typed_by_hand_is_kept_only_once_jira_reads_it() {
 fn look_toggles_and_colours_through_the_menu() {
     let mut host = hosted();
     section(&mut host, "look");
-    press(&mut host, KeyCode::Down); // doing
-    press(&mut host, KeyCode::Char('o'));
+    press(&mut host, Key::Down); // doing
+    press(&mut host, Key::Char('o'));
     assert_eq!(jira(&host).cfg.style_for("doing"), "status.info");
-    press(&mut host, KeyCode::Char('c'));
+    press(&mut host, Key::Char('c'));
     let at = host.menu.as_ref().unwrap().menu.items.iter().position(|i| i.value == "accent.primary").unwrap();
     host.menu.as_mut().unwrap().row = at;
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(jira(&host).cfg.style_for("doing"), "accent.primary");
-    press(&mut host, KeyCode::Char('r'));
+    press(&mut host, Key::Char('r'));
     assert_eq!(jira(&host).cfg.style_for("doing"), "status.info bold");
 }
 
@@ -1992,14 +1993,14 @@ fn removing_a_site_asks_first() {
     let mut host = hosted();
     section(&mut host, "connection");
     for _ in 0..3 {
-        press(&mut host, KeyCode::Down); // past the add row and two offers: acme
+        press(&mut host, Key::Down); // past the add row and two offers: acme
     }
-    press(&mut host, KeyCode::Char('d'));
+    press(&mut host, Key::Char('d'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "stop using acme?");
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     assert_eq!(jira(&host).cfg.sites.len(), 2);
-    press(&mut host, KeyCode::Char('d'));
-    press(&mut host, KeyCode::Char('y'));
+    press(&mut host, Key::Char('d'));
+    press(&mut host, Key::Char('y'));
     assert_eq!(jira(&host).cfg.sites.len(), 1);
 }
 
@@ -2019,18 +2020,18 @@ fn a_check_reports_who_the_token_is() {
 /// nothing of it stays beside the input: a stray first letter looks typed
 /// but cannot be deleted, and ⏎ drops it). `row` picks the line, `value` the text on it
 /// where the input starts.
-fn input_sits_on_its_value(host: &mut radar_core::Host, name: &str, downs: usize, open: &[KeyCode], row: &str, value: &str) {
+fn input_sits_on_its_value(host: &mut radar_core::Host, name: &str, downs: usize, open: &[Key], row: &str, value: &str) {
     use radar_core::view::Node;
-    let key = |host: &mut radar_core::Host, code: KeyCode, m: KeyModifiers| {
+    let key = |host: &mut radar_core::Host, code: Key, ctrl: bool| {
         let _ = shown(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, m)))
+        host.update(crate::key_event(Chord { ctrl, ..Chord::new(code) }))
     };
     section(host, name);
     for _ in 0..20 {
-        key(host, KeyCode::Up, KeyModifiers::NONE);
+        key(host, Key::Up, false);
     }
     for _ in 0..downs {
-        key(host, KeyCode::Down, KeyModifiers::NONE);
+        key(host, Key::Down, false);
     }
     let before = shown(host, 160, 40);
     let _ = radar_core::headless::section_of(host, 160, 40);
@@ -2059,13 +2060,13 @@ fn input_sits_on_its_value(host: &mut radar_core::Host, name: &str, downs: usize
         None => panic!("no {value:?} on {text:?}"),
     };
     for code in open {
-        key(host, *code, KeyModifiers::NONE);
+        key(host, *code, false);
     }
     assert!(host.plugins[0].capturing(), "{name}: {open:?} on {row:?} opened no input");
-    key(host, KeyCode::Char('e'), KeyModifiers::CONTROL);
-    key(host, KeyCode::Char('u'), KeyModifiers::CONTROL);
+    key(host, Key::Char('e'), true);
+    key(host, Key::Char('u'), true);
     // w is text while typing, not the save key.
-    let fx = key(host, KeyCode::Char('w'), KeyModifiers::NONE);
+    let fx = key(host, Key::Char('w'), false);
     assert!(!fx.iter().any(|e| matches!(e, HostEffect::Save(_))), "{name}: w saved instead of being typed");
     let _ = shown(host, 160, 40);
     let view = radar_core::headless::section_of(host, 160, 40).expect("the section");
@@ -2081,13 +2082,13 @@ fn input_sits_on_its_value(host: &mut radar_core::Host, name: &str, downs: usize
     };
     // A list row's mark takes one cell before its text; a tree's name starts at 0.
     assert_eq!((text, at), ("w", c + usize::from(!tree)), "{name}, {row:?}: the input does not start where {value:?} was: {typed}");
-    key(host, KeyCode::Esc, KeyModifiers::NONE);
+    key(host, Key::Esc, false);
     assert!(!host.plugins[0].capturing());
 }
 
 #[test]
 fn every_settings_input_starts_where_its_value_was_drawn() {
-    use KeyCode::{Char, Enter};
+    use Key::{Char, Enter};
     let mut host = hosted();
     // connection: after the two sites found, the add row, a site's name,
     // address, account, token; refresh.

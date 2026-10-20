@@ -6,7 +6,7 @@ use crate::config::{Project, Site, View};
 use crate::model::{Category, Parent};
 use crate::test_support::TicketBuilder;
 use crate::{JiraPlugin, Settings, screen};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Effect, Outcome, Pane, Plugin};
 
 const NOW: i64 = 1_791_273_600;
@@ -136,8 +136,8 @@ fn assert_export_selected(p: &JiraPlugin) {
 mod unit {
     use super::*;
 
-    fn key(p: &mut JiraPlugin, pane: Pane, code: KeyCode) -> Vec<Effect> {
-        match screen::key(p, pane, KeyEvent::new(code, KeyModifiers::NONE)) {
+    fn key(p: &mut JiraPlugin, pane: Pane, code: Key) -> Vec<Effect> {
+        match screen::key(p, pane, Chord::new(code)) {
             Outcome::Handled(effects) => effects,
             Outcome::Ignored => panic!("filter ignored {code:?}"),
         }
@@ -145,7 +145,7 @@ mod unit {
 
     fn typed(p: &mut JiraPlugin, pane: Pane, text: &str) {
         for c in text.chars() {
-            assert!(key(p, pane, KeyCode::Char(c)).is_empty());
+            assert!(key(p, pane, Key::Char(c)).is_empty());
         }
     }
 
@@ -160,12 +160,12 @@ mod unit {
             visible_keys(&p),
             ["ABC-12", "ABC-13", "ABC-1", "ABC-20", "DEF-3", "XYZ-7"]
         );
-        assert!(key(&mut p, Pane::Middle, KeyCode::Char('/')).is_empty());
+        assert!(key(&mut p, Pane::Middle, Key::Char('/')).is_empty());
         assert!(p.capturing());
         typed(&mut p, Pane::Middle, "export");
-        assert_focus_middle(&key(&mut p, Pane::Middle, KeyCode::Enter));
+        assert_focus_middle(&key(&mut p, Pane::Middle, Key::Enter));
         assert_export_selected(&p);
-        assert!(key(&mut p, Pane::Middle, KeyCode::Esc).is_empty());
+        assert!(key(&mut p, Pane::Middle, Key::Esc).is_empty());
         assert!(p.filter.is_empty());
         assert_eq!(p.visible().len(), 6);
         assert_eq!(screen::nodes(&p).len(), 2);
@@ -174,9 +174,9 @@ mod unit {
     #[test]
     fn down_from_the_filter_goes_to_the_first_result() {
         let mut p = fixture();
-        assert!(key(&mut p, Pane::Nav, KeyCode::Char('/')).is_empty());
+        assert!(key(&mut p, Pane::Nav, Key::Char('/')).is_empty());
         typed(&mut p, Pane::Nav, "export");
-        assert_focus_middle(&key(&mut p, Pane::Nav, KeyCode::Down));
+        assert_focus_middle(&key(&mut p, Pane::Nav, Key::Down));
         assert!(p.filter_input.is_none(), "↓ closes the field");
         assert_eq!(p.filter, "export", "↓ keeps the words");
         assert_export_selected(&p);
@@ -195,9 +195,9 @@ mod unit {
             ["ABC-12", "ABC-13"]
         );
         p.tree.borrow_mut().select(abc12.clone());
-        assert!(key(&mut p, Pane::Nav, KeyCode::Char('/')).is_empty());
+        assert!(key(&mut p, Pane::Nav, Key::Char('/')).is_empty());
         typed(&mut p, Pane::Nav, "endpoint");
-        assert_focus_middle(&key(&mut p, Pane::Nav, KeyCode::Enter));
+        assert_focus_middle(&key(&mut p, Pane::Nav, Key::Enter));
         assert!(p.filter_input.is_none());
         assert_eq!(visible_keys(&p), ["ABC-12"]);
         assert_eq!(
@@ -206,12 +206,12 @@ mod unit {
             "still shown: its identity stays while the filtered-out parent is removed"
         );
         // A second edit hides the selected child, so Enter chooses the first match.
-        assert!(key(&mut p, Pane::Middle, KeyCode::Char('/')).is_empty());
+        assert!(key(&mut p, Pane::Middle, Key::Char('/')).is_empty());
         for _ in 0..8 {
-            assert!(key(&mut p, Pane::Middle, KeyCode::Backspace).is_empty());
+            assert!(key(&mut p, Pane::Middle, Key::Backspace).is_empty());
         }
         typed(&mut p, Pane::Middle, "export");
-        assert_focus_middle(&key(&mut p, Pane::Middle, KeyCode::Enter));
+        assert_focus_middle(&key(&mut p, Pane::Middle, Key::Enter));
         assert!(p.filter_input.is_none());
         assert_export_selected(&p);
     }
@@ -219,12 +219,11 @@ mod unit {
 
 mod integration {
     use super::*;
-    use radar_core::host::Event;
     use radar_core::scenario::Scenario;
 
-    fn press(scenario: &mut Scenario, code: KeyCode) {
+    fn press(scenario: &mut Scenario, code: Key) {
         scenario
-            .dispatch(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+            .dispatch(crate::key_event(Chord::new(code)))
             .unwrap();
         assert!(
             scenario.is_idle(),
@@ -234,7 +233,7 @@ mod integration {
 
     fn typed(scenario: &mut Scenario, text: &str) {
         for c in text.chars() {
-            press(scenario, KeyCode::Char(c));
+            press(scenario, Key::Char(c));
         }
     }
 
@@ -251,11 +250,11 @@ mod integration {
         host.set_view_room(160, 40);
         let mut scenario = Scenario::new(host);
 
-        press(&mut scenario, KeyCode::Char('/'));
+        press(&mut scenario, Key::Char('/'));
         assert!(scenario.host().capturing());
         typed(&mut scenario, "endpoint");
         assert_eq!(super::super::jira(scenario.host()).filter, "endpoint");
-        press(&mut scenario, KeyCode::Enter);
+        press(&mut scenario, Key::Enter);
         assert_eq!(scenario.host().focus, Pane::Middle);
         assert!(!scenario.host().capturing());
         assert_eq!(
@@ -263,19 +262,19 @@ mod integration {
             ["s:acme", "g:acme:In Progress", "t:acme:ABC-12"]
         );
 
-        press(&mut scenario, KeyCode::Esc);
+        press(&mut scenario, Key::Esc);
         let p = super::super::jira(scenario.host());
         assert!(p.filter.is_empty());
         assert_eq!(p.visible().len(), 6);
-        press(&mut scenario, KeyCode::Char('1'));
+        press(&mut scenario, Key::Char('1'));
         assert_eq!(scenario.host().focus, Pane::Nav);
-        press(&mut scenario, KeyCode::Char('/'));
+        press(&mut scenario, Key::Char('/'));
         assert!(scenario.host().capturing());
         // In particular, x/o/r must be captured as text rather than actions.
         typed(&mut scenario, "export");
         assert_eq!(super::super::jira(scenario.host()).filter, "export");
         assert!(scenario.host().menu.is_none());
-        press(&mut scenario, KeyCode::Down);
+        press(&mut scenario, Key::Down);
         assert_eq!(scenario.host().focus, Pane::Middle);
         assert!(!scenario.host().capturing());
         let p = super::super::jira(scenario.host());

@@ -144,7 +144,7 @@ mod tests {
     fn the_setup_card_leaves_out_refresh_and_on_start_and_the_cursor_skips_nothing_drawn() {
         use crate::settings::{SiteRow, key, site_rows};
         use radar_core::plugin::Plugin;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
         use radar_core::view::{Node, ViewCx};
         let cx = |setup| ViewCx {
             now: 0,
@@ -185,7 +185,7 @@ mod tests {
         // ↓ through the whole card never lands on a row that is not drawn.
         p.section_rows[0] = 0;
         for _ in 0..rows.len() + 2 {
-            key(&mut p, "connection", KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+            key(&mut p, "connection", Chord::new(Key::Down));
             let at = p.section_rows[0];
             assert!(at < card.len(), "row {at} is not drawn");
             assert!(!matches!(rows[at], SiteRow::Refresh | SiteRow::OnStart));
@@ -203,17 +203,17 @@ mod tests {
     #[test]
     fn a_sites_projects_row_watches_with_the_projects_own_field() {
         use crate::settings::{Field, SiteRow, connection_view, key, site_rows};
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
         let mut p = crate::demo::sample();
-        let press = |p: &mut JiraPlugin, code| key(p, "connection", KeyEvent::new(code, KeyModifiers::NONE));
+        let press = |p: &mut JiraPlugin, code| key(p, "connection", Chord::new(code));
         p.section_rows[0] = site_rows(&p).iter().position(|r| *r == SiteRow::Field(0, Field::Projects)).unwrap();
-        press(&mut p, KeyCode::Enter);
+        press(&mut p, Key::Enter);
         assert!(matches!(p.edit, Some((crate::Target::ProjectAdd(0), _))));
         let before = p.cfg.sites[0].projects.len();
         for c in "WATCH".chars() {
-            press(&mut p, KeyCode::Char(c));
+            press(&mut p, Key::Char(c));
         }
-        press(&mut p, KeyCode::Enter);
+        press(&mut p, Key::Enter);
         assert_eq!(p.cfg.sites[0].projects.len(), before + 1);
         assert!(p.cfg.sites[0].watches("WATCH"));
         p.section_rows[0] = site_rows(&p).iter().position(|r| *r == SiteRow::Field(0, Field::Token)).unwrap();

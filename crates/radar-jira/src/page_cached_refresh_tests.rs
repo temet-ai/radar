@@ -4,7 +4,6 @@ use super::*;
 use crate::tests;
 use radar_core::host::{Event, HostEffect};
 use radar_core::view::{Intent, Target};
-use radar_core::ratatui::crossterm::event::KeyModifiers;
 
 const SITE: &str = "acme";
 const KEY: &str = "ABC-12";
@@ -93,13 +92,13 @@ fn cached_links_error_is_not_a_row_and_row_intents_keep_their_targets() {
     assert!(rows.iter().any(|(_, line)| line.contains("ABC-13") && line.contains("{row:1}")), "{shown}");
     host.update(Event::Intent(Intent::Select { target: Target::new("row:1") }));
     assert_eq!(tests::jira_mut(&mut host).pages[0].row.get(), 1);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
+    host.update(crate::key_event(Chord::new(Key::Enter)));
     assert_eq!(tests::jira_mut(&mut host).pages.last().unwrap().key, "ABC-13");
-    host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+    host.update(crate::key_event(Chord::new(Key::Esc)));
     assert_eq!(tests::jira_mut(&mut host).pages[0].row.get(), 1);
     crate::tests::shown(&host, 160, 40);
     host.update(Event::Intent(Intent::Select { target: Target::new("row:3") }));
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
+    let fx = host.update(crate::key_event(Chord::new(Key::Enter)));
     assert!(
         fx.iter()
             .any(|e| matches!(e, HostEffect::Open(url) if url == "https://example.com/design"))

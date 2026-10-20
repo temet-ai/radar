@@ -11,7 +11,7 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome, key_text};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::theme::slot_info;
 use radar_core::ui::connection;
 use radar_core::ui::icon::Icon;
@@ -1310,10 +1310,10 @@ pub fn look_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
         v::Intent::Select { target } | v::Intent::Context { target } => click(p, "look", &target.0),
         v::Intent::Activate { target } => {
             click(p, "look", &target.0);
-            key(p, "look", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, "look", v::Chord::new(v::Key::Enter))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, "look", radar_core::view_tui::key_of(chord))
+            key(p, "look", chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -1324,10 +1324,10 @@ pub fn views_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
         v::Intent::Select { target } | v::Intent::Context { target } => click(p, "views", target.as_str()),
         v::Intent::Activate { target } => {
             click(p, "views", target.as_str());
-            key(p, "views", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, "views", v::Chord::new(v::Key::Enter))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, "views", radar_core::view_tui::key_of(chord))
+            key(p, "views", chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -1340,10 +1340,10 @@ pub fn connection_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
         v::Intent::Select { target } | v::Intent::Context { target } => click(p, "connection", &row(target)),
         v::Intent::Activate { target } => {
             click(p, "connection", &row(target));
-            key(p, "connection", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, "connection", v::Chord::new(v::Key::Enter))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, "connection", radar_core::view_tui::key_of(chord))
+            key(p, "connection", chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -1383,13 +1383,13 @@ pub fn projects_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
         }
         v::Intent::Activate { target } => {
             if select(p, target) {
-                key(p, "projects", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+                key(p, "projects", v::Chord::new(v::Key::Enter))
             } else {
                 Outcome::done()
             }
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, "projects", radar_core::view_tui::key_of(chord))
+            key(p, "projects", chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -2083,7 +2083,7 @@ fn watch(p: &mut JiraPlugin, i: usize, key: &str) -> Vec<Effect> {
 
 // --- keys ------------------------------------------------------------------------
 
-pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
+pub fn key(p: &mut JiraPlugin, section: &str, key: Chord) -> Outcome {
     if let Some((target, mut input)) = p.edit.take() {
         return match input.key(key) {
             Edit::Cancel => Outcome::done(),
@@ -2107,7 +2107,7 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
         };
     }
     let at = index(section);
-    if let Some(mv) = Move::from_key(&key, p.section_scroll[at].height()) {
+    if let Some(mv) = Move::from_key(key, p.section_scroll[at].height()) {
         if section == "projects" {
             let tree = project_state(p);
             let shown = tree.visible();
@@ -2125,7 +2125,7 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
         p.section_rows[at] = select(row_count(p, section), p.section_rows[at], mv, can);
         return Outcome::done();
     }
-    if key.code == KeyCode::Enter {
+    if key.key == Key::Enter {
         // ⏎ on an add row starts typing; on an offer it uses it.
         match (section, site_row(p), proj_row(p)) {
             ("connection", SiteRow::Add, _) => {
@@ -2159,27 +2159,27 @@ pub fn key(p: &mut JiraPlugin, section: &str, key: KeyEvent) -> Outcome {
         }
         return Outcome::Handled(row_menu(p, section).map(Effect::Menu).into_iter().collect());
     }
-    if let KeyCode::Char(c) = key.code
+    if let Key::Char(c) = key.key
         && let Some(menu) = row_menu(p, section)
         && let Some(item) = menu.items.iter().find(|i| i.key == Some(c))
     {
         let value = item.value.clone();
         return Outcome::Handled(on_menu(p, &menu.id, &value));
     }
-    match (section, key.code) {
+    match (section, key.key) {
         // Atlassian's API token page: `o` opens it, `y` copies its link.
-        ("connection", KeyCode::Char('o')) => Outcome::Handled(vec![Effect::Open(crate::setup::TOKEN_PAGE.into())]),
-        ("connection", KeyCode::Char('y')) => Outcome::Handled(vec![
+        ("connection", Key::Char('o')) => Outcome::Handled(vec![Effect::Open(crate::setup::TOKEN_PAGE.into())]),
+        ("connection", Key::Char('y')) => Outcome::Handled(vec![
             Effect::Copy(crate::setup::TOKEN_PAGE.into()),
             Effect::Notify("copied the API token page's link".into()),
         ]),
-        ("connection", KeyCode::Char('a')) => {
+        ("connection", Key::Char('a')) => {
             // The add row, under what was found.
             p.section_rows[0] = p.offers().len();
             p.edit = Some((Target::SiteAdd, TextInput::new("")));
             Outcome::done()
         }
-        ("views", KeyCode::Char('n')) => {
+        ("views", Key::Char('n')) => {
             p.section_rows[2] = 0;
             p.edit = Some((Target::ViewAdd, TextInput::new("")));
             Outcome::done()

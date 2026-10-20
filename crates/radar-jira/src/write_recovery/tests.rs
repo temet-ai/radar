@@ -4,17 +4,17 @@ use crate::{JiraMsg, detail_key, model::IssueType, tests, write};
 use radar_core::Host;
 use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::plugin::Pane;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::writes::{self, Mode};
 use serde_json::Value;
 
 const BODY: &str = "  SECRET_世界\n\n尾  \n ";
 const SUMMARY: &str = "  SECRET_ résumé  ";
-fn key(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn key(code: Key) -> Chord {
+    Chord::new(code)
 }
-fn ctrl(c: char) -> KeyEvent {
-    KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL)
+fn ctrl(c: char) -> Chord {
+    Chord { ctrl: true, ..Chord::new(Key::Char(c)) }
 }
 fn kind(id: &str) -> IssueType {
     IssueType {
@@ -59,7 +59,7 @@ fn create(
         Status::Unsent,
         String::new(),
     );
-    write::compose_key(p, key(KeyCode::Enter));
+    write::compose_key(p, key(Key::Enter));
     write::compose_paste(p, description);
 }
 fn review(p: &mut JiraPlugin) -> Change {
@@ -175,7 +175,7 @@ fn create_preserves_separate_fields_and_raw_summary_across_both_stages_and_resto
     assert_eq!(p.compose.as_ref().unwrap().text(), SUMMARY);
     assert_eq!(p.compose.as_ref().unwrap().saved_description, BODY);
     write::compose_paste(&mut p, " plus");
-    write::compose_key(&mut p, key(KeyCode::Enter));
+    write::compose_key(&mut p, key(Key::Enter));
     assert_eq!(p.compose.as_ref().unwrap().text(), BODY);
     let outgoing = review(&mut p);
     assert!(
@@ -213,7 +213,7 @@ fn multiline_summary_recovery_is_typed_and_never_split_into_description() {
     let destination = Destination::create(&mut p, "acme", "ABC");
     restore(&mut p, 1, destination);
     assert_eq!(p.compose.as_ref().unwrap().text(), "  首\nSECRET_second  ");
-    write::compose_key(&mut p, key(KeyCode::Enter));
+    write::compose_key(&mut p, key(Key::Enter));
     assert_eq!(p.compose.as_ref().unwrap().text(), BODY);
     assert!(
         matches!(p.compose.as_ref().unwrap().original(), Original::Create { summary, .. } if summary == "  首\nSECRET_second  ")
@@ -451,14 +451,14 @@ impl Run {
         collect(&fx, &mut self.history);
         fx
     }
-    fn key(&mut self, code: KeyCode) {
-        self.event(Event::Key(key(code)));
+    fn key(&mut self, code: Key) {
+        self.event(crate::key_event(key(code)));
     }
     fn c(&mut self, c: char) {
-        self.key(KeyCode::Char(c));
+        self.key(Key::Char(c));
     }
     fn ctrl(&mut self, c: char) {
-        self.event(Event::Key(ctrl(c)));
+        self.event(crate::key_event(ctrl(c)));
     }
     fn paste(&mut self, text: &str) {
         self.event(Event::Paste(text.into()));
@@ -485,20 +485,20 @@ fn host_recovery_escape_fresh_edit_and_review_never_send_without_new_confirmatio
             .id
             .starts_with("j-recovery:")
     );
-    r.key(KeyCode::Esc);
+    r.key(Key::Esc);
     r.c('c');
-    r.key(KeyCode::Enter);
+    r.key(Key::Enter);
     r.c('e');
     assert_eq!(r.p().compose.as_ref().unwrap().text(), BODY);
     r.ctrl('r');
-    r.key(KeyCode::Esc); // no records left; editor remains active
+    r.key(Key::Esc); // no records left; editor remains active
     // Escape on a nonempty editor asks to drop; cancel deliberately.
     if r.host.menu.is_some() {
         r.c('n');
     }
     r.paste("new  ");
     r.ctrl('s');
-    r.key(KeyCode::Esc);
+    r.key(Key::Esc);
     r.c('y');
     assert!(r.p().sent.is_empty());
     assert!(r.p().compose.as_ref().unwrap().text().ends_with("new  y"));
@@ -533,7 +533,7 @@ fn host_offline_settings_recovery_never_creates_hidden_editor_or_steals_paste() 
         radar_core::input::TextInput::new("SECRET_settings"),
     ));
     r.ctrl('r');
-    r.key(KeyCode::Enter);
+    r.key(Key::Enter);
     let menu = &r.host.menu.as_ref().unwrap().menu;
     assert!(!menu.items.iter().any(|i| i.value == "edit"));
     r.c('y');
@@ -546,13 +546,13 @@ fn host_offline_settings_recovery_never_creates_hidden_editor_or_steals_paste() 
         "SECRET_settings pastedx"
     );
     r.ctrl('r');
-    r.key(KeyCode::Enter);
+    r.key(Key::Enter);
     r.c('d');
-    r.key(KeyCode::Esc);
+    r.key(Key::Esc);
     r.paste(" kept");
     assert_eq!(r.p().recovery.records.len(), 1);
     r.ctrl('r');
-    r.key(KeyCode::Enter);
+    r.key(Key::Enter);
     r.c('d');
     r.c('y');
     assert!(r.p().recovery.records.is_empty());
@@ -582,7 +582,7 @@ fn host_pending_and_uncertain_recovery_remain_reachable_with_no_config() {
         .position(|(_, s)| s.id == "connection")
         .unwrap();
     r.ctrl('r');
-    r.key(KeyCode::Enter);
+    r.key(Key::Enter);
     assert!(
         r.host
             .menu
@@ -593,7 +593,7 @@ fn host_pending_and_uncertain_recovery_remain_reachable_with_no_config() {
             .iter()
             .any(|i| i.label.contains("send pending"))
     );
-    r.key(KeyCode::Esc);
+    r.key(Key::Esc);
     r.event(Event::Msg {
         plugin: 0,
         msg: Box::new(JiraMsg::Wrote {
@@ -603,7 +603,7 @@ fn host_pending_and_uncertain_recovery_remain_reachable_with_no_config() {
         }),
     });
     r.ctrl('r');
-    r.key(KeyCode::Enter);
+    r.key(Key::Enter);
     assert!(
         r.host
             .menu
@@ -633,7 +633,7 @@ fn host_recovery_leaves_filter_and_goto_key_and_paste_ownership_unchanged() {
             r.p().filter_input = Some(radar_core::input::TextInput::new("SECRET_filter"));
         }
         r.ctrl('r');
-        r.key(KeyCode::Enter);
+        r.key(Key::Enter);
         assert!(
             !r.host
                 .menu

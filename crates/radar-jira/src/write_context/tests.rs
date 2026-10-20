@@ -9,7 +9,7 @@ use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::input::TextInput;
 use radar_core::journal::{ActionId, Journal, Query};
 use radar_core::plugin::Pane;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::writes;
 use radar_core::{Host, Plugin};
 use serde_json::{Value, json};
@@ -345,8 +345,8 @@ impl Run {
         }));
         effects
     }
-    fn key(&mut self, code: KeyCode) -> Vec<HostEffect> {
-        self.event(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    fn key(&mut self, code: Key) -> Vec<HostEffect> {
+        self.event(crate::key_event(Chord::new(code)))
     }
     fn launch(&mut self, kind: &str) -> Pending {
         if kind == "start" {
@@ -373,7 +373,7 @@ impl Run {
             assert!(self.host.menu.is_some());
             // Preserve fixture-generated assignment, with real menu dispatch.
         } else {
-            self.key(KeyCode::Char(if kind == "create" { 'n' } else { 'c' }));
+            self.key(Key::Char(if kind == "create" { 'n' } else { 'c' }));
             if kind == "create" {
                 let read = self.p().dialogs.current_read();
                 self.event(Event::Msg {
@@ -389,22 +389,19 @@ impl Run {
                         }]),
                     }),
                 });
-                self.key(KeyCode::Char('1'));
+                self.key(Key::Char('1'));
                 self.event(Event::Paste("SECRET_SUMMARY".into()));
-                self.key(KeyCode::Enter);
+                self.key(Key::Enter);
             }
             self.event(Event::Paste("SECRET_BODY".into()));
-            self.event(Event::Key(KeyEvent::new(
-                KeyCode::Char('s'),
-                KeyModifiers::CONTROL,
-            )));
+            self.event(crate::key_event(Chord { ctrl: true, ..Chord::new(Key::Char('s')) }));
         }
         let change = if kind == "start" {
             self.p().starting.as_ref().unwrap().assign.clone().unwrap()
         } else {
             self.p().change.clone().unwrap()
         };
-        let effects = self.key(KeyCode::Char('y'));
+        let effects = self.key(Key::Char('y'));
         let contexts = spawns(&effects);
         assert_eq!(
             contexts.len(),
@@ -433,10 +430,10 @@ impl Run {
             .unwrap();
         self.host.focus = Pane::Middle;
         self.p().edit = Some((target, TextInput::new(value)));
-        self.key(KeyCode::Enter);
+        self.key(Key::Enter);
         assert!(self.p().edit.is_none(), "host committed configured field");
         if self.host.menu.is_some() {
-            self.key(KeyCode::Esc);
+            self.key(Key::Esc);
         }
     }
     fn complete(&mut self, pending: &Pending, succeeds: bool) -> Vec<HostEffect> {
@@ -665,9 +662,9 @@ fn host_connection_mutation_routes_keep_old_dispatch_stale_even_after_return_to_
                     .unwrap();
                 r.host.focus = Pane::Middle;
                 r.p().edit = Some((Target::SiteAdd, TextInput::new(&original.url)));
-                r.key(KeyCode::Enter);
+                r.key(Key::Enter);
                 assert!(r.p().cfg.site("acme").is_some());
-                r.key(KeyCode::Esc); // finish the add flow's next-field editor
+                r.key(Key::Esc); // finish the add flow's next-field editor
                 let mut cfg = r.p().cfg.clone();
                 *cfg.sites.iter_mut().find(|s| s.name == "acme").unwrap() = original;
                 configure(r.p(), &cfg);

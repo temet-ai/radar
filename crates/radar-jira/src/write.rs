@@ -20,7 +20,7 @@ use radar_core::journal::{
     ActionDescriptor, Origin, Outcome as JournalOutcome, SubjectKey, SubjectRole, SubjectSnapshot,
 };
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::composer::{self, Composer, Typed};
 use radar_core::ui::icon::Icon;
 use radar_core::writes::{self, Service};
@@ -413,11 +413,11 @@ pub(crate) fn bindings(p: &JiraPlugin, pane: Pane) -> Vec<Binding> {
 }
 
 /// `t`, `c`, `n`, `i`: start a change, or say why it cannot be made.
-pub(crate) fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Option<Outcome> {
-    if key.modifiers != KeyModifiers::NONE && key.modifiers != KeyModifiers::SHIFT {
+pub(crate) fn key(p: &mut JiraPlugin, pane: Pane, key: Chord) -> Option<Outcome> {
+    if !key.plain() {
         return None;
     }
-    let KeyCode::Char(c) = key.code else {
+    let Key::Char(c) = key.key else {
         return None;
     };
     let fx = match c {
@@ -658,7 +658,7 @@ pub(crate) fn open_compose(
 }
 
 /// Keys while text is being typed.
-pub(crate) fn compose_key(p: &mut JiraPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn compose_key(p: &mut JiraPlugin, key: Chord) -> Outcome {
     let Some(c) = p.compose.as_mut() else {
         return Outcome::Ignored;
     };
@@ -1755,7 +1755,7 @@ mod tests {
         p.compose = Some(c);
         compose_key(
             &mut p,
-            KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE),
+            Chord::new(Key::Backspace),
         );
         assert_eq!(p.compose.as_ref().unwrap().composer.input.value(), "one");
         compose_paste(&mut p, " more\nnext line\nlast");

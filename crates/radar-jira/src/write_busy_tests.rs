@@ -65,7 +65,7 @@ fn busy_confirmation_keeps_exact_editor_cursor_intent_and_existing_drafts() {
         let compose = p.compose.as_mut().unwrap();
         compose
             .composer
-            .key(KeyEvent::new(KeyCode::Left, KeyModifiers::NONE));
+            .key(Chord::new(Key::Left));
         let cursor = compose.composer.input.cursor();
         let draft = compose.draft.clone();
         p.change = Some(change.clone());
@@ -204,11 +204,11 @@ fn update(host: &mut Host, all: &mut Vec<JournalRecord>, event: Event) -> Vec<Ho
     effects
 }
 
-fn key(host: &mut Host, all: &mut Vec<JournalRecord>, code: KeyCode) -> Vec<HostEffect> {
+fn key(host: &mut Host, all: &mut Vec<JournalRecord>, code: Key) -> Vec<HostEffect> {
     update(
         host,
         all,
-        Event::Key(KeyEvent::new(code, KeyModifiers::NONE)),
+        crate::key_event(Chord::new(code)),
     )
 }
 
@@ -216,7 +216,7 @@ fn review(host: &mut Host, all: &mut Vec<JournalRecord>) {
     update(
         host,
         all,
-        Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)),
+        crate::key_event(Chord { ctrl: true, ..Chord::new(Key::Char('s')) }),
     );
 }
 
@@ -251,13 +251,13 @@ fn outcomes(records: &[JournalRecord], target: &ActionId) -> Vec<JournalOutcome>
 }
 
 fn begin_composer(host: &mut Host, all: &mut Vec<JournalRecord>, is_create: bool, text: &str) {
-    key(host, all, KeyCode::Char(if is_create { 'n' } else { 'c' }));
+    key(host, all, Key::Char(if is_create { 'n' } else { 'c' }));
     if host
         .menu
         .as_ref()
         .is_some_and(|m| m.menu.id.starts_with("j-recovery:"))
     {
-        key(host, all, KeyCode::Char('n'));
+        key(host, all, Key::Char('n'));
     }
     if is_create {
         let read = tests::jira_mut(host).dialogs.current_read();
@@ -274,9 +274,9 @@ fn begin_composer(host: &mut Host, all: &mut Vec<JournalRecord>, is_create: bool
                 }),
             },
         );
-        key(host, all, KeyCode::Char('1'));
+        key(host, all, Key::Char('1'));
         paste(host, all, "  SECRET_SUMMARY  ");
-        key(host, all, KeyCode::Enter);
+        key(host, all, Key::Enter);
     }
     paste(host, all, text);
 }
@@ -333,7 +333,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
     begin_composer(&mut host, &mut all, is_create, FIRST);
     review(&mut host, &mut all);
     let original = tests::jira_mut(&mut host).change.clone().unwrap();
-    let effects = key(&mut host, &mut all, KeyCode::Char('y'));
+    let effects = key(&mut host, &mut all, Key::Char('y'));
     let contexts = spawn_contexts(&effects);
     assert_eq!(
         contexts.len(),
@@ -345,7 +345,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
     assert!(tests::jira_mut(&mut host).compose.is_none());
 
     begin_composer(&mut host, &mut all, is_create, SECOND);
-    key(&mut host, &mut all, KeyCode::Left);
+    key(&mut host, &mut all, Key::Left);
     let before = tests::jira_mut(&mut host)
         .compose
         .as_ref()
@@ -355,7 +355,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
         .cursor();
     review(&mut host, &mut all);
     let pending = tests::jira_mut(&mut host).change.clone().unwrap();
-    let effects = key(&mut host, &mut all, KeyCode::Char('y'));
+    let effects = key(&mut host, &mut all, Key::Char('y'));
     assert!(spawn_contexts(&effects).is_empty());
     assert!(host.menu.is_none());
     assert_eq!(
@@ -384,7 +384,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
     assert_eq!(p.compose.as_ref().unwrap().composer.input.cursor(), before);
 
     // The refused editor still captures host shortcut keys and a multiline paste.
-    key(&mut host, &mut all, KeyCode::Char('q'));
+    key(&mut host, &mut all, Key::Char('q'));
     paste(&mut host, &mut all, " SECRET_PASTE\nend  ");
     assert!(!host.quit);
     let retained = tests::jira_mut(&mut host).compose.as_ref().unwrap().text();
@@ -464,7 +464,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
     );
 
     // Completion never replays B. A plain y remains text until a fresh review.
-    assert!(spawn_contexts(&key(&mut host, &mut all, KeyCode::Char('y'))).is_empty());
+    assert!(spawn_contexts(&key(&mut host, &mut all, Key::Char('y'))).is_empty());
     assert!(host.menu.is_none());
     let edited = format!("{retained}y");
     assert_eq!(
@@ -482,7 +482,7 @@ fn busy_host_flow(is_create: bool, succeeds: bool) {
             comment("acme", "ABC-12", &edited)
         }
     );
-    let effects = key(&mut host, &mut all, KeyCode::Char('y'));
+    let effects = key(&mut host, &mut all, Key::Char('y'));
     assert_eq!(
         spawn_contexts(&effects).len(),
         1,

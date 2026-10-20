@@ -6,7 +6,7 @@ use crate::client::recorded::block;
 use crate::client::{Client, DetailEvidence, Method, Req, Resp, Sent, Transport};
 use crate::{JiraPlugin, demo, detail_key, model, page};
 use radar_core::Plugin;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use serde_json::{Value, json};
 
 const ISSUE: &str = "/rest/api/3/issue/ABC-12";
@@ -719,7 +719,7 @@ fn no_op_fetch_and_manual_refresh_notice_remain_unchanged() {
     for force in [true, false] {
         assert!(page::fetch(&mut plugin, "acme", "ABC-12", force).is_empty());
     }
-    let refresh = || KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE);
+    let refresh = || Chord::new(Key::Char('r'));
     assert!(
         matches!(page::key(&mut plugin, refresh()), radar_core::plugin::Outcome::Handled(fx) if matches!(&fx[..], [Effect::Notify(text)] if text == "already asking Jira"))
     );

@@ -48,8 +48,8 @@ use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{
     Binding, CliTask, Effect, MenuItem, Msg, Outcome, Pane, ScreenSpec, SectionSpec, SlotValue,
 };
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::ratatui::style::Color;
+use radar_core::view::{Chord, Key};
+use radar_core::design::theme::Color;
 use radar_core::{Plugin, log, time};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -893,19 +893,19 @@ impl JiraPlugin {
         b
     }
 
-    fn shared_key(&mut self, pane: Pane, key: KeyEvent) -> Option<Outcome> {
-        if key.modifiers != KeyModifiers::NONE && key.modifiers != KeyModifiers::SHIFT {
+    fn shared_key(&mut self, pane: Pane, key: Chord) -> Option<Outcome> {
+        if !key.plain() {
             return None;
         }
         let tree = self.pages.is_empty() && matches!(pane, Pane::Nav | Pane::Middle);
-        match key.code {
-            KeyCode::Char(agent_context::KEY) if pane != Pane::Nav && agent_context::can_send(self) => {
+        match key.key {
+            Key::Char(agent_context::KEY) if pane != Pane::Nav && agent_context::can_send(self) => {
                 Some(Outcome::Handled(agent_context::send_selected(self)))
             }
-            KeyCode::Char(ASSIGNEE_KEY) if tree => {
+            Key::Char(ASSIGNEE_KEY) if tree => {
                 Some(Outcome::Handled(vec![Effect::Menu(self.assignee_menu())]))
             }
-            KeyCode::Char(GOTO_KEY) if tree && !self.cfg.sites.is_empty() => {
+            Key::Char(GOTO_KEY) if tree && !self.cfg.sites.is_empty() => {
                 screen::goto_start(self);
                 Some(Outcome::Handled(vec![Effect::Focus(Pane::Middle)]))
             }
@@ -927,8 +927,8 @@ impl JiraPlugin {
     /// A key on the screen the frontend did not use for moving: the kept
     /// text, the composer, go to, the shared keys, the changes, then the
     /// page's or the tree's own.
-    fn screen_key(&mut self, pane: Pane, key: KeyEvent) -> Outcome {
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('r') {
+    fn screen_key(&mut self, pane: Pane, key: Chord) -> Outcome {
+        if key.ctrl && key.key == Key::Char('r') {
             return Outcome::Handled(write_recovery::list(self, None));
         }
         if self.compose.is_some() {
@@ -952,7 +952,7 @@ impl JiraPlugin {
         }
         let out = screen::key(self, pane, key);
         if matches!(out, Outcome::Ignored)
-            && key.code == KeyCode::Esc
+            && key.key == Key::Esc
             && pane == Pane::Middle
             && self.assignee.is_some()
         {
@@ -1638,7 +1638,7 @@ impl Plugin for JiraPlugin {
         let by_id = self.by_action_id(scope, pane, intent);
         let intent = by_id.as_ref().unwrap_or(intent);
         if matches!(canon(scope), "look" | "views" | "connection" | "projects") {
-            if intent.chord().is_some_and(|chord| chord.ctrl && chord.key == radar_core::view::Key::Char('r')) {
+            if intent.chord().is_some_and(|chord| chord.ctrl && chord.key == Key::Char('r')) {
                 return Outcome::Handled(write_recovery::list(self, None));
             }
             let out = match canon(scope) {
@@ -1657,7 +1657,7 @@ impl Plugin for JiraPlugin {
             let Some(chord) = intent.chord() else {
                 return Outcome::Ignored;
             };
-            return self.screen_key(pane, radar_core::view_tui::key_of(chord));
+            return self.screen_key(pane, chord);
         }
         if self.pages.is_empty() {
             let out = screen::intent(self, pane, intent);
@@ -1896,6 +1896,12 @@ async fn cli_show(cfg: Settings, m: &clap::ArgMatches) -> anyhow::Result<String>
         }
     }
     Err(last.unwrap_or_else(|| anyhow::anyhow!("no site to ask")))
+}
+
+/// A key as the event a test sends the host.
+#[cfg(any(test, feature = "demo"))]
+pub(crate) fn key_event(chord: Chord) -> radar_core::host::Event {
+    radar_core::host::Event::Intent(radar_core::view::Intent::Key { chord })
 }
 
 #[cfg(any(test, feature = "demo"))]

@@ -12,7 +12,7 @@
 use std::cell::{Cell, RefCell};
 
 use radar_core::plugin::{Binding, Effect, Msg, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
 use radar_core::ui;
 use radar_core::view::{self as v, Block, ColumnSpec, Ink, Intent, Node, PageView, PaneId, PaneView, Seg, TabView, Text, kit};
@@ -548,14 +548,15 @@ pub(crate) fn labels_text(p: &JiraPlugin, labels: &[String]) -> Text {
 /// A ticket's rich text (from ADF) laid out by the kit for `width`, links
 /// followed by where they go, its pictures named.
 #[cfg(test)]
-pub(crate) fn rich(t: &Theme, doc: &Doc, width: u16) -> Vec<radar_core::ratatui::text::Line<'static>> {
+pub(crate) fn rich(t: &Theme, doc: &Doc, width: u16) -> Vec<Text> {
     let mut doc = doc.clone();
     for b in &mut doc.blocks {
         if let rich::Block::Media(m) = b {
             m.src.clear();
         }
     }
-    rich::layout(&doc, &look(t), width).lines
+    let lines = rich::layout(&doc, &look(t), width).lines;
+    rich::text_of(&lines).split('\n').map(Text::plain).collect()
 }
 
 /// How the kit fetches a ticket's picture: with the site's account and
@@ -1077,7 +1078,7 @@ pub(crate) fn intent(p: &mut JiraPlugin, intent: &Intent) -> Outcome {
             if let Some(page) = p.pages.last() {
                 page.row.set(row_at(target).unwrap_or(0));
             }
-            key(p, radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, v::Chord::new(v::Key::Enter))
         }
         // At the end of the comments: bring the older ones.
         Intent::End { .. } => {
@@ -1091,7 +1092,7 @@ pub(crate) fn intent(p: &mut JiraPlugin, intent: &Intent) -> Outcome {
             Outcome::Handled(fetch_more(p, &site, &tkey))
         }
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
-            Some(chord) => key(p, radar_core::view_tui::key_of(chord)),
+            Some(chord) => key(p, chord),
             None => Outcome::Ignored,
         },
         _ => Outcome::Ignored,
@@ -1099,14 +1100,14 @@ pub(crate) fn intent(p: &mut JiraPlugin, intent: &Intent) -> Outcome {
 }
 
 /// A key the frontend did not use for moving or scrolling.
-pub(crate) fn key(p: &mut JiraPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn key(p: &mut JiraPlugin, key: Chord) -> Outcome {
     crate::write_context::reconcile(p);
     let Some(page) = p.pages.last() else {
         return Outcome::Ignored;
     };
     let (site, tkey, tab) = (page.site.clone(), page.key.clone(), page.tab);
-    match key.code {
-        KeyCode::Esc => {
+    match key.key {
+        Key::Esc => {
             p.pages.pop();
             Outcome::Handled(if p.pages.is_empty() {
                 vec![Effect::Focus(Pane::Middle)]
@@ -1114,12 +1115,12 @@ pub(crate) fn key(p: &mut JiraPlugin, key: KeyEvent) -> Outcome {
                 vec![]
             })
         }
-        KeyCode::Char(c @ ('[' | ']')) => {
+        Key::Char(c @ ('[' | ']')) => {
             let n = page.tab_count();
             let to = if c == ']' { (tab + 1) % n } else { (tab + n - 1) % n };
             Outcome::Handled(show_tab(p, to))
         }
-        KeyCode::Char('r') => {
+        Key::Char('r') => {
             let fx = fetch(p, &site, &tkey, true);
             Outcome::Handled(if p.cfg.site(&site).is_none() {
                 vec![Effect::Notify("Jira site is no longer configured".into())]
@@ -1129,16 +1130,16 @@ pub(crate) fn key(p: &mut JiraPlugin, key: KeyEvent) -> Outcome {
                 fx
             })
         }
-        KeyCode::Char('o') => Outcome::Handled(browse(p, page).map(Effect::Open).into_iter().collect()),
-        KeyCode::Char('y') => Outcome::Handled(match browse(p, page) {
+        Key::Char('o') => Outcome::Handled(browse(p, page).map(Effect::Open).into_iter().collect()),
+        Key::Char('y') => Outcome::Handled(match browse(p, page) {
             Some(url) => vec![Effect::Copy(url), Effect::Notify("link copied".into())],
             None => vec![],
         }),
-        KeyCode::Char('Y') => Outcome::Handled(vec![
+        Key::Char('Y') => Outcome::Handled(vec![
             Effect::Copy(tkey.clone()),
             Effect::Notify(format!("{tkey} copied")),
         ]),
-        KeyCode::Enter => match enter(p, page) {
+        Key::Enter => match enter(p, page) {
             Some(Enter::Ticket(k)) => Outcome::Handled(open(p, &site, &k)),
             Some(Enter::Web(url)) => Outcome::Handled(vec![Effect::Open(url)]),
             Some(Enter::Show(s)) => Outcome::Handled(vec![Effect::Show(s)]),
@@ -1313,16 +1314,16 @@ mod rich_tests {
             let doc = crate::adf::doc(&crate::adf::from_text(&text));
             let lines = rich(&t, &doc, 40);
             for l in &lines {
-                assert!(l.width() <= 40, "{text}: {} wide: {:?}", l.width(), l);
+                assert!(radar_core::design::width::width(&l.words()) <= 40, "{text}: {} wide: {:?}", radar_core::design::width::width(&l.words()), l.words());
             }
-            let joined: String = lines.iter().flat_map(|l| l.spans.iter().map(|s| s.content.to_string())).collect::<String>().replace([' ', '│'], "");
+            let joined: String = lines.iter().map(Text::words).collect::<String>().replace([' ', '│'], "");
             assert!(joined.contains(&"x".repeat(150)), "nothing lost");
         }
         // A link after a list marker runs on from the marker's line, with
         // no space put into it.
         let doc = crate::adf::doc(&crate::adf::from_text(&format!("- https://example.com/{}", "y".repeat(60))));
         let lines = rich(&t, &doc, 30);
-        let text: Vec<String> = lines.iter().map(|l| l.spans.iter().map(|s| s.content.to_string()).collect()).collect();
+        let text: Vec<String> = lines.iter().map(Text::words).collect();
         assert!(text[0].starts_with("• https://example.com/yyy"), "{text:?}");
         for l in &text[1..] {
             assert!(l.starts_with("  y") && !l.trim().contains(' '), "{text:?}");

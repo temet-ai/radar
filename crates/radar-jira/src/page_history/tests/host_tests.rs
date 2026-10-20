@@ -174,8 +174,8 @@ fn export(records: Vec<JournalRecord>, finish: bool) -> Vec<ActionEvent> {
     events
 }
 
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::key_event(Chord::new(code)))
 }
 
 fn open_begin(
@@ -222,10 +222,10 @@ fn selected_host(cached: bool) -> Host {
 fn cached_direct_enter_records_local_open_without_read_or_raw_text_in_sqlite() {
     let mut host = selected_host(true);
     let before = crate::tests::jira_mut(&mut host).snapshot();
-    let mut all = records(&press(&mut host, KeyCode::Char(':')));
+    let mut all = records(&press(&mut host, Key::Char(':')));
     all.extend(records(&host.update(Event::Paste("SECRET_INPUT".into()))));
-    all.extend(records(&press(&mut host, KeyCode::Esc)));
-    let entered = press(&mut host, KeyCode::Enter);
+    all.extend(records(&press(&mut host, Key::Esc)));
+    let entered = press(&mut host, Key::Enter);
     let got = records(&entered);
     let (opened, scope, parent) = open_begin(&got, "jira.page.open");
     let (input, _, input_parent) = open_begin(&got, "plugin.input");
@@ -242,8 +242,8 @@ fn cached_direct_enter_records_local_open_without_read_or_raw_text_in_sqlite() {
     assert_eq!(host.focus, radar_core::Pane::Middle);
     assert_eq!(crate::tests::jira_mut(&mut host).pages.len(), 1);
     all.extend(got);
-    all.extend(records(&press(&mut host, KeyCode::Esc)));
-    let reopened = press(&mut host, KeyCode::Enter);
+    all.extend(records(&press(&mut host, Key::Esc)));
+    let reopened = press(&mut host, Key::Enter);
     let got = records(&reopened);
     let (again, _, _) = open_begin(&got, "jira.page.open");
     assert_ne!(again, opened);
@@ -269,7 +269,7 @@ fn cached_direct_enter_records_local_open_without_read_or_raw_text_in_sqlite() {
 #[test]
 fn cold_direct_enter_and_inflight_reopen_stay_successful_after_detail_failure() {
     let mut host = selected_host(false);
-    let entered = press(&mut host, KeyCode::Enter);
+    let entered = press(&mut host, Key::Enter);
     let mut all = records(&entered);
     let (opened, _, open_parent) = open_begin(&all, "jira.page.open");
     let (detail, scope, detail_parent) = open_begin(&all, "jira.page.detail");
@@ -288,8 +288,8 @@ fn cold_direct_enter_and_inflight_reopen_stay_successful_after_detail_failure() 
     let owner = crate::tests::jira_mut(&mut host).details[&detail_key("acme", "ABC-12")]
         .request
         .unwrap();
-    all.extend(records(&press(&mut host, KeyCode::Esc)));
-    let reopened = press(&mut host, KeyCode::Enter);
+    all.extend(records(&press(&mut host, Key::Esc)));
+    let reopened = press(&mut host, Key::Enter);
     let got = records(&reopened);
     let (again, _, _) = open_begin(&got, "jira.page.open");
     assert!(

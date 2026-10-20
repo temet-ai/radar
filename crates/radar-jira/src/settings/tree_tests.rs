@@ -182,11 +182,11 @@ fn raw_vertical_navigation_skips_closed_children_and_selects_site_rows() {
     tree(&p);
     fold(&mut p, 0, false);
     select(&mut p, ProjRow::Site(0));
-    key(&mut p, "projects", KeyEvent::from(KeyCode::Down));
+    key(&mut p, "projects", Chord::new(Key::Down));
     assert_eq!(proj_row(&p), Some(ProjRow::Site(1)));
-    key(&mut p, "projects", KeyEvent::from(KeyCode::Home));
+    key(&mut p, "projects", Chord::new(Key::Home));
     assert_eq!(proj_row(&p), Some(ProjRow::Site(0)));
-    key(&mut p, "projects", KeyEvent::from(KeyCode::End));
+    key(&mut p, "projects", Chord::new(Key::End));
     assert_eq!(proj_row(&p), Some(ProjRow::Project(1, 0)));
 }
 

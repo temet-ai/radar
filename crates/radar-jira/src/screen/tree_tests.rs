@@ -436,9 +436,9 @@ fn filter_enter_after_rendering_chooses_a_result_when_the_original_ticket_disapp
         .summary = "Find the dragon".into();
     refresh(&p);
     p.tree.borrow_mut().select(ticket_path(&p, "WATCH-4"));
-    key(&mut p, Pane::Middle, KeyEvent::from(KeyCode::Char('/')));
+    key(&mut p, Pane::Middle, Chord::new(Key::Char('/')));
     for ch in "dragon".chars() {
-        key(&mut p, Pane::Middle, KeyEvent::from(KeyCode::Char(ch)));
+        key(&mut p, Pane::Middle, Chord::new(Key::Char(ch)));
         // This is the render-time state reconciliation, without drawing a frame.
         refresh(&p);
     }
@@ -446,7 +446,7 @@ fn filter_enter_after_rendering_chooses_a_result_when_the_original_ticket_disapp
         !matches!(selected(&p), Some(Selected::Ticket(_))),
         "rendering recovered to an ancestor"
     );
-    key(&mut p, Pane::Middle, KeyEvent::from(KeyCode::Enter));
+    key(&mut p, Pane::Middle, Chord::new(Key::Enter));
     assert_eq!(p.tree.borrow().selected(), ticket_path(&p, "WATCH-5"));
     assert!(p.filter_before.is_none() && p.filter_input.is_none());
 }
@@ -457,11 +457,11 @@ fn cancelling_a_rendered_filter_restores_the_original_ticket_identity() {
     refresh(&p);
     let before = ticket_path(&p, "WATCH-4");
     p.tree.borrow_mut().select(before.clone());
-    key(&mut p, Pane::Middle, KeyEvent::from(KeyCode::Char('/')));
-    key(&mut p, Pane::Middle, KeyEvent::from(KeyCode::Char('z')));
+    key(&mut p, Pane::Middle, Chord::new(Key::Char('/')));
+    key(&mut p, Pane::Middle, Chord::new(Key::Char('z')));
     refresh(&p);
     assert!(p.tree.borrow().selected().is_empty());
-    key(&mut p, Pane::Middle, KeyEvent::from(KeyCode::Esc));
+    key(&mut p, Pane::Middle, Chord::new(Key::Esc));
     assert_eq!(p.tree.borrow().selected(), before);
     assert!(p.filter_before.is_none() && p.filter_input.is_none() && p.filter.is_empty());
 }

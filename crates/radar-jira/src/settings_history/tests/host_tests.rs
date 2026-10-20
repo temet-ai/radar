@@ -308,7 +308,7 @@ fn check_all_reversed_removed_config_keeps_original_scopes_outcomes_and_siblings
 #[test]
 fn structured_check_menu_ids_titles_and_invalid_targets_never_enter_host_journal() {
     use crate::settings_checks::Target;
-    use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
     let mut p = demo::sample();
     p.cfg.sites[0].name = "SECRET:alias:α\"\\".into();
     let alias = p.cfg.sites[0].name.clone();
@@ -331,10 +331,7 @@ fn structured_check_menu_ids_titles_and_invalid_targets_never_enter_host_journal
             msg: Box::new(Begin::Ask(target.clone())),
         })));
         assert_eq!(host.menu.as_ref().unwrap().menu.id, target.menu());
-        let fx = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('y'),
-            KeyModifiers::NONE,
-        )));
+        let fx = host.update(crate::key_event(Chord::new(Key::Char('y'))));
         all.extend(records(&fx));
         // Production dispatch is reached, but no live provider task is polled.
         assert_eq!(tasks(fx).len(), 1);

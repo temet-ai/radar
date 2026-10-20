@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, HashSet};
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, MenuItem, Outcome, Pane, Tone};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::{self, Icon};
 use radar_core::ui;
 use radar_core::view::{self as v, Block, ColumnSpec, Ink, Intent, Node, PaneId, PaneView, Seg, Text, TreeRow, kit};
@@ -1105,7 +1105,7 @@ fn goto_jump(p: &JiraPlugin, g: &mut Goto) {
     }
 }
 
-pub(crate) fn goto_key(p: &mut JiraPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn goto_key(p: &mut JiraPlugin, key: Chord) -> Outcome {
     let Some(mut g) = p.goto.take() else {
         return Outcome::Ignored;
     };
@@ -1223,7 +1223,7 @@ pub fn intent(p: &mut JiraPlugin, pane: Pane, intent: &Intent) -> Outcome {
         },
         Intent::OpenAll | Intent::Show { .. } | Intent::End { .. } | Intent::Dock(_) | Intent::Copy { .. } | Intent::NoticeInput { .. } | Intent::DismissNotice { .. } => Outcome::Ignored,
         Intent::Key { .. } | Intent::Invoke { .. } => match intent.chord() {
-            Some(chord) => key(p, pane, radar_core::view_tui::key_of(chord)),
+            Some(chord) => key(p, pane, chord),
             None => Outcome::Ignored,
         },
     }
@@ -1231,10 +1231,10 @@ pub fn intent(p: &mut JiraPlugin, pane: Pane, intent: &Intent) -> Outcome {
 
 /// A key the frontend did not use for moving: the filter's field, `/`,
 /// `r`, the links, `⏎` from the detail pane, `esc` clearing the filter.
-pub fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Outcome {
+pub fn key(p: &mut JiraPlugin, pane: Pane, key: Chord) -> Outcome {
     if let Some(mut input) = p.filter_input.take() {
         // ↓ keeps the words and goes down into what they found.
-        if key.code == KeyCode::Down {
+        if key.key == Key::Down {
             p.filter = input.value();
             return Outcome::Handled(to_results(p, false));
         }
@@ -1257,13 +1257,13 @@ pub fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Outcome {
         }
         return Outcome::done();
     }
-    match key.code {
-        KeyCode::Char('/') => {
+    match key.key {
+        Key::Char('/') => {
             p.filter_before = Some(p.tree.borrow().selected().to_vec());
             p.filter_input = Some(TextInput::new(&p.filter));
             return Outcome::done();
         }
-        KeyCode::Char('r') => {
+        Key::Char('r') => {
             let fx = p.refresh();
             return Outcome::Handled(if fx.is_empty() {
                 vec![Effect::Notify("already asking Jira".into())]
@@ -1271,14 +1271,14 @@ pub fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Outcome {
                 fx
             });
         }
-        KeyCode::Char('o') => return Outcome::Handled(link(p).map(Effect::Open).into_iter().collect()),
-        KeyCode::Char('y') => {
+        Key::Char('o') => return Outcome::Handled(link(p).map(Effect::Open).into_iter().collect()),
+        Key::Char('y') => {
             return Outcome::Handled(match link(p) {
                 Some(url) => vec![Effect::Copy(url), Effect::Notify("link copied".into())],
                 None => vec![],
             });
         }
-        KeyCode::Char('Y') => {
+        Key::Char('Y') => {
             return Outcome::Handled(match selected(p) {
                 Some(Selected::Ticket(it)) => vec![
                     Effect::Copy(it.t.key.clone()),
@@ -1289,12 +1289,12 @@ pub fn key(p: &mut JiraPlugin, pane: Pane, key: KeyEvent) -> Outcome {
         }
         _ => {}
     }
-    match (pane, key.code) {
-        (Pane::Detail, KeyCode::Enter) if matches!(selected(p), Some(Selected::Ticket(_))) => {
+    match (pane, key.key) {
+        (Pane::Detail, Key::Enter) if matches!(selected(p), Some(Selected::Ticket(_))) => {
             Outcome::Handled(page::open_from_tree(p))
         }
-        (Pane::Middle, KeyCode::Enter) => Outcome::Handled(page::open_from_tree(p)),
-        (Pane::Middle, KeyCode::Esc) if !p.filter.is_empty() => {
+        (Pane::Middle, Key::Enter) => Outcome::Handled(page::open_from_tree(p)),
+        (Pane::Middle, Key::Esc) if !p.filter.is_empty() => {
             p.filter.clear();
             Outcome::done()
         }

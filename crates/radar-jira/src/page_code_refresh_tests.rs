@@ -4,7 +4,6 @@ use super::*;
 use crate::{demo, tests};
 use radar_core::host::{Event, HostEffect};
 use radar_core::view::{Intent, Target};
-use radar_core::ratatui::crossterm::event::KeyModifiers;
 use radar_core::{Contribution, Plugin, Point};
 
 const SITE: &str = "acme";
@@ -135,7 +134,7 @@ fn code_rows_keep_their_intent_targets_and_status_is_not_a_row() {
         );
         host.update(Event::Intent(Intent::Select { target: Target::new(id) }));
         assert_eq!(tests::jira_mut(&mut host).pages[0].row.get(), index);
-        let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
+        let fx = host.update(crate::key_event(Chord::new(Key::Enter)));
         assert!(
             fx.iter().any(|e| matches!(e, HostEffect::Open(got) if got == url)),
             "{fx:?}"

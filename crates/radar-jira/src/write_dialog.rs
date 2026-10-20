@@ -29,9 +29,6 @@ struct Editor {
 pub(crate) struct Dialogs {
     next: u64,
     read: Option<Read>,
-    /// Only the synchronous key, project-picker, or contributed-action launch
-    /// consumes its originating Host::input callback. Never use for bus reads.
-    launching: bool,
     menu: Option<(String, Option<Editor>)>,
 }
 
@@ -45,14 +42,13 @@ impl Dialogs {
     }
 
     pub(crate) fn input(&mut self) {
-        if !std::mem::take(&mut self.launching) {
-            self.read = None;
-        }
+        // The host reports input before it handles it, so the key that
+        // launched a read is already behind; any later input cancels it.
+        self.read = None;
     }
 
     pub(crate) fn invalidate(&mut self) {
         self.read = None;
-        self.launching = false;
         self.menu = None;
     }
 
@@ -60,7 +56,6 @@ impl Dialogs {
         let id = self.next();
         let read = Read { id, action };
         self.read = Some(read.clone());
-        self.launching = true;
         read
     }
 
@@ -73,7 +68,6 @@ impl Dialogs {
             return false;
         }
         self.read = None;
-        self.launching = false;
         true
     }
 
@@ -120,7 +114,6 @@ pub(crate) fn occupied(p: &JiraPlugin) -> bool {
 pub(crate) fn menu(p: &mut JiraPlugin, mut menu: Menu) -> Effect {
     let owner = editor(p);
     p.dialogs.read = None;
-    p.dialogs.launching = false;
     menu.id = format!("{}:{}", menu.id, p.dialogs.next());
     p.dialogs.menu = Some((menu.id.clone(), owner));
     Effect::Menu(menu)

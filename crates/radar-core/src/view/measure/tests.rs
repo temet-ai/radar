@@ -226,3 +226,39 @@ fn setup_gives_the_sheet_its_text_and_the_card_the_rest() {
     let (card, sheet) = setup_panes(Size::new(150, 40), 40);
     assert_eq!((card, sheet), (Size::new(140, 19), Size::new(136, 17)));
 }
+
+fn line(words: &str) -> Block {
+    Block::Line { text: Text::plain(words), mnemonic_at: None, mnemonic_shift: false, target: None, key: None }
+}
+
+#[test]
+fn a_section_with_rich_blocks_taller_than_the_pane_scrolls_to_its_last_row_and_stops() {
+    use crate::view::{Node, State};
+    let mut blocks: Vec<Block> = (0..30).map(|n| line(&format!("line {n}"))).collect();
+    // A line of ten 9-cell words wraps to two rows in 72 cells.
+    blocks.push(line(&["wordwordw"; 10].join(" ")));
+    // A section is its heading row and its blocks.
+    blocks.push(Block::Section { mark: None, title: "NOTES".into(), detail: None, blocks: (0..3).map(|n| line(&format!("note {n}"))).collect() });
+    let view = SectionView {
+        version: crate::view::VERSION,
+        scope: "probe".into(),
+        body: Node::State { state: State::Empty, text: String::new() },
+        detail_title: "probe".into(),
+        detail: vec![],
+        detail_blocks: blocks,
+        actions: vec![],
+    };
+    let room = settings_detail_text(Size::new(100, 20));
+    assert_eq!(room, Size::new(72, 8));
+    let rows = detail_rows(&view, room.width, SETTINGS_INSET);
+    assert_eq!(rows, 30 + 2 + 1 + 3);
+    let scroll = crate::ui::Scroll::new();
+    scroll.fit(room.height, rows as u16);
+    // The last row is reachable: the furthest the pane scrolls ends on it.
+    assert_eq!(usize::from(scroll.max()) + usize::from(room.height), rows);
+    // Scrolling far past it stops there.
+    scroll.laid_out(room.height, rows as u16, u16::MAX);
+    assert_eq!(scroll.at(), scroll.max());
+    scroll.fit(room.height, rows as u16);
+    assert_eq!(scroll.at(), scroll.max());
+}

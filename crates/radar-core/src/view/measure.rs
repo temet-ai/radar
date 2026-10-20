@@ -44,7 +44,7 @@ const MOST_CELLS: usize = 32_768;
 /// grapheme, and an empty line is one row. Leading spaces stay (indent);
 /// spaces at a wrap and at the end of a line are dropped.
 ///
-/// Where this differs from the paragraph the Ratatui shell counted with:
+/// Where this differs from the paragraph the removed terminal shell counted with:
 /// whitespace runs that overflow are dropped rather than carried, a tab is
 /// one cell, and a line wider than 32 768 cells is counted in chunks cut on
 /// grapheme boundaries (as the shell did). `design::width::wrap_words` is

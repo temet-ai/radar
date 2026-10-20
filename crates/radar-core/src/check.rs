@@ -1,30 +1,28 @@
-//! Unit-level checks a part runs over its own plugin: no host, no full
-//! frame, milliseconds per place (GUIDE 2.5, 3.2).
+//! Unit-level checks a part runs over its own plugin: no host, no frame, no
+//! terminal; milliseconds per place (GUIDE 2.5, 3.2). They read the part's
+//! view data ([`crate::view`]) and press keys and choose targets as
+//! intents, as the host and Ink do.
 //!
 //! At a [`Place`] (a screen and pane, or a settings section, and the keys
 //! that bring a fresh plugin there), [`Check::place`] checks:
 //!
-//! - **every row of the `x` menu** (`Plugin::keys` / `Plugin::section_keys`):
-//!   its key is not one the host keeps ([`host_keeps`]: the part would never
-//!   see it), and pressed on a fresh plugin at the same place the part takes
-//!   it (`Outcome::Handled`), unless it is a key the host acts on when the
-//!   part does not ([`host_falls_back`]: `esc`, arrows, `PgUp`/`PgDn`, `⏎`
-//!   on the nav pane, `+`/`-`).
-//! - **every click target** the part exposes while drawing the place (except
-//!   a pane's background): clicked on a fresh plugin, the part takes it.
+//! - **every row of the `x` menu** (the view's actions, else
+//!   `Plugin::keys` / `Plugin::section_keys`): its key is not one the host
+//!   keeps ([`host_keeps`]: the part would never see it), and pressed on a
+//!   fresh plugin at the same place the part takes it (`Outcome::Handled`),
+//!   unless it is a key the host acts on when the part does not
+//!   ([`host_falls_back`]: `esc`, arrows, `PgUp`/`PgDn`, `⏎` on the nav
+//!   pane, `+`/`-`).
+//! - **every target** the view offers (a row, a tab): chosen on a fresh
+//!   plugin, the part takes it.
 //!
 //! [`Check::actions`] checks what a part adds to another's `x` menu
 //! (`Point::Actions`): each action, acted on a fresh plugin, returns effects.
-//!
-//! Only the part's own area is drawn, once per place, at [`Check::size`].
-
-use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::layout::{Position, Rect};
 
 use crate::compose::{Contribution, Parts, Point, Subject};
-use crate::plugin::{Outcome, Pane, Plugin};
-use crate::view_tui::{Cx, PANE_HIT};
+use crate::headless::{node_targets, offered};
+use crate::plugin::{Binding, Outcome, Pane, Plugin};
+use crate::view::{ActionSpec, Chord, Intent, Key, Node, PaneId, ScreenView, SectionView, Target, TreeRow, ViewCx};
 
 /// Where a place is: a screen (by id) with a pane focused, or a settings
 /// section (by id).
@@ -39,7 +37,7 @@ pub enum Scope {
 #[derive(Debug, Clone)]
 pub struct Place {
     pub scope: Scope,
-    pub keys: Vec<(Pane, KeyEvent)>,
+    pub keys: Vec<(Pane, Chord)>,
 }
 
 impl Place {
@@ -53,32 +51,32 @@ impl Place {
         Self { scope: Scope::Section(id), keys: vec![] }
     }
 
-    /// `code` pressed `n` times in the focused pane.
-    pub fn press(mut self, code: KeyCode, n: usize) -> Self {
+    /// `key` pressed `n` times in the focused pane.
+    pub fn press(mut self, key: impl Into<Chord>, n: usize) -> Self {
         let pane = self.pane();
-        self.keys.extend(std::iter::repeat_n((pane, KeyEvent::new(code, KeyModifiers::NONE)), n));
+        self.keys.extend(std::iter::repeat_n((pane, key.into()), n));
         self
     }
 
     /// `↓` `n` times.
     pub fn down(self, n: usize) -> Self {
-        self.press(KeyCode::Down, n)
+        self.press(Chord::new(Key::Down), n)
     }
 
     /// `⏎` once.
     pub fn enter(self) -> Self {
-        self.press(KeyCode::Enter, 1)
+        self.press(Chord::new(Key::Enter), 1)
     }
 
     /// `]` `n` times: a page's next tab.
     pub fn tab(self, n: usize) -> Self {
-        self.press(KeyCode::Char(']'), n)
+        self.press(Chord::char(']'), n)
     }
 
     /// Characters typed, one key each.
     pub fn typed(mut self, text: &str) -> Self {
         for c in text.chars() {
-            self = self.press(KeyCode::Char(c), 1);
+            self = self.press(Chord::char(c), 1);
         }
         self
     }
@@ -101,7 +99,7 @@ impl Place {
 
 impl std::fmt::Display for Place {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let keys: Vec<String> = self.keys.iter().map(|(_, k)| format!("{:?}", k.code)).collect();
+        let keys: Vec<String> = self.keys.iter().map(|(_, k)| k.name()).collect();
         write!(f, "{:?} after [{}]", self.scope, keys.join(" "))
     }
 }
@@ -110,13 +108,13 @@ impl std::fmt::Display for Place {
 /// typed: `q` `x` `?` `b` `w`, the settings key, `tab`, `h` `l` `←` `→` and
 /// digits (panes). A part's `x` row must not use one. (A capital is kept
 /// only when it is a screen's key in the mix; `tests/mix.rs` checks those.)
-pub fn host_keeps(key: KeyEvent) -> bool {
-    if key.modifiers.contains(KeyModifiers::CONTROL) {
+pub fn host_keeps(key: Chord) -> bool {
+    if key.ctrl {
         return false;
     }
-    match key.code {
-        KeyCode::Tab | KeyCode::BackTab | KeyCode::Left | KeyCode::Right => true,
-        KeyCode::Char(c) => {
+    match key.key {
+        Key::Tab | Key::BackTab | Key::Left | Key::Right => true,
+        Key::Char(c) => {
             matches!(c, 'q' | 'x' | '?' | 'b' | 'w' | 'h' | 'l' | '1'..='9' | crate::host::SETTINGS_KEY | crate::host::HISTORY_KEY)
         }
         _ => false,
@@ -127,16 +125,24 @@ pub fn host_keeps(key: KeyEvent) -> bool {
 /// goes back, arrows reach the bar or say there is nowhere to go,
 /// `PgUp`/`PgDn` say there is nothing to scroll, `+`/`-` say there is
 /// nothing to fold, and `⏎` on the nav pane goes into the next pane.
-pub fn host_falls_back(key: KeyEvent, pane: Pane) -> bool {
-    match key.code {
-        KeyCode::Esc | KeyCode::Up | KeyCode::Down | KeyCode::PageUp | KeyCode::PageDown => true,
-        KeyCode::Char('+' | '=' | '-') => true,
-        KeyCode::Enter => pane == Pane::Nav,
+pub fn host_falls_back(key: Chord, pane: Pane) -> bool {
+    match key.key {
+        Key::Esc | Key::Up | Key::Down | Key::PageUp | Key::PageDown => true,
+        Key::Char('+' | '=' | '-') => true,
+        Key::Enter => pane == Pane::Nav,
         _ => false,
     }
 }
 
-/// The checks over plugins made by `make`, each drawn at `size`.
+/// What a place shows, read from the part's view data.
+struct Shown {
+    /// The `x` menu's rows.
+    rows: Vec<Binding>,
+    /// The targets the view offers, with the pane that shows each.
+    targets: Vec<(PaneId, Target)>,
+}
+
+/// The checks over plugins made by `make`, each read at `size`.
 pub struct Check<'a> {
     make: &'a dyn Fn() -> Box<dyn Plugin>,
     pub size: (u16, u16),
@@ -145,12 +151,98 @@ pub struct Check<'a> {
     pub gaps: Vec<String>,
     /// Rows, targets and actions tried.
     pub checked: usize,
-    theme: crate::theme::Theme,
-    /// The Ratatui frontend's state, for parts drawn from views.
-    fe: crate::view_tui::Frontend,
     /// Rows and targets already tried, by scope, page depth and words: the
     /// same row on the next tree row of its kind is tried once.
     seen: std::collections::HashSet<String>,
+}
+
+fn bindings(actions: &[ActionSpec]) -> Vec<Binding> {
+    actions
+        .iter()
+        .map(|a| {
+            if a.heading {
+                Binding::heading(a.label.clone())
+            } else {
+                Binding::new(a.key.map_or_else(|| a.id.clone(), |c| c.name()), a.label.clone())
+            }
+        })
+        .collect()
+}
+
+/// Where a key goes in a screen's view: movement along the focused pane's
+/// rows selects through the part, `⏎` on the selected row chooses it, and
+/// anything else is the part's own.
+fn screen_key(view: &ScreenView, pane: PaneId, chord: Chord) -> Intent {
+    let panes = view.page.as_ref().map_or(view.panes.as_slice(), |p| p.panes.as_slice());
+    let Some(pane) = panes.iter().find(|p| p.pane == pane) else {
+        return Intent::Key { chord };
+    };
+    let key = Intent::Key { chord };
+    let enter = chord == Chord::new(Key::Enter);
+    match &pane.body {
+        Node::List { rows, selected: Some(at), editing: None } => {
+            if let Some(i) = crate::view::rows_step(rows, *at, chord) {
+                return Intent::Select { target: rows[i].target.clone() };
+            }
+            match rows.get(*at) {
+                Some(r) if enter => Intent::Activate { target: r.target.clone() },
+                _ => key,
+            }
+        }
+        Node::Table { rows, selected: Some(at), .. } => {
+            if let Some(i) = crate::view::list_step(rows.len(), *at, chord) {
+                return Intent::Select { target: rows[i].target.clone() };
+            }
+            match rows.get(*at) {
+                Some(r) if enter => Intent::Activate { target: r.target.clone() },
+                _ => key,
+            }
+        }
+        Node::Entries { rows, selected: Some(at), .. } => {
+            if let Some(i) = crate::view::list_step(rows.len(), *at, chord) {
+                return Intent::Select { target: rows[i].target.clone() };
+            }
+            match rows.get(*at) {
+                Some(r) if enter => Intent::Activate { target: r.target.clone() },
+                _ => key,
+            }
+        }
+        Node::Tree(tree) if tree.editing.is_none() => {
+            if let Some(i) = crate::view::tree_step(tree, chord) {
+                return i;
+            }
+            if enter && !tree.selected.is_empty() {
+                return Intent::Activate { target: TreeRow::target_of(&tree.selected) };
+            }
+            key
+        }
+        _ => key,
+    }
+}
+
+/// A key in a settings section's view: movement along its rows selects
+/// through the part; anything else is passed on.
+fn section_key(view: &SectionView, chord: Chord) -> Intent {
+    if let Node::List { rows, selected, editing: None } = &view.body
+        && !rows.is_empty()
+    {
+        let at = selected.unwrap_or(0);
+        let up = matches!(chord.key, Key::Up | Key::Char('k')) && !chord.ctrl && !chord.alt;
+        if let Some(i) = crate::view::rows_step(rows, at, chord).or_else(|| up.then_some(at)) {
+            return Intent::Select { target: rows[i].target.clone() };
+        }
+    }
+    if let Node::Tree(tree) = &view.body
+        && tree.editing.is_none()
+    {
+        if let Some(i) = crate::view::tree_step(tree, chord) {
+            return i;
+        }
+        if matches!(chord.key, Key::Up | Key::Char('k')) && !chord.ctrl && !chord.alt && !chord.shift && tree.selectable(&tree.selected) {
+            return Intent::Select { target: TreeRow::target_of(&tree.selected) };
+        }
+    }
+    Intent::Key { chord }
 }
 
 impl<'a> Check<'a> {
@@ -162,66 +254,87 @@ impl<'a> Check<'a> {
             gaps: vec![],
             checked: 0,
             seen: std::collections::HashSet::new(),
-            theme: crate::theme::Theme::new(crate::design::theme::Tier::Mono),
-            fe: crate::view_tui::Frontend::default(),
         }
     }
 
-    fn scope(scope: Scope) -> crate::view_tui::Scope<'static> {
+    fn id_of(scope: Scope) -> &'static str {
         match scope {
-            Scope::Screen(id, _) => crate::view_tui::Scope::Screen(id),
-            Scope::Section(id) => crate::view_tui::Scope::Section(id),
+            Scope::Screen(id, _) | Scope::Section(id) => id,
         }
     }
 
-    /// Draw the place's area of `p` once; the click targets it marked.
-    pub fn draw(&self, p: &dyn Plugin, scope: Scope) -> Vec<(Rect, Pane, String)> {
-        let area = Rect::new(0, 0, self.size.0, self.size.1);
-        let mut buf = Buffer::empty(area);
-        let (cursor, hits) = (std::cell::Cell::new(None), std::cell::RefCell::new(vec![]));
-        let (focus, focused) = match scope {
-            Scope::Screen(_, pane) => (pane, false),
-            Scope::Section(_) => (Pane::Middle, true),
-        };
-        let cx = Cx {
-            theme: &self.theme,
+    fn cx(&self, pane: Pane) -> ViewCx<'static> {
+        ViewCx {
             now: self.now,
-            focused,
-            focus,
-            bar: false,
-            tabs: false,
-            cursor: &cursor,
-            hits: &hits,
+            focus: pane.into(),
+            width: self.size.0,
+            height: self.size.1,
             parts: Parts::none(),
+            icon_lead: 2,
+            setup: false,
+        }
+    }
+
+    /// What the part shows at `scope` with `pane` focused: its `x` menu and
+    /// the targets its view offers.
+    fn shown(&self, p: &dyn Plugin, scope: Scope, pane: Pane) -> Shown {
+        let cx = self.cx(pane);
+        match scope {
+            Scope::Screen(id, _) => match p.view(id, &cx) {
+                Some(v) => Shown { rows: bindings(&v.actions), targets: offered(&v).into_iter().map(|o| (o.pane, o.target)).collect() },
+                None => Shown { rows: p.keys(id, pane), targets: vec![] },
+            },
+            Scope::Section(id) => match p.section_view(id, &cx) {
+                Some(v) => Shown {
+                    rows: bindings(&v.actions),
+                    targets: node_targets(&v.body).into_iter().map(|t| (PaneId::Middle, t)).collect(),
+                },
+                None => Shown { rows: p.section_keys(id), targets: vec![] },
+            },
+        }
+    }
+
+    /// The targets the part's view offers at `scope`, with the pane that
+    /// shows each.
+    pub fn targets(&self, p: &dyn Plugin, scope: Scope) -> Vec<(PaneId, Target)> {
+        let pane = match scope {
+            Scope::Screen(_, pane) => pane,
+            Scope::Section(_) => Pane::Middle,
         };
-        crate::view_tui::draw_part(&self.fe, p, Self::scope(scope), area, &mut buf, &cx);
-        hits.into_inner()
+        self.shown(p, scope, pane).targets
     }
 
-    fn press(&self, p: &mut dyn Plugin, scope: Scope, pane: Pane, key: KeyEvent) -> Outcome {
-        crate::view_tui::press_part(&self.fe, p, Self::scope(scope), pane, key, self.now)
+    /// `key` pressed in `pane`, routed on the part's view as the host does.
+    fn press(&self, p: &mut dyn Plugin, scope: Scope, pane: Pane, key: Chord) -> Outcome {
+        let cx = self.cx(pane);
+        let intent = if p.capturing() {
+            Intent::Key { chord: key }
+        } else {
+            match scope {
+                Scope::Screen(id, _) => match p.view(id, &cx) {
+                    Some(v) if v.overlay.is_some() => Intent::Key { chord: key },
+                    Some(v) => screen_key(&v, pane.into(), key),
+                    None => return Outcome::Ignored,
+                },
+                Scope::Section(id) => match p.section_view(id, &cx) {
+                    Some(v) => section_key(&v, key),
+                    None => return Outcome::Ignored,
+                },
+            }
+        };
+        p.intent(Self::id_of(scope), pane, &intent)
     }
 
-    /// A fresh plugin brought to `place`, drawn before each `⏎` (a tree
-    /// knows its rows once drawn) and once at the end.
+    /// A fresh plugin brought to `place`.
     pub fn at(&self, place: &Place) -> Box<dyn Plugin> {
-        let p = self.reach(place);
-        let _ = self.draw(p.as_ref(), place.scope);
-        p
-    }
-
-    fn reach(&self, place: &Place) -> Box<dyn Plugin> {
         let mut p = (self.make)();
         for (pane, key) in &place.keys {
-            if key.code == KeyCode::Enter {
-                let _ = self.draw(p.as_ref(), place.scope);
-            }
             let _ = self.press(p.as_mut(), place.scope, *pane, *key);
         }
         p
     }
 
-    /// Every `x` row and every click target at `place`; see the module.
+    /// Every `x` row and every target at `place`; see the module.
     pub fn place(&mut self, place: &Place) {
         let p = self.at(place);
         let pane = place.pane();
@@ -229,8 +342,7 @@ impl<'a> Check<'a> {
             self.gaps.push(format!("{place}: still typing; the x menu is not open here"));
             return;
         }
-        let rows = crate::view_tui::keys_part(&self.fe, p.as_ref(), Self::scope(place.scope), pane, self.now);
-        let hits = self.draw(p.as_ref(), place.scope);
+        let Shown { rows, targets } = self.shown(p.as_ref(), place.scope, pane);
         // What the menu is about (its first heading) and how deep in pages:
         // a row seen with both the same is not tried again.
         let depth = match place.scope {
@@ -240,7 +352,7 @@ impl<'a> Check<'a> {
         let heading = rows.iter().find(|b| b.is_heading()).map(|b| b.what.clone()).unwrap_or_default();
         drop(p);
         for b in rows.iter().filter(|b| !b.is_heading()) {
-            let Some(key) = crate::plugin::parse_key(&b.keys) else { continue };
+            let Some(key) = crate::plugin::parse_chord(&b.keys) else { continue };
             self.checked += 1;
             if host_keeps(key) {
                 self.gaps.push(format!("{place}: `{} {}` is a key the host keeps; the part never sees it", b.keys, b.what));
@@ -257,16 +369,16 @@ impl<'a> Check<'a> {
                 self.gaps.push(format!("{place}: `{} {}` did nothing", b.keys, b.what));
             }
         }
-        for (rect, _, id) in hits {
-            if id == PANE_HIT || rect.is_empty() || !self.seen.insert(format!("{:?}/{depth}/{heading}/click {id}", place.scope)) {
+        for (on, target) in targets {
+            let id = target.as_str().to_string();
+            if !self.seen.insert(format!("{:?}/{depth}/{heading}/click {id}", place.scope)) {
                 continue;
             }
             self.checked += 1;
             let mut p = self.at(place);
-            let at = Position::new(rect.x + rect.width / 2, rect.y);
-            let clicked = crate::view_tui::click_part(&self.fe, p.as_mut(), Self::scope(place.scope), pane, &id, at, false, self.now);
-            if matches!(clicked, Outcome::Ignored) {
-                self.gaps.push(format!("{place}: a click on `{id}` at {},{} did nothing", at.x, at.y));
+            let chosen = p.intent(Self::id_of(place.scope), pane, &Intent::Select { target });
+            if matches!(chosen, Outcome::Ignored) {
+                self.gaps.push(format!("{place}: choosing `{id}` in the {on:?} pane did nothing"));
             }
         }
     }
@@ -303,10 +415,10 @@ impl<'a> Check<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::plugin::{Binding, Effect, ScreenSpec};
+    use crate::plugin::{Effect, ScreenSpec};
 
     /// One row it takes, one it ignores, one on a key the host keeps, and
-    /// a mark it ignores when clicked.
+    /// a target it ignores when chosen.
     struct Part;
     impl Plugin for Part {
         fn id(&self) -> &'static str {
@@ -356,22 +468,35 @@ mod tests {
         assert_eq!(gaps.len(), 3, "{gaps:#?}");
         assert!(gaps[0].contains("`z does nothing` did nothing"), "{gaps:#?}");
         assert!(gaps[1].contains("`x clear it` is a key the host keeps"), "{gaps:#?}");
-        assert!(gaps[2].contains("a click on `dead`"), "{gaps:#?}");
+        assert!(gaps[2].contains("choosing `dead`"), "{gaps:#?}");
         assert_eq!(check.checked, 6, "four rows (esc falls back) and two targets");
     }
 
     #[test]
     fn the_keys_the_host_keeps_and_falls_back_on() {
-        let k = |c| KeyEvent::new(c, KeyModifiers::NONE);
+        let k = Chord::char;
         for c in ['q', 'x', '?', 'b', 'w', 'h', 'l', '1', '9', crate::host::SETTINGS_KEY, crate::host::HISTORY_KEY] {
-            assert!(host_keeps(k(KeyCode::Char(c))), "{c}");
+            assert!(host_keeps(k(c)), "{c}");
         }
         for c in ['a', 'o', 'u', 'm', '/', '[', ']'] {
-            assert!(!host_keeps(k(KeyCode::Char(c))), "{c}");
+            assert!(!host_keeps(k(c)), "{c}");
         }
-        assert!(!host_keeps(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::CONTROL)));
-        assert!(host_falls_back(k(KeyCode::Enter), Pane::Nav));
-        assert!(!host_falls_back(k(KeyCode::Enter), Pane::Middle));
-        assert!(host_falls_back(k(KeyCode::Esc), Pane::Detail));
+        assert!(!host_keeps(Chord::ctrl('x')));
+        assert!(host_falls_back(Chord::new(Key::Enter), Pane::Nav));
+        assert!(!host_falls_back(Chord::new(Key::Enter), Pane::Middle));
+        assert!(host_falls_back(Chord::new(Key::Esc), Pane::Detail));
+    }
+
+    #[test]
+    fn the_check_names_no_terminal_library() {
+        let source = include_str!("check.rs");
+        for word in ["ratatui", "crossterm", "Buffer", "Rect", "KeyEvent", "view_tui"] {
+            let used = source
+                .lines()
+                .take_while(|l| !l.starts_with("#[cfg(test)]"))
+                .filter(|l| !l.trim_start().starts_with("//"))
+                .any(|l| l.contains(word));
+            assert!(!used, "check.rs uses {word}");
+        }
     }
 }

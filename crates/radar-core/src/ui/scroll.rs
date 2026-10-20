@@ -133,3 +133,12 @@ pub fn paragraph(
     text.scroll((at, 0)).render(body, buf);
     scrollbar(theme, frame, buf, scroll.max() as usize, at as usize);
 }
+
+/// A terminal key code as radar's key, so a part that still builds its keys
+/// from the terminal's can name a place's keys ([`crate::check::Place::press`]).
+impl From<ratatui::crossterm::event::KeyCode> for crate::view::Chord {
+    fn from(code: ratatui::crossterm::event::KeyCode) -> Self {
+        crate::view_tui::chord_of(&KeyEvent::new(code, ratatui::crossterm::event::KeyModifiers::NONE))
+            .unwrap_or_else(|| crate::view::Chord::new(crate::view::Key::Esc))
+    }
+}

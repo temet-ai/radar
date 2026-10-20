@@ -114,7 +114,7 @@ impl Colours {
             };
         }
         let rows = rows();
-        if let Some(mv) = Move::from_key(&key, self.icon_scroll.height()) {
+        if let Some(mv) = crate::key_compat::chord_of(&key).and_then(|c| Move::from_key(c, self.icon_scroll.height())) {
             self.icon_row = select(rows.len(), self.icon_row, mv, |i| {
                 matches!(rows[i], IconRow::Icon(_))
             });

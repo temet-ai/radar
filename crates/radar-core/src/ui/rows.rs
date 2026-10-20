@@ -3,7 +3,7 @@
 //! word at each row's right edge, as settings sections and nav panes use.
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use crate::view::{Chord, Key};
 use ratatui::layout::Rect;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{List, ListItem, ListState, StatefulWidget};
@@ -112,15 +112,15 @@ impl Move {
     /// The move a key asks for: `↓ j`, `↑ k`, `Home g`, `End G`, and
     /// `PgDn`/`PgUp` by `page` rows (`Scroll::height`). `None` for any
     /// other key.
-    pub fn from_key(key: &KeyEvent, page: u16) -> Option<Move> {
+    pub fn from_key(key: Chord, page: u16) -> Option<Move> {
         let page = usize::from(page.saturating_sub(1).max(1));
-        Some(match key.code {
-            KeyCode::Down | KeyCode::Char('j') => Move::Down,
-            KeyCode::Up | KeyCode::Char('k') => Move::Up,
-            KeyCode::Home | KeyCode::Char('g') => Move::First,
-            KeyCode::End | KeyCode::Char('G') => Move::Last,
-            KeyCode::PageDown => Move::PageDown(page),
-            KeyCode::PageUp => Move::PageUp(page),
+        Some(match key.key {
+            Key::Down | Key::Char('j') => Move::Down,
+            Key::Up | Key::Char('k') => Move::Up,
+            Key::Home | Key::Char('g') => Move::First,
+            Key::End | Key::Char('G') => Move::Last,
+            Key::PageDown => Move::PageDown(page),
+            Key::PageUp => Move::PageUp(page),
             _ => return None,
         })
     }

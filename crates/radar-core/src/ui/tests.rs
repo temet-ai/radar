@@ -880,13 +880,13 @@ fn the_cursor_steps_over_headings_in_every_move() {
 
 #[test]
 fn keys_ask_for_moves_and_a_page_is_one_short_of_the_height() {
-    assert_eq!(Move::from_key(&press(KeyCode::Char('j')), 10), Some(Move::Down));
-    assert_eq!(Move::from_key(&press(KeyCode::Up), 10), Some(Move::Up));
-    assert_eq!(Move::from_key(&press(KeyCode::Home), 10), Some(Move::First));
-    assert_eq!(Move::from_key(&press(KeyCode::Char('G')), 10), Some(Move::Last));
-    assert_eq!(Move::from_key(&press(KeyCode::PageDown), 10), Some(Move::PageDown(9)));
-    assert_eq!(Move::from_key(&press(KeyCode::PageUp), 0), Some(Move::PageUp(1)));
-    assert_eq!(Move::from_key(&press(KeyCode::Char('x')), 10), None);
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::Char('j'))).unwrap(), 10), Some(Move::Down));
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::Up)).unwrap(), 10), Some(Move::Up));
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::Home)).unwrap(), 10), Some(Move::First));
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::Char('G'))).unwrap(), 10), Some(Move::Last));
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::PageDown)).unwrap(), 10), Some(Move::PageDown(9)));
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::PageUp)).unwrap(), 0), Some(Move::PageUp(1)));
+    assert_eq!(Move::from_key(crate::key_compat::chord_of(&press(KeyCode::Char('x'))).unwrap(), 10), None);
 }
 
 #[test]

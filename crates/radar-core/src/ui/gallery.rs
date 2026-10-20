@@ -158,7 +158,7 @@ impl Gallery {
                     self.card.key(&key);
                 }
                 4 => {
-                    if let Some(mv) = Move::from_key(&key, self.list.height()) {
+                    if let Some(mv) = crate::key_compat::chord_of(&key).and_then(|c| Move::from_key(c, self.list.height())) {
                         self.list_row = select(SETTINGS_ROWS, self.list_row, mv, |i| i != HEADING_AT);
                     }
                 }

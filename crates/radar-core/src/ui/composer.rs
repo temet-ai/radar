@@ -12,7 +12,6 @@
 use std::cell::Cell;
 
 use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::layout::{Position, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Clear, Widget};
@@ -22,6 +21,7 @@ use crate::design::theme::Slot;
 use crate::input::{Edit, TextInput};
 use crate::plugin::Menu;
 use crate::theme::Theme;
+use crate::view::{Chord, Key};
 use crate::widgets;
 
 use super::card::panel;
@@ -84,11 +84,11 @@ impl Composer {
         self.text().trim().is_empty()
     }
 
-    pub fn key(&mut self, key: KeyEvent) -> Typed {
-        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('s') {
+    pub fn key(&mut self, key: Chord) -> Typed {
+        if key.ctrl && key.key == Key::Char('s') {
             return Typed::Review;
         }
-        if !self.one_line && key.code == KeyCode::Backspace && self.input.value().is_empty() {
+        if !self.one_line && key.key == Key::Backspace && self.input.value().is_empty() {
             if let Some(last) = self.lines.pop() {
                 self.input = TextInput::new(&last);
             }
@@ -202,23 +202,23 @@ pub fn stop_menu(id: impl Into<String>, what: &str) -> Menu {
 mod tests {
     use super::*;
 
-    fn press(c: &mut Composer, code: KeyCode) -> Typed {
-        c.key(KeyEvent::new(code, KeyModifiers::NONE))
+    fn press(c: &mut Composer, code: Key) -> Typed {
+        c.key(Chord::new(code))
     }
 
     #[test]
     fn enter_starts_a_line_ctrl_s_reviews_and_backspace_joins_lines_again() {
         let mut c = Composer::new("one\ntwo");
         assert_eq!((c.lines.clone(), c.input.value()), (vec!["one".to_string()], "two".to_string()));
-        assert_eq!(press(&mut c, KeyCode::Enter), Typed::Typing);
+        assert_eq!(press(&mut c, Key::Enter), Typed::Typing);
         assert_eq!(c.text(), "one\ntwo\n");
-        assert_eq!(press(&mut c, KeyCode::Backspace), Typed::Typing);
+        assert_eq!(press(&mut c, Key::Backspace), Typed::Typing);
         assert_eq!(c.text(), "one\ntwo");
-        assert_eq!(c.key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)), Typed::Review);
+        assert_eq!(c.key(Chord::ctrl('s')), Typed::Review);
         c.paste(" more\nnext line\nlast");
         assert_eq!(c.text(), "one\ntwo more\nnext line\nlast");
-        assert_eq!(press(&mut c, KeyCode::Esc), Typed::AskStop);
-        assert_eq!(press(&mut Composer::new(" "), KeyCode::Esc), Typed::Stop);
+        assert_eq!(press(&mut c, Key::Esc), Typed::AskStop);
+        assert_eq!(press(&mut Composer::new(" "), Key::Esc), Typed::Stop);
     }
 
     #[test]
@@ -226,7 +226,7 @@ mod tests {
         let mut c = Composer::one_line("a title");
         c.paste(" and\nmore");
         assert_eq!(c.text(), "a title and more");
-        assert_eq!(press(&mut c, KeyCode::Enter), Typed::Review);
+        assert_eq!(press(&mut c, Key::Enter), Typed::Review);
         assert_eq!(c.hints()[0].action, "next");
         assert_eq!(Composer::new("").hints()[1].keys, "ctrl-s");
     }

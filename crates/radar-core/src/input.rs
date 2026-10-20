@@ -10,7 +10,7 @@
 use std::cell::Cell;
 
 use ratatui::buffer::Buffer;
-use crate::view::{Chord, Key};
+use crate::view::Key;
 use ratatui::layout::{Position, Rect};
 use ratatui::style::Modifier;
 use ratatui_textarea::{CursorMove, TextArea};
@@ -197,6 +197,7 @@ pub fn render_field(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::view::Chord;
 
     fn k(code: Key) -> Chord {
         Chord::new(code)

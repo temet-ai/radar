@@ -2,7 +2,7 @@
 source: crates/radar-core/src/setup/tests.rs
 expression: shown(&host)
 ---
-bar: radar  ◉ read only {chrome:mode}
+bar: radar  :mode_read: read only {chrome:mode}
 ── setup · ready ──
 Setup is done.
 This is what radar has now.

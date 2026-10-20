@@ -1,7 +1,7 @@
 //! Reading a long menu never changes the action, drops text, or hides its field.
 
 use super::*;
-use crate::plugin::{Typing, Verdict};
+use crate::plugin::Typing;
 use std::sync::{Arc, Mutex};
 
 type MenuLog = Arc<Mutex<Vec<(String, String)>>>;

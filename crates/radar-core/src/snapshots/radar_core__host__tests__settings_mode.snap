@@ -2,7 +2,7 @@
 source: crates/radar-core/src/host.rs
 expression: text
 ---
-bar: radar  a :log: history <:settings: settings>  ◉ read only {chrome:mode}
+bar: radar  a :log: history <:settings: settings>  :mode_read: read only {chrome:mode}
 ── settings · mode · the modes ──
   General  {chrome:group:general}
     :parts: parts  {chrome:section:0}

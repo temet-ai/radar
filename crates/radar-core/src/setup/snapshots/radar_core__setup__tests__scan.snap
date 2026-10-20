@@ -2,7 +2,7 @@
 source: crates/radar-core/src/setup/tests.rs
 expression: shown(&host)
 ---
-bar: radar  ✎ edit {chrome:mode}
+bar: radar  :mode_edit: edit {chrome:mode}
 ── setup · look for keys? ──
 May radar look for keys on this machine?
 If you have tokens or sign-ins already, radar can use them instead of you pasting them.

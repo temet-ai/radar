@@ -1,7 +1,6 @@
 use crate::view::{Chord, Key};
 
 use super::*;
-use crate::host::Event;
 
 fn press(host: &mut Host, code: Key) {
     host.update(crate::host::chord_event(Chord::new(code)));

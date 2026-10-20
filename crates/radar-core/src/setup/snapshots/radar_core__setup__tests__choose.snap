@@ -2,7 +2,7 @@
 source: crates/radar-core/src/setup/tests.rs
 expression: shown(&host)
 ---
-bar: radar  ✎ edit {chrome:mode}
+bar: radar  :mode_edit: edit {chrome:mode}
 ── setup · choose ──
 What would you like to set up?
 Tick the ones you use. Each one ticked gets a short step, in this order.

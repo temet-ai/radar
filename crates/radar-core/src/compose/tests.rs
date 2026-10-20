@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use crate::view::{Chord, Key};
 
 use super::*;
-use crate::host::{Event, HostEffect, Owner, View};
+use crate::host::{HostEffect, Owner, View};
 use crate::plugin::{Binding, Effect, Outcome, Pane, ScreenSpec, SectionSpec, Tone};
 
 /// What the host shows, as the view text a frontend is given.

@@ -3071,6 +3071,15 @@ impl Host {
             }
             return vec![];
         }
+        // A context press while the keys menu of another row is open
+        // replaces that menu (as a right-click did): the old one closes and
+        // the press goes on to the row it names.
+        if matches!(intent, Intent::Context { .. })
+            && self.menu.as_ref().is_some_and(|o| o.owner == Owner::Host && o.menu.id == KEYS_MENU)
+        {
+            self.menu = None;
+            return self.on_intent(intent);
+        }
         if let Some(open) = &mut self.menu {
             let Intent::Invoke { action } = &intent else {
                 return vec![];
@@ -7240,17 +7249,17 @@ pub(crate) mod tests {
         use crate::writes::Mode;
         let (mut host, _) = host(&[("a", 'A', "a"), ("b", 'B', "b")]);
         host.load_config(Some("")).unwrap();
-        for (mode, words) in [
-            (Mode::ReadOnly, "◉ read only"),
-            (Mode::Write, "✎ write"),
-            (Mode::Edit, "✎ edit"),
+        for (mode, words, shown) in [
+            (Mode::ReadOnly, "read only", ":mode_read: read only"),
+            (Mode::Write, "write", ":mode_write: write"),
+            (Mode::Edit, "edit", ":mode_edit: edit"),
         ] {
             host.set_env_mode(Some((mode, "RADAR_MODE".into())));
             for w in [80, 160] {
                 let chip = host.chrome_view(w, 24).top_bar.mode;
                 assert_eq!(chip.text, words, "{w}");
                 let top = crate::headless::text::top_bar(&host.chrome_view(w, 24).top_bar, &[]);
-                assert!(top.trim_end().ends_with(&format!("{words} {{chrome:mode}}")), "{w}: {top}");
+                assert!(top.trim_end().ends_with(&format!("{shown} {{chrome:mode}}")), "{w}: {top}");
             }
         }
         host.set_env_mode(None);

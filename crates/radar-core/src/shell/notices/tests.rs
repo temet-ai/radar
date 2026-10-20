@@ -6,7 +6,7 @@ use crate::theme::ThemeConfig;
 use ratatui::{
     Terminal,
     backend::TestBackend,
-    crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
+    crossterm::event::{KeyCode, KeyEvent},
 };
 
 fn theme() -> Theme {

@@ -371,3 +371,24 @@ fn only_text_nodes_are_text_panes() {
     let list = Node::List { rows: vec![], selected: None, editing: None };
     assert!(!list.is_text());
 }
+
+/// #34: the mode chip was a glyph from the thread-local pack, so two hosts
+/// built one after the other on a thread drew different view data. It
+/// carries the icon's name and the mode's word, whatever pack is current.
+#[test]
+fn the_mode_chip_in_view_data_does_not_depend_on_the_icon_pack() {
+    use crate::design::icon;
+    let chip = |pack: &str| {
+        icon::set_auto(pack);
+        let host = Host::new(vec![Box::new(Probe(Seen::default()))], 0).unwrap();
+        host.chrome_view(120, 30).top_bar.mode.clone()
+    };
+    let nerd = chip("nerd");
+    let emoji = chip("emoji");
+    let plain = chip("off");
+    icon::set_auto("off");
+    assert_eq!(nerd, emoji);
+    assert_eq!(nerd, plain);
+    assert!(nerd.icon.is_some(), "the icon is named, not drawn");
+    assert!(nerd.text.chars().all(|c| c.is_ascii_alphabetic() || c == '-'), "text is only the word: {:?}", nerd.text);
+}

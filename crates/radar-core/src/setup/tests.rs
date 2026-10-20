@@ -590,9 +590,6 @@ fn a_renderer_presses_a_host_steps_rows_by_their_targets() {
 
 // --- what setup shows --------------------------------------------------------
 
-fn screen(host: &Host, w: u16, h: u16) -> String {
-    crate::shell::to_text(host, w, h)
-}
 
 fn shown(host: &Host) -> String {
     crate::headless::host_text_of(host, 160, 40)

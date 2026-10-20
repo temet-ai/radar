@@ -2,7 +2,7 @@
 source: crates/radar-core/src/setup/tests.rs
 expression: shown(&host)
 ---
-bar: radar  ✎ edit {chrome:mode}
+bar: radar  :mode_edit: edit {chrome:mode}
 ── setup · mode ──
 step 2 of 2
 What may radar send?

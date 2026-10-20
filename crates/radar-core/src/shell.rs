@@ -1238,7 +1238,6 @@ mod tests {
 
     mod mnemonic_tests {
         use super::*;
-        use ratatui::crossterm::event::KeyCode;
         use ratatui::layout::Position;
 
         #[test]
@@ -1303,8 +1302,10 @@ mod tests {
                         assert_eq!(host.hit_at(x, 0), Some(Hit::Tab(View::Screen(1))));
                         let key = ui::width(&text[..text.find('B').unwrap()]) as u16;
                         assert!(buf[(key, 0)].modifier.contains(Modifier::UNDERLINED));
-                        if let Some(before) = &wide { assert_eq!(&text, before); }
-                        wide = Some(text.clone());
+                        // The mode chip at the right is the pack's glyph: compare the tabs.
+                        let tabs = text[..text.find("(,)").unwrap()].to_string();
+                        if let Some(before) = &wide { assert_eq!(&tabs, before); }
+                        wide = Some(tabs);
                     }
                     let mode_w = ui::width(&format!(" {} ", mode_words(&chrome.top_bar.mode))) as u16;
                     if mode_w < width {

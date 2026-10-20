@@ -2,7 +2,7 @@
 source: crates/radar-core/src/compose/tests.rs
 expression: text
 ---
-bar: radar  :log: history <:settings: settings>  ✎ edit {chrome:mode}
+bar: radar  :log: history <:settings: settings>  :mode_edit: edit {chrome:mode}
 ── settings · parts · about ──
   General  {chrome:group:general}
 >   :parts: parts  {chrome:section:0}

@@ -2721,8 +2721,8 @@ pub(crate) mod tests {
             input_sits_on_its_value(&mut host, "connection", n, &[Char('e')], &row, &value);
         }
         // tenancies: a tenancy's label and its path; the add row.
-        input_sits_on_its_value(&mut host, "tenancies", 1, &[Char('t')], "● b ", "b ");
-        input_sits_on_its_value(&mut host, "tenancies", 1, &[Char('e')], "● b ", "team-b");
+        input_sits_on_its_value(&mut host, "tenancies", 1, &[Char('t')], "b ", "b ");
+        input_sits_on_its_value(&mut host, "tenancies", 1, &[Char('e')], "b ", "team-b");
         input_sits_on_its_value(
             &mut host,
             "tenancies",

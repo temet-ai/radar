@@ -448,7 +448,7 @@ query($project: ID!, $iid: String!) {
         assert_eq!(fixture.ledger().len(), before + 1);
         // The sole text checkpoint preserves the legacy pending wording.
         let text = s.inspect(|host| crate::tests::shown(host, 160, 40));
-        assert!(text.contains("● rebase asked of GitLab…"), "{text}");
+        assert!(text.contains(":run_running: rebase asked of GitLab…"), "{text}");
         fixture.release("rebase").unwrap();
         s.settle(BUDGET).await.unwrap();
         let refreshed = serde_json::to_string(&view(&s)).unwrap();

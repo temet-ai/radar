@@ -4,24 +4,24 @@ expression: "shown(&host, 80, 24)"
 ---
 ── section · channels ──
 > + add a channel   paste a link to it, or type #name  {row:0}
-  ▌ #team  #acme-team · team · watched  {row:1}
-  ├─ alias           team  {row:2}
-  ├─ purpose         where the team talks  {row:3}
-  ├─ kind            team  {row:4}
-  ├─ colour          ██ cyan  {row:5}
-  └─ watched         yes  {row:6}
-  ▌ #svc  #acme-svc · service · watched  {row:7}
-  ├─ alias           svc  {row:8}
-  ├─ purpose         —  {row:9}
-  ├─ kind            service  {row:10}
-  ├─ colour          ██ orange  {row:11}
-  └─ watched         yes  {row:12}
-  ▌ #try  #acme-try · test · not watched  {row:13}
-  ├─ alias           try  {row:14}
-  ├─ purpose         —  {row:15}
-  ├─ kind            test  {row:16}
-  ├─ colour          ██ green  {row:17}
-  └─ watched         no  {row:18}
+  #team  #acme-team · team · watched  {row:1}
+    alias           team  {row:1/row:2}
+    purpose         where the team talks  {row:1/row:3}
+    kind            team  {row:1/row:4}
+    colour          ██ cyan  {row:1/row:5}
+    watched         yes  {row:1/row:6}
+  #svc  #acme-svc · service · watched  {row:7}
+    alias           svc  {row:7/row:8}
+    purpose         —  {row:7/row:9}
+    kind            service  {row:7/row:10}
+    colour          ██ orange  {row:7/row:11}
+    watched         yes  {row:7/row:12}
+  #try  #acme-try · test · not watched  {row:13}
+    alias           try  {row:13/row:14}
+    purpose         —  {row:13/row:15}
+    kind            test  {row:13/row:16}
+    colour          ██ green  {row:13/row:17}
+    watched         no  {row:13/row:18}
 ── detail · add a channel ──
 Read another channel.
 
@@ -32,4 +32,4 @@ PASTE OR TYPE ANY OF
 
 Slack is asked which channel it is; it is added as a team channel, watched, called by its name in Slack. Change any of that below it.
 ── status · SETTINGS ──
-PgUp/PgDn scroll  b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+PgUp/PgDn scroll  b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

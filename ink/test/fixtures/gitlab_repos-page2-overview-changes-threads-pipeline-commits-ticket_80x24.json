@@ -354,10 +354,7 @@
           "lines": [
             [
               {
-                "icon": "needs_approval",
-                "icon_lead": true,
-                "ink": "warn",
-                "text": "◷ "
+                "icon": "needs_approval"
               },
               {
                 "ink": "warn",
@@ -367,10 +364,7 @@
             ],
             [
               {
-                "icon": "run_passed",
-                "icon_lead": true,
-                "ink": "good",
-                "text": "✓ "
+                "icon": "run_passed"
               },
               {
                 "ink": "primary",
@@ -379,10 +373,7 @@
             ],
             [
               {
-                "icon": "run_passed",
-                "icon_lead": true,
-                "ink": "good",
-                "text": "✓ "
+                "icon": "run_passed"
               },
               {
                 "ink": "primary",
@@ -391,10 +382,7 @@
             ],
             [
               {
-                "icon": "needs_approval",
-                "icon_lead": true,
-                "ink": "warn",
-                "text": "◷ "
+                "icon": "needs_approval"
               },
               {
                 "ink": "primary",
@@ -403,10 +391,7 @@
             ],
             [
               {
-                "icon": "thread",
-                "icon_lead": true,
-                "ink": "warn",
-                "text": "◆ "
+                "icon": "thread"
               },
               {
                 "ink": "primary",
@@ -415,10 +400,7 @@
             ],
             [
               {
-                "icon": "run_passed",
-                "icon_lead": true,
-                "ink": "good",
-                "text": "✓ "
+                "icon": "run_passed"
               },
               {
                 "ink": "primary",

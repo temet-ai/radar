@@ -156,14 +156,14 @@ fn alerts_show_firing_first_then_failed_jobs_then_what_resolved_by_service_and_e
     let order = [
         "firing",
         "api  prod",
-        "▲ api-HighErrorRate ×2",
+        ":alert_firing: ▲ api-HighErrorRate ×2",
         "unmapped  prod",
-        "▲ DiskFull",
+        ":alert_firing: ▲ DiskFull",
         "failed jobs",
-        "✗ Nightly export",
+        ":run_failed: ✗ Nightly export",
         "recently resolved",
         "api  staging",
-        "✓ api-LatencyHigh",
+        ":alert_resolved: ✓ api-LatencyHigh",
     ];
     let mut from = 0;
     for s in order {
@@ -184,7 +184,7 @@ fn the_preview_tells_the_alert_how_long_where_it_belongs_and_its_console_link() 
     on_alerts(&mut host);
     let text = shown(&host, 160, 40);
     for s in [
-        "▲ firing for 3h 07m",
+        ":alert_firing: firing for 3h 07m",
         "environment",
         "prod",
         "priority",
@@ -203,11 +203,11 @@ fn the_preview_tells_the_alert_how_long_where_it_belongs_and_its_console_link() 
     assert!(text.contains("unmapped: no rule in settings places it"), "{text}");
     down(&mut host, JOB - DISK);
     let text = shown(&host, 160, 40);
-    assert!(text.contains("✗ failed 2h 00m ago") && text.contains("https://ci.acme.example/runs/9"), "{text}");
+    assert!(text.contains(":run_failed: failed 2h 00m ago") && text.contains("https://ci.acme.example/runs/9"), "{text}");
     // A resolved one: after how long, and when.
     down(&mut host, LATENCY - JOB);
     let text = shown(&host, 160, 40);
-    assert!(text.contains("✓ resolved after 40m"), "{text}");
+    assert!(text.contains(":alert_resolved: resolved after 40m"), "{text}");
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn an_unmapped_alert_is_mapped_in_one_key_by_typing_a_repo_or_a_service() {
     press(&mut host, KeyCode::Enter);
     assert!(!host.plugins[0].capturing());
     let text = shown(&host, 160, 40);
-    assert!(text.contains("disk  prod") && text.contains("▲ DiskFull"), "{text}");
+    assert!(text.contains("disk  prod") && text.contains(":alert_firing: ▲ DiskFull"), "{text}");
     let saved = host.plugins[0].config().unwrap().to_string();
     assert!(saved.contains("prefix = \"DiskFull\"") && saved.contains("repo = \"acme/team-a/disk\""), "{saved}");
     // A mapped alert does not offer it.

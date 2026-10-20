@@ -151,19 +151,24 @@ impl WorkbenchPlugin {
         };
         let mut rows = Vec::new();
         for (i, c) in draft.candidates.iter().enumerate() {
-            rows.push(MenuItem::pick(
-                format!(
-                    "{} {} · {}",
-                    if c.included { "✓" } else { "○" },
-                    c.source.key.kind,
-                    c.source.subject.label
-                ),
-                format!(
-                    "{} · {} · {}",
-                    c.source.key.provider, c.source.key.instance, c.source.key.id
-                ),
-                format!("toggle:{i}"),
-            ));
+            // Whether it is included is the only thing this row says by its mark, so
+            // with icons off the symbol stays ([`icon::plain_or`]).
+            let (icon, mark) = if c.included {
+                radar_core::ui::icon::plain_or(radar_core::ui::icon::Icon::RunPassed, "✓")
+            } else {
+                radar_core::ui::icon::plain_or(radar_core::ui::icon::Icon::Todo, "○")
+            };
+            rows.push(
+                MenuItem::pick(
+                    format!("{mark}{} · {}", c.source.key.kind, c.source.subject.label),
+                    format!(
+                        "{} · {} · {}",
+                        c.source.key.provider, c.source.key.instance, c.source.key.id
+                    ),
+                    format!("toggle:{i}"),
+                )
+                .icon(icon),
+            );
         }
         if draft.omitted > 0 {
             rows.push(MenuItem::note(format!(

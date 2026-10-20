@@ -3,15 +3,15 @@ source: crates/radar-jira/src/page_cached_refresh_tests.rs
 expression: shown
 ---
 ── page · Jira / acme / ABC / ABC-12 ──
-:story: Add a stats endpoint for the dashboard  :in_progress: ◐ In Progress · Story · :you: you
+:story: Add a stats endpoint for the dashboard  :in_progress: In Progress · Story · :you: you
 parent ABC-1 Dashboard for the stats · Acme ABC · :updated: updated 1h ago
 :info: Overview  :thread: Comments  <:link: Links>  :change: Code
 ── middle · links * ──
-! :error: ✗ could not load: Jira refresh unavailable
+! :error: could not load: Jira refresh unavailable
   relation  ticket  status  title
-> parent  :issue: ABC-1  :in_progress: ◐ In Progress  Dashboard for the stats  {row:0}
-  child  :issue: ABC-13  :in_progress: ◐ In Progress  Count requests per route  {row:1}
-  blocks  :issue: ABC-15  :todo: ○ To Do  Ship the dashboard  {row:2}
+> parent  :issue: ABC-1  :in_progress: In Progress  Dashboard for the stats  {row:0}
+  child  :issue: ABC-13  :in_progress: In Progress  Count requests per route  {row:1}
+  blocks  :issue: ABC-15  :todo: To Do  Ship the dashboard  {row:2}
   web link  :link: web  Design notes  {row:3}
 ── status · JIRA ──
 PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -14,6 +14,7 @@ use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome, key_text
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
 use radar_core::theme::slot_info;
 use radar_core::ui::connection;
+use radar_core::ui::icon::Icon;
 use radar_core::ui::rows::{Move, select};
 use radar_core::view as v;
 use radar_core::{log, time};
@@ -924,7 +925,7 @@ pub(crate) fn on_checked(
                 );
             }
             p.checks.insert(key, (Check::Passed(say.clone()), p.now));
-            let mut fx = vec![Effect::Notify(format!("✓ {say}"))];
+            let mut fx = vec![radar_core::writes::done(&say)];
             if fresh {
                 fx.extend(p.read());
             }
@@ -981,7 +982,7 @@ pub(crate) fn on_checked(
             p.data.channels.entry(id).or_default().info = Some(info);
             p.checks
                 .insert(k.to_string(), (Check::Passed(verdict.clone()), p.now));
-            vec![Effect::Notify(format!("✓ {verdict}"))]
+            vec![radar_core::writes::done(&verdict)]
         }
         (_, Ok(Checked::Me(_))) => vec![],
         (k, Err(e)) => {
@@ -1227,13 +1228,11 @@ fn look_summary(spec: &str) -> String {
 // margin `RowList` leaves): exactly where the value it replaces is drawn.
 /// The width a `token` style row's label is padded to.
 const KV_W: usize = 17;
-/// A channel's field label is padded to this, after `  ├─ `.
+/// A field's label is padded to this; its value starts there.
 const FIELD_LABEL_W: usize = 16;
-const CH_FIELD_AT: u16 = 2 + 3 + FIELD_LABEL_W as u16;
 /// The `+ ` before an add row's words.
 const ADD_AT: u16 = 2;
 
-/// A `├─ label  value` field row under its parent.
 pub fn look_view(p: &SlackPlugin) -> v::SectionView {
     let rows = look_rows().into_iter().enumerate().map(|(i, row)| match row {
         LookRow::Header(group) => v::ListRow::heading(format!("row:{i}"), v::kit::heading(group)),
@@ -1299,10 +1298,12 @@ fn check_text(p: &SlackPlugin, key: &str, now: i64) -> v::Text {
         None => v::Text::of("not checked yet", v::Ink::Muted),
         Some((Check::Running, _)) => v::Text::of("checking with Slack…", v::Ink::Info),
         Some((Check::Passed(message), at)) => v::Text::new()
-            .push(v::Seg::new(format!("✓ {message}"), v::Ink::Good))
+            .push(v::Seg::icon(Icon::RunPassed))
+            .push(v::Seg::new(message.clone(), v::Ink::Good))
             .push(v::Seg::new(format!("  {} ago", time::ago(*at, now)), v::Ink::Muted)),
         Some((Check::Failed(message), at)) => v::Text::new()
-            .push(v::Seg::new(format!("✗ {message}"), v::Ink::Bad))
+            .push(v::Seg::icon(Icon::Error))
+            .push(v::Seg::new(message.clone(), v::Ink::Bad))
             .push(v::Seg::new(format!("  {} ago", time::ago(*at, now)), v::Ink::Muted)),
     }
 }
@@ -1311,19 +1312,20 @@ fn check_mark_text(p: &SlackPlugin, key: &str) -> Option<v::Text> {
     match p.checks.get(key) {
         None => None,
         Some((Check::Running, _)) => Some(v::Text::of("checking", v::Ink::Info)),
-        Some((Check::Passed(_), _)) => Some(v::Text::of("✓", v::Ink::Good)),
-        Some((Check::Failed(_), _)) => Some(v::Text::of("✗", v::Ink::Bad)),
+        // The mark is all the row says, so with icons off the symbol stays.
+        Some((Check::Passed(_), _)) => Some(v::Text::new().push(v::Seg::icon_or(Icon::RunPassed, "✓", v::Ink::Good))),
+        Some((Check::Failed(_), _)) => Some(v::Text::new().push(v::Seg::icon_or(Icon::Error, "✗", v::Ink::Bad))),
     }
 }
 
 pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
     let offers = p.offers();
     let mut editing_at = None;
-    let rows = ws_rows(p).into_iter().enumerate().map(|(i, row)| {
+    let rows: Vec<(usize, WsRow, v::ListRow)> = ws_rows(p).into_iter().enumerate().map(|(i, row)| {
         let target = match row { WsRow::Token => Some(Target::Token), WsRow::Api => Some(Target::Api), WsRow::Refresh => Some(Target::Refresh),
             WsRow::Days => Some(Target::Days), _ => None };
         if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) {
-            editing_at = Some((i, 1 + connection::value_x(1)));
+            editing_at = Some((i, connection::value_x(0)));
         }
         let mut list = match row {
             WsRow::Offer(k) => v::ListRow::new(format!("row:{i}"), found(&offers[k].var).text(width)),
@@ -1333,14 +1335,13 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                 .push(v::Seg::new("  the registry; watched ones are read", v::Ink::Muted))),
             WsRow::ChannelAdd => {
                 if matches!(p.edit, Some((Target::ChannelAdd, _))) {
-                    editing_at = Some((i, ADD_AT + 2));
+                    editing_at = Some((i, ADD_AT));
                 }
-                // Set in by a cell, as the card's other rows and GitLab's follow list are.
-                v::ListRow::new(format!("row:{i}"), v::kit::add_line("add a channel", "paste its link, a message link, or its id", width))
+                v::ListRow::new(format!("row:{i}"), slack_add_line("add a channel", "paste its link, a message link, or its id", width))
             }
             WsRow::Channel(k) => {
                 let channel = &p.cfg.channels[k];
-                let mut row = v::ListRow::new(format!("row:{i}"), v::Text::plain("   ")
+                let mut row = v::ListRow::new(format!("row:{i}"), v::Text::new()
                     .push(v::Seg::icon(radar_core::ui::icon::Icon::Channel))
                     .push(v::Seg::styled(format!("#{}", channel.alias), p.cfg.style_for("channel")))
                     .push(v::Seg::new(format!("   {} · {}", channel.kind.word(), if channel.watched { "watched" } else { "not watched" }), v::Ink::Muted)));
@@ -1353,22 +1354,18 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
                     (WsRow::SignedIn, Some(me)) => connection::signed_in_text(&p.data.users.get(&me.user_id).cloned().unwrap_or_default(), &me.user),
                     _ => v::Text::of(ws_value(p, row), v::Ink::Secondary),
                 };
-                v::ListRow::new(format!("row:{i}"), connection::field_text(v::Text::plain(" "), label, value))
+                v::ListRow::new(format!("row:{i}"), connection::field_text(v::Text::new(), label, value))
             }
             WsRow::Api | WsRow::Token | WsRow::Refresh | WsRow::Days => {
                 let label = match row { WsRow::Api => "api", WsRow::Token => connection::TOKEN, WsRow::Refresh => connection::REFRESH, _ => "read back" };
-                v::ListRow::new(format!("row:{i}"), connection::field_text(v::Text::plain(" "), label,
+                v::ListRow::new(format!("row:{i}"), connection::field_text(v::Text::new(), label,
                     v::Text::of(ws_value(p, row), v::Ink::Primary)))
             }
             WsRow::Check => v::ListRow::new(format!("row:{i}"), connection::check_field_text(
-                v::Text::plain(" "), &token_check(p, now), "Slack")),
+                v::Text::new(), &token_check(p, now), "Slack")),
             WsRow::Need(k) => {
                 let (what, need, _) = NEEDS[k];
-                let lead = v::Text::of(format!(" {:<14}", if k == 0 { "permissions" } else { "" }), v::Ink::Muted);
-                let branch = v::Text::new().push(v::Seg::styled(if k + 1 == NEEDS.len() { "└─ " } else { "├─ " }, p.cfg.style_for("lines")));
-                let mut value = lead;
-                value.extend(branch);
-                value.extend(v::kit::labelled(what, FIELD_LABEL_W, v::Text::new()));
+                let value = v::kit::labelled(what, FIELD_LABEL_W, v::Text::new());
                 let mut list = v::ListRow::new(format!("row:{i}"), value);
                 match missing(p, need) {
                     None => list.right = Some(v::Text::of("not checked", v::Ink::Muted)),
@@ -1384,11 +1381,20 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
             }
         };
         list.target = v::Target::new(format!("row:{i}"));
-        list
+        (i, row, list)
     }).collect();
-    let editing = editing_at.and_then(|(row, at)| p.edit.as_ref().map(|(_, input)| v::Editing {
-        row, at, text: input.value(), caret: input.cursor(),
-    }));
+    // The permissions sit under their own label, the channels under theirs.
+    let mut entries = Vec::new();
+    for (i, row, list) in rows {
+        match row {
+            WsRow::Need(0) => {
+                entries.push(Entry::group("permissions", v::Text::of("permissions", v::Ink::Muted)));
+                entries.push(Entry::child(i, list));
+            }
+            WsRow::Need(_) | WsRow::ChannelAdd | WsRow::Channel(_) => entries.push(Entry::child(i, list)),
+            _ => entries.push(Entry::root(i, list)),
+        }
+    }
     let mut detail = Vec::new();
     if p.has_quarantined_cache() { detail.extend([v::kit::heading("older cache kept separately"),
         v::Text::of("Older or unverified Slack cache is kept separately and is not used automatically. Run radar slack cache-recovery to export it locally; no token is needed.", v::Ink::Secondary), v::Text::new()]); }
@@ -1461,10 +1467,78 @@ pub fn connection_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView 
     }
     v::SectionView {
         version: v::VERSION, scope: "connection".into(),
-        body: v::Node::List { rows, selected: Some(p.section_rows[0]), editing },
+        body: tree_body(p, width, entries, p.section_rows[0], editing_at),
         detail_title: detail_title(p, "connection"), detail,
         detail_blocks,
         actions: action_specs(p, "connection"),
+    }
+}
+
+/// A settings row on its way into a tree: on its own (`index` is its place in
+/// the flat list the keys walk), under the row before it, or a label that has
+/// rows under it and no cursor stop of its own.
+struct Entry {
+    index: Option<usize>,
+    child: bool,
+    row: v::ListRow,
+    stripe: Option<String>,
+}
+
+impl Entry {
+    fn root(index: usize, row: v::ListRow) -> Self { Self { index: Some(index), child: false, row, stripe: None } }
+    fn child(index: usize, row: v::ListRow) -> Self { Self { index: Some(index), child: true, row, stripe: None } }
+    fn group(id: &str, text: v::Text) -> Self { Self { index: None, child: false, row: v::ListRow::heading(id, text), stripe: None } }
+    fn stripe(mut self, look: String) -> Self { self.stripe = Some(look); self }
+}
+
+/// The rows as a tree: the renderer draws the lines that join a row to its
+/// parent. A row's id is its place in the flat list (`row:<n>`), so a click
+/// or a key names the same row either way. `editing` is the flat row being
+/// typed into and how far into its words the field starts.
+fn tree_body(p: &SlackPlugin, width: u16, entries: Vec<Entry>, selected: usize, editing: Option<(usize, u16)>) -> v::Node {
+    let mut roots: Vec<v::TreeRow> = Vec::new();
+    let mut path_of: std::collections::BTreeMap<usize, Vec<String>> = std::collections::BTreeMap::new();
+    for entry in entries {
+        let id = entry.row.target.as_str().to_string();
+        let mut row = v::TreeRow::new(id.clone(), entry.row.text);
+        row.heading = entry.row.heading;
+        row.detail = entry.row.detail;
+        if let Some(right) = entry.row.right { row = row.cell("mark", right); }
+        if let Some(look) = entry.stripe { row = row.stripe(look); }
+        match (entry.child, roots.last_mut()) {
+            (true, Some(parent)) => {
+                if let Some(index) = entry.index { path_of.insert(index, vec![parent.id.clone(), id]); }
+                parent.children.push(row);
+            }
+            _ => {
+                if let Some(index) = entry.index { path_of.insert(index, vec![id]); }
+                roots.push(row);
+            }
+        }
+    }
+    let open = roots.iter().filter(|r| !r.children.is_empty()).map(|r| vec![r.id.clone()]).collect();
+    let editing = editing.and_then(|(index, at)| p.edit.as_ref().and_then(|(_, input)| path_of.get(&index).map(|path| {
+        Box::new(v::TreeEditing { path: path.clone(), at, text: input.value(), caret: input.cursor() })
+    })));
+    v::Node::Tree(v::Tree {
+        rows: roots,
+        selected: path_of.get(&selected).cloned().unwrap_or_default(),
+        open,
+        columns: vec![v::ColumnSpec::new("mark", 12, 0)],
+        name_width: width.saturating_sub(14),
+        look: Some(v::TreeLook { lines: p.cfg.style_for("lines"), band: String::new(), heading: "bg.overlay".into(), band_level: 1 }),
+        editing,
+        ..v::Tree::default()
+    })
+}
+
+fn tree_settings_view(p: &SlackPlugin, section: &str, width: u16, entries: Vec<Entry>, detail: Vec<v::Text>, editing: Option<(usize, u16)>) -> v::SectionView {
+    v::SectionView {
+        version: v::VERSION, scope: section.into(),
+        body: tree_body(p, width, entries, p.section_rows[index(section)], editing),
+        detail_title: detail_title(p, section), detail,
+        detail_blocks: vec![],
+        actions: action_specs(p, section),
     }
 }
 
@@ -1504,19 +1578,20 @@ fn slack_add_line(action: &str, takes: &str, width: u16) -> v::Text {
 }
 
 pub fn channels_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
-    let mut editing = None;
-    let rows = ch_rows(p).into_iter().enumerate().map(|(i, row)| {
+    let mut editing: Option<(usize, u16)> = None;
+    let entries: Vec<Entry> = ch_rows(p).into_iter().enumerate().map(|(i, row)| {
+        let mut stripe = None;
         let mut out = match row {
             ChRow::Add => {
-                if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::ChannelAdd) { editing = editing_view(p, i, ADD_AT); }
+                if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::ChannelAdd) { editing = Some((i, ADD_AT)); }
                 let mut row = v::ListRow::new(format!("row:{i}"), slack_add_line("add a channel", "paste a link to it, or type #name", width));
                 row.right = check_mark_text(p, "add");
                 row
             }
             ChRow::Channel(k) => {
                 let channel = &p.cfg.channels[k];
+                stripe = Some(format!("slack.{}", channel.color));
                 let mut row = v::ListRow::new(format!("row:{i}"), v::Text::new()
-                    .push(v::Seg::styled("▌ ", format!("slack.{}", channel.color)))
                     .push(v::Seg::styled(format!("#{}", channel.alias), p.cfg.style_for("channel"))));
                 let name = if channel.name.is_empty() { p.data.channels.get(&channel.id).and_then(|d| d.info.as_ref()).map(|i| i.name.clone()).unwrap_or_default() } else { channel.name.clone() };
                 row.detail = Some(v::Text::of(format!("   {}{} · {}", if name.is_empty() || name == channel.alias { String::new() } else { format!("#{name} · ") }, channel.kind.word(), if channel.watched { "watched" } else { "not watched" }), v::Ink::Muted));
@@ -1525,16 +1600,16 @@ pub fn channels_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
             }
             ChRow::Field(k, field) => {
                 let target = match field { ChField::Alias => Some(Target::Alias(k)), ChField::Purpose => Some(Target::Purpose(k)), _ => None };
-                if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) { editing = editing_view(p, i, CH_FIELD_AT); }
-                let mut text = v::Text::plain("  ").push(v::Seg::styled(if field == ChField::Watched { "└─ " } else { "├─ " }, p.cfg.style_for("lines")));
-                text.extend(v::kit::labelled(field.label(), FIELD_LABEL_W, v::Text::new()));
+                if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) { editing = Some((i, FIELD_LABEL_W as u16)); }
+                let mut text = v::kit::labelled(field.label(), FIELD_LABEL_W, v::Text::new());
                 if field == ChField::Colour { text.add(v::Seg::styled("██ ", format!("slack.{}", p.cfg.channels[k].color))); }
                 text.add(v::Seg::new(field_value(p, k, field), v::Ink::Primary));
                 v::ListRow::new(format!("row:{i}"), text)
             }
         };
         out.target = v::Target::new(format!("row:{i}"));
-        out
+        let entry = if matches!(row, ChRow::Field(..)) { Entry::child(i, out) } else { Entry::root(i, out) };
+        match stripe { Some(look) => entry.stripe(look), None => entry }
     }).collect();
     let mut detail = Vec::new();
     match ch_row(p) {
@@ -1565,37 +1640,36 @@ pub fn channels_view(p: &SlackPlugin, width: u16, now: i64) -> v::SectionView {
             config_text(&mut detail, &format!("[[slack.channel]] {}", field.key()));
         }
     }
-    settings_view(p, "channels", rows, detail, editing)
+    tree_settings_view(p, "channels", width, entries, detail, editing)
 }
 
 pub fn alerts_view(p: &SlackPlugin, width: u16) -> v::SectionView {
-    let mut editing = None;
-    let rows = al_rows(p).into_iter().enumerate().map(|(i, row)| match row {
+    let mut editing: Option<(usize, u16)> = None;
+    let entries: Vec<Entry> = al_rows(p).into_iter().enumerate().map(|(i, row)| match row {
         AlRow::Hours => {
-            if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::Hours) { editing = editing_view(p, i, KV_W as u16); }
-            v::ListRow::new(format!("row:{i}"), v::kit::labelled("keep resolved", KV_W, v::Text::of(crate::alert_view::hours(p.cfg.alerts.recent_hours), v::Ink::Primary)))
+            if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::Hours) { editing = Some((i, KV_W as u16)); }
+            Entry::root(i, v::ListRow::new(format!("row:{i}"), v::kit::labelled("keep resolved", KV_W, v::Text::of(crate::alert_view::hours(p.cfg.alerts.recent_hours), v::Ink::Primary))))
         }
         AlRow::Add => {
-            if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::RuleAdd) { editing = editing_view(p, i, ADD_AT); }
-            v::ListRow::new(format!("row:{i}"), slack_add_line("add a mapping", "the start of an alert's name, then where it belongs", width))
+            if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::RuleAdd) { editing = Some((i, ADD_AT)); }
+            Entry::root(i, v::ListRow::new(format!("row:{i}"), slack_add_line("add a mapping", "the start of an alert's name, then where it belongs", width)))
         }
-        AlRow::Rule(k) => v::ListRow::new(format!("row:{i}"), v::Text::new()
-            .push(v::Seg::new("▌ ", v::Ink::AccentSecondary))
-            .push(v::Seg::new(rule_words(&p.cfg.alerts.rules[k]), v::Ink::Emphasis).strong())),
+        AlRow::Rule(k) => Entry::root(i, v::ListRow::new(format!("row:{i}"), v::Text::new()
+            .push(v::Seg::new(rule_words(&p.cfg.alerts.rules[k]), v::Ink::Emphasis).strong())))
+            .stripe("accent.secondary".into()),
         AlRow::Field(k, field) => {
             let target = match field { RuleField::Prefix => Target::RulePrefix(k), RuleField::Label => Target::RuleLabel(k), RuleField::Repo => Target::RuleRepo(k), RuleField::Service => Target::RuleService(k), RuleField::Environment => Target::RuleEnvironment(k) };
-            if p.edit.as_ref().is_some_and(|(edit, _)| *edit == target) { editing = editing_view(p, i, CH_FIELD_AT); }
+            if p.edit.as_ref().is_some_and(|(edit, _)| *edit == target) { editing = Some((i, FIELD_LABEL_W as u16)); }
             let value = field.of(&p.cfg.alerts.rules[k]);
-            let mut line = v::Text::plain("  ").push(v::Seg::styled(if field == RuleField::Environment { "└─ " } else { "├─ " }, p.cfg.style_for("lines")));
-            line.extend(v::kit::labelled(field.label(), FIELD_LABEL_W, v::Text::of(if value.is_empty() { "—" } else { value }, v::Ink::Primary)));
-            v::ListRow::new(format!("row:{i}"), line)
+            let line = v::kit::labelled(field.label(), FIELD_LABEL_W, v::Text::of(if value.is_empty() { "—" } else { value }, v::Ink::Primary));
+            Entry::child(i, v::ListRow::new(format!("row:{i}"), line))
         }
         AlRow::Unmapped(name) => {
-            if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::MapUnmapped(name.clone())) { editing = editing_view(p, i, 16); }
+            if p.edit.as_ref().is_some_and(|(target, _)| *target == Target::MapUnmapped(name.clone())) { editing = Some((i, 16)); }
             let first = i == 0 || !matches!(al_rows(p).get(i - 1), Some(AlRow::Unmapped(_)));
-            v::ListRow::new(format!("row:{i}"), v::Text::new()
+            Entry::root(i, v::ListRow::new(format!("row:{i}"), v::Text::new()
                 .push(v::Seg::new(if first { "no rule places  " } else { "                " }, v::Ink::Muted))
-                .push(v::Seg::styled(name, p.cfg.style_for("unmapped"))))
+                .push(v::Seg::styled(name, p.cfg.style_for("unmapped")))))
         }
     }).collect();
     let mut detail = Vec::new();
@@ -1633,7 +1707,7 @@ pub fn alerts_view(p: &SlackPlugin, width: u16) -> v::SectionView {
                 v::Text::of("They still show in the Alerts view, under unmapped. Type the repo they belong to (its path, or a link to it) or a service's name, and a rule for names starting with it is added at the top.", v::Ink::Muted)]);
         }
     }
-    settings_view(p, "alerts", rows, detail, editing)
+    tree_settings_view(p, "alerts", width, entries, detail, editing)
 }
 
 pub fn review_view(p: &SlackPlugin) -> v::SectionView {
@@ -1643,7 +1717,7 @@ pub fn review_view(p: &SlackPlugin) -> v::SectionView {
         if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) { editing = editing_view(p, i, KV_W as u16); }
         let mut list = v::ListRow::new(format!("row:{i}"), v::kit::labelled(row.label(), KV_W, v::Text::of(rv_value(p, row), v::Ink::Primary)));
         if row == RvRow::Group { list.right = check_mark_text(p, "groups"); }
-        if row == RvRow::Template && ask::check_template(&p.cfg.review.template, &p.data.groups).is_err() { list.right = Some(v::Text::of("✗", v::Ink::Bad)); }
+        if row == RvRow::Template && ask::check_template(&p.cfg.review.template, &p.data.groups).is_err() { list.right = Some(v::Text::new().push(v::Seg::icon_or(Icon::Error, "✗", v::Ink::Bad))); }
         list
     }).collect();
     let row = rv_row(p);
@@ -1685,10 +1759,16 @@ pub fn review_view(p: &SlackPlugin) -> v::SectionView {
 }
 
 pub fn list_intent(p: &mut SlackPlugin, section: &str, intent: &v::Intent) -> Outcome {
+    // A tree row's target is its path and the row itself the last id (`row:<n>`);
+    // a list row's target is the id.
+    let row = |target: &v::Target| match section {
+        "connection" | "channels" | "alerts" => v::TreeRow::path_of(target).pop().unwrap_or_default(),
+        _ => target.as_str().to_string(),
+    };
     match intent {
-        v::Intent::Select { target } | v::Intent::Context { target } => click(p, section, target.as_str()),
+        v::Intent::Select { target } | v::Intent::Context { target } => click(p, section, &row(target)),
         v::Intent::Activate { target } => {
-            click(p, section, target.as_str());
+            click(p, section, &row(target));
             key(p, section, radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {

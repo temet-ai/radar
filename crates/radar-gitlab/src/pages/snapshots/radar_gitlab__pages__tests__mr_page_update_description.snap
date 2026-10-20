@@ -21,11 +21,11 @@ acme/widget-lib (widget-lib)
 [AE] Alice Example · 46m ago · on StatsController.java:21
 Good shout, switching to the cached one.
 ── detail · can it merge? ──
-:needs_approval: ◷ needs 1 approval
-:run_passed: ✓ pipeline passed
-:run_passed: ✓ no conflicts, up to date
-:needs_approval: ◷ needs 1 approval (0 of 1)
-:thread: ◆ 1 open thread
-:run_passed: ✓ not a draft
+:needs_approval: needs 1 approval
+:run_passed: pipeline passed
+:run_passed: no conflicts, up to date
+:needs_approval: needs 1 approval (0 of 1)
+:thread: 1 open thread
+:run_passed: not a draft
 
 for you: waiting for your review

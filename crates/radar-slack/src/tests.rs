@@ -623,12 +623,12 @@ fn the_workspace_shows_who_and_what_the_token_may_do() {
         "check           not checked yet",
         "refresh         every 2m",
         "read back       7 days",
-        "permissions   ├─",
+        "permissions",
     ]
     .map(at);
     assert!(order.windows(2).all(|w| w[0] < w[1]), "{text}");
-    assert!(text.contains("├─ reacting  needs reactions:write"), "{text}");
-    assert!(text.contains("└─ pictures"), "{text}");
+    assert!(text.contains("reacting  needs reactions:write"), "{text}");
+    assert!(text.contains("pictures"), "{text}");
     assert!(!text.contains("typed-in-token"), "{text}");
 }
 
@@ -881,7 +881,7 @@ fn a_template_slack_would_not_understand_is_refused_as_you_type() {
     keys(&mut host, &[KeyCode::Down, KeyCode::Down, KeyCode::Enter]);
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
     chars(&mut host, "{@nobody} :gitlab: {mrs}");
-    assert!(shown(&host, 160, 40).contains("✗ {@nobody}: Slack has no user group with that"));
+    assert!(shown(&host, 160, 40).contains(":error: {@nobody}: Slack has no user group with that"));
     press(&mut host, KeyCode::Enter);
     assert!(host.message.as_deref().unwrap_or("").starts_with("not yet: {@nobody}"), "{:?}", host.message);
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
@@ -902,7 +902,7 @@ fn when_to_ask_again_is_typed_as_hours_days_or_a_time_and_kept() {
     host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
     chars(&mut host, "10:00");
     let text = shown(&host, 160, 40);
-    assert!(text.contains("✓ offers to ask again at 10:00"), "{text}");
+    assert!(text.contains(":run_passed: offers to ask again at 10:00"), "{text}");
     press(&mut host, KeyCode::Enter);
     assert!(host.config_text().contains("reask = \"10:00\""), "{}", host.config_text());
     assert!(shown(&host, 160, 40).contains("ask again        at 10:00 on the next working day without a reply"));
@@ -1081,9 +1081,9 @@ fn a_failed_read_says_so_in_the_rail_and_the_status_line() {
     let fx = host.update(Event::Tick(NOW));
     settle(&mut host, fx);
     let text = shown(&host, 160, 40);
-    assert!(text.contains("✗ #team could not sync: you are not in"), "{text}");
+    assert!(text.contains(":error: #team could not sync: you are not in"), "{text}");
     assert!(text.contains("1 read failed"), "{text}");
-    assert!(text.contains("▌ :channel: #team  :error: ✗"), "{text}");
+    assert!(text.contains(":channel: #team  :error: ✗"), "{text}");
 }
 
 #[test]
@@ -2098,7 +2098,8 @@ fn open_input(host: &Host) -> Option<(String, u16)> {
         Node::List { rows, editing: Some(e), .. } => Some((rows.get(e.row)?.text.words(), e.at)),
         Node::Tree(tree) => {
             let e = tree.editing.as_ref()?;
-            Some((find(&tree.rows, &e.path)?.name.words(), e.at))
+            // A tree's name starts at the pane's edge; a list row a cell in.
+            Some((find(&tree.rows, &e.path)?.name.words(), e.at + 1))
         }
         _ => None,
     }
@@ -2170,8 +2171,8 @@ fn every_settings_input_starts_where_its_value_was_drawn() {
     input_sits_on_its_value(&mut host, "connection", 6, &[Char('e')], "read back ", "7 days");
     // channels: the add row, a channel's alias and purpose.
     input_sits_on_its_value(&mut host, "channels", 0, &[Enter], "+ add a channel", "add a channel");
-    input_sits_on_its_value(&mut host, "channels", 2, &[Char('e')], "├─ alias ", "team");
-    input_sits_on_its_value(&mut host, "channels", 3, &[Char('e')], "├─ purpose ", "where");
+    input_sits_on_its_value(&mut host, "channels", 2, &[Char('e')], "alias  ", "team");
+    input_sits_on_its_value(&mut host, "channels", 3, &[Char('e')], "purpose  ", "where");
     // review: the template, the link text, how long before asking again.
     input_sits_on_its_value(&mut host, "review", 2, &[Char('e')], "template ", "{group}");
     input_sits_on_its_value(&mut host, "review", 3, &[Char('e')], "link text ", "mr");

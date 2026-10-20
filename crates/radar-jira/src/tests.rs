@@ -312,7 +312,7 @@ fn the_preview_of_a_ticket_has_its_description_and_acceptance_criteria() {
         "type: Story",
         "parent: ABC-1: Dashboard for the stats",
         "Add a stats endpoint for the dashboard",
-        "status: :in_progress: ◐ In Progress",
+        "status: :in_progress: In Progress",
         "assignee: :you: you",
         "Bob Example",
         "1h ago",
@@ -985,7 +985,7 @@ fn an_error_shows_in_the_page() {
     open_ticket(&mut host, "ABC-12");
     let p = jira_mut(&mut host);
     crate::tests::complete_detail(p, "acme", "ABC-12", Err("Jira has no ticket ABC-12, or this account cannot see it (404)".into()));
-    assert!(shown(&host, 160, 40).contains("✗ could not load: Jira has no ticket ABC-12"));
+    assert!(shown(&host, 160, 40).contains(":error: could not load: Jira has no ticket ABC-12"));
 }
 
 #[test]
@@ -1121,7 +1121,7 @@ fn t_asks_where_a_ticket_can_go_offers_the_usual_next_first_and_asks_before_movi
     press(&mut host, KeyCode::Char('1'));
     let fx = press(&mut host, KeyCode::Char('y'));
     assert_eq!(spawned(&fx), 1);
-    assert!(shown(&host, 160, 40).contains("● asking Jira to move ABC-12 to In Review…"));
+    assert!(shown(&host, 160, 40).contains(":run_running: asking Jira to move ABC-12 to In Review…"));
     let change = jira(&host).change.clone();
     assert!(change.is_none(), "the question is answered");
     let dispatch = jira(&host).sent[&detail_key("acme", "ABC-12")].dispatch.clone().unwrap();
@@ -1141,7 +1141,7 @@ fn t_asks_where_a_ticket_can_go_offers_the_usual_next_first_and_asks_before_movi
     );
     assert!(spawned(&fx) >= 2, "the ticket and the view are fetched again: {fx:?}");
     assert_eq!(host.message.as_deref(), Some("✓ ABC-12 is In Review now"));
-    assert!(shown(&host, 160, 40).contains("✓ ABC-12 is In Review now"));
+    assert!(shown(&host, 160, 40).contains(":run_passed: ABC-12 is In Review now"));
 }
 
 #[test]
@@ -1194,7 +1194,7 @@ fn a_dispatched_change_error_is_said_as_unconfirmed_on_the_page() {
     );
     assert_eq!(spawned(&fx), 0, "never tried again");
     let got = shown(&host, 160, 40);
-    assert!(got.contains("✗ Jira did not confirm move ABC-12 to Done"), "{got}");
+    assert!(got.contains(":error: Jira did not confirm move ABC-12 to Done"), "{got}");
     let notice = host.message.as_deref().unwrap();
     assert!(notice.contains("Jira refused the request (400): Resolution is required."), "{notice}");
     assert!(notice.contains("check Jira before trying again"), "{notice}");
@@ -1563,7 +1563,7 @@ fn a_merge_request_naming_a_ticket_gets_its_column_section_tab_and_actions() {
     let Some(Contribution::Section { icon, title, lines }) = p.contribute(Point::Section, &s) else { panic!() };
     assert_eq!(icon, Some(radar_core::ui::icon::Icon::Issue), "marked like the owner's sections");
     assert_eq!(title, "Tickets");
-    assert_eq!(lines[0].to_string(), "ABC-12 · ◐ In Progress · Story");
+    assert_eq!(lines[0].to_string(), "ABC-12 · In Progress · Story");
     let Some(Contribution::Actions(actions)) = p.contribute(Point::Actions, &s) else { panic!() };
     let rows: Vec<(Option<char>, &str)> = actions.iter().map(|a| (a.key, a.what.as_str())).collect();
     assert_eq!(
@@ -1574,7 +1574,7 @@ fn a_merge_request_naming_a_ticket_gets_its_column_section_tab_and_actions() {
     let Some(Contribution::Tab { title, rows }) = p.contribute(Point::Tab, &s) else { panic!() };
     assert_eq!(title, "Tickets");
     let lines: Vec<String> = rows.iter().map(|r| r.line.to_string()).collect();
-    assert_eq!(lines[0], "ABC-12 · ◐ In Progress · Story · Add a stats endpoint for the dashboard");
+    assert_eq!(lines[0], "ABC-12 · In Progress · Story · Add a stats endpoint for the dashboard");
     assert!(lines[1].starts_with("DEF-3 · "), "{lines:?}");
     let opens = rows[0].subject.as_ref().expect("the row opens the ticket");
     assert_eq!((opens.kind.as_str(), opens.id.as_str()), ("ticket", "ABC-12"));
@@ -1663,10 +1663,10 @@ fn a_sites_rows_are_in_the_order_every_part_has_and_its_check_asks_jira() {
     let mut host = hosted();
     section(&mut host, "connection");
     let got = shown(&host, 160, 40);
-    let at = |label: &str| got.find(&format!("─ {label} ")).unwrap_or_else(|| panic!("{label}: {got}"));
+    let at = |label: &str| got.find(&format!("  {label}  ")).unwrap_or_else(|| panic!("{label}: {got}"));
     let order = ["site", "account", "token", "signed in as", "check"].map(at);
     assert!(order.windows(2).all(|w| w[0] < w[1]), "{got}");
-    assert!(got.find("─ check ").unwrap() < got.find("\n  refresh ").unwrap());
+    assert!(got.find("  check  ").unwrap() < got.find("\n  refresh ").unwrap());
     assert!(!got.contains("pause if idle"), "the host's now");
     // Past the two found, the add row, acme and five of its rows: its check.
     for _ in 0..8 {
@@ -1740,9 +1740,10 @@ fn views_section_keeps_editing_and_actions_in_neutral_view() {
 fn connection_section_exposes_rows_and_detail_as_neutral_data() {
     let mut p = sample();
     let view = settings::connection_view(&p, 100, p.now);
-    let radar_core::view::Node::List { rows, selected, .. } = &view.body else { panic!("connection is a list") };
-    assert_eq!(*selected, Some(p.section_rows[0]));
-    assert_eq!(rows.len(), settings::site_rows(&p).len());
+    let radar_core::view::Node::Tree(tree) = &view.body else { panic!("connection is a tree") };
+    let at = p.section_rows[0];
+    assert_eq!(tree.selected, vec![format!("row:{at}")]);
+    assert_eq!(tree.visible().len(), settings::site_rows(&p).len(), "a site's fields sit under it");
     assert!(!view.detail.is_empty());
     let next = radar_core::view_tui::section_key(&view, radar_core::view::Chord::new(radar_core::view::Key::Down));
     settings::connection_intent(&mut p, &next);
@@ -1806,14 +1807,14 @@ fn adding_a_site_by_typing_validates_and_moves_on_to_its_email() {
     assert!(host.plugins[0].capturing());
     typed(&mut host, "gamma");
     let got = shown(&host, 160, 40);
-    assert!(got.contains("✗ not a web address"), "{got}");
+    assert!(got.contains(":error: not a web address"), "{got}");
     press(&mut host, KeyCode::Enter);
     assert!(host.message.as_deref().is_some_and(|m| m.starts_with("not yet:")), "{:?}", host.message);
     for _ in 0..5 {
         press(&mut host, KeyCode::Backspace);
     }
     host.update(Event::Paste("https://gamma.atlassian.net/jira/software/projects/GAM/boards/2\n".into()));
-    assert!(shown(&host, 160, 40).contains("✓ the site gamma.atlassian.net"));
+    assert!(shown(&host, 160, 40).contains(":run_passed: the site gamma.atlassian.net"));
     press(&mut host, KeyCode::Enter);
     let p = jira(&host);
     assert_eq!(p.cfg.sites.last().unwrap().url, "https://gamma.atlassian.net");
@@ -1852,8 +1853,8 @@ fn field_value_for_test(p: &JiraPlugin) -> String {
     let got = shown(&host, 160, 40);
     got
         .lines()
-        .find(|l| l.contains("├─ token"))
-        .and_then(|l| l.split("├─ token").nth(1))
+        .find(|l| l.trim_start_matches(['>', ' ']).starts_with("token "))
+        .and_then(|l| l.trim_start_matches(['>', ' ']).strip_prefix("token"))
         .and_then(|s| s.split("  {row:").next())
         .map(|s| s.trim().to_string())
         .unwrap_or_default()
@@ -1879,7 +1880,7 @@ fn settings_validate(p: &JiraPlugin, t: &Target, s: &str) -> Result<String, Stri
         .unwrap_or_default()
         .trim()
         .to_string();
-    match verdict.strip_prefix("✓ ") {
+    match verdict.strip_prefix(":run_passed: ") {
         Some(ok) => Ok(ok.into()),
         None => Err(verdict),
     }
@@ -1893,7 +1894,7 @@ fn watching_a_project_from_a_pasted_link_offers_a_check() {
     press(&mut host, KeyCode::Enter);
     assert!(host.plugins[0].capturing());
     host.update(Event::Paste("https://acme.atlassian.net/browse/OPS-4".into()));
-    assert!(shown(&host, 160, 40).contains("✓ will watch OPS on acme"));
+    assert!(shown(&host, 160, 40).contains(":run_passed: will watch OPS on acme"));
     let fx = press(&mut host, KeyCode::Enter);
     assert!(spawned(&fx) >= 1, "the view refreshes with it");
     assert!(jira(&host).cfg.sites[0].watches("OPS"));
@@ -1958,7 +1959,7 @@ fn jql_typed_by_hand_is_kept_only_once_jira_reads_it() {
     assert_eq!(spawned(&fx), 1, "Jira is asked about it");
     let p = jira_mut(&mut host);
     p.on_msg(Box::new(JiraMsg::Jql { text: "sprnt = 1".into(), result: Ok(vec!["The field 'sprnt' does not exist.".into()]) }));
-    assert!(shown(&host, 160, 40).contains("✗ Jira says: The field 'sprnt' does not exist."));
+    assert!(shown(&host, 160, 40).contains(":error: Jira says: The field 'sprnt' does not exist."));
     for _ in 0..9 {
         press(&mut host, KeyCode::Backspace);
     }
@@ -2051,7 +2052,7 @@ fn input_sits_on_its_value(host: &mut radar_core::Host, name: &str, downs: usize
         }
         _ => panic!("{name}: neither a list nor a tree"),
     };
-    let text = names.into_iter().find(|t| t.contains(row)).unwrap_or_else(|| panic!("no row {row:?} in {name}:\n{before}"));
+    let text = names.iter().find(|t| t.as_str() == row).or_else(|| names.iter().find(|t| t.contains(row))).cloned().unwrap_or_else(|| panic!("no row {row:?} in {name}:\n{before}"));
     let start = text.find(row).unwrap();
     let c = match text[start..].find(value) {
         Some(at) => radar_core::design::width::width(&text[..start + at]),
@@ -2091,11 +2092,11 @@ fn every_settings_input_starts_where_its_value_was_drawn() {
     // connection: after the two sites found, the add row, a site's name,
     // address, account, token; refresh.
     input_sits_on_its_value(&mut host, "connection", 2, &[Enter], "+ add a site", "add a site");
-    input_sits_on_its_value(&mut host, "connection", 3, &[Char('n')], "▌ acme", "acme");
-    input_sits_on_its_value(&mut host, "connection", 4, &[Char('e')], "├─ site ", "https://acme");
-    input_sits_on_its_value(&mut host, "connection", 5, &[Char('e')], "├─ account ", "alice@");
-    input_sits_on_its_value(&mut host, "connection", 6, &[Char('e')], "├─ token ", "env:RADAR");
-    input_sits_on_its_value(&mut host, "connection", 9, &[Enter], "└─ projects ", "ABC");
+    input_sits_on_its_value(&mut host, "connection", 3, &[Char('n')], "acme", "acme");
+    input_sits_on_its_value(&mut host, "connection", 4, &[Char('e')], "site            ", "https://acme");
+    input_sits_on_its_value(&mut host, "connection", 5, &[Char('e')], "account  ", "alice@");
+    input_sits_on_its_value(&mut host, "connection", 6, &[Char('e')], "token  ", "env:RADAR");
+    input_sits_on_its_value(&mut host, "connection", 9, &[Enter], "projects  ", "ABC");
     input_sits_on_its_value(&mut host, "connection", 17, &[Char('e')], "refresh ", "every 2m");
     // projects: the add row under each site.
     input_sits_on_its_value(&mut host, "projects", 3, &[Char('a')], "+ watch a project", "watch a project");

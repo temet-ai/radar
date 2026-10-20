@@ -1052,7 +1052,9 @@ fn tree_rows(p: &GitPlugin, cx: &v::ViewCx<'_>) -> Vec<TreeRow> {
         }
         let has_trees = d.is_some_and(|d| d.trees.len() > 1);
         if has_trees && in_use(&c.dir) {
-            name.add(Seg::new("  ● in use", Ink::Good));
+            name.add(Seg::new("  ", Ink::Plain));
+            name.add(Seg::icon(Icon::Local));
+            name.add(Seg::new("in use", Ink::Good));
         }
         let mut node = TreeRow::new(clone_id(&c.dir), name);
         let newest = d.map_or(0, |d| {
@@ -1106,7 +1108,9 @@ fn tree_rows(p: &GitPlugin, cx: &v::ViewCx<'_>) -> Vec<TreeRow> {
                             Ink::Muted,
                         ));
                     if in_use(&tree.dir) {
-                        name.add(Seg::new("  ● in use", Ink::Good));
+                        name.add(Seg::new("  ", Ink::Plain));
+                        name.add(Seg::icon(Icon::Local));
+                        name.add(Seg::new("in use", Ink::Good));
                     }
                     let updated = d
                         .branches
@@ -1161,7 +1165,9 @@ fn tree_rows(p: &GitPlugin, cx: &v::ViewCx<'_>) -> Vec<TreeRow> {
                         } else {
                             format!("in {}", base_name(&w.dir))
                         };
-                        name.add(Seg::new(format!("  ● {where_}"), Ink::Good));
+                        name.add(Seg::new("  ", Ink::Plain));
+                        name.add(Seg::icon(Icon::Local));
+                        name.add(Seg::new(where_, Ink::Good));
                     } else if b.merged && b.name != d.base {
                         name.add(Seg::new("  merged", Ink::Muted));
                     }
@@ -1444,8 +1450,8 @@ fn detail_blocks(p: &GitPlugin, now: i64) -> Vec<v::Block> {
                 lines.push(Text::new());
                 lines.push(
                     Text::new()
-                        .push(Seg::icon_or(Icon::Error, "✗", Ink::Bad))
-                        .push(Seg::new(format!(" could not load: {}", d.error), Ink::Bad)),
+                        .push(Seg::icon(Icon::Error))
+                        .push(Seg::new(format!("could not load: {}", d.error), Ink::Bad)),
                 );
             }
             if d.trees.len() > 1 {

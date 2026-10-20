@@ -177,14 +177,10 @@
             "target": "rail:2",
             "text": [
               {
-                "look": "slack.cyan",
-                "text": "▌ "
-              },
-              {
                 "icon": "channel"
               },
               {
-                "ink": "emphasis",
+                "look": "slack.cyan",
                 "text": "#team"
               }
             ]
@@ -199,14 +195,10 @@
             "target": "rail:3",
             "text": [
               {
-                "look": "slack.orange",
-                "text": "▌ "
-              },
-              {
                 "icon": "channel"
               },
               {
-                "ink": "emphasis",
+                "look": "slack.orange",
                 "text": "#svc"
               }
             ]

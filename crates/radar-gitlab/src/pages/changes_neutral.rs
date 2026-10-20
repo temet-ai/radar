@@ -40,8 +40,8 @@ pub(super) fn view(
     };
     if let Some(error) = fetched.and_then(|f| f.error.as_deref()) {
         frame.notice = Some(Text::from(vec![
-            Seg::icon_or(Icon::Error, "✗", Ink::Bad),
-            Seg::new(" merge request details refresh failed: ", Ink::Bad),
+            Seg::icon(Icon::Error),
+            Seg::new("merge request details refresh failed: ", Ink::Bad),
             Seg::new(error, Ink::Bad).strong(),
         ]));
     }
@@ -199,13 +199,9 @@ fn file_tree_row(
             dels,
         } => {
             let full = &detail.files[*index].path;
-            let mark = if *index == open_at {
-                "▎ "
-            } else if seen.contains(full) {
-                "✓ "
-            } else {
-                "· "
-            };
+            // Seen files carry the passed icon, the others the to-do one; the file
+            // open in the diff is the one in the accent ink.
+            let mark = if seen.contains(full) { Icon::RunPassed } else { Icon::Todo };
             let open = detail
                 .discussions
                 .iter()
@@ -214,19 +210,13 @@ fn file_tree_row(
                 })
                 .count();
             let tail = if open > 0 {
-                format!(" ◆{open}")
+                // The thread icon takes about two cells and its gap.
+                format!("   {open}")
             } else {
                 String::new()
             };
             let mut row = Text::from(vec![
-                Seg::new(
-                    mark,
-                    if *index == open_at {
-                        Ink::Accent
-                    } else {
-                        Ink::Muted
-                    },
-                ),
+                Seg::icon(mark),
                 Seg::icon(Icon::for_file(full)),
                 if *index == open_at {
                     Seg::new(
@@ -244,7 +234,9 @@ fn file_tree_row(
                 },
             ]);
             if open > 0 {
-                row.add(Seg::new(tail, Ink::Warn));
+                row.add(Seg::new(" ", Ink::Plain));
+                row.add(Seg::icon(Icon::Thread));
+                row.add(Seg::new(open.to_string(), Ink::Warn));
             }
             (row, *adds, *dels, Vec::new())
         }
@@ -346,13 +338,16 @@ fn diff_pane(
     if away > 0 && !lines.is_empty() {
         under.push(DiffUnder {
             line: 0,
-            lines: vec![Text::of(
-                format!(
-                    "◆ {away} thread{} on lines this diff no longer has: see the Threads tab",
-                    if away == 1 { "" } else { "s" }
+            lines: vec![Text::from(vec![
+                Seg::icon(Icon::Thread),
+                Seg::new(
+                    format!(
+                        "{away} thread{} on lines this diff no longer has: see the Threads tab",
+                        if away == 1 { "" } else { "s" }
+                    ),
+                    Ink::Muted,
                 ),
-                Ink::Muted,
-            )],
+            ])],
             input: None,
         });
     }
@@ -406,10 +401,10 @@ fn diff_pane(
 
 fn thread_lines(thread: &Discussion, open: bool, now: i64, width: u16) -> Vec<Text> {
     let count = thread.notes.len();
-    let (icon, mark, label, ink) = match (thread.resolvable, thread.resolved) {
-        (true, false) => (Icon::Thread, "◆", "open thread", Ink::Warn),
-        (true, true) => (Icon::Resolved, "✓", "resolved", Ink::Good),
-        (false, _) => (Icon::Comment, "○", "comment", Ink::Secondary),
+    let (icon, label, ink) = match (thread.resolvable, thread.resolved) {
+        (true, false) => (Icon::Thread, "open thread", Ink::Warn),
+        (true, true) => (Icon::Resolved, "resolved", Ink::Good),
+        (false, _) => (Icon::Comment, "comment", Ink::Secondary),
     };
     let heading = format!(
         "{label} · {count} note{}",
@@ -428,13 +423,13 @@ fn thread_lines(thread: &Discussion, open: bool, now: i64, width: u16) -> Vec<Te
             })
             .unwrap_or_default();
         return vec![Text::from(vec![
-            Seg::icon_or_lead(icon, format!("{mark} "), ink),
+            Seg::icon(icon),
             Seg::new(heading, ink),
             Seg::new(note, Ink::Muted),
         ])];
     }
     let mut out = vec![Text::from(vec![
-        Seg::icon_or_lead(icon, format!("{mark} "), ink),
+        Seg::icon(icon),
         Seg::new(heading, ink),
     ])];
     for (i, note) in thread.notes.iter().enumerate() {

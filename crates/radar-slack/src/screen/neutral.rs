@@ -145,14 +145,13 @@ fn nav_pane(p: &SlackPlugin) -> PaneView {
                 }
             };
             let mut label = Text::new();
-            if let NavRow::Channel(index) = r {
-                label.add(Seg::styled(
-                    "▌ ",
-                    format!("slack.{}", p.cfg.channels[index].color),
-                ));
-            }
             label.add(Seg::icon(icon));
-            label.add(Seg::new(name, Ink::Emphasis));
+            label.add(match r {
+                NavRow::Channel(index) => {
+                    Seg::styled(name, format!("slack.{}", p.cfg.channels[index].color))
+                }
+                _ => Seg::new(name, Ink::Emphasis),
+            });
             let mut row = v::ListRow::new(format!("rail:{i}"), label);
             row.right = right.filter(|n| *n > 0).map(|n| {
                 let label = if matches!(r, NavRow::Channel(_)) {
@@ -752,29 +751,33 @@ pub(super) fn detail_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
                 let when = |seconds| crate::view::when_secs(seconds, cx.now);
                 let state = match alert.state {
                     AlertState::Firing => format!(
-                        "▲ firing for {} · since {}",
+                        "firing for {} · since {}",
                         alert_view::lasted(alert.lasted(cx.now).unwrap_or(0)),
                         when(alert.since)
                     ),
                     AlertState::Resolved => match (alert.lasted(cx.now), alert.ended) {
                         (Some(duration), Some(ended)) => format!(
-                            "✓ resolved after {} · {} to {}",
+                            "resolved after {} · {} to {}",
                             alert_view::lasted(duration),
                             when(alert.since),
                             when(ended)
                         ),
                         (_, ended) => format!(
-                            "✓ resolved {} · its firing is before what radar has read",
+                            "resolved {} · its firing is before what radar has read",
                             when(ended.unwrap_or(alert.since))
                         ),
                     },
                     AlertState::Failed => format!(
-                        "✗ failed {} ago · {}",
+                        "failed {} ago · {}",
                         alert_view::lasted(cx.now - alert.since),
                         when(alert.since)
                     ),
                 };
-                blocks.push(Block::line(Text::of(state, Ink::Warn)));
+                blocks.push(Block::line(
+                    Text::new()
+                        .push(Seg::icon(alert.state.icon()))
+                        .push(Seg::new(state, Ink::Warn)),
+                ));
                 if alert.notices > 1 {
                     blocks.push(Block::line(Text::of(
                         format!(

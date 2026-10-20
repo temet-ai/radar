@@ -7,7 +7,7 @@ expression: text
 mentions @review-squad · the review channel
 ── middle · as it will post in #team * ──
 @review-squad :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats endpoint for the dashboard
-:error: ✗ Slack did not take it: Slack is busy (rate limited): it was not sent, and radar does not send it again; try again in 30s
+:error: Slack did not take it: Slack is busy (rate limited): it was not sent, and radar does not send it again; try again in 30s
 
 THE TEXT SENT
 <!subteam^S0REVIEW01> :gitlab: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard

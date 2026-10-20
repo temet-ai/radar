@@ -157,8 +157,9 @@ mod tests {
         };
         let drawn = |p: &JiraPlugin, setup| -> Vec<String> {
             let view = p.section_view("connection", &cx(setup)).expect("the connection section");
-            let Node::List { rows, .. } = view.body else { panic!("a list") };
-            rows.iter().map(|r| r.text.0.iter().map(|s| s.text.as_str()).collect::<String>()).collect()
+            let Node::Tree(tree) = view.body else { panic!("a tree") };
+            let words = |r: &radar_core::view::TreeRow| r.name.0.iter().map(|s| s.text.as_str()).collect::<String>();
+            tree.rows.iter().flat_map(|r| std::iter::once(words(r)).chain(r.children.iter().map(words))).collect()
         };
         let has = |rows: &[String], label: &str| rows.iter().any(|r| r.contains(label));
 

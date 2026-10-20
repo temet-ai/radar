@@ -475,11 +475,7 @@ fn repo_row(p: &GitlabPlugin, cx: &v::ViewCx<'_>, repo: &RepoNode<'_>) -> TreeRo
     }
     let state = match repo.project.main_pipeline {
         Some(pipeline) => Text::from(vec![
-            Seg::icon_or_lead(
-                pipeline.mark().icon(),
-                format!("{} ", pipeline.mark().symbol()),
-                Ink::Plain,
-            ),
+            Seg::icon(pipeline.mark().icon()),
             Seg::styled(pipeline.word(), p.cfg.style_for(pipeline.word())),
         ]),
         None if repo.project_loaded => Text::of("— no recent run", Ink::Muted),
@@ -543,11 +539,7 @@ fn mr_row(p: &GitlabPlugin, cx: &v::ViewCx<'_>, item: &Item<'_>) -> TreeRow {
     let blocks = crate::ready::blocks(mr);
     let state = if let Some(first) = blocks.first() {
         Text::from(vec![
-            Seg::icon_or_lead(
-                first.icon(),
-                format!("{} ", first.mark()),
-                Ink::from(first.tone()),
-            ),
+            Seg::icon(first.icon()),
             if matches!(first.tone(), Tone::Warn | Tone::Bad) {
                 Seg::new(first.words(), Ink::from(first.tone())).strong()
             } else {
@@ -556,7 +548,7 @@ fn mr_row(p: &GitlabPlugin, cx: &v::ViewCx<'_>, item: &Item<'_>) -> TreeRow {
         ])
     } else {
         Text::from(vec![
-            Seg::icon_or_lead(Icon::RunPassed, "✓ ", Ink::Good),
+            Seg::icon(Icon::RunPassed),
             Seg::new("ready to merge", Ink::Good),
         ])
     };
@@ -579,7 +571,7 @@ fn mr_row(p: &GitlabPlugin, cx: &v::ViewCx<'_>, item: &Item<'_>) -> TreeRow {
             "approvals",
             if mr.approved {
                 Text::from(vec![
-                    Seg::icon_or_lead(Icon::Approved, "✓ ", Ink::Good),
+                    Seg::icon(Icon::Approved),
                     Seg::new(mr.approvals_words(), Ink::Good),
                 ])
             } else {
@@ -700,10 +692,9 @@ fn tenancy_detail(p: &GitlabPlugin, i: usize) -> Vec<Text> {
         lines.push(v::kit::labelled(
             "main red",
             12,
-            Text::of(
-                format!("✗ {red} repo{}", if red == 1 { "" } else { "s" }),
-                Ink::Bad,
-            ),
+            Text::new()
+                .push(Seg::icon(Icon::Error))
+                .push(Seg::new(format!("{red} repo{}", if red == 1 { "" } else { "s" }), Ink::Bad)),
         ));
     }
     lines
@@ -746,7 +737,11 @@ fn repo_detail(p: &GitlabPlugin, repo: &Project, mrs: &[Item<'_>], now: i64) -> 
     if let Some(words) = why::red(repo.main_pipeline, repo.main_pipeline_url.as_deref())
         .and_then(|pipeline| why::summary(p, &repo.full_path, pipeline))
     {
-        lines.push(Text::of(format!("            ✗ {words}"), Ink::Bad));
+        lines.push(
+            Text::plain("            ")
+                .push(Seg::icon(Icon::Error))
+                .push(Seg::new(words, Ink::Bad)),
+        );
     }
     if let Some(commit) = &repo.main_commit {
         lines.push(v::kit::labelled(
@@ -929,7 +924,7 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailCon
         let blockers = crate::ready::blocks(mr);
         if blockers.is_empty() {
             vec![Text::from(vec![
-                Seg::icon_or_lead(Icon::RunPassed, "✓ ", Ink::Good),
+                Seg::icon(Icon::RunPassed),
                 Seg::new("ready to merge", Ink::Good),
             ])]
         } else {
@@ -937,11 +932,7 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailCon
                 .into_iter()
                 .map(|blocker| {
                     Text::from(vec![
-                        Seg::icon_or_lead(
-                            blocker.icon(),
-                            format!("{} ", blocker.mark()),
-                            Ink::from(blocker.tone()),
-                        ),
+                        Seg::icon(blocker.icon()),
                         Seg::new(blocker.words(), Ink::from(blocker.tone())),
                     ])
                 })
@@ -1005,7 +996,7 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailCon
     if let Some(words) = why::red(mr.pipeline, mr.pipeline_url.as_deref())
         .and_then(|pipeline| why::summary(p, &mr.project_path, pipeline))
     {
-        run.push(Block::line(Text::of(format!("✗ {words}"), Ink::Bad)));
+        run.push(Block::line(v::kit::marked(Icon::Error, &words, Ink::Bad)));
     }
     blocks.push(Block::section(
         Some(Icon::Pipeline),

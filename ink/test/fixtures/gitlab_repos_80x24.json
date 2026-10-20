@@ -308,10 +308,7 @@
                         "heading": "state",
                         "text": [
                           {
-                            "icon": "draft",
-                            "icon_lead": true,
-                            "ink": "muted",
-                            "text": "⊘ "
+                            "icon": "draft"
                           },
                           {
                             "ink": "muted",
@@ -444,9 +441,7 @@
                     "heading": "state",
                     "text": [
                       {
-                        "icon": "run_passed",
-                        "icon_lead": true,
-                        "text": "✓ "
+                        "icon": "run_passed"
                       },
                       {
                         "look": "status.success",
@@ -483,10 +478,7 @@
                         "heading": "state",
                         "text": [
                           {
-                            "icon": "needs_approval",
-                            "icon_lead": true,
-                            "ink": "warn",
-                            "text": "◷ "
+                            "icon": "needs_approval"
                           },
                           {
                             "ink": "warn",
@@ -619,9 +611,7 @@
                     "heading": "state",
                     "text": [
                       {
-                        "icon": "run_failed",
-                        "icon_lead": true,
-                        "text": "✗ "
+                        "icon": "run_failed"
                       },
                       {
                         "look": "status.error bold",
@@ -659,10 +649,7 @@
                         "target": "state:m:acme/team-a/web!187",
                         "text": [
                           {
-                            "icon": "run_passed",
-                            "icon_lead": true,
-                            "ink": "good",
-                            "text": "✓ "
+                            "icon": "run_passed"
                           },
                           {
                             "ink": "good",
@@ -674,10 +661,7 @@
                         "heading": "approvals",
                         "text": [
                           {
-                            "icon": "approved",
-                            "icon_lead": true,
-                            "ink": "good",
-                            "text": "✓ "
+                            "icon": "approved"
                           },
                           {
                             "ink": "good",
@@ -768,10 +752,7 @@
                         "heading": "state",
                         "text": [
                           {
-                            "icon": "needs_approval",
-                            "icon_lead": true,
-                            "ink": "warn",
-                            "text": "◷ "
+                            "icon": "needs_approval"
                           },
                           {
                             "ink": "warn",
@@ -896,9 +877,7 @@
                     "heading": "state",
                     "text": [
                       {
-                        "icon": "run_passed",
-                        "icon_lead": true,
-                        "text": "✓ "
+                        "icon": "run_passed"
                       },
                       {
                         "look": "status.success",

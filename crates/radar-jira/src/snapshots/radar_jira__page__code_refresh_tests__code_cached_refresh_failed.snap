@@ -3,11 +3,11 @@ source: crates/radar-jira/src/page_code_refresh_tests.rs
 expression: shown
 ---
 ── page · Jira / acme / ABC / ABC-12 ──
-:story: Add a stats endpoint for the dashboard  :in_progress: ◐ In Progress · Story · :you: you
+:story: Add a stats endpoint for the dashboard  :in_progress: In Progress · Story · :you: you
 parent ABC-1 Dashboard for the stats · Acme ABC · :updated: updated 1h ago
 :info: Overview  :thread: Comments  :link: Links  <:change: Code>
 ── middle · code * ──
-! :error: ✗ Jira page could not sync: Jira refresh unavailable
+! :error: Jira page could not sync: Jira refresh unavailable
 > :change: api !263         open     ABC-12: Add a stats endpoint for the dashboard  abc-12-stats · from Jira  <https://gitlab.com/acme/team-a/api/-/merge_requests/263>  {row:0}
 ── status · JIRA ──
 PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

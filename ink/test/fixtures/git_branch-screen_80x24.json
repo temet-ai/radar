@@ -437,8 +437,14 @@
                     "text": "alice/ABC-12"
                   },
                   {
+                    "text": "  "
+                  },
+                  {
+                    "icon": "local"
+                  },
+                  {
                     "ink": "good",
-                    "text": "  ● here"
+                    "text": "here"
                   }
                 ]
               },
@@ -519,8 +525,14 @@
                     "text": "alice/ABC-14"
                   },
                   {
+                    "text": "  "
+                  },
+                  {
+                    "icon": "local"
+                  },
+                  {
                     "ink": "good",
-                    "text": "  ● in api-hotfix"
+                    "text": "in api-hotfix"
                   }
                 ]
               },
@@ -766,8 +778,14 @@
                 "text": "alice/ABC-12"
               },
               {
+                "text": "  "
+              },
+              {
+                "icon": "local"
+              },
+              {
                 "ink": "good",
-                "text": "  ● in use"
+                "text": "in use"
               }
             ]
           },
@@ -878,8 +896,14 @@
                     "text": "main"
                   },
                   {
+                    "text": "  "
+                  },
+                  {
+                    "icon": "local"
+                  },
+                  {
                     "ink": "good",
-                    "text": "  ● here"
+                    "text": "here"
                   }
                 ]
               }

@@ -456,7 +456,13 @@ fn the_review_key_and_id_of_a_gitlab_merge_request_reach_the_part_through_the_ho
 #[cfg(all(feature = "gitlab", feature = "github", feature = "slack"))]
 mod setup_steps {
     use super::*;
-    use radar_core::view::ListRow;
+    use radar_core::view::{Target, TreeRow};
+
+    /// A row of the step's section: its words and where selecting it goes.
+    struct Row {
+        words: String,
+        target: Target,
+    }
 
     /// Every compiled-in part with its sample, setup open at `step`.
     fn at_step(step: &str) -> Headless {
@@ -465,16 +471,21 @@ mod setup_steps {
         h
     }
 
-    fn rows(h: &Headless) -> Vec<ListRow> {
+    fn rows(h: &Headless) -> Vec<Row> {
         match h.section().expect("the step's section").body {
-            Node::List { rows, .. } => rows,
-            other => panic!("a list: {other:?}"),
+            Node::List { rows, .. } => rows.into_iter().map(|r| Row { words: r.text.words(), target: r.target }).collect(),
+            Node::Tree(tree) => tree
+                .visible()
+                .into_iter()
+                .map(|(path, row)| Row { words: row.name.words(), target: TreeRow::target_of(&path) })
+                .collect(),
+            other => panic!("a list or a tree: {other:?}"),
         }
     }
 
     /// Select the first row whose words hold `words`.
     fn select(h: &mut Headless, words: &str) {
-        let row = rows(h).into_iter().find(|r| r.text.words().contains(words)).unwrap_or_else(|| panic!("no row {words:?}"));
+        let row = rows(h).into_iter().find(|r| r.words.contains(words)).unwrap_or_else(|| panic!("no row {words:?}"));
         h.send(Intent::Select { target: row.target });
     }
 
@@ -611,7 +622,7 @@ mod setup_steps {
         let mut h = at_step("local");
         let at = part(&h, "git");
         select(&mut h, "look down");
-        let row = rows(&h).into_iter().find(|r| r.text.words().contains("look down")).unwrap();
+        let row = rows(&h).into_iter().find(|r| r.words.contains("look down")).unwrap();
         h.send(Intent::Activate { target: row.target });
         assert!(h.menu().is_none() && h.host().plugins[at].capturing());
         h.send(Intent::Key { chord: radar_core::view::Chord::char('2') });

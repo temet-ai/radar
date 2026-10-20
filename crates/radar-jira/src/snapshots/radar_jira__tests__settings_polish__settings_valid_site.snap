@@ -6,25 +6,25 @@ expression: got
   ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?  {row:0}
   ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?  {row:1}
   + add a site   paste its link, e.g. https://acme.atlassian.net  {row:2}
-  ▌ acme  acme.atlassian.net · 2 projects  {row:3}
-> ├─ site            https://acme.atlassian.net  [https://gamma.atlassian.net/jira/software/projects/GAM/boards/2|]  {row:4}
-  ├─ account         alice@example.com  {row:5}
-  ├─ token           env:RADAR_JIRA_TEST_TOKEN  {row:6}
-  ├─ signed in as    Alice Example  {row:7}
-  ├─ check           not checked yet  {row:8}
-  └─ projects        ABC, DEF  {row:9}
-  ▌ beta  beta.atlassian.net · 1 project  {row:10}
-  ├─ site            https://beta.atlassian.net  {row:11}
-  ├─ account         alice@example.com  {row:12}
-  ├─ token           env:RADAR_JIRA_TEST_TOKEN  {row:13}
-  ├─ signed in as    —  {row:14}
-  ├─ check           not checked yet  {row:15}
-  └─ projects        XYZ  {row:16}
+  acme  acme.atlassian.net · 2 projects  {row:3}
+>   site            https://acme.atlassian.net  [https://gamma.atlassian.net/jira/software/projects/GAM/boards/2|]  {row:3/row:4}
+    account         alice@example.com  {row:3/row:5}
+    token           env:RADAR_JIRA_TEST_TOKEN  {row:3/row:6}
+    signed in as    Alice Example  {row:3/row:7}
+    check           not checked yet  {row:3/row:8}
+    projects        ABC, DEF  {row:3/row:9}
+  beta  beta.atlassian.net · 1 project  {row:10}
+    site            https://beta.atlassian.net  {row:10/row:11}
+    account         alice@example.com  {row:10/row:12}
+    token           env:RADAR_JIRA_TEST_TOKEN  {row:10/row:13}
+    signed in as    —  {row:10/row:14}
+    check           not checked yet  {row:10/row:15}
+    projects        XYZ  {row:10/row:16}
   refresh         every 2m  {row:17}
   on start        ask first  {row:18}
 ── detail · site ──
 AS YOU TYPE
-✓ the site gamma.atlassian.net
+:run_passed: the site gamma.atlassian.net
 
 CHECKED
 not checked yet

@@ -387,14 +387,7 @@ pub fn detail_title(p: &WorkspacePlugin, _section: &str) -> String {
 }
 
 fn check_line(good: bool, text: String) -> Text {
-    let (icon, symbol, ink) = if good {
-        (ui::icon::Icon::RunPassed, "✓", Ink::Good)
-    } else {
-        (ui::icon::Icon::Warning, "⚠", Ink::Warn)
-    };
-    Text::new()
-        .push(Seg::icon_or(icon, symbol, ink))
-        .push(Seg::new(format!(" {text}"), ink))
+    v::kit::check(good, &text)
 }
 
 /// The detail beside the rows: the live verdict on what is typed first,
@@ -405,9 +398,9 @@ fn detail(p: &WorkspacePlugin, now: i64) -> Vec<Text> {
     if let Some((field, input)) = &p.state.edit {
         lines.push(heading("as you type"));
         lines.push(match validate(p, field, &input.value()) {
-            Verdict::Good(m) => Text::of(format!("✓ {m}"), Ink::Good),
-            Verdict::Warn(m) => Text::of(format!("⚠ {m}"), Ink::Warn),
-            Verdict::Bad(m) => Text::of(format!("✗ {m}"), Ink::Warn),
+            Verdict::Good(m) => v::kit::marked(ui::icon::Icon::RunPassed, &m, Ink::Good),
+            Verdict::Warn(m) => v::kit::marked(ui::icon::Icon::Warning, &m, Ink::Warn),
+            Verdict::Bad(m) => v::kit::marked(ui::icon::Icon::Error, &m, Ink::Bad),
         });
         lines.push(Text::new());
     }

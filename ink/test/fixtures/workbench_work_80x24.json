@@ -1082,17 +1082,21 @@
           "lines": [
             [
               {
-                "text": "○ 00000001"
+                "ink": "muted",
+                "text": "00000001"
               }
             ],
             [
               {
-                "text": "● linked sources"
+                "ink": "accent",
+                "strong": true,
+                "text": "linked sources"
               }
             ],
             [
               {
-                "text": "○ evidence"
+                "ink": "muted",
+                "text": "evidence"
               }
             ]
           ],

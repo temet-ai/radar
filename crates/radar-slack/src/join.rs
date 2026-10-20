@@ -441,7 +441,7 @@ fn repo_alerts(p: &SlackPlugin, point: Point, s: &Subject) -> Option<Contributio
                             crate::alert_view::lasted(p.now - a.changed())
                         ),
                     };
-                    let mut parts = vec![format!("{}{}", crate::view::state_mark(a.state), a.name)];
+                    let mut parts = vec![a.name.clone()];
                     parts.extend(
                         [a.environment.clone(), a.priority.clone()]
                             .into_iter()
@@ -450,7 +450,10 @@ fn repo_alerts(p: &SlackPlugin, point: Point, s: &Subject) -> Option<Contributio
                     parts.push(how);
                     parts.push(format!("#{}", p.alias(&a.channel)));
                     Row {
-                        line: Text::plain(parts.join(" · ")),
+                        // The state is all the mark says: with icons off its symbol stays.
+                        line: Text::new()
+                            .push(Seg::icon_or_lead(a.state.icon(), format!("{} ", a.state.mark()), Ink::Plain))
+                            .push(Seg::new(parts.join(" · "), Ink::Plain)),
                         subject: Some(thread_subject(p, &a.channel, &a.ts)),
                     }
                 })

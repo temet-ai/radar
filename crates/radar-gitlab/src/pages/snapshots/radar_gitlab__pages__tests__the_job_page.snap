@@ -3,7 +3,7 @@ source: crates/radar-gitlab/src/pages/tests.rs
 expression: "hosted(job_page(), 160, 40)"
 ---
 ── page · Repositories / b / worker / !342 / unit-test ──
-:job: unit-test  :run_failed: ✗ failed · stage test · 1m 14s · the script failed
+:job: unit-test  :run_failed: failed · stage test · 1m 14s · the script failed
 <:log: Log>
 ── middle · log * ──
 log 1..12 of 12

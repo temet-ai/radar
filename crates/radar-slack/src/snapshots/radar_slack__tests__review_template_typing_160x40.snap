@@ -11,7 +11,7 @@ expression: text
   ask again        after 2 working days without a reply  {row:5}
 ── detail · template ──
 AS YOU TYPE
-✓ mentions the group picked under user group (in the review channel); posts: Review please <!subteam^S0REVIEW01>: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard
+:run_passed: mentions the group picked under user group (in the review channel); posts: Review please <!subteam^S0REVIEW01>: <https://git.example/acme/team-a/api/-/merge_requests/263|mr> Add a stats endpoint for the dashboard
 
 The message: {mrs} is the merge request linked with its words, or one bullet each for several; {group} mentions the user group picked above, and {@handle} any of Slack's user groups by its handle. Both are sent as Slack's mention of the group's id, so it pings, and only in the review channel. :name: is an emoji.
 

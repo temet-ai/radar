@@ -552,8 +552,7 @@
                     "id": "f:3",
                     "name": [
                       {
-                        "ink": "accent",
-                        "text": "▎ "
+                        "icon": "run_passed"
                       },
                       {
                         "icon": "file_markdown"
@@ -619,8 +618,7 @@
                         "id": "f:0",
                         "name": [
                           {
-                            "ink": "muted",
-                            "text": "· "
+                            "icon": "todo"
                           },
                           {
                             "icon": "file_java"
@@ -630,8 +628,14 @@
                             "text": "StatsController.java"
                           },
                           {
+                            "text": " "
+                          },
+                          {
+                            "icon": "thread"
+                          },
+                          {
                             "ink": "warn",
-                            "text": " ◆1"
+                            "text": "1"
                           }
                         ]
                       },
@@ -650,8 +654,7 @@
                         "id": "f:2",
                         "name": [
                           {
-                            "ink": "muted",
-                            "text": "· "
+                            "icon": "todo"
                           },
                           {
                             "icon": "file_java"
@@ -703,8 +706,7 @@
                         "id": "f:1",
                         "name": [
                           {
-                            "ink": "muted",
-                            "text": "· "
+                            "icon": "todo"
                           },
                           {
                             "icon": "file_java"
@@ -756,8 +758,7 @@
                 "id": "f:4",
                 "name": [
                   {
-                    "ink": "muted",
-                    "text": "· "
+                    "icon": "todo"
                   },
                   {
                     "icon": "file_xml"

@@ -178,13 +178,11 @@
     ],
     "details": [
       {
-        "icon": "in_progress",
-        "look": "status.info bold",
-        "text": "◐"
+        "icon": "in_progress"
       },
       {
         "look": "status.info bold",
-        "text": " In Progress"
+        "text": "In Progress"
       },
       {
         "ink": "muted",
@@ -231,13 +229,11 @@
                   "text": "status        "
                 },
                 {
-                  "icon": "in_progress",
-                  "look": "status.info bold",
-                  "text": "◐"
+                  "icon": "in_progress"
                 },
                 {
                   "look": "status.info bold",
-                  "text": " In Progress"
+                  "text": "In Progress"
                 }
               ]
             },

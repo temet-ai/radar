@@ -74,16 +74,16 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_80x24.
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ all ─────────────────────────────────────────────────────────────────────────╮
 │ CLONES · 2 clones, 1 worktree      AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  │
-│▤ api  on ⎇ alice/ABC-12  ● in use  ↑2     —       ⚠ 3 change 1      3h       │
+│▤ api  on ⎇ alice/ABC-12  ⌂ in use  ↑2     —       ⚠ 3 change 1      3h       │
 │  ├─ ▪ api-hotfix  on ⎇ alice/ABC-… ↑1     ↓3      clean      —      1d       │
 │  ├─ ⎇ main                         —      ↓4      —          —      2d       │
-│  ├─ ⎇ alice/ABC-12  ● here         ↑2     —       ⚠ 3 change —      3h       │
-│  ├─ ⎇ alice/ABC-14  ● in api-hotf… ↑1     ↓3      clean      —      1d       │
+│  ├─ ⎇ alice/ABC-12  ⌂ here         ↑2     —       ⚠ 3 change —      3h       │
+│  ├─ ⎇ alice/ABC-14  ⌂ in api-hotf… ↑1     ↓3      clean      —      1d       │
 │  ├─ ◈ alice/ABC-9  merged          —      —       —          —      6d       │
 │  ├─ ⎇ alice/ABC-7                  —      gone    —          —      2w       │
 │  └─ ⎇ spike                        —      —       —          —      9d       │
 │▤ web  on ⎇ main                    —      —       clean      —      4d       │
-│  └─ ⎇ main  ● here                 —      —       clean      —      4d       │
+│  └─ ⎇ main  ⌂ here                 —      —       clean      —      4d       │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -101,16 +101,16 @@ exports[`recorded view fixtures through the whole App > git_branch-screen_160x40
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ all ───────────────────────────────────────────────────────────────────────────────╮╭ api ─────────────────────────────────────────╮
 │ ▽ all                  ││ CLONES · 2 clones, 1 worktree            AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT  ││ folder   /work/acme/api                      │
-│ ⚠ dirty              1 ││▤ api  on ⎇ alice/ABC-12  ● in use        ↑2     —       ⚠ 3 change 1      3h       ││ origin   git@example.com:acme/team-a/api.git │
+│ ⚠ dirty              1 ││▤ api  on ⎇ alice/ABC-12  ⌂ in use        ↑2     —       ⚠ 3 change 1      3h       ││ origin   git@example.com:acme/team-a/api.git │
 │ ◦ ahead of remote    2 ││  ├─ ▪ api-hotfix  on ⎇ alice/ABC-14      ↑1     ↓3      clean      —      1d       ││ repo     acme/team-a/api                     │
 │ ▪ stashes            1 ││  ├─ ⎇ main                               —      ↓4      —          —      2d       ││ on       alice/ABC-12                        │
-│                        ││  ├─ ⎇ alice/ABC-12  ● here               ↑2     —       ⚠ 3 change —      3h       ││ changes  ⚠ 3 changed                         │
-│                        ││  ├─ ⎇ alice/ABC-14  ● in api-hotfix      ↑1     ↓3      clean      —      1d       ││ base     main                                │
+│                        ││  ├─ ⎇ alice/ABC-12  ⌂ here               ↑2     —       ⚠ 3 change —      3h       ││ changes  ⚠ 3 changed                         │
+│                        ││  ├─ ⎇ alice/ABC-14  ⌂ in api-hotfix      ↑1     ↓3      clean      —      1d       ││ base     main                                │
 │                        ││  ├─ ◈ alice/ABC-9  merged                —      —       —          —      6d       ││                                              │
 │                        ││  ├─ ⎇ alice/ABC-7                        —      gone    —          —      2w       ││ ▪ WORKTREES ──────────────────────────────── │
 │                        ││  └─ ⎇ spike                              —      —       —          —      9d       ││   ▪ /work/acme/api-hotfix  alice/ABC-14      │
 │                        ││▤ web  on ⎇ main                          —      —       clean      —      4d       ││                                              │
-│                        ││  └─ ⎇ main  ● here                       —      —       clean      —      4d       ││ ▪ STASHES ────────────────────────────────── │
+│                        ││  └─ ⎇ main  ⌂ here                       —      —       clean      —      4d       ││ ▪ STASHES ────────────────────────────────── │
 │                        ││                                                                                    ││   ▪ On alice/ABC-12: ABC-12-local-2026-10-05 │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
@@ -1614,8 +1614,8 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-tenancie
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ tenancies ───────────────────────────────────────────╮
 │GitLab                ││ + add a tenancy   paste a GitLab group or repo link  │
-│  ├─ connection       ││● b    team-b   0 repos · 0 hidden                    │
-│  └─ projects         ││● a    team-a   4 repos · 1 hidden                    │
+│  ├─ connection       ││b    team-b   0 repos · 0 hidden                      │
+│  └─ projects         ││a    team-a   4 repos · 1 hidden                      │
 │Slack ⋯               ││  ├─ api                                      shown   │
 │                      ││  ├─ docs                                     shown   │
 │                      ││  ├─ tools/renovate                           hidden  │
@@ -1641,8 +1641,8 @@ exports[`recorded view fixtures through the whole App > gitlab_settings-tenancie
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ tenancies ─────────────────────────────────────────────────────────────────────╮╭ add a tenancy ─────────────────────────────────────╮
 │GitLab                ││ + add a tenancy   paste a GitLab group or repo link, or its path               ││ Track another GitLab group (every repo in it), or  │
-│  ├─ connection       ││● b    team-b   0 repos · 0 hidden                                              ││ one repo on its own.                               │
-│  └─ projects         ││● a    team-a   4 repos · 1 hidden                                              ││                                                    │
+│  ├─ connection       ││b    team-b   0 repos · 0 hidden                                                ││ one repo on its own.                               │
+│  └─ projects         ││a    team-a   4 repos · 1 hidden                                                ││                                                    │
 │Slack ⋯               ││  ├─ api                                                                shown   ││ PASTE OR TYPE ANY OF                               │
 │                      ││  ├─ docs                                                               shown   ││   https://gitlab.com/<base>/tenants/<group>/       │
 │                      ││  ├─ tools/renovate                                                     hidden  ││   /<part of base>/tenants/<group>/                 │
@@ -1823,15 +1823,15 @@ exports[`recorded view fixtures through the whole App > host_chrome_160x40.json 
 exports[`recorded view fixtures through the whole App > jira_settings-connection_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
-│GitLab                ││  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMA █
-│  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHE █
-│  └─ projects         ││  + add a site   paste its link, e.g. https://acme.at █
-│Slack ⋯               ││ ▌ acme   acme.atlassian.net · 2 projects             █
-│                      ││    ├─ site            https://acme.atlassian.net     ║
-│                      ││    ├─ account         alice@example.com              ║
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN      ║
-│                      ││    ├─ signed in as    Alice Example                  ║
-│                      ││    ├─ check           not checked yet                ║
+│GitLab                ││ ? Found: a Jira site (gamma.atlassian.net, JIRA_EMA █│
+│  ├─ connection       ││ ? Found in your environment: a Jira site (JIRA_OTHE █│
+│  └─ projects         ││+ add a site   paste its link, e.g. https://acme.atl █│
+│Slack ⋯               ││acme   acme.atlassian.net · 2 projects               █│
+│                      ││  ├─ site            https://acme.atlassian.net      █│
+│                      ││  ├─ account         alice@example.com               ║│
+│                      ││  ├─ token           env:RADAR_JIRA_TEST_TOKEN       ║│
+│                      ││  ├─ signed in as    Alice Example                   ║│
+│                      ││  ├─ check           not checked yet                 ║│
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ found in /work/acme/.mcp.json ───────────────────────╮
 │                      ││ radar found a Jira site in /work/acme/.mcp.json. Do  █
@@ -1850,25 +1850,25 @@ exports[`recorded view fixtures through the whole App > jira_settings-connection
 exports[`recorded view fixtures through the whole App > jira_settings-connection_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ found in /work/acme/.mcp.json ─────────────────────╮
-│GitLab                ││  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL ││ radar found a Jira site in /work/acme/.mcp.json.   █
-│  ├─ connection       ││  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, J ││ Do you want to use it?                             █
-│  └─ projects         ││  + add a site   paste its link, e.g. https://acme.atlassian.net                ││                                                    █
-│Slack ⋯               ││ ▌ acme   acme.atlassian.net · 2 projects                                       ││ FOUND                                              █
-│                      ││    ├─ site            https://acme.atlassian.net                               ││ gamma.atlassian.net  the site's address, as        █
-│                      ││    ├─ account         alice@example.com                                        ││ written                                            █
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ JIRA_EMAIL           the account                   █
-│                      ││    ├─ signed in as    Alice Example                                            ││                                                    █
-│                      ││    ├─ check           not checked yet                                          ││ radar stores only the variables' names (env:NAME)  █
-│                      ││    └─ projects        ABC, DEF                                                 ││ and reads their values each time it starts. It     █
-│                      ││ ▌ beta   beta.atlassian.net · 1 project                                        ││ never shows the values or saves them.              █
-│                      ││    ├─ site            https://beta.atlassian.net                               ││                                                    █
-│                      ││    ├─ account         alice@example.com                                        ││ It is the file's "tools" entry. It also watches    █
-│                      ││    ├─ token           env:RADAR_JIRA_TEST_TOKEN                                ││ GAM (acceptance criteria in customfield_10044).    █
-│                      ││    ├─ signed in as    —                                                        ││ Its token is typed into the file: radar does not   █
-│                      ││    ├─ check           not checked yet                                          ││ copy it, and asks which variable holds it.         █
-│                      ││    └─ projects        XYZ                                                      ││                                                    █
-│                      ││  refresh         every 2m                                                      ││ IF YOU USE IT                                      █
-│                      ││  on start        ask first                                                     ││ radar adds the site gamma and asks which variable  █
+│GitLab                ││ ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL  ││ radar found a Jira site in /work/acme/.mcp.json.   █
+│  ├─ connection       ││ ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, J  ││ Do you want to use it?                             █
+│  └─ projects         ││+ add a site   paste its link, e.g. https://acme.atlassian.net                  ││                                                    █
+│Slack ⋯               ││acme   acme.atlassian.net · 2 projects                                          ││ FOUND                                              █
+│                      ││  ├─ site            https://acme.atlassian.net                                 ││ gamma.atlassian.net  the site's address, as        █
+│                      ││  ├─ account         alice@example.com                                          ││ written                                            █
+│                      ││  ├─ token           env:RADAR_JIRA_TEST_TOKEN                                  ││ JIRA_EMAIL           the account                   █
+│                      ││  ├─ signed in as    Alice Example                                              ││                                                    █
+│                      ││  ├─ check           not checked yet                                            ││ radar stores only the variables' names (env:NAME)  █
+│                      ││  └─ projects        ABC, DEF                                                   ││ and reads their values each time it starts. It     █
+│                      ││beta   beta.atlassian.net · 1 project                                           ││ never shows the values or saves them.              █
+│                      ││  ├─ site            https://beta.atlassian.net                                 ││                                                    █
+│                      ││  ├─ account         alice@example.com                                          ││ It is the file's "tools" entry. It also watches    █
+│                      ││  ├─ token           env:RADAR_JIRA_TEST_TOKEN                                  ││ GAM (acceptance criteria in customfield_10044).    █
+│                      ││  ├─ signed in as    —                                                          ││ Its token is typed into the file: radar does not   █
+│                      ││  ├─ check           not checked yet                                            ││ copy it, and asks which variable holds it.         █
+│                      ││  └─ projects        XYZ                                                        ││                                                    █
+│                      ││refresh         every 2m                                                        ││ IF YOU USE IT                                      █
+│                      ││on start        ask first                                                       ││ radar adds the site gamma and asks which variable  █
 │                      ││                                                                                ││ holds its token.                                   █
 │                      ││                                                                                ││                                                    █
 │                      ││                                                                                ││ ⏎ uses it                                          █
@@ -2130,7 +2130,7 @@ exports[`recorded view fixtures through the whole App > jira_tickets_80x24.json 
 exports[`recorded view fixtures through the whole App > jira_tickets_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ views ─────────────────╮╭ My tickets ────────────────────────────────────────────────────────────────────────╮╭ acme ────────────────────────────────────────╮
-│ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone              TYPE      STATUS          CODE        ↺ UPDAT  ││ ▌ ⊕ acme  acme.atlassian.net                 │
+│ ☻ My tickets           ││ ASSIGNED TO ⚇ everyone              TYPE      STATUS          CODE        ↺ UPDAT  ││ ⊕ acme  acme.atlassian.net                   │
 │ ⊟ This sprint          ││⊕ acme  acme.atlassian.net                                                          ││                                              │
 │ ◇ Recently updated     ││  ├─ ◐ In Progress                                                                  ││ signed in   Alice Example                    │
 │                        ││  │  └─ ✦ ABC-1 = Dashboard for the  Epic      ◐ In Progress               2w       ││ watching    ABC, DEF                         │
@@ -2412,8 +2412,8 @@ exports[`recorded view fixtures through the whole App > slack_feed_160x40.json a
 ╭ feed ──────────────────╮╭ For you ───────────────────────────────────────────────────────────────────────────╮╭ Bob Builder's message ───────────────────────╮
 │ @ For you            4 ││ last 7 days                                                    ↩ REPLIE ◷ WHEN     ││ Acme / # #team                               │
 │ ❝ Discussions          ││@ mentions you                                                                      ││ @Alice Example could you take this one?      │
-│ ▌ # #team        6 NEW ││  └─ • #team Bob B.  @Alice Example could you take this one?             1d         ││                       ☺ Bob Builder · 1d ago │
-│ ▌ # #svc         1 NEW ││@ direct messages                                                                   ││                                              │
+│ # #team          6 NEW ││  └─ • #team Bob B.  @Alice Example could you take this one?             1d         ││                       ☺ Bob Builder · 1d ago │
+│ # #svc           1 NEW ││@ direct messages                                                                   ││                                              │
 │                        ││  └─ • #D0000CAROL Carol C.  hi @Alice Example, quick question           1h         ││ thread  thread start                         │
 │                        ││❝ threads you are in                                                                ││                                              │
 │                        ││  ├─ • #team Carol C.  Anyone seen ABC-12 failing on main?  ⋯ 1 ↩ 1      1d         ││ ❝ THREAD  yesterday ──────────────────────── │
@@ -2523,8 +2523,8 @@ exports[`recorded view fixtures through the whole App > slack_feed-page1-thread-
 exports[`recorded view fixtures through the whole App > slack_settings-alerts_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ alerts ──────────────────────────────────────────────╮
-│GitLab                ││ + add a mapping   the start of an alert's name, then │
-│  ├─ connection       ││ keep resolved    24 hours                            │
+│GitLab                ││+ add a mapping   the start of an alert's name, then  │
+│  ├─ connection       ││keep resolved    24 hours                             │
 │  └─ projects         ││                                                      │
 │Slack ⋯               ││                                                      │
 │                      ││                                                      │
@@ -2550,8 +2550,8 @@ exports[`recorded view fixtures through the whole App > slack_settings-alerts_80
 exports[`recorded view fixtures through the whole App > slack_settings-alerts_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ alerts ────────────────────────────────────────────────────────────────────────╮╭ add a mapping ─────────────────────────────────────╮
-│GitLab                ││ + add a mapping   the start of an alert's name, then where it belongs          ││ Say where a kind of alert belongs.                 │
-│  ├─ connection       ││ keep resolved    24 hours                                                      ││                                                    │
+│GitLab                ││+ add a mapping   the start of an alert's name, then where it belongs           ││ Say where a kind of alert belongs.                 │
+│  ├─ connection       ││keep resolved    24 hours                                                       ││                                                    │
 │  └─ projects         ││                                                                                ││ Type the start of its name; the repo it belongs to │
 │Slack ⋯               ││                                                                                ││ is asked next. The service, a label to match and   │
 │                      ││                                                                                ││ an environment can be set under the rule. The      │
@@ -2593,15 +2593,15 @@ exports[`recorded view fixtures through the whole App > slack_settings-alerts_16
 exports[`recorded view fixtures through the whole App > slack_settings-channels_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ channels ────────────────────────────────────────────╮
-│GitLab                ││ + add a channel   paste a link to it, or type #name  █
-│  ├─ connection       ││ ▌ #team   #acme-team · team · watched                █
-│  └─ projects         ││   ├─ alias           team                            █
-│Slack ⋯               ││   ├─ purpose         where the team talks            █
-│                      ││   ├─ kind            team                            ║
-│                      ││   ├─ colour          ██ cyan                         ║
-│                      ││   └─ watched         yes                             ║
-│                      ││ ▌ #svc   #acme-svc · service · watched               ║
-│                      ││   ├─ alias           svc                             ║
+│GitLab                ││+ add a channel   paste a link to it, or type #name  █│
+│  ├─ connection       ││#team   #acme-team · team · watched                  █│
+│  └─ projects         ││  ├─ alias           team                            █│
+│Slack ⋯               ││  ├─ purpose         where the team talks            █│
+│                      ││  ├─ kind            team                            █│
+│                      ││  ├─ colour          ██ cyan                         ║│
+│                      ││  └─ watched         yes                             ║│
+│                      ││#svc   #acme-svc · service · watched                 ║│
+│                      ││  ├─ alias           svc                             ║│
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ add a channel ───────────────────────────────────────╮
 │                      ││ Read another channel.                                █
@@ -2620,25 +2620,25 @@ exports[`recorded view fixtures through the whole App > slack_settings-channels_
 exports[`recorded view fixtures through the whole App > slack_settings-channels_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ channels ──────────────────────────────────────────────────────────────────────╮╭ add a channel ─────────────────────────────────────╮
-│GitLab                ││ + add a channel   paste a link to it, or type #name                            ││ Read another channel.                              │
-│  ├─ connection       ││ ▌ #team   #acme-team · team · watched                                          ││                                                    │
-│  └─ projects         ││   ├─ alias           team                                                      ││ PASTE OR TYPE ANY OF                               │
-│Slack ⋯               ││   ├─ purpose         where the team talks                                      ││   a link to the channel or to a message in it      │
-│                      ││   ├─ kind            team                                                      ││   its id: C0123ABCD                                │
-│                      ││   ├─ colour          ██ cyan                                                   ││   #name                                            │
-│                      ││   └─ watched         yes                                                       ││                                                    │
-│                      ││ ▌ #svc   #acme-svc · service · watched                                         ││ Slack is asked which channel it is; it is added as │
-│                      ││   ├─ alias           svc                                                       ││ a team channel, watched, called by its name in     │
-│                      ││   ├─ purpose         —                                                         ││ Slack. Change any of that below it.                │
-│                      ││   ├─ kind            service                                                   ││                                                    │
-│                      ││   ├─ colour          ██ orange                                                 ││                                                    │
-│                      ││   └─ watched         yes                                                       ││                                                    │
-│                      ││ ▌ #try   #acme-try · test · not watched                                        ││                                                    │
-│                      ││   ├─ alias           try                                                       ││                                                    │
-│                      ││   ├─ purpose         —                                                         ││                                                    │
-│                      ││   ├─ kind            test                                                      ││                                                    │
-│                      ││   ├─ colour          ██ green                                                  ││                                                    │
-│                      ││   └─ watched         no                                                        ││                                                    │
+│GitLab                ││+ add a channel   paste a link to it, or type #name                             ││ Read another channel.                              │
+│  ├─ connection       ││#team   #acme-team · team · watched                                             ││                                                    │
+│  └─ projects         ││  ├─ alias           team                                                       ││ PASTE OR TYPE ANY OF                               │
+│Slack ⋯               ││  ├─ purpose         where the team talks                                       ││   a link to the channel or to a message in it      │
+│                      ││  ├─ kind            team                                                       ││   its id: C0123ABCD                                │
+│                      ││  ├─ colour          ██ cyan                                                    ││   #name                                            │
+│                      ││  └─ watched         yes                                                        ││                                                    │
+│                      ││#svc   #acme-svc · service · watched                                            ││ Slack is asked which channel it is; it is added as │
+│                      ││  ├─ alias           svc                                                        ││ a team channel, watched, called by its name in     │
+│                      ││  ├─ purpose         —                                                          ││ Slack. Change any of that below it.                │
+│                      ││  ├─ kind            service                                                    ││                                                    │
+│                      ││  ├─ colour          ██ orange                                                  ││                                                    │
+│                      ││  └─ watched         yes                                                        ││                                                    │
+│                      ││#try   #acme-try · test · not watched                                           ││                                                    │
+│                      ││  ├─ alias           try                                                        ││                                                    │
+│                      ││  ├─ purpose         —                                                          ││                                                    │
+│                      ││  ├─ kind            test                                                       ││                                                    │
+│                      ││  ├─ colour          ██ green                                                   ││                                                    │
+│                      ││  └─ watched         no                                                         ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
@@ -2663,15 +2663,15 @@ exports[`recorded view fixtures through the whole App > slack_settings-channels_
 exports[`recorded view fixtures through the whole App > slack_settings-connection_80x24.json at 80x24 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ settings ────────────╮╭ connection ──────────────────────────────────────────╮
-│GitLab                ││  workspace       Acme · https://acme.slack.com       █
-│  ├─ connection       ││  api             https://slack.com                   █
-│  └─ projects         ││  token           xoxp…ests (typed in)                █
-│Slack ⋯               ││  signed in as    Alice Example  alice                █
-│                      ││  check           not checked yet                     ║
-│                      ││  refresh         every 2m                            ║
-│                      ││  read back       7 days                              ║
-│                      ││  permissions   ├─ public channels                  ● ║
-│                      ││                ├─ private channels                 ● ║
+│GitLab                ││workspace       Acme · https://acme.slack.com        █│
+│  ├─ connection       ││api             https://slack.com                    █│
+│  └─ projects         ││token           xoxp…ests (typed in)                 █│
+│Slack ⋯               ││signed in as    Alice Example  alice                 █│
+│                      ││check           not checked yet                      ║│
+│                      ││refresh         every 2m                             ║│
+│                      ││read back       7 days                               ║│
+│                      ││permissions                                          ║│
+│                      ││  ├─ public channels                     ●           ║│
 │                      │╰──────────────────────────────────────────────────────╯
 │                      │╭ workspace ───────────────────────────────────────────╮
 │                      ││ CHECKED                                              █
@@ -2690,28 +2690,28 @@ exports[`recorded view fixtures through the whole App > slack_settings-connectio
 exports[`recorded view fixtures through the whole App > slack_settings-connection_160x40.json at 160x40 1`] = `
 " radar    ▤ Repositories ●   ◇ Jira   ✉ Slack ●   ⎇ Branches   Work items   ≣ History   ⚙ Settings (,)          ⠷ local annotations · observations only  ✎ edit
 ╭ settings ────────────╮╭ connection ────────────────────────────────────────────────────────────────────╮╭ workspace ─────────────────────────────────────────╮
-│GitLab                ││  workspace       Acme · https://acme.slack.com                                 ││ CHECKED                                            │
-│  ├─ connection       ││  api             https://slack.com                                             ││ not checked yet                                    │
-│  └─ projects         ││  token           xoxp…ests (typed in)                                          ││                                                    │
-│Slack ⋯               ││  signed in as    Alice Example  alice                                          ││ NOW                                                │
-│                      ││  check           not checked yet                                               ││ Acme · https://acme.slack.com                      │
-│                      ││  refresh         every 2m                                                      ││                                                    │
-│                      ││  read back       7 days                                                        ││ The Slack workspace the token is for: a user token │
-│                      ││  permissions   ├─ public channels                                            ● ││ belongs to one. The check finds it.                │
-│                      ││                ├─ private channels                                           ● ││                                                    │
-│                      ││                ├─ for you                                                    ● ││ ⇌ MAKE A USER TOKEN  about two minutes, once ───── │
-│                      ││                ├─ names                                                      ● ││   1 Open Slack's new-app page, radar's manifest    │
-│                      ││                ├─ user groups                                                ● ││   filled in:                                       │
-│                      ││                ├─ asking and replying                                        ● ││   api.slack.com / new app   open · copy manifest   │
-│                      ││                ├─ reacting        needs reactions:write                      ✗ ││     user scopes only: 10                           │
-│                      ││                └─ pictures                                                   ● ││   2 Pick your workspace, Next, Create.             │
-│                      ││                                                                                ││   3 Install to Workspace, then Allow.              │
-│                      ││  CHANNELS  the registry; watched ones are read                                 ││   4 OAuth & Permissions shows the User OAuth       │
-│                      ││  + add a channel   paste its link, a message link, or its id                   ││   Token, xoxp-…: paste it into token, or:          │
-│                      ││    # #team   team · watched                                                    ││   $ export SLACK_TOKEN=xoxp-…                      │
-│                      ││    # #svc   service · watched                                                  ││     then the token is env:SLACK_TOKEN              │
-│                      ││    # #try   test · not watched                                                 ││   api.slack.com / your apps                        │
-│                      ││                                                                                ││ ⚇ NEEDS AN ADMIN? ──────────────────────────────── │
+│GitLab                ││workspace       Acme · https://acme.slack.com                                   ││ CHECKED                                            │
+│  ├─ connection       ││api             https://slack.com                                               ││ not checked yet                                    │
+│  └─ projects         ││token           xoxp…ests (typed in)                                            ││                                                    │
+│Slack ⋯               ││signed in as    Alice Example  alice                                            ││ NOW                                                │
+│                      ││check           not checked yet                                                 ││ Acme · https://acme.slack.com                      │
+│                      ││refresh         every 2m                                                        ││                                                    │
+│                      ││read back       7 days                                                          ││ The Slack workspace the token is for: a user token │
+│                      ││permissions                                                                     ││ belongs to one. The check finds it.                │
+│                      ││  ├─ public channels                                               ●            ││                                                    │
+│                      ││  ├─ private channels                                              ●            ││ ⇌ MAKE A USER TOKEN  about two minutes, once ───── │
+│                      ││  ├─ for you                                                       ●            ││   1 Open Slack's new-app page, radar's manifest    │
+│                      ││  ├─ names                                                         ●            ││   filled in:                                       │
+│                      ││  ├─ user groups                                                   ●            ││   api.slack.com / new app   open · copy manifest   │
+│                      ││  ├─ asking and replying                                           ●            ││     user scopes only: 10                           │
+│                      ││  ├─ reacting        needs reactions:write                         ✗            ││   2 Pick your workspace, Next, Create.             │
+│                      ││  └─ pictures                                                      ●            ││   3 Install to Workspace, then Allow.              │
+│                      ││                                                                                ││   4 OAuth & Permissions shows the User OAuth       │
+│                      ││ CHANNELS  the registry; watched ones are read                                  ││   Token, xoxp-…: paste it into token, or:          │
+│                      ││  ├─ + add a channel   paste its link, a message link, or its id                ││   $ export SLACK_TOKEN=xoxp-…                      │
+│                      ││  ├─ # #team   team · watched                                                   ││     then the token is env:SLACK_TOKEN              │
+│                      ││  ├─ # #svc   service · watched                                                 ││   api.slack.com / your apps                        │
+│                      ││  └─ # #try   test · not watched                                                ││ ⚇ NEEDS AN ADMIN? ──────────────────────────────── │
 │                      ││                                                                                ││   If Slack says Request to Install, your admin     │
 │                      ││                                                                                ││   approves it first.                               │
 │                      ││                                                                                ││   A missing scope switches off only its own        │

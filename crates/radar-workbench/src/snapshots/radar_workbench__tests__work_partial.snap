@@ -72,9 +72,9 @@ workflow-run · acme/api/42/1 · workflow-run
 Recording gaps are known.
 ── detail · tabs * ──
 <work.tabs>
-○ 00000001
-● linked sources
-○ evidence
+00000001
+linked sources
+evidence
 ── detail · actions * ──
 <work.rail>
 new local task…

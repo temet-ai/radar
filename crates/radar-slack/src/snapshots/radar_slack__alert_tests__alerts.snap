@@ -6,10 +6,10 @@ expression: text
   :mention: For you  5  {rail:0}
   :thread: Discussions  {rail:1}
 > :alert: Alerts  2  {rail:2}
-  ▌ :channel: #team  6 NEW  {rail:3}
-  ▌ :channel: #svc  1 NEW  {rail:4}
-  ▌ :channel: #team-alerts  10 NEW  {rail:5}
-  ▌ :channel: #jobs  1 NEW  {rail:6}
+  :channel: #team  6 NEW  {rail:3}
+  :channel: #svc  1 NEW  {rail:4}
+  :channel: #team-alerts  10 NEW  {rail:5}
+  :channel: #jobs  1 NEW  {rail:6}
 ── middle · Alerts * ──
 firing first, then what resolved
   firing  {s:firing}
@@ -26,7 +26,7 @@ firing first, then what resolved
 · 1 bot message not read as alerts: the log says why.
 ── detail · alert ──
 api-HighErrorRate
-▲ firing for 3h 07m · since 04:09
+:alert_firing: firing for 3h 07m · since 04:09
 notified 2 times, the last 1h 00m ago
 
 environment  prod

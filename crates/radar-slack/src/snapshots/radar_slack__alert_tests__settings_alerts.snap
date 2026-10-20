@@ -5,12 +5,12 @@ expression: text
 ── section · alerts ──
 > + add a mapping   the start of an alert's name, then where it belongs  {row:0}
   keep resolved    24 hours  {row:1}
-  ▌ api-… → repo acme/team-a/api · service api  {row:2}
-  ├─ name starts     api-  {row:3}
-  ├─ carries label   —  {row:4}
-  ├─ repo            acme/team-a/api  {row:5}
-  ├─ service         api  {row:6}
-  └─ environment     —  {row:7}
+  api-… → repo acme/team-a/api · service api  {row:2}
+    name starts     api-  {row:2/row:3}
+    carries label   —  {row:2/row:4}
+    repo            acme/team-a/api  {row:2/row:5}
+    service         api  {row:2/row:6}
+    environment     —  {row:2/row:7}
   no rule places  DiskFull  {row:8}
   Nightly export  {row:9}
 ── detail · add a mapping ──
@@ -18,4 +18,4 @@ Say where a kind of alert belongs.
 
 Type the start of its name; the repo it belongs to is asked next. The service, a label to match and an environment can be set under the rule. The first rule that matches an alert decides.
 ── status · SETTINGS ──
-q quit  x extra actions  ~ notices  ←→↑↓ navigate
++/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

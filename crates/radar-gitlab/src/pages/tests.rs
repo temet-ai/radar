@@ -134,7 +134,7 @@ fn an_error_shows_in_the_page() {
     );
     assert!(!p.busy("repos"));
     let text = draw(&p, 160, 40);
-    assert!(text.contains("✗ merge request could not sync: GitLab: boom"), "{text}");
+    assert!(text.contains(":error: merge request could not sync: GitLab: boom"), "{text}");
 }
 
 #[test]
@@ -146,12 +146,12 @@ fn the_merge_request_page_shows_every_tab() {
         "alice · :branch: feature/ABC-263 → main",
         "<:info: Overview>  :file: Changes  :thread: Threads !  :pipeline: Pipeline  :commit: Commits",
         "can it merge?",
-        "◷ needs 1 approval",
-        "✓ pipeline passed",
-        "✓ no conflicts, up to date",
-        "◷ needs 1 approval (0 of 1)",
-        "◆ 1 open thread",
-        "✓ not a draft",
+        ":needs_approval: needs 1 approval",
+        ":run_passed: pipeline passed",
+        ":run_passed: no conflicts, up to date",
+        ":needs_approval: needs 1 approval (0 of 1)",
+        ":thread: 1 open thread",
+        ":run_passed: not a draft",
         "• adds `GET /stats`",
         "LATEST ACTIVITY",
         "Alice Example · 46m ago · on StatsController.java:21",
@@ -166,23 +166,23 @@ fn the_merge_request_page_shows_every_tab() {
             "main/java/acme/stats",
             "+42 −0",
             "+33 −3",
-            "StatsController.java ◆1",
+            "StatsController.java :thread: 1",
             "loading…",
         ],
         &[
             "<:thread: Threads !>",
             "+ :comment: comment on !263",
-            "◆ open · StatsController.java:21",
+            ":thread: open · StatsController.java:21",
             "│ ↳ :person: Alice Example · 46m ago",
-            "✓ resolved · StatsController.java:9",
+            ":resolved: resolved · StatsController.java:9",
         ],
         &[
             "<:pipeline: Pipeline>",
             "pipeline #1843",
-            "✓ build",
+            ":run_passed: build",
             "build-artifacts",
             "2m 03s",
-            "✗ test",
+            ":run_failed: test",
             "allowed to fail",
         ],
         &[
@@ -423,13 +423,15 @@ fn space_folds_a_folder_and_n_and_n_skip_folders() {
     draw_in(&p, Pane::Nav, 160, 40);
     press_in(&mut p, Pane::Nav, KeyCode::Char(' '));
     // (Its name is still in the diff's title.)
-    assert!(!draw(&p, 160, 40).contains("▎ :file_java: StatsService.java"));
+    // The open file is the tree's selected row, drawn with the selection's `>`.
+    let open_file = |text: &str| text.lines().any(|l| l.starts_with('>') && l.contains(":file_java: StatsService.java"));
+    assert!(!open_file(&draw(&p, 160, 40)));
     press(&mut p, KeyCode::Char('n'));
     assert_eq!(p.pages[0].file.get(), 1, "from the service to the test");
     press(&mut p, KeyCode::Char('N'));
     assert_eq!(p.pages[0].file.get(), 2);
     assert!(
-        draw(&p, 160, 40).contains("▎ :file_java: StatsService.java"),
+        open_file(&draw(&p, 160, 40)),
         "the folder over the open file opens"
     );
     // Back at the top: the README, then nothing before it.
@@ -805,12 +807,12 @@ fn threads_sit_under_their_lines_open_ones_open_and_resolved_ones_folded() {
             .unwrap_or_else(|| panic!("lacks {want:?}:\n{text}"))
     };
     // Under line 9, folded to one line.
-    let resolved = at(&text, "✓ resolved · 1 note · Bob E.: Typo in the name.");
+    let resolved = at(&text, ":resolved: resolved · 1 note · Bob E.: Typo in the name.");
     assert_eq!(resolved, at(&text, "9 +public class StatsControler {") + 1);
     // Under line 21, with its notes.
     press(&mut p, KeyCode::Char('G'));
     let text = draw(&p, 160, 40);
-    let open = at(&text, "◆ open thread · 2 notes");
+    let open = at(&text, ":thread: open thread · 2 notes");
     assert_eq!(open, at(&text, "21 +    public Totals totals()") + 1);
     assert!(text.contains("│ :person: Bob Example · 1h ago"), "{text}");
     assert!(
@@ -827,7 +829,7 @@ fn threads_sit_under_their_lines_open_ones_open_and_resolved_ones_folded() {
     assert!(fx.is_empty(), "{fx:?}");
     let text = draw(&p, 160, 40);
     assert!(
-        text.contains("◆ open thread · 2 notes · Bob E.: Should this read"),
+        text.contains(":thread: open thread · 2 notes · Bob E.: Should this read"),
         "{text}"
     );
     press(&mut p, KeyCode::Down);
@@ -1216,7 +1218,7 @@ fn a_file_is_fetched_when_opened_and_a_new_head_drops_the_old_diffs() {
     );
     let text = draw(&p, 160, 40);
     assert!(
-        text.contains("✗ could not load: GitLab answered 500"),
+        text.contains(":error: could not load: GitLab answered 500"),
         "{text}"
     );
     let fx = press(&mut p, KeyCode::Char('n'));
@@ -1311,7 +1313,7 @@ fn a_repo_page_lists_mains_pipelines() {
     let text = draw(&p, 160, 40);
     for want in [
         "<:pipeline: Pipelines on main>",
-        "✗ failed",
+        ":run_failed: failed",
         "#1842",
         "2c2ea8c3",
         "feat: bulk import",
@@ -1356,7 +1358,7 @@ fn a_tenancy_page_is_a_table_of_its_repos_and_opens_one() {
         "3 repos · 3 merge requests",
         "<:repo: Repos>",
         "repo  main  mrs  last activity",
-        "✗ failed",
+        ":run_failed: failed",
         "docs",
         "1 repo hidden: tools/renovate.",
     ] {
@@ -1451,15 +1453,15 @@ fn a_red_pipeline_leads_with_its_failed_jobs_and_the_lines_that_say_why() {
     let text = draw(&p, 160, 40);
     for want in [
         "<:pipeline: Pipeline !>",
-        "✗ failed · 6m 12s",
+        ":run_failed: failed · 6m 12s",
         "WHY IT IS RED",
-        "✗ unit-test",
+        ":run_failed: unit-test",
         "test · 1m 14s · the script failed",
         "│ > Task :compileJava",
         "│ StatsControllerTest > returnsTheCachedView() FAILED",
         "│     org.opentest4j.AssertionFailedError: expected: <200> but was: <500>",
         "│ 3 tests completed, 1 failed",
-        "✗ lint",
+        ":run_failed: lint",
         "the script failed · allowed to fail",
     ] {
         assert!(text.contains(want), "lacks {want:?}:\n{text}");
@@ -1469,7 +1471,7 @@ fn a_red_pipeline_leads_with_its_failed_jobs_and_the_lines_that_say_why() {
         "not the runner's sign-off:\n{text}"
     );
     // The one that made it red comes first, though GitLab listed lint first.
-    assert!(text.find("✗ unit-test").unwrap() < text.find("✗ lint").unwrap());
+    assert!(text.find(":run_failed: unit-test").unwrap() < text.find(":run_failed: lint").unwrap());
     // Two rows to choose, each opening its job.
     assert_eq!(list_len(&p, p.pages.last().unwrap()), Some(2));
     let b = keys(&p, Pane::Middle);
@@ -1485,7 +1487,7 @@ fn the_pipeline_tab_is_still_its_jobs_when_none_failed() {
     }
     let text = draw(&p, 160, 40);
     assert!(
-        text.contains("ALL JOBS") && text.contains("✓ build"),
+        text.contains("ALL JOBS") && text.contains(":run_passed: build"),
         "{text}"
     );
     assert!(!text.contains("WHY IT IS RED"), "it passed:\n{text}");
@@ -1508,7 +1510,7 @@ fn the_pipeline_tab_is_still_its_jobs_when_none_failed() {
     // Its title is what the list knew until GitLab answers.
     let text = draw(&p, 160, 40);
     assert!(
-        text.contains("unit-test") && text.contains("✓ success · stage test · 3m 42s"),
+        text.contains("unit-test") && text.contains(":run_passed: success · stage test · 3m 42s"),
         "{text}"
     );
     assert!(text.contains("loading…"), "{text}");
@@ -1527,7 +1529,7 @@ fn a_jobs_page_shows_its_log_at_the_first_error_and_its_sections() {
     let text = draw(&p, 160, 40);
     for want in [
         "Repositories / b / worker / !342 / unit-test",
-        "✗ failed · stage test · 1m 14s · the script failed",
+        ":run_failed: failed · stage test · 1m 14s · the script failed",
         "<:log: Log>",
         "Running with gitlab-runner 17.0",
         "─ Preparing the \"docker\" executor · 4s ⋯ 1 line",
@@ -1647,7 +1649,7 @@ fn mains_red_pipeline_leads_the_repo_pages_pipelines_and_a_long_log_pages_in() {
     let text = draw(&p, 160, 40);
     for want in [
         "why main is red",
-        "✗ unit-test",
+        ":run_failed: unit-test",
         "test · 1m 14s · it ran out of time",
         "│ no error recognised; its last lines:",
         "│ still waiting (20m)",
@@ -1723,7 +1725,7 @@ fn the_preview_of_a_red_merge_request_says_which_job_failed_and_why() {
     on_mr(&mut p, 342);
     let text = draw(&p, 160, 40);
     assert!(
-        text.contains("✗ unit-test and 1 more failed: the script"),
+        text.contains(":error: unit-test and 1 more failed: the script"),
         "{text}"
     );
     // Not known yet: moving onto it asks GitLab which jobs failed (no logs).

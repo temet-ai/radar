@@ -104,7 +104,7 @@ fn a_repo_and_a_merge_request_say_where_they_are_checked_out() {
     p.local.index.as_mut().unwrap().checkouts[0].branch = "feature/ABC-263".into();
     assert_eq!(
         line(&p, &mr(api, "feature/ABC-263")),
-        "checkout  terminal  editor  /work/acme/api · java · ✓ on feature/ABC-263"
+        "checkout  terminal  editor  /work/acme/api · java · on feature/ABC-263"
     );
     // The repo's row: cloned here, on its branch, in place of its own icon.
     let Some(Contribution::Mark { icon, words: w }) = p.contribute(Point::Mark, &repo(api)) else { panic!() };

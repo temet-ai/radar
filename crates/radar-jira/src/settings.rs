@@ -329,8 +329,8 @@ fn field_value(p: &JiraPlugin, i: usize, f: Field) -> String {
         Field::Check => match p.checks.get(&CheckTarget::Site(s.name.clone())) {
             None => "not checked yet".into(),
             Some((Check::Running, _)) => "asking Jira…".into(),
-            Some((Check::Passed(m), _)) => radar_core::writes::done_line(m),
-            Some((Check::Failed(e), _)) => radar_core::writes::failed_line(e),
+            Some((Check::Passed(m), _)) => m.clone(),
+            Some((Check::Failed(e), _)) => e.clone(),
         },
         Field::Projects if s.projects.is_empty() => "none yet".into(),
         Field::Projects => s.projects.iter().map(|pr| pr.key.as_str()).collect::<Vec<_>>().join(", "),
@@ -800,9 +800,11 @@ fn validate(p: &JiraPlugin, target: &Target, text: &str) -> Result<String, Strin
 const MARGIN: u16 = 1;
 /// The width `add_row`'s ` + ` takes before its words.
 const ADD_W: u16 = 3;
-/// A site's name follows its `▌ ` bar.
-const NAME_AT: u16 = MARGIN + 2;
 const ADD_AT: u16 = MARGIN + ADD_W;
+/// A site's name starts its tree row.
+const NAME_AT: u16 = 0;
+/// The words after an add row's `+ ` in a tree.
+const TREE_ADD_AT: u16 = 2;
 
 fn look_summary(spec: &str, word: &str) -> String {
     let mut parts = spec.split_whitespace();
@@ -934,10 +936,7 @@ pub fn views_view(p: &JiraPlugin, width: u16) -> v::SectionView {
     if let Some((target, input)) = &p.edit {
         detail.push(v::Text::of("AS YOU TYPE", v::Ink::Muted));
         let validation = validate(p, target, &input.value());
-        detail.push(match validation {
-            Ok(message) => v::Text::of(format!("✓ {message}"), v::Ink::Good),
-            Err(why) => v::Text::of(format!("✗ {why}"), v::Ink::Warn),
-        });
+        detail.push(v::kit::as_you_type(validation.as_deref().map_err(String::as_str)));
         detail.push(v::Text::of("⏎ keeps it · esc cancels", v::Ink::Muted));
         detail.push(v::Text::new());
     }
@@ -953,17 +952,18 @@ pub fn views_view(p: &JiraPlugin, width: u16) -> v::SectionView {
         }
         for condition in &item.when {
             if let Some(why) = view::problem(condition) {
-                detail.push(v::Text::of(radar_core::writes::failed_line(&why), v::Ink::Warn));
+                detail.push(v::kit::marked(Icon::Error, &why, v::Ink::Warn));
             }
         }
         detail.push(v::Text::new());
         detail.push(v::Text::of("ASKS", v::Ink::Muted));
         for (site_i, site) in p.cfg.sites.iter().enumerate() {
             let asks = p.jql_for(site_i, item).is_some();
-            detail.push(v::Text::of(
-                if asks { format!("  ✓ {}", site.name) } else { format!("  · not {}: {}", site.name, view::why_not(site, item)) },
-                if asks { v::Ink::Plain } else { v::Ink::Muted },
-            ));
+            detail.push(if asks {
+                v::Text::plain("  ").push(v::Seg::icon(Icon::RunPassed)).push(v::Seg::new(site.name.clone(), v::Ink::Plain))
+            } else {
+                v::Text::of(format!("  · not {}: {}", site.name, view::why_not(site, item)), v::Ink::Muted)
+            });
         }
     } else {
         detail.push(v::Text::plain("Make another view for the Jira nav pane."));
@@ -983,28 +983,36 @@ pub fn views_view(p: &JiraPlugin, width: u16) -> v::SectionView {
 
 pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
     let offers = p.offers();
-    let mut rows = Vec::new();
-    let mut editing_at = None;
-    for (i, row) in site_rows(p).into_iter().enumerate() {
-        let mut line = match row {
-            SiteRow::Offer(k) => v::ListRow::new(format!("row:{i}"), found(p, &offers[k]).text(width)),
+    let flat = site_rows(p);
+    // A row's id is its place in the flat list the keys walk; a field sits
+    // under its site.
+    let id = |i: usize| format!("row:{i}");
+    let mut roots: Vec<v::TreeRow> = Vec::new();
+    let mut site_id = String::new();
+    let mut editing_at: Option<(Vec<String>, u16)> = None;
+    for (i, row) in flat.iter().cloned().enumerate() {
+        match row {
+            SiteRow::Offer(k) => roots.push(v::TreeRow::new(id(i), found(p, &offers[k]).text(width))),
             SiteRow::Add => {
-                if matches!(p.edit, Some((Target::SiteAdd, _))) { editing_at = Some((i, ADD_AT)); }
-                v::ListRow::new(format!("row:{i}"), v::kit::add_line(
-                    "add a site", "paste its link, e.g. https://acme.atlassian.net", width,
-                ))
+                if matches!(p.edit, Some((Target::SiteAdd, _))) { editing_at = Some((vec![id(i)], TREE_ADD_AT)); }
+                let mut add = v::kit::add_line("add a site", "paste its link, e.g. https://acme.atlassian.net", width.saturating_sub(4));
+                if let Some(first) = add.0.first_mut() { first.text = "+ ".into(); }
+                roots.push(v::TreeRow::new(id(i), add));
             }
             SiteRow::Site(site_i) => {
                 let site = &p.cfg.sites[site_i];
                 if matches!(p.edit, Some((Target::SiteName(k), _)) if k == site_i) {
-                    editing_at = Some((i, NAME_AT));
+                    editing_at = Some((vec![id(i)], NAME_AT));
                 }
-                let mut line = v::ListRow::new(format!("row:{i}"), v::Text::new()
-                    .push(v::Seg::styled("▌ ", format!("jira.{}", site.color)))
-                    .push(v::Seg::styled(site.name.clone(), format!("jira.{} {}", site.color, p.cfg.style_for("site")))));
-                line.detail = Some(v::Text::of(format!("   {} · {} project{}", site.host(), site.projects.len(), if site.projects.len() == 1 { "" } else { "s" }), v::Ink::Muted));
-                line.right = check(p, &CheckTarget::Site(site.name.clone()), now).mark_text();
-                line
+                site_id = id(i);
+                let mut root = v::TreeRow::new(id(i), v::Text::new()
+                    .push(v::Seg::styled(site.name.clone(), format!("jira.{} {}", site.color, p.cfg.style_for("site")))))
+                    .detail(v::Text::of(format!("   {} · {} project{}", site.host(), site.projects.len(), if site.projects.len() == 1 { "" } else { "s" }), v::Ink::Muted))
+                    .stripe(format!("jira.{}", site.color));
+                if let Some(mark) = check(p, &CheckTarget::Site(site.name.clone()), now).mark_text() {
+                    root = root.cell("check", mark);
+                }
+                roots.push(root);
             }
             SiteRow::Field(site_i, field) => {
                 let target = match field {
@@ -1015,45 +1023,46 @@ pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
                     _ => None,
                 };
                 if target.as_ref().is_some_and(|target| p.edit.as_ref().is_some_and(|(edit, _)| edit == target)) {
-                    editing_at = Some((i, MARGIN + connection::value_x("   ├─ ".chars().count())));
+                    editing_at = Some((vec![site_id.clone(), id(i)], connection::value_x(0)));
                 }
-                let lead = v::Text::new().push(v::Seg::styled(
-                    if field == Field::Projects { "   └─ " } else { "   ├─ " },
-                    p.cfg.style_for("lines"),
-                ));
                 let value = if field == Field::Check {
-                    connection::check_field_text(lead, &check(p, &CheckTarget::Site(p.cfg.sites[site_i].name.clone()), now), "Jira")
+                    connection::check_field_text(v::Text::new(), &check(p, &CheckTarget::Site(p.cfg.sites[site_i].name.clone()), now), "Jira")
                 } else {
                     let value = if field == Field::SignedIn {
                         connection::signed_in_text(&field_value(p, site_i, field), "")
                     } else {
                         v::Text::of(field_value(p, site_i, field), v::Ink::Primary)
                     };
-                    connection::field_text(lead, field.label(), value)
+                    connection::field_text(v::Text::new(), field.label(), value)
                 };
-                v::ListRow::new(format!("row:{i}"), value)
+                if let Some(root) = roots.last_mut() { root.children.push(v::TreeRow::new(id(i), value)); }
             }
             SiteRow::Refresh => {
                 if matches!(p.edit, Some((Target::Refresh, _))) {
-                    editing_at = Some((i, MARGIN + connection::value_x(1)));
+                    editing_at = Some((vec![id(i)], connection::value_x(0)));
                 }
-                v::ListRow::new(format!("row:{i}"), connection::field_text(
-                    v::Text::plain(" "), connection::REFRESH,
+                roots.push(v::TreeRow::new(id(i), connection::field_text(
+                    v::Text::new(), connection::REFRESH,
                     v::Text::of(connection::every(p.cfg.refresh_secs), v::Ink::Primary),
-                ))
+                )));
             }
-            SiteRow::OnStart => v::ListRow::new(format!("row:{i}"), connection::field_text(
-                v::Text::plain(" "), ON_START,
+            SiteRow::OnStart => roots.push(v::TreeRow::new(id(i), connection::field_text(
+                v::Text::new(), ON_START,
                 v::Text::of(on_start_value(p), v::Ink::Primary),
-            )),
-        };
-        // The target is its stable settings-row index, including offers.
-        line.target = v::Target::new(format!("row:{i}"));
-        rows.push(line);
+            ))),
+        }
     }
-    let editing = editing_at.and_then(|(row, at)| p.edit.as_ref().map(|(_, input)| v::Editing {
-        row, at, text: input.value(), caret: input.cursor(),
-    }));
+    let selected = match flat.get(p.section_rows[0]) {
+        Some(SiteRow::Field(site_i, _)) => flat.iter().position(|r| *r == SiteRow::Site(*site_i))
+            .map(|site| vec![id(site), id(p.section_rows[0])]).unwrap_or_default(),
+        Some(_) => vec![id(p.section_rows[0])],
+        None => vec![],
+    };
+    let open: Vec<Vec<String>> = flat.iter().enumerate()
+        .filter(|(_, r)| matches!(r, SiteRow::Site(_))).map(|(i, _)| vec![id(i)]).collect();
+    let editing = editing_at.and_then(|(path, at)| p.edit.as_ref().map(|(_, input)| Box::new(v::TreeEditing {
+        path, at, text: input.value(), caret: input.cursor(),
+    })));
     let typing = || p.edit.as_ref().map(|(target, input)| validate(p, target, &input.value()));
     let detail = match site_row(p) {
         SiteRow::Offer(k) => offers.get(k).map_or_else(Vec::new, |offer| found(p, offer).detail_text()),
@@ -1137,7 +1146,17 @@ pub fn connection_view(p: &JiraPlugin, width: u16, now: i64) -> v::SectionView {
     v::SectionView {
         version: v::VERSION,
         scope: "connection".into(),
-        body: v::Node::List { rows, selected: Some(p.section_rows[0]), editing },
+        body: v::Node::Tree(v::Tree {
+            rows: roots, selected, open,
+            columns: vec![v::ColumnSpec::new("check", 10, 0)],
+            name_width: width.saturating_sub(12),
+            look: Some(v::TreeLook {
+                lines: p.cfg.style_for("lines"), band: p.cfg.style_for("band"),
+                heading: p.cfg.style_for("heading"), band_level: 2,
+            }),
+            editing,
+            ..v::Tree::default()
+        }),
         detail_title: detail_title(p, "connection"),
         detail,
         detail_blocks,
@@ -1315,10 +1334,12 @@ pub fn views_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
 }
 
 pub fn connection_intent(p: &mut JiraPlugin, intent: &v::Intent) -> Outcome {
+    // A tree row's target is its path; the row itself is the last id (`row:<n>`).
+    let row = |target: &v::Target| v::TreeRow::path_of(target).pop().unwrap_or_default();
     match intent {
-        v::Intent::Select { target } | v::Intent::Context { target } => click(p, "connection", target.as_str()),
+        v::Intent::Select { target } | v::Intent::Context { target } => click(p, "connection", &row(target)),
         v::Intent::Activate { target } => {
-            click(p, "connection", target.as_str());
+            click(p, "connection", &row(target));
             key(p, "connection", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {

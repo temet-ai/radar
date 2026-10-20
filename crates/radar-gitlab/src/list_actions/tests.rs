@@ -52,10 +52,10 @@ fn repo_rows_show_the_default_branch_pipeline_without_repeating_its_name() {
             .unwrap_or_else(|| panic!("missing {name} in\n{text}"))
             .to_string()
     };
-    assert!(row("api").contains("✓ passed"), "{text}");
-    assert!(row("web").contains("✗ failed"), "{text}");
+    assert!(row("api").contains(":run_passed: passed"), "{text}");
+    assert!(row("web").contains(":run_failed: failed"), "{text}");
     assert!(!row("worker").contains("pipeline"), "{text}");
-    assert!(!text.contains("main ✓ passed"), "{text}");
+    assert!(!text.contains("main :run_passed: passed"), "{text}");
 
     let mut p = plugin();
     p.data
@@ -462,7 +462,7 @@ fn preview_actions_use_the_same_surface_as_the_other_details() {
     let (_, detail) = text.split_once("── detail").expect("the detail pane");
     let foot = detail.lines().find(|line| line.contains("[extra actions]")).expect("pinned footer");
     assert!(foot.starts_with("[update]"), "{foot}");
-    let context = detail.lines().position(|line| line.contains("▷ needs rebase")).expect("detail state context");
+    let context = detail.lines().position(|line| line.contains(":rebase: needs rebase")).expect("detail state context");
     let at = detail.lines().position(|line| line.contains("[extra actions]")).unwrap();
     assert!(context < at, "{text}");
 }

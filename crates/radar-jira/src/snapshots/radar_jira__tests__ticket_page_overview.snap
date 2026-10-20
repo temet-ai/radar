@@ -3,7 +3,7 @@ source: crates/radar-jira/src/tests.rs
 expression: "shown(&page_host(), 160, 40)"
 ---
 ── page · Jira / acme / ABC / ABC-12 ──
-:story: Add a stats endpoint for the dashboard  :in_progress: ◐ In Progress · Story · :you: you
+:story: Add a stats endpoint for the dashboard  :in_progress: In Progress · Story · :you: you
 parent ABC-1 Dashboard for the stats · Acme ABC · :updated: updated 1h ago
 <:info: Overview>  :thread: Comments  :link: Links  :change: Code
 ── middle · overview * ──
@@ -18,7 +18,7 @@ ACCEPTANCE CRITERIA
 • GET /stats answers within 200 ms
 • counts are per day
 ── detail · details ──
-status        :in_progress: ◐ In Progress
+status        :in_progress: In Progress
 type          Story
 priority      :priority_medium: Medium
 assignee      :you: you

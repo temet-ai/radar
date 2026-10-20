@@ -6,7 +6,7 @@ expression: wide
 thread
 <:thread: Thread>  :link: Links
 ── middle · thread * ──
-! :error: ✗ could not load: thread_not_found
+! :error: could not load: thread_not_found
 This thread isn't loaded yet.
 Press r to try again. Use , for connection settings or Esc to go back.
 · Press r to try again. Use , for connection settings or Esc to go back.

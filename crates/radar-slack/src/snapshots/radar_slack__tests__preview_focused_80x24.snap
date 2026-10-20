@@ -5,8 +5,8 @@ expression: text
 ── nav · feed ──
   :mention: For you  4  {rail:0}
   :thread: Discussions  {rail:1}
-> ▌ :channel: #team  6 NEW  {rail:2}
-  ▌ :channel: #svc  1 NEW  {rail:3}
+> :channel: #team  6 NEW  {rail:2}
+  :channel: #svc  1 NEW  {rail:3}
 ── middle · #team ──
 6 new
   today  {today}

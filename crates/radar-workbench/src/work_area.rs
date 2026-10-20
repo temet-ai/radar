@@ -184,8 +184,12 @@ fn tabs(p: &WorkbenchPlugin) -> PaneView {
     let lines = tabs
         .iter()
         .map(|t| {
-            let mark = if t["active"] == json!(true) { "● " } else { "○ " };
-            Text::plain(format!("{mark}{}", t["label"].as_str().unwrap_or("")))
+            let label = t["label"].as_str().unwrap_or("");
+            if t["active"] == json!(true) {
+                Text::new().push(Seg::new(label, Ink::Accent).strong())
+            } else {
+                Text::of(label, Ink::Muted)
+            }
         })
         .collect();
     extension("tabs", "tabs", false, None, json!({ "tabs": tabs }), lines)

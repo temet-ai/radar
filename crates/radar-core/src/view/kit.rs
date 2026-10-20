@@ -31,29 +31,29 @@ pub fn add_line(action: &str, takes: &str, width: u16) -> Text {
     line
 }
 
-/// `✓ said` or `⚠ said`: the icon where the pack has one, else the symbol.
-pub fn check(good: bool, said: &str) -> Text {
-    let (icon, symbol, ink) = if good {
-        (Icon::RunPassed, "✓", Ink::Good)
-    } else {
-        (Icon::Warning, "⚠", Ink::Warn)
-    };
-    Text::new()
-        .push(Seg::icon_or(icon, symbol, ink))
-        .push(Seg::new(format!(" {said}"), ink))
+/// An icon, then `said` in `ink`: the one shape of every verdict and state
+/// line. With icons off only the words are left, in their ink.
+pub fn marked(icon: Icon, said: &str, ink: Ink) -> Text {
+    Text::new().push(Seg::icon(icon)).push(Seg::new(said, ink))
 }
 
-/// The verdict on what is being typed: `✓ …` taken, `⚠ …` taken but may
-/// not work, `✗ …` refused.
+/// The check icon (passed) or the warning icon before `said`.
+pub fn check(good: bool, said: &str) -> Text {
+    if good { marked(Icon::RunPassed, said, Ink::Good) } else { marked(Icon::Warning, said, Ink::Warn) }
+}
+
+/// The verdict on what is being typed: the passed icon when it is taken, the
+/// error icon when it is refused.
 pub fn as_you_type(verdict: Result<&str, &str>) -> Text {
     match verdict {
-        Ok(m) => Text::of(format!("✓ {m}"), Ink::Good),
-        Err(m) => Text::of(format!("✗ {m}"), Ink::Warn),
+        Ok(m) => marked(Icon::RunPassed, m, Ink::Good),
+        Err(m) => marked(Icon::Error, m, Ink::Warn),
     }
 }
 
+/// The verdict when it is taken but may not work: the warning icon.
 pub fn as_you_type_unsure(why: &str) -> Text {
-    Text::of(format!("⚠ {why}"), Ink::Warn)
+    marked(Icon::Warning, why, Ink::Warn)
 }
 
 /// `loading…`
@@ -61,26 +61,24 @@ pub fn loading() -> Text {
     Text::of("loading…", Ink::Muted)
 }
 
-/// `✗ words`, with the error icon when icons are on.
+/// The error icon, then `words` in the bad ink.
 pub fn error(words: &str) -> Text {
-    Text::new()
-        .push(Seg::icon_or(Icon::Error, "✗", Ink::Bad))
-        .push(Seg::new(format!(" {words}"), Ink::Bad))
+    marked(Icon::Error, words, Ink::Bad)
 }
 
-/// `✗ could not load: <why>`.
+/// The error icon, then `could not load: <why>`.
 pub fn failed(why: &str) -> Text {
     Text::new()
-        .push(Seg::icon_or(Icon::Error, "✗", Ink::Bad))
-        .push(Seg::new(" could not load: ", Ink::Bad))
+        .push(Seg::icon(Icon::Error))
+        .push(Seg::new("could not load: ", Ink::Bad))
         .push(Seg::new(why, Ink::Bad).strong())
 }
 
-/// `✗ <source> could not sync: <why>`.
+/// The error icon, then `<source> could not sync: <why>`.
 pub fn sync_failed(source: &str, why: &str) -> Text {
     Text::new()
-        .push(Seg::icon_or(Icon::Error, "✗", Ink::Bad))
-        .push(Seg::new(format!(" {source} could not sync: "), Ink::Bad))
+        .push(Seg::icon(Icon::Error))
+        .push(Seg::new(format!("{source} could not sync: "), Ink::Bad))
         .push(Seg::new(why, Ink::Bad).strong())
 }
 

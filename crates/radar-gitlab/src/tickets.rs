@@ -95,7 +95,7 @@ fn pipeline(m: &Mr) -> String {
 
 fn approvals(m: &Mr) -> String {
     if m.approved {
-        radar_core::writes::done_line(&format!("approved ({})", m.approvals_words()))
+        format!("approved ({})", m.approvals_words())
     } else {
         format!("approvals {}", m.approvals_words())
     }

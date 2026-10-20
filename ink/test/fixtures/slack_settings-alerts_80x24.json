@@ -24,11 +24,25 @@
     }
   ],
   "body": {
-    "node": "list",
+    "columns": [
+      {
+        "heading": "mark",
+        "keep": 0,
+        "width": 12
+      }
+    ],
+    "look": {
+      "band": "",
+      "band_level": 1,
+      "heading": "bg.overlay",
+      "lines": "text.muted"
+    },
+    "name_width": 66,
+    "node": "tree",
     "rows": [
       {
-        "target": "row:0",
-        "text": [
+        "id": "row:0",
+        "name": [
           {
             "ink": "accent",
             "strong": true,
@@ -46,8 +60,8 @@
         ]
       },
       {
-        "target": "row:1",
-        "text": [
+        "id": "row:1",
+        "name": [
           {
             "ink": "muted",
             "text": "keep resolved    "
@@ -59,7 +73,9 @@
         ]
       }
     ],
-    "selected": 0
+    "selected": [
+      "row:0"
+    ]
   },
   "detail": [
     [

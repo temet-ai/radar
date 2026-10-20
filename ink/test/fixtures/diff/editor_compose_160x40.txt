@@ -7,13 +7,13 @@
 ╭ 1 threads ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │  + comment on !263   a comment on the merge request, not on a line                                                                                           │
 │                                                                                                                                                              │
-│ ◆ open · StatsController.java:21                                                                                                                             │
+│ open · StatsController.java:21                                                                                                                               │
 │ │ Bob Example · 1h ago                                                                                                                                       │
 │ │ Should this read from the cached view?                                                                                                                     │
 │ │ ↳ Alice Example · 46m ago                                                                                                                                  │
 │ │ Good shout, switching to the cached one.                                                                                                                   │
 │                                                                                                                                                              │
-│ ✓ resolved · StatsController.java:9                                                                                                                          │
+│ resolved · StatsController.java:9                                                                                                                            │
 │ │ Bob Example · 2h ago                                                                                                                                       │
 │ │ Typo in the name.                                                                                                                                          │
 │                                                                                                                                                              │

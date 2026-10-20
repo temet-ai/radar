@@ -54,20 +54,6 @@ impl Block {
         }
     }
 
-    /// A symbol, so the state reads without colour.
-    pub const fn mark(&self) -> &'static str {
-        match self {
-            Self::Draft | Self::Blocked => "⊘",
-            Self::Conflicts | Self::ChangesRequested => "✗",
-            Self::Pipeline(Some(Pipeline::Running)) => "●",
-            Self::Pipeline(Some(Pipeline::Pending)) | Self::Approvals(_) | Self::Checking => "◷",
-            Self::Pipeline(Some(Pipeline::Manual)) | Self::Rebase => "▷",
-            Self::Pipeline(_) => "✗",
-            Self::Threads(_) => "◆",
-            Self::Other(_) => "·",
-        }
-    }
-
     pub const fn tone(&self) -> Tone {
         match self {
             Self::Conflicts | Self::ChangesRequested => Tone::Bad,
@@ -91,12 +77,6 @@ impl Block {
             Self::Pipeline(p) => !matches!(p, Some(Pipeline::Running | Pipeline::Pending)),
             Self::Approvals(_) | Self::Checking | Self::Blocked | Self::Other(_) => false,
         }
-    }
-
-    /// `✗ pipeline failed`.
-    #[cfg(test)]
-    pub fn text(&self) -> String {
-        format!("{} {}", self.mark(), self.words())
     }
 
     /// Its icon: the piece that is in the way.
@@ -215,16 +195,16 @@ pub fn blocks(mr: &Mr) -> Vec<Block> {
     out
 }
 
-/// The STATE column's cell: `✓ ready to merge`, the first block, or how a
+/// The STATE column's words: `ready to merge`, the first block, or how a
 /// merged or closed one ended.
 #[cfg(test)]
 pub fn cell(mr: &Mr) -> (String, Tone) {
     match mr.state {
-        MrState::Merged => ("✓ merged".into(), Tone::Muted),
-        MrState::Closed => ("⊘ closed".into(), Tone::Muted),
+        MrState::Merged => ("merged".into(), Tone::Muted),
+        MrState::Closed => ("closed".into(), Tone::Muted),
         MrState::Opened => match blocks(mr).first() {
-            None => ("✓ ready to merge".into(), Tone::Good),
-            Some(b) => (b.text(), b.tone()),
+            None => ("ready to merge".into(), Tone::Good),
+            Some(b) => (b.words(), b.tone()),
         },
     }
 }
@@ -252,7 +232,7 @@ mod tests {
     }
 
     fn words(m: &Mr) -> Vec<String> {
-        blocks(m).iter().map(Block::text).collect()
+        blocks(m).iter().map(Block::words).collect()
     }
 
     #[test]
@@ -261,8 +241,8 @@ mod tests {
         m.merge_status = "DRAFT_STATUS".into();
         m.draft = true;
         m.checks = checks(&["DRAFT_STATUS", "NOT_APPROVED", "NEED_REBASE"]);
-        assert_eq!(words(&m), ["⊘ draft", "◷ needs 1 approval", "▷ needs rebase"]);
-        assert_eq!(cell(&m).0, "⊘ draft");
+        assert_eq!(words(&m), ["draft", "needs 1 approval", "needs rebase"]);
+        assert_eq!(cell(&m).0, "draft");
     }
 
     #[test]
@@ -274,10 +254,10 @@ mod tests {
         m.merge_status = "NEED_REBASE".into();
         m.rebase = true;
         m.checks = checks(&["NEED_REBASE"]);
-        assert_eq!(cell(&m), ("▷ needs rebase".into(), Tone::Warn));
+        assert_eq!(cell(&m), ("needs rebase".into(), Tone::Warn));
         // Without GitLab's checks too: the fields say the same.
         m.checks = None;
-        assert_eq!(words(&m), ["▷ needs rebase"]);
+        assert_eq!(words(&m), ["needs rebase"]);
     }
 
     #[test]
@@ -287,9 +267,9 @@ mod tests {
         m.approved = true;
         m.approvals_left = 0;
         m.checks = checks(&[]);
-        assert_eq!(cell(&m), ("✓ ready to merge".into(), Tone::Good));
+        assert_eq!(cell(&m), ("ready to merge".into(), Tone::Good));
         m.merge_status = "CHECKING".into();
-        assert_eq!(cell(&m).0, "◷ checking");
+        assert_eq!(cell(&m).0, "checking");
     }
 
     #[test]
@@ -309,19 +289,19 @@ mod tests {
         m.pipeline = Some(Pipeline::Failed);
         m.merge_status = "CI_MUST_PASS".into();
         m.checks = checks(&["CI_MUST_PASS", "NOT_APPROVED"]);
-        assert_eq!(cell(&m), ("✗ pipeline failed".into(), Tone::Bad));
+        assert_eq!(cell(&m), ("pipeline failed".into(), Tone::Bad));
         m.pipeline = Some(Pipeline::Running);
         m.merge_status = "CI_STILL_RUNNING".into();
         m.checks = Some(vec![Check {
             id: "CI_MUST_PASS".into(),
             checking: true,
         }]);
-        assert_eq!(words(&m), ["● pipeline running"]);
+        assert_eq!(words(&m), ["pipeline running"]);
         // A repo that merges whatever the pipeline says: not in the way.
         m.pipeline = Some(Pipeline::Failed);
         m.merge_status = "NOT_APPROVED".into();
         m.checks = checks(&["NOT_APPROVED"]);
-        assert_eq!(words(&m), ["◷ needs 1 approval"]);
+        assert_eq!(words(&m), ["needs 1 approval"]);
     }
 
     #[test]
@@ -331,7 +311,7 @@ mod tests {
         m.threads_resolved = 1;
         m.merge_status = "DISCUSSIONS_NOT_RESOLVED".into();
         m.checks = checks(&["DISCUSSIONS_NOT_RESOLVED", "NOT_APPROVED"]);
-        assert_eq!(words(&m), ["◆ 2 threads open","◷ needs 1 approval"]);
+        assert_eq!(words(&m), ["2 threads open","needs 1 approval"]);
     }
 
     #[test]
@@ -339,7 +319,7 @@ mod tests {
         let mut m = mr(1, "alice", "acme/team-a/api");
         m.merge_status = "SOMETHING_NEW".into();
         m.checks = checks(&[]);
-        assert_eq!(words(&m), ["· something new"]);
+        assert_eq!(words(&m), ["something new"]);
     }
 
     #[test]

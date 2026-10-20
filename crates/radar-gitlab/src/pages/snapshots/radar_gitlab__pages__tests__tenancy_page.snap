@@ -7,9 +7,9 @@ expression: "hosted(p, 160, 40)"
 <:repo: Repos>
 ── middle · repos * ──
   repo  main  mrs  last activity
-> :repo: api  :run_passed: ✓ passed  1  16m ago  {row:0}
-  :repo: web  :run_failed: ✗ failed  2  16m ago  {row:1}
-  :repo: docs  :run_passed: ✓ passed  —  4d ago  {row:2}
+> :repo: api  :run_passed: passed  1  16m ago  {row:0}
+  :repo: web  :run_failed: failed  2  16m ago  {row:1}
+  :repo: docs  :run_passed: passed  —  4d ago  {row:2}
 _ 1 repo hidden: tools/renovate. Settings › tenancies shows them again.
 ── status · REPOSITORIES ──
 PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

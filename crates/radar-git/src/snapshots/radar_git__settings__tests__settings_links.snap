@@ -4,12 +4,12 @@ expression: "shot(\"links\")"
 ---
 ── section · links ──
   + link a repo to your clone   the repo's path, then the folder  {row:0}
-  acme/team-a/api → /work/acme/api  ✓ main  {row:1}
-> acme/team-b/web → /radar/no/such/web  ✗ no such folder  {row:2}
-  acme/platform-services/billing/payments-gateway → /work/acme/payments-gateway  ⚠ origin: acme/platform-services/billing/payments-g…  {row:3}
+  acme/team-a/api → /work/acme/api  :run_passed: main  {row:1}
+> acme/team-b/web → /radar/no/such/web  :error: no such folder  {row:2}
+  acme/platform-services/billing/payments-gateway → /work/acme/payments-gateway  :warning: origin: acme/platform-services/billing/payments-gat…  {row:3}
 ── detail · acme/team-b/web ──
 CHECKED
-:warning: ⚠ no such folder
+:warning: no such folder
 
 acme/team-b/web is worked on in /radar/no/such/web.
 

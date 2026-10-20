@@ -424,12 +424,10 @@ pub(crate) fn ago(s: &str, now: i64) -> String {
     time::ago_str(&iso(s), now)
 }
 
-/// `◐ In Review`, in its category's look.
+/// Its category's icon, then `In Review`, in the category's look.
 pub(crate) fn status_text(p: &JiraPlugin, status: &str, c: Category) -> Text {
     let look = p.cfg.style_for(c.word());
-    let mut mark = Seg::icon_or(c.icon(), c.symbol(), Ink::Plain);
-    mark.look = Some(look.clone());
-    Text::new().push(mark).push(Seg::styled(format!(" {status}"), look))
+    Text::new().push(Seg::icon(c.icon())).push(Seg::styled(status, look))
 }
 
 /// The icon before a priority's name, when it is one we know; an empty
@@ -525,10 +523,8 @@ fn site_name(p: &JiraPlugin, sn: &SiteNode<'_>) -> Text {
     if p.sync.errors.contains_key(&sn.site.name) {
         let err = p.cfg.style_for("failed");
         text.add(Seg::styled("   ", err.clone()));
-        let mut mark = Seg::icon_or(Icon::Error, "✗", Ink::Plain);
-        mark.look = Some(err.clone());
-        text.add(mark);
-        text.add(Seg::styled(" could not load", err));
+        text.add(Seg::icon(Icon::Error));
+        text.add(Seg::styled("could not load", err));
     } else if !sn.asked {
         text.add(Seg::new("   nothing to ask here in this view", Ink::Muted));
     } else if !sn.loaded {
@@ -760,7 +756,7 @@ fn detail_pane(p: &JiraPlugin, cx: &v::ViewCx<'_>) -> PaneView {
             let mut lines = vec![Text::of("Select a site, a status or a ticket.", Ink::Muted)];
             for (site, err) in &p.sync.errors {
                 lines.push(Text::new());
-                lines.push(failed_line(p, &format!(" {site}")));
+                lines.push(failed_line(p, site));
                 lines.push(Text::of(err.clone(), Ink::Primary));
             }
             lines.into_iter().map(Block::line).collect()
@@ -776,12 +772,10 @@ fn detail_pane(p: &JiraPlugin, cx: &v::ViewCx<'_>) -> PaneView {
     )
 }
 
-/// `✗ words` in the `failed` look.
+/// The error icon, then `words` in the `failed` look.
 fn failed_line(p: &JiraPlugin, words: &str) -> Text {
     let bad = p.cfg.style_for("failed");
-    let mut mark = Seg::icon_or(Icon::Error, "✗", Ink::Plain);
-    mark.look = Some(bad.clone());
-    Text::new().push(mark).push(Seg::styled(words, bad))
+    Text::new().push(Seg::icon(Icon::Error)).push(Seg::styled(words, bad))
 }
 
 /// How many lines of a description or of acceptance criteria the detail pane
@@ -976,7 +970,6 @@ fn site_detail(p: &JiraPlugin, i: usize) -> Vec<Block> {
     let data = p.data.get(&s.name);
     let lines = vec![
         Text::from(vec![
-            Seg::styled("▌ ", format!("jira.{}", s.color)),
             Seg::icon(Icon::Site),
             Seg::styled(s.name.clone(), format!("jira.{} bold", s.color)),
             Seg::new(format!("  {}", s.host()), Ink::Secondary),
@@ -1012,11 +1005,9 @@ fn site_detail(p: &JiraPlugin, i: usize) -> Vec<Block> {
             let n = tickets.iter().filter(|tk| tk.category == c).count();
             if n > 0 {
                 let look = p.cfg.style_for(c.word());
-                let mut mark = Seg::icon_or(c.icon(), c.symbol(), Ink::Plain);
-                mark.look = Some(look.clone());
                 counts.push(Text::from(vec![
-                    mark,
-                    Seg::styled(format!(" {}", ui::pad(c.word(), 6)), look),
+                    Seg::icon(c.icon()),
+                    Seg::styled(ui::pad(c.word(), 6), look),
                     Seg::new(n.to_string(), Ink::Number),
                 ]));
             }
@@ -1027,7 +1018,7 @@ fn site_detail(p: &JiraPlugin, i: usize) -> Vec<Block> {
     if let Some(e) = p.sync.errors.get(&s.name) {
         blocks.extend([
             Block::line(Text::new()),
-            Block::line(failed_line(p, " could not load")),
+            Block::line(failed_line(p, "could not load")),
             Block::line(Text::of(e.clone(), Ink::Primary)),
         ]);
     }

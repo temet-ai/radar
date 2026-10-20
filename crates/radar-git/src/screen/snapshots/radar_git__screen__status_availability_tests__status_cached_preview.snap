@@ -9,7 +9,7 @@ expression: preview
   :folder: stashes  {view:3}
 ── middle · dirty ──
 CLONES · 1 clone, 1 worktree
-  :repo: api  on :branch: main  ● in use  —  —  clean  —  2961w  {c:/work/acme/api}
+  :repo: api  on :branch: main  :local: in use  —  —  clean  —  2961w  {c:/work/acme/api}
 >   :folder: api-hotfix  on :branch: hotfix  —  —  last known  —  2961w  {c:/work/acme/api/w:/work/acme/api-hotfix}
 · Some clone data could not be read.
 · clones and worktrees with changes or unread status

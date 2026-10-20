@@ -1297,7 +1297,7 @@ fn finish(
                     Sent {
                         dispatch: dispatch.cloned(),
                         words,
-                        result: Some(Ok(writes::done_line(&said))),
+                        result: Some(Ok(said.clone())),
                     },
                 );
             }
@@ -1342,7 +1342,7 @@ fn finish(
                     Sent {
                         dispatch: dispatch.cloned(),
                         words,
-                        result: Some(Err(writes::failed_line(&said))),
+                        result: Some(Err(said.clone())),
                     },
                 );
             }
@@ -1519,10 +1519,12 @@ pub(crate) fn outcome(p: &JiraPlugin, site: &str, key: &str) -> Option<radar_cor
     let s = p.sent.get(&detail_key(site, key))?;
     Some(match &s.result {
         None => Text::new()
-            .push(Seg::icon_or(Icon::RunRunning, "●", Ink::Info))
-            .push(Seg::new(format!(" asking Jira to {}…", s.words), Ink::Info)),
-        Some(Ok(said)) => Text::of(said.clone(), Ink::Good),
-        Some(Err(said)) => Text::new().push(Seg::styled(said.clone(), p.cfg.style_for("failed"))),
+            .push(Seg::icon(Icon::RunRunning))
+            .push(Seg::new(format!("asking Jira to {}…", s.words), Ink::Info)),
+        Some(Ok(said)) => Text::new().push(Seg::icon(Icon::RunPassed)).push(Seg::new(said.clone(), Ink::Good)),
+        Some(Err(said)) => Text::new()
+            .push(Seg::icon(Icon::Error))
+            .push(Seg::styled(said.clone(), p.cfg.style_for("failed"))),
     })
 }
 

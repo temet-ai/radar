@@ -28,7 +28,7 @@ fn rendered(p: SlackPlugin) -> String {
 
 fn error_lines(text: &str) -> Vec<String> {
     text.lines()
-        .filter_map(|line| line.split_once("✗ ").map(|(_, error)| error))
+        .filter_map(|line| line.split_once(":error: ").map(|(_, error)| error))
         .map(|error| error.split('│').next().unwrap().trim().to_string())
         .collect()
 }

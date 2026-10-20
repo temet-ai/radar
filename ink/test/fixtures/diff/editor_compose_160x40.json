@@ -582,10 +582,7 @@
                 ],
                 "head": [
                   {
-                    "icon": "thread",
-                    "icon_lead": true,
-                    "ink": "warn",
-                    "text": "◆ "
+                    "icon": "thread"
                   },
                   {
                     "ink": "warn",
@@ -635,10 +632,7 @@
                 ],
                 "head": [
                   {
-                    "icon": "resolved",
-                    "icon_lead": true,
-                    "ink": "good",
-                    "text": "✓ "
+                    "icon": "resolved"
                   },
                   {
                     "ink": "good",

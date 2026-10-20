@@ -331,17 +331,6 @@ pub fn failed(words: &str) -> radar_core::Effect {
     radar_core::Effect::error(icon, format!("{mark}{words}"))
 }
 
-/// An alert state's mark as plain words (no theme in reach): its icon, else
-/// the old symbol, and a space.
-pub fn state_mark(state: crate::alerts::State) -> String {
-    let lead = icon::plain(state.icon());
-    if lead.is_empty() {
-        format!("{} ", state.mark())
-    } else {
-        lead
-    }
-}
-
 /// A channel's name for a menu heading and the icon to name before it:
 /// `#alias` with icons off, the channel's icon and `alias` with them on.
 pub fn channel_heading(id: &str, alias: &str) -> (Option<Icon>, String) {

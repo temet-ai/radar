@@ -69,20 +69,21 @@ impl Check {
 
     /// [`Check::mark`] as view text.
     pub fn mark_text(&self) -> Option<crate::view::Text> {
-        use crate::view::{Ink, Text};
+        use crate::view::{Ink, Seg, Text};
         match self {
             Check::NotYet => None,
             Check::Running => Some(Text::of("checking", Ink::Info)),
-            Check::Passed { .. } => Some(Text::of("✓", Ink::Good)),
-            Check::Failed { .. } => Some(Text::of("✗", Ink::Bad)),
+            // The mark is all the row says, so with icons off the symbol stays.
+            Check::Passed { .. } => Some(Text::new().push(Seg::icon_or(super::icon::Icon::RunPassed, "✓", Ink::Good))),
+            Check::Failed { .. } => Some(Text::new().push(Seg::icon_or(super::icon::Icon::Error, "✗", Ink::Bad))),
         }
     }
 
     /// [`Check::line`] as view text.
     pub fn text(&self, not_yet: &str, running: &str) -> crate::view::Text {
         use crate::view::{Ink, Seg, Text};
-        let said = |mark: &str, said: &str, ink: Ink, ago: &Option<String>| {
-            let mut t = Text::of(format!("{mark} {said}"), ink);
+        let said = |mark: super::icon::Icon, said: &str, ink: Ink, ago: &Option<String>| {
+            let mut t = Text::new().push(Seg::icon(mark)).push(Seg::new(said, ink));
             if let Some(a) = ago {
                 t.add(Seg::new(format!("  {a} ago"), Ink::Muted));
             }
@@ -91,8 +92,8 @@ impl Check {
         match self {
             Check::NotYet => Text::of(not_yet, Ink::Muted),
             Check::Running => Text::of(running, Ink::Info),
-            Check::Passed { said: s, ago } => said("✓", s, Ink::Good, ago),
-            Check::Failed { said: s, ago } => said("✗", s, Ink::Bad, ago),
+            Check::Passed { said: s, ago } => said(super::icon::Icon::RunPassed, s, Ink::Good, ago),
+            Check::Failed { said: s, ago } => said(super::icon::Icon::Error, s, Ink::Bad, ago),
         }
     }
 

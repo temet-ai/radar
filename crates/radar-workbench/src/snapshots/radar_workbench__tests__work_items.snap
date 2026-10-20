@@ -66,9 +66,9 @@ workflow-run · acme/api/42/1 · workflow-run
 #17 map · authored
 ── detail · tabs ──
 <work.tabs>
-○ 00000001
-● linked sources
-○ evidence
+00000001
+linked sources
+evidence
 ── detail · actions ──
 <work.rail>
 new local task…

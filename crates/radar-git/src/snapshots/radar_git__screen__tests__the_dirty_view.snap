@@ -9,7 +9,7 @@ expression: "crate::tests::shown(&host, 160, 40)"
   :folder: stashes  1  {view:3}
 ── middle · dirty ──
 CLONES · 2 clones, 1 worktree
-> :repo: api  on :branch: alice/ABC-12  ● in use  ↑2  —  :warning: 3 changed  1  3h  {c:/work/acme/api}
+> :repo: api  on :branch: alice/ABC-12  :local: in use  ↑2  —  :warning: 3 changed  1  3h  {c:/work/acme/api}
 · clones and worktrees with uncommitted changes
 ── detail · api ──
 folder   /work/acme/api

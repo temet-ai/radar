@@ -5,7 +5,7 @@ expression: shown
 ── page · Repositories / a / api / !263 ──
 :change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
 :info: Overview  :file: Changes  <:thread: Threads>  :pipeline: Pipeline  :commit: Commits
-! :error: ✗ merge request details refresh failed: details unavailable
+! :error: merge request details refresh failed: details unavailable
 ── middle · threads * ──
 >  + :comment: comment on !263   a comment on the merge request, not on a line  {row:0}
 ── status · REPOSITORIES ──

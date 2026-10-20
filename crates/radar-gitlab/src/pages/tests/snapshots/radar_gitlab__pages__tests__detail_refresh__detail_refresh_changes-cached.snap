@@ -5,17 +5,17 @@ expression: shown
 ── page · Repositories / a / api / !263 ──
 :change: ABC-12: Add a stats endpoint for the dashboard  :person: alice · :branch: feature/ABC-263 → main
 :info: Overview  <:file: Changes>  :thread: Threads !  :pipeline: Pipeline  :commit: Commits
-! :error: ✗ merge request details refresh failed: details unavailable
+! :error: merge request details refresh failed: details unavailable
 ── nav · files · 1 of 5 seen ──
   :folder_open: docs  +6 −1  {d:docs}
-    · :file_markdown: README.md  +6 −1  {d:docs/f:3}
+    :todo: :file_markdown: README.md  +6 −1  {d:docs/f:3}
   :folder_open: src  +93 −5  {d:src}
     :folder_open: main/java/acme/stats  +60 −2  {d:src/d:src/main/java/acme/stats}
->     ▎ :file_java: StatsController.java ◆1  +42 −0  {d:src/d:src/main/java/acme/stats/f:0}
-      · :file_java: StatsService.java  +18 −2  {d:src/d:src/main/java/acme/stats/f:2}
+>     :run_passed: :file_java: StatsController.java :thread: 1  +42 −0  {d:src/d:src/main/java/acme/stats/f:0}
+      :todo: :file_java: StatsService.java  +18 −2  {d:src/d:src/main/java/acme/stats/f:2}
     :folder_open: test/java/acme/stats  +33 −3  {d:src/d:src/test/java/acme/stats}
-      · :file_java: StatsControllerTest.java  +33 −3  {d:src/d:src/test/java/acme/stats/f:1}
-  · :file_xml: build.gradle  +3 −1  {f:4}
+      :todo: :file_java: StatsControllerTest.java  +33 −3  {d:src/d:src/test/java/acme/stats/f:1}
+  :todo: :file_xml: build.gradle  +3 −1  {f:4}
 ── middle · :file_java: src/main/java/acme/stats/StatsController.java · new file * ──
 diff java unified from 0
 >           @@@ -0,0 +1,24 @@
@@ -28,7 +28,7 @@ diff java unified from 0
           7 +@RequestMapping("/api/stats")
           8 +@RequiredArgsConstructor
           9 +public class StatsControler {
-      | :resolved: ✓ resolved · 1 note · Bob E.: Typo in the name.
+      | :resolved: resolved · 1 note · Bob E.: Typo in the name.
          10 +
          11 +    private final StatsService statsService;
          12 +
@@ -41,7 +41,7 @@ diff java unified from 0
          19 +    }
          20 +
          21 +    public Totals totals() { return statsService.totals(); }
-      | :thread: ◆ open thread · 2 notes
+      | :thread: open thread · 2 notes
       | │ :person: Bob Example · 1h ago
       | │ Should this read from the cached view?
       | │ ↳ :person: Alice Example · 46m ago

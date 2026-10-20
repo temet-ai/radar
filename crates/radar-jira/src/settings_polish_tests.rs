@@ -24,7 +24,7 @@ fn compact_settings_show_the_selected_value_and_live_verdict_with_the_cursor() {
     host.update(Event::Paste("gamma".into()));
     assert!(host.capturing(), "the host is typing into the field");
     let got = crate::tests::shown(&host, 80, 24);
-    assert!(got.contains("✗ not a web address"), "{got}");
+    assert!(got.contains(":error: not a web address"), "{got}");
     insta::assert_snapshot!("settings_invalid_site", got);
     host.update(Event::Key(KeyEvent::new(
         KeyCode::Char('u'),
@@ -34,7 +34,7 @@ fn compact_settings_show_the_selected_value_and_live_verdict_with_the_cursor() {
         "https://gamma.atlassian.net/jira/software/projects/GAM/boards/2".into(),
     ));
     let got = crate::tests::shown(&host, 80, 24);
-    assert!(got.contains("✓ the site gamma.atlassian.net"), "{got}");
+    assert!(got.contains(":run_passed: the site gamma.atlassian.net"), "{got}");
     assert!(host.capturing());
     insta::assert_snapshot!("settings_valid_site", got);
 }
@@ -47,7 +47,7 @@ fn compact_settings_reset_between_two_sites_with_the_same_field_title() {
         key80(&mut host, KeyCode::Down);
     }
     assert_eq!(host.section_view(0, "connection").unwrap().detail_title, "site");
-    key80(&mut host, KeyCode::Right);
+    key80(&mut host, KeyCode::Tab);
     key80(&mut host, KeyCode::End);
     // The sheet ends with the help to connect Jira.
     let bottom = crate::tests::shown(&host, 80, 24);

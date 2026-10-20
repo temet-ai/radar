@@ -31,16 +31,16 @@ exports[`recorded view fixtures > git_branch-screen at 80x24 1`] = `
 
 ── all ──
  CLONES · 2 clones, 1 worktree        AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS ↺ UPDAT
-▤ api  on ⎇ alice/ABC-12  ● in use    ↑2     —       ⚠ 3 change 1      3h
+▤ api  on ⎇ alice/ABC-12  ⌂ in use    ↑2     —       ⚠ 3 change 1      3h
   ├─ ▪ api-hotfix  on ⎇ alice/ABC-14  ↑1     ↓3      clean      —      1d
   ├─ ⎇ main                           —      ↓4      —          —      2d
-  ├─ ⎇ alice/ABC-12  ● here           ↑2     —       ⚠ 3 change —      3h
-  ├─ ⎇ alice/ABC-14  ● in api-hotfix  ↑1     ↓3      clean      —      1d
+  ├─ ⎇ alice/ABC-12  ⌂ here           ↑2     —       ⚠ 3 change —      3h
+  ├─ ⎇ alice/ABC-14  ⌂ in api-hotfix  ↑1     ↓3      clean      —      1d
   ├─ ◈ alice/ABC-9  merged            —      —       —          —      6d
   ├─ ⎇ alice/ABC-7                    —      gone    —          —      2w
   └─ ⎇ spike                          —      —       —          —      9d
 ▤ web  on ⎇ main                      —      —       clean      —      4d
-  └─ ⎇ main  ● here                   —      —       clean      —      4d
+  └─ ⎇ main  ⌂ here                   —      —       clean      —      4d
 
 ── api ──
  folder   /work/acme/api
@@ -79,16 +79,16 @@ exports[`recorded view fixtures > git_branch-screen at 160x40 1`] = `
 
 ── all ──
  CLONES · 2 clones, 1 worktree                                                                   AHEAD  BEHIND  ⚠ DIRTY    ▪ STAS TICKET               ↺ UPDAT
-▤ api  on ⎇ alice/ABC-12  ● in use                                                               ↑2     —       ⚠ 3 change 1                           3h
+▤ api  on ⎇ alice/ABC-12  ⌂ in use                                                               ↑2     —       ⚠ 3 change 1                           3h
   ├─ ▪ api-hotfix  on ⎇ alice/ABC-14                                                             ↑1     ↓3      clean      —                           1d
   ├─ ⎇ main                                                                                      —      ↓4      —          —                           2d
-  ├─ ⎇ alice/ABC-12  ● here                                                                      ↑2     —       ⚠ 3 change —      ▣ ABC-12 · In Progre 3h
-  ├─ ⎇ alice/ABC-14  ● in api-hotfix                                                             ↑1     ↓3      clean      —      ABC-14               1d
+  ├─ ⎇ alice/ABC-12  ⌂ here                                                                      ↑2     —       ⚠ 3 change —      ▣ ABC-12 · In Progre 3h
+  ├─ ⎇ alice/ABC-14  ⌂ in api-hotfix                                                             ↑1     ↓3      clean      —      ABC-14               1d
   ├─ ◈ alice/ABC-9  merged                                                                       —      —       —          —      ABC-9                6d
   ├─ ⎇ alice/ABC-7                                                                               —      gone    —          —      ABC-7                2w
   └─ ⎇ spike                                                                                     —      —       —          —                           9d
 ▤ web  on ⎇ main                                                                                 —      —       clean      —                           4d
-  └─ ⎇ main  ● here                                                                              —      —       clean      —                           4d
+  └─ ⎇ main  ⌂ here                                                                              —      —       clean      —                           4d
 
 ── api ──
  folder   /work/acme/api
@@ -2127,8 +2127,8 @@ exports[`recorded view fixtures > gitlab_settings-look at 160x40 1`] = `
 exports[`recorded view fixtures > gitlab_settings-tenancies at 80x24 1`] = `
 "── settings ──
  + add a tenancy   paste a GitLab group or repo link, or its path
-● b    team-b   0 repos · 0 hidden
-● a    team-a   4 repos · 1 hidden
+b    team-b   0 repos · 0 hidden
+a    team-a   4 repos · 1 hidden
   ├─ api                                                                shown
   ├─ docs                                                               shown
   ├─ tools/renovate                                                     hidden
@@ -2165,8 +2165,8 @@ exports[`recorded view fixtures > gitlab_settings-tenancies at 80x24 1`] = `
 exports[`recorded view fixtures > gitlab_settings-tenancies at 160x40 1`] = `
 "── settings ──
  + add a tenancy   paste a GitLab group or repo link, or its path
-● b    team-b   0 repos · 0 hidden
-● a    team-a   4 repos · 1 hidden
+b    team-b   0 repos · 0 hidden
+a    team-a   4 repos · 1 hidden
   ├─ api                                                                                                                                                shown
   ├─ docs                                                                                                                                               shown
   ├─ tools/renovate                                                                                                                                     hidden
@@ -2308,25 +2308,25 @@ exports[`recorded view fixtures > gitlab_settings-views at 160x40 1`] = `
 
 exports[`recorded view fixtures > jira_settings-connection at 80x24 1`] = `
 "── settings ──
-  ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?
-  ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?
-  + add a site   paste its link, e.g. https://acme.atlassian.net
- ▌ acme   acme.atlassian.net · 2 projects
-    ├─ site            https://acme.atlassian.net
-    ├─ account         alice@example.com
-    ├─ token           env:RADAR_JIRA_TEST_TOKEN
-    ├─ signed in as    Alice Example
-    ├─ check           not checked yet
-    └─ projects        ABC, DEF
- ▌ beta   beta.atlassian.net · 1 project
-    ├─ site            https://beta.atlassian.net
-    ├─ account         alice@example.com
-    ├─ token           env:RADAR_JIRA_TEST_TOKEN
-    ├─ signed in as    —
-    ├─ check           not checked yet
-    └─ projects        XYZ
-  refresh         every 2m
-  on start        ask first
+ ? Found: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?
+ ? Found in your environment: a Jira site (JIRA_OTHER_URL, …). Use it?
++ add a site   paste its link, e.g. https://acme.atlassian.net
+acme   acme.atlassian.net · 2 projects
+  ├─ site            https://acme.atlassian.net
+  ├─ account         alice@example.com
+  ├─ token           env:RADAR_JIRA_TEST_TOKEN
+  ├─ signed in as    Alice Example
+  ├─ check           not checked yet
+  └─ projects        ABC, DEF
+beta   beta.atlassian.net · 1 project
+  ├─ site            https://beta.atlassian.net
+  ├─ account         alice@example.com
+  ├─ token           env:RADAR_JIRA_TEST_TOKEN
+  ├─ signed in as    —
+  ├─ check           not checked yet
+  └─ projects        XYZ
+refresh         every 2m
+on start        ask first
 
 ── found in /work/acme/.mcp.json ──
  radar found a Jira site in /work/acme/.mcp.json. Do you want to use it?
@@ -2384,25 +2384,25 @@ exports[`recorded view fixtures > jira_settings-connection at 80x24 1`] = `
 
 exports[`recorded view fixtures > jira_settings-connection at 160x40 1`] = `
 "── settings ──
-  ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?
-  ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, JIRA_OTHER_API_TOKEN). Use it?
-  + add a site   paste its link, e.g. https://acme.atlassian.net
- ▌ acme   acme.atlassian.net · 2 projects
-    ├─ site            https://acme.atlassian.net
-    ├─ account         alice@example.com
-    ├─ token           env:RADAR_JIRA_TEST_TOKEN
-    ├─ signed in as    Alice Example
-    ├─ check           not checked yet
-    └─ projects        ABC, DEF
- ▌ beta   beta.atlassian.net · 1 project
-    ├─ site            https://beta.atlassian.net
-    ├─ account         alice@example.com
-    ├─ token           env:RADAR_JIRA_TEST_TOKEN
-    ├─ signed in as    —
-    ├─ check           not checked yet
-    └─ projects        XYZ
-  refresh         every 2m
-  on start        ask first
+ ? Found in /work/acme/.mcp.json: a Jira site (gamma.atlassian.net, JIRA_EMAIL). Use it?
+ ? Found in your environment: a Jira site (JIRA_OTHER_URL, JIRA_OTHER_EMAIL, JIRA_OTHER_API_TOKEN). Use it?
++ add a site   paste its link, e.g. https://acme.atlassian.net
+acme   acme.atlassian.net · 2 projects
+  ├─ site            https://acme.atlassian.net
+  ├─ account         alice@example.com
+  ├─ token           env:RADAR_JIRA_TEST_TOKEN
+  ├─ signed in as    Alice Example
+  ├─ check           not checked yet
+  └─ projects        ABC, DEF
+beta   beta.atlassian.net · 1 project
+  ├─ site            https://beta.atlassian.net
+  ├─ account         alice@example.com
+  ├─ token           env:RADAR_JIRA_TEST_TOKEN
+  ├─ signed in as    —
+  ├─ check           not checked yet
+  └─ projects        XYZ
+refresh         every 2m
+on start        ask first
 
 ── found in /work/acme/.mcp.json ──
  radar found a Jira site in /work/acme/.mcp.json. Do you want to use it?
@@ -2821,7 +2821,7 @@ exports[`recorded view fixtures > jira_tickets at 80x24 1`] = `
      └─ ▣ XYZ-7 = Move the night Story     ○ To Do                     1h
 
 ── acme ──
- ▌ ⊕ acme  acme.atlassian.net
+ ⊕ acme  acme.atlassian.net
 
  signed in   Alice Example
  watching    ABC, DEF
@@ -2870,7 +2870,7 @@ exports[`recorded view fixtures > jira_tickets at 160x40 1`] = `
      └─ ▣ XYZ-7 = Move the nightly build  ☺ Alice E.                                                             Story     ○ To Do                     1h
 
 ── acme ──
- ▌ ⊕ acme  acme.atlassian.net
+ ⊕ acme  acme.atlassian.net
 
  signed in   Alice Example
  watching    ABC, DEF
@@ -3349,8 +3349,8 @@ exports[`recorded view fixtures > slack_feed at 80x24 1`] = `
 "── feed ──
  @ For you                                                                    4
  ❝ Discussions
- ▌ # #team                                                                6 NEW
- ▌ # #svc                                                                 1 NEW
+ # #team                                                                  6 NEW
+ # #svc                                                                   1 NEW
 
 ── For you ──
  last 7 days                                                ↩ REPLIE ◷ WHEN
@@ -3394,8 +3394,8 @@ exports[`recorded view fixtures > slack_feed at 160x40 1`] = `
 "── feed ──
  @ For you                                                                                                                                                    4
  ❝ Discussions
- ▌ # #team                                                                                                                                                6 NEW
- ▌ # #svc                                                                                                                                                 1 NEW
+ # #team                                                                                                                                                  6 NEW
+ # #svc                                                                                                                                                   1 NEW
 
 ── For you ──
  last 7 days                                                                                                                                ↩ REPLIE ◷ WHEN
@@ -3527,8 +3527,8 @@ exports[`recorded view fixtures > slack_feed-page1-thread-links at 160x40 1`] = 
 
 exports[`recorded view fixtures > slack_settings-alerts at 80x24 1`] = `
 "── settings ──
- + add a mapping   the start of an alert's name, then where it belongs
- keep resolved    24 hours
++ add a mapping   the start of an alert's name, then where it belongs
+keep resolved    24 hours
 
 ── add a mapping ──
  Say where a kind of alert belongs.
@@ -3560,8 +3560,8 @@ exports[`recorded view fixtures > slack_settings-alerts at 80x24 1`] = `
 
 exports[`recorded view fixtures > slack_settings-alerts at 160x40 1`] = `
 "── settings ──
- + add a mapping   the start of an alert's name, then where it belongs
- keep resolved    24 hours
++ add a mapping   the start of an alert's name, then where it belongs
+keep resolved    24 hours
 
 ── add a mapping ──
  Say where a kind of alert belongs.
@@ -3609,25 +3609,25 @@ exports[`recorded view fixtures > slack_settings-alerts at 160x40 1`] = `
 
 exports[`recorded view fixtures > slack_settings-channels at 80x24 1`] = `
 "── settings ──
- + add a channel   paste a link to it, or type #name
- ▌ #team   #acme-team · team · watched
-   ├─ alias           team
-   ├─ purpose         where the team talks
-   ├─ kind            team
-   ├─ colour          ██ cyan
-   └─ watched         yes
- ▌ #svc   #acme-svc · service · watched
-   ├─ alias           svc
-   ├─ purpose         —
-   ├─ kind            service
-   ├─ colour          ██ orange
-   └─ watched         yes
- ▌ #try   #acme-try · test · not watched
-   ├─ alias           try
-   ├─ purpose         —
-   ├─ kind            test
-   ├─ colour          ██ green
-   └─ watched         no
++ add a channel   paste a link to it, or type #name
+#team   #acme-team · team · watched
+  ├─ alias           team
+  ├─ purpose         where the team talks
+  ├─ kind            team
+  ├─ colour          ██ cyan
+  └─ watched         yes
+#svc   #acme-svc · service · watched
+  ├─ alias           svc
+  ├─ purpose         —
+  ├─ kind            service
+  ├─ colour          ██ orange
+  └─ watched         yes
+#try   #acme-try · test · not watched
+  ├─ alias           try
+  ├─ purpose         —
+  ├─ kind            test
+  ├─ colour          ██ green
+  └─ watched         no
 
 ── add a channel ──
  Read another channel.
@@ -3659,25 +3659,25 @@ exports[`recorded view fixtures > slack_settings-channels at 80x24 1`] = `
 
 exports[`recorded view fixtures > slack_settings-channels at 160x40 1`] = `
 "── settings ──
- + add a channel   paste a link to it, or type #name
- ▌ #team   #acme-team · team · watched
-   ├─ alias           team
-   ├─ purpose         where the team talks
-   ├─ kind            team
-   ├─ colour          ██ cyan
-   └─ watched         yes
- ▌ #svc   #acme-svc · service · watched
-   ├─ alias           svc
-   ├─ purpose         —
-   ├─ kind            service
-   ├─ colour          ██ orange
-   └─ watched         yes
- ▌ #try   #acme-try · test · not watched
-   ├─ alias           try
-   ├─ purpose         —
-   ├─ kind            test
-   ├─ colour          ██ green
-   └─ watched         no
++ add a channel   paste a link to it, or type #name
+#team   #acme-team · team · watched
+  ├─ alias           team
+  ├─ purpose         where the team talks
+  ├─ kind            team
+  ├─ colour          ██ cyan
+  └─ watched         yes
+#svc   #acme-svc · service · watched
+  ├─ alias           svc
+  ├─ purpose         —
+  ├─ kind            service
+  ├─ colour          ██ orange
+  └─ watched         yes
+#try   #acme-try · test · not watched
+  ├─ alias           try
+  ├─ purpose         —
+  ├─ kind            test
+  ├─ colour          ██ green
+  └─ watched         no
 
 ── add a channel ──
  Read another channel.
@@ -3725,27 +3725,28 @@ exports[`recorded view fixtures > slack_settings-channels at 160x40 1`] = `
 
 exports[`recorded view fixtures > slack_settings-connection at 80x24 1`] = `
 "── settings ──
-  workspace       Acme · https://acme.slack.com
-  api             https://slack.com
-  token           xoxp…ests (typed in)
-  signed in as    Alice Example  alice
-  check           not checked yet
-  refresh         every 2m
-  read back       7 days
-  permissions   ├─ public channels                                            ●
-                ├─ private channels                                           ●
-                ├─ for you                                                    ●
-                ├─ names                                                      ●
-                ├─ user groups                                                ●
-                ├─ asking and replying                                        ●
-                ├─ reacting        needs reactions:write                      ✗
-                └─ pictures                                                   ●
+workspace       Acme · https://acme.slack.com
+api             https://slack.com
+token           xoxp…ests (typed in)
+signed in as    Alice Example  alice
+check           not checked yet
+refresh         every 2m
+read back       7 days
+permissions
+  ├─ public channels                                               ●
+  ├─ private channels                                              ●
+  ├─ for you                                                       ●
+  ├─ names                                                         ●
+  ├─ user groups                                                   ●
+  ├─ asking and replying                                           ●
+  ├─ reacting        needs reactions:write                         ✗
+  └─ pictures                                                      ●
 
-  CHANNELS  the registry; watched ones are read
-  + add a channel   paste its link, a message link, or its id
-    # #team   team · watched
-    # #svc   service · watched
-    # #try   test · not watched
+ CHANNELS  the registry; watched ones are read
+  ├─ + add a channel   paste its link, a message link, or its id
+  ├─ # #team   team · watched
+  ├─ # #svc   service · watched
+  └─ # #try   test · not watched
 
 ── workspace ──
  CHECKED
@@ -3803,27 +3804,28 @@ exports[`recorded view fixtures > slack_settings-connection at 80x24 1`] = `
 
 exports[`recorded view fixtures > slack_settings-connection at 160x40 1`] = `
 "── settings ──
-  workspace       Acme · https://acme.slack.com
-  api             https://slack.com
-  token           xoxp…ests (typed in)
-  signed in as    Alice Example  alice
-  check           not checked yet
-  refresh         every 2m
-  read back       7 days
-  permissions   ├─ public channels                                                                                                                            ●
-                ├─ private channels                                                                                                                           ●
-                ├─ for you                                                                                                                                    ●
-                ├─ names                                                                                                                                      ●
-                ├─ user groups                                                                                                                                ●
-                ├─ asking and replying                                                                                                                        ●
-                ├─ reacting        needs reactions:write                                                                                                      ✗
-                └─ pictures                                                                                                                                   ●
+workspace       Acme · https://acme.slack.com
+api             https://slack.com
+token           xoxp…ests (typed in)
+signed in as    Alice Example  alice
+check           not checked yet
+refresh         every 2m
+read back       7 days
+permissions
+  ├─ public channels                                                                                                                               ●
+  ├─ private channels                                                                                                                              ●
+  ├─ for you                                                                                                                                       ●
+  ├─ names                                                                                                                                         ●
+  ├─ user groups                                                                                                                                   ●
+  ├─ asking and replying                                                                                                                           ●
+  ├─ reacting        needs reactions:write                                                                                                         ✗
+  └─ pictures                                                                                                                                      ●
 
-  CHANNELS  the registry; watched ones are read
-  + add a channel   paste its link, a message link, or its id
-    # #team   team · watched
-    # #svc   service · watched
-    # #try   test · not watched
+ CHANNELS  the registry; watched ones are read
+  ├─ + add a channel   paste its link, a message link, or its id
+  ├─ # #team   team · watched
+  ├─ # #svc   service · watched
+  └─ # #try   test · not watched
 
 ── workspace ──
  CHECKED
@@ -4287,9 +4289,9 @@ shown simply: this needs work.timeline
 
 ── tabs ──
 shown simply: this needs work.tabs
- ○ 00000001
- ● linked sources
- ○ evidence
+ 00000001
+ linked sources
+ evidence
 
 
 
@@ -4472,9 +4474,9 @@ shown simply: this needs work.timeline
 
 ── tabs ──
 shown simply: this needs work.tabs
- ○ 00000001
- ● linked sources
- ○ evidence
+ 00000001
+ linked sources
+ evidence
 
 
 

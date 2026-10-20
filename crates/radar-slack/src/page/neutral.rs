@@ -610,7 +610,7 @@ fn draft_view(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PageView {
     }
     if let Some(error) = &draft.error {
         blocks.push(Block::line(Text::from(vec![
-            Seg::icon_or_lead(Icon::Error, "✗ ", Ink::Bad),
+            Seg::icon(Icon::Error),
             Seg::new(format!("Slack did not take it: {error}"), Ink::Bad),
         ])));
     }

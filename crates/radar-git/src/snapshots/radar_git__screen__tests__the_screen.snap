@@ -1,6 +1,6 @@
 ---
 source: crates/radar-git/src/screen.rs
-expression: "crate::tests::shown(&hosted(), 160, 40)"
+expression: "crate::tests::shown(&host, 160, 40)"
 ---
 ── nav · views ──
 > :views: all  {view:0}
@@ -9,16 +9,16 @@ expression: "crate::tests::shown(&hosted(), 160, 40)"
   :folder: stashes  1  {view:3}
 ── middle · all * ──
 CLONES · 2 clones, 1 worktree
-> :repo: api  on :branch: alice/ABC-12  ● in use  ↑2  —  :warning: 3 changed  1  3h  {c:/work/acme/api}
+> :repo: api  on :branch: alice/ABC-12  :local: in use  ↑2  —  :warning: 3 changed  1  3h  {c:/work/acme/api}
     :folder: api-hotfix  on :branch: alice/ABC-14  ↑1  ↓3  clean  —  1d  {c:/work/acme/api/w:/work/acme/api-hotfix}
     :branch: main  —  ↓4  —  —  2d  {c:/work/acme/api/b:main}
-    :branch: alice/ABC-12  ● here  ↑2  —  :warning: 3 changed  —  3h  {c:/work/acme/api/b:alice/ABC-12}
-    :branch: alice/ABC-14  ● in api-hotfix  ↑1  ↓3  clean  —  1d  {c:/work/acme/api/b:alice/ABC-14}
+    :branch: alice/ABC-12  :local: here  ↑2  —  :warning: 3 changed  —  3h  {c:/work/acme/api/b:alice/ABC-12}
+    :branch: alice/ABC-14  :local: in api-hotfix  ↑1  ↓3  clean  —  1d  {c:/work/acme/api/b:alice/ABC-14}
     :merged: alice/ABC-9  merged  —  —  —  —  6d  {c:/work/acme/api/b:alice/ABC-9}
     :branch: alice/ABC-7  —  gone  —  —  2w  {c:/work/acme/api/b:alice/ABC-7}
     :branch: spike  —  —  —  —  9d  {c:/work/acme/api/b:spike}
   :repo: web  on :branch: main  —  —  clean  —  4d  {c:/work/acme/web}
-    :branch: main  ● here  —  —  clean  —  4d  {c:/work/acme/web/b:main}
+    :branch: main  :local: here  —  —  clean  —  4d  {c:/work/acme/web/b:main}
 · every clone, its worktrees and its local branches
 ── detail · api ──
 folder   /work/acme/api

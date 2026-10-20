@@ -15,6 +15,7 @@ use radar_core::system;
 use radar_core::time;
 
 use radar_core::ui;
+use radar_core::ui::icon::Icon;
 use radar_core::view::{self as v, Ink, Seg, Text};
 
 use crate::GitPlugin;
@@ -743,19 +744,23 @@ fn pair_row(
     label: &str,
     value: String,
     value_ink: Ink,
-    right: Option<(String, Ink)>,
+    right: Option<(Option<Icon>, String, Ink)>,
     width: u16,
     balanced: bool,
 ) -> Drawn {
     // The row's margins and the gap before the status.
     let avail = usize::from(width).saturating_sub(4);
-    let right = right.map(|(s, slot)| {
+    let right = right.map(|(icon, s, slot)| {
         (
+            icon,
             cut_head(&s, (avail / 3).max(if balanced { 8 } else { 10 })),
             slot,
         )
     });
-    let right_w = right.as_ref().map_or(0, |(s, _)| chars(s) + 2);
+    // An icon takes two cells at most, and its gap.
+    let right_w = right
+        .as_ref()
+        .map_or(0, |(icon, s, _)| chars(s) + 2 + if icon.is_some() { 2 } else { 0 });
     let (label_text, value_text, keep_right) = if balanced {
         // Only very narrow link rows lose the status. A long diagnostic cannot
         // crowd out either path.
@@ -797,9 +802,14 @@ fn pair_row(
         .push(Seg::new(label_text, Ink::Emphasis).strong())
         .push(Seg::new(" → ", Ink::Muted))
         .push(Seg::new(value_text, value_ink));
-    let right = right
-        .filter(|_| keep_right)
-        .map(|(s, ink)| Text::of(s, ink));
+    let right = right.filter(|_| keep_right).map(|(icon, s, ink)| {
+        let mut text = Text::new();
+        if let Some(icon) = icon {
+            text.add(Seg::icon(icon));
+        }
+        text.add(Seg::new(s, ink));
+        text
+    });
     (line, right)
 }
 
@@ -873,9 +883,9 @@ fn section_rows(
                 input_at = Some((n, 1));
             }
             let state = match link_state(p, l) {
-                Verdict::Good(b) => (format!("✓ {b}"), Ink::Good),
-                Verdict::Warn(w) => (format!("⚠ {w}"), Ink::Warn),
-                Verdict::Bad(w) => (format!("✗ {w}"), Ink::Bad),
+                Verdict::Good(b) => (Some(Icon::RunPassed), b, Ink::Good),
+                Verdict::Warn(w) => (Some(Icon::Warning), w, Ink::Warn),
+                Verdict::Bad(w) => (Some(Icon::Error), w, Ink::Bad),
             };
             drawn.push(pair_row(
                 &l.repo,
@@ -908,7 +918,7 @@ fn section_rows(
                         (c.branch.clone(), Ink::Secondary)
                     };
                     let right = (!c.base.is_empty())
-                        .then(|| (format!("from {}", c.base), Ink::AccentSecondary));
+                        .then(|| (None, format!("from {}", c.base), Ink::AccentSecondary));
                     (
                         Some(Field::ConvUnder(i)),
                         pair_row(&c.under, value, ink, right, width, false),
@@ -1121,16 +1131,9 @@ pub fn detail_title(p: &GitPlugin, section: &str) -> String {
     }
 }
 
-/// `✓ checked` or `⚠ why`: an icon where the pack has one, else the symbol.
+/// The passed icon and what was checked, or the warning icon and why.
 fn checked(good: bool, said: &str) -> Text {
-    let (icon, symbol, ink) = if good {
-        (radar_core::ui::icon::Icon::RunPassed, "✓", Ink::Good)
-    } else {
-        (radar_core::ui::icon::Icon::Warning, "⚠", Ink::Warn)
-    };
-    Text::new()
-        .push(Seg::icon_or(icon, symbol, ink))
-        .push(Seg::new(format!(" {said}"), ink))
+    v::kit::check(good, said)
 }
 
 /// The detail beside a section's rows: the live verdict on what is typed
@@ -1142,9 +1145,9 @@ fn detail(p: &GitPlugin, section: &str, now: i64) -> Vec<Text> {
     if let Some((field, input)) = &p.local.edit {
         lines.push(view_heading("as you type"));
         lines.push(match validate(p, field, &input.value()) {
-            Verdict::Good(m) => Text::of(format!("✓ {m}"), Ink::Good),
-            Verdict::Warn(m) => Text::of(format!("⚠ {m}"), Ink::Warn),
-            Verdict::Bad(m) => Text::of(format!("✗ {m}"), Ink::Warn),
+            Verdict::Good(m) => v::kit::marked(Icon::RunPassed, &m, Ink::Good),
+            Verdict::Warn(m) => v::kit::marked(Icon::Warning, &m, Ink::Warn),
+            Verdict::Bad(m) => v::kit::marked(Icon::Error, &m, Ink::Bad),
         });
         lines.push(Text::new());
     }
@@ -2830,7 +2833,7 @@ mod tests {
     fn a_long_repo_path_is_cut_before_what_was_set() {
         let text = |l: &Text| l.words();
         let repo = "acme/platform-services/billing/payments-gateway";
-        let status = Some(("✓ main".to_string(), Ink::Good));
+        let status = Some((Some(Icon::RunPassed), "main".to_string(), Ink::Good));
         let (line, right) = pair_row(
             repo,
             "{type}/{key}-{slug}".into(),

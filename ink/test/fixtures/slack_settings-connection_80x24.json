@@ -47,14 +47,33 @@
     }
   ],
   "body": {
-    "node": "list",
+    "columns": [
+      {
+        "heading": "mark",
+        "keep": 0,
+        "width": 12
+      }
+    ],
+    "look": {
+      "band": "",
+      "band_level": 1,
+      "heading": "bg.overlay",
+      "lines": "text.muted"
+    },
+    "name_width": 66,
+    "node": "tree",
+    "open": [
+      [
+        "permissions"
+      ],
+      [
+        "row:16"
+      ]
+    ],
     "rows": [
       {
-        "target": "row:0",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:0",
+        "name": [
           {
             "ink": "muted",
             "text": "workspace       "
@@ -66,11 +85,8 @@
         ]
       },
       {
-        "target": "row:1",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:1",
+        "name": [
           {
             "ink": "muted",
             "text": "api             "
@@ -82,11 +98,8 @@
         ]
       },
       {
-        "target": "row:2",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:2",
+        "name": [
           {
             "ink": "muted",
             "text": "token           "
@@ -98,11 +111,8 @@
         ]
       },
       {
-        "target": "row:3",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:3",
+        "name": [
           {
             "ink": "muted",
             "text": "signed in as    "
@@ -118,11 +128,8 @@
         ]
       },
       {
-        "target": "row:4",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:4",
+        "name": [
           {
             "ink": "muted",
             "text": "check           "
@@ -134,11 +141,8 @@
         ]
       },
       {
-        "target": "row:5",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:5",
+        "name": [
           {
             "ink": "muted",
             "text": "refresh         "
@@ -150,11 +154,8 @@
         ]
       },
       {
-        "target": "row:6",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:6",
+        "name": [
           {
             "ink": "muted",
             "text": "read back       "
@@ -166,212 +167,269 @@
         ]
       },
       {
-        "right": [
+        "children": [
           {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:7",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "public channels "
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:8",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "private channels"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:9",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "for you         "
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:10",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "names           "
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:11",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "user groups     "
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:12",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "asking and replying"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "error",
+                    "ink": "warn",
+                    "text": "missing"
+                  }
+                ]
+              }
+            ],
+            "detail": [
+              {
+                "ink": "warn",
+                "text": "needs reactions:write"
+              }
+            ],
+            "id": "row:13",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "reacting        "
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "heading": "mark",
+                "text": [
+                  {
+                    "icon": "done",
+                    "ink": "good",
+                    "text": "has it"
+                  }
+                ]
+              }
+            ],
+            "id": "row:14",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "pictures        "
+              }
+            ]
           }
         ],
-        "target": "row:7",
-        "text": [
+        "heading": true,
+        "id": "permissions",
+        "name": [
           {
             "ink": "muted",
-            "text": " permissions   "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "public channels "
-          }
-        ]
-      },
-      {
-        "right": [
-          {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
-          }
-        ],
-        "target": "row:8",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "private channels"
-          }
-        ]
-      },
-      {
-        "right": [
-          {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
-          }
-        ],
-        "target": "row:9",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "for you         "
-          }
-        ]
-      },
-      {
-        "right": [
-          {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
-          }
-        ],
-        "target": "row:10",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "names           "
-          }
-        ]
-      },
-      {
-        "right": [
-          {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
-          }
-        ],
-        "target": "row:11",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "user groups     "
-          }
-        ]
-      },
-      {
-        "right": [
-          {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
-          }
-        ],
-        "target": "row:12",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "asking and replying"
-          }
-        ]
-      },
-      {
-        "detail": [
-          {
-            "ink": "warn",
-            "text": "needs reactions:write"
-          }
-        ],
-        "right": [
-          {
-            "icon": "error",
-            "ink": "warn",
-            "text": "missing"
-          }
-        ],
-        "target": "row:13",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "reacting        "
-          }
-        ]
-      },
-      {
-        "right": [
-          {
-            "icon": "done",
-            "ink": "good",
-            "text": "has it"
-          }
-        ],
-        "target": "row:14",
-        "text": [
-          {
-            "ink": "muted",
-            "text": "               "
-          },
-          {
-            "look": "text.muted",
-            "text": "└─ "
-          },
-          {
-            "ink": "muted",
-            "text": "pictures        "
+            "text": "permissions"
           }
         ]
       },
       {
         "heading": true,
-        "target": "row:15",
-        "text": []
+        "id": "row:15",
+        "name": []
       },
       {
+        "children": [
+          {
+            "id": "row:17",
+            "name": [
+              {
+                "ink": "accent",
+                "strong": true,
+                "text": "+ "
+              },
+              {
+                "ink": "accent_secondary",
+                "strong": true,
+                "text": "add a channel"
+              },
+              {
+                "ink": "muted",
+                "text": "   paste its link, a message link, or its id"
+              }
+            ]
+          },
+          {
+            "id": "row:18",
+            "name": [
+              {
+                "icon": "channel"
+              },
+              {
+                "look": "text.primary bold",
+                "text": "#team"
+              },
+              {
+                "ink": "muted",
+                "text": "   team · watched"
+              }
+            ]
+          },
+          {
+            "id": "row:19",
+            "name": [
+              {
+                "icon": "channel"
+              },
+              {
+                "look": "text.primary bold",
+                "text": "#svc"
+              },
+              {
+                "ink": "muted",
+                "text": "   service · watched"
+              }
+            ]
+          },
+          {
+            "id": "row:20",
+            "name": [
+              {
+                "icon": "channel"
+              },
+              {
+                "look": "text.primary bold",
+                "text": "#try"
+              },
+              {
+                "ink": "muted",
+                "text": "   test · not watched"
+              }
+            ]
+          }
+        ],
         "heading": true,
-        "target": "row:16",
-        "text": [
+        "id": "row:16",
+        "name": [
           {
             "text": " "
           },
@@ -385,85 +443,11 @@
             "text": "  the registry; watched ones are read"
           }
         ]
-      },
-      {
-        "target": "row:17",
-        "text": [
-          {
-            "ink": "accent",
-            "strong": true,
-            "text": " + "
-          },
-          {
-            "ink": "accent_secondary",
-            "strong": true,
-            "text": "add a channel"
-          },
-          {
-            "ink": "muted",
-            "text": "   paste its link, a message link, or its id"
-          }
-        ]
-      },
-      {
-        "target": "row:18",
-        "text": [
-          {
-            "text": "   "
-          },
-          {
-            "icon": "channel"
-          },
-          {
-            "look": "text.primary bold",
-            "text": "#team"
-          },
-          {
-            "ink": "muted",
-            "text": "   team · watched"
-          }
-        ]
-      },
-      {
-        "target": "row:19",
-        "text": [
-          {
-            "text": "   "
-          },
-          {
-            "icon": "channel"
-          },
-          {
-            "look": "text.primary bold",
-            "text": "#svc"
-          },
-          {
-            "ink": "muted",
-            "text": "   service · watched"
-          }
-        ]
-      },
-      {
-        "target": "row:20",
-        "text": [
-          {
-            "text": "   "
-          },
-          {
-            "icon": "channel"
-          },
-          {
-            "look": "text.primary bold",
-            "text": "#try"
-          },
-          {
-            "ink": "muted",
-            "text": "   test · not watched"
-          }
-        ]
       }
     ],
-    "selected": 0
+    "selected": [
+      "row:0"
+    ]
   },
   "detail": [
     [

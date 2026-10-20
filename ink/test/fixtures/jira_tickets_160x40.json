@@ -260,13 +260,11 @@
                         "heading": "status",
                         "text": [
                           {
-                            "icon": "in_progress",
-                            "look": "status.info bold",
-                            "text": "◐"
+                            "icon": "in_progress"
                           },
                           {
                             "look": "status.info bold",
-                            "text": " In Progress"
+                            "text": "In Progress"
                           }
                         ]
                       },
@@ -296,13 +294,11 @@
                             "heading": "status",
                             "text": [
                               {
-                                "icon": "in_progress",
-                                "look": "status.info bold",
-                                "text": "◐"
+                                "icon": "in_progress"
                               },
                               {
                                 "look": "status.info bold",
-                                "text": " In Progress"
+                                "text": "In Progress"
                               }
                             ]
                           },
@@ -385,13 +381,11 @@
                             "heading": "status",
                             "text": [
                               {
-                                "icon": "in_progress",
-                                "look": "status.info bold",
-                                "text": "◐"
+                                "icon": "in_progress"
                               },
                               {
                                 "look": "status.info bold",
-                                "text": " In Progress"
+                                "text": "In Progress"
                               }
                             ]
                           },
@@ -470,13 +464,11 @@
                 "id": "g:acme:In Progress",
                 "name": [
                   {
-                    "icon": "in_progress",
-                    "look": "status.info bold",
-                    "text": "◐"
+                    "icon": "in_progress"
                   },
                   {
                     "look": "status.info bold",
-                    "text": " In Progress"
+                    "text": "In Progress"
                   }
                 ]
               },
@@ -497,13 +489,11 @@
                         "heading": "status",
                         "text": [
                           {
-                            "icon": "in_progress",
-                            "look": "status.info bold",
-                            "text": "◐"
+                            "icon": "in_progress"
                           },
                           {
                             "look": "status.info bold",
-                            "text": " In Review"
+                            "text": "In Review"
                           }
                         ]
                       },
@@ -551,13 +541,11 @@
                 "id": "g:acme:In Review",
                 "name": [
                   {
-                    "icon": "in_progress",
-                    "look": "status.info bold",
-                    "text": "◐"
+                    "icon": "in_progress"
                   },
                   {
                     "look": "status.info bold",
-                    "text": " In Review"
+                    "text": "In Review"
                   }
                 ]
               },
@@ -578,13 +566,11 @@
                         "heading": "status",
                         "text": [
                           {
-                            "icon": "todo",
-                            "look": "text.secondary",
-                            "text": "○"
+                            "icon": "todo"
                           },
                           {
                             "look": "text.secondary",
-                            "text": " To Do"
+                            "text": "To Do"
                           }
                         ]
                       },
@@ -630,13 +616,11 @@
                 "id": "g:acme:To Do",
                 "name": [
                   {
-                    "icon": "todo",
-                    "look": "text.secondary",
-                    "text": "○"
+                    "icon": "todo"
                   },
                   {
                     "look": "text.secondary",
-                    "text": " To Do"
+                    "text": "To Do"
                   }
                 ]
               }
@@ -677,13 +661,11 @@
                         "heading": "status",
                         "text": [
                           {
-                            "icon": "todo",
-                            "look": "text.secondary",
-                            "text": "○"
+                            "icon": "todo"
                           },
                           {
                             "look": "text.secondary",
-                            "text": " To Do"
+                            "text": "To Do"
                           }
                         ]
                       },
@@ -731,13 +713,11 @@
                 "id": "g:beta:To Do",
                 "name": [
                   {
-                    "icon": "todo",
-                    "look": "text.secondary",
-                    "text": "○"
+                    "icon": "todo"
                   },
                   {
                     "look": "text.secondary",
-                    "text": " To Do"
+                    "text": "To Do"
                   }
                 ]
               }
@@ -782,10 +762,6 @@
           {
             "block": "line",
             "text": [
-              {
-                "look": "jira.blue",
-                "text": "▌ "
-              },
               {
                 "icon": "site"
               },
@@ -840,13 +816,11 @@
                 "block": "line",
                 "text": [
                   {
-                    "icon": "in_progress",
-                    "look": "status.info bold",
-                    "text": "◐"
+                    "icon": "in_progress"
                   },
                   {
                     "look": "status.info bold",
-                    "text": " doing "
+                    "text": "doing "
                   },
                   {
                     "ink": "number",
@@ -858,13 +832,11 @@
                 "block": "line",
                 "text": [
                   {
-                    "icon": "todo",
-                    "look": "text.secondary",
-                    "text": "○"
+                    "icon": "todo"
                   },
                   {
                     "look": "text.secondary",
-                    "text": " to do "
+                    "text": "to do "
                   },
                   {
                     "ink": "number",

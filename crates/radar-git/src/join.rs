@@ -113,7 +113,7 @@ fn line(p: &GitPlugin, project: &str, branch: Option<&str>) -> Vec<Chip> {
         out.push(Chip::new(" · checking out…", Tone::Info));
     } else if branch.is_some_and(|b| b == c.branch) {
         out.push(Chip::new(" · ", Tone::Good));
-        out.push(Chip::new(format!("✓ on {}", c.branch), Tone::Good).icon(Icon::Branch));
+        out.push(Chip::new(format!("on {}", c.branch), Tone::Good).icon(Icon::Branch));
     } else if !c.branch.is_empty() {
         out.push(Chip::new(" · ", Tone::Muted));
         out.push(Chip::new(format!("on {}", c.branch), Tone::Muted).icon(Icon::Branch));

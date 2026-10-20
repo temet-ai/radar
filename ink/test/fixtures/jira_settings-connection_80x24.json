@@ -24,11 +24,33 @@
     }
   ],
   "body": {
-    "node": "list",
+    "columns": [
+      {
+        "heading": "check",
+        "keep": 0,
+        "width": 10
+      }
+    ],
+    "look": {
+      "band": "bg.overlay",
+      "band_level": 2,
+      "heading": "bg.overlay",
+      "lines": "text.muted"
+    },
+    "name_width": 68,
+    "node": "tree",
+    "open": [
+      [
+        "row:3"
+      ],
+      [
+        "row:10"
+      ]
+    ],
     "rows": [
       {
-        "target": "row:0",
-        "text": [
+        "id": "row:0",
+        "name": [
           {
             "ink": "accent",
             "strong": true,
@@ -55,8 +77,8 @@
         ]
       },
       {
-        "target": "row:1",
-        "text": [
+        "id": "row:1",
+        "name": [
           {
             "ink": "accent",
             "strong": true,
@@ -83,12 +105,12 @@
         ]
       },
       {
-        "target": "row:2",
-        "text": [
+        "id": "row:2",
+        "name": [
           {
             "ink": "accent",
             "strong": true,
-            "text": " + "
+            "text": "+ "
           },
           {
             "ink": "accent_secondary",
@@ -102,253 +124,200 @@
         ]
       },
       {
+        "children": [
+          {
+            "id": "row:4",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "site            "
+              },
+              {
+                "ink": "primary",
+                "text": "https://acme.atlassian.net"
+              }
+            ]
+          },
+          {
+            "id": "row:5",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "account         "
+              },
+              {
+                "ink": "primary",
+                "text": "alice@example.com"
+              }
+            ]
+          },
+          {
+            "id": "row:6",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "token           "
+              },
+              {
+                "ink": "primary",
+                "text": "env:RADAR_JIRA_TEST_TOKEN"
+              }
+            ]
+          },
+          {
+            "id": "row:7",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "signed in as    "
+              },
+              {
+                "ink": "primary",
+                "text": "Alice Example"
+              }
+            ]
+          },
+          {
+            "id": "row:8",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "check           "
+              },
+              {
+                "ink": "muted",
+                "text": "not checked yet"
+              }
+            ]
+          },
+          {
+            "id": "row:9",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "projects        "
+              },
+              {
+                "ink": "primary",
+                "text": "ABC, DEF"
+              }
+            ]
+          }
+        ],
         "detail": [
           {
             "ink": "muted",
             "text": "   acme.atlassian.net · 2 projects"
           }
         ],
-        "target": "row:3",
-        "text": [
-          {
-            "look": "jira.blue",
-            "text": "▌ "
-          },
+        "id": "row:3",
+        "name": [
           {
             "look": "jira.blue bold",
             "text": "acme"
           }
-        ]
+        ],
+        "stripe": "jira.blue"
       },
       {
-        "target": "row:4",
-        "text": [
+        "children": [
           {
-            "look": "text.muted",
-            "text": "   ├─ "
+            "id": "row:11",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "site            "
+              },
+              {
+                "ink": "primary",
+                "text": "https://beta.atlassian.net"
+              }
+            ]
           },
           {
-            "ink": "muted",
-            "text": "site            "
+            "id": "row:12",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "account         "
+              },
+              {
+                "ink": "primary",
+                "text": "alice@example.com"
+              }
+            ]
           },
           {
-            "ink": "primary",
-            "text": "https://acme.atlassian.net"
+            "id": "row:13",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "token           "
+              },
+              {
+                "ink": "primary",
+                "text": "env:RADAR_JIRA_TEST_TOKEN"
+              }
+            ]
+          },
+          {
+            "id": "row:14",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "signed in as    "
+              },
+              {
+                "ink": "primary",
+                "text": "—"
+              }
+            ]
+          },
+          {
+            "id": "row:15",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "check           "
+              },
+              {
+                "ink": "muted",
+                "text": "not checked yet"
+              }
+            ]
+          },
+          {
+            "id": "row:16",
+            "name": [
+              {
+                "ink": "muted",
+                "text": "projects        "
+              },
+              {
+                "ink": "primary",
+                "text": "XYZ"
+              }
+            ]
           }
-        ]
-      },
-      {
-        "target": "row:5",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "account         "
-          },
-          {
-            "ink": "primary",
-            "text": "alice@example.com"
-          }
-        ]
-      },
-      {
-        "target": "row:6",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "token           "
-          },
-          {
-            "ink": "primary",
-            "text": "env:RADAR_JIRA_TEST_TOKEN"
-          }
-        ]
-      },
-      {
-        "target": "row:7",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "signed in as    "
-          },
-          {
-            "ink": "primary",
-            "text": "Alice Example"
-          }
-        ]
-      },
-      {
-        "target": "row:8",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "check           "
-          },
-          {
-            "ink": "muted",
-            "text": "not checked yet"
-          }
-        ]
-      },
-      {
-        "target": "row:9",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   └─ "
-          },
-          {
-            "ink": "muted",
-            "text": "projects        "
-          },
-          {
-            "ink": "primary",
-            "text": "ABC, DEF"
-          }
-        ]
-      },
-      {
+        ],
         "detail": [
           {
             "ink": "muted",
             "text": "   beta.atlassian.net · 1 project"
           }
         ],
-        "target": "row:10",
-        "text": [
-          {
-            "look": "jira.green",
-            "text": "▌ "
-          },
+        "id": "row:10",
+        "name": [
           {
             "look": "jira.green bold",
             "text": "beta"
           }
-        ]
+        ],
+        "stripe": "jira.green"
       },
       {
-        "target": "row:11",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "site            "
-          },
-          {
-            "ink": "primary",
-            "text": "https://beta.atlassian.net"
-          }
-        ]
-      },
-      {
-        "target": "row:12",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "account         "
-          },
-          {
-            "ink": "primary",
-            "text": "alice@example.com"
-          }
-        ]
-      },
-      {
-        "target": "row:13",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "token           "
-          },
-          {
-            "ink": "primary",
-            "text": "env:RADAR_JIRA_TEST_TOKEN"
-          }
-        ]
-      },
-      {
-        "target": "row:14",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "signed in as    "
-          },
-          {
-            "ink": "primary",
-            "text": "—"
-          }
-        ]
-      },
-      {
-        "target": "row:15",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   ├─ "
-          },
-          {
-            "ink": "muted",
-            "text": "check           "
-          },
-          {
-            "ink": "muted",
-            "text": "not checked yet"
-          }
-        ]
-      },
-      {
-        "target": "row:16",
-        "text": [
-          {
-            "look": "text.muted",
-            "text": "   └─ "
-          },
-          {
-            "ink": "muted",
-            "text": "projects        "
-          },
-          {
-            "ink": "primary",
-            "text": "XYZ"
-          }
-        ]
-      },
-      {
-        "target": "row:17",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:17",
+        "name": [
           {
             "ink": "muted",
             "text": "refresh         "
@@ -360,11 +329,8 @@
         ]
       },
       {
-        "target": "row:18",
-        "text": [
-          {
-            "text": " "
-          },
+        "id": "row:18",
+        "name": [
           {
             "ink": "muted",
             "text": "on start        "
@@ -376,7 +342,9 @@
         ]
       }
     ],
-    "selected": 0
+    "selected": [
+      "row:0"
+    ]
   },
   "detail": [
     [

@@ -3,12 +3,12 @@ source: crates/radar-gitlab/src/pages/tests.rs
 expression: "hosted(p, 160, 40)"
 ---
 ── page · Repositories / a / web ──
-:repo: acme/team-a/web  :branch: main :run_failed: ✗ failed · active 4d ago
+:repo: acme/team-a/web  :branch: main :run_failed: failed · active 4d ago
 :change: Merge requests  <:pipeline: Pipelines on main>
 ── middle · pipelines on main * ──
 ! loading…
 ── middle · why main is red * ──
-> :run_failed: ✗ unit-test               test · 1m 14s · it ran out of time  {row:0}
+> :run_failed: unit-test               test · 1m 14s · it ran out of time  {row:0}
       │ no error recognised; its last lines:
       │ waiting for the stack to settle
       │ still waiting (19m)

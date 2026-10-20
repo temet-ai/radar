@@ -7,10 +7,10 @@ expression: "hosted(red_pipeline_tab(), 160, 40)"
 :info: Overview  :file: Changes  :thread: Threads !  <:pipeline: Pipeline !>  :commit: Commits
 ── middle · pipeline * ──
   loading…
-  :run_failed: ✗ failed · 6m 12s
+  :run_failed: failed · 6m 12s
 
   :run_failed: WHY IT IS RED
-> :run_failed: ✗ unit-test               test · 1m 14s · the script failed  {row:0}
+> :run_failed: unit-test               test · 1m 14s · the script failed  {row:0}
       │ > Task :compileJava
       │ > Task :test
       │ StatsControllerTest > returnsTheCachedView() FAILED
@@ -18,7 +18,7 @@ expression: "hosted(red_pipeline_tab(), 160, 40)"
       │         at StatsControllerTest.java:41
       │
       │ 3 tests completed, 1 failed
-  :run_failed: ✗ lint                    test · 1m 14s · the script failed · allowed to fail  {row:1}
+  :run_failed: lint                    test · 1m 14s · the script failed · allowed to fail  {row:1}
       │ loading its log…
 ── status · REPOSITORIES ──
 PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

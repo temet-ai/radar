@@ -4,8 +4,8 @@ expression: "crate::tests::shown(&host, 160, 40)"
 ---
 ── section · tenancies ──
 > + add a tenancy   paste a GitLab group or repo link, or its path  {add}
-  ● b    team-b  0 repos · 0 hidden  {tenancy:0:["acme","team-b"]}
-  ● a    team-a  4 repos · 1 hidden  {tenancy:0:["acme","team-a"]}
+  b    team-b  0 repos · 0 hidden  {tenancy:0:["acme","team-b"]}
+  a    team-a  4 repos · 1 hidden  {tenancy:0:["acme","team-a"]}
     api  shown  {tenancy:0:["acme","team-a"]/api}
     docs  shown  {tenancy:0:["acme","team-a"]/docs}
     tools/renovate  hidden  {tenancy:0:["acme","team-a"]/tools/renovate}

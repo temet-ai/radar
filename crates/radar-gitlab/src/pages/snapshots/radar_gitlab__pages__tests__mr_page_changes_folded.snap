@@ -7,12 +7,12 @@ expression: "hosted(p, 160, 40)"
 :info: Overview  <:file: Changes>  :thread: Threads !  :pipeline: Pipeline  :commit: Commits
 ── nav · files · 2 of 5 seen ──
   :folder_open: docs  +6 −1  {d:docs}
-    ✓ :file_markdown: README.md  +6 −1  {d:docs/f:3}
+    :run_passed: :file_markdown: README.md  +6 −1  {d:docs/f:3}
   :folder_open: src  +93 −5  {d:src}
 >   :folder: main/java/acme/stats  +60 −2  ⋯ 2  {d:src/d:src/main/java/acme/stats}
     :folder_open: test/java/acme/stats  +33 −3  {d:src/d:src/test/java/acme/stats}
-      · :file_java: StatsControllerTest.java  +33 −3  {d:src/d:src/test/java/acme/stats/f:1}
-  · :file_xml: build.gradle  +3 −1  {f:4}
+      :todo: :file_java: StatsControllerTest.java  +33 −3  {d:src/d:src/test/java/acme/stats/f:1}
+  :todo: :file_xml: build.gradle  +3 −1  {f:4}
 ── middle · :file_java: src/main/java/acme/stats/StatsController.java · new file * ──
 diff java unified from 0
 >           @@@ -0,0 +1,24 @@
@@ -25,7 +25,7 @@ diff java unified from 0
           7 +@RequestMapping("/api/stats")
           8 +@RequiredArgsConstructor
           9 +public class StatsControler {
-      | :resolved: ✓ resolved · 1 note · Bob E.: Typo in the name.
+      | :resolved: resolved · 1 note · Bob E.: Typo in the name.
          10 +
          11 +    private final StatsService statsService;
          12 +
@@ -38,7 +38,7 @@ diff java unified from 0
          19 +    }
          20 +
          21 +    public Totals totals() { return statsService.totals(); }
-      | :thread: ◆ open thread · 2 notes
+      | :thread: open thread · 2 notes
       | │ :person: Bob Example · 1h ago
       | │ Should this read from the cached view?
       | │ ↳ :person: Alice Example · 46m ago

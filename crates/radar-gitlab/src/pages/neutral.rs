@@ -77,11 +77,7 @@ fn job_view(
     let mut details = Text::new();
     if let Some(info) = info {
         let mark = status_mark(&info.status);
-        details.add(Seg::icon_or_lead(
-            mark.icon(),
-            format!("{} ", mark.symbol()),
-            Ink::from(mark.tone()),
-        ));
+        details.add(Seg::icon(mark.icon()));
         details.add(Seg::styled(
             info.status.clone(),
             p.cfg.style_for(&info.status),
@@ -221,8 +217,8 @@ fn mr_threads_view(
     if let Some(error) = fetched.and_then(|f| f.error.as_deref()) {
         if detail.is_some() {
             frame.notice = Some(Text::from(vec![
-                Seg::icon_or(Icon::Error, "✗", Ink::Bad),
-                Seg::new(" merge request details refresh failed: ", Ink::Bad),
+                Seg::icon(Icon::Error),
+                Seg::new("merge request details refresh failed: ", Ink::Bad),
                 Seg::new(error, Ink::Bad).strong(),
             ]));
         } else {
@@ -246,13 +242,13 @@ fn mr_threads_view(
             ]),
         )];
         for (i, thread) in review::threads(detail).into_iter().enumerate() {
-            let (icon, mark, word, ink) = match (thread.resolvable, thread.resolved) {
-                (true, false) => (Icon::Thread, "◆", "open", Ink::Warn),
-                (false, _) => (Icon::Comment, "○", "comment", Ink::Secondary),
-                (true, true) => (Icon::Resolved, "✓", "resolved", Ink::Good),
+            let (icon, word, ink) = match (thread.resolvable, thread.resolved) {
+                (true, false) => (Icon::Thread, "open", Ink::Warn),
+                (false, _) => (Icon::Comment, "comment", Ink::Secondary),
+                (true, true) => (Icon::Resolved, "resolved", Ink::Good),
             };
             let mut head = Text::from(vec![
-                Seg::icon_or_lead(icon, format!("{mark} "), ink),
+                Seg::icon(icon),
                 if thread.resolvable {
                     Seg::new(word, ink).strong()
                 } else {
@@ -426,11 +422,7 @@ fn tenancy_view(
                     || Text::of("— none", Ink::Muted),
                     |pipeline| {
                         Text::from(vec![
-                            Seg::icon_or_lead(
-                                pipeline.mark().icon(),
-                                format!("{} ", pipeline.mark().symbol()),
-                                Ink::Plain,
-                            ),
+                            Seg::icon(pipeline.mark().icon()),
                             Seg::styled(pipeline.word(), p.cfg.style_for(pipeline.word())),
                         ])
                     },
@@ -768,7 +760,7 @@ fn repo_pipeline_view(
         let mut entries = Vec::new();
         for (i, info) in failed.iter().enumerate() {
             let mut head = Text::from(vec![
-                Seg::icon_or_lead(Icon::RunFailed, "✗ ", Ink::Bad),
+                Seg::icon(Icon::RunFailed),
                 Seg::new(
                     radar_core::ui::pad(&info.name, 24.min(cx.width as usize / 3).max(8)),
                     Ink::Primary,
@@ -849,11 +841,7 @@ fn pipeline_text(p: &GitlabPlugin, pipeline: Option<Pipeline>) -> Text {
         || Text::of("— none", Ink::Muted),
         |pipeline| {
             Text::from(vec![
-                Seg::icon_or_lead(
-                    pipeline.mark().icon(),
-                    format!("{} ", pipeline.mark().symbol()),
-                    Ink::Plain,
-                ),
+                Seg::icon(pipeline.mark().icon()),
                 Seg::styled(pipeline.word(), p.cfg.style_for(pipeline.word())),
             ])
         },
@@ -897,20 +885,16 @@ fn contributed_under(
 fn mr_state_text(mr: &Mr) -> Text {
     match mr.state {
         crate::model::MrState::Merged => Text::from(vec![
-            Seg::icon_or_lead(Icon::Merged, "✓ ", Ink::Muted),
+            Seg::icon(Icon::Merged),
             Seg::new("merged", Ink::Muted),
         ]),
         crate::model::MrState::Closed => Text::from(vec![
-            Seg::icon_or_lead(Icon::Closed, "⊘ ", Ink::Muted),
+            Seg::icon(Icon::Closed),
             Seg::new("closed", Ink::Muted),
         ]),
         crate::model::MrState::Opened => match crate::ready::blocks(mr).first() {
             Some(block) => Text::from(vec![
-                Seg::icon_or_lead(
-                    block.icon(),
-                    format!("{} ", block.mark()),
-                    Ink::from(block.tone()),
-                ),
+                Seg::icon(block.icon()),
                 if matches!(block.tone(), radar_core::Tone::Warn | radar_core::Tone::Bad) {
                     Seg::new(block.words(), Ink::from(block.tone())).strong()
                 } else {
@@ -918,7 +902,7 @@ fn mr_state_text(mr: &Mr) -> Text {
                 },
             ]),
             None => Text::from(vec![
-                Seg::icon_or_lead(Icon::RunPassed, "✓ ", Ink::Good),
+                Seg::icon(Icon::RunPassed),
                 Seg::new("ready to merge", Ink::Good),
             ]),
         },
@@ -1093,18 +1077,17 @@ fn mr_overview_view(
     if let Some(acting) = p.acting.get(&mr_key(project_path, iid)) {
         use crate::mr_actions::Acting;
         checks.push(Text::new());
-        let (icon, fallback, ink, words) = match &acting.state {
+        let (icon, ink, words) = match &acting.state {
             Acting::Running => (
                 Icon::RunRunning,
-                "● ",
                 Ink::Info,
                 format!("{} asked of GitLab…", acting.what),
             ),
-            Acting::Done(message) => (Icon::RunPassed, "✓ ", Ink::Good, message.clone()),
-            Acting::Failed(error) => (Icon::Error, "✗ ", Ink::Bad, error.clone()),
+            Acting::Done(message) => (Icon::RunPassed, Ink::Good, message.clone()),
+            Acting::Failed(error) => (Icon::Error, Ink::Bad, error.clone()),
         };
         checks.push(Text::from(vec![
-            Seg::icon_or_lead(icon, fallback, ink),
+            Seg::icon(icon),
             Seg::new(words, ink),
             Seg::new(
                 format!("  {} ago", time::ago(acting.at, cx.now)),
@@ -1261,15 +1244,12 @@ fn mr_overview_view(
 fn merge_checks(p: &GitlabPlugin, mr: &Mr, detail: Option<&MrDetail>) -> Vec<Text> {
     use crate::ready::Block as Check;
     let blockers = crate::ready::blocks(mr);
-    let mark = |icon: Icon, fallback: &str, tone: radar_core::Tone, words: String| {
-        Text::from(vec![
-            Seg::icon_or_lead(icon, format!("{fallback} "), Ink::from(tone)),
-            Seg::new(words, Ink::Primary),
-        ])
+    let mark = |icon: Icon, words: String| {
+        Text::from(vec![Seg::icon(icon), Seg::new(words, Ink::Primary)])
     };
-    let yes = |words: &str| mark(Icon::RunPassed, "✓", radar_core::Tone::Good, words.into());
-    let info = |words: String| mark(Icon::Info, "·", radar_core::Tone::Muted, words);
-    let block = |b: &Check| mark(b.icon(), b.mark(), b.tone(), b.words());
+    let yes = |words: &str| mark(Icon::RunPassed, words.into());
+    let info = |words: String| mark(Icon::Info, words);
+    let block = |b: &Check| mark(b.icon(), b.words());
     let find = |predicate: fn(&Check) -> bool| blockers.iter().find(|b| predicate(b));
     let mut out = Vec::new();
     if mr.state == crate::model::MrState::Opened {
@@ -1294,12 +1274,7 @@ fn merge_checks(p: &GitlabPlugin, mr: &Mr, detail: Option<&MrDetail>) -> Vec<Tex
         },
     );
     out.push(match find(|b| matches!(b, Check::Approvals(_))) {
-        Some(b) => mark(
-            b.icon(),
-            b.mark(),
-            b.tone(),
-            format!("{} ({})", b.words(), mr.approvals_words()),
-        ),
+        Some(b) => mark(b.icon(), format!("{} ({})", b.words(), mr.approvals_words())),
         None if mr.approved_by.is_empty() => yes("no approvals needed"),
         None => yes(&format!("approvals {}", mr.approvals_words())),
     });
@@ -1321,8 +1296,6 @@ fn merge_checks(p: &GitlabPlugin, mr: &Mr, detail: Option<&MrDetail>) -> Vec<Tex
         )),
         None => mark(
             Icon::Thread,
-            "◆",
-            radar_core::Tone::Warn,
             format!("{open} open thread{}", if open == 1 { "" } else { "s" }),
         ),
     });
@@ -1417,7 +1390,7 @@ fn mr_pipeline_view(
                     let width = (cx.width as usize / 3).clamp(8, 24);
                     let reason = crate::joblog::reason(&info.failure_reason);
                     let mut head = Text::from(vec![
-                        Seg::icon_or_lead(Icon::RunFailed, "✗ ", Ink::Bad),
+                        Seg::icon(Icon::RunFailed),
                         Seg::new(radar_core::ui::pad(&info.name, width), Ink::Primary).strong(),
                         Seg::new(info.stage.clone(), Ink::AccentSecondary),
                     ]);
@@ -1457,11 +1430,7 @@ fn mr_pipeline_view(
                             .map_or("", |item| item.status.as_str());
                         let mark = status_mark(status);
                         before.push(Text::from(vec![
-                            Seg::icon_or_lead(
-                                mark.icon(),
-                                format!("{} ", mark.symbol()),
-                                Ink::from(mark.tone()),
-                            ),
+                            Seg::icon(mark.icon()),
                             Seg::styled(
                                 stage.clone(),
                                 p.cfg.style_for(
@@ -1475,11 +1444,7 @@ fn mr_pipeline_view(
                     let mark = status_mark(&job.status);
                     let mut head = Text::from(vec![
                         Seg::new("  ", Ink::Plain),
-                        Seg::icon_or_lead(
-                            mark.icon(),
-                            format!("{} ", mark.symbol()),
-                            Ink::from(mark.tone()),
-                        ),
+                        Seg::icon(mark.icon()),
                         Seg::new(" ", Ink::Plain),
                         Seg::new(radar_core::ui::pad(&job.name, 14), Ink::Primary),
                         Seg::styled(
@@ -1543,11 +1508,7 @@ fn mr_pipeline_view(
                 for stage in &mr.stages {
                     let mark = status_mark(&stage.status);
                     lines.push(Text::from(vec![
-                        Seg::icon_or_lead(
-                            mark.icon(),
-                            format!("{} ", mark.symbol()),
-                            Ink::from(mark.tone()),
-                        ),
+                        Seg::icon(mark.icon()),
                         Seg::new(format!(" {}", stage.name), Ink::Primary),
                     ]));
                 }

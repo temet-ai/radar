@@ -10,20 +10,21 @@ expression: "shown(&host, 160, 40)"
   check           not checked yet  {row:4}
   refresh         every 2m  {row:5}
   read back       7 days  {row:6}
-  permissions   ├─ public channels  :done: has it  {row:7}
-  ├─ private channels  :done: has it  {row:8}
-  ├─ for you  :done: has it  {row:9}
-  ├─ names  :done: has it  {row:10}
-  ├─ user groups  :done: has it  {row:11}
-  ├─ asking and replying  :done: has it  {row:12}
-  ├─ reacting  needs reactions:write  :error: missing  {row:13}
-  └─ pictures  :done: has it  {row:14}
+  # permissions  {permissions}
+    public channels  :done: has it  {permissions/row:7}
+    private channels  :done: has it  {permissions/row:8}
+    for you  :done: has it  {permissions/row:9}
+    names  :done: has it  {permissions/row:10}
+    user groups  :done: has it  {permissions/row:11}
+    asking and replying  :done: has it  {permissions/row:12}
+    reacting  needs reactions:write  :error: missing  {permissions/row:13}
+    pictures  :done: has it  {permissions/row:14}
   #  {row:15}
   #  CHANNELS  the registry; watched ones are read  {row:16}
-  + add a channel   paste its link, a message link, or its id  {row:17}
-  :channel: #team   team · watched  {row:18}
-  :channel: #svc   service · watched  {row:19}
-  :channel: #try   test · not watched  {row:20}
+    + add a channel   paste its link, a message link, or its id  {row:16/row:17}
+    :channel: #team   team · watched  {row:16/row:18}
+    :channel: #svc   service · watched  {row:16/row:19}
+    :channel: #try   test · not watched  {row:16/row:20}
 ── detail · workspace ──
 CHECKED
 not checked yet
@@ -50,4 +51,4 @@ The Slack workspace the token is for: a user token belongs to one. The check fin
   Slack: what each scope allows
   radar guide: connect Slack
 ── status · SETTINGS ──
-b bulk  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+b bulk  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -113,9 +113,7 @@
         "text": "main "
       },
       {
-        "icon": "run_passed",
-        "icon_lead": true,
-        "text": "✓ "
+        "icon": "run_passed"
       },
       {
         "look": "status.success",
@@ -240,10 +238,7 @@
                   "heading": "state",
                   "text": [
                     {
-                      "icon": "needs_approval",
-                      "icon_lead": true,
-                      "ink": "warn",
-                      "text": "◷ "
+                      "icon": "needs_approval"
                     },
                     {
                       "ink": "warn",

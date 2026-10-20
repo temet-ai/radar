@@ -11,17 +11,18 @@ expression: text
   check           not checked yet  {row:5}
   refresh         every 2m  {row:6}
   read back       7 days  {row:7}
-  permissions   ├─ public channels  not checked  {row:8}
-  ├─ private channels  not checked  {row:9}
-  ├─ for you  not checked  {row:10}
-  ├─ names  not checked  {row:11}
-  ├─ user groups  not checked  {row:12}
-  ├─ asking and replying  not checked  {row:13}
-  ├─ reacting  not checked  {row:14}
-  └─ pictures  not checked  {row:15}
+  # permissions  {permissions}
+    public channels  not checked  {permissions/row:8}
+    private channels  not checked  {permissions/row:9}
+    for you  not checked  {permissions/row:10}
+    names  not checked  {permissions/row:11}
+    user groups  not checked  {permissions/row:12}
+    asking and replying  not checked  {permissions/row:13}
+    reacting  not checked  {permissions/row:14}
+    pictures  not checked  {permissions/row:15}
   #  {row:16}
   #  CHANNELS  the registry; watched ones are read  {row:17}
-  + add a channel   paste its link, a message link, or its id  {row:18}
+    + add a channel   paste its link, a message link, or its id  {row:17/row:18}
 ── detail · found in your environment ──
 radar found a Slack user token in your environment. Do you want to use it?
 
@@ -52,4 +53,4 @@ radar sets the token to env:SLACK_APP_USER_OAUTH_TOKEN and checks it with Slack.
   Slack: what each scope allows
   radar guide: connect Slack
 ── status · SETTINGS ──
-PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate
+PgUp/PgDn scroll  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

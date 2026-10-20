@@ -8,13 +8,13 @@ expression: "hosted(p, 160, 40)"
 ── middle · threads * ──
    + :comment: comment on !263   a comment on the merge request, not on a line  {row:0}
 
-> :thread: ◆ open · StatsController.java:21  {row:1}
+> :thread: open · StatsController.java:21  {row:1}
     │ :person: Bob Example · 1h ago
     │ Should this read from the cached view?
     │ ↳ :person: Alice Example · 46m ago
     │ Good shout, switching to the cached one.
 
-  :resolved: ✓ resolved · StatsController.java:9  {row:2}
+  :resolved: resolved · StatsController.java:9  {row:2}
     │ :person: Bob Example · 2h ago
     │ Typo in the name.
 ── status · REPOSITORIES ──

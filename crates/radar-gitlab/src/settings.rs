@@ -542,8 +542,8 @@ fn field_value(p: &GitlabPlugin, f: Field) -> String {
         Field::Check => match p.checks.get("auth") {
             None => "not checked yet".into(),
             Some((Check::Running, _)) => "asking GitLab…".into(),
-            Some((Check::Passed(m), _)) => radar_core::writes::done_line(m),
-            Some((Check::Failed(e), _)) => radar_core::writes::failed_line(e),
+            Some((Check::Passed(m), _)) => m.clone(),
+            Some((Check::Failed(e), _)) => e.clone(),
         },
     }
 }
@@ -995,7 +995,7 @@ pub fn views_view(p: &GitlabPlugin, width: u16) -> v::SectionView {
         detail.extend([v::Text::new(),
             v::kit::labelled("matches", 10, v::Text::of(format!("{} now", p.count(&item.filter)), v::Ink::Number)),
             v::kit::labelled("as text", 10, v::Text::of(if item.filter.is_empty() { "—".into() } else { item.filter.clone() }, v::Ink::Muted))]);
-        detail.extend(filter::problems(&item.filter).into_iter().map(|problem| v::Text::of(radar_core::writes::failed_line(&problem), v::Ink::Warn)));
+        detail.extend(filter::problems(&item.filter).into_iter().map(|problem| v::kit::marked(radar_core::ui::icon::Icon::Error, &problem, v::Ink::Warn)));
         if let Some((Target::ViewFilter(_), input)) = &p.edit {
             detail.push(v::Text::new());
             detail.push(v::kit::labelled("would match", 12, v::Text::of(format!("{} now", p.count(&input.value())), v::Ink::Number)));
@@ -1149,7 +1149,6 @@ pub fn tenancies_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView 
         let counts = if kind_of(p, source) == "a single repo" { "   a single repo".into() }
             else { format!("   {} repos · {} hidden", repos.len(), source.hide.len()) };
         let mut row = v::TreeRow::new(source_id(p, i), v::Text::new()
-            .push(v::Seg::styled("● ", look.clone()))
             .push(v::Seg::styled(format!("{:<CODE_W$}", source.code), look))
             .push(v::Seg::new(source.group.clone(), v::Ink::Emphasis).strong()))
             .detail(v::Text::of(counts, v::Ink::Muted))
@@ -1173,8 +1172,8 @@ pub fn tenancies_view(p: &GitlabPlugin, width: u16, now: i64) -> v::SectionView 
     let editing = p.edit.as_ref().and_then(|(target, input)| {
         let (path, at) = match target {
             Target::SourceAdd => (vec!["add".into()], 3),
-            Target::SourceCode(i) => (vec![source_id(p, *i)], 2),
-            Target::SourceGroup(i) => (vec![source_id(p, *i)], 2 + p.cfg.sources[*i].code.chars().count().max(CODE_W) as u16),
+            Target::SourceCode(i) => (vec![source_id(p, *i)], 0),
+            Target::SourceGroup(i) => (vec![source_id(p, *i)], p.cfg.sources[*i].code.chars().count().max(CODE_W) as u16),
             _ => return None,
         };
         Some(Box::new(v::TreeEditing { path, at, text: input.value(), caret: input.cursor() }))

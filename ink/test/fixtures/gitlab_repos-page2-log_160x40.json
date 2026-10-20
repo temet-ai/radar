@@ -134,10 +134,7 @@
     ],
     "details": [
       {
-        "icon": "run_failed",
-        "icon_lead": true,
-        "ink": "bad",
-        "text": "✗ "
+        "icon": "run_failed"
       },
       {
         "look": "status.error bold",

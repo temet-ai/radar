@@ -12,16 +12,16 @@ expression: "shown(p, 160, 40)"
 OPENED BY :team: everyone · 4 repos  {authors}
   :group: B team-b  {t:team-b}
     :repo: worker  —  :change: 1 MR  {t:team-b/r:acme/team-b/worker}
-      :draft: !342 change 342  :you: you  :draft: ⊘ draft  0 of 1  :thread: 1 open  16m  draft  {t:team-b/r:acme/team-b/worker/m:acme/team-b/worker!342}
+      :draft: !342 change 342  :you: you  :draft: draft  0 of 1  :thread: 1 open  16m  draft  {t:team-b/r:acme/team-b/worker/m:acme/team-b/worker!342}
   :group: A team-a   main red in 1  {t:team-a}
-    :repo: api  :run_passed: ✓ passed  4d  :change: 2 MRs  {t:team-a/r:acme/team-a/api}
-      :change: !263 ABC-12: Add a stats endpoint for the dashboard  :person: alice  :needs_approval: ◷ needs 1 approval  0 of 1  :thread: 1 open  16m  review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
-      :change: !410 ABC-410: Page the stats  :you: you  :rebase: ▷ needs rebase  :approved: ✓ 0 of 1  :thread: 1 open  0s  fix  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!410}
-    :repo: web  :run_failed: ✗ failed  4d  :change: 3 MRs  {t:team-a/r:acme/team-a/web}
-      :change: !411 ABC-411: Retry the sync  :you: you  :run_failed: ✗ pipeline failed  :approved: ✓ 0 of 1  :thread: 1 open  0s  fix  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!411}
->     :change: !187 change 187  :you: you  :run_passed: ✓ ready to merge  :approved: ✓ 1 of 1  :thread: 1 open  16m  ready  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!187}
-      :change: !198 change 198  :bot: group_1_bot_abc  :needs_approval: ◷ needs 1 approval  0 of 1  :thread: 1 open  16m  bot  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!198}
-    :repo: docs  :run_passed: ✓ passed  4d  —  {t:team-a/r:acme/team-a/docs}
+    :repo: api  :run_passed: passed  4d  :change: 2 MRs  {t:team-a/r:acme/team-a/api}
+      :change: !263 ABC-12: Add a stats endpoint for the dashboard  :person: alice  :needs_approval: needs 1 approval  0 of 1  :thread: 1 open  16m  review  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!263}
+      :change: !410 ABC-410: Page the stats  :you: you  :rebase: needs rebase  :approved: 0 of 1  :thread: 1 open  0s  fix  {t:team-a/r:acme/team-a/api/m:acme/team-a/api!410}
+    :repo: web  :run_failed: failed  4d  :change: 3 MRs  {t:team-a/r:acme/team-a/web}
+      :change: !411 ABC-411: Retry the sync  :you: you  :run_failed: pipeline failed  :approved: 0 of 1  :thread: 1 open  0s  fix  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!411}
+>     :change: !187 change 187  :you: you  :run_passed: ready to merge  :approved: 1 of 1  :thread: 1 open  16m  ready  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!187}
+      :change: !198 change 198  :bot: group_1_bot_abc  :needs_approval: needs 1 approval  0 of 1  :thread: 1 open  16m  bot  {t:team-a/r:acme/team-a/web/m:acme/team-a/web!198}
+    :repo: docs  :run_passed: passed  4d  —  {t:team-a/r:acme/team-a/docs}
 · every open merge request · listing every repo, also those without
 ── detail · web !187 ──
 <detail>
@@ -36,7 +36,7 @@ approvals: 1 required · 0 left
 approved by: bob
 § :info: STATE
   yours, and ready to merge
-  :run_passed: ✓ ready to merge
+  :run_passed: ready to merge
 § :pipeline: PIPELINE  passed · 6m 12s
   build done → test done → deploy manual
 § :file: CHANGES

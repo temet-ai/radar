@@ -78,10 +78,6 @@
         "name": [
           {
             "look": "tenant.cyan bold",
-            "text": "● "
-          },
-          {
-            "look": "tenant.cyan bold",
             "text": "b    "
           },
           {
@@ -183,10 +179,6 @@
         ],
         "id": "tenancy:0:[\"acme\",\"team-a\"]",
         "name": [
-          {
-            "look": "tenant.green bold",
-            "text": "● "
-          },
           {
             "look": "tenant.green bold",
             "text": "a    "

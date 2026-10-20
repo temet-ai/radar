@@ -467,16 +467,12 @@ pub(crate) fn contribute(p: &JiraPlugin, point: Point, s: &Subject) -> Option<Co
             let rows = found
                 .iter()
                 .map(|(site, key)| radar_core::Row {
-                    line: Text::plain(match held(p, site, key) {
-                        Some(t) => format!(
-                            "{key} · {}{} · {} · {}",
-                            crate::model::mark(t.category),
-                            t.status,
-                            t.kind,
-                            t.summary
-                        ),
-                        None => format!("{key} · not fetched yet: its page has it"),
-                    }),
+                    line: match held(p, site, key) {
+                        Some(t) => Text::plain(format!("{key} · "))
+                            .push(Seg::icon(t.category.icon()))
+                            .push(Seg::new(format!("{} · {} · {}", t.status, t.kind, t.summary), Ink::Plain)),
+                        None => Text::plain(format!("{key} · not fetched yet: its page has it")),
+                    },
                     subject: Some(ticket(p, site, key)),
                 })
                 .collect();

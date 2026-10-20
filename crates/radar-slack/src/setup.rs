@@ -146,8 +146,16 @@ mod tests {
         };
         let drawn = |p: &SlackPlugin, setup| -> Vec<String> {
             let view = p.section_view("connection", &cx(setup)).expect("the connection section");
-            let Node::List { rows, .. } = view.body else { panic!("a list") };
-            rows.iter().map(|r| r.text.0.iter().map(|s| s.text.as_str()).collect::<String>()).collect()
+            let Node::Tree(tree) = view.body else { panic!("a tree") };
+            let words = |r: &radar_core::view::TreeRow| r.name.0.iter().map(|s| s.text.as_str()).collect::<String>();
+            // The rows the keys walk: the label over the permissions is not one.
+            tree.rows
+                .iter()
+                .flat_map(|r| {
+                    let own = (r.id != "permissions").then(|| words(r));
+                    own.into_iter().chain(r.children.iter().map(words))
+                })
+                .collect()
         };
         let has = |rows: &[String], label: &str| rows.iter().any(|r| r.trim_start().starts_with(label));
 

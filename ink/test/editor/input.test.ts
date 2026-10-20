@@ -108,10 +108,18 @@ describe("a capturing editor gets every key of the contract as the reference's c
     expect(typed("q", false)).toEqual([{ intent: "routed", chord: { key: { char: "q" } } }]);
   });
 
-  it("a bracketed paste is one char key per character, line breaks one space", () => {
-    expect(typed("\x1b[200~a b/é\x1b[201~")).toHaveLength(5);
-    expect(typed("\x1b[200~ab\ncd\x1b[201~").map((s) => (s as { chord: { key: { char: string } } }).chord.key.char).join("")).toBe("ab cd");
-    expect(typed("\x1b[200~\n\nx\r\n\x1b[201~").map((s) => (s as { chord: { key: { char: string } } }).chord.key.char)).toEqual(["x"]);
+  it("a bracketed paste is one paste message with the whole text, no key", () => {
+    const pasted = (bytes: string, capturing = true) => {
+      const keys: Intent[] = [];
+      const pastes: string[] = [];
+      const view: InputView = { menu: () => null, capturing: () => capturing, route: (chord) => ({ intent: "routed", chord }) as never, hits: () => [] };
+      const c = new InputController(view, (i) => keys.push(i), { select() {} } as unknown as UiState, () => 0, undefined, undefined, undefined, (t) => pastes.push(t));
+      for (const ev of tokenize(bytes).events) if (ev.kind === "paste") c.paste(ev.text);
+      return { keys, pastes };
+    };
+    expect(pasted("\x1b[200~a b/é\x1b[201~")).toEqual({ keys: [], pastes: ["a b/é"] });
+    expect(pasted("\x1b[200~ab\ncd\x1b[201~")).toEqual({ keys: [], pastes: ["ab\ncd"] });
+    expect(pasted("\x1b[200~ab\x1b[201~", false)).toEqual({ keys: [], pastes: [] });
   });
 
   it("a read holding many keys is the same intents as the keys one at a time", () => {

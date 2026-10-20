@@ -119,12 +119,12 @@ describe.each([
 });
 
 // ui::table::Table lays its columns out in the panel less the border and padding (inner = width - 4): Length(20),
-// Length(23), Min(11), Length(10) with one cell between. Measured on Ratatui (radar-ink-live, History, H): OUTCOME at
+// Length(23), Min(11), Length(10) with one cell between. Measured on the reference (radar-ink-live, History, H): OUTCOME at
 // 1-based column 69 of 80 and 85 of 160 (events panel 80 / 96 wide); the SUBJECT column starts at 48 either way.
 describe.each([
   [80, 24, 80],
   [160, 40, 96],
-])("history events table columns at %ix%i (panel %i wide) are Ratatui's", (w, h, panel) => {
+])("history events table columns at %ix%i (panel %i wide) are the reference's", (w, h, panel) => {
   const lay = layoutHistory(view(w, h - 1), w, h - 1, 1);
   const header = text(find(lay.lines, "OBSERVED UTC").line);
 

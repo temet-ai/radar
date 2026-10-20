@@ -24,7 +24,7 @@ import { attachMotion } from "../../src/motion/attach.js";
 import { motion } from "../../src/motion/motion.js";
 import type { Choice, MenuView } from "../../src/chrome/types.js";
 
-// radar#26, set 2: the checks the part crates' tests lost when they moved from painted Ratatui frames to view data
+// radar#26, set 2: the checks the part crates' tests lost when they moved from painted the reference frames to view data
 // (dd14ae6 lists where the others went). Each is proved here on the view data the host sends, drawn by Ink:
 //  1. no ghost row targets in a body shorter than its rows        (github 7b14909, jira 61b8a96)
 //  2. rows and the status line stay inside tiny panels            (jira 61b8a96)
@@ -440,7 +440,7 @@ describe("6. the top bar at 80 columns", () => {
     expect(row("read incomplete · last complete 1m ago", 160)).toMatch(/^ radar {4}Branches {3}History {3}Settings \(,\) +read incomplete · last complete 1m ago {2}✎ edit $/);
   });
 
-  it("80 columns shorten the screen tab to its key and cut the words with …, as Ratatui draws them", () => {
+  it("80 columns shorten the screen tab to its key and cut the words with …, as the reference draws them", () => {
     expect(row("read incomplete · last complete 1m ago", 80)).toBe(" radar    B   History   Settings (,)  read incomplete · last complete 1… ✎ edit ");
     expect(row("read incomplete · no complete sync yet", 80)).toBe(" radar    B   History   Settings (,)  read incomplete · no complete syn… ✎ edit ");
   });
@@ -620,7 +620,7 @@ describe("8. gitlab", () => {
       expect(draw(150)).toMatch(/!263 WATCH-12: Add a stats endpoint for the dashboard +Sam V\. +tracked/);
     });
 
-    it("at the width of Ratatui's 160 columns the chip gives way, the title keeps its room and the column stays", () => {
+    it("at the width of the reference's 160 columns the chip gives way, the title keeps its room and the column stays", () => {
       const out = draw(84);
       const row = out.split("\n").find((l) => l.includes("!263"))!;
       expect(out.split("\n")[0]).toContain("TICKET");
@@ -677,7 +677,7 @@ describe("8. gitlab", () => {
       const head = lines.find((l) => l.includes("Package"))!;
       const first = lines.find((l) => l.includes("watch-lib"))!;
       const second = lines.find((l) => l.includes("lamp-lib"))!;
-      expect(first).toContain("watch-lib  1.2.2 -> 1.2.3"); // Ratatui's `acme/widget-lib  1.2.2 -> 1.2.3`: the words, two cells, the next column
+      expect(first).toContain("watch-lib  1.2.2 -> 1.2.3"); // the reference's `acme/widget-lib  1.2.2 -> 1.2.3`: the words, two cells, the next column
       for (const word of ["Change", "Age", "Confidence"]) {
         const at = head.indexOf(word);
         expect(first.slice(at, at + 3), word).not.toMatch(/^\s/);

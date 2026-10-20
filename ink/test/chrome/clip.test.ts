@@ -3,7 +3,7 @@ import { clipSegments } from "../../src/chrome/width.js";
 
 const text = (segs: Array<{ text: string }>) => segs.map((s) => s.text).join("");
 
-describe("clipSegments cuts at the column, as Ratatui's buffer does (no ellipsis)", () => {
+describe("clipSegments cuts at the column, as the reference's buffer does (no ellipsis)", () => {
   it("cuts a nav label that is wider than its column", () => {
     const row = [{ text: "  " }, { text: "└─ " }, { text: "Tools and defaults" }];
     expect(text(clipSegments(row, 20))).toBe("  └─ Tools and defau");

@@ -24,7 +24,7 @@ afterEach(() => {
 
 describe.each([80, 160])("an item page's tab row at %i columns", (cols) => {
   const rows = cols === 80 ? 24 : 40;
-  it("puts each tab's icon in front of its label, as Ratatui's tab_row is given them", async () => {
+  it("puts each tab's icon in front of its label, as the reference's tab_row is given them", async () => {
     const view = JSON.parse(fs.readFileSync(path.join(dir, `jira_tickets-page1-overview-comments-links_${cols}x${rows}.json`), "utf8"));
     const m = mount(cols, rows);
     live.push(m.stop);

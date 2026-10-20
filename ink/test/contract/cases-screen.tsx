@@ -506,18 +506,18 @@ export const SCREEN_CASES: Record<string, Case> = {
 
 /** Fields that carry no drawing, each with its reason. */
 export const SCREEN_INVISIBLE: Record<string, string> = {
-  "Node.state.state": "Ratatui draws every state as widgets::empty (the icon and the words, muted); a loading one also marks its panel for the shimmer (motion/node-marks.ts, test/motion/fixtures.test.ts), which is no cell of a settled frame",
-  "TreeRow.glow": "Ratatui marks the row for the change glow (motion::row), an effect over a settled frame (motion/node-marks.ts, test/motion/fixtures.test.ts)",
+  "Node.state.state": "the reference draws every state as widgets::empty (the icon and the words, muted); a loading one also marks its panel for the shimmer (motion/node-marks.ts, test/motion/fixtures.test.ts), which is no cell of a settled frame",
+  "TreeRow.glow": "the reference marks the row for the change glow (motion::row), an effect over a settled frame (motion/node-marks.ts, test/motion/fixtures.test.ts)",
   "TreeRow.heading": "a heading row has no press target and the host never selects it; its cells are drawn as any row's (ui::tree has no heading look); nodes/hits.tsx, test/nodes/hits.test.tsx",
-  "RichBlock.code.lang": "ui::rich lays a code block out without a language label or colours (ui/rich.rs `code`); Ratatui and Ink both draw its lines alone",
+  "RichBlock.code.lang": "ui::rich lays a code block out without a language label or colours (ui/rich.rs `code`); the reference and Ink both draw its lines alone",
   "Node.diff.language": "the host highlights by it and sends `painted` (Node.diff.painted, drawn); Ink has no grammars",
-  "InlineKind.image.src": "ui::rich draws an inline image as its words, muted, and fetches src only for a picture, which comes after the Ratatui removal (#14)",
+  "InlineKind.image.src": "ui::rich draws an inline image as its words, muted, and fetches src only for a picture, which comes after the the reference removal (#14)",
   "ScreenView.version": "view contract version",
   "ScreenView.scope": "the screen's id; the chrome's status chip carries the name shown",
   "ScreenView.actions": "the actions menu is the host's MenuView; these rows only name the keys (input tests)",
   "SectionView.version": "view contract version",
   "SectionView.actions": "the actions menu is the host's MenuView; these rows only name the keys (input tests)",
-  "Media.size": "Ratatui's no-graphics media line (ui::rich) shows no size; drawing one would break parity",
+  "Media.size": "the reference's no-graphics media line (ui::rich) shows no size; drawing one would break parity",
   "ActionSpec.id": "what Invoke answers with",
   "ActionSpec.icon": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
   "ActionSpec.change": "the actions menu is the host's MenuView; ActionSpec rows are not drawn by the renderer",
@@ -558,6 +558,6 @@ export const SCREEN_INVISIBLE: Record<string, string> = {
  * frame is still unchanged, so the entry goes red, saying "now drawn", when fixed.
  */
 export const SCREEN_KNOWN_UNDRAWN: Record<string, string> = {
-  "Node.rich.pictures": "pictures come after the Ratatui removal (#14): a picture needs the picture protocol (media/kitty.ts), and the host's bytes",
-  "Media.src": "pictures come after the Ratatui removal (#14): src is what a picture fetches; without one the line `▣ image <name>  <url>` is drawn from name and url",
+  "Node.rich.pictures": "pictures come after the the reference removal (#14): a picture needs the picture protocol (media/kitty.ts), and the host's bytes",
+  "Media.src": "pictures come after the the reference removal (#14): src is what a picture fetches; without one the line `▣ image <name>  <url>` is drawn from name and url",
 };

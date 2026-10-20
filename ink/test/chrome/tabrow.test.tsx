@@ -14,7 +14,7 @@ import { cellWidth } from "../../src/chrome/width.js";
 import type { TabView } from "../../src/protocol/generated/TabView.js";
 
 
-// Live survey (T22): Ratatui's page tab row sits on bg.base (#0a0812) from its leading space to the end of the row, the
+// Live survey (T22): the reference's page tab row sits on bg.base (#0a0812) from its leading space to the end of the row, the
 // showing title (bold accent) and the inactive titles included, until the row has the keys (the showing title is then
 // on the accent). Ink left the leading space, the showing title and the earlier titles without one.
 describe("the page tab row", () => {

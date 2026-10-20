@@ -122,7 +122,7 @@ const historyOf =(W: number, H: number) => ({
  * The host's side of the conversation, as little as the sequences need: Select moves the list's selection,
  * Up/Down (and j/k) move a menu's. One key at a time the host has answered each key with a new snapshot
  * before the next arrives; in one read it has not, and the renderer must route the keys from where the
- * earlier ones went (Ratatui applies each key before the next).
+ * earlier ones went (the reference applies each key before the next).
  */
 type Model = { sel: number; menuSel: number };
 const STATES: Record<string, (md: Model, W: number, H: number) => { chrome: any; screen: any }> = {
@@ -159,7 +159,7 @@ function applyHost(md: Model, intents: any[]) {
  * What a run of intents does to the host's list of four rows, so a Select the renderer predicted and the plain key
  * the host would have moved by itself compare equal. After a key whose effect the renderer cannot foresee (⏎ opens
  * a page, ↑ from the first row goes to the bar, → moves the focus) the rest of a read is sent as plain keys, as
- * Ratatui's runner sends them, so the intents differ in kind but not in what the host does with them.
+ * the reference's runner sends them, so the intents differ in kind but not in what the host does with them.
  */
 function effects(intents: any[]): string[] {
   const out: string[] = [];

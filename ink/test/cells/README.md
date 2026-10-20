@@ -1,8 +1,8 @@
 # Ink's goldens
 
 The files here, `../fixtures/motion`, `../fixtures/wrap` and `../input/intents.json` are Ink's own goldens:
-frozen, committed, and owned by Ink. They were first written from the Ratatui renderer (the styled cells of every
-surface at 80x24 and 160x40, the motion engine's frames, Ratatui's word wrap, the adapter's intents). Nothing in Rust
+frozen, committed, and owned by Ink. They were first written from the the reference renderer (the styled cells of every
+surface at 80x24 and 160x40, the motion engine's frames, the reference's word wrap, the adapter's intents). Nothing in Rust
 writes them any more, and no Rust test compares them.
 
 To move one, rewrite it from Ink and read the diff before committing:

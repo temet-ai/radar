@@ -7,16 +7,13 @@ import { applyLook, bgOf, currentLook, defaultLook, slotStyle } from "../../src/
 import type { RailStop } from "../../src/protocol/generated/RailStop.js";
 
 /**
- * The kit's step rail (crates/radar-core/src/ui/rail.rs). The text is the insta snapshots of its radar-core test
- * (ui/snapshots/*rail_80.snap, *rail_160.snap: six steps in every state and one with a long name, drawn at the full
- * width of 2 rows), the styles are read off rail.rs.
+ * The step rail. The text is Ink's own golden (test/chrome/rail/rail_<w>.txt, frozen from the last recording of the kit's
+ * rail: six steps in every state and one with a long name, drawn at the full width of 2 rows); the styles are read off rail.ts.
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
-const snaps = path.resolve(here, "../../../crates/radar-core/src/ui/snapshots");
-const reference = (w: number): string[] => {
-  const text = fs.readFileSync(path.join(snaps, `radar_core__ui__tests__rail_${w}.snap`), "utf8");
-  return text.split("\n---\n").slice(1).join("\n---\n").split("\n").filter((l, i) => i < 2 || l !== "").map((l) => l.trimEnd());
-};
+const goldens = path.resolve(here, "rail");
+const reference = (w: number): string[] =>
+  fs.readFileSync(path.join(goldens, `rail_${w}.txt`), "utf8").split("\n").filter((l, i) => i < 2 || l !== "").map((l) => l.trimEnd());
 
 const stop = (label: string, state: RailStop["state"], result: string | null, i: number): RailStop => ({
   id: label,
@@ -44,7 +41,7 @@ afterEach(() => applyLook(before));
 
 const text = (w: number) => layoutRail(STOPS, w).rows.map((r) => r.map((c) => c.text).join("").trimEnd());
 
-describe("the step rail: Ratatui's text", () => {
+describe("the step rail: the reference's text", () => {
   for (const w of [80, 160]) {
     it(`six stops across ${w} cells`, () => {
       expect(text(w)).toEqual(reference(w));

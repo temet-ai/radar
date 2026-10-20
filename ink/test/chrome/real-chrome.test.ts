@@ -76,7 +76,7 @@ describe("a context menu opened at the pointer (menu.at), kept inside the body",
     }
   });
 
-  it("the bottom-right corner puts the frame flush against the corner (Ratatui's clamp)", () => {
+  it("the bottom-right corner puts the frame flush against the corner (the reference's clamp)", () => {
     const m = layoutMenu(at(79, 23), 80, body.top, body.height);
     expect(m.x + m.w).toBe(80);
     expect(m.y + m.h).toBe(body.top + body.height);

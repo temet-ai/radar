@@ -103,7 +103,7 @@ describe("sources and menus", () => {
   });
 });
 
-describe("status line keeps the keys Ratatui keeps (shell.rs status_line)", () => {
+describe("status line keeps the keys the reference keeps (shell.rs status_line)", () => {
   const hint = (keys: string, label: string) => ({ keys, label, keys_of: [] });
   const base = () => {
     const chrome = booksChrome();

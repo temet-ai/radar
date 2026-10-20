@@ -11,8 +11,8 @@ import { booksChrome, settingsNav } from "./fixture.js";
 import { parseAnsi } from "../nodes/ansi.js";
 import { applyLook, defaultLook, slotStyle } from "../../src/text/look.js";
 
-// Live survey (T22): after `,` Ratatui draws the section pane focused (shell.rs settings: has(pane) = the body has the
-// keys and host.focus is the pane) and Ink drew the nav focused; with the top bar holding the keys Ratatui draws no
+// Live survey (T22): after `,` the reference draws the section pane focused (shell.rs settings: has(pane) = the body has the
+// keys and host.focus is the pane) and Ink drew the nav focused; with the top bar holding the keys the reference draws no
 // pane focused (Cx::focus_of: !bar && !tabs && focus == pane).
 const FOCUS = "#e135ff"; // accent.primary
 const MUTED = "#9580ff"; // accent.muted

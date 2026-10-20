@@ -10,9 +10,9 @@ import { mount, tick } from "../app/harness.js";
 import { booksChrome } from "./fixture.js";
 import { parseAnsi } from "../nodes/ansi.js";
 
-// The line under an item page's title is on bg.base under its words and after them to the row's end, as Ratatui draws
+// The line under an item page's title is on bg.base under its words and after them to the row's end, as the reference draws
 // the page frame. (T22 read the row as ending at its last word: `tmux capture-pane -e` leaves trailing blanks out, but
-// Ratatui's row writes no `49` before them, and `capture-pane -e -N` shows them on bg.base.)
+// the reference's row writes no `49` before them, and `capture-pane -e -N` shows them on bg.base.)
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../fixtures");
 let live: Array<() => void> = [];
 afterEach(() => {

@@ -12,7 +12,7 @@ import type { TourCard } from "../../src/protocol/generated/TourCard.js";
 /**
  * The tour's card (crates/radar-core/src/shell/tour.rs): a panel `tour · N of M` at the body's lower right, a cell in
  * from the right and from the bottom, over the app, with the kit's shadow. The expected rows and colours are what the
- * Ratatui renderer drew for `radar setup tour` at 160x40, stop 1, read through scripts/ink-live (text and colour).
+ * the reference renderer drew for `radar setup tour` at 160x40, stop 1, read through scripts/ink-live (text and colour).
  */
 let live: Array<() => void> = [];
 afterEach(() => {
@@ -38,8 +38,8 @@ const stop1: TourCard = {
   keys: t("→ next   ← back   esc end the tour"),
 };
 
-// The card as Ratatui drew it, from its left edge (column 91 at 160 wide).
-const RATATUI = [
+// The card as the reference drew it, from its left edge (column 91 at 160 wide).
+const REFERENCE = [
   "╭ tour · 1 of 5 ───────────────────────────────────────────────────╮",
   "│ Every screen has a letter.                                       │",
   "│                                                                  │",
@@ -82,12 +82,12 @@ async function draw(width: number, height: number, tour: TourCard | undefined, o
 const text = (row: Array<{ ch: string }>) => row.map((c) => c.ch || "").join("");
 
 describe("the card over the app", () => {
-  it("draws Ratatui's rows at the body's lower right", async () => {
+  it("draws the reference's rows at the body's lower right", async () => {
     const cells = await draw(160, 40, stop1);
     const top = cells.findIndex((r) => text(r).includes("tour · 1 of 5"));
     // The body runs from row 2 (under the sources row) to row 38; the card ends one row above its last.
     expect(top).toBe(2 + 37 - 13 - 1);
-    expect(cells.slice(top, top + 13).map((r) => text(r).slice(91, 91 + 68))).toEqual(RATATUI);
+    expect(cells.slice(top, top + 13).map((r) => text(r).slice(91, 91 + 68))).toEqual(REFERENCE);
   });
   it("is on bg.surface with an accent border, the title in bold emphasis and what to try in muted", async () => {
     const cells = await draw(160, 40, stop1);
@@ -128,6 +128,6 @@ describe("the card over the app", () => {
     const top = withTour.findIndex((r) => text(r).includes("tour · 1 of 5"));
     // The card's border is no longer its own accent: the menu's scrim mixed it toward bg.base.
     expect(withTour[top]![91]!.fg).not.toBe("#e135ff");
-    expect(text(withTour[top + 3]!).slice(91, 91 + 68)).toBe(RATATUI[3]);
+    expect(text(withTour[top + 3]!).slice(91, 91 + 68)).toBe(REFERENCE[3]);
   });
 });

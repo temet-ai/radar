@@ -122,6 +122,31 @@ fn a_select_on_a_panes_own_target_only_focuses_that_pane() {
     assert_eq!(host.focus, Pane::Nav);
 }
 
+/// Ink sends every intent for a hit, so a right-press or a double click on a
+/// pane's empty space arrives as `Context` or `Activate` on `pane:<id>`: the
+/// host focuses the pane, opens no menu and the part never hears of it.
+#[test]
+fn a_context_or_activate_on_a_panes_own_target_only_focuses_that_pane() {
+    for pane in ["pane:middle", "pane:detail"] {
+        let (mut host, seen) = fixture();
+        let want = if pane == "pane:middle" { Pane::Middle } else { Pane::Detail };
+        let before = seen.lock().unwrap().len();
+        for intent in [
+            Intent::Context { target: Target::new(pane) },
+            Intent::Activate { target: Target::new(pane) },
+            Intent::Fold { target: Target::new(pane), open: true },
+        ] {
+            host.focus = Pane::Nav;
+            host.bar = true;
+            host.on_intent(intent.clone());
+            assert_eq!(host.focus, want, "{intent:?} focuses {pane}");
+            assert!(!host.bar, "{intent:?} takes the keys from the top bar");
+            assert!(host.menu.is_none(), "{intent:?} on empty space opens no menu");
+            assert_eq!(seen.lock().unwrap().len(), before, "no part hears of {intent:?}");
+        }
+    }
+}
+
 #[test]
 fn a_panes_own_target_moves_nothing_while_a_menu_is_open() {
     let (mut host, _) = fixture();

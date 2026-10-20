@@ -2425,6 +2425,44 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn a_right_press_below_the_last_row_offers_nothing() {
+        use radar_core::host::Event;
+        use radar_core::view::{Intent, Node, PaneId, Target};
+
+        let selected = |host: &radar_core::Host| {
+            let view = host.screen_view(0, SCREEN.id).expect("repositories screen");
+            let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("repositories pane").body else {
+                panic!("repositories tree")
+            };
+            tree.selected.clone()
+        };
+        for focus in [Pane::Nav, Pane::Middle] {
+            let mut host = hosted();
+            let _ = crate::tests::shown(&host, 160, 40);
+            let row = first_row_target(&host);
+            host.update(Event::Intent(Intent::Select { target: row.clone() }));
+            let _ = crate::tests::shown(&host, 160, 40);
+            let (path, subject) = (selected(&host), host.plugins[0].subject(SCREEN.id, Pane::Middle));
+            assert_eq!(path, vec![row.as_str().to_string()], "a real row is selected");
+            host.focus = focus;
+
+            // Below the final row, inside the middle pane: the pane's own target.
+            for intent in [
+                Intent::Context { target: Target::new("pane:middle") },
+                Intent::Activate { target: Target::new("pane:middle") },
+            ] {
+                host.update(Event::Intent(intent));
+                let _ = crate::tests::shown(&host, 160, 40);
+                assert_eq!(host.focus, Pane::Middle);
+                assert!(host.menu.is_none(), "empty space offers no actions; focus={focus:?}");
+                assert_eq!(selected(&host), path, "the selection stays; focus={focus:?}");
+                assert_eq!(host.plugins[0].subject(SCREEN.id, Pane::Middle), subject);
+                host.focus = focus;
+            }
+        }
+    }
+
+    #[test]
     fn mr_actions_menu_folds_its_parent_without_expanding_or_acting_on_the_mr() {
         use radar_core::host::Event;
         use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};

@@ -3088,8 +3088,14 @@ impl Host {
         }
         // `pane:<id>` from a renderer that lays the panes out itself (Ink): a
         // press on a pane's empty space, or the wheel over it, focuses that
-        // pane and nothing else, as `Hit::Pane` does in `on_mouse`.
-        if let Intent::Select { target } = &intent
+        // pane and nothing else, as `Hit::Pane` does in `on_mouse`. Every
+        // intent that names such a target is the host's: no part sees it and
+        // no menu opens (a right-press on empty space offers nothing).
+        if let Intent::Select { target }
+        | Intent::Activate { target }
+        | Intent::Context { target }
+        | Intent::Fold { target, .. }
+        | Intent::Show { target, .. } = &intent
             && let Some(pane) = pane_of_own_target(target.as_str())
         {
             if !self.capturing() && self.panes().contains(&pane) {

@@ -1023,6 +1023,22 @@ fn subject_of(c: &CloneRow, branch: &str) -> Subject {
         .with("branch", branch)
 }
 
+/// Whether the tree has the row a target names, among the rows `tree_rows`
+/// builds (other parts' cells do not change which rows there are).
+fn holds_row(p: &GitPlugin, target: &v::Target) -> bool {
+    let cx = v::ViewCx {
+        now: 0,
+        focus: v::PaneId::Middle,
+        width: 160,
+        height: 40,
+        parts: radar_core::compose::Parts::none(),
+        icon_lead: 0,
+        setup: false,
+    };
+    let tree = v::Tree { rows: tree_rows(p, &cx), ..v::Tree::default() };
+    tree.row(&TreeRow::path_of(target)).is_some()
+}
+
 fn tree_rows(p: &GitPlugin, cx: &v::ViewCx<'_>) -> Vec<TreeRow> {
     let now = cx.now;
     let view = p.branches.view();
@@ -1609,6 +1625,15 @@ pub fn intent(p: &mut GitPlugin, pane: Pane, intent: &Intent) -> Outcome {
         }
         // `⏎` on the nav pane is the host's: it goes into the tree.
         Intent::Activate { target } if view_at(target).is_some() => Outcome::Ignored,
+        // A target the tree does not hold (a pane's empty space) is not ours.
+        Intent::Select { target }
+        | Intent::Context { target }
+        | Intent::Fold { target, .. }
+        | Intent::Activate { target }
+            if !holds_row(p, target) =>
+        {
+            Outcome::Ignored
+        }
         Intent::Select { .. } | Intent::Context { .. } | Intent::Fold { .. } => {
             p.branches.tree.borrow_mut().apply(intent);
             Outcome::done()
@@ -2084,14 +2109,17 @@ mod tests {
         let mut p = branches();
         let mut host = hosted();
         host.plugins[0] = Box::new(branches());
-        let got = crate::tests::shown(&host, 160, 40);
-        let rows: Vec<String> = got
-            .lines()
-            .filter_map(|l| l.rsplit_once('{').and_then(|(_, t)| t.strip_suffix('}')))
-            .filter(|t| t.starts_with("c:"))
-            .map(str::to_string)
+        // The text form joins a path with `/`; the tree's own rows give the real targets.
+        let _ = crate::tests::shown(&host, 160, 40);
+        let view = host.screen_view(0, SCREEN.id).expect("the branches screen");
+        let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("the tree pane").body else {
+            panic!("the clones tree")
+        };
+        let (clone, child) = (&tree.rows[0], &tree.rows[0].children[0]);
+        let rows: Vec<String> = [vec![clone.id.clone()], vec![clone.id.clone(), child.id.clone()]]
+            .iter()
+            .map(|path| TreeRow::target_of(path).as_str().to_string())
             .collect();
-        assert!(rows.len() > 1, "each shown row is a target: {got}");
         let target = rows[1].clone();
         for _ in 0..2 {
             let context = Intent::Context { target: Target::new(&target) };

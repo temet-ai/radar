@@ -85,7 +85,8 @@ pub fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
         | v::Intent::Activate { target } => {
             let before = p.tree.borrow().selected().to_vec();
             let path = TreeRow::path_of(target);
-            if path.is_empty() {
+            // A target the tree does not hold (a pane's empty space) is not ours.
+            if !targets(p).iter().any(|t| t.path == path) {
                 return Outcome::Ignored;
             }
             p.tree.borrow_mut().select(path);
@@ -98,6 +99,9 @@ pub fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
         }
         v::Intent::Fold { target, open } => {
             let path = TreeRow::path_of(target);
+            if !targets(p).iter().any(|t| t.path == path) {
+                return Outcome::Ignored;
+            }
             if *open {
                 p.tree.borrow_mut().open(path);
                 return Outcome::done();

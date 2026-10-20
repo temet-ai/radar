@@ -4,7 +4,8 @@
 
 use radar_core::Host;
 use radar_core::host::Event;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Key;
+use crate::keys::Mods;
 
 use crate::SlackPlugin;
 use crate::client::Message;
@@ -52,9 +53,9 @@ pub(crate) fn menu_shown(host: &Host) -> String {
     radar_core::headless::text::chrome(&host.chrome_view(100, 40))
 }
 
-pub(crate) fn press(host: &mut Host, code: KeyCode) -> Vec<radar_core::host::HostEffect> {
+pub(crate) fn press(host: &mut Host, code: Key) -> Vec<radar_core::host::HostEffect> {
     let _ = shown(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    host.update(crate::keys::ev(crate::keys::chord(code, Mods::NONE)))
 }
 
 /// ↑ on the first row of each pane reaches the top bar; → changes the
@@ -65,21 +66,21 @@ fn up_from_the_top_of_each_pane_reaches_the_bar_and_down_comes_back() {
     for pane in [radar_core::Pane::Nav, radar_core::Pane::Middle, radar_core::Pane::Detail] {
         let mut host = hosted();
         host.focus = pane;
-        press(&mut host, KeyCode::Char('g'));
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Char('g'));
+        press(&mut host, Key::Up);
         assert!(host.bar, "{pane:?}: ↑ at the top reaches the bar");
-        press(&mut host, KeyCode::Right);
+        press(&mut host, Key::Right);
         assert_eq!(host.view, View::Settings);
-        press(&mut host, KeyCode::Left);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Left);
+        press(&mut host, Key::Down);
         assert_eq!((host.view, host.bar, host.focus), (View::Screen(0), false, pane));
     }
     let mut host = hosted();
     on_team(&mut host, 4);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(radar_core::Plugin::depth(host.plugins[0].as_ref(), "slack") > 0, "{}", shown(&host, 160, 40));
-    press(&mut host, KeyCode::Char('g'));
-    press(&mut host, KeyCode::Up);
+    press(&mut host, Key::Char('g'));
+    press(&mut host, Key::Up);
     assert!(!host.bar, "inside a page");
 }
 
@@ -92,7 +93,7 @@ fn plus_and_minus_fold_the_feeds_groups_and_minus_on_a_row_closes_its_group() {
         assert_eq!(host.plugins[0].id(), "slack");
         let p = unsafe { &*(host.plugins[0].as_ref() as *const dyn radar_core::Plugin as *const SlackPlugin) };
         let t = p.tree.borrow();
-        (t.selected().to_vec(), t.opened().clone())
+        (t.selected().to_vec(), t.open.clone())
     };
     let text = shown(&host, 160, 40);
     assert!(text.split("── status").nth(1).unwrap().contains("+/- expand/collapse"), "{text}");
@@ -100,22 +101,22 @@ fn plus_and_minus_fold_the_feeds_groups_and_minus_on_a_row_closes_its_group() {
         if tree(&host).0.len() >= 2 {
             break;
         }
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let row = tree(&host).0;
     assert!(row.len() >= 2, "{row:?}");
     let group = row[..row.len() - 1].to_vec();
-    press(&mut host, KeyCode::Char('-'));
+    press(&mut host, Key::Char('-'));
     assert_eq!(tree(&host).0, group);
     assert!(!tree(&host).1.contains(&group));
-    press(&mut host, KeyCode::Char('+'));
+    press(&mut host, Key::Char('+'));
     assert!(tree(&host).1.contains(&group));
-    press(&mut host, KeyCode::Char('-'));
-    press(&mut host, KeyCode::Char('='));
+    press(&mut host, Key::Char('-'));
+    press(&mut host, Key::Char('='));
     assert!(tree(&host).1.contains(&group));
 }
 
-pub(crate) fn keys(host: &mut Host, codes: &[KeyCode]) {
+pub(crate) fn keys(host: &mut Host, codes: &[Key]) {
     for c in codes {
         press(host, *c);
     }
@@ -123,18 +124,18 @@ pub(crate) fn keys(host: &mut Host, codes: &[KeyCode]) {
 
 /// To #team's list, its cursor on today's lunch. The rows are: today,
 /// lunch, yesterday, the question, Sun 4 Oct, the review ask.
-pub(crate) const ON_TEAM: [KeyCode; 4] = [KeyCode::Char('1'), KeyCode::Down, KeyCode::Down, KeyCode::Char('2')];
+pub(crate) const ON_TEAM: [Key; 4] = [Key::Char('1'), Key::Down, Key::Down, Key::Char('2')];
 
 /// #team's list, the cursor `down` rows below lunch (2: the question, 4:
 /// the review ask).
 pub(crate) fn on_team(host: &mut Host, down: usize) {
     keys(host, &ON_TEAM);
-    keys(host, &vec![KeyCode::Down; down]);
+    keys(host, &vec![Key::Down; down]);
 }
 
 pub(crate) fn chars(host: &mut Host, text: &str) {
     for c in text.chars() {
-        press(host, KeyCode::Char(c));
+        press(host, Key::Char(c));
     }
 }
 
@@ -229,14 +230,14 @@ fn for_you_comes_first_with_mentions_messages_and_threads() {
 #[test]
 fn a_channel_shows_days_with_threads_folded_under_them() {
     let mut host = hosted();
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down]);
+    keys(&mut host, &[Key::Char('1'), Key::Down, Key::Down]);
     let text = shown(&host, 160, 40);
     assert!(text.contains("6 NEW"), "{text}");
     assert!(text.contains("today") && text.contains("yesterday") && text.contains("Sun 4 Oct"), "{text}");
     assert!(!text.contains("approved, nice one"), "replies are folded: {text}");
     insta::assert_snapshot!("channel_160x40", text);
     // space shows a thread's replies.
-    keys(&mut host, &[KeyCode::Char('2'), KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Down, KeyCode::Char(' ')]);
+    keys(&mut host, &[Key::Char('2'), Key::Down, Key::Down, Key::Down, Key::Down, Key::Char(' ')]);
     let text = shown(&host, 160, 40);
     assert!(text.contains("approved, nice one"), "{text}");
     insta::assert_snapshot!("channel_thread_open_160x40", text);
@@ -255,7 +256,7 @@ fn threads_are_ordered_by_their_latest_activity_and_show_its_time() {
     team.messages[0].latest_reply = Some(ago(600));
     team.messages[0].reply_count = 3;
     let mut host = hosted_via(p);
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down]);
+    keys(&mut host, &[Key::Char('1'), Key::Down, Key::Down]);
     let text = shown(&host, 160, 40);
     let row = |needle: &str| text.lines().position(|l| l.contains(needle)).unwrap_or_else(|| panic!("{needle}: {text}"));
     assert!(row("Bob B.  @review-squad :gitlab: mr") < row("Lunch at 12:30?"), "{text}");
@@ -264,7 +265,7 @@ fn threads_are_ordered_by_their_latest_activity_and_show_its_time() {
     assert!(ask_row.contains("10m"), "the time of its newest reply: {ask_row}");
     assert!(row("today  {today}") < row("Bob B.  @review-squad :gitlab: mr"), "under today: {text}");
     // Discussions too.
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Up]);
+    keys(&mut host, &[Key::Char('1'), Key::Up]);
     let text = shown(&host, 160, 40);
     let row = |needle: &str| text.lines().position(|l| l.contains(needle)).unwrap_or_else(|| panic!("{needle}: {text}"));
     assert!(row("Bob B.  @review-squad :gitlab: mr") < row("Anyone seen ABC-12"), "{text}");
@@ -273,8 +274,8 @@ fn threads_are_ordered_by_their_latest_activity_and_show_its_time() {
 #[test]
 fn going_back_to_a_channel_shows_its_days_open_again() {
     let mut host = hosted();
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down, KeyCode::Down]);
-    keys(&mut host, &[KeyCode::Up]);
+    keys(&mut host, &[Key::Char('1'), Key::Down, Key::Down, Key::Down]);
+    keys(&mut host, &[Key::Up]);
     let text = shown(&host, 160, 40);
     assert!(text.contains("Lunch at 12:30?"), "#team's days are open: {text}");
 }
@@ -285,7 +286,7 @@ fn the_draft_names_the_group_as_slack_does_when_settings_have_only_its_id() {
     let mut p = sample();
     p.cfg.review.handle.clear();
     host.plugins[2] = Box::new(p);
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Char('a'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("mentions @review-squad · the review channel"), "{text}");
 }
@@ -293,7 +294,7 @@ fn the_draft_names_the_group_as_slack_does_when_settings_have_only_its_id() {
 #[test]
 fn discussions_alone_are_all_general_and_name_no_other_part() {
     let mut host = hosted();
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down]);
+    keys(&mut host, &[Key::Char('1'), Key::Down]);
     let text = shown(&host, 160, 40);
     assert!(text.contains("general"), "{text}");
     assert!(text.contains("THE MOST ACTIVE FIRST"), "{text}");
@@ -305,7 +306,7 @@ fn discussions_alone_are_all_general_and_name_no_other_part() {
 fn the_preview_scrolls_with_its_own_keys_and_pgdn_from_anywhere() {
     let mut host = hosted();
     on_team(&mut host, 4);
-    keys(&mut host, &[KeyCode::Char('3')]);
+    keys(&mut host, &[Key::Char('3')]);
     let text = shown(&host, 80, 24);
     assert!(text.contains("Add a stats endpoint"), "the review ask: {text}");
     insta::assert_snapshot!("preview_focused_80x24", text);
@@ -313,7 +314,7 @@ fn the_preview_scrolls_with_its_own_keys_and_pgdn_from_anywhere() {
     let before = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
     let subject = host.plugins[0].subject(crate::SCREEN.id, radar_core::Pane::Detail)
         .expect("the review ask's thread");
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     assert_eq!(host.focus, radar_core::Pane::Detail);
     let after = host.screen_view(0, crate::SCREEN.id).expect("Slack screen");
     assert_eq!(host.plugins[0].subject(crate::SCREEN.id, radar_core::Pane::Detail), Some(subject));
@@ -322,8 +323,8 @@ fn the_preview_scrolls_with_its_own_keys_and_pgdn_from_anywhere() {
     assert_eq!(after.pane(radar_core::view::PaneId::Detail), before.pane(radar_core::view::PaneId::Detail),
         "the same message content remains, even when its title scrolls out of view");
     // PgDn from the list scrolls the detail pane.
-    press(&mut host, KeyCode::Char('2'));
-    let fx = press(&mut host, KeyCode::PageDown);
+    press(&mut host, Key::Char('2'));
+    let fx = press(&mut host, Key::PageDown);
     assert!(fx.is_empty());
     assert_eq!(host.focus, radar_core::Pane::Middle);
 }
@@ -333,25 +334,25 @@ fn enter_opens_the_threads_page_and_esc_comes_back_to_the_same_row() {
     let mut host = hosted();
     on_team(&mut host, 4);
     let before = shown(&host, 160, 40);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = shown(&host, 160, 40);
     assert!(text.contains("Slack / #team / Bob Builder: @review-squad"), "{text}");
     assert!(text.contains("approved, nice one"), "{text}");
     insta::assert_snapshot!("thread_page_160x40", text);
     insta::assert_snapshot!("thread_page_80x24", shown(&host, 80, 24));
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Char(']'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("<:link: Links>"), "{text}");
     assert!(text.contains(MR_263), "a bare link alone: {text}");
     insta::assert_snapshot!("thread_links_160x40", text);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     insta::assert_snapshot!("thread_links_keys", menu_shown(&host));
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Esc);
     // Back where it was (the thread now read, so its new marks went).
     let text = shown(&host, 160, 40);
     assert!(before.contains("6 NEW") && text.contains("3 NEW"), "{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "Bob Builder's message", "the same row");
 }
 
@@ -383,7 +384,7 @@ pub(crate) fn with_files() -> SlackPlugin {
 fn a_threads_files_shared_messages_and_links_are_shown_by_name_and_open_from_links() {
     let mut host = hosted_via(with_files());
     on_team(&mut host, 4);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = shown(&host, 160, 40);
     assert!(text.contains("looking, see the plan"), "the words, not the markup: {text}");
     assert!(!text.contains("<https://"), "{text}");
@@ -392,7 +393,7 @@ fn a_threads_files_shared_messages_and_links_are_shown_by_name_and_open_from_lin
     assert!(!text.contains("slack.com/files") && !text.contains("slack.com/archives"), "no raw link: {text}");
     assert!(text.contains("to open: links, files and what it names, on the Links tab"), "{text}");
     insta::assert_snapshot!("thread_files_160x40", text);
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Char(']'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("the plan  https://docs.example/plan"), "{text}");
     assert!(text.contains("image Screenshot.png"), "{text}");
@@ -401,11 +402,11 @@ fn a_threads_files_shared_messages_and_links_are_shown_by_name_and_open_from_lin
     let rows = host.plugins[0].keys("feed", radar_core::Pane::Middle);
     assert!(rows.iter().any(|b| b.what.contains("open")), "{rows:?}");
     for _ in 0..5 {
-        let fx = press(&mut host, KeyCode::Char('o'));
+        let fx = press(&mut host, Key::Char('o'));
         if matches!(&fx[..], [HostEffect::Open(u)] if u == "https://acme.slack.com/files/U1/F1/screenshot.png") {
             return;
         }
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     panic!("the screenshot's link was never opened");
 }
@@ -417,12 +418,12 @@ fn a_mention_opened_is_read_and_stays_read_through_refreshes_and_restarts() {
     let mut host = hosted();
     assert!(shown(&host, 160, 40).contains("4 for you"));
     // For you: the first mention (Bob's, in #team), where the cursor starts.
-    keys(&mut host, &[KeyCode::Char('2')]);
+    keys(&mut host, &[Key::Char('2')]);
     let before = shown(&host, 160, 40);
     assert!(before.contains("● #team Bob B.  @Alice Example could you"), "{before}");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     assert!(fx.iter().any(|e| matches!(e, HostEffect::WriteCache { .. })), "kept: {fx:?}");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     let after = shown(&host, 160, 40);
     assert!(!after.contains("● #team Bob B.  @Alice Example could you"), "{after}");
     assert!(after.contains("#team Bob B.  @Alice Example could you"), "{after}");
@@ -449,16 +450,16 @@ fn caught_up_to_here_moves_the_local_mark_and_what_is_new() {
     let mut host = hosted();
     on_team(&mut host, 2);
     // On yesterday's question: caught up to it.
-    let fx = press(&mut host, KeyCode::Char('m'));
+    let fx = press(&mut host, Key::Char('m'));
     assert!(fx.iter().any(|e| matches!(e, HostEffect::WriteCache { .. })), "{fx:?}");
     assert!(spawned(&fx) == 0, "nothing is sent to Slack");
     let text = shown(&host, 160, 40);
     assert!(text.contains("2 NEW"), "lunch and the late reply stay new: {text}");
     assert!(host.message.as_deref().unwrap_or("").contains("#team caught up to"), "{:?}", host.message);
     // b: the whole channel.
-    press(&mut host, KeyCode::Char('b'));
+    press(&mut host, Key::Char('b'));
     assert!(menu_labels(&host).iter().any(|l| l.contains("mark #team caught up")), "{:?}", menu_labels(&host));
-    press(&mut host, KeyCode::Char('m'));
+    press(&mut host, Key::Char('m'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("CAUGHT UP"), "{text}");
 }
@@ -467,13 +468,13 @@ fn caught_up_to_here_moves_the_local_mark_and_what_is_new() {
 fn o_opens_a_message_in_slack_and_y_copies_its_link() {
     let mut host = hosted();
     on_team(&mut host, 4);
-    let fx = press(&mut host, KeyCode::Char('o'));
+    let fx = press(&mut host, Key::Char('o'));
     let ts = ago(2 * 86_400 + 3600).replace('.', "");
     assert!(
         matches!(&fx[..], [HostEffect::Open(u)] if *u == format!("https://acme.slack.com/archives/{TEAM}/p{ts}")),
         "{fx:?}"
     );
-    let fx = press(&mut host, KeyCode::Char('y'));
+    let fx = press(&mut host, Key::Char('y'));
     assert!(matches!(&fx[..], [HostEffect::Copy(u)] if u.contains("/archives/")), "{fx:?}");
 }
 
@@ -485,7 +486,7 @@ fn o_opens_a_message_in_the_slack_app_when_it_runs_here() {
     p.app_running = Some(true);
     let mut host = hosted_via(p);
     on_team(&mut host, 4);
-    let fx = press(&mut host, KeyCode::Char('o'));
+    let fx = press(&mut host, Key::Char('o'));
     let ts = ago(2 * 86_400 + 3600);
     let web = format!("https://acme.slack.com/archives/{TEAM}/p{}", ts.replace('.', ""));
     let app = format!("slack://channel?team=T000ACME1&id={TEAM}&message={ts}");
@@ -494,8 +495,8 @@ fn o_opens_a_message_in_the_slack_app_when_it_runs_here() {
         "{fx:?}"
     );
     // A reply names its thread; the thread page opens the same way.
-    press(&mut host, KeyCode::Enter);
-    let fx = press(&mut host, KeyCode::Char('o'));
+    press(&mut host, Key::Enter);
+    let fx = press(&mut host, Key::Char('o'));
     assert!(matches!(&fx[..], [HostEffect::OpenApp { link, .. }] if *link == app), "{fx:?}");
     assert_eq!(
         crate::app_link("T1", "C1", "2.0", Some("1.0")),
@@ -529,7 +530,7 @@ fn the_rail_answers_a_selection() {
 fn the_x_menu_of_a_message_lists_what_works_there() {
     let mut host = hosted();
     on_team(&mut host, 4);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let labels = menu_labels(&host);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "Bob Builder's message");
     for want in ["⏎ open its thread", "o open it in Slack", "y copy its link", "m mark read up to here", "c comment in its thread", "e react to it", "r refresh"] {
@@ -558,13 +559,13 @@ fn not_set_up_it_says_what_it_needs_and_names_a_variable_it_found_never_its_valu
     assert!(!text.contains("SLACK_BOT_TOKEN"), "bot tokens are not offered: {text}");
     insta::assert_snapshot!("set_up_120x30", text);
     // ⏎ goes to connection, where the variable is asked about; ⏎ uses it.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = shown(&host, 160, 40);
     assert!(text.contains("? Found in your environment: a Slack user token (SLACK_APP_USER_OAUTH_TOKEN). Use it?"), "{text}");
     assert!(text.contains("shows the values or saves them"), "{text}");
     insta::assert_snapshot!("workspace_offer_160x40", text);
-    press(&mut host, KeyCode::Enter);
-    let fx = press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
+    let fx = press(&mut host, Key::Enter);
     let _ = fx;
     let cfg = host.config_text();
     assert!(cfg.contains("token = \"env:SLACK_APP_USER_OAUTH_TOKEN\""), "{cfg}");
@@ -586,7 +587,7 @@ fn set_up_with_no_channels_it_says_how_to_add_one() {
 
 fn settings_at(section: usize) -> Host {
     let mut host = hosted();
-    press(&mut host, KeyCode::Char(radar_core::host::SETTINGS_KEY));
+    press(&mut host, Key::Char(radar_core::host::SETTINGS_KEY));
     let at = host
         .sections
         .iter()
@@ -635,26 +636,26 @@ fn the_workspace_shows_who_and_what_the_token_may_do() {
 #[test]
 fn typing_a_token_checks_it_as_you_type_and_refuses_a_bot_token() {
     let mut host = settings_at(0);
-    press(&mut host, KeyCode::Down); // the api row, under the workspace
-    press(&mut host, KeyCode::Down); // the token row, under the api
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Down); // the api row, under the workspace
+    press(&mut host, Key::Down); // the token row, under the api
+    press(&mut host, Key::Char('e'));
     assert!(host.plugins[0].capturing(), "editing");
     let text = shown(&host, 160, 40);
     assert!(!text.contains("typed-in"), "a typed token is not shown again: {text}");
-    press(&mut host, KeyCode::Char('u'));
+    press(&mut host, Key::Char('u'));
     for _ in 0..40 {
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
     }
     chars(&mut host, "xoxb-12345678901234567890");
     let text = shown(&host, 160, 40);
     assert!(text.contains("radar needs a user token"), "{text}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().unwrap_or("").starts_with("not yet"), "{:?}", host.message);
     for _ in 0..40 {
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
     }
     host.update(Event::Paste("xoxp-12345678901234567890".into()));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     // Kept, and asked whether to check it.
     assert_eq!(host.menu.as_ref().map(|m| m.menu.title.as_str()), Some("check the token now?"));
 }
@@ -667,14 +668,14 @@ fn adding_a_channel_asks_slack_which_it_is_and_adds_it_watched() {
                     "purpose": {"value": "where deploys are announced"}}
     }))]);
     let mut host = hosted_via(p);
-    press(&mut host, KeyCode::Char(radar_core::host::SETTINGS_KEY));
+    press(&mut host, Key::Char(radar_core::host::SETTINGS_KEY));
     host.section = host.sections.iter().position(|(_, s)| s.id == "channels").unwrap();
     host.focus = radar_core::Pane::Middle;
-    press(&mut host, KeyCode::Enter); // + add a channel
+    press(&mut host, Key::Enter); // + add a channel
     host.update(Event::Paste("https://acme.slack.com/archives/C00000NEW1".into()));
     let text = shown(&host, 160, 40);
     assert!(text.contains("the channel C00000NEW1"), "{text}");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     let rest = settle(&mut host, fx);
     let _ = rest;
     let req = &rec.requests()[0];
@@ -688,10 +689,10 @@ fn adding_a_channel_asks_slack_which_it_is_and_adds_it_watched() {
 
 /// The channels section, focused, on `row` (0 is `+ add a channel`).
 fn channels_at(host: &mut Host, row: usize) {
-    press(host, KeyCode::Char(radar_core::host::SETTINGS_KEY));
+    press(host, Key::Char(radar_core::host::SETTINGS_KEY));
     host.section = host.sections.iter().position(|(_, s)| s.id == "channels").unwrap();
     host.focus = radar_core::Pane::Middle;
-    keys(host, &vec![KeyCode::Down; row]);
+    keys(host, &vec![Key::Down; row]);
 }
 
 #[test]
@@ -708,9 +709,9 @@ fn adding_by_name_finds_a_private_channel_you_are_in_however_far_down_the_list()
     let (p, rec) = recorded(replies);
     let mut host = hosted_via(p);
     channels_at(&mut host, 0);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     chars(&mut host, "#acme-team-private");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     settle(&mut host, fx);
     let methods: Vec<&str> = rec.requests().iter().map(|r| r.method).collect();
     assert_eq!(methods.iter().filter(|m| **m == "users.conversations").count(), 25, "every page, to the end: {methods:?}");
@@ -732,9 +733,9 @@ fn adding_by_name_shows_incomplete_search_and_wrapped_retry_guidance() {
     let mut host = hosted_via(p);
     channels_at(&mut host, 0);
     let before = host.config_text();
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     chars(&mut host, "acme-secret");
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     settle(&mut host, fx);
     assert_eq!(rec.requests().len(), 2);
     assert_eq!(rec.requests()[1].method, "conversations.list", "then the public list");
@@ -763,18 +764,18 @@ fn an_alias_can_be_the_channels_whole_name_and_enter_goes_straight_to_typing_it(
     let mut host = hosted();
     // #team, then its alias.
     channels_at(&mut host, 2);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.menu.is_none(), "no 'change it' step");
     assert!(host.plugins[0].capturing(), "typing");
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "int-acme-team-billing-reports");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing(), "kept: {:?}", host.message);
     let cfg = host.config_text();
     assert!(cfg.contains("alias = \"int-acme-team-billing-reports\""), "{cfg}");
     assert!(cfg.contains("channel = \"int-acme-team-billing-reports\""), "the review channel follows: {cfg}");
     // Saved with w.
-    let fx = press(&mut host, KeyCode::Char('w'));
+    let fx = press(&mut host, Key::Char('w'));
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Save(t) if t.contains("int-acme-team-billing-reports"))), "{fx:?}");
 }
 
@@ -782,31 +783,31 @@ fn an_alias_can_be_the_channels_whole_name_and_enter_goes_straight_to_typing_it(
 fn enter_on_purpose_kind_and_colour_goes_straight_to_typing_or_choosing() {
     let mut host = hosted();
     channels_at(&mut host, 3);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing(), "purpose: typing at once");
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Enter);
     assert_eq!(host.menu.as_ref().map(|m| m.menu.title.as_str()), Some("#team is"), "kind: its choices at once");
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Enter);
     assert_eq!(host.menu.as_ref().map(|m| m.menu.title.as_str()), Some("channel colour"));
 }
 
 #[test]
 fn the_template_previews_as_you_type_and_must_keep_mrs() {
     let mut host = settings_at(2);
-    keys(&mut host, &[KeyCode::Down, KeyCode::Down, KeyCode::Enter]);
-    keys(&mut host, &[KeyCode::Backspace; 30]);
+    keys(&mut host, &[Key::Down, Key::Down, Key::Enter]);
+    keys(&mut host, &[Key::Backspace; 30]);
     chars(&mut host, "Review please {group}: {mrs}");
     let text = shown(&host, 160, 40);
     assert!(text.contains("Review please @review-squad: mr <https://git.example/acme/team-a/api/-/merge_requests/263> Add a stats"), "{text}");
     assert!(text.contains("[Review please {group}: {mrs}|]"), "the input over the row: {text}");
     insta::assert_snapshot!("review_template_typing_160x40", text);
-    keys(&mut host, &[KeyCode::Backspace; 40]);
+    keys(&mut host, &[Key::Backspace; 40]);
     chars(&mut host, "no placeholder");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().unwrap_or("").contains("needs {mrs}"), "{:?}", host.message);
 }
 
@@ -822,12 +823,12 @@ fn the_review_group_is_picked_from_slacks_own_list_stored_by_id_and_shown_by_han
     p.cfg.review.group.clear();
     p.cfg.review.handle.clear();
     let mut host = hosted_via(p);
-    press(&mut host, KeyCode::Char(radar_core::host::SETTINGS_KEY));
+    press(&mut host, Key::Char(radar_core::host::SETTINGS_KEY));
     host.section = host.sections.iter().position(|(_, s)| s.id == "review").unwrap();
     host.focus = radar_core::Pane::Middle;
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     // ⏎ asks Slack (usergroups.list) at once, then offers what it has.
-    let fx = press(&mut host, KeyCode::Enter);
+    let fx = press(&mut host, Key::Enter);
     settle(&mut host, fx);
     assert_eq!(rec.requests()[0].method, "usergroups.list");
     let menu = &host.menu.as_ref().expect("the groups to pick from").menu;
@@ -835,7 +836,7 @@ fn the_review_group_is_picked_from_slacks_own_list_stored_by_id_and_shown_by_han
     let labels: Vec<&str> = menu.items.iter().map(|i| i.label.as_str()).collect();
     assert_eq!(labels, ["@review-squad", "@acme-devs"], "yours first");
     host.menu.as_mut().unwrap().row = 1;
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let cfg = host.config_text();
     assert!(cfg.contains("group = \"S0ACMEDEV1\"") && cfg.contains("handle = \"acme-devs\""), "{cfg}");
     assert!(shown(&host, 160, 40).contains("user group       @acme-devs"));
@@ -860,13 +861,13 @@ fn a_template_naming_a_group_by_handle_is_checked_and_sends_the_groups_mention()
         users: vec![CAROL.into()],
     });
     host.plugins[2] = Box::new(p);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char('a'));
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Char('a'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("mentions @acme-devs · the review channel"), "{text}");
     assert!(text.contains("@acme-devs :gitlab: mr <https://git.example/acme/team-a/api/-/merge_requests/270> Tidy the README"), "{text}");
-    press(&mut host, KeyCode::Char('p'));
-    let fx = press(&mut host, KeyCode::Char('y'));
+    press(&mut host, Key::Char('p'));
+    let fx = press(&mut host, Key::Char('y'));
     settle(&mut host, fx);
     let body = rec.requests()[0].body.clone().unwrap();
     assert_eq!(
@@ -878,38 +879,38 @@ fn a_template_naming_a_group_by_handle_is_checked_and_sends_the_groups_mention()
 #[test]
 fn a_template_slack_would_not_understand_is_refused_as_you_type() {
     let mut host = settings_at(2);
-    keys(&mut host, &[KeyCode::Down, KeyCode::Down, KeyCode::Enter]);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    keys(&mut host, &[Key::Down, Key::Down, Key::Enter]);
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "{@nobody} :gitlab: {mrs}");
     assert!(shown(&host, 160, 40).contains(":error: {@nobody}: Slack has no user group with that"));
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().unwrap_or("").starts_with("not yet: {@nobody}"), "{:?}", host.message);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "@review-squad :gitlab: {mrs}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().unwrap_or("").contains("ping no one"), "{:?}", host.message);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "{@review-squad} :gitlab: {mrs}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.config_text().contains("template = \"{@review-squad} :gitlab: {mrs}\""));
 }
 
 #[test]
 fn when_to_ask_again_is_typed_as_hours_days_or_a_time_and_kept() {
     let mut host = settings_at(2);
-    keys(&mut host, &[KeyCode::Down; 5]);
-    press(&mut host, KeyCode::Enter);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    keys(&mut host, &[Key::Down; 5]);
+    press(&mut host, Key::Enter);
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "10:00");
     let text = shown(&host, 160, 40);
     assert!(text.contains(":run_passed: offers to ask again at 10:00"), "{text}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.config_text().contains("reask = \"10:00\""), "{}", host.config_text());
     assert!(shown(&host, 160, 40).contains("ask again        at 10:00 on the next working day without a reply"));
-    press(&mut host, KeyCode::Enter);
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)));
+    press(&mut host, Key::Enter);
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('u'), Mods::CONTROL)));
     chars(&mut host, "3 weeks");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().unwrap_or("").starts_with("not yet"), "{:?}", host.message);
 }
 
@@ -936,18 +937,18 @@ fn asking_again_replies_in_the_thread_with_the_group_and_a_link_to_the_ask() {
         ..Default::default()
     });
     host.plugins[2] = Box::new(p);
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     let text = shown(&host, 160, 40);
     assert!(text.contains("api !270 Tidy the README [asked 3h · no reply]"), "{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert!(menu_labels(&host).iter().any(|l| l.contains("ask again in the thread")), "{:?}", menu_labels(&host));
-    press(&mut host, KeyCode::Esc);
-    let fx = press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Esc);
+    let fx = press(&mut host, Key::Char('n'));
     settle(&mut host, fx);
     let link = format!("https://acme.slack.com/archives/{TEAM}/p{}", ask_ts.replace('.', ""));
     // The words come written in the composer; ctrl-s shows them and asks.
-    host.update(Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)));
-    let fx = press(&mut host, KeyCode::Char('y'));
+    host.update(crate::keys::ev(crate::keys::chord(Key::Char('s'), Mods::CONTROL)));
+    let fx = press(&mut host, Key::Char('y'));
     settle(&mut host, fx);
     let seen = rec.seen.lock().unwrap().clone();
     let post = seen.iter().find(|r| r.method == "chat.postMessage").expect("posted");
@@ -1058,7 +1059,7 @@ fn a_read_asks_for_the_channels_threads_for_you_and_names_then_holds_them() {
     assert!(queries[2].starts_with(&format!("<!subteam^{GROUP}> after:")), "{queries:?}");
     let text = shown(&host, 160, 40);
     assert!(text.contains("Carol C"), "the name read: {text}");
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down]);
+    keys(&mut host, &[Key::Char('1'), Key::Down, Key::Down]);
     let text = shown(&host, 160, 40);
     assert!(!text.contains("joined"), "joins are left out: {text}");
     assert!(text.contains("ask mr"), "{text}");
@@ -1120,22 +1121,22 @@ fn catchup_prints_what_is_new_per_channel_and_as_json() {
 #[test]
 fn slash_filters_the_list_by_words_and_colon_says_it_goes_nowhere_yet() {
     let mut host = hosted();
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down]);
+    keys(&mut host, &[Key::Char('1'), Key::Down]);
     assert!(shown(&host, 160, 40).contains("Anyone seen ABC-12"), "every thread is there at first");
-    press(&mut host, KeyCode::Char('/'));
+    press(&mut host, Key::Char('/'));
     assert!(host.plugins[0].capturing());
     chars(&mut host, "lunch");
     let text = shown(&host, 160, 40);
     assert!(text.contains("lunch") && text.contains("Lunch at 12:30"), "{text}");
     assert!(!text.contains("Anyone seen ABC-12"), "only the rows with the words: {text}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing());
     assert!(!shown(&host, 160, 40).contains("Anyone seen ABC-12"), "kept after ⏎");
     // esc with the words open clears them.
-    press(&mut host, KeyCode::Char('/'));
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Char('/'));
+    press(&mut host, Key::Esc);
     assert!(shown(&host, 160, 40).contains("Anyone seen ABC-12"));
-    press(&mut host, KeyCode::Char(':'));
+    press(&mut host, Key::Char(':'));
     assert!(host.message.as_deref().unwrap_or("").contains("not on Slack yet"), "{:?}", host.message);
 }
 
@@ -1177,16 +1178,31 @@ fn merge_request_rows_carry_the_review_ask_and_only_where_it_applies() {
     assert!(!other.contains('['), "no chip: {other}");
 }
 
+/// #36: a thread in "Discussed in Slack" names its author in full and the
+/// message words carry the link to the message in Slack.
+#[test]
+fn discussed_in_slack_names_the_author_in_full_and_links_the_message() {
+    let host = hosted_with_parts();
+    let got = radar_core::Plugin::contribute(host.plugins[2].as_ref(), radar_core::Point::Section, &stand_in::mr(263));
+    let Some(radar_core::Contribution::Section { lines, .. }) = got else { panic!("{got:?}") };
+    let header = lines.iter().find(|l| l.words().contains("Carol Coder")).expect("the author in full");
+    assert!(!header.words().contains("Carol C."), "{header:?}");
+    let q = ago(86_400 + 600).replace('.', "");
+    let url = format!("https://acme.slack.com/archives/{TEAM}/p{q}");
+    let said = lines.iter().find(|l| l.words().contains("Anyone seen ABC-12")).expect("the message");
+    assert!(said.0.iter().any(|s| s.link.as_deref() == Some(url.as_str())), "the words link to the message: {said:?}");
+}
+
 #[test]
 fn the_merge_request_page_has_a_discussed_in_slack_section() {
     let mut host = hosted_with_parts();
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = shown(&host, 160, 40);
     assert!(text.contains("== Discussed in Slack"), "{text}");
     assert!(text.contains("review asked in #team 2d ago · 2 replies · 👀 1"), "{text}");
     assert!(!text.contains("#team · Bob Builder · 2d ago"), "the ask's thread is said once: {text}");
-    assert!(text.contains("#team · 1d ago · 1 reply"), "linked from a reply: {text}");
-    assert!(text.contains("Carol C.  Anyone seen ABC-12 failing on main?"), "who said what: {text}");
+    assert!(text.contains("#team · Carol Coder · 1d ago · 1 reply"), "linked from a reply: {text}");
+    assert!(text.contains("Anyone seen ABC-12 failing on main?"), "what was said: {text}");
     // No address spelled out: the channel's name is the link.
     assert!(!text.contains("https://acme.slack.com"), "{text}");
     let q = ago(86_400 + 600).replace('.', "");
@@ -1222,37 +1238,37 @@ fn a_merge_request_has_a_slack_tab_of_its_threads_each_with_its_link() {
 #[test]
 fn discussions_group_by_what_the_parts_here_recognise() {
     let mut host = hosted_with_parts();
-    press(&mut host, KeyCode::Char('S'));
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down]);
+    press(&mut host, Key::Char('S'));
+    keys(&mut host, &[Key::Char('1'), Key::Down]);
     let text = shown(&host, 200, 40);
     assert!(text.contains("api !263"), "{text}");
     assert!(text.contains("ABC-12"), "{text}");
     assert!(text.contains("BY WHAT THEY ARE ABOUT"), "{text}");
     insta::assert_snapshot!("discussions_with_parts_200x40", text);
     // ⏎ on the first group shows the merge request in its owner's page.
-    keys(&mut host, &[KeyCode::Char('2'), KeyCode::Char('g'), KeyCode::Enter]);
+    keys(&mut host, &[Key::Char('2'), Key::Char('g'), Key::Enter]);
     let text = shown(&host, 160, 40);
     assert!(text.contains("merge request page api !263"), "{text}");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.screen().unwrap().1.name, "slack", "esc comes back");
 }
 
 #[test]
 fn the_ticket_page_has_a_slack_tab_whose_rows_open_the_thread() {
     let mut host = hosted_with_parts();
-    press(&mut host, KeyCode::Char('T'));
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Char('T'));
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Char(']'));
     let text = shown(&host, 160, 40);
     assert!(text.contains("Overview  [Slack]"), "{text}");
     assert!(text.contains("#team · Carol Coder · 1d ago · 1 reply  Anyone seen ABC-12 failing on main?"), "{text}");
     insta::assert_snapshot!("ticket_slack_tab_160x40", text);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.screen().unwrap().1.name, "slack");
     let text = shown(&host, 160, 40);
     assert!(text.contains("Slack / #team / Carol Coder: Anyone seen ABC-12"), "{text}");
     assert!(text.contains("can you look?"), "{text}");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.screen().unwrap().1.name, "tickets", "back to the ticket");
 }
 
@@ -1264,7 +1280,7 @@ fn a_slack_link_in_another_part_opens_its_thread() {
     let found = host.plugins[2].recognise(&format!("see {link} please"));
     assert_eq!(found.len(), 1);
     assert_eq!(found[0].1.id, format!("{TEAM}/{ts}"));
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Char('C'), KeyModifiers::SHIFT)));
+    let fx = host.update(crate::keys::ev(crate::keys::chord(Key::Char('C'), Mods::SHIFT)));
     let _ = fx;
     let _ = settle(&mut host, vec![]);
     // Shown as a bare link from anywhere, it lands on the thread page.
@@ -1300,8 +1316,8 @@ mod review_draft {
                 "review-ask drafting, editing and dropping must not spawn"
             );
         }
-        fn key(host: &mut Host, code: KeyCode) {
-            dispatch(host, Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        fn key(host: &mut Host, code: Key) {
+            dispatch(host, crate::keys::ev(crate::keys::chord(code, Mods::NONE)));
         }
         fn select_mr(host: &mut Host, iid: &str) {
             assert_eq!(host.screen().unwrap().1.name, "code");
@@ -1319,12 +1335,12 @@ mod review_draft {
             dispatch(host, Event::Intent(Intent::Select { target }));
         }
         fn drop_draft(host: &mut Host) {
-            key(host, KeyCode::Char('n'));
+            key(host, Key::Char('n'));
             assert_eq!(
                 host.menu.as_ref().expect("drop confirmation").menu.title,
                 "drop this review ask?"
             );
-            key(host, KeyCode::Char('y'));
+            key(host, Key::Char('y'));
             assert!(host.menu.is_none());
             assert!(!host.plugins[2].capturing());
             assert_eq!(host.message.as_deref(), Some("review ask draft dropped"));
@@ -1347,7 +1363,7 @@ mod review_draft {
         p.via = crate::Via(Some(rec.clone()));
         host.plugins[2] = Box::new(p);
 
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         let labels = menu_labels(&host);
         assert!(
             labels.iter().any(|l| l == " Slack"),
@@ -1366,9 +1382,9 @@ mod review_draft {
             "{labels:?}"
         );
         insta::assert_snapshot!("radar_slack__tests__code_keys_with_slack", menu_shown(&host));
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         // The contributed action opens the real Slack draft page.
-        key(&mut host, KeyCode::Char('a'));
+        key(&mut host, Key::Char('a'));
         assert_eq!(host.screen().unwrap().1.name, "slack");
         let text = shown(&host, 160, 40);
         assert!(text.contains("Ask for review in #team"), "{text}");
@@ -1383,14 +1399,14 @@ mod review_draft {
             "the text sent: {text}"
         );
         insta::assert_snapshot!("radar_slack__tests__draft_one", text);
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         insta::assert_snapshot!("radar_slack__tests__draft_keys", menu_shown(&host));
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         // Esc keeps the first item; the next contributed action adds another.
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         assert_eq!(host.screen().unwrap().1.name, "code");
         select_mr(&mut host, "270");
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         assert!(
             menu_labels(&host)
                 .iter()
@@ -1398,8 +1414,8 @@ mod review_draft {
             "{:?}",
             menu_labels(&host)
         );
-        key(&mut host, KeyCode::Esc);
-        key(&mut host, KeyCode::Char('a'));
+        key(&mut host, Key::Esc);
+        key(&mut host, Key::Char('a'));
         let text = shown(&host, 160, 40);
         assert!(
             text.contains(&format!("• api !263 <{MR_263}> Add a stats endpoint for the dashboard")),
@@ -1412,7 +1428,7 @@ mod review_draft {
         insta::assert_snapshot!("radar_slack__tests__draft_two_160x40", text);
 
         // Choose the emitted test channel through the actual menu and Enter.
-        key(&mut host, KeyCode::Char('c'));
+        key(&mut host, Key::Char('c'));
         let at = host
             .menu
             .as_ref()
@@ -1423,7 +1439,7 @@ mod review_draft {
             .position(|i| i.value == "try")
             .unwrap();
         host.menu.as_mut().unwrap().row = at;
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         let text = shown(&host, 160, 40);
         assert!(text.contains("Ask for review in #try"), "{text}");
         assert!(!text.contains("subteam"), "{text}");
@@ -1436,18 +1452,18 @@ mod review_draft {
         // Finish the visual journey, then recreate the original single-item
         // edit/drop case through real navigation rather than private state.
         drop_draft(&mut host);
-        key(&mut host, KeyCode::Char('C'));
+        key(&mut host, Key::Char('C'));
         select_mr(&mut host, "263");
-        key(&mut host, KeyCode::Char('a'));
-        key(&mut host, KeyCode::Char('e'));
+        key(&mut host, Key::Char('a'));
+        key(&mut host, Key::Char('e'));
         assert!(host.plugins[2].capturing());
         for _ in 0..60 {
-            key(&mut host, KeyCode::Backspace);
+            key(&mut host, Key::Backspace);
         }
         for c in "stats for the dashboard <3 & more".chars() {
-            key(&mut host, KeyCode::Char(c));
+            key(&mut host, Key::Char(c));
         }
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         assert!(!host.plugins[2].capturing());
         let text = shown(&host, 160, 40);
         assert!(
@@ -1493,14 +1509,14 @@ mod review_post {
                 "navigation, preview and decline must not spawn"
             );
         }
-        fn key(s: &mut Scenario, code: KeyCode) {
-            dispatch_without_task(s, Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        fn key(s: &mut Scenario, code: Key) {
+            dispatch_without_task(s, crate::keys::ev(crate::keys::chord(code, Mods::NONE)));
         }
         fn accept(s: &mut Scenario) {
             let before = s.costs().spawned_completion_tasks;
-            s.dispatch(Event::Key(KeyEvent::new(
-                KeyCode::Char('y'),
-                KeyModifiers::NONE,
+            s.dispatch(crate::keys::ev(crate::keys::chord(
+                Key::Char('y'),
+                Mods::NONE,
             )))
             .unwrap();
             assert_eq!(
@@ -1579,8 +1595,8 @@ mod review_post {
         // The first request has no previous review ask. Keep the exact real
         // confirmation rows, including the payload's 72-cell line break.
         select_mr(&mut s, "270");
-        key(&mut s, KeyCode::Char('a'));
-        key(&mut s, KeyCode::Char('p'));
+        key(&mut s, Key::Char('a'));
+        key(&mut s, Key::Char('p'));
         assert_eq!(
             s.host().menu.as_ref().unwrap().menu.title,
             "post this in #team?"
@@ -1597,14 +1613,14 @@ mod review_post {
             "exactly the text that is posted"
         );
         assert!(rec.requests().is_empty(), "preview cannot send");
-        key(&mut s, KeyCode::Char('n'));
+        key(&mut s, Key::Char('n'));
         assert_eq!(s.costs().spawned_completion_tasks, 0);
         assert!(rec.requests().is_empty());
         assert_eq!(
             s.host().message.as_deref(),
             Some("nothing sent · p has your text")
         );
-        key(&mut s, KeyCode::Char('p'));
+        key(&mut s, Key::Char('p'));
         assert!(rec.requests().is_empty(), "reopening cannot send");
         accept(&mut s);
         s.settle(BUDGET).await.unwrap();
@@ -1619,7 +1635,7 @@ mod review_post {
             s.host().message.as_deref(),
             Some("✓ review asked · its thread is followed on the merge request")
         );
-        key(&mut s, KeyCode::Char('C'));
+        key(&mut s, Key::Char('C'));
         let text = s.inspect(|host| shown(host, 160, 40));
         assert!(
             text.contains("api !270 Tidy the README [asked 0s · no reply]"),
@@ -1629,8 +1645,8 @@ mod review_post {
         // Success closed the first draft. Start the original refusal subject
         // through the contributed action, preserving the existing golden state.
         select_mr(&mut s, "263");
-        key(&mut s, KeyCode::Char('a'));
-        key(&mut s, KeyCode::Char('p'));
+        key(&mut s, Key::Char('a'));
+        key(&mut s, Key::Char('p'));
         assert_eq!(
             rec.requests().as_slice(),
             &expected[..1],
@@ -1657,7 +1673,7 @@ mod review_post {
             "{text}"
         );
         insta::assert_snapshot!("radar_slack__tests__draft_refused_160x40", text);
-        key(&mut s, KeyCode::Char('~'));
+        key(&mut s, Key::Char('~'));
         let history = s.inspect(|host| {
             host.chrome_view(160, 40)
                 .notice_history
@@ -1672,7 +1688,7 @@ mod review_post {
             expected,
             "reading history cannot retry a refused ask"
         );
-        key(&mut s, KeyCode::Esc);
+        key(&mut s, Key::Esc);
 
         s.settle(BUDGET).await.unwrap();
         assert!(s.is_idle());
@@ -1724,13 +1740,13 @@ mod reply_confirmation {
                 "editing or retaining a reply must not spawn"
             );
         }
-        fn key(host: &mut Host, code: KeyCode) {
-            dispatch(host, Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        fn key(host: &mut Host, code: Key) {
+            dispatch(host, crate::keys::ev(crate::keys::chord(code, Mods::NONE)));
         }
         fn preview(host: &mut Host) {
             dispatch(
                 host,
-                Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)),
+                crate::keys::ev(crate::keys::chord(Key::Char('s'), Mods::CONTROL)),
             );
         }
         fn composer_text(host: &Host) -> String {
@@ -1748,7 +1764,7 @@ mod reply_confirmation {
         let (p, rec) = recorded(vec![]);
         let mut host = hosted_via(p);
         // Select actual emitted targets, rather than drawing once per arrow key.
-        key(&mut host, KeyCode::Char('1'));
+        key(&mut host, Key::Char('1'));
         let view = host.screen_view_in(0, "feed", 160, 40).expect("Slack feed");
         let Node::List { rows, .. } = &view.pane(PaneId::Nav).expect("Slack navigation").body
         else {
@@ -1761,7 +1777,7 @@ mod reply_confirmation {
             .target
             .clone();
         dispatch(&mut host, Event::Intent(Intent::Select { target: channel }));
-        key(&mut host, KeyCode::Char('2'));
+        key(&mut host, Key::Char('2'));
         let view = host.screen_view_in(0, "feed", 160, 40).expect("team feed");
         let Node::Tree(tree) = &view.pane(PaneId::Middle).expect("channel messages").body else {
             panic!("channel message tree");
@@ -1779,7 +1795,7 @@ mod reply_confirmation {
                 target: TreeRow::target_of(&path),
             }),
         );
-        key(&mut host, KeyCode::Char('c'));
+        key(&mut host, Key::Char('c'));
         assert!(host.plugins[0].capturing());
         // The kit's composer: ⏎ a new line, ctrl-s review, esc stop.
         assert_eq!(
@@ -1791,11 +1807,11 @@ mod reply_confirmation {
             ["⏎", "ctrl-s", "esc", "ctrl-r"]
         );
         for c in "looking now, <@U00000BOB1>".chars() {
-            key(&mut host, KeyCode::Char(c));
+            key(&mut host, Key::Char(c));
         }
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         for c in "second line".chars() {
-            key(&mut host, KeyCode::Char(c));
+            key(&mut host, Key::Char(c));
         }
         let body = "looking now, <@U00000BOB1>\nsecond line";
         assert_eq!(composer_text(&host), body);
@@ -1826,20 +1842,20 @@ mod reply_confirmation {
         assert!(rec.requests().is_empty(), "preview cannot send");
         insta::assert_snapshot!("radar_slack__tests__reply_confirm", menu_shown(&host));
         // e: back to the text, as it was.
-        key(&mut host, KeyCode::Char('e'));
+        key(&mut host, Key::Char('e'));
         assert!(host.plugins[0].capturing() && rec.requests().is_empty());
         assert_eq!(composer_text(&host), body, "edit preserves every line");
         preview(&mut host);
         // n: nothing sent, the composer closes, c has the text back.
-        key(&mut host, KeyCode::Char('n'));
+        key(&mut host, Key::Char('n'));
         assert_eq!(
             host.message.as_deref(),
             Some("nothing sent · c has your text")
         );
         assert!(!host.plugins[0].capturing());
         assert!(rec.requests().is_empty(), "declining cannot send");
-        key(&mut host, KeyCode::Char('c'));
-        key(&mut host, KeyCode::Enter); // choose the retained occurrence
+        key(&mut host, Key::Char('c'));
+        key(&mut host, Key::Enter); // choose the retained occurrence
         let details = &host.menu.as_ref().expect("retained reply details").menu;
         for line in body.lines() {
             assert!(
@@ -1847,25 +1863,25 @@ mod reply_confirmation {
                 "retained line: {line}"
             );
         }
-        key(&mut host, KeyCode::Char('e')); // explicitly recover; no send
+        key(&mut host, Key::Char('e')); // explicitly recover; no send
         assert!(host.plugins[0].capturing());
         assert_eq!(composer_text(&host), body, "recovery preserves every line");
         // esc with text asks first.
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         assert_eq!(
             host.menu.as_ref().unwrap().menu.title,
             "drop this reply draft?"
         );
         assert_eq!(composer_text(&host), body, "asking to drop keeps the draft");
-        key(&mut host, KeyCode::Char('n'));
+        key(&mut host, Key::Char('n'));
         assert!(host.plugins[0].capturing());
         assert_eq!(
             composer_text(&host),
             body,
             "declining to drop keeps the draft"
         );
-        key(&mut host, KeyCode::Esc);
-        key(&mut host, KeyCode::Char('y')); // this yes drops the local draft only
+        key(&mut host, Key::Esc);
+        key(&mut host, Key::Char('y')); // this yes drops the local draft only
         assert!(!host.plugins[0].capturing());
         assert!(
             host.screen_view_in(0, "feed", 160, 40)
@@ -1902,20 +1918,20 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
         host.set_env_mode(Some((mode, "RADAR_MODE".into())));
         on_team(&mut host, 4);
         // The x menu marks the writes the mode refuses.
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let reply_row = menu_labels(&host).into_iter().find(|l| l.contains("comment in its thread")).unwrap();
         assert_eq!(reply_row.ends_with("· radar is read only"), mode == Mode::ReadOnly, "{mode:?}: {reply_row}");
-        press(&mut host, KeyCode::Esc);
-        press(&mut host, KeyCode::Char('c'));
+        press(&mut host, Key::Esc);
+        press(&mut host, Key::Char('c'));
         chars(&mut host, "hi");
-        host.update(Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)));
+        host.update(crate::keys::ev(crate::keys::chord(Key::Char('s'), Mods::CONTROL)));
         let shown = menu_labels(&host);
         assert_eq!(
             shown[1] == " radar is read only (set by RADAR_MODE): nothing will be sent",
             mode == Mode::ReadOnly,
             "{mode:?}: {shown:?}"
         );
-        let fx = press(&mut host, KeyCode::Char('y'));
+        let fx = press(&mut host, Key::Char('y'));
         settle(&mut host, fx);
         if mode == Mode::ReadOnly {
             assert!(rec.requests().is_empty(), "nothing leaves");
@@ -1927,15 +1943,15 @@ fn each_mode_sends_only_the_writes_it_allows_and_its_question_says_so() {
             assert_eq!(rec.requests()[0].method, "chat.postMessage", "{mode:?}");
         }
         // A reaction too.
-        press(&mut host, KeyCode::Char('e'));
-        press(&mut host, KeyCode::Char('e'));
+        press(&mut host, Key::Char('e'));
+        press(&mut host, Key::Char('e'));
         assert_eq!(
             menu_labels(&host).iter().any(|l| l.contains("radar is read only")),
             mode == Mode::ReadOnly,
             "{:?}",
             menu_labels(&host)
         );
-        let fx = press(&mut host, KeyCode::Char('y'));
+        let fx = press(&mut host, Key::Char('y'));
         assert_eq!(spawned(&fx), usize::from(mode != Mode::ReadOnly), "{mode:?}: react");
         if mode == Mode::ReadOnly {
             assert!(host.message.as_deref().is_some_and(|m| m.starts_with("✗ Slack did not react :eyes: in #team: not sent")), "{:?}", host.message);
@@ -1981,19 +1997,19 @@ fn a_reaction_is_picked_asked_and_sent_once() {
     p.via = crate::Via(Some(rec.clone()));
     let mut host = hosted_via(p);
     on_team(&mut host, 4);
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('e'));
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "react to Bob Builder's message");
     insta::assert_snapshot!("react_menu", menu_shown(&host));
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('e'));
     let menu = &host.menu.as_ref().unwrap().menu;
     assert_eq!(menu.title, "react :eyes: to Bob Builder's message?");
     assert_eq!(menu_labels(&host), [" adds :eyes: to that message in #team", "y yes", "n no"]);
     assert_eq!(menu.items[1].hint, "yes, add it");
-    let fx = press(&mut host, KeyCode::Char('n'));
+    let fx = press(&mut host, Key::Char('n'));
     assert_eq!(spawned(&fx), 0);
-    press(&mut host, KeyCode::Char('e'));
-    press(&mut host, KeyCode::Char('e'));
-    let fx = press(&mut host, KeyCode::Char('y'));
+    press(&mut host, Key::Char('e'));
+    press(&mut host, Key::Char('e'));
+    let fx = press(&mut host, Key::Char('y'));
     settle(&mut host, fx);
     let reqs = rec.requests();
     assert_eq!(reqs[0].method, "reactions.add");
@@ -2009,7 +2025,7 @@ fn not_set_up_it_adds_nothing_to_other_parts() {
     host.plugins[2] = Box::new(SlackPlugin::new());
     let text = shown(&host, 160, 40);
     assert!(!text.contains("asked"), "{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert!(!menu_labels(&host).iter().any(|l| l.contains("Slack")), "{:?}", menu_labels(&host));
 }
 
@@ -2109,43 +2125,43 @@ fn open_input(host: &Host) -> Option<(String, u16)> {
 /// drawn in: `at` is a cell plus the width of the row's words before it.
 /// That Ink puts the field `at` cells into the row, the caret on its
 /// character, is ink/test/nodes/list-editing-at.test.tsx.
-fn input_sits_on_its_value(host: &mut Host, name: &str, downs: usize, open: &[KeyCode], row: &str, value: &str) {
+fn input_sits_on_its_value(host: &mut Host, name: &str, downs: usize, open: &[Key], row: &str, value: &str) {
     input_opens_on_its_row(host, name, downs, open, row);
     for code in open {
-        host.update(Event::Key(KeyEvent::new(*code, KeyModifiers::NONE)));
+        host.update(crate::keys::ev(crate::keys::chord(*code, Mods::NONE)));
     }
     let (words, at) = open_input(host).unwrap_or_else(|| panic!("{name}: no input open on {row:?}"));
     let before = words.find(value).unwrap_or_else(|| panic!("{name}: no {value:?} on {words:?}"));
     // A row is drawn a cell in from the pane's edge, its words after that cell.
     assert_eq!(usize::from(at), 1 + radar_core::ui::width(&words[..before]), "{name}, {row:?}: the input starts off its value in {words:?}");
-    host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+    host.update(crate::keys::ev(crate::keys::chord(Key::Esc, Mods::NONE)));
 }
 
-fn input_opens_on_its_row(host: &mut Host, name: &str, downs: usize, open: &[KeyCode], row: &str) {
-    let key = |host: &mut Host, code: KeyCode, m: KeyModifiers| {
+fn input_opens_on_its_row(host: &mut Host, name: &str, downs: usize, open: &[Key], row: &str) {
+    let key = |host: &mut Host, code: Key, m: crate::keys::Mods| {
         let _ = shown(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, m)))
+        host.update(crate::keys::ev(crate::keys::chord(code, m)))
     };
     host.view = radar_core::host::View::Settings;
     host.section = host.sections.iter().position(|(_, s)| s.name == name).unwrap();
     host.focus = radar_core::Pane::Middle;
     for _ in 0..20 {
-        key(host, KeyCode::Up, KeyModifiers::NONE);
+        key(host, Key::Up, Mods::NONE);
     }
     for _ in 0..downs {
-        key(host, KeyCode::Down, KeyModifiers::NONE);
+        key(host, Key::Down, Mods::NONE);
     }
     let before = shown(host, 160, 40);
     assert!(before.lines().any(|l| l.contains(row)), "no row {row:?} in {name}:\n{before}");
     assert!(!before.contains("|]"), "{name}: an input is open before {open:?}:\n{before}");
     for code in open {
-        key(host, *code, KeyModifiers::NONE);
+        key(host, *code, Mods::NONE);
     }
     assert!(host.plugins[0].capturing(), "{name}: {open:?} on {row:?} opened no input");
-    key(host, KeyCode::Char('e'), KeyModifiers::CONTROL);
-    key(host, KeyCode::Char('u'), KeyModifiers::CONTROL);
+    key(host, Key::Char('e'), Mods::CONTROL);
+    key(host, Key::Char('u'), Mods::CONTROL);
     // w is text while typing, not the save key.
-    let fx = key(host, KeyCode::Char('w'), KeyModifiers::NONE);
+    let fx = key(host, Key::Char('w'), Mods::NONE);
     assert!(
         !fx.iter().any(|e| matches!(e, radar_core::host::HostEffect::Save(_))),
         "{name}: w saved instead of being typed"
@@ -2156,13 +2172,13 @@ fn input_opens_on_its_row(host: &mut Host, name: &str, downs: usize, open: &[Key
         matches!(inputs[..], [line] if line.contains(row) && line.contains("[w|]")),
         "{name}, {row:?}: the input is not just on that row, holding only w: {inputs:?}\n{after}"
     );
-    key(host, KeyCode::Esc, KeyModifiers::NONE);
+    key(host, Key::Esc, Mods::NONE);
     assert!(!host.plugins[0].capturing());
 }
 
 #[test]
 fn every_settings_input_starts_where_its_value_was_drawn() {
-    use KeyCode::{Char, Enter};
+    use Key::{Char, Enter};
     let mut host = hosted();
     // connection: the api, the token, how often to read, how far back.
     input_sits_on_its_value(&mut host, "connection", 1, &[Char('e')], "api ", "https://slack.com");

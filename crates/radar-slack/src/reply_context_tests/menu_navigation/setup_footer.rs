@@ -31,18 +31,18 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
             assert!(!footer.contains(ghost), "{ghost}: {footer}");
         }
         for (code, modifiers) in [
-            (KeyCode::Char('r'), KeyModifiers::CONTROL),
-            (KeyCode::Char('s'), KeyModifiers::CONTROL),
+            (Key::Char('r'), Mods::CONTROL),
+            (Key::Char('s'), Mods::CONTROL),
             (
-                KeyCode::Char('r'),
-                KeyModifiers::CONTROL | KeyModifiers::ALT,
+                Key::Char('r'),
+                Mods::CONTROL | Mods::ALT,
             ),
         ] {
             press(&mut host, code, modifiers);
             assert!(host.menu.is_none());
             assert_eq!(state(&host), before);
         }
-        press(&mut host, KeyCode::Char('x'), KeyModifiers::NONE);
+        press(&mut host, Key::Char('x'), Mods::NONE);
         let items = &host
             .menu
             .as_ref()
@@ -64,10 +64,10 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
         );
         assert!(items[2].heading);
         shown(&host, width, height);
-        press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
+        press(&mut host, Key::Esc, Mods::NONE);
         assert_eq!(state(&host), before);
 
-        press(&mut host, KeyCode::Enter, KeyModifiers::NONE);
+        press(&mut host, Key::Enter, Mods::NONE);
         assert_eq!(host.view, View::Settings);
         assert_eq!(host.current_section().unwrap().1.id, "connection");
         assert_eq!(state(&host), before);
@@ -76,7 +76,7 @@ fn setup_footer_hides_unroutable_reply_keys_and_settings_recovers_the_text() {
         open(&mut host);
         assert_eq!(state(&host), before);
         shown(&host, width, height);
-        press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
+        press(&mut host, Key::Char('s'), Mods::NONE);
         assert_eq!(kept_texts(slack(&host)), [TEXT, ACTIVE]);
         assert!(slack(&host).replying.is_none());
         assert!(recorded.requests().is_empty());
@@ -98,7 +98,7 @@ fn ready_reply_and_settings_editor_keep_their_routable_footer_hints() {
             assert!(footer.contains("ctrl-r kept replies"), "{footer}");
         }
         open(&mut host);
-        press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
+        press(&mut host, Key::Esc, Mods::NONE);
         assert_eq!(state(&host), before);
     }
     assert!(recorded.requests().is_empty());
@@ -119,11 +119,11 @@ fn ready_reply_and_settings_editor_keep_their_routable_footer_hints() {
             assert!(footer.contains(hint), "{hint}: {footer}");
         }
         open(&mut host);
-        press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
+        press(&mut host, Key::Esc, Mods::NONE);
         assert_eq!(state(&host), before);
         assert_eq!(slack(&host).edit.as_ref().unwrap().1.value(), "90");
     }
-    press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
+    press(&mut host, Key::Esc, Mods::NONE);
     assert!(
         slack(&host).edit.is_none(),
         "advertised cancel reaches settings"

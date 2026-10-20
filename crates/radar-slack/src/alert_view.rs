@@ -9,7 +9,7 @@
 
 use radar_core::input::Edit;
 use radar_core::plugin::{Binding, Effect, Outcome};
-use radar_core::ratatui::crossterm::event::KeyEvent;
+use radar_core::view::{Chord, Key};
 
 use crate::alerts::{Alert, State};
 use crate::config::Rule;
@@ -91,20 +91,19 @@ pub(crate) fn rows(p: &SlackPlugin, channel: &str, ts: &str) -> Vec<crate::Row> 
 }
 
 /// `o`, `y` and `m` on an alert.
-pub(crate) fn key(p: &mut SlackPlugin, channel: &str, ts: &str, key: KeyEvent) -> Option<Outcome> {
-    use radar_core::ratatui::crossterm::event::KeyCode;
+pub(crate) fn key(p: &mut SlackPlugin, channel: &str, ts: &str, key: Chord) -> Option<Outcome> {
     let a = find(p, channel, ts)?;
     let no_link = || Outcome::Handled(vec![Effect::Notify("this alert has no console link".into())]);
-    match key.code {
-        KeyCode::Char('o') => Some(match a.link {
+    match key.key {
+        Key::Char('o') => Some(match a.link {
             Some(url) => Outcome::Handled(vec![Effect::Open(url)]),
             None => no_link(),
         }),
-        KeyCode::Char('y') => Some(match a.link {
+        Key::Char('y') => Some(match a.link {
             Some(url) => Outcome::Handled(vec![Effect::Copy(url), Effect::Notify("console link copied".into())]),
             None => no_link(),
         }),
-        KeyCode::Char('m') if !a.place.mapped() => {
+        Key::Char('m') if !a.place.mapped() => {
             p.mapping = Some(Mapping { name: a.name, input: radar_core::input::TextInput::new("") });
             Some(Outcome::done())
         }
@@ -159,7 +158,7 @@ pub(crate) fn add_rule(p: &mut SlackPlugin, rule: Rule) {
 }
 
 /// A key while the mapping is typed.
-pub(crate) fn map_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn map_key(p: &mut SlackPlugin, key: Chord) -> Outcome {
     let Some(m) = p.mapping.as_mut() else {
         return Outcome::Ignored;
     };

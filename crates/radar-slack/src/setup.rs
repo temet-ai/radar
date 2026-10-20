@@ -133,7 +133,8 @@ mod tests {
     fn the_setup_card_leaves_out_api_refresh_and_read_back_and_the_cursor_skips_nothing_drawn() {
         use crate::settings::{WsRow, key, ws_rows};
         use radar_core::plugin::Plugin;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::Key;
+use crate::keys::Mods;
         use radar_core::view::{Node, ViewCx};
         let cx = |setup| ViewCx {
             now: 0,
@@ -181,7 +182,7 @@ mod tests {
         // ↓ through the whole card never lands on a hidden row or a heading.
         p.section_rows[0] = 0;
         for _ in 0..rows.len() + 2 {
-            key(&mut p, "connection", KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+            key(&mut p, "connection", crate::keys::chord(Key::Down, Mods::NONE));
             let row = rows[p.section_rows[0]];
             assert!(row.selectable(), "{row:?}");
             assert!(!matches!(row, WsRow::Api | WsRow::Refresh | WsRow::Days));
@@ -198,22 +199,23 @@ mod tests {
     #[test]
     fn the_connection_copies_the_manifest_and_adds_channels_with_their_own_field() {
         use radar_core::plugin::{Effect, Outcome};
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::Key;
+use crate::keys::Mods;
         use crate::settings::{WsRow, key, ws_rows};
-        let press = |p: &mut SlackPlugin, code| key(p, "connection", KeyEvent::new(code, KeyModifiers::NONE));
+        let press = |p: &mut SlackPlugin, code| key(p, "connection", crate::keys::chord(code, Mods::NONE));
         let mut p = crate::demo::sample();
-        let out = press(&mut p, KeyCode::Char('m'));
+        let out = press(&mut p, Key::Char('m'));
         assert!(matches!(&out, Outcome::Handled(fx) if matches!(fx.first(), Some(Effect::Copy(m)) if m == &manifest::text())));
-        let out = press(&mut p, KeyCode::Char('o'));
+        let out = press(&mut p, Key::Char('o'));
         assert!(matches!(&out, Outcome::Handled(fx) if matches!(fx.as_slice(), [Effect::Open(u)] if u.contains("manifest_json="))));
         let rows = ws_rows(&p);
         let add = rows.iter().position(|r| *r == WsRow::ChannelAdd).unwrap();
         assert!(!rows[add - 1].selectable() && !rows[add - 2].selectable(), "the heading and the gap");
         p.section_rows[0] = add;
-        press(&mut p, KeyCode::Up);
+        press(&mut p, Key::Up);
         assert!(ws_rows(&p)[p.section_rows[0]].selectable(), "the cursor steps over them");
         p.section_rows[0] = add;
-        press(&mut p, KeyCode::Enter);
+        press(&mut p, Key::Enter);
         assert!(matches!(p.edit, Some((crate::Target::ChannelAdd, _))));
         let view = crate::settings::connection_view(&p, 80, 0);
         assert!(format!("{:?}", view.detail_blocks).contains("CHANNEL LINKS"));

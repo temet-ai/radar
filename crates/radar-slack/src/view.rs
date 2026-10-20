@@ -3,9 +3,8 @@
 //! emoji as glyphs where known, code, quotes, files) and laid out by the
 //! kit, with the look words choosing the slots.
 
-use radar_core::ratatui::style::Style;
-use radar_core::ratatui::text::Span;
 use radar_core::ui::icon::{self, Icon};
+use radar_core::view::{Ink, Seg, Text};
 use radar_core::ui::rich::{self, Block, Doc, Inline, Marks};
 
 use crate::client::Message;
@@ -102,47 +101,45 @@ fn inline(s: &mrkdwn::Seg, is_me: &dyn Fn(&Kind) -> bool) -> Inline {
     run.with(marks)
 }
 
-/// A message's one line as spans: its first line of text with `:name:`
+/// A message's one line as view text: its first line of text with `:name:`
 /// emoji as their glyphs, a custom one (no glyph) kept as `:name:` in
-/// `emoji`; or what it carries, in `text`.
+/// the `emoji` ink; or what it carries, in the `text` ink.
 pub fn first_line_spans(
     data: &Data,
     cfg: &Settings,
     m: &Message,
-    text: Style,
-    emoji: Style,
-) -> Vec<Span<'static>> {
+    text: Ink,
+    emoji: Ink,
+) -> Text {
     let names = Namer { data, cfg };
     let line = mrkdwn::parse(&m.text, &names)
         .into_iter()
         .find(|l| l.segs.iter().any(|s| !s.text.trim().is_empty()));
     let Some(line) = line else {
-        return vec![Span::styled(first_line(data, cfg, m), text)];
+        return Text::of(first_line(data, cfg, m), text);
     };
-    let mut spans: Vec<Span<'static>> = Vec::new();
+    let mut segs: Vec<Seg> = Vec::new();
     for s in line.segs {
-        let (words, style) = match &s.kind {
+        let (words, ink) = match &s.kind {
             Kind::Emoji { name } => match rich::emoji(name) {
                 Some(glyph) => (glyph, text),
                 None => (s.text.clone(), emoji),
             },
             _ => (s.text.clone(), text),
         };
-        match spans.last_mut() {
-            Some(last) if last.style == style => {
-                last.content = format!("{}{words}", last.content).into()
-            }
-            _ => spans.push(Span::styled(words, style)),
+        match segs.last_mut() {
+            Some(last) if last.ink == ink => last.text.push_str(&words),
+            _ => segs.push(Seg::new(words, ink)),
         }
     }
-    if let Some(first) = spans.first_mut() {
-        first.content = first.content.trim_start().to_string().into();
+    if let Some(first) = segs.first_mut() {
+        first.text = first.text.trim_start().to_string();
     }
-    if let Some(last) = spans.last_mut() {
-        last.content = last.content.trim_end().to_string().into();
+    if let Some(last) = segs.last_mut() {
+        last.text = last.text.trim_end().to_string();
     }
-    spans.retain(|s| !s.content.is_empty());
-    spans
+    segs.retain(|s| !s.text.is_empty());
+    Text(segs)
 }
 
 /// A message's one line: its first line of text (emoji as glyphs where
@@ -150,10 +147,7 @@ pub fn first_line_spans(
 pub fn first_line(data: &Data, cfg: &Settings, m: &Message) -> String {
     let line = mrkdwn::first_line(&m.text, &Namer { data, cfg });
     if !line.is_empty() {
-        return first_line_spans(data, cfg, m, Style::default(), Style::default())
-            .iter()
-            .map(|s| s.content.as_ref())
-            .collect();
+        return first_line_spans(data, cfg, m, Ink::Plain, Ink::Plain).words();
     }
     if let Some(s) = m.shared.first() {
         let said = mrkdwn::first_line(&s.text, &Namer { data, cfg });
@@ -300,6 +294,17 @@ pub fn who(data: &Data, m: &Message) -> String {
     }
 }
 
+/// Who wrote a message, in full (`you` for yourself): what a page names the
+/// author with room to spare, where [`who`] gives the short form of a row.
+pub fn who_full(data: &Data, m: &Message) -> String {
+    let me = data.me.as_ref().map(|m| m.user_id.as_str());
+    if author_icon(me, m) == Icon::You {
+        "you".to_string()
+    } else {
+        data.author(m)
+    }
+}
+
 /// The icon of who wrote a message: you, a bot, a person.
 pub fn author_icon(me: Option<&str>, m: &Message) -> Icon {
     match (&m.user, &m.bot_name) {
@@ -432,11 +437,12 @@ mod tests {
             first_line(&data, &cfg, &m),
             "🚀 shipped :our-parrot: today 🎉"
         );
-        let (text, emoji) = (Style::new().bold(), Style::new().italic());
+        let (text, emoji) = (Ink::Emphasis, Ink::Muted);
         let spans = first_line_spans(&data, &cfg, &m, text, emoji);
-        let got: Vec<(&str, Style)> = spans
+        let got: Vec<(&str, Ink)> = spans
+            .0
             .iter()
-            .map(|s| (s.content.as_ref(), s.style))
+            .map(|s| (s.text.as_str(), s.ink))
             .collect();
         assert_eq!(
             got,

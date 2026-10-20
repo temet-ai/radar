@@ -6,7 +6,7 @@
 
 use radar_core::Host;
 use radar_core::host::HostEffect;
-use radar_core::ratatui::crossterm::event::KeyCode;
+use radar_core::view::Key;
 
 
 use crate::client::{Block, Card, Message};
@@ -118,7 +118,7 @@ fn hosting(p: SlackPlugin) -> Host {
 
 /// On the Alerts nav rows, then its tree (the cursor on the first alert).
 fn on_alerts(host: &mut Host) {
-    keys(host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Down, KeyCode::Char('2')]);
+    keys(host, &[Key::Char('1'), Key::Down, Key::Down, Key::Char('2')]);
 }
 
 /// Rows down from the first alert (the tree's headings are rows too):
@@ -129,7 +129,7 @@ const LATENCY: usize = 8;
 
 fn down(host: &mut Host, n: usize) {
     for _ in 0..n {
-        press(host, KeyCode::Down);
+        press(host, Key::Down);
     }
 }
 
@@ -214,13 +214,13 @@ fn the_preview_tells_the_alert_how_long_where_it_belongs_and_its_console_link() 
 fn enter_opens_the_alerts_thread_o_its_console_link_and_y_copies_it() {
     let mut host = hosted();
     on_alerts(&mut host);
-    let fx = press(&mut host, KeyCode::Char('o'));
+    let fx = press(&mut host, Key::Char('o'));
     assert!(matches!(&fx[..], [HostEffect::Open(u)] if u == CONSOLE), "{fx:?}");
-    let fx = press(&mut host, KeyCode::Char('y'));
+    let fx = press(&mut host, Key::Char('y'));
     assert!(matches!(&fx[..], [HostEffect::Copy(u), ..] if u == CONSOLE), "{fx:?}");
     // The job's own link, from its context.
     down(&mut host, JOB);
-    let fx = press(&mut host, KeyCode::Char('o'));
+    let fx = press(&mut host, Key::Char('o'));
     assert!(matches!(&fx[..], [HostEffect::Open(u)] if u == "https://ci.acme.example/runs/9"), "{fx:?}");
     // An alert with no link says so and opens nothing.
     let mut p = sample();
@@ -228,16 +228,16 @@ fn enter_opens_the_alerts_thread_o_its_console_link_and_y_copies_it() {
     let mut bare = hosting(p);
     on_alerts(&mut bare);
     down(&mut bare, 2);
-    let fx = press(&mut bare, KeyCode::Char('o'));
+    let fx = press(&mut bare, Key::Char('o'));
     assert!(fx.is_empty(), "{fx:?}");
     assert!(bare.message.as_deref().is_some_and(|m| m.contains("no console link")), "{:?}", bare.message);
     // Enter: its thread's page, with the people who replied.
     let mut host = hosted();
     on_alerts(&mut host);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = shown(&host, 160, 40);
     assert!(text.contains("Slack / #team-alerts / alertbot: bot message") && text.contains("looking at it"), "{text}");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(shown(&host, 160, 40).contains("api-HighErrorRate"), "back on the alerts");
 }
 
@@ -246,15 +246,15 @@ fn an_unmapped_alert_is_mapped_in_one_key_by_typing_a_repo_or_a_service() {
     let mut host = hosted();
     on_alerts(&mut host);
     down(&mut host, DISK);
-    press(&mut host, KeyCode::Char('m'));
+    press(&mut host, Key::Char('m'));
     assert!(host.plugins[0].capturing());
     let text = shown(&host, 160, 40);
     assert!(text.contains("DiskFull belongs to (a repo path, or a service)"), "{text}");
     // Nothing typed: refused with what it takes.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().is_some_and(|m| m.starts_with("not yet: a repo's path")), "{:?}", host.message);
     chars(&mut host, "acme/team-a/disk");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing());
     let text = shown(&host, 160, 40);
     assert!(text.contains("disk  prod") && text.contains(":alert_firing: ▲ DiskFull"), "{text}");
@@ -262,15 +262,15 @@ fn an_unmapped_alert_is_mapped_in_one_key_by_typing_a_repo_or_a_service() {
     assert!(saved.contains("prefix = \"DiskFull\"") && saved.contains("repo = \"acme/team-a/disk\""), "{saved}");
     // A mapped alert does not offer it.
     let _ = shown(&host, 160, 40);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert!(!menu_labels(&host).iter().any(|l| l.contains("map it")), "{:?}", menu_labels(&host));
     // Escape drops it.
     let mut host = hosted();
     on_alerts(&mut host);
     down(&mut host, DISK);
-    press(&mut host, KeyCode::Char('m'));
+    press(&mut host, Key::Char('m'));
     chars(&mut host, "billing");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(!host.plugins[0].capturing());
     assert!(shown(&host, 160, 40).contains("unmapped  prod"));
 }
@@ -303,13 +303,13 @@ fn what_no_reader_could_read_is_counted_in_the_rail_and_said_in_the_log_once() {
 #[test]
 fn an_alerts_channel_is_not_a_discussion_and_the_x_menu_of_an_alert_lists_what_works() {
     let mut host = hosted();
-    keys(&mut host, &[KeyCode::Char('1'), KeyCode::Down, KeyCode::Char('2')]);
+    keys(&mut host, &[Key::Char('1'), Key::Down, Key::Char('2')]);
     let text = shown(&host, 160, 40);
     assert!(!text.contains("HighErrorRate") && !text.contains("who is on the disk alert"), "{text}");
     let mut host = hosted();
     on_alerts(&mut host);
     let _ = shown(&host, 160, 40);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let labels = menu_labels(&host);
     assert_eq!(host.menu.as_ref().unwrap().menu.title, "api-HighErrorRate");
     for want in ["⏎ open its thread", "o open its console link", "y copy its console link"] {
@@ -317,9 +317,9 @@ fn an_alerts_channel_is_not_a_discussion_and_the_x_menu_of_an_alert_lists_what_w
     }
     assert!(!labels.iter().any(|l| l.contains("map it")), "it is mapped already: {labels:?}");
     insta::assert_snapshot!("alert_keys", menu_shown(&host));
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     down(&mut host, DISK);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert!(menu_labels(&host).iter().any(|l| l.starts_with("m map it to a repo or service")), "{:?}", menu_labels(&host));
 }
 
@@ -328,10 +328,10 @@ fn nothing_is_sent_to_slack_from_the_alerts_view() {
     let mut host = hosted();
     on_alerts(&mut host);
     for k in ['o', 'y', 'm', 'e', 'c'] {
-        let fx = press(&mut host, KeyCode::Char(k));
+        let fx = press(&mut host, Key::Char(k));
         assert!(!fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })), "{k}: {fx:?}");
         if host.plugins[0].capturing() {
-            press(&mut host, KeyCode::Esc);
+            press(&mut host, Key::Esc);
         }
         host.menu = None;
     }
@@ -349,7 +349,7 @@ fn every_row_and_target_is_taken_on_the_alerts_view_and_its_threads() {
 
 fn settings_of(section: usize) -> Host {
     let mut host = hosted();
-    press(&mut host, KeyCode::Char(radar_core::host::SETTINGS_KEY));
+    press(&mut host, Key::Char(radar_core::host::SETTINGS_KEY));
     let at = host.sections.iter().position(|(_, s)| s.group == "slack").unwrap();
     host.section = at + section;
     host.focus = radar_core::Pane::Middle;
@@ -378,17 +378,17 @@ fn the_alerts_section_lists_the_mapping_and_the_alerts_no_rule_places() {
 fn a_mapping_is_added_by_typing_a_name_then_where_it_belongs_and_is_kept() {
     let mut host = settings_of(3);
     // The first row is add a mapping.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing());
     // Nothing yet, and spaces, are refused with a reason.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.message.as_deref().is_some_and(|m| m.starts_with("not yet: the start of the alert's name")), "{:?}", host.message);
     chars(&mut host, "db-");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     // Where it belongs is asked straight away.
     assert!(host.plugins[0].capturing());
     chars(&mut host, "https://git.example/acme/team-a/db/-/merge_requests/1");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing());
     let saved = host.plugins[0].config().unwrap().to_string();
     assert!(saved.contains("prefix = \"db-\"") && saved.contains("repo = \"acme/team-a/db\""), "{saved}");
@@ -401,21 +401,21 @@ fn an_unmapped_alert_listed_in_settings_is_mapped_from_its_row() {
     let mut host = settings_of(3);
     // Hours, add, the rule and its five fields: the unmapped names follow.
     for _ in 0..8 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let text = shown(&host, 160, 40);
     assert!(text.contains("No rule places alerts named DiskFull"), "{text}");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing());
     chars(&mut host, "two words");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing(), "refused while it has spaces");
     let _ = shown(&host, 160, 40);
     for _ in 0..9 {
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
     }
     chars(&mut host, "disks");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing());
     let saved = host.plugins[0].config().unwrap().to_string();
     assert!(saved.contains("prefix = \"DiskFull\"") && saved.contains("service = \"disks\""), "{saved}");
@@ -425,18 +425,18 @@ fn an_unmapped_alert_listed_in_settings_is_mapped_from_its_row() {
 #[test]
 fn the_hours_resolved_alerts_stay_are_typed_and_checked() {
     let mut host = settings_of(3);
-    press(&mut host, KeyCode::Down); // keep resolved, under add a mapping
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Down); // keep resolved, under add a mapping
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing());
     for _ in 0..3 {
-        press(&mut host, KeyCode::Backspace);
+        press(&mut host, Key::Backspace);
     }
     chars(&mut host, "0");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(host.plugins[0].capturing(), "0 hours is refused");
-    press(&mut host, KeyCode::Backspace);
+    press(&mut host, Key::Backspace);
     chars(&mut host, "6");
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert!(!host.plugins[0].capturing());
     assert!(host.plugins[0].config().unwrap().to_string().contains("recent_hours = 6"));
     // Six hours: the resolved one (5h 20m ago) is still there; at 5 it goes.
@@ -470,9 +470,9 @@ fn an_alerts_channel_shows_its_reader_row_and_the_kind_menu_offers_alerts() {
     assert!(text.contains("reader") && text.contains("alertmanager") && text.contains("job-failed"), "{text}");
     // Down from add: #team, its fields; the kind row offers alerts.
     for _ in 0..4 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let labels = menu_labels(&host);
     assert!(labels.iter().any(|l| l.contains("alerts")), "{labels:?}");
 }

@@ -6,7 +6,7 @@ use crate::client::Recorded;
 use crate::demo::{self, BOB, NOW, TEAM};
 use radar_core::host::{Event, HostEffect};
 use radar_core::view::Intent;
-use radar_core::ratatui::crossterm::event::KeyModifiers;
+use crate::keys::Mods;
 use crate::tests::shown;
 use radar_core::{Host, Plugin};
 
@@ -73,8 +73,8 @@ fn slack_mut(host: &mut Host) -> &mut SlackPlugin {
 }
 
 /// Deliberately does not draw before the event: pending redraws are part of the test.
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::keys::ev(crate::keys::chord(code, Mods::NONE)))
 }
 
 fn page(p: &mut SlackPlugin, ts: &str, words: Option<&str>) {
@@ -96,8 +96,8 @@ fn no_links(p: &mut SlackPlugin) {
             .iter()
             .any(|b| matches!(b.keys.as_str(), "⏎" | "o" | "y"))
     );
-    for code in [KeyCode::Enter, KeyCode::Char('o'), KeyCode::Char('y')] {
-        let out = key(p, KeyEvent::new(code, KeyModifiers::NONE));
+    for code in [Key::Enter, Key::Char('o'), Key::Char('y')] {
+        let out = key(p, crate::keys::chord(code, Mods::NONE));
         if let Outcome::Handled(effects) = out {
             assert!(
                 !effects
@@ -128,7 +128,7 @@ fn cold_failure_empty_and_retry_have_truthful_states() {
     );
     assert!(!wide.contains("loading…"));
     insta::assert_snapshot!("slack_thread_failed", wide);
-    let retry = press(&mut h, KeyCode::Char('r'));
+    let retry = press(&mut h, Key::Char('r'));
     assert_eq!(
         retry
             .iter()
@@ -136,7 +136,7 @@ fn cold_failure_empty_and_retry_have_truthful_states() {
             .count(),
         1
     );
-    let repeat = press(&mut h, KeyCode::Char('r'));
+    let repeat = press(&mut h, Key::Char('r'));
     assert!(!repeat.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
     assert!(shown(&h, 80, 24).contains("loading…"));
     assert!(!shown(&h, 80, 24).contains("thread_not_found"));
@@ -173,7 +173,7 @@ fn cached_reply_failure_never_claims_it_is_still_reading() {
     let text = shown(&h, 160, 40);
     assert!(text.contains("missing_scope") && text.contains("2 replies aren't loaded"));
     assert!(!text.contains("are being read"));
-    press(&mut h, KeyCode::Char(']'));
+    press(&mut h, Key::Char(']'));
     let text = shown(&h, 160, 40);
     assert!(text.contains("missing_scope") && text.contains("Press r to try again"));
     assert!(
@@ -198,7 +198,7 @@ fn links_cannot_cross_threads_even_before_a_redraw_or_after_back_and_reentry() {
         let text = shown(&h, 80, 24);
         assert!(!text.contains(URL));
         no_links(slack_mut(&mut h));
-        press(&mut h, KeyCode::Char('x'));
+        press(&mut h, Key::Char('x'));
         assert!(
             !h.menu
                 .as_ref()
@@ -208,9 +208,9 @@ fn links_cannot_cross_threads_even_before_a_redraw_or_after_back_and_reentry() {
                 .iter()
                 .any(|i| i.label.contains("copy it"))
         );
-        press(&mut h, KeyCode::Esc);
+        press(&mut h, Key::Esc);
         assert_eq!(slack(&h).pages.len(), 2, "dismiss only the menu");
-        press(&mut h, KeyCode::Esc);
+        press(&mut h, Key::Esc);
         assert_eq!(slack(&h).pages.len(), 1);
         assert!(
             page_links(slack(&h)).is_empty(),
@@ -254,7 +254,7 @@ fn refreshed_links_are_invalid_until_rendered_then_cursor_and_actions_agree() {
     assert!(text.contains("remaining"));
     let copied = key(
         slack_mut(&mut h),
-        KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE),
+        crate::keys::chord(Key::Char('y'), Mods::NONE),
     );
     assert!(
         matches!(copied, Outcome::Handled(fx) if fx.iter().any(|e| matches!(e, Effect::Copy(s) if s == "https://example.com/remaining")))
@@ -320,7 +320,7 @@ fn back_words_name_the_actual_list_or_previous_page() {
         assert_eq!(back_to(&p), expected);
         page(&mut p, B, Some("Child thread"));
         assert_eq!(back_to(&p), "Bob Builder's thread in #team");
-        key(&mut p, KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+        key(&mut p, crate::keys::chord(Key::Esc, Mods::NONE));
         assert_eq!(back_to(&p), expected);
     }
     let mut p = sample();
@@ -332,20 +332,20 @@ fn back_words_name_the_actual_list_or_previous_page() {
 #[test]
 fn committed_filter_escape_clears_before_leaving_the_list() {
     let mut h = host(sample());
-    press(&mut h, KeyCode::Char('/'));
+    press(&mut h, Key::Char('/'));
     for c in "lunch".chars() {
-        press(&mut h, KeyCode::Char(c));
+        press(&mut h, Key::Char(c));
     }
-    press(&mut h, KeyCode::Enter);
+    press(&mut h, Key::Enter);
     assert_eq!(slack(&h).filter, "lunch");
     assert_eq!(h.focus, Pane::Middle);
-    press(&mut h, KeyCode::Char('x'));
-    press(&mut h, KeyCode::Esc);
+    press(&mut h, Key::Char('x'));
+    press(&mut h, Key::Esc);
     assert_eq!(slack(&h).filter, "lunch", "first Escape only dismisses x");
-    press(&mut h, KeyCode::Esc);
+    press(&mut h, Key::Esc);
     assert!(slack(&h).filter.is_empty());
     assert_eq!(h.focus, Pane::Middle);
-    press(&mut h, KeyCode::Esc);
+    press(&mut h, Key::Esc);
     assert_eq!(h.focus, Pane::Nav);
 }
 
@@ -359,10 +359,10 @@ fn reply_capture_and_reentry_do_not_leak_page_or_write_shortcuts() {
     let tab = Intent::Select { target: radar_core::view::TabView::target(1) };
     assert!(shown(&h, 160, 40).contains(":link: Links"), "the page offers a Links tab");
     for attempt in 0..2 {
-        press(&mut h, KeyCode::Char('c'));
+        press(&mut h, Key::Char('c'));
         assert!(slack(&h).replying.is_some());
         for c in "oxyernd".chars() {
-            let fx = press(&mut h, KeyCode::Char(c));
+            let fx = press(&mut h, Key::Char(c));
             assert!(!fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
         }
         assert!(h.menu.is_none());
@@ -384,12 +384,12 @@ fn reply_capture_and_reentry_do_not_leak_page_or_write_shortcuts() {
                 .text()
                 .contains("oxyernd")
         );
-        press(&mut h, KeyCode::Esc);
+        press(&mut h, Key::Esc);
         assert!(h.menu.is_some(), "nonempty text asks before dropping");
-        press(&mut h, KeyCode::Esc);
+        press(&mut h, Key::Esc);
         assert!(slack(&h).replying.is_some(), "dismissal keeps the composer");
-        press(&mut h, KeyCode::Esc);
-        let fx = press(&mut h, KeyCode::Char('y'));
+        press(&mut h, Key::Esc);
+        let fx = press(&mut h, Key::Char('y'));
         assert!(!fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })));
         assert_eq!(
             slack(&h).pages.len(),

@@ -4,9 +4,9 @@
 
 
 use radar_core::plugin::{Binding, Effect, MenuItem, Outcome, Pane, Tone};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
-use radar_core::ui::tree::TreeState;
+use radar_core::view::TreeNav;
 use radar_core::ui::{self, rich};
 use radar_core::{Subject, widgets};
 
@@ -265,7 +265,7 @@ fn found_passes(p: &SlackPlugin, f: &Found) -> bool {
 }
 
 /// `/` words and `:` go-to on the lists; the filter input takes its keys.
-pub(crate) fn filter_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn filter_key(p: &mut SlackPlugin, key: Chord) -> Outcome {
     use radar_core::input::Edit;
     let Some(mut input) = p.filter_input.take() else {
         return Outcome::Ignored;
@@ -278,7 +278,7 @@ pub(crate) fn filter_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
             p.filter_input = Some(input);
         }
     }
-    *p.tree.borrow_mut() = TreeState::default();
+    *p.tree.borrow_mut() = TreeNav::default();
     p.opened_once.borrow_mut().clear();
     Outcome::done()
 }
@@ -358,7 +358,7 @@ fn pick_rail(p: &mut SlackPlugin, i: usize) {
     if i != p.nav_at {
         p.nav_at = i;
         // A new list: its groups open again on first sight.
-        *p.tree.borrow_mut() = TreeState::default();
+        *p.tree.borrow_mut() = TreeNav::default();
         p.opened_once.borrow_mut().clear();
         p.detail_scroll.top();
     }
@@ -392,9 +392,9 @@ fn enter(p: &mut SlackPlugin, item: Item) -> Outcome {
 }
 
 /// The keys every row of messages has: open, copy, caught up, reply, react.
-pub(crate) fn message_key(p: &mut SlackPlugin, item: &Item, key: KeyEvent) -> Option<Outcome> {
-    match key.code {
-        KeyCode::Char('o') => {
+pub(crate) fn message_key(p: &mut SlackPlugin, item: &Item, key: Chord) -> Option<Outcome> {
+    match key.key {
+        Key::Char('o') => {
             let Some(web) = link(p, item) else {
                 return Some(Outcome::done());
             };
@@ -406,11 +406,11 @@ pub(crate) fn message_key(p: &mut SlackPlugin, item: &Item, key: KeyEvent) -> Op
                 _ => vec![Effect::Open(web)],
             }))
         }
-        KeyCode::Char('y') => Some(Outcome::Handled(match link(p, item) {
+        Key::Char('y') => Some(Outcome::Handled(match link(p, item) {
             Some(url) => vec![Effect::Copy(url), Effect::Notify("link copied".into())],
             None => vec![],
         })),
-        KeyCode::Char('m') => {
+        Key::Char('m') => {
             let (channel, ts, _) = item.message(p)?;
             if p.cfg.by_id(&channel).is_none() {
                 return Some(Outcome::Handled(vec![Effect::Notify(
@@ -419,11 +419,11 @@ pub(crate) fn message_key(p: &mut SlackPlugin, item: &Item, key: KeyEvent) -> Op
             }
             Some(Outcome::Handled(p.catch_up(&channel, &ts)))
         }
-        KeyCode::Char('c') => {
+        Key::Char('c') => {
             let (channel, _, thread) = item.message(p)?;
             Some(Outcome::Handled(page::start_reply(p, &channel, &thread)))
         }
-        KeyCode::Char('e') => {
+        Key::Char('e') => {
             let (channel, ts, _) = item.message(p)?;
             Some(Outcome::Handled(page::react_menu(p, &channel, &ts)))
         }
@@ -431,20 +431,20 @@ pub(crate) fn message_key(p: &mut SlackPlugin, item: &Item, key: KeyEvent) -> Op
     }
 }
 
-pub fn key(p: &mut SlackPlugin, pane: Pane, key: KeyEvent) -> Outcome {
-    match key.code {
-        KeyCode::Esc if pane == Pane::Middle && !p.filter.is_empty() => {
+pub fn key(p: &mut SlackPlugin, pane: Pane, key: Chord) -> Outcome {
+    match key.key {
+        Key::Esc if pane == Pane::Middle && !p.filter.is_empty() => {
             p.filter.clear();
-            *p.tree.borrow_mut() = TreeState::default();
+            *p.tree.borrow_mut() = TreeNav::default();
             p.opened_once.borrow_mut().clear();
             p.detail_scroll.top();
             return Outcome::done();
         }
-        KeyCode::Char('/') if key.modifiers == KeyModifiers::NONE => {
+        Key::Char('/') if key.bare() => {
             p.filter_input = Some(radar_core::input::TextInput::new(&p.filter));
             return Outcome::done();
         }
-        KeyCode::Char(':') if key.modifiers == KeyModifiers::NONE => {
+        Key::Char(':') if key.bare() => {
             return Outcome::Handled(vec![Effect::Notify(
                 "go to a channel or thread: not on Slack yet; pick it in the nav pane, or / filters by words".into(),
             )]);
@@ -452,8 +452,8 @@ pub fn key(p: &mut SlackPlugin, pane: Pane, key: KeyEvent) -> Outcome {
         _ => {}
     }
     // Not handled when there is nothing more to see: the host says so.
-    if matches!(key.code, KeyCode::PageDown | KeyCode::PageUp) {
-        return if p.detail_scroll.page(key.code == KeyCode::PageDown) {
+    if matches!(key.key, Key::PageDown | Key::PageUp) {
+        return if p.detail_scroll.page(key.key == Key::PageDown) {
             Outcome::done()
         } else {
             Outcome::Ignored
@@ -472,7 +472,7 @@ pub fn key(p: &mut SlackPlugin, pane: Pane, key: KeyEvent) -> Outcome {
     }
     match pane {
         Pane::Nav => {
-            if let Some(down) = widgets::vertical(&key) {
+            if let Some(down) = key.vertical() {
                 // ↑ on the first row is the host's: up to the top bar.
                 if !down && p.nav_at == 0 {
                     return Outcome::Ignored;
@@ -485,7 +485,7 @@ pub fn key(p: &mut SlackPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             Outcome::Ignored
         }
         Pane::Detail => {
-            if key.code == KeyCode::Enter
+            if key.key == Key::Enter
                 && let Some(item) = selected(p)
             {
                 return enter(p, item);
@@ -496,18 +496,26 @@ pub fn key(p: &mut SlackPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             Outcome::Ignored
         }
         Pane::Middle => {
-            if key.code == KeyCode::Enter {
+            if key.key == Key::Enter {
                 return match selected(p) {
                     Some(item) => enter(p, item),
                     None => Outcome::Ignored,
                 };
             }
             let before = p.tree.borrow().selected().to_vec();
-            if ui::tree::key(&mut p.tree.borrow_mut(), &key) {
-                moved(p, &before);
-                return Outcome::done();
+            if !radar_core::view::tree_key(key) {
+                return Outcome::Ignored;
             }
-            Outcome::Ignored
+            let tree = radar_core::view::Tree {
+                rows: p.rows_shown.borrow().clone(),
+                open: p.tree.borrow().open.clone(),
+                selected: before,
+                ..Default::default()
+            };
+            if let Some(step) = radar_core::view::tree_step(&tree, key) {
+                return neutral::intent(p, Pane::Middle, &step);
+            }
+            Outcome::done()
         }
     }
 }
@@ -742,7 +750,7 @@ pub fn rows(p: &SlackPlugin, pane: Pane) -> Vec<Row> {
                 }
                 Some(Item::Heading(_)) if pane == Pane::Middle => {
                     let state = p.tree.borrow();
-                    let open = state.opened().contains(state.selected());
+                    let open = state.is_open(state.selected());
                     b.push(act("slack.feed.toggle_group", Binding::new(
                         "⏎",
                         if open {
@@ -761,7 +769,7 @@ pub fn rows(p: &SlackPlugin, pane: Pane) -> Vec<Row> {
                                 .thread(channel, ts)
                                 .is_some_and(|th| !th.replies.is_empty())
                         {
-                            let open = state.opened().contains(state.selected());
+                            let open = state.is_open(state.selected());
                             b.push(act("slack.feed.toggle_replies", Binding::new(
                                 "space",
                                 if open {

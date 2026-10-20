@@ -557,17 +557,23 @@ pub(crate) fn contribute(p: &SlackPlugin, point: Point, s: &Subject) -> Option<C
             // what, cut to about two lines of a narrow pane.
             for t in others.iter().take(SECTION_THREADS) {
                 let me = p.data.me.as_ref().map(|m| m.user_id.as_str());
+                // The author in full, and the message words linking to the
+                // message in Slack (#36).
                 lines.push(Text::from(vec![
                     place(t.channel, &t.parent.ts),
+                    Seg::new(format!(" · {}", view::who_full(&p.data, t.parent)), Ink::Secondary).strong(),
                     Seg::new(
                         format!(" · {} ago · {}", view::age(t.last(), p.now), view::replies(t.reply_count())),
                         Ink::Muted,
                     ),
                 ]));
+                let words = Seg::new(clip(&view::first_line(&p.data, &p.cfg, t.parent), 72), Ink::Primary);
                 lines.push(Text::from(vec![
                     Seg::icon(view::author_icon(me, t.parent)),
-                    Seg::new(view::who(&p.data, t.parent), Ink::Secondary).strong(),
-                    Seg::new(format!("  {}", clip(&view::first_line(&p.data, &p.cfg, t.parent), 72)), Ink::Primary),
+                    match p.permalink(t.channel, &t.parent.ts, None) {
+                        Some(url) => words.linked(url),
+                        None => words,
+                    },
                 ]));
             }
             if others.len() > SECTION_THREADS {

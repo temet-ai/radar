@@ -10,7 +10,8 @@ use radar_core::host::{Event, HostEffect, OpenMenu, Owner, View};
 use radar_core::input::TextInput;
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Outcome, Pane, Task};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Key;
+use crate::keys::Mods;
 use radar_core::writes::{self, Mode};
 use serde_json::{Value, json};
 
@@ -167,8 +168,8 @@ fn kept_texts(p: &SlackPlugin) -> Vec<String> {
         .collect()
 }
 
-fn key(p: &mut SlackPlugin, code: KeyCode) {
-    let _ = crate::page::reply_key(p, KeyEvent::new(code, KeyModifiers::NONE));
+fn key(p: &mut SlackPlugin, code: Key) {
+    let _ = crate::page::reply_key(p, crate::keys::chord(code, Mods::NONE));
 }
 
 fn assert_no_send(effects: Option<Vec<Effect>>, recorded: &Recorded) {
@@ -353,7 +354,7 @@ fn text_paste_target_or_account_changes_make_every_old_answer_harmless() {
             let (mut p, recorded, _mode) = sample(false);
             let old = preview(&mut p);
             match mutation {
-                "typing" => key(&mut p, KeyCode::Char('x')),
+                "typing" => key(&mut p, Key::Char('x')),
                 "paste" => {
                     p.paste("newer text");
                 }
@@ -420,15 +421,15 @@ fn same_target_reopen_and_reask_seed_preserve_existing_and_kept_text() {
 fn revisions_follow_actual_multiline_edits_and_paste_but_not_cursor_moves() {
     let (mut p, _, _mode) = sample(false);
     let initial = p.replying.as_ref().unwrap().stamp;
-    key(&mut p, KeyCode::Home);
-    key(&mut p, KeyCode::Left);
+    key(&mut p, Key::Home);
+    key(&mut p, Key::Left);
     assert_eq!(p.replying.as_ref().unwrap().stamp, initial);
     p.paste("");
     assert_eq!(p.replying.as_ref().unwrap().stamp, initial);
-    key(&mut p, KeyCode::Enter);
+    key(&mut p, Key::Enter);
     let newline = p.replying.as_ref().unwrap().stamp;
     assert_ne!(newline, initial);
-    key(&mut p, KeyCode::Backspace);
+    key(&mut p, Key::Backspace);
     let joined = p.replying.as_ref().unwrap().stamp;
     assert_ne!(joined, newline);
     p.paste("new\nlines");
@@ -849,9 +850,9 @@ fn host_ctrl_r_reaches_kept_replies_from_screen_or_offline_settings_while_compos
                 .expect("Slack connection settings");
         }
         host.focus = Pane::Middle;
-        let effects = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('r'),
-            KeyModifiers::CONTROL,
+        let effects = host.update(crate::keys::ev(crate::keys::chord(
+            Key::Char('r'),
+            Mods::CONTROL,
         )));
 
         let id = host
@@ -914,7 +915,7 @@ fn recovery_edit_and_new_refuse_to_steal_another_editors_paste_target() {
             let Outcome::Handled(global) = p.key(
                 "feed",
                 Pane::Middle,
-                KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL),
+                crate::keys::chord(Key::Char('r'), Mods::CONTROL),
             ) else {
                 panic!("Ctrl-R must open recovery while another editor is active")
             };
@@ -955,9 +956,9 @@ fn host_recovery_refusal_returns_paste_to_the_original_filter_editor() {
     let mut host = crate::tests::hosted();
     host.plugins[0] = Box::new(p);
     host.view = View::Screen(0);
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('r'),
-        KeyModifiers::CONTROL,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char('r'),
+        Mods::CONTROL,
     )));
     let open = host.menu.as_mut().expect("recovery list");
     open.row = open
@@ -966,9 +967,9 @@ fn host_recovery_refusal_returns_paste_to_the_original_filter_editor() {
         .iter()
         .position(|item| item.value.starts_with("entry:"))
         .unwrap();
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Enter,
+        Mods::NONE,
     )));
     assert!(
         host.menu
@@ -978,9 +979,9 @@ fn host_recovery_refusal_returns_paste_to_the_original_filter_editor() {
             .id
             .starts_with("reply-kept-entry:")
     );
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('e'),
-        KeyModifiers::NONE,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char('e'),
+        Mods::NONE,
     )));
     assert!(host.menu.is_none());
     assert!(host.plugins[0].capturing());
@@ -1193,9 +1194,9 @@ fn offline_settings_editor_can_view_copy_and_drop_kept_text_without_becoming_a_r
             .iter()
             .position(|item| item.value == value)
             .expect("requested menu action");
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
+        host.update(crate::keys::ev(crate::keys::chord(
+            Key::Enter,
+            Mods::NONE,
         )))
     }
     fn inspect(host: &radar_core::Host) -> &SlackPlugin {
@@ -1205,9 +1206,9 @@ fn offline_settings_editor_can_view_copy_and_drop_kept_text_without_becoming_a_r
         unsafe { &*(host.plugins[0].as_ref() as *const dyn Plugin as *const SlackPlugin) }
     }
     fn open_entry(host: &mut radar_core::Host, value: &str) {
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('r'),
-            KeyModifiers::CONTROL,
+        host.update(crate::keys::ev(crate::keys::chord(
+            Key::Char('r'),
+            Mods::CONTROL,
         )));
         assert!(
             host.menu
@@ -1263,9 +1264,9 @@ fn offline_settings_editor_can_view_copy_and_drop_kept_text_without_becoming_a_r
             .iter()
             .any(|action| action.id == "slack.review.kept_replies")
     );
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Enter,
+        Mods::NONE,
     )));
     assert!(matches!(
         inspect(&host).edit.as_ref(),
@@ -1353,9 +1354,9 @@ fn configured_settings_recovery_without_an_editor_still_cannot_open_a_hidden_rep
         .iter()
         .position(|(owner, section)| *owner == Owner::Plugin(0) && section.id == "review")
         .expect("Slack review settings");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('r'),
-        KeyModifiers::CONTROL,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char('r'),
+        Mods::CONTROL,
     )));
     let list = host.menu.as_mut().expect("settings recovery list");
     assert!(list.menu.items.iter().all(|item| item.value != "new"));
@@ -1365,9 +1366,9 @@ fn configured_settings_recovery_without_an_editor_still_cannot_open_a_hidden_rep
         .iter()
         .position(|item| item.value == format!("entry:{id}"))
         .expect("retained record");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Enter,
+        Mods::NONE,
     )));
     let detail = host.menu.take().expect("settings recovery detail");
     assert!(detail.menu.items.iter().all(|item| item.value != "edit"));

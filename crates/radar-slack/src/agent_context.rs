@@ -10,7 +10,7 @@ use radar_core::agent_context::{
 };
 use radar_core::journal::SubjectKey;
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
 
 use crate::model::{Namer, Thread};
@@ -185,11 +185,11 @@ pub(crate) fn rows(p: &SlackPlugin, pane: Pane) -> Vec<Row> {
 /// start the local review of the merge request(s) the thread links. Nothing
 /// is posted from here: the host asks for the context and hands it to the
 /// agent dock.
-pub(crate) fn key_press(p: &SlackPlugin, pane: Pane, pressed: KeyEvent) -> Option<Outcome> {
-    if pressed.modifiers.difference(KeyModifiers::SHIFT) != KeyModifiers::NONE {
+pub(crate) fn key_press(p: &SlackPlugin, pane: Pane, pressed: Chord) -> Option<Outcome> {
+    if !pressed.plain() {
         return None;
     }
-    let KeyCode::Char(c) = pressed.code else { return None };
+    let Key::Char(c) = pressed.key else { return None };
     if c != SEND_KEY && c != REVIEW_KEY {
         return None;
     }
@@ -317,7 +317,7 @@ mod tests {
     }
 
     fn press(p: &mut SlackPlugin, pane: Pane, c: char) -> Option<Vec<Effect>> {
-        match key_press(p, pane, KeyEvent::new(KeyCode::Char(c), KeyModifiers::SHIFT)) {
+        match key_press(p, pane, crate::keys::chord(Key::Char(c), crate::keys::Mods::SHIFT)) {
             Some(Outcome::Handled(fx)) => Some(fx),
             Some(_) => panic!("only handled outcomes"),
             None => None,
@@ -371,8 +371,8 @@ mod tests {
         open_thread(&mut p, &ask_ts());
         assert!(press(&mut p, Pane::Nav, 'A').is_none());
         assert!(rows(&p, Pane::Nav).is_empty());
-        assert!(press(&mut p, Pane::Middle, 'a').is_none() || key_press(&p, Pane::Middle, KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE)).is_none());
-        assert!(key_press(&p, Pane::Middle, KeyEvent::new(KeyCode::Char('A'), KeyModifiers::CONTROL)).is_none());
+        assert!(press(&mut p, Pane::Middle, 'a').is_none() || key_press(&p, Pane::Middle, crate::keys::chord(Key::Char('a'), crate::keys::Mods::NONE)).is_none());
+        assert!(key_press(&p, Pane::Middle, crate::keys::chord(Key::Char('A'), crate::keys::Mods::CONTROL)).is_none());
     }
 
     #[test]

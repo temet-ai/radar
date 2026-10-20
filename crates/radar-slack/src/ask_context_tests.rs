@@ -7,7 +7,8 @@ use std::sync::{Arc, Mutex};
 use radar_core::Plugin;
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Msg, Pane, Task};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Key;
+use crate::keys::Mods;
 use radar_core::writes::{self, Mode};
 use serde_json::{Value, json};
 
@@ -137,11 +138,11 @@ fn assert_no_send(effects: Option<Vec<Effect>>, recorded: &Recorded) {
     assert!(recorded.requests().is_empty());
 }
 
-fn key(p: &mut SlackPlugin, code: KeyCode) {
+fn key(p: &mut SlackPlugin, code: Key) {
     let _ = p.key(
         "feed",
         Pane::Middle,
-        KeyEvent::new(code, KeyModifiers::NONE),
+        crate::keys::chord(code, Mods::NONE),
     );
 }
 
@@ -262,7 +263,7 @@ fn mutate(p: &mut SlackPlugin, mutation: Mutation) {
         Mutation::Add => {
             p.draft.as_mut().unwrap().add(second_item());
         }
-        Mutation::Remove => key(p, KeyCode::Char('d')),
+        Mutation::Remove => key(p, Key::Char('d')),
         Mutation::Channel => {
             let menu = menu_id(p.preview_ask_channel(), "ask-channel:");
             p.answer_ask(&menu, "try").expect("channel selection");
@@ -276,9 +277,9 @@ fn mutate(p: &mut SlackPlugin, mutation: Mutation) {
             d.changed();
         }
         Mutation::Editor | Mutation::Typed | Mutation::Pasted => {
-            key(p, KeyCode::Char('e'));
+            key(p, Key::Char('e'));
             match mutation {
-                Mutation::Typed => key(p, KeyCode::Char('x')),
+                Mutation::Typed => key(p, Key::Char('x')),
                 Mutation::Pasted => {
                     p.paste("new pasted words");
                 }
@@ -328,10 +329,10 @@ fn navigation_only_does_not_invalidate_a_send_or_pop_an_unrelated_page() {
         let menu = preview(&mut p);
         let message = send(&mut p, &menu);
         let stamp = p.draft.as_ref().unwrap().stamp;
-        key(&mut p, KeyCode::Down);
+        key(&mut p, Key::Down);
         assert_eq!(p.draft.as_ref().unwrap().stamp, stamp);
         if leave_page {
-            key(&mut p, KeyCode::Esc);
+            key(&mut p, Key::Esc);
             p.pages.push(crate::page::Page::Thread {
                 channel: demo::TEAM.into(),
                 ts: POSTED.into(),
@@ -767,13 +768,13 @@ fn escaping_the_host_send_dialog_makes_a_later_yes_inert_and_reopening_has_a_fre
         msg: Box::new(Preview),
     });
     let old = host.menu.as_ref().unwrap().menu.id.clone();
-    let escaped = host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+    let escaped = host.update(crate::keys::ev(crate::keys::chord(Key::Esc, Mods::NONE)));
     assert!(host.menu.is_none());
     assert!(!host_spawned(&escaped));
     let before = content(&shared.lock().unwrap());
-    let later_yes = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('y'),
-        KeyModifiers::NONE,
+    let later_yes = host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char('y'),
+        Mods::NONE,
     )));
     assert!(!host_spawned(&later_yes));
     assert!(recorded.requests().is_empty());
@@ -819,9 +820,9 @@ fn stamped_group_refresh_while_host_preview_is_open_refuses_unreviewed_mention_c
     assert_eq!(shared.lock().unwrap().data.groups[0].id, "S000FRESH1");
     assert_eq!(host.menu.as_ref().unwrap().menu.id, menu);
     let before = content(&shared.lock().unwrap());
-    let confirmed = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('y'),
-        KeyModifiers::NONE,
+    let confirmed = host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char('y'),
+        Mods::NONE,
     )));
     assert!(!host_spawned(&confirmed));
     assert!(recorded.requests().is_empty());
@@ -887,9 +888,9 @@ fn host_confirmation_and_delayed_success_keep_original_scope_without_leaking_pay
         })
         .unwrap();
     assert!(host.menu.as_ref().unwrap().menu.id.starts_with("ask-send:"));
-    let confirmed = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('y'),
-        KeyModifiers::NONE,
+    let confirmed = host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char('y'),
+        Mods::NONE,
     )));
     let (runtime, semantic, task) = confirmed
         .into_iter()

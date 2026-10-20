@@ -70,21 +70,31 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             super::moved(p, &before);
             if matches!(intent, v::Intent::Activate { .. }) {
                 return p.handle_key(Pane::Middle,
-                    radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)),
+                    v::Chord::new(v::Key::Enter),
                 );
             }
             Outcome::done()
         }
-        v::Intent::Fold { target, open } => {
-            let path = TreeRow::path_of(target);
-            if *open {
-                p.tree.borrow_mut().open(path);
-            } else {
-                let mut state = p.tree.borrow_mut();
-                state.close(&path);
-                if state.selected().starts_with(&path) && state.selected().len() > path.len() {
-                    state.select(path);
+        v::Intent::Fold { .. } => {
+            p.tree.borrow_mut().apply(intent);
+            Outcome::done()
+        }
+        v::Intent::OpenAll => {
+            fn groups(rows: &[TreeRow], prefix: &[String], out: &mut Vec<Vec<String>>) {
+                for row in rows {
+                    let mut path = prefix.to_vec();
+                    path.push(row.id.clone());
+                    if !row.children.is_empty() {
+                        out.push(path.clone());
+                        groups(&row.children, &path, out);
+                    }
                 }
+            }
+            let mut all = Vec::new();
+            groups(&p.rows_shown.borrow(), &[], &mut all);
+            let mut state = p.tree.borrow_mut();
+            for path in all {
+                state.open(path);
             }
             Outcome::done()
         }
@@ -97,7 +107,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
                 {
                     return Outcome::Ignored;
                 }
-                p.handle_key(pane, radar_core::view_tui::key_of(chord))
+                p.handle_key(pane, chord)
             })
         }
         v::Intent::EditSelect { anchor, extent } => match p.replying.as_mut() {
@@ -114,7 +124,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             }
             None => Outcome::Ignored,
         },
-        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } | v::Intent::OpenAll => Outcome::Ignored,
+        v::Intent::Show { .. } | v::Intent::End { .. } | v::Intent::Dock(_) | v::Intent::Copy { .. } | v::Intent::NoticeInput { .. } | v::Intent::DismissNotice { .. } => Outcome::Ignored,
     }
 }
 
@@ -444,6 +454,7 @@ fn middle_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
         }
     };
     *p.shown.borrow_mut() = shown;
+    *p.rows_shown.borrow_mut() = rows.clone();
     open_groups(p, &rows);
     let state = p.tree.borrow();
     let note = rows.is_empty().then(|| v::Note {
@@ -480,7 +491,7 @@ fn middle_pane(p: &SlackPlugin, cx: &v::ViewCx<'_>) -> PaneView {
         selected: state.selected().to_vec(),
         open: {
             // A set: sorted, so two hosts send the same view.
-            let mut open: Vec<Vec<String>> = state.opened().iter().cloned().collect();
+            let mut open: Vec<Vec<String>> = state.open.clone();
             open.sort();
             open
         },

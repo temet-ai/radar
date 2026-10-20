@@ -75,7 +75,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             }
             if matches!(intent, v::Intent::Activate { .. }) {
                 return p.handle_key(pane,
-                    radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)),
+                    v::Chord::new(v::Key::Enter),
                 );
             }
             Outcome::done()
@@ -101,7 +101,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
             draft.row = i;
             if matches!(intent, v::Intent::Activate { .. }) {
                 return p.handle_key(pane,
-                    radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)),
+                    v::Chord::new(v::Key::Enter),
                 );
             }
             Outcome::done()
@@ -116,7 +116,7 @@ pub fn intent(p: &mut SlackPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
                 {
                     return Outcome::Ignored;
                 }
-                p.handle_key(pane, radar_core::view_tui::key_of(chord))
+                p.handle_key(pane, chord)
             })
         }
         v::Intent::EditSelect { anchor, extent } => match p.replying.as_mut() {

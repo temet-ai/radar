@@ -3,7 +3,7 @@
 //! it was.
 
 use radar_core::Host;
-use radar_core::ratatui::crossterm::event::KeyCode;
+use radar_core::view::Key;
 use crate::tests::shown;
 
 use crate::SlackPlugin;
@@ -77,12 +77,12 @@ fn chatty() -> SlackPlugin {
 
 /// To the direct message in For you, whose detail pane says its words.
 fn on_dm(host: &mut Host) {
-    keys(host, &[KeyCode::Char('2')]);
+    keys(host, &[Key::Char('2')]);
     for _ in 0..6 {
         if shown(host, 160, 40).contains("direct message") && shown(host, 160, 40).contains("Carol Coder") {
             return;
         }
-        press(host, KeyCode::Down);
+        press(host, Key::Down);
     }
     panic!("the direct message was not reached: {}", shown(host, 160, 40));
 }
@@ -90,14 +90,14 @@ fn on_dm(host: &mut Host) {
 fn dm_page(p: SlackPlugin) -> Host {
     let mut host = host_of(p);
     on_dm(&mut host);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     host
 }
 
 fn thread_page(p: SlackPlugin) -> Host {
     let mut host = host_of(p);
     on_team(&mut host, 4);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     host
 }
 
@@ -126,7 +126,7 @@ fn the_preview_of_a_message_is_compact_and_in_cozy_as_it_was() {
     let mut host = host_of(sample());
     // Focus on the detail pane, so it is the pane shown where the screen is narrow.
     on_team(&mut host, 4);
-    keys(&mut host, &[KeyCode::Char('3')]);
+    keys(&mut host, &[Key::Char('3')]);
     let wide = shown(&host, 160, 40);
     for word in ["2 replies", "looking", "approved, nice one", "LINKS", "requests/263"] {
         assert!(wide.contains(word), "compact detail pane keeps {word}: {wide}");
@@ -134,7 +134,7 @@ fn the_preview_of_a_message_is_compact_and_in_cozy_as_it_was() {
     insta::assert_snapshot!("preview_compact", wide);
     let mut host = host_of(cozy(sample()));
     on_team(&mut host, 4);
-    keys(&mut host, &[KeyCode::Char('3')]);
+    keys(&mut host, &[Key::Char('3')]);
     insta::assert_snapshot!("preview_cozy_100x40", shown(&host, 100, 40));
 }
 
@@ -167,7 +167,7 @@ fn a_direct_message_is_a_conversation_of_single_lines() {
 fn a_threads_files_and_a_shared_message_in_cozy_are_as_they_were() {
     let mut host = host_of(cozy(crate::tests::with_files()));
     on_team(&mut host, 4);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = shown(&host, 160, 40);
     assert!(text.contains("> shared: Carol Coder's message") && text.contains("▣ image Screenshot.png https://"), "{text}");
     insta::assert_snapshot!("thread_files_cozy_160x40", text);
@@ -185,7 +185,7 @@ fn a_direct_message_in_cozy_is_as_it_was() {
 fn the_preview_of_a_direct_message_is_compact() {
     let mut host = host_of(chatty());
     on_dm(&mut host);
-    keys(&mut host, &[KeyCode::Char('3')]);
+    keys(&mut host, &[Key::Char('3')]);
     insta::assert_snapshot!("dm_preview_compact", shown(&host, 160, 40));
 }
 

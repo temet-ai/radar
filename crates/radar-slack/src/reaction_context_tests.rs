@@ -480,36 +480,37 @@ impl Plugin for ReactionHost {
 #[test]
 fn host_escape_reopen_and_stale_success_preserve_original_scope_without_private_history() {
     use radar_core::host::{Event, HostEffect, JournalRecord};
-    use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use radar_core::view::Key;
+use crate::keys::Mods;
     let (p, recorded, _mode) = sample(false);
     let shared = Arc::new(Mutex::new(p));
     let mut host =
         radar_core::Host::new(vec![Box::new(ReactionHost(shared.clone()))], demo::NOW).unwrap();
     host.enable_journal();
-    let key = |code| Event::Key(KeyEvent::new(code, KeyModifiers::NONE));
+    let key = |code| crate::keys::ev(crate::keys::chord(code, Mods::NONE));
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(OpenPicker),
     });
     let old_picker = host.menu.as_ref().unwrap().menu.id.clone();
-    host.update(key(KeyCode::Esc));
-    host.update(key(KeyCode::Char('y')));
+    host.update(key(Key::Esc));
+    host.update(key(Key::Char('y')));
     assert!(host.menu.is_none());
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(OpenPicker),
     });
     assert_ne!(host.menu.as_ref().unwrap().menu.id, old_picker);
-    host.update(key(KeyCode::Char('e')));
+    host.update(key(Key::Char('e')));
     let old_confirm = host.menu.as_ref().unwrap().menu.id.clone();
-    host.update(key(KeyCode::Esc));
-    host.update(key(KeyCode::Char('y')));
+    host.update(key(Key::Esc));
+    host.update(key(Key::Char('y')));
     assert!(recorded.requests().is_empty());
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(OpenPicker),
     });
-    let preview = host.update(key(KeyCode::Char('e')));
+    let preview = host.update(key(Key::Char('e')));
     assert_ne!(host.menu.as_ref().unwrap().menu.id, old_confirm);
     let scope = preview
         .iter()
@@ -528,7 +529,7 @@ fn host_escape_reopen_and_stale_success_preserve_original_scope_without_private_
             _ => None,
         })
         .unwrap();
-    let dispatched = host.update(key(KeyCode::Char('y')));
+    let dispatched = host.update(key(Key::Char('y')));
     let (action, task) = dispatched
         .into_iter()
         .find_map(|fx| match fx {

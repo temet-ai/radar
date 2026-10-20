@@ -11,7 +11,7 @@
 use radar_core::design::theme::Slot;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Msg, Outcome, key_text};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::theme::slot_info;
 use radar_core::ui::connection;
 use radar_core::ui::icon::Icon;
@@ -1769,10 +1769,10 @@ pub fn list_intent(p: &mut SlackPlugin, section: &str, intent: &v::Intent) -> Ou
         v::Intent::Select { target } | v::Intent::Context { target } => click(p, section, &row(target)),
         v::Intent::Activate { target } => {
             click(p, section, &row(target));
-            key(p, section, radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, section, v::Chord::new(v::Key::Enter))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, section, radar_core::view_tui::key_of(chord))
+            key(p, section, chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -2666,7 +2666,7 @@ pub fn on_bulk(p: &mut SlackPlugin, value: &str) -> Vec<Effect> {
 
 // --- keys --------------------------------------------------------------------------------
 
-pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
+pub fn key(p: &mut SlackPlugin, section: &str, key: Chord) -> Outcome {
     if let Some((target, mut input)) = p.edit.take() {
         return match input.key(key) {
             Edit::Cancel => Outcome::done(),
@@ -2685,13 +2685,13 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
     }
     if section == "connection"
         && p.draft.is_some()
-        && key.modifiers.is_empty()
-        && key.code == KeyCode::Char('y')
+        && key.bare()
+        && key.key == Key::Char('y')
     {
         return Outcome::Handled(p.copy_ask_draft());
     }
     let at = index(section);
-    if let Some(mv) = Move::from_key(&key, p.section_scroll.height()) {
+    if let Some(mv) = Move::from_key(key, p.section_scroll.height()) {
         // Headings are not selectable, in look and in connection.
         let ws = ws_rows(p);
         let can = |row: usize| match section {
@@ -2702,7 +2702,7 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
         p.section_rows[at] = select(row_count(p, section), p.section_rows[at], mv, can);
         return Outcome::done();
     }
-    if key.code == KeyCode::Enter {
+    if key.key == Key::Enter {
         // A found token's question: ⏎ uses it. The check row: ⏎ asks.
         // (Every other row's menu has one thing, or starts with change it,
         // so ⏎ does that straight away, below.)
@@ -2730,27 +2730,27 @@ pub fn key(p: &mut SlackPlugin, section: &str, key: KeyEvent) -> Outcome {
         }
         return Outcome::Handled(vec![Effect::Menu(menu)]);
     }
-    if let KeyCode::Char(c) = key.code
+    if let Key::Char(c) = key.key
         && let Some(menu) = row_menu(p, section)
         && let Some(item) = menu.items.iter().find(|i| i.key == Some(c))
     {
         let value = item.value.clone();
         return Outcome::Handled(on_menu(p, &menu.id, &value));
     }
-    match (section, key.code) {
+    match (section, key.key) {
         // radar's app manifest: `m` copies it, `o` opens Slack's new-app
         // page with it filled in.
-        ("connection", KeyCode::Char('m')) => Outcome::Handled(vec![
+        ("connection", Key::Char('m')) => Outcome::Handled(vec![
             Effect::Copy(crate::manifest::text()),
             Effect::Notify(format!("copied radar's Slack app manifest: {} user scopes", crate::manifest::scopes().len())),
         ]),
-        ("connection", KeyCode::Char('o')) => Outcome::Handled(vec![Effect::Open(crate::manifest::new_app_url())]),
-        ("channels", KeyCode::Char('a')) => {
+        ("connection", Key::Char('o')) => Outcome::Handled(vec![Effect::Open(crate::manifest::new_app_url())]),
+        ("channels", Key::Char('a')) => {
             p.section_rows[1] = 0;
             p.edit = Some((Target::ChannelAdd, TextInput::new("")));
             Outcome::done()
         }
-        ("alerts", KeyCode::Char('a')) => {
+        ("alerts", Key::Char('a')) => {
             p.section_rows[3] = 0;
             p.edit = Some((Target::RuleAdd, TextInput::new("")));
             Outcome::done()
@@ -2979,7 +2979,7 @@ fn row_keys(p: &SlackPlugin, section: &str) -> Vec<(String, Binding)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
+    use crate::keys::Mods;
 
     fn identity(team: &str, user: &str, tz_offset: Option<i64>) -> crate::client::Me {
         crate::client::Me {
@@ -3417,14 +3417,14 @@ mod tests {
         let mut p = SlackPlugin::new();
         let at = index("look");
         for code in [
-            KeyCode::Home,
-            KeyCode::End,
-            KeyCode::PageUp,
-            KeyCode::PageDown,
-            KeyCode::Down,
-            KeyCode::Up,
+            Key::Home,
+            Key::End,
+            Key::PageUp,
+            Key::PageDown,
+            Key::Down,
+            Key::Up,
         ] {
-            key(&mut p, "look", KeyEvent::new(code, KeyModifiers::NONE));
+            key(&mut p, "look", crate::keys::chord(code, Mods::NONE));
             assert!(
                 matches!(
                     look_rows()[p.section_rows[at]],
@@ -3436,7 +3436,7 @@ mod tests {
         key(
             &mut p,
             "look",
-            KeyEvent::new(KeyCode::Home, KeyModifiers::NONE),
+            crate::keys::chord(Key::Home, Mods::NONE),
         );
         assert_eq!(
             p.section_rows[at], 1,

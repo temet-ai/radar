@@ -4,7 +4,8 @@ use super::*;
 use crate::screen::Item;
 use radar_core::journal::{ActionEvent, Journal, Query};
 use radar_core::plugin::{Outcome as KeyOutcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Key;
+use crate::keys::Mods;
 use radar_core::{Showing, Subject};
 
 const OPEN: &str = "slack.page.open";
@@ -79,11 +80,11 @@ fn point(p: &mut SlackPlugin, target: &str) -> KeyOutcome {
     )
 }
 
-fn key(p: &mut SlackPlugin, code: KeyCode) -> Vec<Effect> {
+fn key(p: &mut SlackPlugin, code: Key) -> Vec<Effect> {
     handled(p.key(
         crate::SCREEN.id,
         Pane::Middle,
-        KeyEvent::new(code, KeyModifiers::NONE),
+        crate::keys::chord(code, Mods::NONE),
     ))
 }
 
@@ -255,7 +256,7 @@ fn real_enter_paths_capture_the_thread_root_and_preserve_selected_message_marks(
         expected.read_to(demo::TEAM, ROOT, ROOT);
         expected.read_to(demo::TEAM, ROOT, marked);
         select(&mut p, item);
-        let effects = key(&mut p, KeyCode::Enter);
+        let effects = key(&mut p, Key::Enter);
         scope(opened(&effects), TEAM, demo::TEAM, ROOT);
         assert_eq!(p.data, expected);
         assert_eq!(
@@ -322,27 +323,27 @@ fn accepted_legacy_show_uses_consistent_fields_and_draft_is_not_a_thread_open() 
 fn selection_click_fold_tab_scroll_refresh_and_idle_tick_are_not_page_pushes() {
     let (mut p, rec) = sample(vec![]);
     select(&mut p, Item::Heading("group".into()));
-    no_open(&key(&mut p, KeyCode::Enter));
+    no_open(&key(&mut p, Key::Enter));
     assert!(p.pages.is_empty());
     no_open(&handled(point(&mut p, "rail:0")));
-    no_open(&key(&mut p, KeyCode::Down));
-    no_open(&key(&mut p, KeyCode::Char(' ')));
+    no_open(&key(&mut p, Key::Down));
+    no_open(&key(&mut p, Key::Char(' ')));
     assert!(p.pages.is_empty());
     page::open_thread(&mut p, demo::TEAM, ROOT);
     for code in [
-        KeyCode::Enter,
-        KeyCode::Char(']'),
-        KeyCode::Char('['),
-        KeyCode::Down,
-        KeyCode::PageDown,
-        KeyCode::Char('r'),
+        Key::Enter,
+        Key::Char(']'),
+        Key::Char('['),
+        Key::Down,
+        Key::PageDown,
+        Key::Char('r'),
     ] {
         no_open(&key(&mut p, code));
         assert_eq!(p.pages.len(), 1);
     }
     no_open(&handled(point(&mut p, "tab:1")));
     no_open(&p.tick(demo::NOW));
-    no_open(&key(&mut p, KeyCode::Esc));
+    no_open(&key(&mut p, Key::Esc));
     assert!(p.pages.is_empty());
     assert!(rec.requests().is_empty());
 }
@@ -366,8 +367,8 @@ fn slack(host: &mut Host) -> &mut SlackPlugin {
     unsafe { &mut *(host.plugins[0].as_mut() as *mut dyn Plugin as *mut SlackPlugin) }
 }
 
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::keys::ev(crate::keys::chord(code, Mods::NONE)))
 }
 
 fn begin(records: &[JournalRecord], kind: &str) -> (ActionId, ActionDescriptor, Option<ActionId>) {
@@ -466,7 +467,7 @@ fn host_cached_enter_records_distinct_successful_opens_under_input_and_persists_
     let mut all = vec![];
     let mut ids = vec![];
     for _ in 0..2 {
-        let effects = press(&mut host, KeyCode::Enter);
+        let effects = press(&mut host, Key::Enter);
         assert!(!effects.iter().any(|effect| match effect {
             HostEffect::Spawn { .. } => true,
             HostEffect::Tracked { effect, .. } => matches!(&**effect, HostEffect::Spawn { .. }),
@@ -481,7 +482,7 @@ fn host_cached_enter_records_distinct_successful_opens_under_input_and_persists_
         assert_eq!(host.focus, Pane::Middle);
         ids.push(id);
         all.extend(got);
-        all.extend(records(&press(&mut host, KeyCode::Esc)));
+        all.extend(records(&press(&mut host, Key::Esc)));
     }
     assert_ne!(ids[0], ids[1]);
     assert!(slack(&mut host).pages.is_empty());
@@ -515,7 +516,7 @@ fn failed_partial_and_interrupted_read_siblings_cannot_rewrite_successful_opens(
             },
         );
         let mut host = real_host(p, false);
-        let start = press(&mut host, KeyCode::Enter);
+        let start = press(&mut host, Key::Enter);
         let mut all = records(&start);
         let (open, _, open_parent) = begin(&all, OPEN);
         let (read, _, read_parent) = begin(&all, PREFIX);
@@ -524,8 +525,8 @@ fn failed_partial_and_interrupted_read_siblings_cannot_rewrite_successful_opens(
         assert_eq!(terminals(&all, &open), [Outcome::Succeeded]);
         let (runtime, semantic, task) = tracked(start);
         assert_eq!(semantic, read);
-        all.extend(records(&press(&mut host, KeyCode::Esc)));
-        let again = press(&mut host, KeyCode::Enter);
+        all.extend(records(&press(&mut host, Key::Esc)));
+        let again = press(&mut host, Key::Enter);
         let got = records(&again);
         let (reopen, _, _) = begin(&got, OPEN);
         assert_ne!(reopen, open);

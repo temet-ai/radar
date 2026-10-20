@@ -6,7 +6,7 @@ use crate::client::{ListEvidence, MessagesRead, Recorded};
 use crate::demo::{self, BOB, NOW, TEAM};
 use radar_core::host::{Event, HostEffect};
 use radar_core::view::{Intent, Target};
-use radar_core::ratatui::crossterm::event::KeyModifiers;
+use crate::keys::Mods;
 use crate::tests::shown;
 use radar_core::{Host, Plugin};
 use std::sync::{Arc, Mutex};
@@ -48,12 +48,12 @@ fn fixture(words: &str, extra: Option<Box<dyn Plugin>>) -> (Host, Arc<Recorded>)
     (host, recorded)
 }
 
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::keys::ev(crate::keys::chord(code, Mods::NONE)))
 }
 
 fn popup(host: &mut Host) {
-    press(host, KeyCode::Char('x'));
+    press(host, Key::Char('x'));
     assert!(host.menu.is_some());
     shown(host, 160, 40);
 }
@@ -80,9 +80,9 @@ fn refresh(host: &mut Host, words: &str) {
 
 fn choose(host: &mut Host, how: &str) -> Vec<HostEffect> {
     match how {
-        "copy" => press(host, KeyCode::Char('y')),
-        "open" => press(host, KeyCode::Char('o')),
-        "enter" => press(host, KeyCode::Enter),
+        "copy" => press(host, Key::Char('y')),
+        "open" => press(host, Key::Char('o')),
+        "enter" => press(host, Key::Enter),
         "click" => {
             let i = host
                 .menu
@@ -120,7 +120,7 @@ fn refused(host: &mut Host, effects: &[HostEffect]) {
     assert!(!message.contains("private-"));
     let previous_view = host.view;
     assert!(
-        press(host, KeyCode::Char('~')).is_empty(),
+        press(host, Key::Char('~')).is_empty(),
         "reading session notices must not dispatch an action"
     );
     for (width, height) in [(80, 24), (160, 40)] {
@@ -131,7 +131,7 @@ fn refused(host: &mut Host, effects: &[HostEffect]) {
         assert_eq!(history.selected, 0);
         assert_eq!(history.detail.as_ref().unwrap().text, message);
     }
-    assert!(press(host, KeyCode::Esc).is_empty());
+    assert!(press(host, Key::Esc).is_empty());
     assert_eq!(host.view, previous_view);
     assert!(host.chrome_view(80, 24).notice_history.is_none());
     assert!(host.menu.is_none());
@@ -331,8 +331,8 @@ fn repository_link_keeps_unsupported_subroutes_queries_and_same_prefix_siblings(
     assert!(links[1..].iter().all(|s| s.is(radar_core::compose::LINK)));
     drop(links);
     for url in &urls[1..] {
-        press(&mut host, KeyCode::Down);
-        assert_eq!(targets(&press(&mut host, KeyCode::Char('o'))), [*url]);
+        press(&mut host, Key::Down);
+        assert_eq!(targets(&press(&mut host, Key::Char('o'))), [*url]);
     }
     assert!(recorded.requests().is_empty());
 }
@@ -402,7 +402,7 @@ fn private_link_context_is_absent_from_host_records_and_persisted_history() {
     let target = Arc::new(Mutex::new(original));
     let (mut host, recorded) = fixture("TARGET", Some(Box::new(Recogniser(target.clone()))));
     host.enable_journal();
-    let mut effects = press(&mut host, KeyCode::Char('x'));
+    let mut effects = press(&mut host, Key::Char('x'));
     shown(&host, 160, 40);
     target.lock().unwrap().url = Some(B.into());
     shown(&host, 160, 40);
@@ -481,24 +481,24 @@ fn direct_keys_and_unrelated_popup_actions_keep_working_after_link_changes() {
     let (mut host, recorded) = fixture(&format!("<{A}|first>"), None);
     refresh(&mut host, &format!("<{B}|second>"));
     shown(&host, 160, 40);
-    assert_eq!(targets(&press(&mut host, KeyCode::Char('y'))), [B]);
+    assert_eq!(targets(&press(&mut host, Key::Char('y'))), [B]);
     popup(&mut host);
     refresh(&mut host, &format!("<{A}|first>"));
     // The reaction row is not the selected link's action.
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('e'));
     assert!(host.menu.as_ref().unwrap().menu.id.starts_with("react:"));
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('e'));
     let confirm = host.menu.as_ref().unwrap().menu.id.clone();
     refresh(&mut host, &format!("<{B}|second>"));
     assert_eq!(host.menu.as_ref().unwrap().menu.id, confirm);
-    press(&mut host, KeyCode::Char('n'));
+    press(&mut host, Key::Char('n'));
     assert!(host.menu.is_none());
     shown(&host, 160, 40);
     popup(&mut host);
     refresh(&mut host, &format!("<{A}|first>"));
-    press(&mut host, KeyCode::Char('c'));
+    press(&mut host, Key::Char('c'));
     assert!(slack(&host).replying.is_some());
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     assert!(host.menu.is_none());
     assert_eq!(slack(&host).replying.as_ref().unwrap().composer.text(), "x");
     assert!(recorded.requests().is_empty());
@@ -512,7 +512,7 @@ fn changing_a_link_does_not_disable_the_popup_refresh_or_back_rows() {
         refresh(&mut host, &format!("<{B}|second>"));
         match action {
             "refresh" => {
-                let effects = press(&mut host, KeyCode::Char('r'));
+                let effects = press(&mut host, Key::Char('r'));
                 assert!(
                     effects
                         .iter()
@@ -528,7 +528,7 @@ fn changing_a_link_does_not_disable_the_popup_refresh_or_back_rows() {
                     .iter()
                     .position(|i| i.label.starts_with("back to "))
                     .unwrap();
-                press(&mut host, KeyCode::Enter);
+                press(&mut host, Key::Enter);
                 assert!(slack(&host).pages.is_empty());
                 assert!(host.menu.is_none());
             }

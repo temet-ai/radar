@@ -5,7 +5,7 @@
 
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Msg, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
 use radar_core::{Subject, log, widgets};
 
@@ -367,7 +367,7 @@ pub(crate) fn start_reply(p: &mut SlackPlugin, channel: &str, thread: &str) -> V
 }
 
 /// Keys while a reply is written: the kit's composer's.
-pub(crate) fn reply_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn reply_key(p: &mut SlackPlugin, key: Chord) -> Outcome {
     let Some(r) = p.replying.as_mut() else {
         return Outcome::Ignored;
     };
@@ -421,7 +421,7 @@ pub(crate) fn on_menu(p: &mut SlackPlugin, menu: &str, value: &str) -> Option<Ve
 
 // --- keys ---------------------------------------------------------------------------
 
-fn draft_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
+fn draft_key(p: &mut SlackPlugin, key: Chord) -> Outcome {
     let Some(d) = p.draft.as_mut() else {
         return Outcome::Ignored;
     };
@@ -448,23 +448,23 @@ fn draft_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
         }
         return Outcome::done();
     }
-    match key.code {
-        KeyCode::Char('j') | KeyCode::Down => {
+    match key.key {
+        Key::Char('j') | Key::Down => {
             d.row = widgets::step(d.row, d.items.len(), true);
             Outcome::done()
         }
-        KeyCode::Char('k') | KeyCode::Up => {
+        Key::Char('k') | Key::Up => {
             d.row = widgets::step(d.row, d.items.len(), false);
             Outcome::done()
         }
-        KeyCode::Char('e') | KeyCode::Enter => {
+        Key::Char('e') | Key::Enter => {
             if let Some(it) = d.items.get(d.row) {
                 d.edit = Some(TextInput::new(&it.words));
                 d.changed();
             }
             Outcome::done()
         }
-        KeyCode::Char('d') if !d.items.is_empty() => {
+        Key::Char('d') if !d.items.is_empty() => {
             let gone = d.items.remove(d.row);
             d.row = d.row.min(d.items.len().saturating_sub(1));
             d.changed();
@@ -473,19 +473,19 @@ fn draft_key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
                 gone.label
             ))])
         }
-        KeyCode::Char('c') => Outcome::Handled(p.preview_ask_channel()),
-        KeyCode::Char('p') => Outcome::Handled(p.preview_ask()),
-        KeyCode::Char('y') => Outcome::Handled(p.copy_ask_draft()),
-        KeyCode::Char('n') => Outcome::Handled(p.preview_ask_drop()),
+        Key::Char('c') => Outcome::Handled(p.preview_ask_channel()),
+        Key::Char('p') => Outcome::Handled(p.preview_ask()),
+        Key::Char('y') => Outcome::Handled(p.copy_ask_draft()),
+        Key::Char('n') => Outcome::Handled(p.preview_ask_drop()),
         // Not handled when there is nothing more to see: the host says so.
-        KeyCode::PageDown | KeyCode::PageUp => {
-            if p.page_scroll.page(key.code == KeyCode::PageDown) {
+        Key::PageDown | Key::PageUp => {
+            if p.page_scroll.page(key.key == Key::PageDown) {
                 Outcome::done()
             } else {
                 Outcome::Ignored
             }
         }
-        KeyCode::Esc => {
+        Key::Esc => {
             p.pages.pop();
             Outcome::done()
         }
@@ -518,7 +518,7 @@ pub(crate) fn show_tab(p: &mut SlackPlugin, i: usize) -> Vec<Effect> {
     vec![Effect::Focus(Pane::Middle)]
 }
 
-pub fn key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
+pub fn key(p: &mut SlackPlugin, key: Chord) -> Outcome {
     let Some(page) = p.pages.last().cloned() else {
         return Outcome::Ignored;
     };
@@ -542,52 +542,52 @@ pub fn key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
             *r = row;
         }
     };
-    match key.code {
-        KeyCode::Esc => {
+    match key.key {
+        Key::Esc => {
             p.pages.pop();
             invalidate_links(p);
             p.page_scroll.top();
             return Outcome::done();
         }
-        KeyCode::Char(']') => return Outcome::Handled(show_tab(p, (tab + 1) % THREAD_TABS.len())),
-        KeyCode::Char('[') => {
+        Key::Char(']') => return Outcome::Handled(show_tab(p, (tab + 1) % THREAD_TABS.len())),
+        Key::Char('[') => {
             return Outcome::Handled(show_tab(
                 p,
                 (tab + THREAD_TABS.len() - 1) % THREAD_TABS.len(),
             ));
         }
-        KeyCode::Char('o') | KeyCode::Char('y') if tab == 1 => {
+        Key::Char('o') | Key::Char('y') if tab == 1 => {
             let s = link_at(p, row);
             let Some(url) = s.and_then(|s| s.url) else {
                 return Outcome::Handled(vec![Effect::Notify("no link selected here".into())]);
             };
-            return Outcome::Handled(if key.code == KeyCode::Char('o') {
+            return Outcome::Handled(if key.key == Key::Char('o') {
                 vec![Effect::Open(url)]
             } else {
                 vec![Effect::Copy(url), Effect::Notify("link copied".into())]
             });
         }
-        KeyCode::Char('o') => {
+        Key::Char('o') => {
             return Outcome::Handled(match p.permalink(&channel, &ts, None) {
                 Some(web) => p.open_in_slack(&channel, &ts, None, web),
                 None => vec![],
             });
         }
-        KeyCode::Char('y') => {
+        Key::Char('y') => {
             return Outcome::Handled(match p.permalink(&channel, &ts, None) {
                 Some(url) => vec![Effect::Copy(url), Effect::Notify("link copied".into())],
                 None => vec![],
             });
         }
-        KeyCode::Char('m') if p.cfg.by_id(&channel).is_some() => {
+        Key::Char('m') if p.cfg.by_id(&channel).is_some() => {
             let last = page_thread(p, &channel, &ts).map(|(th, _)| th.last().to_string());
             return Outcome::Handled(match last {
                 Some(l) => p.catch_up(&channel, &l),
                 None => vec![],
             });
         }
-        KeyCode::Char('c') => return Outcome::Handled(start_reply(p, &channel, &ts)),
-        KeyCode::Char('e') => return Outcome::Handled(react_menu(p, &channel, &ts)),
+        Key::Char('c') => return Outcome::Handled(start_reply(p, &channel, &ts)),
+        Key::Char('e') => return Outcome::Handled(react_menu(p, &channel, &ts)),
         _ => {}
     }
     if tab == 0 {
@@ -596,12 +596,12 @@ pub fn key(p: &mut SlackPlugin, key: KeyEvent) -> Outcome {
         }
         return Outcome::Ignored;
     }
-    match key.code {
-        KeyCode::Enter => match link_at(p, row) {
+    match key.key {
+        Key::Enter => match link_at(p, row) {
             Some(s) => Outcome::Handled(vec![Effect::Show(s)]),
             None => Outcome::Handled(vec![Effect::Notify("no link selected here".into())]),
         },
-        _ => match widgets::vertical(&key) {
+        _ => match key.vertical() {
             // ↑ at the top is not the list's: the host takes it up.
             Some(down) if down || row > 0 => {
                 set(p, tab, widgets::step(row, n_links, down));
@@ -786,7 +786,7 @@ pub(crate) fn ask_for(p: &mut SlackPlugin, item: ask::Item) -> Vec<Effect> {
 #[cfg(test)]
 mod ask_revision_tests {
     use super::*;
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
+    use crate::keys::Mods;
 
     fn draft() -> SlackPlugin {
         let mut p = crate::demo::sample();
@@ -801,8 +801,8 @@ mod ask_revision_tests {
         p
     }
 
-    fn press(p: &mut SlackPlugin, code: KeyCode) {
-        draft_key(p, KeyEvent::new(code, KeyModifiers::NONE));
+    fn press(p: &mut SlackPlugin, code: Key) {
+        draft_key(p, crate::keys::chord(code, Mods::NONE));
     }
 
     fn stamp(p: &SlackPlugin) -> crate::ask_context::DraftStamp {
@@ -811,7 +811,7 @@ mod ask_revision_tests {
 
     fn choose_channel(p: &mut SlackPlugin, channel: &str) {
         let Outcome::Handled(fx) =
-            draft_key(p, KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE))
+            draft_key(p, crate::keys::chord(Key::Char('c'), Mods::NONE))
         else {
             panic!("channel choice not handled")
         };
@@ -838,7 +838,7 @@ mod ask_revision_tests {
         assert!(matches!(refused.as_slice(), [Effect::Notify(_)]));
         assert_eq!(p.draft.as_ref().unwrap().items, before);
         assert!(keys(&p).iter().any(|binding| binding.keys == "y"));
-        let copy = KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE);
+        let copy = crate::keys::chord(Key::Char('y'), Mods::NONE);
         for result in [
             draft_key(&mut p, copy),
             crate::settings::key(&mut p, "connection", copy),
@@ -860,31 +860,31 @@ mod ask_revision_tests {
     fn editing_revises_the_draft_but_cursor_and_unchanged_input_do_not() {
         let mut p = draft();
         let initial = stamp(&p);
-        press(&mut p, KeyCode::Char('e'));
+        press(&mut p, Key::Char('e'));
         let opened = stamp(&p);
         assert_ne!(opened, initial);
 
-        press(&mut p, KeyCode::Home);
-        press(&mut p, KeyCode::Backspace);
+        press(&mut p, Key::Home);
+        press(&mut p, Key::Backspace);
         assert_eq!(stamp(&p), opened);
-        press(&mut p, KeyCode::Char('!'));
+        press(&mut p, Key::Char('!'));
         let typed = stamp(&p);
         assert_ne!(typed, opened);
         assert_eq!(p.draft.as_ref().unwrap().items[0].words, "first words");
 
-        press(&mut p, KeyCode::Enter);
+        press(&mut p, Key::Enter);
         let committed = stamp(&p);
         assert_ne!(committed, typed);
         assert_eq!(p.draft.as_ref().unwrap().items[0].words, "!first words");
 
-        press(&mut p, KeyCode::Char('e'));
+        press(&mut p, Key::Char('e'));
         let reopened = stamp(&p);
         assert_ne!(reopened, committed);
-        press(&mut p, KeyCode::Enter);
+        press(&mut p, Key::Enter);
         assert_eq!(stamp(&p), reopened, "committing unchanged words is a no-op");
-        press(&mut p, KeyCode::Char('e'));
+        press(&mut p, Key::Char('e'));
         let cancelling = stamp(&p);
-        press(&mut p, KeyCode::Esc);
+        press(&mut p, Key::Esc);
         assert_eq!(
             stamp(&p),
             cancelling,
@@ -897,8 +897,8 @@ mod ask_revision_tests {
     fn channel_changes_and_removal_revise_but_selection_does_not() {
         let mut p = draft();
         let initial = stamp(&p);
-        press(&mut p, KeyCode::Down);
-        press(&mut p, KeyCode::Up);
+        press(&mut p, Key::Down);
+        press(&mut p, Key::Up);
         radar_core::Plugin::intent(
             &mut p,
             crate::SCREEN.id,
@@ -915,11 +915,11 @@ mod ask_revision_tests {
         assert_ne!(moved, initial);
         assert_eq!(p.draft.as_ref().unwrap().channel, "try");
 
-        press(&mut p, KeyCode::Char('d'));
+        press(&mut p, Key::Char('d'));
         let removed = stamp(&p);
         assert_ne!(removed, moved);
         assert!(p.draft.as_ref().unwrap().items.is_empty());
-        press(&mut p, KeyCode::Char('d'));
+        press(&mut p, Key::Char('d'));
         assert_eq!(stamp(&p), removed);
     }
 }
@@ -928,7 +928,7 @@ mod ask_revision_tests {
 mod journal_tests {
     use super::*;
     use radar_core::journal::Outcome as JournalOutcome;
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
+    use crate::keys::Mods;
 
     #[test]
     fn journal_thread_requires_its_known_workspace_and_discards_message_fields() {
@@ -964,7 +964,7 @@ mod journal_tests {
             .paste("private reply and token");
         let fx = reply_key(
             &mut p,
-            KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL),
+            crate::keys::chord(Key::Char('s'), Mods::CONTROL),
         );
         let Outcome::Handled(fx) = fx else {
             panic!("review not handled")

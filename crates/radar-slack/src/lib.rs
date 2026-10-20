@@ -51,8 +51,8 @@ use radar_core::journal::{ActionDescriptor, Origin, Outcome as JournalOutcome, S
 use radar_core::ui::composer::Composer;
 use radar_core::writes::{self, Service};
 use radar_core::plugin::{Binding, CliTask, Effect, MenuItem, Msg, Outcome, Pane, ScreenSpec, SectionSpec, SlotValue};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::ratatui::style::Color;
+use radar_core::design::theme::Color;
+use radar_core::view::{Chord, Key};
 use radar_core::ui::Scroll;
 use radar_core::{Plugin, log, time};
 use serde_json::Value;
@@ -330,7 +330,9 @@ pub struct SlackPlugin {
     pub(crate) now: i64,
     // the screen
     pub(crate) nav_at: usize,
-    pub(crate) tree: RefCell<radar_core::ui::tree::TreeState<String>>,
+    pub(crate) tree: RefCell<radar_core::view::TreeNav>,
+    /// The rows of the last frame's tree, for the keys that move in it.
+    pub(crate) rows_shown: RefCell<Vec<radar_core::view::TreeRow>>,
     pub(crate) opened_once: RefCell<HashSet<Vec<String>>>,
     /// What each row of the last frame's tree is, by its path.
     pub(crate) shown: RefCell<BTreeMap<Vec<String>, screen::Item>>,
@@ -845,12 +847,12 @@ impl SlackPlugin {
         b
     }
 
-    fn shared_key(&mut self, key: KeyEvent) -> Option<Outcome> {
-        if key.modifiers != KeyModifiers::NONE || self.session_credential().is_err() {
+    fn shared_key(&mut self, key: Chord) -> Option<Outcome> {
+        if !key.bare() || self.session_credential().is_err() {
             return None;
         }
-        match key.code {
-            KeyCode::Char(FETCH_KEY) => Some(Outcome::Handled(match self.pages.last().cloned() {
+        match key.key {
+            Key::Char(FETCH_KEY) => Some(Outcome::Handled(match self.pages.last().cloned() {
                 // On a thread page `r` reads that thread again.
                 Some(page::Page::Thread { channel, ts, .. }) => page::fetch_thread(self, &channel, &ts),
                 _ => self.fetch_now(),
@@ -981,8 +983,8 @@ impl SlackPlugin {
         spec.key.map(|chord| v::Intent::Key { chord })
     }
 
-    fn handle_key(&mut self, pane: Pane, key: KeyEvent) -> Outcome {
-        if key.modifiers == KeyModifiers::CONTROL && key.code == KeyCode::Char('r') {
+    fn handle_key(&mut self, pane: Pane, key: Chord) -> Outcome {
+        if key == Chord::ctrl('r') {
             return Outcome::Handled(self.kept_replies());
         }
         if self.replying.is_some() {
@@ -1016,7 +1018,7 @@ impl SlackPlugin {
         out
     }
     #[cfg(test)]
-    fn key(&mut self, _: &str, pane: Pane, key: KeyEvent) -> Outcome {
+    fn key(&mut self, _: &str, pane: Pane, key: Chord) -> Outcome {
         self.handle_key(pane, key)
     }
 }
@@ -1556,3 +1558,41 @@ pub mod test_support;
 mod cli_output_tests;
 #[cfg(test)]
 mod live_tests;
+
+/// Keys for tests: radar's own chord, built the way a test reads it.
+#[cfg(test)]
+pub(crate) mod keys {
+    pub use radar_core::view::{Chord, Key};
+
+    #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+    pub struct Mods(u8);
+
+    impl Mods {
+        pub const NONE: Mods = Mods(0);
+        pub const SHIFT: Mods = Mods(1);
+        pub const CONTROL: Mods = Mods(2);
+        pub const ALT: Mods = Mods(4);
+    }
+
+    impl std::ops::BitOr for Mods {
+        type Output = Mods;
+        fn bitor(self, o: Mods) -> Mods {
+            Mods(self.0 | o.0)
+        }
+    }
+
+    /// A key with modifiers as a chord: shift is kept only on named keys
+    /// (a shifted character is its own character).
+    pub fn chord(code: Key, m: Mods) -> Chord {
+        Chord {
+            key: code,
+            ctrl: m.0 & Mods::CONTROL.0 != 0,
+            alt: m.0 & Mods::ALT.0 != 0,
+            shift: !matches!(code, Key::Char(_) | Key::BackTab) && m.0 & Mods::SHIFT.0 != 0,
+        }
+    }
+
+    pub fn ev(chord: Chord) -> radar_core::host::Event {
+        radar_core::host::Event::Intent(radar_core::view::Intent::Key { chord })
+    }
+}

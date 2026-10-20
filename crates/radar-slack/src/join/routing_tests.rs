@@ -6,7 +6,8 @@ use crate::{Via, demo};
 use radar_core::host::{Event, HostEffect, JournalRecord};
 use radar_core::journal::{ActionId, Journal, Query};
 use radar_core::plugin::Msg;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::Key;
+use crate::keys::Mods;
 use radar_core::{Host, Plugin};
 use std::sync::Arc;
 
@@ -523,9 +524,9 @@ fn foreign_link_stays_visible_on_links_tab_and_internal_threads_do_not_group() {
     held.replies.clear();
     let mut host = host(p);
     send(&mut host, local());
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char(']'),
-        KeyModifiers::NONE,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char(']'),
+        Mods::NONE,
     )));
     let text = crate::tests::shown(&host, 160, 40);
     let links = slack(&host).page_links.borrow();
@@ -555,9 +556,9 @@ fn whole_foreign_link_with_embedded_local_reference_is_visible_and_stays_externa
     held.replies.clear();
     let mut host = host(p);
     send(&mut host, local());
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char(']'),
-        KeyModifiers::NONE,
+    host.update(crate::keys::ev(crate::keys::chord(
+        Key::Char(']'),
+        Mods::NONE,
     )));
     crate::tests::shown(&host, 160, 40);
     let link = {

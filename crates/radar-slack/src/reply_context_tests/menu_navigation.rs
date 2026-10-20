@@ -79,12 +79,12 @@ fn update(host: &mut Host, event: Event) -> Vec<HostEffect> {
     effects
 }
 
-fn press(host: &mut Host, code: KeyCode, modifiers: KeyModifiers) -> Vec<HostEffect> {
-    update(host, Event::Key(KeyEvent::new(code, modifiers)))
+fn press(host: &mut Host, code: Key, modifiers: crate::keys::Mods) -> Vec<HostEffect> {
+    update(host, crate::keys::ev(crate::keys::chord(code, modifiers)))
 }
 
 fn open(host: &mut Host) -> String {
-    press(host, KeyCode::Char('r'), KeyModifiers::CONTROL);
+    press(host, Key::Char('r'), Mods::CONTROL);
     let menu = &host.menu.as_ref().expect("Ctrl-R recovery menu").menu;
     assert!(menu.id.starts_with("reply-kept:"));
     menu.id.clone()
@@ -99,22 +99,22 @@ fn host_recovery_navigation_and_escape_preserve_draft_and_retained_rows() {
         let rows = host.menu.as_ref().unwrap().menu.items.clone();
         assert_eq!(rows.len(), 3);
         for (code, row) in [
-            (KeyCode::Char('j'), 1),
-            (KeyCode::Char('j'), 2),
-            (KeyCode::Char('k'), 1),
-            (KeyCode::Up, 0),
-            (KeyCode::Down, 1),
-            (KeyCode::Char('k'), 0),
+            (Key::Char('j'), 1),
+            (Key::Char('j'), 2),
+            (Key::Char('k'), 1),
+            (Key::Up, 0),
+            (Key::Down, 1),
+            (Key::Char('k'), 0),
         ] {
             shown(&host, 80, 24);
-            press(&mut host, code, KeyModifiers::NONE);
+            press(&mut host, code, Mods::NONE);
             let menu = host.menu.as_ref().expect("navigation keeps the menu open");
             assert_eq!(menu.menu.id, id, "{settings}/{configured}/{code:?}");
             assert_eq!(menu.menu.items, rows);
             assert_eq!(menu.row, row, "{code:?}");
             assert_eq!(state(&host), before);
         }
-        press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
+        press(&mut host, Key::Esc, Mods::NONE);
         assert!(host.menu.is_none());
         assert_eq!(state(&host), before);
         assert_ne!(
@@ -140,7 +140,7 @@ fn host_recovery_keep_shortcut_is_explicit_and_single_use_without_credentials() 
         );
         assert_eq!(keep.label, "stay with current draft");
         shown(&host, 80, 24);
-        press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
+        press(&mut host, Key::Char('s'), Mods::NONE);
         assert!(!slack(&host).capturing());
         assert_eq!(kept_texts(slack(&host)), [TEXT, ACTIVE]);
         assert_eq!(
@@ -159,9 +159,9 @@ fn host_recovery_keep_shortcut_is_explicit_and_single_use_without_credentials() 
         );
         let after = state(&host);
         shown(&host, 80, 24);
-        press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
+        press(&mut host, Key::Char('s'), Mods::NONE);
         assert_eq!(state(&host), after, "repeated shortcut cannot keep twice");
-        press(&mut host, KeyCode::Esc, KeyModifiers::NONE);
+        press(&mut host, Key::Esc, Mods::NONE);
         open(&mut host);
         assert_eq!(state(&host), after);
         assert!(recorded.requests().is_empty());
@@ -175,24 +175,24 @@ fn host_recovery_modified_keys_do_not_borrow_keep_copy_or_navigation() {
     let id = open(&mut host);
     shown(&host, 160, 40);
     for (code, modifiers) in [
-        (KeyCode::Char('s'), KeyModifiers::CONTROL),
-        (KeyCode::Char('s'), KeyModifiers::ALT),
+        (Key::Char('s'), Mods::CONTROL),
+        (Key::Char('s'), Mods::ALT),
         (
-            KeyCode::Char('s'),
-            KeyModifiers::CONTROL | KeyModifiers::SHIFT,
+            Key::Char('s'),
+            Mods::CONTROL | Mods::SHIFT,
         ),
         (
-            KeyCode::Char('s'),
-            KeyModifiers::CONTROL | KeyModifiers::ALT,
+            Key::Char('s'),
+            Mods::CONTROL | Mods::ALT,
         ),
-        (KeyCode::Char('y'), KeyModifiers::CONTROL),
-        (KeyCode::Char('j'), KeyModifiers::ALT),
-        (KeyCode::Char('k'), KeyModifiers::CONTROL),
-        (KeyCode::Up, KeyModifiers::CONTROL),
-        (KeyCode::Down, KeyModifiers::ALT),
+        (Key::Char('y'), Mods::CONTROL),
+        (Key::Char('j'), Mods::ALT),
+        (Key::Char('k'), Mods::CONTROL),
+        (Key::Up, Mods::CONTROL),
+        (Key::Down, Mods::ALT),
         (
-            KeyCode::Char('r'),
-            KeyModifiers::CONTROL | KeyModifiers::ALT,
+            Key::Char('r'),
+            Mods::CONTROL | Mods::ALT,
         ),
     ] {
         assert!(press(&mut host, code, modifiers).is_empty());
@@ -201,7 +201,7 @@ fn host_recovery_modified_keys_do_not_borrow_keep_copy_or_navigation() {
         assert_eq!(menu.row, 0);
         assert_eq!(state(&host), before);
     }
-    let copied = press(&mut host, KeyCode::Char('y'), KeyModifiers::NONE);
+    let copied = press(&mut host, Key::Char('y'), Mods::NONE);
     assert!(
         copied
             .iter()
@@ -236,7 +236,7 @@ fn host_recovery_keep_rejects_newer_editor_or_connection_context() {
             _ => unreachable!(),
         }
         let before = state(&host);
-        press(&mut host, KeyCode::Char('s'), KeyModifiers::NONE);
+        press(&mut host, Key::Char('s'), Mods::NONE);
         assert!(host.menu.is_none());
         assert_eq!(state(&host), before, "{change}");
         assert!(recorded.requests().is_empty());
@@ -255,8 +255,8 @@ fn host_recovery_keep_enter_and_repeated_choice_retain_only_one_copy() {
     for click in [false, true] {
         let (mut host, recorded, _mode) = fixture(false, true);
         open(&mut host);
-        press(&mut host, KeyCode::Down, KeyModifiers::NONE);
-        press(&mut host, KeyCode::Down, KeyModifiers::NONE);
+        press(&mut host, Key::Down, Mods::NONE);
+        press(&mut host, Key::Down, Mods::NONE);
         assert_eq!(
             host.menu.as_ref().unwrap().menu.items[host.menu.as_ref().unwrap().row].value,
             "keep"
@@ -269,7 +269,7 @@ fn host_recovery_keep_enter_and_repeated_choice_retain_only_one_copy() {
             shown(&host, 160, 40);
             press_keep_row(&mut host);
         } else {
-            press(&mut host, KeyCode::Enter, KeyModifiers::NONE);
+            press(&mut host, Key::Enter, Mods::NONE);
         }
         assert!(!slack(&host).capturing());
         assert_eq!(kept_texts(slack(&host)), [TEXT, ACTIVE]);
@@ -281,8 +281,8 @@ fn host_recovery_keep_enter_and_repeated_choice_retain_only_one_copy() {
 fn host_recovery_keep_menu_shows_its_non_navigation_shortcut() {
     let (mut host, recorded, _mode) = fixture(false, true);
     open(&mut host);
-    press(&mut host, KeyCode::Down, KeyModifiers::NONE);
-    press(&mut host, KeyCode::Down, KeyModifiers::NONE);
+    press(&mut host, Key::Down, Mods::NONE);
+    press(&mut host, Key::Down, Mods::NONE);
     let screen = shown(&host, 160, 40);
     assert!(screen.contains("stay with current draft"), "{screen}");
     insta::assert_snapshot!("kept_reply_menu", screen);

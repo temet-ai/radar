@@ -1,0 +1,87 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups ──
+> All items  {["group","all",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,8]}
+  release candidate  {["group","10000000-0000-4000-8000-000000000016",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,8]}
+_ Groups · page 1
+── middle · work items · page 1 ──
+> Ship explicit work-item navigation  task  {["item","10000000-0000-4000-8000-000000000001",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+  pull-request · acme/api/7  pull-request  {["item","10000000-0000-4000-8000-000000000006",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+  ticket · ABC-12  ticket  {["item","10000000-0000-4000-8000-00000000000a",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+  checkout · /home/user/projects/api  checkout  {["item","10000000-0000-4000-8000-00000000000e",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+  workflow-run · acme/api/42/1  workflow-run  {["item","10000000-0000-4000-8000-000000000012",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+── detail · linked sources and context * ──
+  Exact sources · ↑↓ select · extra actions
+> pull-request · acme/api/7  {["source","[\"10000000-0000-4000-8000-000000000006\",{\"provider\":\"forge\",\"instance\":\"https://forge.example/\",\"kind\":\"pull-request\",\"id\":\"acme/api/7\"},\"user_asserted\",2,null]",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+    authored
+    Source owner unavailable here; copy its
+    exact locator.
+    Local work saved.
+    Ship explicit work-item navigation
+    Local groups: release candidate
+    Selected pull-request: acme/api/7
+    authored link · copy locator · extra actions
+    Locator event in this page: source.selected
+    · requested
+    view history: original claims and outcomes ·
+    completeness not guaranteed
+    Partial one-hop map: more relation evidence
+    may exist. Inspect task evidence with v.
+    Recording degraded: known history gaps.
+    Titles and groups are authored locally.
+    Relations do not imply identity, permission
+    or completion.
+    Task item ID:
+    10000000-0000-4000-8000-000000000001
+    Source identity details
+    Provider: forge
+    Instance: https://forge.example/
+    Source item:
+    10000000-0000-4000-8000-000000000006
+    Action interval: 2 through open-ended
+  ticket · ABC-12  {["source","[\"10000000-0000-4000-8000-00000000000a\",{\"provider\":\"forge\",\"instance\":\"https://forge.example/\",\"kind\":\"ticket\",\"id\":\"ABC-12\"},\"user_asserted\",2,null]",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+    authored
+  checkout · /home/user/projects/api  {["source","[\"10000000-0000-4000-8000-00000000000e\",{\"provider\":\"forge\",\"instance\":\"https://forge.example/\",\"kind\":\"checkout\",\"id\":\"/home/user/projects/api\"},\"user_asserted\",2,null]",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+    authored
+  workflow-run · acme/api/42/1  {["source","[\"10000000-0000-4000-8000-000000000012\",{\"provider\":\"forge\",\"instance\":\"https://forge.example/\",\"kind\":\"workflow-run\",\"id\":\"acme/api/42/1\"},\"user_asserted\",2,null]",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":8,"map_sequence":17,"gap_sequence":0},0,null,""]}
+    authored
+· Partial bounded evidence; inspect original history with v.
+· Recording degraded: known history gaps.
+· Observations only. Relations grant no identity, permission or completion.
+── detail · map * ──
+<work.map>
+1 groups · 5 items on page 1
+Ship explicit work-item navigation · task
+pull-request · acme/api/7 · pull-request
+ticket · ABC-12 · ticket
+checkout · /home/user/projects/api · checkout
+workflow-run · acme/api/42/1 · workflow-run
+── detail · timeline * ──
+<work.timeline>
+#1 map · authored
+#2 map · authored
+#3 map · authored
+#6 map · authored
+#9 map · authored
+#12 map · authored
+#15 map · authored
+#16 map · authored
+#17 map · authored
+Recording gaps are known.
+── detail · tabs * ──
+<work.tabs>
+○ 00000001
+● linked sources
+○ evidence
+── detail · actions * ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+set local group label…
+inspect bounded evidence…
+copy exact source locator
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

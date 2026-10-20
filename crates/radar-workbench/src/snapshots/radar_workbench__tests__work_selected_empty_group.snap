@@ -1,0 +1,48 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups * ──
+  All items  {["group","all",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 0  {["group","50000000-0000-4000-8000-000000000000",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 1  {["group","50000000-0000-4000-8000-000000000001",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 2  {["group","50000000-0000-4000-8000-000000000002",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 3  {["group","50000000-0000-4000-8000-000000000003",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 4  {["group","50000000-0000-4000-8000-000000000004",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 5  {["group","50000000-0000-4000-8000-000000000005",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 6  {["group","50000000-0000-4000-8000-000000000006",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 7  {["group","50000000-0000-4000-8000-000000000007",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 8  {["group","50000000-0000-4000-8000-000000000008",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 9  {["group","50000000-0000-4000-8000-000000000009",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 10  {["group","50000000-0000-4000-8000-00000000000a",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 11  {["group","50000000-0000-4000-8000-00000000000b",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 12  {["group","50000000-0000-4000-8000-00000000000c",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 13  {["group","50000000-0000-4000-8000-00000000000d",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 14  {["group","50000000-0000-4000-8000-00000000000e",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+  Unassigned group 15  {["group","50000000-0000-4000-8000-00000000000f",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+> Selected group  · not on this catalog page  00000010  {["group","50000000-0000-4000-8000-000000000010",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":58,"map_sequence":21,"gap_sequence":0},0,8]}
+_ Groups · page 1
+── middle · work items · page 1 ──
+(empty) No local work items on this page. Press n to create a task, or use Add to work item on a source's actions menu.
+── detail · linked sources and context ──
+No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.
+Local work saved.
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+16 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+● linked sources
+○ evidence
+── detail · actions ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+next group page
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

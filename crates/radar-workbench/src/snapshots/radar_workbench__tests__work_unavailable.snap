@@ -1,0 +1,31 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups ──
+! Groups not loaded
+> All items  {["group","all",null,0,0]}
+_ Groups · page 1
+── middle · work items · page 1 * ──
+(failed) Local activity storage is unavailable. Check state-directory access, restart, then refresh.
+── detail · linked sources and context ──
+No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.
+Local work is unavailable because activity recording could not start; check private state-directory access and restart
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+0 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+● linked sources
+○ evidence
+── detail · actions ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

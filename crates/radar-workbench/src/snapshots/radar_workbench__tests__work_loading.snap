@@ -1,0 +1,25 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups ──
+! Loading groups…
+> All items  {["group","all",null,0,1]}
+_ Groups · page 1
+── middle · work items · page 1 * ──
+(loading) Loading local work…
+── detail · linked sources and context ──
+Loading bounded source evidence…
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+0 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+● linked sources
+○ evidence
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

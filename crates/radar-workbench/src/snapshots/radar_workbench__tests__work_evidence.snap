@@ -1,0 +1,66 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups ──
+! No groups on page
+> All items  {["group","all",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":5,"map_sequence":6,"gap_sequence":0},0,6]}
+_ Groups · page 1
+── middle · work items · page 1 ──
+> Inspect original source evidence  task  {["item","00000000-0000-4000-8000-000000000000",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":5,"map_sequence":6,"gap_sequence":0},0,null,""]}
+  ticket · ABC-12  ticket  {["item","00000000-0000-4000-8000-000000000000",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":5,"map_sequence":6,"gap_sequence":0},0,null,""]}
+── detail · evidence * ──
+Local work saved.
+Original evidence · observations only · no execution authority
+Snapshot events 5 · map 6
+Map #4 · identity created · authored
+Item 00000000-0000-4000-8000-000000000000 · kind ticket
+Claim origin: Host · session 00000000-0000-4000-8000-000000000000 · recording action 00000000-0000-4000-8000-000000000000
+Observed 1000 ms · recorded 1700000000000 ms
+Change 00000000-0000-4000-8000-000000000000 · evidence 00000000-0000-4000-8000-000000000000
+Map #5 · source binding · authored
+Bound item: 00000000-0000-4000-8000-000000000000
+Exact source: forge · https://forge.example/ · ticket · ABC-12
+Action interval: 2 through open-ended
+Claim origin: Host · session 00000000-0000-4000-8000-000000000000 · recording action 00000000-0000-4000-8000-000000000000
+Observed 1000 ms · recorded 1700000000000 ms
+Change 00000000-0000-4000-8000-000000000000 · evidence 00000000-0000-4000-8000-000000000000
+Map #6 · explicit relation · authored
+Relation: References
+From item: 00000000-0000-4000-8000-000000000000
+To item: 00000000-0000-4000-8000-000000000000
+Claim origin: Host · session 00000000-0000-4000-8000-000000000000 · recording action 00000000-0000-4000-8000-000000000000
+Observed 1000 ms · recorded 1700000000000 ms
+Change 00000000-0000-4000-8000-000000000000 · evidence 00000000-0000-4000-8000-000000000000
+Event #2 · source.selected · Requested · ExplicitBinding
+Origin: Host · session 00000000-0000-4000-8000-000000000000
+Event 00000000-0000-4000-8000-000000000000 · root 00000000-0000-4000-8000-000000000000 · correlation 00000000-0000-4000-8000-000000000000
+Context subject: forge · https://forge.example/ · ticket · ABC-12
+Recorded 1700000000000 ms · observation time exact
+Action 00000000-0000-4000-8000-000000000000 · observed 1000 ms
+Missing events do not prove no work happened. Escape returns to the item.
+── detail · map * ──
+<work.map>
+0 groups · 2 items on page 1
+Inspect original source evidence · task
+ticket · ABC-12 · ticket
+── detail · timeline * ──
+<work.timeline>
+#4 map · authored
+#5 map · authored
+#6 map · authored
+#2 action · source.selected
+── detail · tabs * ──
+<work.tabs>
+○ 00000001
+○ linked sources
+● evidence
+── detail · actions * ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+set local group label…
+inspect bounded evidence…
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

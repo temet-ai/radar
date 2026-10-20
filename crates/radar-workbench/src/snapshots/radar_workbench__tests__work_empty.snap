@@ -1,0 +1,30 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups ──
+! No groups on page
+> All items  {["group","all",{"database_id":"00000000-0000-4000-8000-000000000000","event_sequence":1,"map_sequence":0,"gap_sequence":0},0,2]}
+_ Groups · page 1
+── middle · work items · page 1 * ──
+(empty) No local work items on this page. Press n to create a task, or use Add to work item on a source's actions menu.
+── detail · linked sources and context ──
+No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+0 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+● linked sources
+○ evidence
+── detail · actions ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+── status · WORK ITEMS ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

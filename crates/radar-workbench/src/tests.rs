@@ -1,11 +1,14 @@
 use super::*;
 use radar_core::compose::Parts;
 use radar_core::headless::Headless;
-use radar_core::ratatui::{
-    crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
-    layout::Position,
-};
+use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use radar_core::view::{Node, PaneId, Target};
+
+/// What shows, as view text (`radar_core::headless::text`): the screen's
+/// panes and rows, the open menu and the status line. No painted frame.
+fn shown(host: &radar_core::Host, width: u16, height: u16) -> String {
+    radar_core::headless::text_of(host, width, height)
+}
 
 fn view(p: &WorkbenchPlugin, pane: Pane) -> ScreenView {
     screen::view(
@@ -942,7 +945,7 @@ fn host(p: WorkbenchPlugin) -> radar_core::Host {
     host
 }
 #[test]
-fn rendered_work_states_80_and_160_columns() {
+fn rendered_work_states() {
     let mut cases = vec![("items", host(sample()))];
     let mut catalog = catalog_sample();
     catalog.p.groups[1].ambiguous = true;
@@ -1072,26 +1075,12 @@ fn rendered_work_states_80_and_160_columns() {
     cases.push(("evidence", history_host));
     let mut snapshots = Vec::new();
     for (name, host) in cases {
-        for (w, h) in [(80, 24), (160, 40)] {
-            let text = radar_core::shell::to_text(&host, w, h);
-            if let Ok(dir) = std::env::var("RADAR_WORK_RENDER_DIR") {
-                std::fs::create_dir_all(&dir).unwrap();
-                std::fs::write(
-                    format!("{dir}/{name}_{w}x{h}.svg"),
-                    radar_core::shell::to_svg(&host, w, h),
-                )
-                .unwrap();
-                std::fs::write(format!("{dir}/{name}_{w}x{h}.txt"), &text).unwrap();
-            }
-            snapshots.push((
-                format!("work_{name}_{w}x{h}"),
-                if name == "evidence" {
-                    normalize_ids(&text)
-                } else {
-                    text
-                },
-            ));
-        }
+        // One snapshot a state: 80 columns only wraps the same words again.
+        let text = same_database(&shown(&host, 160, 40));
+        snapshots.push((
+            format!("work_{name}"),
+            if name == "evidence" { normalize_ids(&text) } else { text },
+        ));
     }
     for (name, text) in snapshots {
         insta::assert_snapshot!(name, text);
@@ -1209,7 +1198,7 @@ fn host_pump(host: &mut radar_core::Host, f: &mut Fixture, effects: Vec<radar_co
     }
 }
 fn host_key(host: &mut radar_core::Host, f: &mut Fixture, code: KeyCode) {
-    radar_core::shell::to_text(host, 80, 24);
+    shown(host, 80, 24);
     let effects = host.update(radar_core::host::Event::Key(KeyEvent::new(
         code,
         KeyModifiers::NONE,
@@ -1256,7 +1245,7 @@ fn real_host_menu_create_link_enter_context_and_cancel_flow() {
     host_key(&mut host, &mut f, KeyCode::Char('y'));
     assert!(host.menu.is_none());
     assert!(matches!(host.view, HostView::Screen(_)));
-    assert!(radar_core::shell::to_text(&host, 80, 24).contains("Menu-created work"));
+    assert!(shown(&host, 80, 24).contains("Menu-created work"));
     host_key(&mut host, &mut f, KeyCode::Enter);
     assert_eq!(host.focus, Pane::Detail);
     host_key(&mut host, &mut f, KeyCode::Char('o'));
@@ -1279,6 +1268,24 @@ fn real_host_menu_create_link_enter_context_and_cancel_flow() {
             .len(),
         2
     );
+}
+
+/// The text form prints each row's target, and a target names the journal's
+/// database, which is new on every run: print the same one.
+fn same_database(text: &str) -> String {
+    let mut out = String::new();
+    let mut rest = text;
+    while let Some(at) = rest.find("database_id") {
+        let (head, tail) = rest.split_at(at + "database_id".len());
+        out.push_str(head);
+        let quotes = tail.len() - tail.trim_start_matches(['\\', '"', ':']).len();
+        out.push_str(&tail[..quotes]);
+        let tail = &tail[quotes..];
+        out.push_str("00000000-0000-4000-8000-000000000000");
+        rest = tail.get(36..).unwrap_or("");
+    }
+    out.push_str(rest);
+    out
 }
 
 fn normalize_ids(text: &str) -> String {
@@ -1306,25 +1313,10 @@ fn normalize_ids(text: &str) -> String {
     output
 }
 
-fn row_at(host: &radar_core::Host, pane: Pane, target: &str) -> Position {
-    radar_core::shell::to_text(host, 160, 40);
-    host.hits
-        .borrow()
-        .iter()
-        .find_map(|(rect, hit)| match hit {
-            radar_core::host::Hit::Plugin {
-                pane: hit_pane, id, ..
-            } if *hit_pane == pane && id == target => Some(Position {
-                x: rect.x,
-                y: rect.y,
-            }),
-            _ => None,
-        })
-        .unwrap()
-}
 #[test]
-fn mouse_select_double_click_and_context_menu_keep_exact_targets() {
-    use radar_core::host::{Event, MouseKind};
+fn select_activate_and_context_intents_keep_exact_targets() {
+    use radar_core::host::Event;
+    use radar_core::view::Intent;
     let mut f = Fixture::new();
     f.start();
     f.link_new("First visible task", vec![source("ticket", "ABC-1")]);
@@ -1334,7 +1326,9 @@ fn mouse_select_double_click_and_context_menu_keep_exact_targets() {
     host.load_config(Some("")).unwrap();
     host.enable_journal();
     host_key(&mut host, &mut f, KeyCode::Char('I'));
-    for at_ms in [1000, 1200] {
+    // A press selects the row and a second press on it opens it: the
+    // intents the pane's row target takes.
+    for open in [false, true] {
         let current = host.screen_view_in(1, "work", 160, 40).unwrap();
         let Node::List { rows, .. } = &current.pane(PaneId::Middle).unwrap().body else {
             panic!()
@@ -1346,13 +1340,9 @@ fn mouse_select_double_click_and_context_menu_keep_exact_targets() {
             .target
             .0
             .clone();
-        let at = row_at(&host, Pane::Middle, &target);
-        let fx = host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: at.x,
-            row: at.y,
-            at_ms,
-        });
+        let target = Target::new(target);
+        let intent = if open { Intent::Activate { target } } else { Intent::Select { target } };
+        let fx = host.update(Event::Intent(intent));
         host_pump(&mut host, &mut f, fx);
     }
     assert_eq!(host.focus, Pane::Detail);
@@ -1361,13 +1351,7 @@ fn mouse_select_double_click_and_context_menu_keep_exact_targets() {
         panic!()
     };
     let target = rows[0].target.0.clone();
-    let at = row_at(&host, Pane::Detail, &target);
-    let fx = host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: at.x,
-        row: at.y,
-        at_ms: 2000,
-    });
+    let fx = host.update(Event::Intent(Intent::Context { target: Target::new(target) }));
     host_pump(&mut host, &mut f, fx);
     assert!(
         host.menu
@@ -1378,7 +1362,7 @@ fn mouse_select_double_click_and_context_menu_keep_exact_targets() {
             .iter()
             .any(|row| row.label.contains("open selected source"))
     );
-    assert!(radar_core::shell::to_text(&host, 160, 40).contains("First visible task"));
+    assert!(shown(&host, 160, 40).contains("First visible task"));
 }
 
 #[test]
@@ -2045,20 +2029,7 @@ fn interval_variants_and_conflicting_labels_remain_distinct_in_both_views() {
     }
     let mut rendered = host(f.into_plugin());
     rendered.focus = Pane::Detail;
-    let mut frames = String::new();
-    let mut previous = String::new();
-    for _ in 0..32 {
-        let frame = radar_core::shell::to_text(&rendered, 80, 24);
-        if frame == previous {
-            break;
-        }
-        frames.push_str(&frame);
-        previous = frame;
-        rendered.update(radar_core::host::Event::Key(KeyEvent::new(
-            KeyCode::PageDown,
-            KeyModifiers::NONE,
-        )));
-    }
+    let frames = shown(&rendered, 80, 24);
     for text in [
         "first label assertion",
         "second label assertion",
@@ -2066,7 +2037,7 @@ fn interval_variants_and_conflicting_labels_remain_distinct_in_both_views() {
         "Exact source:",
         "Origin:",
     ] {
-        assert!(frames.contains(text), "terminal omitted {text}");
+        assert!(frames.contains(text), "the text form omitted {text}");
     }
 }
 

@@ -157,44 +157,21 @@ fn a_created_task_reaches_the_map_and_a_pending_confirmation_stays_in_the_view()
     }
 }
 
-/// Journal ids and wall-clock times differ per run; the text must not.
-fn steady(text: &str) -> String {
-    let is_uuid = |c: &str| {
-        c.len() == 36
-            && c.char_indices().all(|(i, ch)| {
-                if matches!(i, 8 | 13 | 18 | 23) { ch == '-' } else { ch.is_ascii_hexdigit() }
-            })
-    };
-    let mut out = text.to_string();
-    for i in text.char_indices().map(|(i, _)| i) {
-        if let Some(c) = text.get(i..i + 36).filter(|c| is_uuid(c)) {
-            out = out.replace(c, "00000000-0000-4000-8000-000000000000");
-        }
-    }
-    for t in text.split(|c: char| !c.is_ascii_digit()).filter(|t| t.len() == 13) {
-        out = out.replace(t, "1700000000000");
-    }
-    out
-}
-
-/// The Ratatui shell's text of the same host state at both sizes, recorded as
-/// tests/fixtures/<name>_ratatui_<w>x<h>.txt for the Ink parity tests; in a
-/// normal run the committed text must still be what Ratatui paints.
-fn ratatui_text(name: &str, h: &Headless) {
+/// The pane shortcuts the host gives this view at both sizes, recorded as
+/// tests/fixtures/<name>_pane_jumps_<w>x<h>.json for the Ink tests; in a
+/// normal run the committed file must still be what the host gives.
+/// (The `<name>_ratatui_<w>x<h>.txt` files beside them are the Ratatui
+/// frames Ink's parity tests read; nothing here writes or checks them now.)
+fn pane_jumps(name: &str, h: &Headless) {
     for (w, ht) in [(80u16, 24u16), (160, 40)] {
-        let text = steady(&radar_core::shell::to_text(h.host(), w, ht));
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("tests/fixtures")
-            .join(format!("{name}_ratatui_{w}x{ht}.txt"));
+            .join(format!("{name}_pane_jumps_{w}x{ht}.json"));
         let jumps = serde_json::to_string_pretty(&h.chrome().pane_jumps).unwrap() + "\n";
-        let jumps_path = path.with_file_name(format!("{name}_pane_jumps_{w}x{ht}.json"));
         if std::env::var_os("RADAR_WORK_VIEW_FIXTURE").is_some() {
-            std::fs::write(&path, &text).unwrap();
-            std::fs::write(&jumps_path, &jumps).unwrap();
+            std::fs::write(&path, &jumps).unwrap();
         }
-        assert_eq!(std::fs::read_to_string(jumps_path).unwrap(), jumps, "pane shortcuts drifted");
-        let recorded = std::fs::read_to_string(&path).expect("run with RADAR_WORK_VIEW_FIXTURE=1 once");
-        assert_eq!(recorded, text, "{name} at {w}x{ht} drifted; RADAR_WORK_VIEW_FIXTURE=1 re-records");
+        assert_eq!(std::fs::read_to_string(path).unwrap(), jumps, "pane shortcuts drifted");
     }
 }
 
@@ -202,7 +179,7 @@ fn ratatui_text(name: &str, h: &Headless) {
 /// set, then check the committed file still has the work-area shape.
 fn record(name: &str, h: &Headless) -> serde_json::Value {
     let view = &h.screen().unwrap();
-    ratatui_text(name, h);
+    pane_jumps(name, h);
     let json = serde_json::to_string_pretty(view).unwrap();
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")

@@ -1,0 +1,44 @@
+---
+source: crates/radar-workbench/src/tests.rs
+expression: text
+---
+── nav · local groups ──
+! Groups not loaded
+> All items  {["group","all",null,0,0]}
+_ Groups · page 1
+── middle · work items · page 1 * ──
+(empty) Press r to load local work.
+── detail · linked sources and context ──
+No source binding in this evidence page. Add an exact source from its actions menu; no links are inferred.
+Create a local task or select an existing item. No provider labels, relationships or goals are inferred.
+── detail · map ──
+<work.map>
+0 groups · 0 items on page 1
+── detail · timeline ──
+<work.timeline>
+No evidence loaded.
+── detail · tabs ──
+<work.tabs>
+● linked sources
+○ evidence
+── detail · actions ──
+<work.rail>
+new local task…
+refresh local work
+filter this item page…
+── question · Save these local work annotations? ──
+  # Task: A deliberately named task with an explicit local title (10000000-0000-4000-8000-000000000001)
+  # Local user-authored annotations only. Provider data is unchanged.
+  # New pull-request identity bound from action sequence 1 onward (no end).
+  # References forge · https://forge.example/ · pull-request · acme/api/7
+  # New ticket identity bound from action sequence 1 onward (no end).
+  # References forge · https://forge.example/ · ticket · ABC-12
+  # New checkout identity bound from action sequence 1 onward (no end).
+  # References forge · https://forge.example/ · checkout · /home/user/projects/api
+  # New workflow-run identity bound from action sequence 1 onward (no end).
+  # References forge · https://forge.example/ · workflow-run · acme/api/42/1
+  # This records your assertion, not observed proof, permission or task completion.
+> yes  (y)  yes, save locally
+  no  (n)  no, cancel
+── status · WORK ITEMS ──
+←→ move  ⏎ choose  esc close

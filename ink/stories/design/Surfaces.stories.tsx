@@ -9,7 +9,7 @@ import type { Tree } from "../../src/protocol/generated/Tree";
 import type { ChromeView } from "../../src/chrome/types";
 import { BodyWithMenu, InPane } from "../support/frames";
 import { paneOf } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import { NoticeSurfaces } from "./NoticeReplay";
 import repos80 from "../../test/fixtures/gitlab_repos_80x24.json";
 import menu80Cells from "../../test/cells/highlight_menu-80x24.json";
@@ -55,7 +55,7 @@ export const Focus: Story = {
  * right and bottom edges (#29); the target is a command palette over that scrim. */
 export const PaletteOverScrim: Story = {
   render: (_args, { globals }) => {
-    const scene = menu80Cells as RatatuiScene;
+    const scene = menu80Cells as GoldenScene;
     return (
       <Row>
         <Today globals={globals} cols={80} rows={21} caption="MenuBox over the Repositories screen (highlight_menu-80x24)">

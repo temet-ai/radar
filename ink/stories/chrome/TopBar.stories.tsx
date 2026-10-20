@@ -2,14 +2,11 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TopBarRow, frameOf } from "../../src/chrome/Chrome";
 import type { ChromeView } from "../../src/chrome/types";
-import { Compare, fromScene } from "../support/Compare";
+import { Compare } from "../support/Compare";
 import { TopRows } from "../support/frames";
 import { type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
 import chrome80 from "../../test/fixtures/host_chrome_80x24.json";
-import chrome80Cells from "../../test/cells/host_chrome-80x24.json";
 import chrome160 from "../../test/fixtures/host_chrome_160x40.json";
-import chrome160Cells from "../../test/cells/host_chrome-160x40.json";
 
 type Args = React.ComponentProps<typeof TopBarRow>;
 const frame = (c: unknown) => {
@@ -17,7 +14,7 @@ const frame = (c: unknown) => {
   return frameOf(chrome, null, chrome.width, chrome.height);
 };
 
-function Draw({ args: _args, globals, c, scene }: { args: Args; globals: Globals; c: unknown; scene: RatatuiScene }) {
+function Draw({ args: _args, globals, c }: { args: Args; globals: Globals; c: unknown }) {
   const chrome = c as ChromeView;
   const rows = chrome.sources?.length ? 2 : 1;
   return (
@@ -25,7 +22,6 @@ function Draw({ args: _args, globals, c, scene }: { args: Args; globals: Globals
       globals={globals}
       cols={chrome.width}
       rows={rows}
-      reference={fromScene(scene, { crop: { x: 0, y: 0, w: chrome.width, h: rows } })}
       ink={<TopRows chrome={chrome} width={chrome.width} height={chrome.height} />}
     />
   );
@@ -49,7 +45,7 @@ const meta = {
   title: "Chrome/TopBar",
   component: TopBarRow,
   args: { frame: frame(chrome80) },
-  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} scene={chrome80Cells as RatatuiScene} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} />,
 } satisfies Meta<typeof TopBarRow>;
 
 export default meta;
@@ -61,5 +57,5 @@ export const Narrow: Story = {};
 /** At 160 wide every tab shows its name. */
 export const Wide: Story = {
   args: { frame: frame(chrome160) },
-  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} scene={chrome160Cells as RatatuiScene} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} />,
 };

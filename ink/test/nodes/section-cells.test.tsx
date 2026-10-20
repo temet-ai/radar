@@ -10,17 +10,18 @@ import { mount, tick } from "../app/harness.js";
 import { parseAnsi, type TCell } from "./ansi.js";
 import { applyHostLook, applyLook, currentLook, defaultLook, type HostLook } from "../../src/text/look.js";
 import { sectionHeading } from "../../src/nodes/index.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
 /**
  * A detail pane's sections (view Block::Section, view_tui section_rows over ui::card::section): the heading in muted
  * capitals, its detail in secondary words, a muted rule to the room's edge, the blocks two cells in, and each
- * action's supplied mnemonic underlined in its word. ink/test/cells/highlight_detail-sections-160x40.json is Ratatui's styled buffer of a
- * GitLab merge request selected on the first screen (written by tests/ratatui_cells.rs); the whole App draws the
- * same view data and the detail pane's rows, from its first section to the foot of the pane, are compared cell for
- * cell (character, colours, bold, underline).
+ * action's supplied mnemonic underlined in its word. ink/test/cells/highlight_detail-sections-160x40.json is the styled
+ * buffer of a GitLab merge request selected on the first screen (first drawn by Ratatui, now Ink's golden:
+ * INK_UPDATE_GOLDENS=1 rewrites it from Ink); the whole App draws the same view data and the detail pane's rows, from
+ * its first section to the foot of the pane, are compared cell for cell (character, colours, bold, underline).
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
-const cellsDir = process.env.RADAR_CELLS_DIR ?? path.resolve(here, "../cells");
+const cellsDir = path.resolve(here, "../cells");
 const fixtures = path.resolve(here, "../fixtures");
 
 let live: Array<() => void> = [];
@@ -54,7 +55,7 @@ describe("a detail pane's sections", () => {
   const size = "160x40";
   const file = path.join(cellsDir, `highlight_detail-sections-${size}.json`);
   it(`Ink's section rows equal Ratatui's cells at ${size}`, async () => {
-    expect(fs.existsSync(file), `${file} is written by tests/ratatui_cells.rs (scene highlight_detail-sections)`).toBe(true);
+    expect(fs.existsSync(file), `${file} is a committed golden (scene highlight_detail-sections)`).toBe(true);
     const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
     if (scene.view.look) applyHostLook(scene.view.look); else applyLook(defaultLook("off"));
     const [cols, rows] = size.split("x").map(Number) as [number, number];
@@ -65,6 +66,7 @@ describe("a detail pane's sections", () => {
     m.snapshot({ chrome, screen: scene.view.screen, focus: scene.view.focus ?? "middle" }, 1);
     await tick(60);
     const ink = parseAnsi(m.frame());
+    if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, ink);
 
     const at = scene.rows.findIndex((r) => rowText(r).includes(" STATE ─"));
     expect(at, "Ratatui drew the STATE section").toBeGreaterThan(-1);

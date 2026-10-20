@@ -9,11 +9,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mount, tick } from "../app/harness.js";
 import { applyLook, defaultLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
-// widgets::chip_ground (#30): a chip stands on its tone's tint. Ratatui's cells (tests/ratatui_cells.rs) for the GitHub
-// screens carry a muted chip line (' ⌂ local folder  no matching origin…'); the App draws the same view data and each
-// chip cell's ground must be Ratatui's, and the ground must stop where Ratatui's does. The host chrome's bars differ
-// from the scene's, so the chip's row is found by its words; its columns are the same.
+// widgets::chip_ground (#30): a chip stands on its tone's tint. The golden cells (ink/test/cells, first drawn by Ratatui,
+// now Ink's, rewritten from Ink by INK_UPDATE_GOLDENS=1) for the GitHub screens carry a muted chip line
+// (' ⌂ local folder  no matching origin…'); the App draws the same view data and each chip cell's ground must be the
+// golden's, and the ground must stop where the golden's does. The host chrome's bars differ from the scene's, so the
+// chip's row is found by its words; its columns are the same.
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ch = (c: { ch?: string } | undefined) => (c?.ch === undefined || c.ch === "" ? " " : c.ch);
 
@@ -30,7 +32,8 @@ describe("a chip's ground against Ratatui's cells", () => {
     ["github_github-page1-overview-pull-requests-actions", "80x24"],
   ] as const) {
     it(`${surface} at ${size}`, async () => {
-      const rat = JSON.parse(fs.readFileSync(path.resolve(here, `../cells/${surface}-${size}.json`), "utf8")) as {
+      const file = path.resolve(here, `../cells/${surface}-${size}.json`);
+      const rat = JSON.parse(fs.readFileSync(file, "utf8")) as {
         rows: Array<Array<{ ch?: string; bg?: string }>>;
       };
       const screen = JSON.parse(fs.readFileSync(path.resolve(here, `../fixtures/${surface}_${size}.json`), "utf8"));
@@ -42,7 +45,8 @@ describe("a chip's ground against Ratatui's cells", () => {
       m.snapshot({ chrome, ...(screen.screen ? screen : { screen }) }, 1);
       await tick(60);
       const got = parseAnsi(m.frame());
-      // Ratatui's tinted cells, as runs: where each starts and the words in it.
+      if (updatingGoldens()) adoptInkFrame(file, rat as unknown as SceneFile, got);
+      // The golden's tinted cells, as runs: where each starts and the words in it.
       let compared = 0;
       rat.rows.forEach((r, y) => {
         const xs = r.flatMap((c, x) => ((c.bg ?? "").startsWith("#") ? [x] : []));

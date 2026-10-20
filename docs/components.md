@@ -69,8 +69,8 @@ From GUIDE.md and the operator's design decisions (October 2026).
 ## 2. View types: what a part sends, and who draws it
 
 Each Ink drawer in this table and in 3.3 has its docs in Storybook under its own name (`Nodes/ListNode`,
-`Text/DiffView`, `Chrome/StatusLine`, `Page/PageBody`, `Editor/EditorOverlay`, `Media/MediaBlock`, ...), with
-Ratatui's cells beside it and the reference gaps named there.
+`Text/DiffView`, `Chrome/StatusLine`, `Page/PageBody`, `Editor/EditorOverlay`, `Media/MediaBlock`, ...), drawn by
+Ink from recorded view data, with the data gaps named there.
 
 Parts never draw with ratatui. They send `view::` data (`crates/radar-core/src/view.rs`,
 mirrored to `ink/src/protocol/generated/` by ts-rs). Two renderers draw it:

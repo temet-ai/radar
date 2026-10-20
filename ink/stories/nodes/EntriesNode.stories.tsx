@@ -1,9 +1,9 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { EntriesNode } from "../../src/nodes/lists";
-import { fromScene } from "../support/Compare";
+import { regionOf } from "../support/Compare";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import red80 from "../../test/fixtures/gitlab_repos-page1-merge-requests-pipelines-on-main_80x24.json";
 import red80Cells from "../../test/cells/gitlab_repos-page1-merge-requests-pipelines-on-main-80x24.json";
 import red160 from "../../test/fixtures/gitlab_repos-page1-merge-requests-pipelines-on-main_160x40.json";
@@ -12,13 +12,13 @@ import red160Cells from "../../test/cells/gitlab_repos-page1-merge-requests-pipe
 type Args = React.ComponentProps<typeof EntriesNode>;
 const argsOf = (pane: any): Args => ({ rows: pane.body.rows, selected: pane.body.selected, empty: pane.body.empty, ctx: { width: 0, height: 0, focused: true } });
 
-function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: RatatuiScene }) {
+function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: GoldenScene }) {
   return (
     <PaneFigure
       globals={globals}
       pane={pane}
       focused={args.ctx.focused}
-      reference={fromScene(scene, { pane: pane.title })}
+      region={regionOf(scene, { pane: pane.title })}
       body={(ctx) => <EntriesNode {...args} ctx={{ ...ctx, focused: args.ctx.focused }} />}
     />
   );
@@ -44,7 +44,7 @@ const meta = {
   title: "Nodes/EntriesNode",
   component: EntriesNode,
   args: argsOf(pane80),
-  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={red80Cells as RatatuiScene} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={red80Cells as GoldenScene} />,
 } satisfies Meta<typeof EntriesNode>;
 
 export default meta;
@@ -56,5 +56,5 @@ export const FailedJobs: Story = {};
 /** The same at 160x40. */
 export const Wide: Story = {
   args: argsOf(pane160),
-  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={red160Cells as RatatuiScene} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={red160Cells as GoldenScene} />,
 };

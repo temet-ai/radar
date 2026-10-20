@@ -1,7 +1,7 @@
 // Small helpers the story files share.
 import React from "react";
 import type { NodeContext } from "../../src/nodes/view";
-import { Compare, sizeOf, type Reference } from "./Compare";
+import { Compare, sizeOf, type Region } from "./Compare";
 import { InPane } from "./frames";
 import type { Pack, Tier } from "./look";
 
@@ -31,32 +31,28 @@ export function firstNode(view: unknown, kind: string): any {
   return found;
 }
 
-/** A node drawn in its own pane, beside Ratatui's same pane. */
+/** A node drawn in its own pane, at the size `region` gives it on the recorded screen (else `size`). */
 export function PaneFigure({
   globals,
   pane,
   focused,
-  reference,
+  region,
   size,
-  missing,
   body,
 }: {
   globals: Globals;
   pane: any;
   focused: boolean;
-  reference?: Reference;
+  region?: Region;
   size?: { w: number; h: number };
-  missing?: string;
   body: (ctx: NodeContext) => React.ReactElement;
 }) {
-  const { w, h } = sizeOf(reference, size ?? { w: 80, h: 21 });
+  const { w, h } = sizeOf(region, size ?? { w: 80, h: 21 });
   return (
     <Compare
       globals={globals}
       cols={w}
       rows={h}
-      reference={reference}
-      missing={missing}
       ink={<InPane pane={pane} width={w} height={h} focused={focused} body={body} />}
     />
   );

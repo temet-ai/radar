@@ -15,6 +15,7 @@ import { frameOf } from "../../src/chrome/Chrome.js";
 import { applyLook, currentLook, defaultLook, slotStyle } from "../../src/text/look.js";
 import { parseAnsi, type TCell } from "../nodes/ansi.js";
 import { booksChrome } from "../chrome/fixture.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
 // ui::hover::paint (shell.rs hover): what a click would act on is lit with bg.hover, over the finished buffer. Ink lit it
 // in the components, from a hover state in App: every pointer move to another row was a whole-app React render and every
@@ -196,8 +197,9 @@ describe("the chrome under the pointer", () => {
   });
 });
 
-// Ratatui's styled buffer with the pointer on a tree row (tests/ratatui_cells.rs, scene highlight_hovered-row): the
-// whole App draws the same view data, the pointer is moved to the same cell, and the row is compared cell for cell.
+// The styled buffer with the pointer on a tree row (ink/test/cells, scene highlight_hovered-row; first drawn by Ratatui,
+// now Ink's golden, rewritten from Ink by INK_UPDATE_GOLDENS=1): the whole App draws the same view data, the pointer is
+// moved to the same cell, and the row is compared cell for cell.
 interface RatCell {
   ch?: string;
   fg?: string;
@@ -208,7 +210,7 @@ describe("the hovered tree row against Ratatui's cells", () => {
   for (const size of ["80x24", "160x40"]) {
     it(`is lit as Ratatui lights it at ${size}`, async () => {
       const file = path.resolve(here, `../cells/highlight_hovered-row-${size}.json`);
-      expect(fs.existsSync(file), `${file} is written by tests/ratatui_cells.rs`).toBe(true);
+      expect(fs.existsSync(file), `${file} is a committed golden`).toBe(true);
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as {
         canvas: { bg: string };
         colours: Record<string, { hex: string }>;
@@ -225,7 +227,7 @@ describe("the hovered tree row against Ratatui's cells", () => {
       await tick(60);
       const text = (cells: Array<{ ch?: string }>) => cells.map((c) => (c.ch === undefined || c.ch === "" ? " " : c.ch)).join("");
       const at = scene.view.pointer;
-      const want = scene.rows[at.y]!;
+      let want = scene.rows[at.y]!;
       // the host chrome's rows above the body differ from the scene's, so Ink's row is found by its text
       const iy = parseAnsi(m.frame()).findIndex((r) => text(r).trimEnd() === text(want).trimEnd());
       expect(iy, "Ink drew the row").toBeGreaterThan(-1);
@@ -233,6 +235,12 @@ describe("the hovered tree row against Ratatui's cells", () => {
       m.type(move(at.x, iy));
       await until(() => m.frame() !== plain);
       const got = row(m.frame(), iy);
+      if (updatingGoldens()) {
+        // the golden is Ink's frame with the pointer on the row where Ink drew it
+        scene.view.pointer = { x: at.x, y: iy };
+        adoptInkFrame(file, scene as unknown as SceneFile, parseAnsi(m.frame()));
+        want = scene.rows[iy]!;
+      }
       const hex = (n: string | undefined) => (scene.colours[(n ?? scene.canvas.bg).split("/")[0]!]?.hex ?? currentLook().slots[(n ?? scene.canvas.bg).split("/")[0]!])?.toLowerCase();
       const canvas = hex(scene.canvas.bg);
       const bad: string[] = [];

@@ -54,15 +54,6 @@
   color: #555;
 }
 
-.radar-compare .radar-missing {
-  font-size: 12px;
-  max-width: 48ch;
-  padding: 8px 12px;
-  border: 1px dashed #999;
-  color: #444;
-}
-
 @media (prefers-color-scheme: dark) {
   .radar-compare figcaption { color: #aaa; }
-  .radar-compare .radar-missing { color: #bbb; border-color: #666; }
 }

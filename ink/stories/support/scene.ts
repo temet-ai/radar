@@ -1,4 +1,4 @@
-// Finding a component's place on Ratatui's screen, and Ratatui's text recordings as cells.
+// Finding a component's place on a recorded screen, and text recordings as cells.
 import { charWidth } from "../../src/chrome/width";
 import type { Cell } from "./CellGrid";
 import type { Crop } from "./Compare";
@@ -26,14 +26,14 @@ export function paneRect(cells: Cell[][], title: string, n = 0): Crop | undefine
   return undefined;
 }
 
-/** Where the body starts on a Ratatui screen: under the top bar, and under the sources row when the screen has one
+/** Where the body starts on a recorded screen: under the top bar, and under the sources row when the screen has one
  * (the demo host's GitLab screens do; the recorded host_chrome fixture has none). */
 export function bodyTopOf(cells: Cell[][]): number {
   const second = rowText(cells[1] ?? []);
   return /^\s+GitLab\s+GitHub/.test(second) ? 2 : 1;
 }
 
-/** A text recording (Ratatui's screen as text: tests/snapshots/mix__*.snap after the second `---`, or the
+/** A text recording (a screen as text: tests/snapshots/mix__*.snap after the second `---`, or the
  * ink/test/fixtures/diff/*.txt files) as cells with no style. */
 export function textCells(text: string): Cell[][] {
   return text.split("\n").map((line) => {

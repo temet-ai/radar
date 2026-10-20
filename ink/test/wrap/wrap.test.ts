@@ -1,4 +1,4 @@
-// wrap.ts against what Ratatui's radar-core wraps (ui::rich::wrap for documents, ui::wrap_words for Wrapped blocks).
+// wrap.ts (documents: wrapDoc; Wrapped blocks: wrapWords) against its cases, and against the goldens at the foot.
 import { describe, expect, it } from "vitest";
 import { textPieces, trimPieces, wrapDoc, wrapPieces, wrapWords } from "../../src/text/wrap.js";
 
@@ -66,16 +66,25 @@ describe("wrapWords (ui::wrap_words)", () => {
   });
 });
 
-// Cases Ratatui's own wrap produced (tests/wrap_goldens.rs writes the file): wrap.ts must equal them all.
-import { readFileSync } from "node:fs";
+// The golden cases (ink/test/fixtures/wrap/golden.json, first produced by Ratatui's wrap, now Ink's own): wrap.ts must
+// equal them all. INK_UPDATE_GOLDENS=1 rewrites each case's `lines` from wrap.ts for the text and width it holds.
+import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { sortedJson, updatingGoldens } from "../support/goldens.js";
 type Golden = { fn: "rich" | "words"; text: string; room?: number; width?: number; prefix?: number; lines: string[] };
-const golden: Golden[] = JSON.parse(readFileSync(new URL("../fixtures/wrap/golden.json", import.meta.url), "utf8"));
-describe("Ratatui goldens", () => {
+const goldenFile = fileURLToPath(new URL("../fixtures/wrap/golden.json", import.meta.url));
+const golden: Golden[] = JSON.parse(readFileSync(goldenFile, "utf8"));
+const wrapped = (g: Golden) => (g.fn === "rich" ? wrapDoc(g.text, g.room!) : wrapWords(g.text, g.width!, g.prefix ?? 0));
+if (updatingGoldens()) {
+  for (const g of golden) g.lines = wrapped(g);
+  writeFileSync(goldenFile, sortedJson(golden));
+}
+describe("wrap goldens", () => {
+  it("there are cases", () => expect(golden.length).toBeGreaterThan(10));
   for (const g of golden) {
     const name = `${g.fn} ${JSON.stringify(g.text)} @ ${g.room ?? g.width}${g.prefix ? ` prefix ${g.prefix}` : ""}`;
     it(name, () => {
-      const got = g.fn === "rich" ? wrapDoc(g.text, g.room!) : wrapWords(g.text, g.width!, g.prefix ?? 0);
-      expect(got).toEqual(g.lines);
+      expect(wrapped(g)).toEqual(g.lines);
     });
   }
 });

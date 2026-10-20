@@ -2,9 +2,9 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PageBody } from "../../src/app/Panes";
 import { shellRenderNode } from "../../src/app/Body";
-import { Compare, fromScene } from "../support/Compare";
+import { Compare } from "../support/Compare";
 import { type Globals } from "../support/stories";
-import { sceneCells, type RatatuiScene } from "../support/ratatui";
+import { sceneCells, type GoldenScene } from "../support/golden";
 import { bodyTopOf } from "../support/scene";
 import page80 from "../../test/fixtures/gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_80x24.json";
 import page80Cells from "../../test/cells/gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket-80x24.json";
@@ -13,13 +13,13 @@ import page160Cells from "../../test/cells/gitlab_repos-page1-overview-changes-t
 
 type Args = React.ComponentProps<typeof PageBody>;
 
-/** The page's body on Ratatui's screen: under the top bar and the sources row, above the status line. */
-const pageBodyOf = (scene: RatatuiScene) => {
+/** The page's body on the recorded screen: under the top bar and the sources row, above the status line. */
+const pageBodyOf = (scene: GoldenScene) => {
   const top = bodyTopOf(sceneCells(scene));
   return { top, width: scene.width, height: scene.height - top - 1 };
 };
 
-const argsOf = (view: any, scene: RatatuiScene, tabsFocused = false): Args => {
+const argsOf = (view: any, scene: GoldenScene, tabsFocused = false): Args => {
   const body = pageBodyOf(scene);
   return {
     page: view.page,
@@ -31,22 +31,19 @@ const argsOf = (view: any, scene: RatatuiScene, tabsFocused = false): Args => {
   };
 };
 
-function Draw({ args, globals, scene, reference, missing }: { args: Args; globals: Globals; scene: RatatuiScene; reference: boolean; missing?: string }) {
-  const body = pageBodyOf(scene);
+function Draw({ args, globals }: { args: Args; globals: Globals }) {
   return (
     <Compare
       globals={globals}
       cols={args.width}
       rows={args.height}
-      reference={reference ? fromScene(scene, { crop: { x: 0, y: body.top, w: body.width, h: body.height } }) : undefined}
-      missing={missing}
       ink={<PageBody {...args} />}
     />
   );
 }
 
-const s80 = page80Cells as RatatuiScene;
-const s160 = page160Cells as RatatuiScene;
+const s80 = page80Cells as GoldenScene;
+const s160 = page160Cells as GoldenScene;
 
 /**
  * An item's page (`PageView`, Ratatui `ui::page::PageFrame` via `render_page`; Ink app/Panes.tsx `PageBody`,
@@ -66,7 +63,7 @@ const meta = {
   title: "Page/PageBody",
   component: PageBody,
   args: argsOf(page80, s80),
-  render: (args, { globals }) => <Draw args={args} globals={globals} scene={s80} reference={true} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 } satisfies Meta<typeof PageBody>;
 
 export default meta;
@@ -78,11 +75,11 @@ export const Overview: Story = {};
 /** The same page at 160x40: "can it merge?" beside the overview. */
 export const Wide: Story = {
   args: argsOf(page160, s160),
-  render: (args, { globals }) => <Draw args={args} globals={globals} scene={s160} reference={true} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 };
 
 /** The tab row has the keys (`keys_at: page_tabs`): the chosen tab on the focused shade. */
 export const TabsFocused: Story = {
   args: argsOf(page80, s80, true),
-  render: (args, { globals }) => <Draw args={args} globals={globals} scene={s80} reference={false} missing={"tests/ratatui_cells.rs records no page with its tab row focused."} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 };

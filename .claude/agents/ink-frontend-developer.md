@@ -19,12 +19,12 @@ You work in radar's Ink renderer, `ink/`. The Rust host owns all state and sends
 | What | File | Written by |
 |---|---|---|
 | view data per surface, 80x24 and 160x40 | ink/test/fixtures/*.json | tests/view_fixtures.rs |
-| Ratatui's styled cells | ink/test/cells/ (absent until written) | tests/ratatui_cells.rs |
-| intents per chord and click | ink/test/input/ratatui-intents.json | radar-core view_tui/tests.rs |
+| styled cells, motion frames, wrap cases | ink/test/cells/, ink/test/fixtures/motion, ink/test/fixtures/wrap | Ink's own goldens, frozen; `INK_UPDATE_GOLDENS=1 npx vitest run test/<file>` rewrites them from Ink (ink/test/cells/README.md) |
+| intents per chord and click | ink/test/input/intents.json | Ink's own golden; same variable, test/input/intents.test.ts |
 | protocol types (never edit) | ink/src/protocol/generated/ | radar-core ipc/tests.rs |
 | text recordings | tests/snapshots/mix__*.snap, body after the second `---` | tests/mix.rs |
 
-When one is missing or stale, ask the Rust side to rewrite it; never hand-write one.
+When view data or a protocol type is missing or stale, ask the Rust side to rewrite it; never hand-write one. A golden moves only by rewriting it from Ink and reading the diff.
 
 ## Commands (in ink/)
 

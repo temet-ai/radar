@@ -11,14 +11,16 @@ import { parseAnsi, type TCell } from "../nodes/ansi.js";
 import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 import { bottomFieldRow, fieldRows, FIELD_ROWS } from "../../src/chrome/filter.js";
 import type { ChromeView } from "../../src/chrome/types.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
 /**
  * T25: the `/` filter box. In Ratatui a pane with a `FieldBar` in `pane.fields` draws, under its title, the mark
  * ` / `, the typed text on bg.overlay with the caret cell reversed, a hint row and a blank row. Ink drew none.
- * ink/test/cells/highlight_typing-filter-<w>x<h>.json is Ratatui's styled buffer for the repos screen after `/`
- * `g` `g` (written by tests/ratatui_cells.rs); the whole App draws the same view data and the three rows of the
- * field are compared cell for cell (character, colours, bold, reversed). Its matching host chrome is required:
- * the source-tab row determines the pane height and therefore its focused border's perimeter samples.
+ * ink/test/cells/highlight_typing-filter-<w>x<h>.json is the styled buffer of the repos screen after `/` `g` `g`
+ * (first drawn by Ratatui, now Ink's golden: INK_UPDATE_GOLDENS=1 rewrites it from Ink); the whole App draws the same
+ * view data and the three rows of the field are compared cell for cell (character, colours, bold, reversed). Its
+ * matching host chrome is required: the source-tab row determines the pane height and therefore its focused border's
+ * perimeter samples.
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const cellsDir = path.resolve(here, "../cells");
@@ -53,7 +55,7 @@ describe("the '/' filter box", () => {
   for (const size of ["80x24", "160x40"]) {
     const file = path.join(cellsDir, `highlight_typing-filter-${size}.json`);
     it(`Ink's field rows equal Ratatui's cells at ${size}`, async () => {
-      expect(fs.existsSync(file), `${file} is written by tests/ratatui_cells.rs (scene highlight_typing-filter)`).toBe(true);
+      expect(fs.existsSync(file), `${file} is a committed golden (scene highlight_typing-filter)`).toBe(true);
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
       applyLook(defaultLook("off"));
       const [cols, rows] = size.split("x").map(Number) as [number, number];
@@ -64,8 +66,9 @@ describe("the '/' filter box", () => {
       m.snapshot({ chrome: scene.view.chrome, screen: scene.view.screen, focus: "middle" }, 1);
       await tick(60);
       const ink = parseAnsi(m.frame());
+      if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, ink);
 
-      // Ratatui's row of the bar: the one with the mark ` / ` and the typed text.
+      // The golden's row of the bar: the one with the mark ` / ` and the typed text.
       const at = scene.rows.findIndex((r) => rowText(r).includes(" / gg"));
       expect(at, "Ratatui drew the typed filter").toBeGreaterThan(-1);
       const inkAt = ink.findIndex((r) => rowText(r).includes(" / gg"));

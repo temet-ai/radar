@@ -10,6 +10,7 @@ import { frameOf } from "../../src/chrome/Chrome.js";
 import type { ChromeView } from "../../src/chrome/types.js";
 import { applyHostLook, applyLook, currentLook, defaultLook, type HostLook } from "../../src/text/look.js";
 import type { Tree, TreeRow } from "../../src/nodes/view.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
 interface RatCell { ch?: string; fg?: string; bg?: string; mods?: string[] }
 interface Scene {
@@ -29,12 +30,12 @@ const modifiers = { bold: "bold", dim: "dim", italic: "italic", underline: "unde
 let cleanup: Array<() => void> = [];
 afterEach(() => { cleanup.forEach((stop) => stop()); cleanup = []; applyLook(defaultLook()); });
 
-/** Replay the producer's exact selected/folded view, never a synthetic tree or an Ink-generated reference. */
+/** Replay the golden's exact selected/folded view; INK_UPDATE_GOLDENS=1 rewrites its cells from Ink. */
 describe("a folded tree against actual native cells", () => {
   for (const [width, height] of [[80, 24], [160, 40]] as const) {
     it(`${width}x${height}: held count, semantic colours, modifiers and every blank ground`, async () => {
       const file = path.join(cellsDir, `highlight_folded-row-${width}x${height}.json`);
-      expect(fs.existsSync(file), `tests/ratatui_cells.rs must supply the reviewed native capture ${file}`).toBe(true);
+      expect(fs.existsSync(file), `the committed golden ${file} is missing`).toBe(true);
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
       expect([scene.scene, scene.width, scene.height]).toEqual(["highlight_folded-row", width, height]);
       expect(scene.view.look, "use the captured host look").toBeDefined();
@@ -61,6 +62,12 @@ describe("a folded tree against actual native cells", () => {
       const marker = `⋯ ${descendants}`;
 
       applyHostLook(scene.view.look);
+      const m = mount(width, height); cleanup.push(m.stop);
+      m.welcome();
+      m.snapshot({ screen: scene.view.screen, chrome: scene.view.chrome, focus: scene.view.focus }, 1);
+      await until(() => parseAnsi(m.frame()).some((row) => textOf(row).includes(marker)));
+      const actual = parseAnsi(m.frame());
+      if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, actual);
       const frame = frameOf(scene.view.chrome, null, width, height);
       const titleRow = scene.rows[frame.bodyTop]!;
       const borders = titleRow.flatMap((cell, x) => cell.ch === "╭" ? [x] : []);
@@ -74,11 +81,6 @@ describe("a folded tree against actual native cells", () => {
       const nativeMarkerY = scene.rows.findIndex((row) => textOf(row.slice(left! + 1, right)).includes(marker));
       expect(nativeMarkerY, "the native row paints the entire held-descendant count").toBeGreaterThan(frame.bodyTop);
 
-      const m = mount(width, height); cleanup.push(m.stop);
-      m.welcome();
-      m.snapshot({ screen: scene.view.screen, chrome: scene.view.chrome, focus: scene.view.focus }, 1);
-      await until(() => parseAnsi(m.frame()).some((row) => textOf(row).includes(marker)));
-      const actual = parseAnsi(m.frame());
       expect(textOf(actual[nativeMarkerY]?.slice(left! + 1, right) ?? [])).toContain(marker);
       const colour = (name: string | undefined, fallback: string) => {
         const n = name ?? fallback;

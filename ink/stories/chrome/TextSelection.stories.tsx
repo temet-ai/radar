@@ -4,26 +4,26 @@ import { PaneFrame } from "../../src/app/Panes";
 import { shellRenderNode } from "../../src/app/Body";
 import { paintSelection } from "../../src/app/selected";
 import type { Selection } from "../../src/input/selection";
-import { Compare, fromScene, type Reference } from "../support/Compare";
+import { Compare, regionOf, type Region } from "../support/Compare";
 import { paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import selection80Cells from "../../test/cells/highlight_selection-80x24.json";
 import selection160Cells from "../../test/cells/highlight_selection-160x40.json";
 
 type Args = React.ComponentProps<typeof PaneFrame>;
 type Pt = { x: number; y: number };
-/** The `selection` a scene records beside its view (tests/ratatui_cells.rs): the press, the pointer and the pane's
+/** The `selection` a scene records beside its view (ink/test/cells): the press, the pointer and the pane's
  * inside the drag is bound to, in screen cells. */
 type Recorded = { anchor: Pt; head: Pt; bound: Pt & { width: number; height: number } };
 
-const sceneOf = (cells: unknown) => cells as RatatuiScene;
-const recordedOf = (scene: RatatuiScene) => (scene.view as { selection: Recorded }).selection;
+const sceneOf = (cells: unknown) => cells as GoldenScene;
+const recordedOf = (scene: GoldenScene) => (scene.view as { selection: Recorded }).selection;
 
 /** The scene's pane the drag was made in: the one whose inside is the recorded bound (the log on the item page at
  * 80x24, the detail pane at 160x40). */
-const paneTitleOf = (scene: RatatuiScene): string => {
+const paneTitleOf = (scene: GoldenScene): string => {
   const { bound } = recordedOf(scene);
-  const probe = (title: string) => fromScene(scene, { pane: title }).crop;
+  const probe = (title: string) => regionOf(scene, { pane: title }).crop;
   const screen = scene.view!.screen as any;
   const titles: string[] = [...(screen.panes ?? []), ...(screen.page?.panes ?? [])].map((p: any) => p.title);
   const found = titles.find((t) => {
@@ -34,16 +34,16 @@ const paneTitleOf = (scene: RatatuiScene): string => {
   return found;
 };
 
-/** Ratatui's picture of the scene's pane, and the selection in that crop's own cells. */
-function pictureOf(scene: RatatuiScene): { reference: Reference; selection: Selection; title: string } {
+/** The scene's pane, and the selection in that crop's own cells. */
+function pictureOf(scene: GoldenScene): { region: Region; selection: Selection; title: string } {
   const title = paneTitleOf(scene);
-  const reference = fromScene(scene, { pane: title });
-  const crop = reference.crop!;
+  const region = regionOf(scene, { pane: title });
+  const crop = region.crop!;
   const r = recordedOf(scene);
   const local = (p: Pt): Pt => ({ x: p.x - crop.x, y: p.y - crop.y });
   return {
     title,
-    reference,
+    region,
     selection: {
       area: { id: `pane:${title}`, kind: "text", x: r.bound.x - crop.x, y: r.bound.y - crop.y, w: r.bound.width, h: r.bound.height },
       anchor: local(r.anchor),
@@ -52,28 +52,22 @@ function pictureOf(scene: RatatuiScene): { reference: Reference; selection: Sele
   };
 }
 
-const argsOf = (scene: RatatuiScene, focused: boolean): Args => {
-  const { title, reference } = pictureOf(scene);
-  const { w, h } = reference.crop!;
+const argsOf = (scene: GoldenScene, focused: boolean): Args => {
+  const { title, region } = pictureOf(scene);
+  const { w, h } = region.crop!;
   const pane = paneOf(scene.view!.screen, title);
   return { pane, width: w, height: h, focused, cx: { width: w, height: h, actions: [], focused }, renderNode: shellRenderNode };
 };
 
 /** The pane drawn by Ink with the selection painted over its finished frame, as the renderer does (app/selected.ts),
- * beside Ratatui's cells (`select::paint`). */
-function Draw({ args, globals, scene, mono }: { args: Args; globals: Globals; scene: RatatuiScene; mono?: boolean }) {
-  const { reference, selection } = pictureOf(scene);
+ * (at the mono tier the selected cells are reversed, with the cells' own colours kept). */
+function Draw({ args, globals, scene }: { args: Args; globals: Globals; scene: GoldenScene }) {
+  const { selection } = pictureOf(scene);
   return (
     <Compare
       globals={globals}
       cols={args.width}
       rows={args.height}
-      reference={mono ? undefined : reference}
-      missing={
-        mono
-          ? "tests/ratatui_cells.rs records its scenes at the truecolour tier only. Ratatui's mono rule is select::style: the selected cells REVERSED, with the cells' own colours kept; a `highlight_selection` scene at the mono tier would give the picture."
-          : undefined
-      }
       paint={(frame) => paintSelection(frame, args.width, selection)}
       ink={<PaneFrame {...args} />}
     />
@@ -102,10 +96,10 @@ const scene160 = sceneOf(selection160Cells);
  * above and below the drag, the cells before the press and after the pointer) are never selected. While a drag selects,
  * the status line names the key for the terminal's own selection.
  *
- * **Reference gap:** the scene records the drag (`view.selection`) but not which pane has the keys. The border colour
+ * **Data gap:** the scene records the drag (`view.selection`) but not which pane has the keys. The border colour
  * says: the log's is the accent (the keys), the detail pane's `accent.muted` (not), so the stories draw them so.
  * `test/app/selection-cells.test.tsx` makes the same drag in the whole App and compares every body cell's selection
- * background with these cells.
+ * background with the scene's cells.
  */
 const meta = {
   title: "Chrome/TextSelection",
@@ -130,12 +124,12 @@ export const Wide: Story = {
 /** The mono tier, where `bg.selection` has no colour: the selected cells are reversed. */
 export const Mono: Story = {
   globals: { tier: "mono" },
-  render: (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: "mono" }} scene={scene80} mono />,
+  render: (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: "mono" }} scene={scene80} />,
 };
 
 /** The mono tier at 160x40. */
 export const MonoWide: Story = {
   globals: { tier: "mono" },
   args: argsOf(scene160, false),
-  render: (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: "mono" }} scene={scene160} mono />,
+  render: (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: "mono" }} scene={scene160} />,
 };

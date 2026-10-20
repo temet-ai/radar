@@ -38,9 +38,7 @@ function Draw({ args, globals }: { args: Args; globals: Globals }) {
       globals={globals}
       cols={args.cols}
       rows={args.rows}
-      ink={<Dock data={args.recorded.dock} width={args.cols} height={args.rows} groups={args.groups} />}
-      missing="Ratatui does not draw the dock: it draws one line in its place, 'the agent dock needs the Ink renderer' (the plan's recorded exception)."
-    />
+      ink={<Dock data={args.recorded.dock} width={args.cols} height={args.rows} groups={args.groups} />}    />
   );
 }
 

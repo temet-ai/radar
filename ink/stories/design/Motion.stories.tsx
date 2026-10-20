@@ -2,7 +2,7 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { card } from "./Board";
 import { Row, ShippedLabel, Target } from "./parts";
-import { MotionReference, MotionReplay, InteractionReplay } from "./MotionReplay";
+import { MotionReplay, InteractionReplay } from "./MotionReplay";
 import { NoticeDrainReplay } from "./NoticeReplay";
 import type { Cue } from "../../src/motion/engine";
 
@@ -18,7 +18,6 @@ function Shipped({ args, base, cue, what }: { args: Args; base: string; cue?: Cu
       <ShippedLabel what={what} />
       <Row>
         <MotionReplay name={`${base}-start`} speed={args.speed} cue={cue} />
-        <MotionReference base={base} />
       </Row>
     </div>
   );
@@ -26,11 +25,10 @@ function Shipped({ args, base, cue, what }: { args: Args; base: string; cue?: Cu
 
 /**
  * Motion (board 07). **Shipped effects run for real:** each story drives Ink's own Engine (src/motion/engine.ts, the
- * effects in effects.ts) over the real shell frame, marks and cue of a Rust motion fixture
- * (ink/test/fixtures/motion, written by tests/motion_cells.rs), frame by frame every 30 ms, then pauses and runs again;
- * Ratatui's cells at the start, middle and end of the same effect sit beside it.
+ * effects in effects.ts) over the real shell frame, marks and cue of a motion golden
+ * (ink/test/fixtures/motion), frame by frame every 30 ms, then pauses and runs again.
  *
- * Fold open/reverse close and focus lap/drain run the production integer cell compositor against Rust fixtures.
+ * Fold open/reverse close and focus lap/drain run the production integer cell compositor over recorded frames.
  * Notice drain runs production row layout with a controlled clock. Assemble/loading outlines (#42) remain canvas targets.
  *
  * `speed`: real time, or four times slower to watch an effect. Motion never delays a key; any key cancels it; it is

@@ -18,7 +18,7 @@ Ink/React (`ink/`, the default). Read this file first; it points to the rest.
 | Agent providers: Copilot (Rust SDK), Codex (App Server), Claude Agent (Agent SDK sidecar in `sidecars/claude-agent`; the SDK is fetched on first use), any CLI in a PTY tab | `crates/radar-sessions-copilot`, `radar-sessions-codex`, `radar-sessions-claude`, `radar-sessions-pty` |
 | How radar frames context for an agent, and the recipes it sends with it | `agents/briefing.md` (instructions), `agents/recipes/` (one file per recipe, versioned; `README.md` lists them) |
 | The Claude Agent SDK sidecar: its Node source, tests and README | `sidecars/claude-agent` (`src`, `test`, `README.md`) |
-| Component docs (source of truth): each Ink component drawn from recorded view data beside Ratatui's picture, its states and rules | Storybook in `ink/` (`ink/stories`, `ink/.storybook`); MCP at `http://localhost:6016/mcp` while it runs; the manifest committed at `docs/storybook/components.json` |
+| Component docs (source of truth): each Ink component drawn from recorded view data, its states and rules | Storybook in `ink/` (`ink/stories`, `ink/.storybook`); MCP at `http://localhost:6016/mcp` while it runs; the manifest committed at `docs/storybook/components.json` |
 
 ## Build and test
 

@@ -2,9 +2,9 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TreeNode } from "../../src/nodes/tree";
 import type { Tree } from "../../src/protocol/generated/Tree";
-import { fromScene } from "../support/Compare";
+import { regionOf } from "../support/Compare";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import repos80 from "../../test/fixtures/gitlab_repos_80x24.json";
 import repos160 from "../../test/fixtures/gitlab_repos_160x40.json";
 import repos80Cells from "../../test/cells/gitlab_repos-80x24.json";
@@ -21,15 +21,14 @@ const foldedPane = paneOf(foldedCells.view.screen, "Everything");
 
 type Args = React.ComponentProps<typeof TreeNode>;
 
-function Figure({ args, globals, pane, scene, missing }: { args: Args; globals: Globals; pane: any; scene: RatatuiScene | undefined; missing?: string }) {
+function Figure({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: GoldenScene | undefined }) {
   return (
     <PaneFigure
       globals={globals}
       pane={pane}
       focused={args.ctx.focused}
-      reference={scene ? fromScene(scene, { pane: pane.title }) : undefined}
+      region={scene ? regionOf(scene, { pane: pane.title }) : undefined}
       size={{ w: 56, h: 21 }}
-      missing={missing}
       body={(ctx) => <TreeNode tree={args.tree} ctx={{ ...ctx, focused: args.ctx.focused }} />}
     />
   );
@@ -62,7 +61,7 @@ const meta = {
   title: "Nodes/TreeNode",
   component: TreeNode,
   args: { tree: tree80, ctx: { width: 54, height: 19, focused: true } },
-  render: (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={repos80Cells as RatatuiScene} />,
+  render: (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={repos80Cells as GoldenScene} />,
 } satisfies Meta<typeof TreeNode>;
 
 export default meta;
@@ -74,17 +73,17 @@ export const Open: Story = {};
 /** The same tree at 160x40: the columns the 80-cell pane dropped come back, aligned at every depth. */
 export const Wide: Story = {
   args: { tree: pane160.body as Tree, ctx: { width: 0, height: 0, focused: true } },
-  render: (args, { globals }) => <Figure args={args} globals={globals} pane={pane160} scene={repos160Cells as RatatuiScene} />,
+  render: (args, { globals }) => <Figure args={args} globals={globals} pane={pane160} scene={repos160Cells as GoldenScene} />,
 };
 
 /** A loaded group folded by the host: `⋯ 2` counts its child and nested descendant, both still held in the view. */
 export const Folded: Story = {
   args: { tree: foldedPane.body as Tree },
-  render: (args, { globals }) => <Figure args={args} globals={globals} pane={foldedPane} scene={foldedCells as RatatuiScene} />,
+  render: (args, { globals }) => <Figure args={args} globals={globals} pane={foldedPane} scene={foldedCells as GoldenScene} />,
 };
 
 /** The nav pane has the keys: the tree's selected row keeps a quieter selection background, the frame is muted. */
 export const Unfocused: Story = {
   args: { ctx: { width: 54, height: 19, focused: false } },
-  render: (args, { globals }) => <Figure args={args} globals={globals} pane={paneOf((navFocusCells as RatatuiScene).view!.screen, "Everything")} scene={navFocusCells as RatatuiScene} />,
+  render: (args, { globals }) => <Figure args={args} globals={globals} pane={paneOf((navFocusCells as GoldenScene).view!.screen, "Everything")} scene={navFocusCells as GoldenScene} />,
 };

@@ -12,7 +12,7 @@ import { TabRow } from "../../src/app/TabRow";
 import { bgOf } from "../../src/text/look";
 import { BodyWithMenu, InPane, StatusLine, TopRows } from "../support/frames";
 import { paneOf } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import tickets160 from "../../test/fixtures/jira_tickets_160x40.json";
 import chrome80 from "../../test/fixtures/host_chrome_80x24.json";
 import chrome160 from "../../test/fixtures/host_chrome_160x40.json";
@@ -131,7 +131,7 @@ function PageTabs() {
  * how many match. */
 export const Fields: Story = {
   render: (_args, { globals }) => {
-    const pane = paneOf((typing80Cells as RatatuiScene).view!.screen, "Everything");
+    const pane = paneOf((typing80Cells as GoldenScene).view!.screen, "Everything");
     return (
       <Row>
         <Today globals={globals} cols={56} rows={8} caption="The field bar in its pane (highlight_typing-filter-80x24)">
@@ -162,7 +162,7 @@ export const People: Story = {
  * question exists); the target underlines each button's key in its label, one primary per box. */
 export const Buttons: Story = {
   render: (_args, { globals }) => {
-    const scene = menu80Cells as RatatuiScene;
+    const scene = menu80Cells as GoldenScene;
     return (
       <Row>
         <Today globals={globals} cols={80} rows={21} caption="MenuBox with a question (ink/test/chrome/fixture.ts confirm)">

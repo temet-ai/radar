@@ -3,10 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { RailRows } from "../../src/chrome/Chrome";
 import { layoutRail } from "../../src/chrome/rail";
 import type { RailStop } from "../../src/protocol/generated/RailStop";
-import { Compare, fromText } from "../support/Compare";
+import { Compare } from "../support/Compare";
 import { type Globals } from "../support/stories";
-import rail80Snap from "../../../crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_80.snap?raw";
-import rail160Snap from "../../../crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_160.snap?raw";
 
 type Args = React.ComponentProps<typeof RailRows>;
 
@@ -29,13 +27,12 @@ const STOPS: RailStop[] = [
   stop(5, "tour?", "upcoming", "asked at the end"),
 ];
 
-function Draw({ globals, width, snap, source }: { globals: Globals; width: number; snap: string; source: string }) {
+function Draw({ globals, width }: { globals: Globals; width: number }) {
   return (
     <Compare
       globals={globals}
       cols={width}
       rows={2}
-      reference={fromText(snap, source, { snap: true })}
       ink={<RailRows rail={layoutRail(STOPS, width)} />}
     />
   );
@@ -57,17 +54,14 @@ function Draw({ globals, width, snap, source }: { globals: Globals; width: numbe
  * a label is cut to its stop's room in display cells with an ellipsis, never padded; a stop with no room for its words
  * draws nothing and is not a target. No chevrons, no left-edge stripes.
  *
- * The story draws `layoutRail` (chrome/rail.ts) through `RailRows` (chrome/Chrome.tsx). The reference is the insta
- * text of the radar-core test (`ui/tests.rs rail_80`, `rail_160`): text only, so the colours are read from rail.rs in
+ * The story draws `layoutRail` (chrome/rail.ts) through `RailRows` (chrome/Chrome.tsx); the colours are asserted in
  * test/chrome/rail.test.ts.
  */
 const meta = {
   title: "Chrome/StepRail",
   component: RailRows,
   args: { rail: layoutRail(STOPS, 80) },
-  render: (_args, { globals }) => (
-    <Draw globals={globals} width={80} snap={rail80Snap} source="crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_80.snap" />
-  ),
+  render: (_args, { globals }) => <Draw globals={globals} width={80} />,
 } satisfies Meta<typeof RailRows>;
 
 export default meta;
@@ -79,7 +73,5 @@ export const Narrow: Story = {};
 /** At 160 wide each stop has room for its words; the long name is cut once. */
 export const Wide: Story = {
   args: { rail: layoutRail(STOPS, 160) },
-  render: (_args, { globals }) => (
-    <Draw globals={globals} width={160} snap={rail160Snap} source="crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_160.snap" />
-  ),
+  render: (_args, { globals }) => <Draw globals={globals} width={160} />,
 };

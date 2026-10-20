@@ -9,9 +9,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mount, tick, until } from "./harness.js";
 import { applyHostLook, applyLook, defaultLook, type HostLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
-// Ratatui's styled buffer with text selected by a drag across two rows (tests/ratatui_cells.rs, scene
-// highlight_selection; select::paint on bg.selection): from the press to the pane's right edge, then from its left edge
+// The styled buffer with text selected by a drag across two rows (ink/test/cells, scene highlight_selection, on
+// bg.selection; first drawn by Ratatui, now Ink's golden, rewritten from Ink by INK_UPDATE_GOLDENS=1): from the press
+// to the pane's right edge, then from its left edge
 // to the pointer. The whole App draws the same view data, the same drag is made with the mouse, and every cell of the
 // body is compared for being on bg.selection: the selected cells, the cells beside the pane (its border and
 // scrollbar), the rows above and below the drag, and the cells before the press and after the pointer.
@@ -37,7 +39,8 @@ const mouse = (code: number, p: Pt, up = false) => `\x1b[<${code};${p.x + 1};${p
 describe("a drag across two rows of text against Ratatui's cells", () => {
   for (const size of ["80x24", "160x40"]) {
     it(`selects the same cells at ${size}`, async () => {
-      const scene = JSON.parse(fs.readFileSync(path.resolve(here, `../cells/highlight_selection-${size}.json`), "utf8")) as Scene;
+      const file = path.resolve(here, `../cells/highlight_selection-${size}.json`);
+      const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
       applyHostLook(scene.view.look);
       const [cols, rowsN] = size.split("x").map(Number) as [number, number];
       const chrome = scene.view.chrome;
@@ -61,8 +64,15 @@ describe("a drag across two rows of text against Ratatui's cells", () => {
       m.type(mouse(32, at(head)));
       await until(() => m.frame() !== plain);
       const got = parseAnsi(m.frame());
+      if (updatingGoldens()) {
+        // the golden is Ink's frame with the drag made, and the drag's cells where Ink drew the pane; the next run compares
+        const moved = (p: Pt) => ({ x: p.x, y: p.y + dy });
+        scene.view.selection = { anchor: moved(anchor), head: moved(head), bound: { ...bound, y: bound.y + dy } };
+        adoptInkFrame(file, scene as unknown as SceneFile, got);
+        return;
+      }
 
-      const rat = (n: string | undefined) => (scene.colours[n ?? ""]?.hex ?? "").toLowerCase();
+      const rat =(n: string | undefined) => (scene.colours[n ?? ""]?.hex ?? "").toLowerCase();
       const ratSelected = (x: number, y: number) => (scene.rows[y]![x]!.bg ?? "").split("/").includes("bg.selection");
       const inkSelected = (x: number, y: number) => got[y + dy]?.[x]?.bg?.toLowerCase() === SELECTION;
       expect(scene.colours["bg.selection"]!.hex.toLowerCase()).toBe(SELECTION);

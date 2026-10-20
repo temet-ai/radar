@@ -2,12 +2,12 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MenuBox, frameOf } from "../../src/chrome/Chrome";
 import type { ChromeView, MenuView } from "../../src/chrome/types";
-import { Compare, fromScene } from "../support/Compare";
+import { Compare } from "../support/Compare";
 import { BodyWithMenu } from "../support/frames";
 import { bodyTopOf } from "../support/scene";
-import { sceneCells } from "../support/ratatui";
+import { sceneCells } from "../support/golden";
 import { type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import chrome80 from "../../test/fixtures/host_chrome_80x24.json";
 import chrome160 from "../../test/fixtures/host_chrome_160x40.json";
 import menu80Cells from "../../test/cells/highlight_menu-80x24.json";
@@ -15,17 +15,16 @@ import menu160Cells from "../../test/cells/highlight_menu-160x40.json";
 import { confirm } from "../../test/chrome/fixture";
 
 type Args = React.ComponentProps<typeof MenuBox>;
-const scene80 = menu80Cells as RatatuiScene;
-const scene160 = menu160Cells as RatatuiScene;
+const scene80 = menu80Cells as GoldenScene;
+const scene160 = menu160Cells as GoldenScene;
 
 const argsOf = (c: unknown, menu: unknown): Args => {
   const chrome = c as ChromeView;
   return { menu: menu as MenuView, frame: frameOf(chrome, menu as MenuView, chrome.width, chrome.height) };
 };
 
-/** `geometry` is the Ratatui screen the body is measured on (its body rows under the top bar and sources row); it is
- * shown beside the story only when `reference` is set. */
-function Draw({ args, globals, c, screen, geometry, reference, missing }: { args: Args; globals: Globals; c: unknown; screen: unknown; geometry: RatatuiScene; reference: boolean; missing?: string }) {
+/** `geometry` is the recorded screen the body is measured on (its body rows under the top bar and sources row). */
+function Draw({ args, globals, c, screen, geometry }: { args: Args; globals: Globals; c: unknown; screen: unknown; geometry: GoldenScene }) {
   const chrome = c as ChromeView;
   const top = bodyTopOf(sceneCells(geometry));
   const height = geometry.height - top - 1;
@@ -34,8 +33,6 @@ function Draw({ args, globals, c, screen, geometry, reference, missing }: { args
       globals={globals}
       cols={chrome.width}
       rows={height}
-      reference={reference ? fromScene(geometry, { crop: { x: 0, y: top, w: chrome.width, h: height } }) : undefined}
-      missing={missing}
       ink={<BodyWithMenu chrome={chrome} screen={screen} menu={args.menu} width={chrome.width} bodyHeight={height} />}
     />
   );
@@ -64,7 +61,7 @@ const meta = {
   title: "Chrome/MenuBox",
   component: MenuBox,
   args: argsOf(chrome80, scene80.view!.menu),
-  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} reference={true} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />,
 } satisfies Meta<typeof MenuBox>;
 
 export default meta;
@@ -72,10 +69,9 @@ type Story = StoryObj<typeof meta>;
 
 /** The Repositories screen's actions menu (`x`) at 80x24 (`highlight_menu`).
  *
- * **Reference gap:** the scene's recorded `view.menu` is not the whole MenuView Ratatui drew: it has no `selected`
- * (Ratatui highlights `/ filter`, Ink the first row) and no keys for "go to its repositories" (`⏎`) and "kept
- * comments" (`ctrl-r`), and the focused pane is not recorded. tests/ratatui_cells.rs would need to write the full
- * MenuView and the focus for the two pictures to be comparable cell for cell. */
+ * **Data gap:** the scene's recorded `view.menu` is not the whole MenuView the host sent: it has no `selected` (Ink
+ * highlights the first row) and no keys for "go to its repositories" (`⏎`) and "kept comments" (`ctrl-r`), and the
+ * focused pane is not recorded. */
 export const Menu: Story = {};
 
 /** The command-search variant at 160x40, using the existing wide-menu story. The view is an explicit illustrative
@@ -90,12 +86,12 @@ export const Wide: Story = {
       { value: "restore", label: "Restore session", hint: "last session", keys: "", target: "chrome:menu:2" },
     ],
   } satisfies MenuView),
-  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={false} missing="Illustrative palette data; a recorded palette scene is needed for the Ratatui comparison." />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />,
 };
 
 /** A question before a write: a note, then two buttons. The data is Ink's hand-made test sample
  * (ink/test/chrome/fixture.ts `confirm`): no recorded view holds a question. */
 export const Question: Story = {
   args: argsOf(chrome80, confirm),
-  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} reference={false} missing={"no recorded view holds a question. A `highlight_question` scene in tests/ratatui_cells.rs (a write's confirm open over a screen, with its view) would give the data and the reference."} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />,
 };

@@ -2,10 +2,8 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { NodeView } from "../../src/nodes/index";
 import type { Node } from "../../src/nodes/view";
-import { fromText } from "../support/Compare";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
 import actions160 from "../../test/fixtures/reference/mix__gitlab+github+jira+slack+git+workspace+workbench+sessions_row_actions_160x40.json";
-import actions160Snap from "../../../tests/snapshots/mix__gitlab+github+jira+slack+git+workspace+workbench+sessions_row_actions_160x40.snap?raw";
 
 type Args = React.ComponentProps<typeof NodeView>;
 const pane = paneOf(actions160.screen, "api !263");
@@ -25,7 +23,7 @@ const pane = paneOf(actions160.screen, "api !263");
  *
  * **Data gap:** every recorded view (ink/test/fixtures) carries `"stages": []`, so this story shows the real detail
  * pane where the meter sits, with an empty bar. A surface with stages (a merge request page's Pipeline tab) recorded by
- * tests/view_fixtures.rs and tests/ratatui_cells.rs would give both renderers' pictures of a filled bar.
+ * tests/view_fixtures.rs would give a filled bar.
  *
  * The story's `node` is the whole rich node of the pane, as the host sent it.
  */
@@ -39,7 +37,7 @@ const meta = {
         globals={globals}
         pane={pane}
         focused={args.ctx.focused}
-        reference={fromText(actions160Snap, "tests/snapshots/mix__gitlab+github+jira+slack+git+workspace+workbench_row_actions_160x40.snap", { snap: true, pane: "api !263" })}
+        size={{ w: 160, h: 40 }}
         body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}
       />
     );

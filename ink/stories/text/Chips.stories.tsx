@@ -3,9 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Box } from "ink";
 import { TextLine } from "../../src/text/TextLine";
 import type { Seg } from "../../src/nodes/view";
-import { Compare, type Reference } from "../support/Compare";
-import type { Cell } from "../support/CellGrid";
-import { canvasOf } from "../support/look";
+import { Compare } from "../support/Compare";
 import { type Globals } from "../support/stories";
 import tickets160 from "../../test/fixtures/jira_tickets_160x40.json";
 import discussed from "../../test/fixtures/chips/jira-discussed.ratatui.json";
@@ -30,12 +28,8 @@ const chip = recorded.find((s) => s.chip)!;
 const TONES = ["plain", "muted", "accent", "info", "good", "warn", "bad"] as const;
 const everyTone: Seg[] = TONES.flatMap((ink) => [{ ...chip, ink, text: ink, link: null }, { text: " " }]);
 
-/** Ratatui's cells for the same chip, captured from the real radar (operator data, operator theme: other RGB, same
- * slots), as `[char, fg, bg]`. */
-const discussedRef = (): Reference => {
-  const row: Cell[] = (discussed.cells as Array<[string, string | null, string | null]>).map(([ch, fg, bg]) => ({ ch, fg: fg ?? undefined, bg: bg ?? undefined }));
-  return { cells: [row], canvas: canvasOf("truecolor"), source: "ink/test/fixtures/chips/jira-discussed.ratatui.json", styled: true, note: discussed.source };
-};
+/** The width of the recorded `discussed · 1` chip in cells (ink/test/fixtures/chips/jira-discussed.ratatui.json). */
+const discussedWidth = discussed.cells.length;
 
 /**
  * A chip (`Seg.chip`, Ratatui `widgets::chip` and `ui::chips::chip_spans`): a short label after a row's name, on the
@@ -55,15 +49,13 @@ const meta = {
   component: TextLine,
   args: { text: recorded },
   render: function Render(args: Args, { globals }: { globals: Globals }) {
-    const ref = discussedRef();
     return (
       <Compare
         globals={globals}
-        cols={ref.cells[0]!.length}
+        cols={discussedWidth}
         rows={1}
-        reference={ref}
         ink={
-          <Box width={ref.cells[0]!.length}>
+          <Box width={discussedWidth}>
             <TextLine text={args.text.filter((s) => s.chip)} />
           </Box>
         }
@@ -75,12 +67,12 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The chip on Jira ABC-12 (`discussed · 1`, muted, the thread icon), beside Ratatui's cells for the same chip. Turn
- * the icons on in the toolbar to see the icon slot. */
+/** The chip on Jira ABC-12 (`discussed · 1`, muted, the thread icon). Turn the icons on in the toolbar to see the icon
+ * slot. */
 export const Recorded: Story = {};
 
-/** The recorded chip in each of the seven tones, with its words replaced by the tone's name. No recorded reference
- * has more than the muted chip. */
+/** The recorded chip in each of the seven tones, with its words replaced by the tone's name (the recorded views carry
+ * only the muted chip). */
 export const EveryTone: Story = {
   args: { text: everyTone },
   render: function Render(args, { globals }) {
@@ -88,9 +80,7 @@ export const EveryTone: Story = {
       <Compare
         globals={globals}
         cols={110}
-        rows={1}
-        missing="the recorded views carry only the muted chip; a row with a chip in every tone recorded by tests/ratatui_cells.rs would give one."
-        ink={
+        rows={1}        ink={
           <Box width={110}>
             <TextLine text={args.text} />
           </Box>

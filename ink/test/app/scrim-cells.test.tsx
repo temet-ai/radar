@@ -10,10 +10,12 @@ import { mount, tick } from "./harness.js";
 import { applyLook, currentLook, defaultLook } from "../../src/text/look.js";
 import { parseAnsi } from "../nodes/ansi.js";
 import type { MenuView } from "../../src/chrome/types.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
-// Ratatui's styled buffer with a menu up (tests/ratatui_cells.rs, scene highlight_menu): the screen behind dims and the
-// menu throws a one-cell shadow (ui::scrim). The whole App draws the same view data with the same menu, and the body's
-// cells are compared colour for colour, the shadow's glyphs too.
+// The styled buffer with a menu up (ink/test/cells, scene highlight_menu; first drawn by Ratatui, now Ink's golden,
+// rewritten from Ink by INK_UPDATE_GOLDENS=1): the screen behind dims and the menu throws a one-cell shadow. The whole
+// App draws the same view data with the same menu, and the body's cells are compared colour for colour, the shadow's
+// glyphs too.
 const here = path.dirname(fileURLToPath(import.meta.url));
 interface RatCell {
   ch?: string;
@@ -50,13 +52,14 @@ afterEach(() => {
 describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
   for (const size of ["80x24", "160x40"]) {
     it(`dims and shades as Ratatui does at ${size}`, async () => {
-      const scene = JSON.parse(fs.readFileSync(path.resolve(here, `../cells/highlight_menu-${size}.json`), "utf8")) as {
+      const file = path.resolve(here, `../cells/highlight_menu-${size}.json`);
+      const scene = JSON.parse(fs.readFileSync(file, "utf8")) as {
         canvas: { fg: string; bg: string };
         colours: Record<string, { hex: string }>;
         view: { screen: any; menu: any };
         rows: RatCell[][];
       };
-      applyLook(defaultLook("off")); // tests/ratatui_cells.rs captures this scene with icons off
+      applyLook(defaultLook("off")); // the scene was captured with icons off
       const [cols, rowsN] = size.split("x").map(Number) as [number, number];
       const chrome = JSON.parse(fs.readFileSync(path.resolve(here, `../fixtures/host_chrome_${size}.json`), "utf8"));
       const m = mount(cols, rowsN);
@@ -68,6 +71,7 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
       m.snapshot({ chrome: { ...chrome, sources, menu: scene.view.menu }, screen: scene.view.screen, focus: "nav" }, 1);
       await tick(60);
       const got = parseAnsi(m.frame());
+      if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, got);
       const hex = (n: string | undefined, dflt: string) => {
         const name = (n ?? dflt).split("/")[0]!;
         return (scene.colours[name]?.hex ?? currentLook().slots[name])?.toLowerCase();
@@ -119,7 +123,8 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
       expect(shaded, "cells under both shadows compared").toBeGreaterThan(20);
     });
     it(`draws the native menu's mnemonic words, styles and geometry at ${size}`, async () => {
-      const scene = JSON.parse(fs.readFileSync(path.resolve(here, `../cells/highlight_menu-${size}.json`), "utf8")) as MenuScene;
+      const file = path.resolve(here, `../cells/highlight_menu-${size}.json`);
+      const scene = JSON.parse(fs.readFileSync(file, "utf8")) as MenuScene;
       expect(scene.view.menu.items.some((item) => item.mnemonic_at != null), "capture embeds the complete host MenuView, including mnemonics").toBe(true);
       applyLook(defaultLook("off")); // match the native capture, including its complete menu payload
       const [cols, rowsN] = size.split("x").map(Number) as [number, number];
@@ -131,7 +136,8 @@ describe("the scrim and shadow behind a menu against Ratatui's cells", () => {
       m.snapshot({ chrome: { ...chrome, sources, menu: scene.view.menu }, screen: scene.view.screen, focus: "nav" }, 1);
       await tick(60);
       const got = parseAnsi(m.frame());
-      const ink = menuBox(got, scene.view.menu.title), rat = menuBox(scene.rows, scene.view.menu.title);
+      if (updatingGoldens()) adoptInkFrame(file, scene as unknown as SceneFile, got);
+      const ink = menuBox(got, scene.view.menu.title), rat =menuBox(scene.rows, scene.view.menu.title);
       expect(rat.x).toBeGreaterThanOrEqual(0);
       expect(rat.w).toBeGreaterThan(2);
       expect(rat.h).toBeGreaterThan(2);

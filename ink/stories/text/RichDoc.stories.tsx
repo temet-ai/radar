@@ -3,9 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { RichBlocks } from "../../src/text/RichDoc";
 import { NodeView } from "../../src/nodes/index";
 import type { RichBlock } from "../../src/protocol/generated/RichBlock";
-import { fromScene } from "../support/Compare";
+import { regionOf } from "../support/Compare";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import ticket80 from "../../test/fixtures/jira_tickets-page1-overview-comments-links_80x24.json";
 import ticket80Cells from "../../test/cells/jira_tickets-page1-overview-comments-links-80x24.json";
 import ticket160 from "../../test/fixtures/jira_tickets-page1-overview-comments-links_160x40.json";
@@ -17,7 +17,7 @@ const argsOf = (pane: any): Args => ({ blocks: pane.body.blocks[docIndex(pane)].
 
 /** The pane's whole rich node, its doc block holding the story's blocks: the blocks go the way radar draws them
  * (NodeView, then BlockView, then RichBlocks). */
-function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: RatatuiScene }) {
+function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: GoldenScene }) {
   const i = docIndex(pane);
   const node = { ...pane.body, blocks: pane.body.blocks.map((b: any, j: number) => (j === i ? { ...b, doc: args.blocks } : b)) };
   return (
@@ -25,7 +25,7 @@ function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; 
       globals={globals}
       pane={pane}
       focused
-      reference={fromScene(scene, { pane: pane.title })}
+      region={regionOf(scene, { pane: pane.title })}
       body={(ctx) => <NodeView node={node} ctx={ctx} />}
     />
   );
@@ -52,7 +52,7 @@ const meta = {
   title: "Text/RichDoc",
   component: RichBlocks,
   args: argsOf(pane80),
-  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={ticket80Cells as RatatuiScene} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={ticket80Cells as GoldenScene} />,
 } satisfies Meta<typeof RichBlocks>;
 
 export default meta;
@@ -64,5 +64,5 @@ export const TicketDescription: Story = {};
 /** The same at 160x40. */
 export const Wide: Story = {
   args: argsOf(pane160),
-  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={ticket160Cells as RatatuiScene} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={ticket160Cells as GoldenScene} />,
 };

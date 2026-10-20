@@ -163,7 +163,9 @@ impl Gallery {
                     }
                 }
                 5 => {
-                    self.log.key(&self.log_text, &key);
+                    if let Some(chord) = crate::key_compat::chord_of(&key) {
+                        self.log.key(&self.log_text, chord);
+                    }
                 }
                 6 => {
                     self.markdown.key(&key);
@@ -176,7 +178,9 @@ impl Gallery {
                         self.diff.previous_hunk(&self.diff_lines);
                     }
                     _ => {
-                        self.diff.key(&key, self.diff_lines.len());
+                        if let Some(chord) = crate::key_compat::chord_of(&key) {
+                            self.diff.key(chord, self.diff_lines.len());
+                        }
                     }
                 },
                 _ => {}

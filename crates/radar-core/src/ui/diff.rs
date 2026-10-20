@@ -705,16 +705,16 @@ mod tests {
         let lines = parse(SAMPLE);
         let s = DiffState::new();
         let key = |c| Chord::new(c);
-        assert!(s.key(&key(Key::Down), lines.len()));
+        assert!(s.key(key(Key::Down), lines.len()));
         assert_eq!(s.cursor(), 1);
         assert!(s.next_hunk(&lines));
         assert_eq!(s.cursor(), 13);
         assert!(!s.next_hunk(&lines), "none after the last");
         assert!(s.previous_hunk(&lines));
         assert_eq!(s.cursor(), 0);
-        assert!(s.key(&key(Key::Char('G')), lines.len()));
+        assert!(s.key(key(Key::Char('G')), lines.len()));
         assert_eq!(s.cursor(), lines.len() - 1);
-        assert!(!s.key(&key(Key::Char('x')), lines.len()));
+        assert!(!s.key(key(Key::Char('x')), lines.len()));
     }
 
     #[test]
@@ -751,16 +751,16 @@ mod tests {
         let s = DiffState::new();
         let key = |c| Chord::new(c);
         s.set(2);
-        assert!(s.key_split(&key(Key::Down), &lines));
+        assert!(s.key_split(key(Key::Down), &lines));
         assert_eq!(s.cursor(), 4, "the new side of the paired row");
-        assert!(s.key_split(&key(Key::Down), &lines));
+        assert!(s.key_split(key(Key::Down), &lines));
         assert_eq!(s.cursor(), 5);
         s.set(3);
-        assert!(s.key_split(&key(Key::Up), &lines));
+        assert!(s.key_split(key(Key::Up), &lines));
         assert_eq!(s.cursor(), 2);
         s.set(0);
-        assert!(!s.key_split(&key(Key::Up), &lines), "↑ on the first row is the host's");
-        assert!(!s.key(&key(Key::Up), lines.len()), "and on the first line");
+        assert!(!s.key_split(key(Key::Up), &lines), "↑ on the first row is the host's");
+        assert!(!s.key(key(Key::Up), lines.len()), "and on the first line");
         // Drawn: both sides of a paired row, a click target each, and the
         // numbers of each.
         let t = Theme::new(crate::design::theme::Tier::Mono);

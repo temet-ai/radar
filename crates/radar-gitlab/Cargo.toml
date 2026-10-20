@@ -16,7 +16,6 @@ reqwest.workspace = true
 tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tui-tree-widget.workspace = true
 toml.workspace = true
 
 # Sample data for `radar shot` (Plugin::demo); the tests always have it.

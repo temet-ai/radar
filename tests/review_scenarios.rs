@@ -51,7 +51,7 @@ query($project: ID!, $iid: String!) {
         approvedBy { nodes { username } }
         headPipeline { status path duration stages { nodes { name status } } }
         resolvableDiscussionsCount resolvedDiscussionsCount
-        notes(filter: ONLY_COMMENTS, last: 1) { nodes { body createdAt author { username name } } }
+        notes(filter: ONLY_COMMENTS, last: 1) { nodes { url body createdAt author { username name } } }
         diffStatsSummary { additions deletions fileCount }
         project { name fullPath }
         state mergedAt closedAt

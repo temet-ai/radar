@@ -1,6 +1,5 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 1419
 expression: text
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
@@ -40,6 +39,6 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
-│                                                                                               info api !270 added to the review ask                          │
+│                                                                                                                        info api !270 added to the review ask │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 4 for you  slack

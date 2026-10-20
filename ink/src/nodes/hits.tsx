@@ -223,7 +223,8 @@ export function HitRegion({
     if ((node.node !== "tree" && node.node !== "state") || motion.engine.level === "off" || !ref.current) return;
     const at = screenRect(ref.current);
     if (!at || !Object.values(at).every(Number.isSafeInteger) || at.w <= 0 || at.h <= 0) return;
-    const m = nodeMarks(node, at.x, at.y, at.w, at.h, win);
+    // A waiting panel is marked over the body's whole room, as view_tui marks its inner area, not only its words.
+    const m = nodeMarks(node, at.x, at.y, at.w, Math.max(at.h, ctx.height ?? 0), win);
     motion.markNode(markId, m.rows, m.loading, scene);
     if (scene && pane && !pane.startsWith("work:") && motion.engine.level === "full") motion.markTree(markId, scene, treeMark(node, pane, at.x, at.y, ctx.width, ctx.height ?? at.h, win));
   });

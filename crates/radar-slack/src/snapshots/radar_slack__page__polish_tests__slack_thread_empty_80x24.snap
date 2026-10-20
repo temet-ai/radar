@@ -1,6 +1,5 @@
 ---
 source: crates/radar-slack/src/page_polish_tests.rs
-assertion_line: 168
 expression: empty
 ---
  radar    Slack ●   History   Settings (,)    synced 40s ago · every 2m  ✎ edit
@@ -24,6 +23,6 @@ expression: empty
 │                                                                              │
 │                                                                              │
 │                                                                              │
-│               info already reading this thread                               │
+│                                             info already reading this thread │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices              slack

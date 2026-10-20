@@ -40,7 +40,7 @@ function expand(rows: Run[][], width: number, height: number): Grid {
 const rect = ([x = 0, y = 0, w = 0, h = 0]: number[]) => ({ x, y, w, h });
 afterEach(() => applyLook(defaultLook()));
 describe("actual Rust notice cells", () => {
-  it("keeps the reviewed native capture matrix complete", () => expect(fixtures).toHaveLength(19));
+  it("keeps the reviewed native capture matrix complete", () => expect(fixtures).toHaveLength(21));
   it.each(fixtures.map((f) => [f.name, f] as const))("matches every glyph, ground, modifier and wide tail: %s", (_name, f) => {
     expect(f.format).toBe(1); applyHostLook(f.look); const actual = expand(f.before, f.width, f.height);
     if (f.history) {

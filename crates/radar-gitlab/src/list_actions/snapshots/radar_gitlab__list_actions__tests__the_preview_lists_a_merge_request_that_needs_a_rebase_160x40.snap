@@ -1,6 +1,5 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
-assertion_line: 539
 expression: "shown(p, 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
@@ -25,10 +24,10 @@ expression: "shown(p, 160, 40)"
 │                        ││                                                                                    ││   1 file  +10 −2                             │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││ THREADS  2, 1 open ───────────────────────── │
-│                        ││                                                                                    ││   │ Bob Example · 1h ago                     │
-│                        ││                                                                                    ││   │ Should this read from the cached view?   │
-│                        ││                                                                                    ││   │ The dashboard polls every 30s.           │
-│                        ││                                                                                    ││                                              │
+│                        ││                                                                                    ││    BE  Bob Example · 1h ago                  │
+│                        ││                                                                                    ││   ↗ comment on !410 in GitLab                │
+│                        ││                                                                                    ││   Should this read from the cached view?     │
+│                        ││                                                                                    ││   The dashboard polls every 30s.             │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │
 │                        ││                                                                                    ││                                              │

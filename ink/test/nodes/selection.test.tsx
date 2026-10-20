@@ -39,15 +39,11 @@ describe("the selected row", () => {
     expect(rows[0]!.some((c) => c.bg === SELECTION)).toBe(false);
     expect(rows[2]!.some((c) => c.bg === SELECTION)).toBe(false);
   });
-  it("is bold white where the pane has the keys, text.secondary and not bold where it has not", () => {
+  it("is bold white on the selection where the pane has the keys, and on the quiet overlay where it has not", () => {
     const on = cellsAt(list, 30, true)[1]![1]!;
-    expect([on.fg, on.bold]).toEqual(["#ffffff", true]);
+    expect([on.fg, on.bold, on.bg]).toEqual(["#ffffff", true, SELECTION]);
     const off = cellsAt(list, 30, false)[1]![1]!;
-    expect([off.fg, off.bold, off.bg]).toEqual([
-      "#e9d5ff",
-      undefined,
-      SELECTION,
-    ]);
+    expect([off.fg, off.bold, off.bg]).toEqual(["#ffffff", true, "#1a162a"]);
   });
   it("adds no marker column: the row's text starts where an unselected row's does", () => {
     const rows = cellsAt(list, 30).map((r) => r.map((c) => c.ch).join(""));

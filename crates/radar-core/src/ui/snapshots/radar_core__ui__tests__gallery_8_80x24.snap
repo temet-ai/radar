@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1312
 expression: "gallery_text(80, 24, tab)"
 ---
  Gallery / Motion
@@ -19,11 +18,11 @@ expression: "gallery_text(80, 24, tab)"
 ╭ motion ──────────────────────────────────────────────────────────────────────╮
 │ level  full  everything: also pages, new rows, messages and loading          │
 │                                                                              │
-│  a screen switch: the body fades in  · subtle                                │
-│  a menu or confirm sweeps open (again: closes)  · subtle                     │
+│  a screen switch: it builds from its panels (subtle: fades in)  · subtle     │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭ waiting ─────────────────────────────────────────────────────────────────────╮
 │ Nothing to wait for.                                                         │
+│                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
  [ ] tabs  screen  menu  glow  page  new  toast  load  effects  colours  quit

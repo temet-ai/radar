@@ -53,7 +53,9 @@ impl Host {
     }
 
     /// Run before the host's left/right pane switch, after menus, capture and
-    /// top-bar/tab dispatch. A tree keeps left/right at its boundaries; Up/k still reach the bar.
+    /// top-bar/tab dispatch. A tree keeps left/right at its boundaries on a
+    /// screen; on an item page they go on to the pane or tab beside. Up/k
+    /// still reach the bar.
     pub(super) fn shared_tree_key(&mut self, key: KeyEvent) -> Option<Vec<HostEffect>> {
         let chord = crate::view_tui::chord_of(&key)?;
         if !crate::view::tree_key(chord)
@@ -93,6 +95,12 @@ impl Host {
         }
         let tree = self.focused_tree()?;
         let intent = crate::view::tree_step(&tree, chord);
+        // On an item page a left/right the tree has no use for goes on to
+        // the pane or tab beside (the tab row is how the page is walked); on
+        // a screen it stays, rather than leave for the screen beside.
+        if intent.is_none() && matches!(chord.key, Key::Left | Key::Right) && self.page_tabs().is_some() {
+            return None;
+        }
         if self.view == View::Settings && self.focus == Pane::Nav {
             if let Some(intent) = intent {
                 self.settings_tree_intent(&intent);

@@ -15,7 +15,14 @@
 // does not offer it), so the class patched is the one Ink instantiates.
 import Output from "ink-output";
 import chalk from "chalk";
-import { charWidth } from "../chrome/width.js";
+import { charWidth, graphemeCells } from "../chrome/width.js";
+
+const ZWJ = 0x200d;
+/** The cells a cell takes once `ch` (zero width: a variation selector, keycap, mark or joiner) joins it: `⚠` is one cell
+ * and `⚠` + U+FE0F two, as the layout (chrome/width.ts) and the terminal count it. Counting it as one left a row a cell
+ * wider on screen than in the grid; a full-width row then wrapped, the frame scrolled a line and every row the
+ * incremental write did not touch stayed a line too high. */
+const joinedCells = (cell: string, w: number) => Math.max(w, graphemeCells(cell));
 
 type RadarRows = {
   cols: number[];
@@ -286,9 +293,16 @@ function decode(text: string, base: Sgr, rowsOf: RadarRows[] | undefined): Decod
     i += len;
     if (cp < 0x20 || cp === 0x7f) continue;
     const w = charWidth(cp);
-    if (w === 0) {
-      // A combining mark or joiner: part of the cell before it (and dropped with it where a clip cuts that cell).
-      if (prev) line.ch[line.ch.length - 1] += String.fromCodePoint(cp);
+    const last = line.ch.length - 1;
+    if (w === 0 || (prev && line.ch[last]!.codePointAt(line.ch[last]!.length - 1) === ZWJ)) {
+      // A combining mark, variation selector or joiner, or what a joiner joins: part of the cell before it (and dropped
+      // with it where a clip cuts that cell), which may now take more cells.
+      if (prev) {
+        line.ch[last] += String.fromCodePoint(cp);
+        const cells = joinedCells(line.ch[last]!, line.w[last]!);
+        col += cells - line.w[last]!;
+        line.w[last] = cells;
+      }
       continue;
     }
     put(len === 2 ? String.fromCodePoint(cp) : text[i - 1]!, w);
@@ -520,8 +534,16 @@ function parseRow(line: string, width: number): { chars: string[]; sty: Int32Arr
     i += len;
     if (cp < 0x20 || cp === 0x7f) continue;
     const w = charWidth(cp);
-    if (w === 0) {
-      if (prev >= 0) chars[prev] += ch;
+    if (w === 0 || (prev >= 0 && chars[prev]!.codePointAt(chars[prev]!.length - 1) === ZWJ)) {
+      if (prev >= 0) {
+        chars[prev] += ch;
+        const cells = Math.min(joinedCells(chars[prev]!, x - prev), width - prev);
+        for (let k = x; k < prev + cells; k++) {
+          chars[k] = "";
+          sty[k] = sty[prev]!;
+        }
+        x = Math.max(x, prev + cells);
+      }
       continue;
     }
     if (x + w > width) break;

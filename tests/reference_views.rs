@@ -101,6 +101,10 @@ fn same_everywhere() {
                 unsafe { std::env::remove_var(&name) };
             }
         }
+        // Recipe rows show fixed samples, as in `tests/mix.rs`: raising a
+        // shipped recipe's version changes no recording.
+        // SAFETY: as above.
+        unsafe { std::env::set_var("RADAR_SAMPLE_RECIPES", "1") };
         let empty = std::env::temp_dir().join(format!("radar-reference-views-{}", std::process::id()));
         std::fs::create_dir_all(&empty).expect("a scratch folder");
         std::env::set_current_dir(&empty).expect("into the scratch folder");

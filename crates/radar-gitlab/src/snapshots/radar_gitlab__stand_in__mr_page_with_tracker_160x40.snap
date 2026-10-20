@@ -1,6 +1,5 @@
 ---
 source: crates/radar-gitlab/src/stand_in.rs
-assertion_line: 262
 expression: text
 ---
  radar    Repositories ●   Tickets   History   Settings (,)                                                                            ⠷ not synced yet  ✎ edit
@@ -17,8 +16,8 @@ expression: text
 │ Review · Add a stats endpoint for the dashboard                                                                          ││ ✓ not a draft                    │
 │                                                                                                                          ││                                  │
 │ LATEST ACTIVITY                                                                                                          ││ for you: waiting for your review │
-│ │ Bob Example · 1h ago                                                                                                   ││                                  │
-│ │ Should this read from the cached view? The dashboard polls every 30s.                                                  ││                                  │
+│  BE  Bob Example · 1h ago                                                                                                ││                                  │
+│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │

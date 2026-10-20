@@ -6,7 +6,7 @@
 // Ratatui writes into a buffer, each write patching the style of the cells under it; so does this: a grid of cells, and
 // the rows read off it as runs of one style.
 
-import { charWidth, cellWidth, fit } from "./width.js";
+import { cellWidth, clusters, fit } from "./width.js";
 import { bgOf, iconOf, slotStyle, type Style } from "../text/look.js";
 import { patch } from "../text/cells.js";
 import type { RailStop } from "../protocol/generated/RailStop.js";
@@ -47,8 +47,7 @@ function mark(stop: RailStop): { glyph: string; style: Style } {
  * next cell too, and what would cross the right edge is left out. */
 function put(row: Grid, ground: Style, x: number, text: string, style: Style) {
   let at = x;
-  for (const ch of text) {
-    const w = charWidth(ch.codePointAt(0)!);
+  for (const [ch, w] of clusters(text)) {
     if (w === 0) {
       const prev = row[at - 1];
       if (prev && prev.ch !== "") prev.ch += ch;

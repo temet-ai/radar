@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
  Gallery / Notices
@@ -10,7 +9,7 @@ expression: "gallery_text(160, 40, tab)"
 │                                                                              ││                                                                             │
 │                                                                              ││                                                                             │
 │                                                                              ││                                                                             │
-│               info Copied the Watch link                                     ││              info Copied the Watch link                                     │
+│                                                   info Copied the Watch link ││                                                  info Copied the Watch link │
 │               error The Watch request failed. Try again when the connection… ││              error The Watch request failed. Try again when the connection… │
 ╰──────────────────────────────────────────────────────────────────────────────╯╰─────────────────────────────────────────────────────────────────────────────╯
 ╭ recent notices · session only ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮

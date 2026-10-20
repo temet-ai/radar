@@ -69,6 +69,7 @@ fn native_notice_cells() {
     for (width, height) in [(80, 24), (160, 40)] {
         for (name, now_ms, motion, history) in [
             ("start", 1000, true, false),
+            ("entering", 1060, true, false),
             ("partial", 2500, true, false),
             ("motion-off", 2500, false, false),
             ("expired", 11_000, true, false),
@@ -202,7 +203,7 @@ fn native_notice_cells() {
             omitted,
         });
     }
-    assert_eq!(cases.len(), 19);
+    assert_eq!(cases.len(), 21);
     let destination = std::env::var_os("RADAR_NOTICE_CELLS_DIR").map(std::path::PathBuf::from);
     if let Some(dir) = &destination {
         std::fs::create_dir_all(dir).unwrap();
@@ -301,7 +302,7 @@ fn native_notice_cells() {
             history(&theme, view, body, &mut buf);
             Stack::default()
         } else {
-            let stack = layout(&entries, case.hidden, content, case.now_ms, case.motion);
+            let stack = layout(&theme, &entries, case.hidden, content, case.now_ms, case.motion);
             paint(&stack, &theme, &mut buf);
             stack
         };

@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1328
 expression: "gallery_styles(160, 40, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Tree" fg:text.secondary bold
@@ -8,7 +7,7 @@ expression: "gallery_styles(160, 40, tab)"
 02 _1 | "[Tree]" fg:accent.primary/glow.purple bold | "  Table  Card  Meters  Rows & states  En…" fg:text.secondary
 03 "╭" fg:accent.primary/glow.purple bg:bg.surface | " shelves " fg:text.emphasis bg:bg.surface bold | "────────────────────────────────────────…" fg:accent.primary/glow.purple bg:bg.surface
 04 "│" fg:accent.primary/glow.purple bg:bg.surface | " HELD BY " fg:text.muted bg:bg.surface bold | "everyone" fg:text.secondary bg:bg.surface | _91 bg:bg.surface | "STATE     LABEL     OWNER       SIZE    …" fg:text.muted bg:bg.surface bold | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
-05 "│" fg:accent.primary/glow.purple bg:bg.surface | "A " fg:accent.primary/glow.purple bg:bg.selection bold | "north-wing" fg:text.emphasis bg:bg.selection bold | _146 bg:bg.selection | "│" fg:accent.primary/glow.purple bg:bg.surface
+05 "│" fg:accent.primary/glow.purple bg:bg.surface | "A " fg:accent.primary/glow.purple bg:bg.selection bold | "north-wing" fg:text.emphasis bg:bg.selection bold | _146 bg:bg.selection bold | "│" fg:accent.primary/glow.purple bg:bg.surface
 06 "│" fg:accent.primary/glow.purple bg:bg.surface | _2 bg:bg.surface | "├─ " fg:text.muted bg:bg.surface | "atlases" bg:bg.surface bold | "  in the east room" fg:text.muted bg:bg.surface | _78 bg:bg.surface | "1 item    " fg:data.number bg:bg.surface | _22 bg:bg.surface | "12 kB   " fg:data.number bg:bg.surface | "4d       " fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
 07 "│" fg:accent.primary/glow.purple bg:bg.surface | _2 bg:bg.surface | "│" fg:text.muted bg:bg.surface | _1 bg:bg.surface | " └─ " fg:text.muted bg:bg.surface | "#104 " fg:accent.secondary/glow.cyan bg:bg.surface | "sort the atlas box by decade" bg:bg.surface | "  Alice E." fg:text.muted bg:bg.surface | _57 bg:bg.surface | "● sorting " fg:status.info bg:bg.surface | "#maps     " fg:accent.tertiary bg:bg.surface | "Alice E.    " fg:text.secondary bg:bg.surface | _8 bg:bg.surface | "16m      " fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface
 08 "│" fg:accent.primary/glow.purple bg:bg.surface | _2 bg:bg.overlay | "├─ " fg:text.muted bg:bg.overlay | "maps" bg:bg.overlay bold | "  in the east room" fg:text.muted bg:bg.overlay | _81 bg:bg.overlay | "2 items   " fg:data.number bg:bg.overlay | _22 bg:bg.overlay | "24 kB   " fg:data.number bg:bg.overlay | "4d       " fg:text.muted bg:bg.overlay | _1 bg:bg.surface | "│" fg:accent.primary/glow.purple bg:bg.surface

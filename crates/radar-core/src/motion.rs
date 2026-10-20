@@ -25,6 +25,8 @@
 
 pub mod transition;
 pub mod frames;
+pub mod assemble;
+pub mod outline;
 mod interaction;
 
 use std::cell::{Cell as StdCell, RefCell};
@@ -293,7 +295,7 @@ pub const MESSAGE_GONE_MS: u32 = 200;
 pub const GLOW_MS: u32 = 450;
 pub const ADDED_MS: u32 = 320;
 /// One pass of the loading shimmer; it repeats while the panel waits.
-pub const SHIMMER_MS: u32 = 1400;
+pub const SHIMMER_MS: u32 = outline::WAVE_MS;
 /// How often the runner redraws while an effect runs.
 pub const FRAME: Duration = Duration::from_millis(30);
 /// A frame slower than this to draw, three times in a row while effects
@@ -449,6 +451,8 @@ impl Engine {
         let ink = Ink::of(theme);
         let ease = Interpolation::QuadOut;
         match cue {
+            // At full a new screen builds from its parts; subtle keeps the fade.
+            Cue::Screen if self.level == Level::Full => self.replace(Target::Body, assemble()),
             Cue::Screen => {
                 // The terminal's own text colour is read as tachyonfx reads a
                 // Reset foreground, as the fade does for each cell.
@@ -582,6 +586,20 @@ fn cells(buf: &Buffer, area: Rect) -> Vec<Cell> {
     area.positions().map(|p| buf[p].clone()).collect()
 }
 
+/// The screen-assemble moment over the body ([`assemble::apply`]), on the effect's own clock.
+fn assemble() -> Fx {
+    fx::effect_fn((), (assemble::ASSEMBLE_MS, Interpolation::Linear), |_, ctx, cells| {
+        let area = ctx.area;
+        let elapsed = (ctx.alpha() * assemble::ASSEMBLE_MS as f32).round() as u32;
+        let mut cells: Vec<_> = cells.collect();
+        let mut drawn: Vec<Cell> = cells.iter().map(|(_, cell)| (**cell).clone()).collect();
+        assemble::apply(&mut drawn, area, elapsed);
+        for ((_, cell), now) in cells.iter_mut().zip(drawn) {
+            **cell = now;
+        }
+    })
+}
+
 /// A background pulse in the accent colour that fades to the row's own.
 fn glow(ink: Ink) -> Fx {
     fx::effect_fn(ink.glow, (GLOW_MS, Interpolation::SineOut), |glow, ctx, cells| {
@@ -615,28 +633,28 @@ fn fade_out(was: Vec<Cell>, width: u16, to: Color) -> Fx {
     )
 }
 
-/// A soft band of light that crosses a waiting panel, again and again.
+/// A waiting panel's blank rows as outlines of the rows to come, with a
+/// light wave running down them, again and again ([`outline`]).
 fn shimmer(ink: Ink) -> Fx {
+    let dim = ink.surface.lerp(&ink.text, outline::DIM);
+    let light = ink.surface.lerp(&ink.text, outline::LIGHT);
     fx::repeating(fx::effect_fn(
-        (ink.overlay, ink.text),
-        (SHIMMER_MS, Interpolation::Linear),
-        |(light, text), ctx, cells| {
+        (dim, light),
+        (outline::WAVE_MS, Interpolation::Linear),
+        |(dim, light), ctx, cells| {
             let area = ctx.area;
-            let band = (area.width as f32 / 4.0).clamp(6.0, 24.0);
-            let span = area.width as f32 + area.height as f32 * 2.0 + band * 2.0;
-            let centre = ctx.alpha() * span - band;
-            for (pos, cell) in cells {
-                let x = (pos.x - area.x) as f32 + (pos.y - area.y) as f32 * 2.0;
-                let d = (x - centre).abs();
-                if d >= band {
+            let elapsed = (ctx.alpha() * outline::WAVE_MS as f32).round() as u32;
+            let width = usize::from(area.width);
+            let mut cells: Vec<_> = cells.collect();
+            for (r, row) in cells.chunks_mut(width.max(1)).enumerate() {
+                if !row.iter().all(|(_, cell)| cell.symbol() == " ") {
                     continue;
                 }
-                let k = (1.0 - d / band) * 0.5;
-                let bg = cell.bg;
-                cell.set_bg(bg.lerp(light, k));
-                if cell.symbol() != " " {
-                    let fg = cell.fg;
-                    cell.set_fg(fg.lerp(text, k));
+                let colour = dim.lerp(light, outline::wave(elapsed, r, usize::from(area.height)));
+                for ((_, cell), glyph) in row.iter_mut().zip(outline::row(r, area.width)) {
+                    if let Some(glyph) = glyph {
+                        cell.set_symbol(glyph).set_fg(colour);
+                    }
                 }
             }
         },

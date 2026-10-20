@@ -1,6 +1,5 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
-assertion_line: 1830
 expression: text
 ---
  Repositories / a / api / !263
@@ -26,8 +25,8 @@ expression: text
 │   • Fixes a crash when the shelf is empty                                                                                ││                                  │
 │                                                                                                                          ││                                  │
 │ LATEST ACTIVITY                                                                                                          ││                                  │
-│ │ Alice Example · 46m ago · on StatsController.java:21                                                                   ││                                  │
-│ │ Good shout, switching to the cached one.                                                                               ││                                  │
+│  AE  Alice Example · 46m ago · on StatsController.java:21                                                                ││                                  │
+│ Good shout, switching to the cached one.                                                                                 ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │

@@ -19,6 +19,7 @@ import {
   type Marks,
 } from "../../src/motion/engine.js";
 import { Grid } from "../../src/motion/grid.js";
+import { ASSEMBLE_MS } from "../../src/motion/assemble.js";
 import { parseFrame, writeFrame } from "../../src/motion/frame.js";
 import * as frames from "../../src/motion/frame.js";
 import type { MotionScene, PaneMark, TreeMark } from "../../src/motion/interaction.js";
@@ -91,7 +92,7 @@ describe("motion engine", () => {
 
   test("each effect runs for its time and no longer, then one plain frame follows", () => {
     for (const [cue, ms] of [
-      [{ kind: "screen" }, SCREEN_MS],
+      [{ kind: "screen" }, ASSEMBLE_MS],
       [{ kind: "page" }, PAGE_MS],
       [{ kind: "popup" }, POPUP_MS],
       [{ kind: "message" }, MESSAGE_MS],
@@ -154,7 +155,7 @@ describe("motion engine", () => {
 
   test("a key during an effect drops it and the next frame is plain", () => {
     const { e, t, draw } = rig("full");
-    e.cue({ kind: "screen" }, ink);
+    e.cue({ kind: "page" }, ink);
     expect(sameCells(draw(), plain())).toBe(false);
     t.now += 30;
     e.input();
@@ -206,7 +207,8 @@ describe("motion engine", () => {
 
   test("a waiting panel shimmers at full while marked; input does not stop it; not at subtle", () => {
     const { e, t, draw } = rig("full");
-    const wait: Marks = { loading: [AREA] };
+    // The blank columns right of each row's words: outlines are drawn on blank rows only.
+    const wait: Marks = { loading: [{ x: 22, y: 0, w: 8, h: H }] };
     draw(wait);
     expect(e.running(), "frames keep coming while it waits").toBe(true);
     let changed = false;
@@ -214,7 +216,7 @@ describe("motion engine", () => {
       t.now += 100;
       changed ||= !sameCells(draw(wait), plain());
     }
-    expect(changed, "a band of light crosses it").toBe(true);
+    expect(changed, "the rows to come are outlined").toBe(true);
     e.input();
     draw(wait);
     expect(e.running(), "a key does not stop the wait showing").toBe(true);
@@ -228,7 +230,7 @@ describe("motion engine", () => {
 
   test("leaving full drops every shimmer, settles once and never discovers loading at subtle", () => {
     const { e, t, draw } = rig("full");
-    const wait: Marks = { loading: [row(1), row(5)] };
+    const wait: Marks = { loading: [{ x: 22, y: 1, w: 8, h: 1 }, { x: 22, y: 5, w: 8, h: 1 }] };
     draw(wait);
     t.now = 300;
     expect(sameCells(draw(wait), plain())).toBe(false);
@@ -566,7 +568,7 @@ describe("motion controller disposal and inactive guards", () => {
     m.commitScene(previous);
     m.apply(plain, W, H);
     const next: MotionScene = { ...scene, cursor: 2, context };
-    m.cue({ kind: "screen" });
+    m.cue({ kind: "page" });
     m.prepareScene(next);
     m.commitScene(next);
     const parse = vi.spyOn(frames, "parseFrame"), draw = vi.spyOn(m.engine, "draw"), observe = vi.spyOn(m.interactions, "observe");
@@ -575,7 +577,7 @@ describe("motion controller disposal and inactive guards", () => {
     expect(parse).toHaveBeenCalledTimes(1);
     expect(draw).toHaveBeenCalledTimes(1);
     expect(m.active).toBe(true);
-    now = SCREEN_MS + 1;
+    now = PAGE_MS + 1;
     m.apply(plain, W, H);
     expect(m.apply(plain, W, H)).toBe(plain);
     expect(m.active).toBe(false);

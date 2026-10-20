@@ -7,7 +7,7 @@
 //! first (`plan_new_branch` says what the question has to say) and runs these
 //! off the event loop.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use radar_core::system;
@@ -285,6 +285,9 @@ pub fn add_worktree(
 ) -> Result<String, String> {
     refuse_name(branch)?;
     refuse_name(base)?;
+    if worktree_on(clone_dir, branch).is_some_and(|at| same_dir(&at, path)) {
+        return Ok(format!("{branch} is already checked out in {}", path.display()));
+    }
     if path.exists() {
         return Err(format!("{} already exists", path.display()));
     }
@@ -325,6 +328,28 @@ pub fn add_worktree(
         ],
     )?;
     Ok(format!("{branch} created from origin/{base} in {p}"))
+}
+
+/// The worktree of `clone_dir` (the clone itself included) that has `branch`
+/// checked out. Registrations whose folder is gone are pruned first, so a
+/// deleted worktree no longer holds its branch.
+pub fn worktree_on(clone_dir: &Path, branch: &str) -> Option<PathBuf> {
+    let _ = run(clone_dir, &["worktree", "prune"]);
+    let list = git(clone_dir, &["worktree", "list", "--porcelain"]).ok()?;
+    let want = format!("branch refs/heads/{branch}");
+    let mut at = None;
+    for line in list.lines() {
+        if let Some(dir) = line.strip_prefix("worktree ") {
+            at = Some(PathBuf::from(dir));
+        } else if line == want {
+            return at;
+        }
+    }
+    None
+}
+
+fn same_dir(a: &Path, b: &Path) -> bool {
+    a == b || matches!((a.canonicalize(), b.canonicalize()), (Ok(a), Ok(b)) if a == b)
 }
 
 /// Run a configured command in `dir` and return the last line it printed.
@@ -642,11 +667,23 @@ mod tests {
         assert!(said.contains("created from origin/main"), "{said}");
         assert_eq!(current_branch(&beside), BR);
         assert_eq!(current_branch(&c), "main", "the clone is untouched");
+        // asked again, the worktree that is there is the answer
+        let again = add_worktree(&c, &beside, BR, "main").unwrap();
+        assert!(again.contains("already checked out"), "{again}");
+        assert_eq!(worktree_on(&c, BR).map(|p| same_dir(&p, &beside)), Some(true));
+        // a folder that is not that worktree is still refused
+        let taken = s.0.join("code/taken");
+        std::fs::create_dir_all(&taken).unwrap();
         assert!(
-            add_worktree(&c, &beside, BR, "main")
+            add_worktree(&c, &taken, "alice/ABC-14", "main")
                 .unwrap_err()
                 .contains("already exists")
         );
+        // a worktree deleted by hand no longer holds its branch
+        std::fs::remove_dir_all(&beside).unwrap();
+        assert_eq!(worktree_on(&c, BR), None);
+        add_worktree(&c, &beside, BR, "main").unwrap();
+        assert_eq!(current_branch(&beside), BR);
         // an existing branch is reused
         sh(&c, &["branch", "alice/ABC-13"]);
         let again = s.0.join("code/api-ABC-13");

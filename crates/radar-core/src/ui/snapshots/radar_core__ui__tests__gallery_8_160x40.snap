@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
  Gallery / Motion
@@ -9,7 +8,7 @@ expression: "gallery_text(160, 40, tab)"
 ╭ items ───────────────────────────────────────────────────────────────╮╭ motion ──────────────────────────────────────────────────────────────────────────────╮
 │  Atlas of the north                                          on loan ││ level  full  everything: also pages, new rows, messages and loading                  │
 │  Birds of the coast                                          shelved ││                                                                                      │
-│  Clocks and their makers                                     on loan ││  a screen switch: the body fades in  · subtle                                        │
+│  Clocks and their makers                                     on loan ││  a screen switch: it builds from its panels (subtle: fades in)  · subtle             │
 │  Dyes from plants                                            shelved ││  a menu or confirm sweeps open (again: closes)  · subtle                             │
 │  Engines, a history                                          missing ││  rows a sync changed glow and fade  · subtle                                         │
 │  Ferns of the valleys                                        shelved ││  an item's page slides in  · full                                                    │
@@ -36,10 +35,10 @@ expression: "gallery_text(160, 40, tab)"
 │                                                                      ││                                                                                      │
 │                                                                      ││                                                                                      │
 │                                                                      ││                                                                                      │
-│                                                                      ││                                                                                      │
 │                                                                      │╰──────────────────────────────────────────────────────────────────────────────────────╯
 │                                                                      │╭ waiting ─────────────────────────────────────────────────────────────────────────────╮
 │                                                                      ││ Nothing to wait for.                                                                 │
+│                                                                      ││                                                                                      │
 ╰──────────────────────────────────────────────────────────────────────╯╰──────────────────────────────────────────────────────────────────────────────────────╯
 
  [ ] tabs  screen  menu  glow  page  new  toast  load  effects  colours  quit

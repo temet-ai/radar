@@ -24,7 +24,7 @@ mod pull_request_tests;
 use std::ops::Range;
 
 use radar_core::plugin::{Effect, Pane, Tone};
-use radar_core::view::Text;
+use radar_core::view::{Ink, Seg, Text};
 use radar_core::ui::icon::Icon;
 use radar_core::{Action, Adds, Cell, Chip, Contribution, Owned, Point, Row, Showing, Subject};
 
@@ -360,6 +360,19 @@ fn ask_chip(p: &SlackPlugin, a: &AskSeen) -> Chip {
 }
 
 /// One line about a thread: where, who, when, how many replied.
+/// How many threads a merge request's Slack section names; its tab has all.
+const SECTION_THREADS: usize = 3;
+
+/// `words` cut to `most` characters at a word, with `…` when cut.
+fn clip(words: &str, most: usize) -> String {
+    if words.chars().count() <= most {
+        return words.to_string();
+    }
+    let cut: String = words.chars().take(most).collect();
+    let cut = cut.rsplit_once(' ').map_or(cut.as_str(), |(head, _)| head);
+    format!("{} …", cut.trim_end())
+}
+
 fn thread_line(p: &SlackPlugin, t: &Thread<'_>) -> String {
     format!(
         "#{} · {} · {} ago · {}",
@@ -500,34 +513,34 @@ pub(crate) fn contribute(p: &SlackPlugin, point: Point, s: &Subject) -> Option<C
                 return None;
             }
             let mut lines = Vec::new();
-            // Each thread's link in Slack, under it.
-            let link = |lines: &mut Vec<Text>, channel: &str, ts: &str| {
-                if let Some(url) = p.permalink(channel, ts, None) {
-                    lines.push(Text::plain(format!("  {url}")));
+            // The channel's name, a link to the message in Slack: no
+            // address spelled out under it.
+            let place = |channel: &str, ts: &str| {
+                let seg = Seg::new(format!("#{}", p.alias(channel)), Ink::AccentSecondary);
+                match p.permalink(channel, ts, None) {
+                    Some(url) => seg.linked(url),
+                    None => seg,
                 }
             };
             if let Some(a) = &ask {
-                let reacts: String = a
-                    .reactions
-                    .iter()
-                    .map(|r| format!(" · :{}: {}", r.name, r.count))
-                    .collect();
-                lines.push(Text::plain(format!(
-                    "review asked in #{} {} ago · {}{reacts}{}",
-                    p.alias(&a.channel),
-                    view::age(&a.ts, p.now),
+                let mut line = Text::from(vec![
+                    Seg::new("review asked in ", Ink::Muted),
+                    place(&a.channel, &a.ts),
+                    Seg::new(format!(" {} ago · ", view::age(&a.ts, p.now)), Ink::Muted),
                     if a.replies == 0 {
-                        "no reply yet".into()
+                        Seg::new("no reply yet", Ink::Warn)
                     } else {
-                        view::replies(a.replies)
+                        Seg::new(view::replies(a.replies), Ink::Secondary)
                     },
-                    if due(p, a) {
-                        " · ask again from its x menu"
-                    } else {
-                        ""
-                    }
-                )));
-                link(&mut lines, &a.channel, &a.ts);
+                ]);
+                for r in &a.reactions {
+                    let glyph = radar_core::ui::rich::emoji(&r.name).unwrap_or_else(|| format!(":{}:", r.name));
+                    line.add(Seg::new(format!(" · {glyph} {}", r.count), Ink::Muted));
+                }
+                if due(p, a) {
+                    line.add(Seg::new(" · ask again from its x menu", Ink::Muted));
+                }
+                lines.push(line);
             }
             // The ask's own thread is said once, above.
             let others: Vec<&Thread<'_>> = threads
@@ -537,21 +550,31 @@ pub(crate) fn contribute(p: &SlackPlugin, point: Point, s: &Subject) -> Option<C
                         .is_none_or(|a| !(a.channel == t.channel && a.ts == t.parent.ts))
                 })
                 .collect();
-            for t in others.iter().take(6) {
-                lines.push(Text::plain(thread_line(p, t)));
-                lines.push(Text::plain(format!(
-                    "  {}",
-                    view::first_line(&p.data, &p.cfg, t.parent)
-                )));
-                link(&mut lines, t.channel, &t.parent.ts);
+            // Each thread: where and when on one short line, then who said
+            // what, cut to about two lines of a narrow pane.
+            for t in others.iter().take(SECTION_THREADS) {
+                let me = p.data.me.as_ref().map(|m| m.user_id.as_str());
+                lines.push(Text::from(vec![
+                    place(t.channel, &t.parent.ts),
+                    Seg::new(
+                        format!(" · {} ago · {}", view::age(t.last(), p.now), view::replies(t.reply_count())),
+                        Ink::Muted,
+                    ),
+                ]));
+                lines.push(Text::from(vec![
+                    Seg::icon(view::author_icon(me, t.parent)),
+                    Seg::new(view::who(&p.data, t.parent), Ink::Secondary).strong(),
+                    Seg::new(format!("  {}", clip(&view::first_line(&p.data, &p.cfg, t.parent), 72)), Ink::Primary),
+                ]));
             }
-            if others.len() > 6 {
-                lines.push(Text::plain(format!(
-                    "and {} more threads in Slack",
-                    others.len() - 6
-                )));
+            if others.len() > SECTION_THREADS {
+                lines.push(Text::of(
+                    format!("⋯ {} more threads in the Slack tab", others.len() - SECTION_THREADS),
+                    Ink::Muted,
+                ));
             }
             Some(Contribution::Section {
+                icon: Some(Icon::Channel),
                 title: "Discussed in Slack".into(),
                 lines,
             })

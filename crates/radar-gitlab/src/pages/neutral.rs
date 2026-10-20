@@ -1200,21 +1200,17 @@ fn mr_overview_view(
     match latest {
         Some((author, at, body, place)) => {
             texts.push(body.clone());
-            let mut head = Text::from(vec![
-                Seg::new("│ ", Ink::AccentMuted),
-                Seg::icon(crate::screen::person_icon(p, &author)),
-                Seg::new(author, Ink::Secondary),
-                Seg::new(format!(" · {} ago", time::ago_str(&at, cx.now)), Ink::Muted),
-            ]);
-            if let Some(place) = place {
-                head.add(Seg::new(format!(" · on {place}"), Ink::Muted));
-            }
-            blocks.push(Block::line(head));
-            blocks.push(Block::Wrapped {
-                text: body,
-                prefix: Seg::new("│ ", Ink::AccentMuted),
-                ink: Ink::Primary,
-            });
+            blocks.extend(crate::screen::comment_blocks(
+                p,
+                project_path,
+                &author,
+                &at,
+                &body,
+                place,
+                None,
+                None,
+                cx.now,
+            ));
         }
         None => blocks.push(Block::line(Text::of("No comments yet.", Ink::Muted))),
     }

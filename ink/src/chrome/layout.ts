@@ -1,4 +1,4 @@
-import { cellWidth, charWidth, clipSegments, fit } from "./width.js";
+import { cellWidth, clipSegments, clusters, fit } from "./width.js";
 import { wordmarkRuns } from "../text/frame.js";
 import type { ChromeView, Hint, Hit, Ink, MenuView, SettingsNav, Text } from "./types.js";
 import { bgOf, iconOf, slotStyle, specStyle, type Style } from "../text/look.js";
@@ -252,8 +252,7 @@ export function layoutSources(chrome: ChromeView, width: number, y: number): Lai
 function clip(s: string, max: number): string {
   let out = "";
   let w = 0;
-  for (const ch of s) {
-    const cw = charWidth(ch.codePointAt(0)!);
+  for (const [ch, cw] of clusters(s)) {
     if (w + cw > max) break;
     out += ch;
     w += cw;

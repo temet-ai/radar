@@ -1,6 +1,5 @@
 ---
 source: crates/radar-git/src/screen/removal_tests.rs
-assertion_line: 378
 expression: stale
 ---
  radar    Branches   History   Settings (,)   synced 20s ago · every 1m  ✎ edit
@@ -24,6 +23,6 @@ expression: stale
 │                                                                              │
 │                                                                              │
 │─ shows ──────────────────────────────────────────────────────────────────────│
-│ every clone,  error worktree changed: press d to review removal again        │
+│ every clone, its wor error worktree changed: press d to review removal again │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  BRANCHES   ⏎ use it   delete   shift ask an agent   bulk   extra actions

@@ -751,6 +751,9 @@ pub(crate) fn open_on(p: &mut GitPlugin, what: &str, project: &str, c: &Checkout
     }
     let clone = clone_of(p, &c.dir);
     let at = worktree_path(p, &clone, branch);
+    if let Some(on) = local::read_checkout(Path::new(&at)).filter(|k| k.branch == branch) {
+        return open_in(p, what, &on);
+    }
     let notes = vec![
         format!("{} is on {}", local::tilde(&c.dir), c.branch),
         format!("a worktree would be at {}", local::tilde(&at)),
@@ -965,10 +968,16 @@ fn done_with_worktree(
     }
 }
 
+/// A branch already in a worktree is answered with that worktree, wherever it
+/// is, and its after command is not run again.
 fn park(clone: &str, path: &str, branch: &str, base: &str, after: &str) -> ParkResult {
-    park_with(clone, path, branch, after, |step| match step {
-        WorktreeStep::Create => ops::add_worktree(Path::new(clone), Path::new(path), branch, base),
-        WorktreeStep::After => ops::after(Path::new(path), after),
+    let (path, after) = match ops::worktree_on(Path::new(clone), branch) {
+        Some(at) => (at.display().to_string(), ""),
+        None => (path.to_string(), after),
+    };
+    park_with(clone, &path, branch, after, |step| match step {
+        WorktreeStep::Create => ops::add_worktree(Path::new(clone), Path::new(&path), branch, base),
+        WorktreeStep::After => ops::after(Path::new(&path), after),
     })
 }
 
@@ -1512,7 +1521,7 @@ fn run_items_with(
 fn start_one(i: &Item, after: &str, r: &mut StartResult) -> Result<(), String> {
     let dir = Path::new(&i.dir);
     if !i.worktree.is_empty() {
-        return started_worktree(i, r, park(&i.dir, &i.worktree, &i.branch, &i.base, after));
+        return started_worktree(r, park(&i.dir, &i.worktree, &i.branch, &i.base, after));
     }
     if !i.stash.is_empty() {
         ops::stash(dir, &i.stash)?;
@@ -1522,10 +1531,13 @@ fn start_one(i: &Item, after: &str, r: &mut StartResult) -> Result<(), String> {
     Ok(())
 }
 
-fn started_worktree(i: &Item, r: &mut StartResult, result: ParkResult) -> Result<(), String> {
+fn started_worktree(r: &mut StartResult, result: ParkResult) -> Result<(), String> {
+    r.worktree = result.observed.path.clone();
     r.parked = Some(result.observed);
-    result.said?;
-    r.worktree = i.worktree.clone();
+    if let Err(e) = result.said {
+        r.worktree.clear();
+        return Err(e);
+    }
     Ok(())
 }
 
@@ -1874,7 +1886,7 @@ mod journal_tests {
         let mut calls = Vec::new();
         let results = run_items_with(&items, "SECRET_COMMAND", |i, after, r| {
             calls.push(i.repo.clone());
-            started_worktree(i, r, simulated_park(i, after, Err("SECRET_OUTPUT".into())))
+            started_worktree(r, simulated_park(i, after, Err("SECRET_OUTPUT".into())))
         });
         assert_eq!(calls, ["acme/api", "acme/web"]);
         assert!(

@@ -25,7 +25,7 @@ mod pull_request_tests;
 use std::ops::Range;
 
 use radar_core::plugin::{Effect, Pane, Tone};
-use radar_core::view::Text;
+use radar_core::view::{Ink, Seg, Text};
 use radar_core::ui::icon::Icon;
 use radar_core::{Action, Adds, Cell, Contribution, Offer, Owned, Point, Showing, Subject};
 
@@ -35,7 +35,51 @@ use crate::{JiraPlugin, page, write};
 
 pub(crate) const TICKET: &str = "ticket";
 /// How wide a ticket's description is laid out in another part's section.
-const SECTION_WIDTH: u16 = 72;
+/// How wide a description is laid out before its lines are joined back into
+/// paragraphs, and how many characters of it a section shows.
+const SECTION_WIDTH: u16 = 120;
+const SAID_MOST: usize = 240;
+
+/// The start of a description for a section: its paragraphs whole, one line
+/// each, so the pane wraps them at its own width; list items keep a line of
+/// their own. Cut after [`SAID_MOST`] characters with `…`; the page has it all.
+fn said(description: &radar_core::ui::rich::Doc) -> Vec<String> {
+    let laid = radar_core::ui::rich::plain(description, SECTION_WIDTH);
+    let mut paras: Vec<String> = Vec::new();
+    let mut open = false;
+    for line in laid.lines().map(str::trim_end) {
+        let words = line.trim_start();
+        if words.is_empty() || words.chars().all(|c| matches!(c, '─' | '━' | '-')) {
+            open = false;
+            continue;
+        }
+        let item = words.starts_with(['•', '☐', '☑', '◇'])
+            || words.split_once(". ").is_some_and(|(n, _)| !n.is_empty() && n.chars().all(|c| c.is_ascii_digit()));
+        match paras.last_mut() {
+            Some(last) if open && !item => {
+                last.push(' ');
+                last.push_str(words);
+            }
+            _ => paras.push(words.to_string()),
+        }
+        open = true;
+    }
+    let mut left = SAID_MOST;
+    let mut out = Vec::new();
+    for para in paras {
+        let n = para.chars().count();
+        if n <= left {
+            left -= n;
+            out.push(para);
+            continue;
+        }
+        let cut: String = para.chars().take(left).collect();
+        let cut = cut.rsplit_once(' ').map_or(cut.as_str(), |(head, _)| head).trim_end();
+        out.push(format!("{cut} …"));
+        break;
+    }
+    out
+}
 pub(crate) const MERGE_REQUEST: &str = "merge-request";
 const PULL_REQUEST: &str = "pull-request";
 
@@ -364,28 +408,33 @@ pub(crate) fn contribute(p: &JiraPlugin, point: Point, s: &Subject) -> Option<Co
                 }
                 match held(p, site, key) {
                     Some(t) => {
-                        lines.push(Text::plain(format!("{key} · {}{} · {}", crate::model::mark(t.category), t.status, t.kind)));
-                        lines.push(Text::plain(t.summary.clone()));
-                        lines.push(Text::plain(if t.assignee.is_empty() {
-                            "unassigned".to_string()
-                        } else if p.is_mine(site, t) {
-                            radar_core::ui::icon::plain_with(radar_core::ui::icon::Icon::You, "assigned to you")
+                        // The key, its status in its category's look and its type.
+                        let mut head = Text::from(vec![Seg::styled(key.clone(), p.cfg.style_for("key")), Seg::new(" · ", Ink::Muted)]);
+                        head.0.extend(screen::status_text(p, &t.status, t.category).0);
+                        head.add(Seg::new(" · ", Ink::Muted));
+                        head.add(Seg::styled(t.kind.clone(), p.cfg.style_for(t.type_word())));
+                        lines.push(head);
+                        lines.push(Text::from(vec![Seg::new(t.summary.clone(), Ink::Emphasis).strong()]));
+                        lines.push(if t.assignee.is_empty() {
+                            Text::of("unassigned", Ink::Muted)
                         } else {
-                            format!("assigned to {}", t.assignee)
-                        }));
-                        let said = radar_core::ui::rich::plain(&t.description, SECTION_WIDTH);
-                        let said: Vec<&str> = said.lines().collect();
-                        for l in said.iter().take(3) {
-                            lines.push(Text::plain(l.to_string()));
-                        }
-                        if said.len() > 3 {
-                            lines.push(Text::plain("…"));
+                            let [icon, name] = screen::assignee_segs(p, site, t, t.assignee.clone(), Ink::Secondary);
+                            Text::from(vec![Seg::new("assigned to ", Ink::Muted), icon, name])
+                        });
+                        let said = said(&t.description);
+                        if !said.is_empty() {
+                            lines.push(Text::new());
+                            lines.extend(said.into_iter().map(|l| Text::of(l, Ink::Secondary)));
                         }
                     }
-                    None => lines.push(Text::plain(format!("{key} · not fetched yet: its page has it"))),
+                    None => lines.push(Text::from(vec![
+                        Seg::styled(key.clone(), p.cfg.style_for("key")),
+                        Seg::new(" · not fetched yet", Ink::Muted),
+                    ])),
                 }
             }
             Contribution::Section {
+                icon: Some(Icon::Issue),
                 title: if found.len() == 1 { "Ticket".into() } else { "Tickets".into() },
                 lines,
             }

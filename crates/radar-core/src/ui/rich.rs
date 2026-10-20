@@ -564,10 +564,6 @@ fn width_of(s: &str) -> usize {
     UnicodeWidthStr::width(s)
 }
 
-fn char_width(c: char) -> usize {
-    UnicodeWidthChar::width(c).unwrap_or(0)
-}
-
 fn push_span(spans: &mut Vec<Span<'static>>, text: &str, style: Style) {
     if let Some(last) = spans.last_mut()
         && last.style == style
@@ -661,12 +657,11 @@ fn place(
             acc.newline();
         }
         for (t, s) in word.drain(..) {
-            for ch in t.chars() {
-                let cw = char_width(ch);
+            for (_, g, cw) in super::clusters(&t) {
                 if acc.w > 0 && acc.w + cw > room {
                     acc.newline();
                 }
-                acc.put(&ch.to_string(), s, cw);
+                acc.put(g, s, cw);
             }
         }
     }
@@ -715,20 +710,25 @@ fn spans_width(spans: &[Span<'static>]) -> usize {
 
 /// `s` cut into chunks of at most `room` cells.
 fn hard_chunks(s: &str, room: usize) -> Vec<String> {
+    let join = |gs: &[(String, usize)]| gs.iter().map(|(g, _)| g.as_str()).collect::<String>();
     let mut out = Vec::new();
-    let mut cur = String::new();
+    let mut cur: Vec<(String, usize)> = Vec::new();
     let mut w = 0;
-    for ch in s.chars() {
-        let cw = char_width(ch);
+    for (_, g, cw) in super::clusters(s) {
         if w > 0 && w + cw > room {
-            out.push(std::mem::take(&mut cur));
-            w = 0;
+            // After the last plain space, so no word is split; a word
+            // wider than the room is cut where it reaches the edge.
+            let at = cur.iter().rposition(|(g, _)| g == " ").filter(|&i| i > 0).map_or(cur.len(), |i| i + 1);
+            let rest = cur.split_off(at);
+            out.push(join(&cur).trim_end().to_string());
+            cur = rest;
+            w = cur.iter().map(|(_, w)| w).sum();
         }
-        cur.push(ch);
+        cur.push((g.to_string(), cw));
         w += cw;
     }
     if !cur.is_empty() {
-        out.push(cur);
+        out.push(join(&cur));
     }
     out
 }
@@ -747,13 +747,12 @@ fn finish_line(line: Vec<Span<'static>>, width: usize) -> Vec<Span<'static>> {
             out.push(s);
         } else {
             let mut cut = String::new();
-            for ch in s.content.chars() {
-                let cw = char_width(ch);
+            for (_, g, cw) in super::clusters(&s.content) {
                 if used + cw > width {
                     break;
                 }
                 used += cw;
-                cut.push(ch);
+                cut.push_str(g);
             }
             out.push(Span::styled(cut, s.style));
             break;

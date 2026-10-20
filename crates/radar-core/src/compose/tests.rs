@@ -261,8 +261,14 @@ impl Plugin for Notes {
                     .show(Subject::new("note", "N-1", "N-1")),
             ),
             Point::Section => Contribution::Section {
+                icon: Some(crate::ui::icon::Icon::File),
                 title: "Note N-1".into(),
-                lines: vec![crate::view::Text::plain(subject.field("title").unwrap_or(""))],
+                lines: std::iter::once(crate::view::Text::plain(subject.field("title").unwrap_or("")))
+                    .chain(
+                        (1..subject.field("lines").and_then(|n| n.parse().ok()).unwrap_or(1))
+                            .map(|i| crate::view::Text::plain(format!("line {i}"))),
+                    )
+                    .collect(),
             },
             Point::Tab => Contribution::Tab {
                 title: "Notes".into(),
@@ -568,6 +574,26 @@ fn a_part_not_set_up_has_a_set_up_page_and_adds_nothing() {
     press(&mut host, KeyCode::Enter);
     assert_eq!(host.view, View::Settings);
     assert_eq!(host.current_section().unwrap().1.name, "notebooks");
+}
+
+#[test]
+fn a_detail_pane_shows_a_contributed_section_marked_and_cut_to_its_share() {
+    let (host, _) = host("snb");
+    let parts = Parts::new(&host.plugins, Some(0));
+    let short = parts.detail_sections(&book(1));
+    let crate::view::Block::Section { mark, title, blocks, .. } = &short[0] else { panic!("{short:?}") };
+    assert_eq!((*mark, title.as_str(), blocks.len()), (Some(crate::ui::icon::Icon::File), "NOTE N-1", 1));
+    let long = book(1).with("lines", "14");
+    let cut = parts.detail_sections(&long);
+    let crate::view::Block::Section { blocks, .. } = &cut[0] else { panic!("{cut:?}") };
+    assert_eq!(blocks.len(), crate::compose::DETAIL_SECTION_MOST);
+    let last = match blocks.last() {
+        Some(crate::view::Block::Line { text, .. }) => text.words(),
+        other => panic!("{other:?}"),
+    };
+    assert_eq!(last, "⋯ 5 more lines on its page");
+    // The page keeps every line.
+    assert_eq!(parts.sections(&long)[0].1.len(), 14);
 }
 
 #[test]

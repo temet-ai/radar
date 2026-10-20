@@ -427,6 +427,7 @@ fn out_of_order_results_close_only_their_scope_and_export_no_payloads() {
                 author: "SECRET_AUTHOR".into(),
                 body: "SECRET_BODY".into(),
                 at: "SECRET_DATE".into(),
+                url: None,
             });
             Ok(Synced {
                 me: "SECRET_USERNAME".into(),

@@ -97,7 +97,8 @@ describe("tree row state grounds preserve meaning", () => {
     expect(word(focused, "f")).toMatchObject({ fg: "#ff6363", bold: true, bg: "#44475a" });
     expect(word(inactive, "f")).toMatchObject({ fg: "#ff6363", bold: true, bg: "#1a162a" });
     expect(word(focused, "r").fg).toBe("#50fa7b");
-    expect(word(focused, "r").bold).toBeUndefined();
+    expect(word(focused, "r").bold, "the pane with the keys makes its selected row bold").toBe(true);
+    expect(word(inactive, "r").bold).toBeUndefined();
     expect(parseAnsi(normal)[0]![0]).toMatchObject({ ch: "w", bg: "#1a162a" });
     expect(parseAnsi(focused)[1]!.every((c) => c.bg === "#44475a")).toBe(true);
   });

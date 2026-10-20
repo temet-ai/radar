@@ -1,0 +1,16 @@
+[
+  { "text": "⚠", "cells": 1 },
+  { "text": "⚠️", "cells": 2 },
+  { "text": "♻️", "cells": 2 },
+  { "text": "1️⃣", "cells": 2 },
+  { "text": "👩‍💻", "cells": 2 },
+  { "text": "👍🏽", "cells": 2 },
+  { "text": "🇬🇧", "cells": 2 },
+  { "text": "é", "cells": 1 },
+  { "text": "界", "cells": 2 },
+  { "text": "✓", "cells": 1 },
+  { "text": "󰚩", "cells": 1 },
+  { "text": "a⚠️b", "cells": 4 },
+  { "text": "⚠️ **Warning**: custom changes will be lost.", "cells": 44 },
+  { "text": "x👩‍💻y1️⃣z♻️", "cells": 9 }
+]

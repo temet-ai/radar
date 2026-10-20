@@ -39,11 +39,29 @@ fn notices_keep_panel_border_and_status_visible() {
 }
 
 #[test]
+fn notices_stand_inside_the_bottom_right_panel() {
+    let mut buf = Buffer::empty(Rect::new(0, 0, 40, 10));
+    let fallback = content(buf.area, false);
+    assert_eq!(anchor(&buf, fallback), fallback, "no panel drawn: the content");
+    // Two panels side by side above the status line, the right one 1..=8 tall.
+    for area in [Rect::new(0, 1, 15, 8), Rect::new(15, 1, 25, 8)] {
+        use ratatui::widgets::Widget;
+        ratatui::widgets::Block::bordered()
+            .border_type(ratatui::widgets::BorderType::Rounded)
+            .render(area, &mut buf);
+    }
+    assert_eq!(anchor(&buf, fallback), Rect::new(16, 2, 23, 6));
+    buf[(15, 4)].set_symbol("x");
+    assert_eq!(anchor(&buf, fallback), fallback, "a broken edge is not a panel");
+}
+
+#[test]
 fn late_composite_keeps_retained_frames_clean_and_clicks_consume_the_occurrence() {
     let mut host = Host::new(vec![], 0).unwrap();
     host.load_config(Some("")).unwrap();
     host.set_motion_enabled(true);
-    host.set_notice_motion_enabled(true);
+    // Without notice motion the row is whole at once (it reads in from the right otherwise).
+    host.set_notice_motion_enabled(false);
     host.update(Event::Notice("The Watch notice is transient".into()));
     let theme = theme();
     let clock = ManualClock::default();
@@ -63,10 +81,10 @@ fn late_composite_keeps_retained_frames_clean_and_clicks_consume_the_occurrence(
     .unwrap();
     assert!(!clean.contains("The Watch notice is transient"));
     assert!(text(term.backend().buffer()).contains("The Watch notice is transient"));
-    assert!(matches!(host.hit_at(15, 21), Some(Hit::Notice(_))));
+    assert!(matches!(host.hit_at(78, 21), Some(Hit::Notice(_))));
     host.update(Event::Mouse {
         kind: MouseKind::Press,
-        column: 15,
+        column: 78,
         row: 21,
         at_ms: 1,
     });
@@ -194,6 +212,7 @@ fn fold_reversal_never_retains_or_overpaints_a_late_notice() {
         buf
     };
     let stack = ui::notices::layout(
+        &theme,
         &[NoticeView {
             id: 1,
             tone: NoticeTone::Info,
@@ -204,7 +223,7 @@ fn fold_reversal_never_retains_or_overpaints_a_late_notice() {
         }],
         0,
         Rect::new(1, 1, 22, 3),
-        0,
+        1000,
         true,
     );
     let mut closed = frame(false, false);

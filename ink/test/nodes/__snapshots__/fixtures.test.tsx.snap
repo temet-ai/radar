@@ -1493,11 +1493,11 @@ exports[`recorded view fixtures > gitlab_repos-page1-overview-changes-threads-pi
  loading…
 
  TICKET
- ABC-198 · not fetched yet: its page has it
+ ABC-198 · not fetched yet
 
  ❝ LATEST ACTIVITY
- │ ☺ Bob Example · 1h ago
- │ Should this read from the cached view? The dashboard polls every 30s.
+  BE  Bob Example · 1h ago
+ Should this read from the cached view? The dashboard polls every 30s.
 
 
 
@@ -1548,11 +1548,11 @@ exports[`recorded view fixtures > gitlab_repos-page1-overview-changes-threads-pi
  loading…
 
  TICKET
- ABC-198 · not fetched yet: its page has it
+ ABC-198 · not fetched yet
 
  ❝ LATEST ACTIVITY
- │ ☺ Bob Example · 1h ago
- │ Should this read from the cached view? The dashboard polls every 30s.
+  BE  Bob Example · 1h ago
+ Should this read from the cached view? The dashboard polls every 30s.
 
 
 
@@ -1679,11 +1679,11 @@ exports[`recorded view fixtures > gitlab_repos-page2-overview-changes-threads-pi
  loading…
 
  TICKET
- ABC-198 · not fetched yet: its page has it
+ ABC-198 · not fetched yet
 
  ❝ LATEST ACTIVITY
- │ ☺ Bob Example · 1h ago
- │ Should this read from the cached view? The dashboard polls every 30s.
+  BE  Bob Example · 1h ago
+ Should this read from the cached view? The dashboard polls every 30s.
 
 
 
@@ -1734,11 +1734,11 @@ exports[`recorded view fixtures > gitlab_repos-page2-overview-changes-threads-pi
  loading…
 
  TICKET
- ABC-198 · not fetched yet: its page has it
+ ABC-198 · not fetched yet
 
  ❝ LATEST ACTIVITY
- │ ☺ Bob Example · 1h ago
- │ Should this read from the cached view? The dashboard polls every 30s.
+  BE  Bob Example · 1h ago
+ Should this read from the cached view? The dashboard polls every 30s.
 
 
 

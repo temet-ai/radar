@@ -11,7 +11,7 @@ import { BOLD, DIM, restyle, styleId, styleOf, type Sgr } from "./fast-output.js
 export type ScrimRect = { x: number; y: number; w: number; h: number; /** Only the shadow: nothing around the layer dims (the tour's card). */ shadowOnly?: boolean };
 
 /** Per mille toward bg.base (the scrim's text and ground, the shadow's text) and toward black (the shadow's ground). */
-const SCRIM_FG = 720;
+const SCRIM_FG = 550;
 const SCRIM_BG = 430;
 const SHADOW_BG = 600;
 const SHADOW_FG = 450;

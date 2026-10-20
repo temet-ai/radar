@@ -1,6 +1,5 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 1644
 expression: text
 ---
  radar    Code   Tickets   Slack ●   History   Settings (,)                                                                   synced 40s ago · every 2m  ✎ edit
@@ -36,10 +35,10 @@ expression: text
 │                                                                                                                                                              │
 │                                                                                                                                                              │
 │                                                                                                                                                              │
-│                                                                                              +3 earlier notices · ~ history                                  │
+│                                                                                                                               +3 earlier notices · ~ history │
 │                                                                                               info ✓ review asked · its thread is followed on the merge req… │
 │                                                                                               info review ask for api !263: nothing is sent until you post … │
-│                                                                                               info asking Slack to post the review ask in #team…             │
+│                                                                                                           info asking Slack to post the review ask in #team… │
 │                                                                                               error ✗ Slack did not post the review ask in #team: Slack is … │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  SLACK   PgUp/PgDn scroll   quit   extra actions   ~ notices   ←→↑↓ navigate                                                           7 new · 4 for you  slack

@@ -202,19 +202,19 @@ fn folded_marker(count: usize, room: usize) -> String {
     }
 }
 
-/// Tree selection changes only the ground. Semantic foregrounds and modifiers
-/// survive; monochrome adds the non-colour focus and selection cues.
+/// Tree selection changes the ground, and in the pane with the keys makes the
+/// row bold. Semantic foregrounds survive; monochrome adds the underline.
 fn selected_style(theme: &Theme, focused: bool) -> Style {
     let mut style = theme.bg(if focused {
         Slot::BgSelection
     } else {
         Slot::BgOverlay
     });
+    if focused {
+        style = style.add_modifier(Modifier::BOLD);
+    }
     if theme.tier() == Tier::Mono {
         style = style.add_modifier(Modifier::UNDERLINED);
-        if focused {
-            style = style.add_modifier(Modifier::BOLD);
-        }
     }
     style
 }
@@ -823,8 +823,9 @@ pub fn collapse(state: &mut TreeState<String>) -> bool {
     true
 }
 
-/// Shared tree keys. Left/right stay in the tree at a boundary; Up/k retain
-/// the top-bar escape. Draw once to supply the held rows.
+/// Shared tree keys. Left/right stay in the tree at a boundary; Up/k on the
+/// first row, or with no rows drawn, are not the tree's (the host takes
+/// them up). Draw once to supply the held rows.
 pub fn key(state: &mut TreeState<String>, key: &KeyEvent) -> bool {
     if !key.modifiers.is_empty()
         && !(key.modifiers == KeyModifiers::SHIFT && matches!(key.code, KeyCode::Char(_)))
@@ -860,6 +861,11 @@ pub fn key(state: &mut TreeState<String>, key: &KeyEvent) -> bool {
         _ => {}
     }
     let rows = visible_paths(state);
+    // No rows known (the tree is drawn from a view, not by this widget):
+    // nothing moves, and the key is not the tree's.
+    if rows.is_empty() {
+        return false;
+    }
     let index = rows.iter().position(|path| path == state.selected());
     let next = match key.code {
         KeyCode::Down | KeyCode::Char('j') => {
@@ -1053,9 +1059,10 @@ mod tests {
             );
             assert_eq!(buf[(5, 1)].bg, selected);
             assert!(buf[(5, 1)].modifier.contains(Modifier::ITALIC));
-            assert!(
-                !buf[(5, 1)].modifier.contains(Modifier::BOLD),
-                "selection adds no colour-tier emphasis"
+            assert_eq!(
+                buf[(5, 1)].modifier.contains(Modifier::BOLD),
+                focused,
+                "only the pane with the keys makes its selection bold"
             );
             assert_eq!(
                 buf[(17, 1)].fg,

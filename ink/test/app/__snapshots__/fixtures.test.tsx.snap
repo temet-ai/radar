@@ -1138,11 +1138,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 │ loading…                                                                     │
 │                                                                              │
 │ TICKET                                                                       │
-│ ABC-198 · not fetched yet: its page has it                                   │
+│ ABC-198 · not fetched yet                                                    │
 │                                                                              │
 │ ❝ LATEST ACTIVITY                                                            │
-│ │ ☺ Bob Example · 1h ago                                                     │
-│ │ Should this read from the cached view? The dashboard polls every 30s.      │
+│  BE  Bob Example · 1h ago                                                    │
+│ Should this read from the cached view? The dashboard polls every 30s.        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
@@ -1157,11 +1157,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page1-overv
 │ loading…                                                                                                                 ││ ◎ needs 1 approval               │
 │                                                                                                                          ││ ✓ pipeline passed                │
 │ TICKET                                                                                                                   ││ ✓ no conflicts, up to date       │
-│ ABC-198 · not fetched yet: its page has it                                                                               ││ ◎ needs 1 approval (0 of 1)      │
+│ ABC-198 · not fetched yet                                                                                                ││ ◎ needs 1 approval (0 of 1)      │
 │                                                                                                                          ││ ❝ 1 open thread                  │
 │ ❝ LATEST ACTIVITY                                                                                                        ││ ✓ not a draft                    │
-│ │ ☺ Bob Example · 1h ago                                                                                                 ││                                  │
-│ │ Should this read from the cached view? The dashboard polls every 30s.                                                  ││ for you: opened by a bot         │
+│  BE  Bob Example · 1h ago                                                                                                ││                                  │
+│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││ for you: opened by a bot         │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
@@ -1418,11 +1418,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 │ loading…                                                                     │
 │                                                                              │
 │ TICKET                                                                       │
-│ ABC-198 · not fetched yet: its page has it                                   │
+│ ABC-198 · not fetched yet                                                    │
 │                                                                              │
 │ ❝ LATEST ACTIVITY                                                            │
-│ │ ☺ Bob Example · 1h ago                                                     │
-│ │ Should this read from the cached view? The dashboard polls every 30s.      │
+│  BE  Bob Example · 1h ago                                                    │
+│ Should this read from the cached view? The dashboard polls every 30s.        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  REPOS   ✕ quit   ≡ extra actions   ~ notices          gitlab github jira slack"
 `;
@@ -1437,11 +1437,11 @@ exports[`recorded view fixtures through the whole App > gitlab_repos-page2-overv
 │ loading…                                                                                                                 ││ ◎ needs 1 approval               │
 │                                                                                                                          ││ ✓ pipeline passed                │
 │ TICKET                                                                                                                   ││ ✓ no conflicts, up to date       │
-│ ABC-198 · not fetched yet: its page has it                                                                               ││ ◎ needs 1 approval (0 of 1)      │
+│ ABC-198 · not fetched yet                                                                                                ││ ◎ needs 1 approval (0 of 1)      │
 │                                                                                                                          ││ ❝ 1 open thread                  │
 │ ❝ LATEST ACTIVITY                                                                                                        ││ ✓ not a draft                    │
-│ │ ☺ Bob Example · 1h ago                                                                                                 ││                                  │
-│ │ Should this read from the cached view? The dashboard polls every 30s.                                                  ││ for you: opened by a bot         │
+│  BE  Bob Example · 1h ago                                                                                                ││                                  │
+│ Should this read from the cached view? The dashboard polls every 30s.                                                    ││ for you: opened by a bot         │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │

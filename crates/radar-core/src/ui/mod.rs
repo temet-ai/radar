@@ -77,7 +77,8 @@ pub use tree::{BandedTree, Node, TreeLook};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 
-use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
+use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 use crate::plugin::Tone;
 
@@ -88,13 +89,22 @@ pub fn width(text: &str) -> usize {
     UnicodeWidthStr::width(text)
 }
 
+/// `text` as the terminal lays it out: each grapheme (`⚠` + U+FE0F, a
+/// keycap, a ZWJ family, a letter and its marks) with its byte offset and
+/// the cells it takes. Cut and wrap by these, never by `char`: a `char`
+/// alone counts `⚠️` one cell where the terminal draws two. Ink counts the
+/// same (ink/src/chrome/width.ts `clusters`).
+pub fn clusters(text: &str) -> impl Iterator<Item = (usize, &str, usize)> {
+    text.grapheme_indices(true)
+        .map(|(i, g)| (i, g, UnicodeWidthStr::width(g)))
+}
+
 /// The longest start of `text` that fits in `w` cells, and the cells it
 /// takes. A wide character that would cross the edge is left out whole,
 /// never drawn half.
 pub fn take(text: &str, w: usize) -> (&str, usize) {
     let mut used = 0;
-    for (i, c) in text.char_indices() {
-        let cw = UnicodeWidthChar::width(c).unwrap_or(0);
+    for (i, _, cw) in clusters(text) {
         if used + cw > w {
             return (&text[..i], used);
         }

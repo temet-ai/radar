@@ -68,10 +68,10 @@ describe("scrim and popup motion in the finished-frame output pipeline", () => {
     expect(apply).toHaveBeenLastCalledWith(onceScrimmed, W, H);
     expect(draw(true)).toEqual(clean); // A cached frame is repainted from the unpainted source, not dimmed again.
     const cells = parseAnsi(clean.output);
-    expect(cells[0]![0]).toEqual({ ch: "│", fg: "#23263b", bg: "#0f0d17" });
-    expect(cells[3]![11]).toEqual({ ch: "─", fg: "#181929", bg: "#060509" }); // right shadow
-    expect(cells[5]![5]).toEqual({ ch: "─", fg: "#181929", bg: "#060509" }); // bottom shadow
-    expect(cells[5]![11]).toEqual({ ch: "─", fg: "#181929", bg: "#060509" }); // corner, once
+    expect(cells[0]![0]).toEqual({ ch: "│", fg: "#323854", bg: "#0f0d17" });
+    expect(cells[3]![11]).toEqual({ ch: "─", fg: "#202236", bg: "#060509" }); // right shadow
+    expect(cells[5]![5]).toEqual({ ch: "─", fg: "#202236", bg: "#060509" }); // bottom shadow
+    expect(cells[5]![11]).toEqual({ ch: "─", fg: "#202236", bg: "#060509" }); // corner, once
     for (let y = 0; y < H; y++)
       for (let x = 0; x < W; x++) {
         expect(cells[y]![x]!.ch, `clean glyph at ${x},${y}`).toBe(unpainted[y]![x]!.ch);

@@ -781,7 +781,8 @@ impl Host {
             notices: Default::default(),
             notice_history: None,
             notice_input_supported: false,
-            notice_motion: true,
+            // The runner and the bridge set it from the motion level each frame; a still render shows notices whole.
+            notice_motion: false,
             selecting: None,
             terminal: None,
             now,

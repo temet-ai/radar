@@ -148,10 +148,12 @@ pub fn row_style(theme: &Theme, focused: bool, selected: bool) -> Style {
     match (selected, focused) {
         (false, _) => select::unselected_row(&theme.d),
         (true, true) => select::selected_row(&theme.d, true),
+        // Only the pane with the keys carries the selection ground; another pane's current row sits quietly on the
+        // overlay shade, its words still emphasised (the Ink style guide, sheet 08).
         (true, false) => {
             let style = theme
-                .s(Slot::TextSecondary)
-                .patch(theme.bg(Slot::BgSelection));
+                .bold(Slot::TextEmphasis)
+                .patch(theme.bg(Slot::BgOverlay));
             if theme.tier() == crate::design::theme::Tier::Mono {
                 // No colour to carry it: underline marks where you were.
                 style.add_modifier(Modifier::UNDERLINED)

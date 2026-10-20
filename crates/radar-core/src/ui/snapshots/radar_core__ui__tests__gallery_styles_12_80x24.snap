@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Grid states" fg:text.secondary bold
@@ -18,7 +17,7 @@ expression: "gallery_styles(80, 24, tab)"
 12 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "NAME                                    …" fg:text.muted bg:bg.surface bold | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 13 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "sort the atlas box                      …" bg:bg.surface | "● sorting" fg:status.info bg:bg.surface | _1 bg:bg.surface | "Alice E." fg:text.secondary bg:bg.surface | _4 bg:bg.surface | "42 kB" fg:data.number bg:bg.surface | _2 bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 14 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "label the map drawer                    …" bg:bg.surface | "✓ filed" fg:status.success/diff.added bg:bg.surface | _3 bg:bg.surface | "you" fg:text.secondary bg:bg.surface | _9 bg:bg.surface | "3 kB" fg:data.number bg:bg.surface | _3 bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
-15 "│" fg:accent.muted bg:bg.surface | " mend the spine of the old ledger that h…" fg:text.secondary bg:bg.selection | "✗ lost" fg:text.secondary bg:bg.selection bold | "    Bob         17 kB   " fg:text.secondary bg:bg.selection | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+15 "│" fg:accent.muted bg:bg.surface | " mend the spine of the old ledger that h…" fg:text.emphasis bg:bg.overlay bold | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 16 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "count the postcards                     …" bg:bg.surface | "◷ waiting" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "Carol D." fg:text.secondary bg:bg.surface | _4 bg:bg.surface | "9 kB" fg:data.number bg:bg.surface | _3 bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 17 "│" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 18 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay

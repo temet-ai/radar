@@ -121,8 +121,8 @@ describe("App hands the ramp only to the pane that owns keys", () => {
     expect(corner(await show({ screen: inline }), "middle")).toBe(PURPLE);
     for (const open of [menu, { ...menu, typed: "watch", caret: 5 }, { ...menu, question: true }]) {
       const grid = await show({}, { menu: open });
-      // The quiet accent-muted border after the existing 720-per-mille scrim.
-      expect(corner(grid, "middle")).toBe("#312a54");
+      // The quiet accent-muted border after the existing 550-per-mille scrim.
+      expect(corner(grid, "middle")).toBe("#493e7d");
       expect(corner(grid, "choose")).toBe("#e135ff");
     }
     const overlay = { pane: "middle", title: "overlay", body: { node: "state", state: "empty", text: "overlay owns keys" } };
@@ -159,7 +159,7 @@ describe("App hands the ramp only to the pane that owns keys", () => {
     const shown = await show({ screen: docked });
     expect(corner(shown, "agents")).toBe(PURPLE);
     expect(["nav", "middle", "detail"].map((p) => corner(shown, p))).toEqual(["#9580ff", "#9580ff", "#9580ff"]);
-    expect(corner(await show({ screen: docked }, { menu }), "agents")).toBe("#312a54");
+    expect(corner(await show({ screen: docked }, { menu }), "agents")).toBe("#493e7d");
     expect(corner(await show({ screen: { ...docked, dock: { ...STATES.empty, visible: false } } }), "middle")).toBe(PURPLE);
   });
 
@@ -193,7 +193,7 @@ describe("App hands the ramp only to the pane that owns keys", () => {
     const setup = { ...screen, panes: [{ pane: "middle", title: "set up Watch", body: document }] };
     expect(corner(await show({ screen: setup, focus: "nav" }), "set up Watch")).toBe(PURPLE);
     expect(corner(await show({ screen: setup, focus: "nav" }, { keys_at: "bar" }), "set up Watch")).toBe("#9580ff");
-    expect(corner(await show({ screen: setup, focus: "nav" }, { menu }), "set up Watch")).toBe("#312a54");
+    expect(corner(await show({ screen: setup, focus: "nav" }, { menu }), "set up Watch")).toBe("#493e7d");
   });
 });
 

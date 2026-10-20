@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1392
 expression: text(&buf)
 ---
  Gallery / Motion
@@ -19,11 +18,11 @@ expression: text(&buf)
 ╭ motion ───────────│      yes, shelve it    no, leave it │────────────────────╮
 │ level  full  every│     ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁│nd loading          │
 │                   ╰─────────────────────────────────────╯                    │
-│  a screen switch: the body fades in  · subtle                                │
-│  a menu or confirm sweeps open (again: closes)  · subtle                     │
+│  a screen switch: it builds from its panels (subtle: fades in)  · subtle     │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭ waiting ─────────────────────────────────────────────────────────────────────╮
 │ loading…                                                                     │
+│                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
  copied 42 characters
  [ ] tabs  screen  menu  glow  page  new  toast  load  effects  colours  quit

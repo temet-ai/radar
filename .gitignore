@@ -1,3 +1,4 @@
 /target
 /shots
 *.snap.new
+*.pending-snap

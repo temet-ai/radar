@@ -134,6 +134,7 @@ pub(crate) fn contribute(p: &GitlabPlugin, point: Point, s: &Subject) -> Option<
             Contribution::Cell(radar_core::Cell::new("code", value))
         }
         Point::Section => Contribution::Section {
+            icon: Some(radar_core::ui::icon::Icon::Change),
             title: "Merge requests".into(),
             lines: mrs
                 .iter()
@@ -311,7 +312,7 @@ mod tests {
         };
         assert_eq!(cell.heading, "code");
         assert!(cell.text.starts_with("!263 "), "{cell:?}");
-        let Some(Contribution::Section { title, lines }) = p.contribute(Point::Section, &ticket("abc-12")) else {
+        let Some(Contribution::Section { title, lines, .. }) = p.contribute(Point::Section, &ticket("abc-12")) else {
             panic!("a section")
         };
         assert_eq!(title, "Merge requests");

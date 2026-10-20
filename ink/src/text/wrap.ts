@@ -3,7 +3,7 @@
 //   wrapPieces  ui::rich::wrap (ui/rich.rs): a document's paragraphs, headings and list items.
 // Both collapse every run of whitespace to one space, never start a continued line with a space, count wide
 // characters as two cells, and break a word wider than the room where it runs out (rich) or leave it whole (words).
-import { charWidth, cellWidth } from "../chrome/width.js";
+import { cellWidth, clusters } from "../chrome/width.js";
 
 const isSpace = (ch: string) => /\s/u.test(ch);
 
@@ -107,8 +107,7 @@ export function wrapPieces<T>(pieces: Piece<T>[], roomIn: number): Run<T>[][] {
       // A word wider than the room: broken where it runs out.
       if (w > 0) newline();
       for (const r of word) {
-        for (const ch of r.text) {
-          const cw = charWidth(ch.codePointAt(0)!);
+        for (const [ch, cw] of clusters(r.text)) {
           if (w > 0 && w + cw > room) newline();
           put(ch, r.tag, cw);
         }

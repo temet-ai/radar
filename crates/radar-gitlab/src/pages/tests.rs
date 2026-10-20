@@ -165,7 +165,7 @@ fn the_merge_request_page_shows_every_tab() {
         "✓ not a draft",
         "• adds GET /stats",
         "LATEST ACTIVITY",
-        "│ Alice Example · 46m ago · on StatsController.java:21",
+        "Alice Example · 46m ago · on StatsController.java:21",
     ] {
         assert!(text.contains(want), "overview lacks {want:?}:\n{text}");
     }
@@ -630,6 +630,50 @@ fn the_changes_tab_is_two_panes_and_up_past_the_top_of_the_files_is_the_hosts() 
     radar_core::Plugin::show_tab(&mut p, "repos", 1);
     draw(&p, 80, 24);
     assert_eq!(radar_core::Plugin::panes(&p, "repos"), vec![Pane::Middle]);
+}
+
+/// The Changes tab never traps the arrows: ↑ from the files reaches the
+/// tab row, and ← / → fold the files tree only while there is something to
+/// fold or step into; past that they go to the pane and the tab beside, as
+/// on every item page.
+#[test]
+fn the_arrows_leave_the_changes_tab_for_the_tab_row_and_the_tabs_beside() {
+    use radar_core::host::Event;
+    let press = |host: &mut radar_core::Host, code: KeyCode, times: usize| {
+        for _ in 0..times {
+            let _ = radar_core::shell::to_text(host, 160, 40);
+            host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        }
+    };
+    let tab = |host: &radar_core::Host| radar_core::Plugin::tabs(host.plugins[0].as_ref(), "repos").map(|t| t.on);
+    let hosted = || {
+        let p = changes_page();
+        let now = p.now;
+        let mut host = radar_core::Host::new(vec![Box::new(p)], now).unwrap();
+        host.focus = Pane::Nav;
+        host.set_view_room(160, 40);
+        host
+    };
+
+    let mut host = hosted();
+    press(&mut host, KeyCode::Up, 12);
+    assert!(host.tabs, "↑ past the top of the files is the page's tab row");
+    press(&mut host, KeyCode::Left, 1);
+    assert_eq!(tab(&host), Some(0), "← on the tab row: Overview");
+
+    // Pressed until the tab changes: a few presses fold and climb first.
+    let until_the_tab_changes = |code: KeyCode| {
+        let mut host = hosted();
+        for _ in 0..12 {
+            press(&mut host, code, 1);
+            if tab(&host) != Some(1) {
+                break;
+            }
+        }
+        tab(&host)
+    };
+    assert_eq!(until_the_tab_changes(KeyCode::Left), Some(0), "← folds and climbs, then the tab beside: Overview");
+    assert_eq!(until_the_tab_changes(KeyCode::Right), Some(2), "→ crosses to the diff, then the tab beside: Threads");
 }
 
 #[test]

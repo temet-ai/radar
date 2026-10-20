@@ -18,7 +18,7 @@ use crate::theme::{Theme, mix};
 /// How far, per mille, the scrim mixes a cell's text and ground toward
 /// `bg.base`, and the shadow its ground toward black and its text toward
 /// `bg.base` (board 06, Overlays).
-const SCRIM_FG: u32 = 720;
+const SCRIM_FG: u32 = 550;
 const SCRIM_BG: u32 = 430;
 const SHADOW_BG: u32 = 600;
 const SHADOW_FG: u32 = 450;

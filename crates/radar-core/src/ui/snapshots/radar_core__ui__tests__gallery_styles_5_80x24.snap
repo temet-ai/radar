@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Entries & log" fg:text.secondary bold
@@ -8,7 +7,7 @@ expression: "gallery_styles(80, 24, tab)"
 02 _1 | "Tree  Table  Card  Meters  Rows & states…" fg:text.secondary | "[Entries & log]" fg:accent.primary/glow.purple bold | "  Markdown  Diff  Mo…" fg:text.secondary
 03 "╭" fg:accent.muted bg:bg.surface | " why the sort stopped " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 04 "│" fg:accent.muted bg:bg.surface | " WHY IT STOPPED" fg:text.muted bg:bg.surface bold | _63 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
-05 "│" fg:accent.muted bg:bg.surface | _1 fg:text.secondary bg:bg.selection | "✗ " fg:text.secondary bg:bg.selection bold | "label     2m 04s · ran out of labels    …" fg:text.secondary bg:bg.selection | "█" fg:accent.muted bg:bg.surface
+05 "│" fg:accent.muted bg:bg.surface | " ✗ label     2m 04s · ran out of labels …" fg:text.emphasis bg:bg.overlay bold | "█" fg:accent.muted bg:bg.surface
 06 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "  │ " fg:accent.muted bg:bg.surface | "no label left for box 17" fg:text.secondary bg:bg.surface | _49 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
 07 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "  │ " fg:accent.muted bg:bg.surface | "the drawer holds 0 of 40" fg:text.secondary bg:bg.surface | _49 bg:bg.surface | "█" fg:accent.muted bg:bg.surface
 08 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "✗ " fg:status.error/diff.removed bg:bg.surface bold | "file      " bg:bg.surface | "12s · timed out" fg:text.muted bg:bg.surface | _50 bg:bg.surface | "█" fg:accent.muted bg:bg.surface

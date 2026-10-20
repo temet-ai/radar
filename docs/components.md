@@ -171,10 +171,15 @@ an action. Its newest-first list retains up to 256 summaries of 120 characters;
 the selected detail carries the full message, bounded at 2,048 characters, wraps
 by complete graphemes, and scrolls with PgUp/PgDn. Omitted older entries are counted.
 
-Transient rows sit bottom-right inside the content border, above status. Up to
-four are visible, newest lowest and older rows dimmed. An additional summary
-shows the hidden count and opens history. Short panes reserve a summary row;
-a one-row pane puts the count in the newest notice. Rows are at most 64 cells.
+Transient rows sit bottom-right inside the border of the panel that stands on the
+status line at the right edge, read from the frame just drawn (`shell::notices::anchor`,
+Ink `noticeAnchor`); with no such panel, inside the content area. Each row is as wide
+as its words, at most 64 cells and the panel's inside; a longer one ends in `…` and
+the full text is in `~`. Up to four are visible, newest lowest and older rows dimmed.
+An additional summary shows the hidden count and opens history. Short panes reserve
+a summary row; a one-row pane puts the count in the newest notice. Unless motion is
+off, a row reads in from the right over its first 120 ms and goes back into the right
+edge over its last 120 ms; a wide glyph the edge would cut stays hidden until whole.
 Icons use the active pack, with severity words when icons are off. Truecolor
 uses primary text and 18% severity tint over `bg.overlay`, channel-rounded
 half-up; the tint's width is `ceil(width × remaining / lifetime)`, kept whole
@@ -213,7 +218,7 @@ with `RADAR_NOTICE_CELLS_DIR`; snapshots still require review before acceptance.
 | `input::TextInput` | input.rs | One-row editable field | | BgOverlay, TextEmphasis | reversed block caret | Grid states |
 | `Icon`, `icon::*` | ui/icon.rs | Semantic icons and packs | nerd, unicode, emoji, off | icon's own slot | from pack | Icons |
 | `hover::paint` | ui/hover.rs | Lights what the pointer is over | BgHover, or underline on Ansi16 and Mono | BgHover | | **missing** |
-| `scrim::scrim`, `scrim::shadow` | ui/scrim.rs / `app/scrim.ts` | Dims the screen behind a menu, question or help; a one-cell shadow right of and below the box, glyphs kept | truecolour: fg 72%, bg 43% toward BgBase, bold off; shadow bg 60% toward black, fg 45% toward BgBase. 256/16: SGR dim, shadow on black. Mono: dim | BgBase, TextPrimary | | none (Storybook Design/Surfaces, Overlays) |
+| `scrim::scrim`, `scrim::shadow` | ui/scrim.rs / `app/scrim.ts` | Dims the screen behind a menu, question or help; a one-cell shadow right of and below the box, glyphs kept | truecolour: fg 55%, bg 43% toward BgBase, bold off; shadow bg 60% toward black, fg 45% toward BgBase. 256/16: SGR dim, shadow on black. Mono: dim | BgBase, TextPrimary | | none (Storybook Design/Surfaces, Overlays) |
 | `link`, `pointer` | ui/link.rs, ui/pointer.rs | OSC 8 links, OSC 22 pointer shape | on, off, detect | | | **missing** |
 | Text helpers `width`, `take`, `pad`, `fit`, `clip`, `wrapped`, `duration`, `short_name` | ui/mod.rs | Display-cell string handling | | | | Long text |
 | `Mark` | ui/mod.rs | Run-state symbol and icon | Done, Failed, Running, Waiting, Manual, Stopped, Skipped | via Tone | `✓ ✗ ● ◷ ▷ ⊘ »` | Tones |
@@ -292,7 +297,7 @@ the "today" column lists what has to change. Paths are under `crates/`.
 | Colour swatch, tenancy bullet | one kit element | `"██ "` and `"● "` in GitLab and Jira settings | |
 | Editor titles | `Icon::Comment` + words | literal `"✎ …"` in GitLab and Slack | |
 | Site and tenancy colours | one shared slot table | copied three times in `lib.rs`: `TENANT_SLOTS` (GitLab), `SITE_SLOTS` (Jira), `CHANNEL_SLOTS` (Slack) | |
-| Detail pane | Head on the heading shade, aligned facts, sections under named rules, pinned actions with keys in words | GitLab MR, Jira ticket and Slack message previews use `view::detail`: three-row shaded identity, nonempty aligned facts, existing named sections and a pinned foot. The typed extension includes a complete ordinary Rich fallback. Live single-press controls are stamped and revalidated by the displayed host; raw views contain no runnable foot targets. | #46 |
+| Detail pane | Head on the heading shade, aligned facts, sections under named rules, pinned actions with keys in words | GitLab MR, Jira ticket and Slack message previews use `view::detail`: three-row shaded identity, nonempty aligned facts, existing named sections and a pinned foot. The typed extension includes a complete ordinary Rich fallback. Live single-press controls are stamped and revalidated by the displayed host; raw views contain no runnable foot targets. No section drowns the others: a detail pane is a summary and the item's page has everything. The last comment shows at most 12 lines with a link to it on its service; another part's section (`Parts::detail_sections`) is marked with its icon like the owner's and cut to `DETAIL_SECTION_MOST` lines, ending `⋯ n more lines on its page`. Contributed lines carry their own looks and links in place of spelled-out addresses. | #46 |
 
 ---
 

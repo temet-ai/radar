@@ -1633,3 +1633,34 @@ fn chips_after_a_cjk_title_fit_by_cells() {
     let out = after_name(name, 0, chips(&t, &[("ready", Tone::Good)]), 30);
     assert!(out.iter().map(Span::width).sum::<usize>() <= 30, "{out:?}");
 }
+
+/// The clusters Ink and the host must count the same, shared with
+/// ink/test/chrome/wide-clusters.test.ts: `⚠` alone is one cell, `⚠` +
+/// U+FE0F two. A cut by `char` once made a row a cell wider than its room.
+fn wide_clusters() -> Vec<(String, usize)> {
+    let corpus: Vec<serde_json::Value> =
+        serde_json::from_str(include_str!("../../../../ink/test/chrome/fixtures/wide-clusters.json")).unwrap();
+    corpus
+        .iter()
+        .map(|c| (c["text"].as_str().unwrap().to_string(), c["cells"].as_u64().unwrap() as usize))
+        .collect()
+}
+
+#[test]
+fn wide_clusters_are_measured_cut_and_wrapped_as_the_terminal_draws_them() {
+    for (text, cells) in wide_clusters() {
+        assert_eq!(width(&text), cells, "{text:?}");
+        assert_eq!(clusters(&text).map(|(_, _, w)| w).sum::<usize>(), cells, "{text:?}");
+        for room in 0..=cells + 1 {
+            let (head, used) = take(&text, room);
+            assert!(used <= room && width(head) == used, "take {text:?} {room}: {head:?} {used}");
+            assert_eq!(width(&fit(&text, room)), room, "fit {text:?} {room}");
+            if room >= 2 {
+                let laid = rich::plain(&markdown::parse(&text), room as u16);
+                for line in laid.lines() {
+                    assert!(width(line) <= room, "rich {text:?} in {room}: {line:?}");
+                }
+            }
+        }
+    }
+}

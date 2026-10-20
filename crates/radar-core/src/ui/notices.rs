@@ -14,13 +14,20 @@ use crate::view::chrome::{NoticeHistoryView, NoticeTone, NoticeView};
 const MAX_VISIBLE: usize = 4;
 const MAX_WIDTH: u16 = 64;
 const TINT_PER_MILLE: u32 = 180;
+/// A notice reads in from the right edge as it arrives and goes back into it
+/// in its last moments: this long each way.
+pub const EDGE_MS: u64 = 120;
 
 #[derive(Debug, Clone)]
 pub struct Toast {
     pub id: u64,
+    /// What is drawn now, and takes the click: the right end of `full`.
     pub area: Rect,
+    /// The whole row, as wide as its words, right-aligned in the content.
+    pub full: Rect,
     pub notice: NoticeView,
     pub older: bool,
+    /// Cells of `full`, from its left, still on the tinted ground.
     pub fill: u16,
     pub hidden: u64,
 }
@@ -35,9 +42,12 @@ pub struct Stack {
     pub summary: Option<Summary>,
 }
 
-/// Newest at the bottom-right inside the content pane. Overflow always has a
-/// visible count; in a one-row pane the newest notice carries that count.
+/// Newest at the bottom-right inside the content pane, each row as wide as its
+/// words. Overflow always has a visible count; in a one-row pane the newest
+/// notice carries that count. With motion a row reads in from the right over
+/// [`EDGE_MS`] and leaves the same way as its time runs out.
 pub fn layout(
+    theme: &Theme,
     notices: &[NoticeView],
     hidden: u64,
     content: Rect,
@@ -63,49 +73,89 @@ pub fn layout(
         count = count.min(usize::from(content.height - 1));
     }
     let hidden = hidden.saturating_add((active.len() - count) as u64);
-    let width = content.width.min(MAX_WIDTH);
-    let summary = (hidden > 0 && content.height >= 2).then(|| Summary {
-        area: Rect::new(
-            content.right() - width,
-            content.bottom() - count as u16 - 1,
-            width,
-            1,
-        ),
-        hidden,
+    let room = content.width.min(MAX_WIDTH);
+    let summary = (hidden > 0 && content.height >= 2).then(|| {
+        let width = room.min(super::width(&summary_text(hidden)) as u16 + 2);
+        Summary {
+            area: Rect::new(
+                content.right() - width,
+                content.bottom() - count as u16 - 1,
+                width,
+                1,
+            ),
+            hidden,
+        }
     });
     let toasts = active[active.len() - count..]
         .iter()
         .enumerate()
         .map(|(i, notice)| {
-            let remaining = notice
-                .lifetime_ms
-                .saturating_sub(now_ms.saturating_sub(notice.created_ms));
+            let hidden = if summary.is_none() && i + 1 == count {
+                hidden
+            } else {
+                0
+            };
+            let shown = with_count(notice, hidden);
+            let words = super::width(&prefix(theme, &shown).0) + super::width(&one_line(&shown.text));
+            let width = room.min((words + 2).min(usize::from(u16::MAX)) as u16);
+            let full = Rect::new(
+                content.right() - width,
+                content.bottom() - count as u16 + i as u16,
+                width,
+                1,
+            );
+            let age = now_ms.saturating_sub(notice.created_ms);
+            let remaining = notice.lifetime_ms.saturating_sub(age);
             let fill = if motion {
                 (u128::from(width) * u128::from(remaining)).div_ceil(u128::from(notice.lifetime_ms))
                     as u16
             } else {
                 width
             };
+            let reveal = if motion {
+                (u64::from(width) * age.min(remaining).min(EDGE_MS)).div_ceil(EDGE_MS) as u16
+            } else {
+                width
+            };
+            // A wide glyph the edge would cut stays hidden until it is whole.
+            let mut cells = Buffer::empty(full);
+            draw_line(&mut cells, full, &row(theme, &shown, width, Style::default()));
+            let mut start = full.right() - reveal.min(width);
+            while start < full.right() && cells[(start, full.y)].symbol().is_empty() {
+                start += 1;
+            }
             Toast {
                 id: notice.id,
-                area: Rect::new(
-                    content.right() - width,
-                    content.bottom() - count as u16 + i as u16,
-                    width,
-                    1,
-                ),
+                area: Rect::new(start, full.y, full.right() - start, 1),
+                full,
                 notice: (*notice).clone(),
                 older: i + 1 < count,
                 fill,
-                hidden: if summary.is_none() && i + 1 == count {
-                    hidden
-                } else {
-                    0
-                },
+                hidden,
             }
         })
         .collect();
     Stack { toasts, summary }
+}
+
+/// Whether every notice on show reads whole in `area` (up to the 64-cell cap):
+/// a panel too narrow for one would cut off what it says.
+pub fn fits(theme: &Theme, notices: &[NoticeView], area: Rect) -> bool {
+    notices.iter().all(|notice| {
+        let words = super::width(&prefix(theme, notice).0) + super::width(&one_line(&notice.text)) + 2;
+        words.min(usize::from(MAX_WIDTH)) <= usize::from(area.width)
+    })
+}
+
+fn summary_text(hidden: u64) -> String {
+    format!("+{hidden} earlier notices · ~ history")
+}
+fn with_count(notice: &NoticeView, hidden: u64) -> NoticeView {
+    let mut notice = notice.clone();
+    if hidden > 0 {
+        notice.text = format!("+{} more · {}", hidden, notice.text);
+    }
+    notice
 }
 
 fn tone_slot(tone: NoticeTone) -> Slot {
@@ -280,7 +330,7 @@ pub fn paint(stack: &Stack, theme: &Theme, buf: &mut Buffer) -> Vec<(Rect, u64)>
                 style = style.add_modifier(Modifier::REVERSED);
             }
             clear(buf, area, style);
-            let text = format!("+{} earlier notices · ~ history", summary.hidden);
+            let text = format!(" {}", summary_text(summary.hidden));
             draw_line(
                 buf,
                 area,
@@ -308,23 +358,27 @@ pub fn paint(stack: &Stack, theme: &Theme, buf: &mut Buffer) -> Vec<(Rect, u64)>
         if theme.tier() == Tier::Mono {
             style = style.add_modifier(Modifier::REVERSED);
         }
-        let mut notice = toast.notice.clone();
-        if toast.hidden > 0 {
-            notice.text = format!("+{} more · {}", toast.hidden, notice.text);
-        }
-        clear(buf, area, style);
-        draw_line(buf, area, &row(theme, &notice, area.width, style));
+        let notice = with_count(&toast.notice, toast.hidden);
+        // The whole row is drawn aside, then only the part read in so far is laid over the frame.
+        let full = toast.full;
+        let mut cells = Buffer::empty(full);
+        clear(&mut cells, full, style);
+        draw_line(&mut cells, full, &row(theme, &notice, full.width, style));
         if let Some(ground) = tint(theme, notice.tone) {
-            let mut end = area.x.saturating_add(toast.fill.min(area.width));
-            if end > area.x
-                && end < area.right()
-                && super::width(buf[(end - 1, area.y)].symbol()) > 1
+            let mut end = full.x.saturating_add(toast.fill.min(full.width));
+            if end > full.x
+                && end < full.right()
+                && super::width(cells[(end - 1, full.y)].symbol()) > 1
             {
                 end -= 1;
             }
-            for x in area.x..end {
-                buf[(x, area.y)].set_bg(ground);
+            for x in full.x..end {
+                cells[(x, full.y)].set_bg(ground);
             }
+        }
+        clear(buf, area, style);
+        for x in area.x..area.right() {
+            buf[(x, area.y)] = cells[(x, area.y)].clone();
         }
         hits.push((area, toast.id));
     }

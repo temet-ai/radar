@@ -1184,6 +1184,8 @@ pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
         }
         LocalMsg::Worktree { dir, result, parked } => {
             let what = p.local.then_open.remove(&dir);
+            // An existing worktree may stand somewhere other than where one was asked for.
+            let open_at = parked.as_ref().map_or_else(|| dir.clone(), |w| w.path.clone());
             let outcome = parked.as_ref().map_or_else(
                 || if result.is_ok() { JournalOutcome::Succeeded } else { JournalOutcome::Unknown },
                 crate::act::WorktreeResult::outcome,
@@ -1194,7 +1196,7 @@ pub fn on_msg(p: &mut GitPlugin, msg: LocalMsg) -> Vec<Effect> {
                 Ok(said) => {
                     fx.push(Effect::Notify(radar_core::writes::done_line(&said)));
                     fx.extend(scan_now(p, false));
-                    if let (Some(what), Some(c)) = (what, read_checkout(Path::new(&dir))) {
+                    if let (Some(what), Some(c)) = (what, read_checkout(Path::new(&open_at))) {
                         launch = Some((what, c));
                     }
                 }

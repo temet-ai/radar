@@ -191,6 +191,10 @@ pub struct Comment {
     pub author: String,
     pub body: String,
     pub at: String,
+    /// The note on GitLab (`…/merge_requests/218#note_123`); none in a
+    /// cache saved before it was asked for.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
 }
 
 /// The newest commit on a repo's default branch.
@@ -664,6 +668,7 @@ pub mod fixtures {
                 body: "Should this read from the cached view? The dashboard polls every 30s."
                     .into(),
                 at: "2026-10-06T06:00:00Z".into(),
+                url: None,
             }),
             project_name: project.rsplit('/').next().unwrap().into(),
             project_path: project.into(),

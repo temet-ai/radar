@@ -85,6 +85,7 @@ fn common_structure_keeps_mr_role_blockers_pipeline_changes_and_whole_comment() 
         author: "Carrot Ironfoundersson".into(),
         body: "First watch\nSecond watch".into(),
         at: mr.updated_at.clone(),
+        url: Some("https://gitlab.example/watch/-/merge_requests/7#note_12".into()),
     });
     let p = plugin(mr);
     let detail = content(&p);
@@ -156,14 +157,21 @@ fn common_structure_keeps_mr_role_blockers_pipeline_changes_and_whole_comment() 
         unreachable!()
     };
     assert!(matches!(&blocks[0], Block::Line { text, .. } if text.words() == "0 files  +0 −0"));
-    let Block::Section { blocks, .. } = section(&detail, "THREADS") else {
+    let Block::Section { detail: count, blocks, .. } = section(&detail, "THREADS") else {
         unreachable!()
     };
-    assert!(
-        blocks.iter().any(
-            |b| matches!(b, Block::Wrapped { text, .. } if text == "First watch\nSecond watch")
-        )
-    );
+    // A plain comment is no thread, and its body goes through markdown.
+    assert_eq!(count.as_deref(), Some("none · the last comment"));
+    assert!(blocks.iter().any(|b| matches!(b, Block::Doc { doc, bar: None, .. } if {
+        let said = radar_core::ui::rich::plain(doc, 80);
+        said.contains("First watch") && said.contains("Second watch")
+    })));
+    assert!(!blocks.iter().any(|b| matches!(b, Block::Wrapped { .. })), "no bar down its edge");
+    // It says where it lives, and a click opens the note there.
+    assert!(blocks.iter().any(|b| matches!(b, Block::Line { text, .. }
+        if text.words().contains("comment on !")
+            && text.0.iter().any(|s| s.link.as_deref() == Some("https://gitlab.example/watch/-/merge_requests/7#note_12")))));
+    assert!(blocks.iter().any(|b| matches!(b, Block::Doc { most: Some(12), .. })));
 }
 
 #[test]

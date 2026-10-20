@@ -27,7 +27,7 @@ const ITEMS: [(&str, &str); 7] = [
 
 /// What each key shows, and at which level.
 const KEYS: [(&str, &str, &str); 8] = [
-    ("s", "a screen switch: the body fades in", "subtle"),
+    ("s", "a screen switch: it builds from its panels (subtle: fades in)", "subtle"),
     ("m", "a menu or confirm sweeps open (again: closes)", "subtle"),
     ("g", "rows a sync changed glow and fade", "subtle"),
     ("p", "an item's page slides in", "full"),
@@ -137,7 +137,8 @@ impl MotionDemo {
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main)
         };
         let [about, wait] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(right);
+            // Room under "loading…" for the outlines of the rows to come.
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]).areas(right);
 
         let inner = panel(theme, left, buf, "items", true);
         for (i, (key, name, state)) in self.rows.iter().enumerate().take(inner.height as usize) {

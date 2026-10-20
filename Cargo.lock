@@ -2459,6 +2459,7 @@ dependencies = [
  "tui-popup",
  "tui-scrollview",
  "tui-tree-widget",
+ "unicode-segmentation",
  "unicode-width",
  "url",
  "uuid",

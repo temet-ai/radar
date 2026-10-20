@@ -1,6 +1,5 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
-assertion_line: 574
 expression: "radar_core::shell::to_text(&host, 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
@@ -25,10 +24,10 @@ expression: "radar_core::shell::to_text(&host, 160, 40)"
 │                        ││                      │         review it locally…                                 │││   1 file  +10 −2                             │
 │                        ││                      │ :       go to a tenancy, repo or merge request…            │││                                              │
 │                        ││                      │         show one author's merge requests…                  │││ THREADS  2, 1 open ───────────────────────── │
-│                        ││                      │ ctrl-r  kept comments…                                     │││   │ Bob Example · 1h ago                     │
-│                        ││                      │ space   toggle the group                                   │││   │ Should this read from the cached view?   │
-│                        ││                      │ +       expand the group                                   │││   │ The dashboard polls every 30s.           │
-│                        ││                      │ -       collapse the group, or the one this row is in      │││                                              │
+│                        ││                      │ ctrl-r  kept comments…                                     │││    BE  Bob Example · 1h ago                  │
+│                        ││                      │ space   toggle the group                                   │││   ↗ comment on !410 in GitLab                │
+│                        ││                      │ +       expand the group                                   │││   Should this read from the cached view?     │
+│                        ││                      │ -       collapse the group, or the one this row is in      │││   The dashboard polls every 30s.             │
 │                        ││                      │ =       expand every held group                            │││                                              │
 │                        ││                      │ ~       recent notices (this session)                      │││                                              │
 │                        ││                      │ HISTORY                                                    │││                                              │

@@ -1371,18 +1371,21 @@ only while one runs. Idle, radar draws on events alone, as before.
 
 | Effect | Cue (who) | Where | Time | `subtle` | `full` |
 |---|---|---|---|---|---|
-| Body fades in | another screen: a tab's key, `,`, a show across parts (host) | the body | 200 ms | yes | yes |
+| Body fades in | another screen: a tab's key, `,`, a show across parts (host) | the body | 100 ms | yes | |
+| Screen assembles | the same cue at `full` (`motion::assemble`): panels found by their corners, left to right 30 ms apart; each frame draws down row by row, each row inside reads in from the left 40 ms after its frame row; anything outside a panel is there at once | the body | 450 ms | | yes |
 | Body sweeps in from the left | an item's page opened: the screen's `depth` grew (host) | the body | 300 ms | | yes |
 | Popup sweeps open | a menu or confirm appeared (host); closing it is instant | the popup | 180 ms | yes | yes |
 | Row glows (accent background that fades) | a sync changed the row (part: `Effect::Changed`) | the row | 450 ms | yes | yes |
 | New row sweeps in | a sync added the row (part) | the row | 320 ms | glows | yes |
 | Message sweeps in | a marked message appeared (gallery primitive) | the message | 250 ms | | yes |
 | Message fades out | the marked message left (gallery primitive) | where it was | 200 ms | | yes |
-| Shimmer, repeating | a panel waits for its first data (part: `motion::loading`) | the panel | 1.4 s a pass | | yes |
+| Loading outlines, repeating | a panel waits for its first data (part: `motion::loading`): its blank rows show the shape rows will have (icon slot, name, state, age, `motion::outline`), and a light wave runs down them | the panel | 1.4 s a pass | | yes |
 
-Host notices are composited after motion, outside retained frames. The gallery
-message primitive and its native/Ink cell fixtures exercise message arrival and
-departure; they do not establish animation of host notices.
+Host notices are composited after motion, outside retained frames. A notice reads
+in from the right edge over its first 120 ms and goes back into it over its last
+120 ms (`ui::notices::EDGE_MS`), whenever motion is not `off`; both are worked out
+from its age, so nothing is kept after it expires. The gallery message primitive
+and its native/Ink cell fixtures exercise the status line's message instead.
 
 **What a part does.**
 
@@ -1407,11 +1410,12 @@ departure; they do not establish animation of host notices.
 **Rules.**
 
 - Input wins: a key, click or paste drops what runs before the host sees it, and the
-  key acts at once (`Engine::input`); cues from that key start after. A shimmer goes on.
+  key acts at once (`Engine::input`); cues from that key start after. Loading outlines go on.
 - Every effect is time-based and short; `FRAME`, the durations and the slow-terminal
   rule are constants in `motion.rs`. Colours come from the theme: the body and popup fade
   from `bg.base`, the message from `bg.overlay`, the glow is `accent.primary` over the
-  row's own background, the shimmer lifts toward `bg.overlay` and `text.primary`.
+  row's own background, outlines sit 12% from `bg.surface` toward `text.primary` and
+  the wave lifts them to 45%.
 - One plain frame follows the last effect, so what stays on screen is exactly what radar
   drew.
 - `off` applies nothing at all. Motion is also off, whatever the setting, over SSH,

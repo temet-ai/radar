@@ -96,9 +96,14 @@ function hardChunks(cs: Cell[], room: number): Cell[][] {
   let w = 0;
   for (const c of cs) {
     if (w > 0 && w + c.w > room) {
-      out.push(cur);
-      cur = [];
-      w = 0;
+      // After the last plain space, so no word is split; a word wider than the room is cut where it reaches the edge.
+      const space = cur.map((x) => x.ch).lastIndexOf(" ");
+      const at = space > 0 ? space + 1 : cur.length;
+      const head = cur.slice(0, at);
+      while (head.length && head[head.length - 1]!.ch === " ") head.pop();
+      out.push(head);
+      cur = cur.slice(at);
+      w = cur.reduce((n, x) => n + x.w, 0);
     }
     cur.push(c);
     w += c.w;

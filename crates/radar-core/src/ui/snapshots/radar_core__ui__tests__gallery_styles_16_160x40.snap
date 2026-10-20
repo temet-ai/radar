@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1326
 expression: "gallery_styles(160, 40, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Notices" fg:text.secondary bold
@@ -10,7 +9,7 @@ expression: "gallery_styles(160, 40, tab)"
 04 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
 05 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
 06 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-07 "│" fg:accent.muted bg:bg.surface | _14 bg:bg.surface | _1 bg:#2d3150 dim | "info " fg:status.info bg:#2d3150 dim | "Copied the Watch link     " bg:#2d3150 dim | _32 bg:bg.overlay dim | "││" fg:accent.muted bg:bg.surface | _13 bg:bg.surface | _1 bg:#2d3150 dim | "info " fg:status.info bg:#2d3150 dim | "Copied the Watch link                   …" bg:#2d3150 dim | "│" fg:accent.muted bg:bg.surface
+07 "│" fg:accent.muted bg:bg.surface | _50 bg:bg.surface | _1 bg:#2d3150 dim | "info " fg:status.info bg:#2d3150 dim | "Copied t" bg:#2d3150 dim | "he Watch link " bg:bg.overlay dim | "││" fg:accent.muted bg:bg.surface | _49 bg:bg.surface | _1 bg:#2d3150 dim | "info " fg:status.info bg:#2d3150 dim | "Copied the Watch link " bg:#2d3150 dim | "│" fg:accent.muted bg:bg.surface
 08 "│" fg:accent.muted bg:bg.surface | _14 bg:bg.surface | _1 bg:#432434 bold | "error " fg:status.error/diff.removed bg:#432434 bold | "The Watch request failed. Try again when…" bg:#432434 bold | "nection… " bg:bg.overlay bold | "││" fg:accent.muted bg:bg.surface | _13 bg:bg.surface | _1 bg:#432434 bold | "error " fg:status.error/diff.removed bg:#432434 bold | "The Watch request failed. Try again when…" bg:#432434 bold | "│" fg:accent.muted bg:bg.surface
 09 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
 10 "╭" fg:accent.muted bg:bg.surface | " recent notices · session only " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface

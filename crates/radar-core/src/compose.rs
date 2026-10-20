@@ -313,13 +313,21 @@ impl Action {
     }
 }
 
+/// The most lines of another part's section a detail pane shows
+/// ([`Parts::detail_sections`]).
+pub const DETAIL_SECTION_MOST: usize = 10;
+
 /// What a part puts in a [`Point`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum Contribution {
     Chips(Vec<Chip>),
     /// One column's value on this subject's row.
     Cell(Cell),
+    /// A section under the owner's own: its mark (drawn before the title,
+    /// as the owner's sections have one), title and lines. A detail pane
+    /// shows at most [`DETAIL_SECTION_MOST`] of the lines; the page all.
     Section {
+        icon: Option<crate::ui::icon::Icon>,
         title: String,
         lines: Vec<crate::view::Text>,
     },
@@ -570,7 +578,29 @@ impl<'a> Parts<'a> {
         self.contributions(Point::Section, subject)
             .into_iter()
             .filter_map(|(_, c)| match c {
-                Contribution::Section { title, lines } => Some((title, lines)),
+                Contribution::Section { title, lines, .. } => Some((title, lines)),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// Each contributed section of `subject` as a detail pane draws it: its
+    /// mark and title, then at most [`DETAIL_SECTION_MOST`] lines and how
+    /// many more the page has. A summary beside the owner's own sections,
+    /// so no one part's words push the rest out of the pane.
+    pub fn detail_sections(&self, subject: &Subject) -> Vec<crate::view::Block> {
+        use crate::view::{Block, Ink, Text};
+        self.contributions(Point::Section, subject)
+            .into_iter()
+            .filter_map(|(_, c)| match c {
+                Contribution::Section { icon, title, mut lines } => {
+                    if lines.len() > DETAIL_SECTION_MOST {
+                        let more = lines.len() - (DETAIL_SECTION_MOST - 1);
+                        lines.truncate(DETAIL_SECTION_MOST - 1);
+                        lines.push(Text::of(format!("⋯ {more} more lines on its page"), Ink::Muted));
+                    }
+                    Some(Block::section_of(icon, &title, None, lines))
+                }
                 _ => None,
             })
             .collect()

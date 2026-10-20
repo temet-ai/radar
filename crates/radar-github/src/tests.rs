@@ -1349,6 +1349,7 @@ impl Plugin for CompositionProbe {
                 radar_core::Chip::new("local folder", radar_core::plugin::Tone::Plain).acts("folder"),
             ]),
             radar_core::Point::Section => radar_core::Contribution::Section {
+                icon: None,
                 title: "Linked evidence".into(),
                 lines: vec![radar_core::view::Text::plain("Related cached information")],
             },

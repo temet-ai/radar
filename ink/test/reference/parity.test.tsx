@@ -47,7 +47,9 @@ const aged = (l: string) =>
   l.replace(
     /firing (\d[\ddhms ]*)/g,
     (_m, age: string) => "firing " + age.replace(/\d/g, "#"),
-  );
+  ).replace(/(^|[^A-Za-z0-9_])v\d+(\.\d+)*(?![A-Za-z0-9_])/g, "$1v#");
+
+// A shipped version (`recipe ask  v2 · built-in`) is content, not layout: masked on both sides, so raising one fails nothing here.
 
 /** The icon pack a recording was made with: tests/mix.rs names the packed ones `icons_<pack>`; the rest have icons off. */
 const packOf = (name: string) =>
@@ -82,7 +84,7 @@ describe("Ink draws the recordings", () => {
     );
     const snapFile = path.join(snapDir, `${name}.snap`);
     expect(fs.existsSync(snapFile), `recording ${name}.snap`).toBe(true);
-    const want = recordingBody(fs.readFileSync(snapFile, "utf8"));
+    const want = recordingBody(fs.readFileSync(snapFile, "utf8")).map(aged);
     applyLook(defaultLook(packOf(name)));
     const m = mount(view.width, view.height);
     live.push(m.stop);

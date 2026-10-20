@@ -338,7 +338,7 @@ macro_rules! mr_fields {
         approvedBy { nodes { username } }
         headPipeline { status path duration stages { nodes { name status } } }
         resolvableDiscussionsCount resolvedDiscussionsCount
-        notes(filter: ONLY_COMMENTS, last: 1) { nodes { body createdAt author { username name } } }
+        notes(filter: ONLY_COMMENTS, last: 1) { nodes { url body createdAt author { username name } } }
         diffStatsSummary { additions deletions fileCount }
         project { name fullPath }
         state mergedAt closedAt
@@ -1809,6 +1809,7 @@ pub fn parse_mr(n: &Value, base_url: &str) -> Mr {
                 author: str_of(&c["author"]["name"]),
                 body: str_of(&c["body"]),
                 at: str_of(&c["createdAt"]),
+                url: c["url"].as_str().filter(|u| !u.is_empty()).map(str::to_string),
             }),
         state: MrState::from_graphql(n["state"].as_str().unwrap_or("opened")),
         ended_at: n["mergedAt"]

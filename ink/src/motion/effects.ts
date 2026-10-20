@@ -123,32 +123,4 @@ export class FadeOut implements Effect {
   done = () => this.timer.done();
 }
 
-/** motion::shimmer: a soft band of light crossing a waiting panel, over and over. */
-export class Shimmer implements Effect {
-  private timer = new Timer(1400, "linear");
-  constructor(
-    private light: number,
-    private text: number,
-    private reads: Reads,
-  ) {}
-  process(dt: number, grid: Grid, area: Rect) {
-    const over = this.timer.process(dt);
-    const a = this.timer.alpha();
-    const band = Math.max(6, Math.min(24, f(area.w / 4)));
-    const span = area.w + area.h * 2 + band * 2;
-    const centre = f(a * span - band);
-    each(grid, area, (cell, x, y) => {
-      const px = x - area.x + (y - area.y) * 2;
-      const d = Math.abs(px - centre);
-      if (d >= band) return;
-      const k = f((1 - d / band) * 0.5);
-      cell.bg = lerp(cell.bg < 0 ? this.reads.bg : cell.bg, this.light, k);
-      if (cell.ch !== " ")
-        cell.fg = lerp(cell.fg < 0 ? this.reads.fg : cell.fg, this.text, k);
-    });
-    if (over !== undefined) this.timer.reset(); // repeats for as long as the panel waits
-  }
-  done = () => false;
-}
-
 export { RESET };

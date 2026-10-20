@@ -1,6 +1,6 @@
 import type { NoticeView } from "../protocol/generated/NoticeView.js";
 import type { NoticeHistoryView } from "../protocol/generated/NoticeHistoryView.js";
-import { clipCells, ellipsize, padCells, type Cell } from "../text/cells.js";
+import { clipCells, ellipsize, padCells, widthOfCells, type Cell } from "../text/cells.js";
 import { bgOf, currentLook, hexRgb, iconOf, mix, rgbHex, slotStyle, specStyle, type Style } from "../text/look.js";
 import type { Hit } from "../chrome/types.js";
 import type { Rect } from "../motion/grid.js";
@@ -19,14 +19,24 @@ export function noticePrefix(notice: NoticeView, style: Style): Cell[] {
   if (!icon?.glyph) return noticeCells(`${notice.tone} `, { ...style, ...slotStyle(`status.${notice.tone}`) });
   return noticeCells(`${icon.glyph} `, { ...style, ...specStyle(icon.style) });
 }
-function rowCells(notice: NoticeView, width: number, now: number, older: boolean, motion: boolean, prefix = ""): Cell[] {
+/** A notice reads in from the right edge as it arrives and goes back into it in its last moments (ui/notices.rs EDGE_MS). */
+export const NOTICE_EDGE_MS = 120;
+/** Whether every notice on show reads whole in `area` (up to the 64-cell cap; ui/notices.rs `fits`). */
+export function noticesFit(notices: NoticeView[], area: Rect): boolean {
+  return notices.every((notice) => {
+    const words = widthOfCells([...noticePrefix(notice, {}), ...noticeCells(noticeText(notice.text))]) + 2;
+    return Math.min(words, 64) <= area.w;
+  });
+}
+/** The whole row, as wide as its words (up to `room`), on its tinted ground. */
+function rowCells(notice: NoticeView, room: number, now: number, older: boolean, motion: boolean, prefix = ""): Cell[] {
   const look = currentLook(), mono = look.tier === "mono", low = look.tier === "16" || look.tier === "256";
   const tone = `status.${notice.tone}`, ground = bgOf("bg.overlay");
   const style: Style = { ...slotStyle(low ? tone : "text.primary"), backgroundColor: ground,
     ...(mono ? { inverse: true } : {}), ...(older ? { dim: true } : {}), ...(!older && notice.tone === "error" ? { bold: true } : {}) };
-  const cells = padCells([...noticeCells(" ", style), ...ellipsize([
-    ...noticePrefix(notice, style), ...noticeCells(prefix, style), ...noticeCells(noticeText(notice.text), style),
-  ], Math.max(0, width - 2))], width, style);
+  const words = [...noticePrefix(notice, style), ...noticeCells(prefix, style), ...noticeCells(noticeText(notice.text), style)];
+  const width = Math.min(room, widthOfCells(words) + 2);
+  const cells = padCells([...noticeCells(" ", style), ...ellipsize(words, Math.max(0, width - 2))], width, style);
   const a = hexRgb(ground), b = hexRgb(look.slots[tone]);
   if (look.tier !== "truecolor" || !a || !b) return cells;
   const tinted = rgbHex(mix(a, b, 180));
@@ -39,26 +49,37 @@ function rowCells(notice: NoticeView, width: number, now: number, older: boolean
   }
   return cells;
 }
-/** Four newest single rows, newest at the panel foot; overflow adds a history link row. */
+/** The right end of a row read in so far; a wide glyph the edge would cut stays hidden until it is whole. */
+function revealed(notice: NoticeView, cells: Cell[], now: number, motion: boolean): Cell[] {
+  const width = widthOfCells(cells), age = Math.max(0, now - notice.created_ms), left = Math.max(0, notice.lifetime_ms - age);
+  const shown = motion ? Math.ceil(width * Math.min(age, left, NOTICE_EDGE_MS) / NOTICE_EDGE_MS) : width;
+  const start = width - Math.min(width, shown);
+  let x = 0;
+  return cells.filter((cell) => { const keep = x >= start; x += cell.w; return keep; });
+}
+/** Four newest single rows, each as wide as its words, newest at the panel foot; overflow adds a history link row. */
 export function layoutNotices(active: NoticeView[], hidden: number, content: Rect, now: number, motion: boolean): NoticeRow[] {
   if (content.w <= 0 || content.h <= 0) return [];
   const valid = active.filter((n) => now - n.created_ms < n.lifetime_ms).sort((a, b) => a.id - b.id);
   if (!valid.length) return [];
-  const width = Math.min(64, content.w);
+  const room = Math.min(64, content.w), right = content.x + content.w;
   let shown = valid.slice(-Math.min(4, content.h));
   let omitted = hidden + valid.length - shown.length;
   if (omitted && content.h >= 2) shown = valid.slice(-Math.min(4, content.h - 1));
   omitted = hidden + valid.length - shown.length;
   const summary = omitted > 0 && content.h >= 2;
-  const x = content.x + content.w - width, y = content.y + content.h - shown.length;
+  const y = content.y + content.h - shown.length;
   const out: NoticeRow[] = [];
   if (summary) {
     const s = { ...slotStyle("text.muted"), backgroundColor: bgOf("bg.overlay"), ...(currentLook().tier === "mono" ? { inverse: true } : {}) };
-    out.push({ rect: { x, y: y - 1, w: width, h: 1 }, target: NOTICE_OPEN,
-      cells: padCells(ellipsize(noticeCells(`+${omitted} earlier notices · ~ history`, s), width), width, s) });
+    const text = noticeCells(` +${omitted} earlier notices · ~ history`, s), w = Math.min(room, widthOfCells(text) + 1);
+    out.push({ rect: { x: right - w, y: y - 1, w, h: 1 }, target: NOTICE_OPEN, cells: padCells(ellipsize(text, w), w, s) });
   }
-  shown.forEach((notice, i) => out.push({ rect: { x, y: y + i, w: width, h: 1 }, target: noticeTarget(notice.id),
-    cells: rowCells(notice, width, now, i < shown.length - 1, motion, !summary && omitted ? `+${omitted} more · ` : "") }));
+  shown.forEach((notice, i) => {
+    const cells = revealed(notice, rowCells(notice, room, now, i < shown.length - 1, motion, !summary && omitted ? `+${omitted} more · ` : ""), now, motion);
+    const w = widthOfCells(cells);
+    out.push({ rect: { x: right - w, y: y + i, w, h: 1 }, target: noticeTarget(notice.id), cells });
+  });
   return out;
 }
 export const noticeHits = (rows: NoticeRow[]): Hit[] => rows.map((r) => ({ ...r.rect, target: r.target }));

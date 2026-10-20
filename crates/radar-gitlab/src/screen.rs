@@ -344,6 +344,79 @@ pub(crate) fn mr_icon(mr: &Mr) -> Icon {
     }
 }
 
+/// Where a comment lives, said under its author: the words, and the
+/// address a click on them opens.
+pub(crate) struct Whence<'a> {
+    pub words: String,
+    pub url: &'a str,
+}
+
+/// One comment as the detail pane and the item page draw it: the author's
+/// initials on a chip, the name, its age (and where it sits), where it lives
+/// as a link, then the body through the markdown renderer every description
+/// uses, at most `most` lines. No bar down its edge: that is a quote's look.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn comment_blocks(
+    p: &GitlabPlugin,
+    project: &str,
+    author: &str,
+    at: &str,
+    body: &str,
+    place: Option<String>,
+    whence: Option<Whence<'_>>,
+    most: Option<usize>,
+    now: i64,
+) -> Vec<radar_core::view::Block> {
+    use radar_core::view::{Block, Ink, Seg, Text};
+    let tone = match person_icon(p, author) {
+        Icon::You => Tone::Accent,
+        Icon::Bot => Tone::Muted,
+        _ => Tone::Info,
+    };
+    let mut head = Text::new();
+    let initials = initials(author);
+    if !initials.is_empty() {
+        head.add(Seg::chip(&radar_core::compose::Chip::new(initials, tone)));
+        head.add(Seg::new(" ", Ink::Muted));
+    }
+    head.add(Seg::new(author, Ink::Emphasis).strong());
+    head.add(Seg::new(format!(" · {} ago", time::ago_str(at, now)), Ink::Muted));
+    if let Some(place) = place {
+        head.add(Seg::new(format!(" · on {place}"), Ink::Muted));
+    }
+    let mut doc = radar_core::ui::markdown::parse(body);
+    crate::pictures::make_whole(&mut doc, &p.cfg.url, project);
+    let mut blocks = vec![Block::line(head)];
+    if let Some(w) = whence.filter(|w| !w.url.is_empty()) {
+        blocks.push(Block::line(Text::from(vec![
+            Seg::icon_or_lead(Icon::Link, "↗ ", Ink::AccentSecondary),
+            Seg::new(w.words, Ink::AccentSecondary).linked(w.url),
+        ])));
+    }
+    blocks.push(Block::Doc {
+        doc,
+        bar: None,
+        most,
+        urls: Some(false),
+    });
+    blocks
+}
+
+/// Two letters for a name: the first and last words' first letters, or a
+/// one-word name's first two.
+fn initials(name: &str) -> String {
+    let words: Vec<&str> = name
+        .split(|c: char| c.is_whitespace() || matches!(c, '.' | '_' | '-'))
+        .filter(|w| !w.is_empty())
+        .collect();
+    let picked: String = match words.as_slice() {
+        [] => String::new(),
+        [one] => one.chars().take(2).collect(),
+        [first, .., last] => first.chars().take(1).chain(last.chars().take(1)).collect(),
+    };
+    picked.to_uppercase()
+}
+
 /// A person's icon: you, a bot, or anyone.
 pub(crate) fn person_icon(p: &GitlabPlugin, username: &str) -> Icon {
     if username == p.me {

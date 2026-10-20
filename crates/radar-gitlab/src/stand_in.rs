@@ -160,6 +160,7 @@ impl Plugin for Tracker {
                     .show(ticket(key)),
             ),
             Point::Section => Contribution::Section {
+                icon: None,
                 title: format!("ticket {key}"),
                 lines: vec![radar_core::view::Text::plain(format!("{status} · {summary}"))],
             },

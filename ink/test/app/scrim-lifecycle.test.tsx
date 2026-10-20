@@ -118,12 +118,12 @@ describe("the actual App's overlay scrim lifecycle", () => {
       const box = menuBox(frame.rows, title);
       expect(frame.layers, "one mark at the actual displayed menu, never accumulated layers").toEqual([box]);
       expect(shellMarks(m.session, 80, 24).popup, "motion uses that same displayed menu").toEqual(box);
-      // Documented implementation: fg 72%, bg 43%, then the shadow. The issue's approximate 70%-both
+      // Documented implementation: fg 55%, bg 43%, then the shadow. The issue's approximate 70%-both
       // wording is a separate acceptance interpretation, not a reason to change production here.
-      expect(frame.rows[3]![2]).toEqual({ ch: "┼", fg: "#23263b", bg: "#0f0d17" });
+      expect(frame.rows[3]![2]).toEqual({ ch: "┼", fg: "#323854", bg: "#0f0d17" });
       for (const [x, y] of [[box.x + box.w, box.y + 1], [box.x + 1, box.y + box.h], [box.x + box.w, box.y + box.h]]) {
         expect(baseline.rows[y!]![x!]!.ch, `${title} shadow (${x},${y}) over ${JSON.stringify(box)} covers populated body cells: ${text(baseline.rows)[y!]}`).toBe("┼");
-        expect(frame.rows[y!]![x!]).toEqual({ ch: "┼", fg: "#181929", bg: "#060509" });
+        expect(frame.rows[y!]![x!]).toEqual({ ch: "┼", fg: "#202236", bg: "#060509" });
       }
       let coveredSpaces = 0;
       for (let y = box.y; y < box.y + box.h; y++) {

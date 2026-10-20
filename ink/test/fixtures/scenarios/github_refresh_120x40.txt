@@ -35,6 +35,6 @@
 │                        ││                                                      ││                                    │
 │                        ││                                                      ││                                    │
 │                        ││                                                      ││                                    │
-│                        ││                             info configured repositories are readable                      │
+│                        ││                                                  info configured repositories are readable │
 ╰────────────────────────╯╰──────────────────────────────────────────────────────╯╰────────────────────────────────────╯
  GITHUB   PgUp/PgDn scroll   +/- expand/collapse   quit   extra actions   ~ notices   ←→↑↓ navigate              github

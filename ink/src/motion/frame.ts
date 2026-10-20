@@ -1,7 +1,9 @@
 // Ink's frame as a Grid and back. Ink hands the renderer one string per frame (rows joined by "\n", styled with SGR);
 // while an effect runs the string is read into cells, the engine changes their colours and the cells are written
 // out again. Nothing here runs when no effect does.
-import { charWidth } from "../chrome/width.js";
+import { charWidth, graphemeCells } from "../chrome/width.js";
+
+const ZWJ = 0x200d;
 import { RESET } from "./color.js";
 import { Grid, type Cell, type Rect } from "./grid.js";
 
@@ -127,8 +129,20 @@ export function parseFrame(
       const ch = line.slice(i, i + len);
       i += len;
       const w = charWidth(cp);
-      if (w === 0) {
-        if (prev) prev.ch += ch;
+      if (w === 0 || (prev && prev.ch.codePointAt(prev.ch.length - 1) === ZWJ)) {
+        // joined to the cell before, which may now take two cells (`⚠` + U+FE0F, a keycap, a ZWJ sequence), as the
+        // frame was laid out (app/fast-output.ts) and as the terminal draws it
+        if (prev) {
+          prev.ch += ch;
+          if (graphemeCells(prev.ch) === 2 && x < width && grid.at(x - 1, y) === prev) {
+            const tail = grid.at(x, y);
+            tail.ch = "";
+            tail.fg = prev.fg;
+            tail.bg = prev.bg;
+            tail.attr = prev.attr;
+            x += 1;
+          }
+        }
         continue;
       }
       if (x + w > width) break;

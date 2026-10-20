@@ -741,7 +741,7 @@ fn notices(theme: &Theme, area: Rect, buf: &mut Buffer, _frame: usize) -> u16 {
         7,
     );
     for (cell, moving) in cells.into_iter().zip([true, false]) {
-        let stack = super::notices::layout(&entries, 0, cell.inner, 2500, moving);
+        let stack = super::notices::layout(theme, &entries, 0, cell.inner, 2500, moving);
         super::notices::paint(&stack, theme, board.buf);
     }
     let cells = board.band(&[("recent notices · session only", false)], 18);

@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1326
 expression: "gallery_styles(160, 40, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Long text" fg:text.secondary bold
@@ -39,7 +38,7 @@ expression: "gallery_styles(160, 40, tab)"
 33 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "a quote that is long" fg:text.secondary bg:bg.surface | _55 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 34 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "│ " fg:accent.muted bg:bg.surface | "enough to wrap at thirty" fg:text.secondary bg:bg.surface | _51 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 35 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
-36 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | "a code line that is longer" fg:accent.secondary/glow.cyan bg:bg.surface | _49 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
-37 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | " than the card is wide" fg:accent.secondary/glow.cyan bg:bg.surface | _53 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
-38 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+36 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | "a code line that is" fg:accent.secondary/glow.cyan bg:bg.surface | _56 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+37 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | "longer than the card is" fg:accent.secondary/glow.cyan bg:bg.surface | _52 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+38 "│" fg:accent.muted bg:bg.surface | _3 bg:bg.surface | "wide" fg:accent.secondary/glow.cyan bg:bg.surface | _71 bg:bg.surface | "││" fg:accent.muted bg:bg.surface | _77 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
 39 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _3 | "↑↓ " fg:accent.secondary/glow.cyan bold | "move" fg:text.muted | _3 | "space " fg:accent.secondary/glow.cyan bold | "fold" fg:text.muted | _3 | "PgUp/PgDn " fg:accent.secondary/glow.cyan bold | "scroll" fg:text.muted | _3 | "c" fg:text.muted underline | "olours" fg:text.muted | _3 | "q" fg:text.muted underline | "uit" fg:text.muted

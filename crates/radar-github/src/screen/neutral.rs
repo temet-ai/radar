@@ -456,14 +456,9 @@ fn contributed(
             under.add(segment);
         }
     }
-    for (title, lines) in cx.parts.sections(&subject) {
+    for section in cx.parts.detail_sections(&subject) {
         blocks.push(Block::line(Text::new()));
-        blocks.push(Block::section_of(
-            None,
-            &title,
-            None,
-            lines.iter().map(|line| Text::plain(line.to_string())).collect(),
-        ));
+        blocks.push(section);
     }
     (!under.is_empty()).then_some(under)
 }

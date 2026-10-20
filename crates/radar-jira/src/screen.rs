@@ -746,14 +746,9 @@ fn detail_pane(p: &JiraPlugin, cx: &v::ViewCx<'_>) -> PaneView {
                     Block::section_of(None, "latest change", None, vec![outcome]),
                 );
             }
-            for (title, lines) in cx
-                .parts
-                .sections(&join::ticket(p, &it.site.name, &it.t.key))
-            {
-                content
-                    .sections
-                    .push(Block::section_of(None, &title, None, lines));
-            }
+            content
+                .sections
+                .extend(cx.parts.detail_sections(&join::ticket(p, &it.site.name, &it.t.key)));
             return detail::pane(name_of(p, sel.as_ref()), content, ticket_foot(p, it));
         }
         Some(Selected::Group(i, status)) => group_detail(p, *i, status)

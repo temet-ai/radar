@@ -1,15 +1,10 @@
-import { charWidth } from "../chrome/width.js";
+import { clusters } from "../chrome/width.js";
 import type { Cell } from "../text/cells.js";
 import type { Style } from "../text/look.js";
-const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 /** Complete terminal clusters, including combining marks and joined emoji. */
 export function noticeCells(text: string, s: Style = {}): Cell[] {
   const out: Cell[] = [];
-  for (const { segment } of segmenter.segment(text)) {
-    const cp = segment.codePointAt(0)!;
-    const w = segment.includes("\u200d") || segment.includes("\ufe0f") || cp >= 0x1f1e6 && cp <= 0x1f1ff ? 2 : charWidth(cp);
-    if (w > 0) out.push({ ch: segment, w, s });
-  }
+  for (const [ch, w] of clusters(text)) if (w > 0) out.push({ ch, w, s });
   return out;
 }
 export const noticeText = (text: string): string => text.replace(/[\u0000-\u001f\u007f-\u009f\s]+/gu, " ").trim();

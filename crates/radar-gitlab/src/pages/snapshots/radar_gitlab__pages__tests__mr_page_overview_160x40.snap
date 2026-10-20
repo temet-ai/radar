@@ -1,6 +1,5 @@
 ---
 source: crates/radar-gitlab/src/pages/tests.rs
-assertion_line: 223
 expression: "hosted(mr_page(), 160, 40)"
 ---
  radar    Repositories ●   History   Settings (,)                                                                                        not synced yet  ✎ edit
@@ -20,8 +19,8 @@ expression: "hosted(mr_page(), 160, 40)"
 │ See the ticket.                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │ LATEST ACTIVITY                                                                                                          ││                                  │
-│ │ Alice Example · 46m ago · on StatsController.java:21                                                                   ││                                  │
-│ │ Good shout, switching to the cached one.                                                                               ││                                  │
+│  AE  Alice Example · 46m ago · on StatsController.java:21                                                                ││                                  │
+│ Good shout, switching to the cached one.                                                                                 ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │
 │                                                                                                                          ││                                  │

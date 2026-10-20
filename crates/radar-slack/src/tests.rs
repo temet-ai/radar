@@ -1176,11 +1176,17 @@ fn the_merge_request_page_has_a_discussed_in_slack_section() {
     press(&mut host, KeyCode::Enter);
     let text = to_text(&host, 160, 40);
     assert!(text.contains("== Discussed in Slack"), "{text}");
-    assert!(text.contains("review asked in #team 2d ago · 2 replies · :eyes: 1"), "{text}");
+    assert!(text.contains("review asked in #team 2d ago · 2 replies · 👀 1"), "{text}");
     assert!(!text.contains("#team · Bob Builder · 2d ago"), "the ask's thread is said once: {text}");
-    assert!(text.contains("#team · Carol Coder · 1d ago · 1 reply"), "linked from a reply: {text}");
+    assert!(text.contains("#team · 1d ago · 1 reply"), "linked from a reply: {text}");
+    assert!(text.contains("Carol C.  Anyone seen ABC-12 failing on main?"), "who said what: {text}");
+    // No address spelled out: the channel's name is the link.
+    assert!(!text.contains("https://acme.slack.com"), "{text}");
     let q = ago(86_400 + 600).replace('.', "");
-    assert!(text.contains(&format!("https://acme.slack.com/archives/{TEAM}/p{q}")), "each thread's link: {text}");
+    let got = radar_core::Plugin::contribute(host.plugins[2].as_ref(), radar_core::Point::Section, &stand_in::mr(263));
+    let Some(radar_core::Contribution::Section { lines, .. }) = got else { panic!("{got:?}") };
+    let url = format!("https://acme.slack.com/archives/{TEAM}/p{q}");
+    assert!(lines.iter().flat_map(|l| &l.0).any(|s| s.link.as_deref() == Some(url.as_str())), "each thread's link: {lines:?}");
     insta::assert_snapshot!("mr_page_section_160x40", text);
 }
 

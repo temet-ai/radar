@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Row states" fg:text.secondary bold
@@ -21,7 +20,7 @@ expression: "gallery_styles(80, 24, tab)"
 15 "│" fg:accent.muted bg:bg.surface | " A HEADING: THE CURSOR SKIPS IT         …" fg:text.muted bg:bg.surface bold | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 16 "│" fg:accent.muted bg:bg.surface | "  a plain row                           …" bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 17 "│" fg:accent.muted bg:bg.surface | "  a row with a word at the right        …" bg:bg.surface | "hidden" fg:text.muted bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
-18 "│" fg:accent.muted bg:bg.surface | "  the row the cursor is on              …" fg:text.secondary bg:bg.selection | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
+18 "│" fg:accent.muted bg:bg.surface | "  the row the cursor is on              …" fg:text.emphasis bg:bg.overlay bold | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 19 "│" fg:accent.muted bg:bg.surface | "  a row whose text is far too long for t…" bg:bg.surface | "checking" fg:status.info bg:bg.surface | _1 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | " + " fg:accent.primary/glow.purple bg:bg.surface bold | "add a shelf" fg:accent.secondary/glow.cyan bg:bg.surface bold | "   paste a link to a shelf, or its path" fg:text.muted bg:bg.surface | _23 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay
 21 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | " 日本語の長い行 with wide characters in it, cut…" fg:text.secondary bg:bg.surface | _17 bg:bg.surface | "│" fg:accent.muted bg:bg.surface | "║" fg:bg.overlay

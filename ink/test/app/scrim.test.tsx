@@ -21,7 +21,7 @@ describe("the scrim and shadow over a finished frame", () => {
   it("in full colour every cell outside the layer mixes toward bg.base, bold off, and the layer is as drawn", () => {
     const frame = chalk.bold("└─ api") + "\n  " + chalk.hex("#f8f8f2")("menu");
     const cells = parseAnsi(paintScrim(frame, 10, 2, { x: 2, y: 1, w: 5, h: 1 }));
-    expect(cells[0]![0]).toMatchObject({ ch: "└", fg: "#4d4b51", bg: "#0a0812" });
+    expect(cells[0]![0]).toMatchObject({ ch: "└", fg: "#757477", bg: "#0a0812" });
     expect(cells[0]![0]!.bold).toBeFalsy();
     expect(cells[1]![3]).toMatchObject({ ch: "e", fg: "#f8f8f2" });
     expect(cells[1]![3]!.bg).toBeUndefined();
@@ -45,9 +45,9 @@ describe("the scrim and shadow over a finished frame", () => {
     // A one-cell layer at the corner: the shadow falls on (1, 1) only, which the scrim has had.
     const frame = chalk.bgHex(SURFACE).hex(MUTED)("││") + "\n" + chalk.bgHex(SURFACE).hex(MUTED)("││");
     const out = parseAnsi(paintScrim(frame, 2, 2, { x: 0, y: 0, w: 1, h: 1 }));
-    // scrim: muted → #23263b (72% to base), surface → #0f0d17 (43% to base); then the shadow over it.
-    expect(out[0]![1]).toMatchObject({ fg: "#23263b", bg: "#0f0d17" });
-    expect(out[1]![1]).toMatchObject({ ch: "│", fg: "#181929", bg: "#060509" });
+    // scrim: muted → #323854 (55% to base), surface → #0f0d17 (43% to base); then the shadow over it.
+    expect(out[0]![1]).toMatchObject({ fg: "#323854", bg: "#0f0d17" });
+    expect(out[1]![1]).toMatchObject({ ch: "│", fg: "#202236", bg: "#060509" });
   });
 
   it("clips the shadow of a layer flush with the bottom and right edges without growing the frame", () => {
@@ -59,7 +59,7 @@ describe("the scrim and shadow over a finished frame", () => {
       for (let x = 0; x < 8; x++) {
         expect(out[y]![x]!.ch).toBe(original[y]![x]!.ch);
         if (x >= 5 && y >= 3) expect(out[y]![x]).toEqual(original[y]![x]);
-        else expect(out[y]![x]).toEqual({ ch: "│", fg: "#23263b", bg: "#0f0d17" });
+        else expect(out[y]![x]).toEqual({ ch: "│", fg: "#323854", bg: "#0f0d17" });
       }
     }
   });

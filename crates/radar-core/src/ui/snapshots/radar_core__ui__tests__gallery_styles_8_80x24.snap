@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1325
 expression: "gallery_styles(80, 24, tab)"
 ---
 00 _1 | "Gallery" fg:text.secondary | " / " fg:text.muted | "Motion" fg:text.secondary bold
@@ -19,11 +18,11 @@ expression: "gallery_styles(80, 24, tab)"
 13 "╭" fg:accent.muted bg:bg.surface | " motion " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
 14 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "level  " fg:text.muted bg:bg.surface | "full" fg:text.emphasis bg:bg.surface bold | "  everything: also pages, new rows, mess…" fg:text.muted bg:bg.surface | _10 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
 15 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-16 "│" fg:accent.muted bg:bg.surface | _2 bg:bg.surface | "a " bg:bg.surface | "s" bg:bg.surface underline | "creen switch: the body fades in" bg:bg.surface | "  · subtle" fg:text.muted bg:bg.surface | _32 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-17 "│" fg:accent.muted bg:bg.surface | _2 bg:bg.surface | "a " bg:bg.surface | "m" bg:bg.surface underline | "enu or confirm sweeps open (again: close…" bg:bg.surface | "  · subtle" fg:text.muted bg:bg.surface | _21 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
-18 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
-19 "╭" fg:accent.muted bg:bg.surface | " waiting " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
-20 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "Nothing to wait for." fg:text.muted bg:bg.surface | _57 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+16 "│" fg:accent.muted bg:bg.surface | _2 bg:bg.surface | "a " bg:bg.surface | "s" bg:bg.surface underline | "creen switch: it builds from its panels …" bg:bg.surface | "  · subtle" fg:text.muted bg:bg.surface | _5 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+17 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
+18 "╭" fg:accent.muted bg:bg.surface | " waiting " fg:text.secondary bg:bg.surface | "────────────────────────────────────────…" fg:accent.muted bg:bg.surface
+19 "│" fg:accent.muted bg:bg.surface | _1 bg:bg.surface | "Nothing to wait for." fg:text.muted bg:bg.surface | _57 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
+20 "│" fg:accent.muted bg:bg.surface | _78 bg:bg.surface | "│" fg:accent.muted bg:bg.surface
 21 "╰───────────────────────────────────────…" fg:accent.muted bg:bg.surface
 22 _80 bg:bg.overlay
 23 _1 | "[ ] " fg:accent.secondary/glow.cyan bold | "tabs" fg:text.muted | _2 | "s" fg:text.muted underline | "creen" fg:text.muted | _2 | "m" fg:text.muted underline | "enu" fg:text.muted | _2 | "g" fg:text.muted underline | "low" fg:text.muted | _2 | "p" fg:text.muted underline | "age" fg:text.muted | _2 | "n" fg:text.muted underline | "ew" fg:text.muted | _2 | "t" fg:text.muted underline | "oast" fg:text.muted | _2 | "l" fg:text.muted underline | "oad" fg:text.muted | _2 | "e" fg:text.muted | "f" fg:text.muted underline | "fects" fg:text.muted | _2 | "c" fg:text.muted underline | "olours" fg:text.muted | _2 | "q" fg:text.muted underline | "uit" fg:text.muted

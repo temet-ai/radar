@@ -138,17 +138,16 @@ export function selectedStyle(focused: boolean, plain?: boolean): Style {
   // design::select::selected_row and widgets::row_style: with no colours the selected row is underlined
   if (plain || monoTier())
     return focused ? { bold: true, underline: true } : { underline: true };
-  const base = focused
-    ? { ...slotStyle("text.emphasis"), bold: true }
-    : slotStyle("text.secondary");
-  return { ...base, backgroundColor: bgOf("bg.selection") };
+  // Only the pane with the keys carries the selection ground; another pane's current row sits on the overlay shade.
+  return { ...slotStyle("text.emphasis"), bold: true, backgroundColor: bgOf(focused ? "bg.selection" : "bg.overlay") };
 }
 
-/** Tree states change the ground only, keeping each icon/name/cell's semantic foreground and modifiers. */
+/** Tree states change the ground, and bold the row in the pane with the keys, keeping each icon/name/cell's
+ * semantic foreground. */
 export function treeSelectedStyle(focused: boolean, plain?: boolean): Style {
   if (plain || monoTier())
     return focused ? { bold: true, underline: true } : { underline: true };
-  return { backgroundColor: bgOf(focused ? "bg.selection" : "bg.overlay") };
+  return focused ? { bold: true, backgroundColor: bgOf("bg.selection") } : { backgroundColor: bgOf("bg.overlay") };
 }
 
 /** Fold signals have priority over columns only when a narrow row leaves no cell for its name. */

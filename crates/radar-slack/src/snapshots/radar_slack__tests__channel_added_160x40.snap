@@ -1,6 +1,5 @@
 ---
 source: crates/radar-slack/src/tests.rs
-assertion_line: 665
 expression: "to_text(&host, 160, 40)"
 ---
  radar    Slack ●   History   Settings (,)                                                                                                               ✎ edit
@@ -40,6 +39,6 @@ expression: "to_text(&host, 160, 40)"
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││                                                    │
-│                      ││                                                                       info added #acme-deploys                                       │
+│                      ││                                                                                ││                           info added #acme-deploys │
 ╰──────────────────────╯╰────────────────────────────────────────────────────────────────────────────────╯╰────────────────────────────────────────────────────╯
  SETTINGS   bulk   quit   extra actions   ~ notices   ←→↑↓ navigate                                                                                       slack

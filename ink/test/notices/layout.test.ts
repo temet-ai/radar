@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { layoutNotices, layoutNoticeHistory, noticeContent, NOTICE_OPEN } from "../../src/notices/layout.js";
 import { noticeCells, wrapNotice } from "../../src/notices/text.js";
-import { paintNoticeRows, noticeStyle } from "../../src/notices/paint.js";
+import { paintNoticeRows, noticeStyle, noticeAnchor } from "../../src/notices/paint.js";
 import { Grid } from "../../src/motion/grid.js";
 import { applyLook, defaultLook, currentLook } from "../../src/text/look.js";
 import { widthOfCells } from "../../src/text/cells.js";
@@ -10,22 +10,40 @@ afterEach(() => applyLook(defaultLook()));
 const words = (cells: { ch: string }[]) => cells.map((c) => c.ch).join("");
 describe("shared cell-safe notice layouts", () => {
   it.each([[80, 24], [160, 40]])("stacks inside panel borders at %dx%d, newest last and older dimmed", (w, h) => {
-    const rows = layoutNotices([notice(1), notice(2, { tone: "error" })], 0, noticeContent(w, h, true), 0, true);
-    expect(rows.map((r) => r.rect)).toEqual([{ x: w - 65, y: h - 4, w: 64, h: 1 }, { x: w - 65, y: h - 3, w: 64, h: 1 }]);
-    expect(rows[0]!.cells.every((c) => c.s.dim)).toBe(true); expect(rows[1]!.cells.every((c) => !c.s.dim && c.s.bold)).toBe(true); expect(rows.map((r) => widthOfCells(r.cells))).toEqual([64, 64]);
+    const rows = layoutNotices([notice(1), notice(2, { tone: "error" })], 0, noticeContent(w, h, true), 200, true);
+    // " ℹ Watch updated " and " ✗ Watch updated ": as wide as the words, flush with the content's right edge.
+    expect(rows.map((r) => r.rect)).toEqual([{ x: w - 18, y: h - 4, w: 17, h: 1 }, { x: w - 18, y: h - 3, w: 17, h: 1 }]);
+    expect(rows[0]!.cells.every((c) => c.s.dim)).toBe(true); expect(rows[1]!.cells.every((c) => !c.s.dim && c.s.bold)).toBe(true); expect(rows.map((r) => widthOfCells(r.cells))).toEqual([17, 17]);
+  });
+  it("reads in from the right edge and leaves the same way", () => {
+    const rect = { x: 0, y: 0, w: 40, h: 1 }, at = (now: number, motion = true) => layoutNotices([notice(1)], 0, rect, now, motion)[0]!;
+    expect(at(0).rect.w).toBe(0); expect(at(60).rect).toEqual({ x: 31, y: 0, w: 9, h: 1 });
+    expect(words(at(60).cells)).toBe(words(at(200).cells).slice(-9)); expect(at(120).rect.w).toBe(17); expect(at(4940).rect).toEqual(at(60).rect); expect(at(0, false).rect.w).toBe(17);
+  });
+  it("stands inside the panel on the status line at the right edge, read from the frame", () => {
+    const grid = new Grid(40, 10), fallback = noticeContent(40, 10, false);
+    expect(noticeAnchor(grid, fallback)).toEqual(fallback);
+    // Two rounded panels above the status line: 0..14 and 15..39, rows 1..8.
+    for (const [x0, x1] of [[0, 14], [15, 39]] as const) {
+      for (let x = x0; x <= x1; x++) { grid.at(x, 1).ch = "─"; grid.at(x, 8).ch = "─"; }
+      for (let y = 2; y < 8; y++) { grid.at(x0, y).ch = "│"; grid.at(x1, y).ch = "│"; }
+      grid.at(x0, 1).ch = "╭"; grid.at(x1, 1).ch = "╮"; grid.at(x0, 8).ch = "╰"; grid.at(x1, 8).ch = "╯";
+    }
+    expect(noticeAnchor(grid, fallback)).toEqual({ x: 16, y: 2, w: 23, h: 6 });
+    grid.at(15, 4).ch = "x"; expect(noticeAnchor(grid, fallback)).toEqual(fallback);
   });
   it("uses ceil drain and theme tint, settles motion-off and expires exactly", () => {
     const rect = { x: 0, y: 0, w: 20, h: 2 }, row = layoutNotices([notice(1)], 0, rect, 2500, true)[0]!;
-    expect(row.cells.filter((c) => c.s.backgroundColor !== currentLook().slots["bg.overlay"])).toHaveLength(10);
+    expect(row.cells.filter((c) => c.s.backgroundColor !== currentLook().slots["bg.overlay"])).toHaveLength(9);
     const fixed = layoutNotices([notice(1)], 0, rect, 4999, false)[0]!; expect(fixed.cells.every((c) => c.s.backgroundColor === row.cells[0]!.s.backgroundColor)).toBe(true); expect(layoutNotices([notice(1)], 0, rect, 5000, true)).toEqual([]);
   });
   it("bounds overflow and retains the newest in tiny areas", () => {
-    const active = [1, 2, 3, 4].map((id) => notice(id)), stack = layoutNotices(active, 6, { x: 0, y: 0, w: 64, h: 10 }, 0, true);
+    const active = [1, 2, 3, 4].map((id) => notice(id)), stack = layoutNotices(active, 6, { x: 0, y: 0, w: 64, h: 10 }, 200, true);
     expect(stack).toHaveLength(5); expect(stack[0]!.target).toBe(NOTICE_OPEN); expect(words(stack[0]!.cells)).toContain("+6 earlier notices · ~ history");
-    const tiny = layoutNotices(active, 6, { x: 0, y: 0, w: 64, h: 1 }, 0, true); expect(tiny).toHaveLength(1); expect(tiny[0]!.target).toBe("chrome:notice:4"); expect(words(tiny[0]!.cells)).toContain("+9 more");
+    const tiny = layoutNotices(active, 6, { x: 0, y: 0, w: 64, h: 1 }, 200, true); expect(tiny).toHaveLength(1); expect(tiny[0]!.target).toBe("chrome:notice:4"); expect(words(tiny[0]!.cells)).toContain("+9 more");
   });
   it("clips whole wide/combining/joined clusters and sanitizes terminal controls", () => {
-    const row = layoutNotices([notice(1, { text: "界 e\u0301 👩‍💻\n\x1b[31m City Watch" })], 0, { x: 0, y: 0, w: 14, h: 1 }, 0, true)[0]!;
+    const row = layoutNotices([notice(1, { text: "界 e\u0301 👩‍💻\n\x1b[31m City Watch" })], 0, { x: 0, y: 0, w: 14, h: 1 }, 200, true)[0]!;
     expect(widthOfCells(row.cells)).toBe(14); expect(words(row.cells)).not.toMatch(/[\n\x1b]/); expect(row.cells.find((c) => c.ch === "👩‍💻")?.w).toBe(2); expect(row.cells.find((c) => c.ch === "e\u0301")?.w).toBe(1); expect(words(row.cells)).toContain("…");
     expect(noticeCells("👩‍💻")).toHaveLength(1); expect(wrapNotice("界\n\nCity Watch", 1)).toEqual(["…", "", "C", "i", "t", "y", "W", "a", "t", "c", "h"]);
   });

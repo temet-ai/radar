@@ -3,7 +3,6 @@
 // changes nothing of the drawing: it only rewrites colours of a grid it is handed, and does nothing at all (no
 // allocation, no cell read) while nothing runs.
 import {
-  Shimmer,
   FadeFromFg,
   FadeOut,
   Glow,
@@ -13,6 +12,8 @@ import {
   type Reads,
 } from "./effects.js";
 import { lerp } from "./color.js";
+import { Assemble } from "./assemble.js";
+import { Outline } from "./outline.js";
 import {
   intersection,
   isEmpty,
@@ -60,7 +61,7 @@ export const MESSAGE_MS = 250;
 export const MESSAGE_GONE_MS = 200;
 export const GLOW_MS = 450;
 export const ADDED_MS = 320;
-export const SHIMMER_MS = 1400;
+export const SHIMMER_MS = 1400; // outline.ts WAVE_MS
 /** How often to redraw while an effect runs. */
 export const FRAME_MS = 30;
 const SLOW_MS = 60;
@@ -172,6 +173,8 @@ export class Engine {
     const reads: Reads = { fg: ink.text, bg: ink.base };
     switch (cue.kind) {
       case "screen":
+        // At full a new screen builds from its parts; subtle keeps the fade.
+        if (this.level_ === "full") { this.replace({ t: "body" }, new Assemble()); break; }
         this.replace(
           { t: "body" },
           // The terminal's own text colour is read as tachyonfx reads a Reset foreground, as the fade does per cell.
@@ -252,7 +255,7 @@ export class Engine {
         )
           this.running_.push({
             target: { t: "area", rect: area },
-            fx: new Shimmer(ink.overlay, ink.text, reads),
+            fx: new Outline(ink.surface, ink.text),
             shimmer: true,
           });
       }

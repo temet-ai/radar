@@ -1,5 +1,5 @@
 import type { DockItem } from "./model.js";
-import { cellWidth, charWidth } from "../chrome/width.js";
+import { cellWidth, clusters } from "../chrome/width.js";
 
 /**
  * What the dock makes of tool calls before it draws them, from view data alone: the kind of each call (from the tool's
@@ -90,13 +90,12 @@ export function shortPaths(text: string, cwd?: string, home?: string): string {
 export function middleFit(s: string, room: number): string {
   if (cellWidth(s) <= room) return s;
   if (room <= 1) return room === 1 ? "…" : "";
-  const chars = Array.from(s);
+  const chars = clusters(s);
   const tailRoom = Math.ceil((room - 1) * 0.6);
   const headRoom = room - 1 - tailRoom;
   let head = "";
   let w = 0;
-  for (const ch of chars) {
-    const cw = charWidth(ch.codePointAt(0)!);
+  for (const [ch, cw] of chars) {
     if (w + cw > headRoom) break;
     head += ch;
     w += cw;
@@ -104,9 +103,9 @@ export function middleFit(s: string, room: number): string {
   let tail = "";
   w = 0;
   for (let i = chars.length - 1; i >= 0; i--) {
-    const cw = charWidth(chars[i]!.codePointAt(0)!);
+    const [ch, cw] = chars[i]!;
     if (w + cw > tailRoom) break;
-    tail = chars[i]! + tail;
+    tail = ch + tail;
     w += cw;
   }
   return `${head}…${tail}`;

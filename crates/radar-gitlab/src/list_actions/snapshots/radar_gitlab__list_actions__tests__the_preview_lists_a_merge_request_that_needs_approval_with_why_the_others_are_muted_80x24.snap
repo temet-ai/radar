@@ -1,6 +1,5 @@
 ---
 source: crates/radar-gitlab/src/list_actions/tests.rs
-assertion_line: 499
 expression: "shown_preview(p, 80, 24)"
 ---
  radar    Repositories ●   History   Settings (,)        not synced yet  ✎ edit
@@ -18,7 +17,7 @@ expression: "shown_preview(p, 80, 24)"
 │                      ││   waiting for your review                            █
 │                      ││   ◷ needs 1 approval                                 █
 │                      ││                                                      █
-│                      ││ PIPELINE  passed · 6m 12s ────────────────────────── █
+│                      ││ PIPELINE  passed · 6m 12s ────────────────────────── ║
 │                      ││   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀ ║
 │                      ││   ✓ build          ✓ test           ▷ deploy         ║
 │                      ││                                                      ║

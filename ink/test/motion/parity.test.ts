@@ -55,6 +55,19 @@ function plain(): Grid {
   for (let y = 0; y < H; y++) put(g, 0, y, `row ${y} with some text`, ink.text);
   return g;
 }
+/** motion/tests.rs `panels_frame`: two rounded panels side by side, rows of text inside. */
+function panelsFrame(): Grid {
+  const g = new Grid(W, H);
+  for (const c of g.cells) c.bg = ink.surface;
+  for (const [x0, w] of [[0, 12], [12, 18]] as const) {
+    const x1 = x0 + w - 1;
+    for (let x = x0; x <= x1; x++) { g.at(x, 0).ch = "─"; g.at(x, H - 1).ch = "─"; }
+    for (let y = 1; y < H - 1; y++) { g.at(x0, y).ch = "│"; g.at(x1, y).ch = "│"; }
+    g.at(x0, 0).ch = "╭"; g.at(x1, 0).ch = "╮"; g.at(x0, H - 1).ch = "╰"; g.at(x1, H - 1).ch = "╯";
+    for (let y = 1; y < H - 1; y++) put(g, x0 + 1, y, `row ${y} text`, ink.text);
+  }
+  return g;
+}
 /** The frame a message leaves behind (motion/tests.rs): only the key hints, on the last row. */
 function afterMessage(): Grid {
   const g = new Grid(W, H);
@@ -74,6 +87,7 @@ function put(g: Grid, x: number, y: number, s: string, fg: number) {
 const cues: Record<string, Cue | undefined> = {
   plain: undefined,
   screen: { kind: "screen" },
+  assemble: { kind: "screen" },
   page: { kind: "page" },
   popup: { kind: "popup" },
   message: { kind: "message" },
@@ -110,7 +124,7 @@ describe("Ink motion matches Ratatui's tachyonfx effects", () => {
       if (cue) e.cue(cue, ink);
       for (const fr of sc.frames) {
         now = fr.t;
-        const g = sc.name === "message_gone" ? afterMessage() : plain();
+        const g = sc.name === "message_gone" ? afterMessage() : sc.name === "assemble" ? panelsFrame() : plain();
         e.draw(g, mk, ink);
         expect(e.running(), `${sc.name} t=${fr.t} running`).toBe(fr.running);
         fr.cells.forEach(([sym, fg, bg], i) => {

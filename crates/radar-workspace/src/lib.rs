@@ -732,6 +732,7 @@ impl WorkspacePlugin {
             .into_iter()
             .find(|n| n.readme && !n.lead.is_empty())?;
         Some(Contribution::Section {
+            icon: Some(radar_core::ui::icon::Icon::Folder),
             title: "Notes".into(),
             lines: readme.lead.iter().map(|l| radar_core::view::Text::plain(l.clone())).collect(),
         })

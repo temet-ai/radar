@@ -8,6 +8,15 @@ export function cellWidth(s: string): number {
   return w;
 }
 
+/** `s` as the terminal lays it out: each grapheme (`⚠` + U+FE0F, a keycap, a ZWJ family, a letter and its marks) with
+ * the cells it takes. Cut, wrap and place text by these, never by code points: a code point alone counts `⚠️` one cell
+ * where the terminal draws two, and a row built that way outgrows the screen. */
+export function clusters(s: string): Array<[string, number]> {
+  const out: Array<[string, number]> = [];
+  for (const g of graphemes(s)) out.push([g, graphemeCells(g)]);
+  return out;
+}
+
 /** A complete grapheme's terminal width, matching unicode-width's emoji sequences. */
 export function graphemeCells(g: string): number {
   if (/^\p{Regional_Indicator}{2}$/u.test(g) || /^[#*0-9]\ufe0f?\u20e3$/u.test(g)) return 2;

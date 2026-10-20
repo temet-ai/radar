@@ -278,7 +278,12 @@
               "block": "line",
               "text": [
                 {
-                  "text": "ABC-198 · not fetched yet: its page has it"
+                  "look": "accent.secondary",
+                  "text": "ABC-198"
+                },
+                {
+                  "ink": "muted",
+                  "text": " · not fetched yet"
                 }
               ]
             },
@@ -303,14 +308,17 @@
               "block": "line",
               "text": [
                 {
-                  "ink": "accent_muted",
-                  "text": "│ "
+                  "chip": true,
+                  "ink": "info",
+                  "text": "BE"
                 },
                 {
-                  "icon": "person"
+                  "ink": "muted",
+                  "text": " "
                 },
                 {
-                  "ink": "secondary",
+                  "ink": "emphasis",
+                  "strong": true,
                   "text": "Bob Example"
                 },
                 {
@@ -320,13 +328,18 @@
               ]
             },
             {
-              "block": "wrapped",
-              "ink": "primary",
-              "prefix": {
-                "ink": "accent_muted",
-                "text": "│ "
-              },
-              "text": "Should this read from the cached view? The dashboard polls every 30s."
+              "block": "doc",
+              "doc": [
+                {
+                  "t": "para",
+                  "text": [
+                    {
+                      "text": "Should this read from the cached view? The dashboard polls every 30s."
+                    }
+                  ]
+                }
+              ],
+              "urls": false
             }
           ],
           "node": "rich",

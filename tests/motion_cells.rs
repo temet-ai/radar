@@ -364,9 +364,9 @@ fn cases() -> Vec<Case> {
         after: demo().into(),
         prime: false,
     };
-    for level in [Level::Full, Level::Subtle] {
-        out.push(plain("screen", level, Cue::Screen, motion::SCREEN_MS as u64));
-    }
+    // At full a screen assembles from its panels; subtle keeps the fade.
+    out.push(plain("screen", Level::Full, Cue::Screen, motion::assemble::ASSEMBLE_MS as u64));
+    out.push(plain("screen", Level::Subtle, Cue::Screen, motion::SCREEN_MS as u64));
     out.push(plain("page", Level::Full, Cue::Page, motion::PAGE_MS as u64));
     for level in [Level::Full, Level::Subtle] {
         let mut before = with_menu();

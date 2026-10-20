@@ -11,7 +11,8 @@ import { Motion } from "../../src/motion/motion.js";
 const W = 20, H = 3;
 const WAIT = { x: 1, y: 1, w: 18, h: 1 };
 const INK = { base: 0x0a0812, surface: 0x12101a, overlay: 0x1a162a, glow: 0xe135ff, text: 0xf8f8f2 };
-const CLEAN = ["The Watch", " Reading cases...", "Ankh-Morpork"]
+// The waiting row is blank: the outlines of the rows to come are drawn there.
+const CLEAN = ["The Watch", "", "Ankh-Morpork"]
   .map((line) => `\x1b[48;2;18;16;26m\x1b[38;2;98;114;164m${line}\x1b[0m`).join("\n");
 const controllers: Motion[] = [];
 beforeEach(() => vi.useFakeTimers());
@@ -395,7 +396,7 @@ describe("uncued loading at the Motion controller boundary", () => {
       visible: () => true, running: () => false, clear: vi.fn(),
       draw: (grid) => { grid.at(1, 1).fg = 0x123456; return [top]; },
     });
-    m.cue({ kind: "screen" });
+    m.cue({ kind: "page" });
     const actual = frames.parseFrame(draw(), W, H);
     expect(engineDraw).toHaveBeenCalledTimes(1);
     expect(engineDraw.mock.calls[0]![1].loading).toEqual([]);
@@ -423,17 +424,15 @@ describe("uncued loading at the Motion controller boundary", () => {
 
   it("clips a visible loading mark to the bounded viewport without changing other cells", () => {
     const { m, draw, step } = rig();
-    const clipped = { x: -2, y: 1, w: 6, h: 1 };
+    const clipped = { x: -2, y: 1, w: 14, h: 1 };
     m.markNode("watch-middle", [], [clipped]);
     draw();
     let output = CLEAN;
     for (let i = 0; i < 10; i++) output = step();
     const actual = frames.parseFrame(output, W, H), clean = frames.parseFrame(CLEAN, W, H);
     expect(actual.cells).not.toEqual(clean.cells);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      expect(actual.at(x, y).ch).toBe(clean.at(x, y).ch);
-      if (y !== 1 || x >= 4) expect(actual.at(x, y)).toEqual(clean.at(x, y));
-    }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
+      if (y !== 1 || x >= 12) expect(actual.at(x, y)).toEqual(clean.at(x, y));
   });
 
   it("clips surplus ANSI lines rather than allocating beyond the loading viewport", () => {

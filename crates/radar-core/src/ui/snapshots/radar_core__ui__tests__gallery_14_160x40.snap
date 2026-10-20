@@ -1,6 +1,5 @@
 ---
 source: crates/radar-core/src/ui/tests.rs
-assertion_line: 1313
 expression: "gallery_text(160, 40, tab)"
 ---
  Gallery / Long text
@@ -39,7 +38,7 @@ expression: "gallery_text(160, 40, tab)"
 │ │ a quote that is long                                                       ││                                                                             │║
 │ │ enough to wrap at thirty                                                   ││                                                                             │║
 │                                                                              ││                                                                             │║
-│   a code line that is longer                                                 ││                                                                             │║
-│    than the card is wide                                                     ││                                                                             │║
-│                                                                              ││                                                                             │
+│   a code line that is                                                        ││                                                                             │║
+│   longer than the card is                                                    ││                                                                             │║
+│   wide                                                                       ││                                                                             │
  [ ] tabs   ↑↓ move   space fold   PgUp/PgDn scroll   colours   quit

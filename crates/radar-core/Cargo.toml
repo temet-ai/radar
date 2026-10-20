@@ -29,6 +29,7 @@ tui-scrollview.workspace = true
 base64.workspace = true
 pulldown-cmark.workspace = true
 unicode-width.workspace = true
+unicode-segmentation.workspace = true
 resvg = { workspace = true, optional = true }
 syntect.workspace = true
 similar.workspace = true

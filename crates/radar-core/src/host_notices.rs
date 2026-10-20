@@ -600,6 +600,7 @@ mod tests {
     #[test]
     fn suppressed_notices_expire_and_no_notice_frame_timer_survives() {
         let (mut host, _) = probe();
+        host.set_notice_motion_enabled(true);
         host.notify("information".into());
         let area = ratatui::layout::Rect::new(0, 0, 80, 24);
         assert!(host.notice_frame_needed(area));

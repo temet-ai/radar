@@ -84,12 +84,14 @@ describe("scenario-derived renderer checkpoint", () => {
       expect(rows(actual)).toEqual(expected);
       const notices = view.chrome?.notices;
       if (notices?.active.length) {
-        for (const notice of notices.active) expect(plain(actual)).toContain(notice.text);
+        // Inside the bottom-right panel a long notice may end in "…"; its start and its click target are there.
+        for (const notice of notices.active) expect(plain(actual)).toContain(notice.text.slice(0, 16));
+        expect(renderer.session.noticeHits.map((hit) => hit.target)).toEqual(notices.active.map((notice) => `chrome:notice:${notice.id}`));
         // Expiry must clear the presentation without leaving notice pixels or targets behind.
         now = Math.max(...notices.active.map((notice) => notice.created_ms + notice.lifetime_ms)) - notices.now_ms;
         renderer.snapshot({ chrome: view.chrome, screen: view.screen, section: view.section, focus: view.focus }, 2);
-        await until(() => notices.active.every((notice) => !plain(renderer.frame()).includes(notice.text)));
-        for (const notice of notices.active) expect(plain(renderer.frame())).not.toContain(notice.text);
+        await until(() => notices.active.every((notice) => !plain(renderer.frame()).includes(notice.text.slice(0, 16))));
+        for (const notice of notices.active) expect(plain(renderer.frame())).not.toContain(notice.text.slice(0, 16));
         expect(renderer.session.noticeHits).toEqual([]);
         expect(plain(renderer.frame())).toContain("Patrol the Brass Bridge");
       }

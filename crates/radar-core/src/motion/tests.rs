@@ -28,6 +28,76 @@ fn plain(theme: &Theme) -> Buffer {
     b
 }
 
+/// Two rounded panels side by side, rows of text inside: what the assemble moment builds.
+fn panels_frame(theme: &Theme) -> Buffer {
+    use ratatui::widgets::{Block, BorderType, Widget};
+    let mut b = Buffer::empty(AREA);
+    b.set_style(AREA, theme.bg(Slot::BgSurface));
+    for area in [Rect::new(0, 0, 12, 8), Rect::new(12, 0, 18, 8)] {
+        Block::bordered().border_type(BorderType::Rounded).render(area, &mut b);
+        for y in 1..7 {
+            b.set_string(area.x + 1, y, format!("row {y} text"), theme.s(Slot::TextPrimary));
+        }
+    }
+    b
+}
+
+#[test]
+fn assemble_builds_panels_left_to_right_and_rows_after_their_frame() {
+    let t = theme();
+    let frame = panels_frame(&t);
+    let cells = frame.content.clone();
+    assert_eq!(
+        assemble::panels(&cells, AREA),
+        [Rect::new(0, 0, 12, 8), Rect::new(12, 0, 18, 8)]
+    );
+    let at = |ms: u32| {
+        let mut c = cells.clone();
+        assemble::apply(&mut c, AREA, ms);
+        let w = AREA.width as usize;
+        move |x: usize, y: usize| c[y * w + x].symbol().to_string()
+    };
+    let start = at(0);
+    assert!((0..30).all(|x| start(x, 0) == " "), "nothing before the first frame row");
+    let first = at(40);
+    assert_eq!(first(0, 0), "╭", "the left panel's top edge at 40 ms");
+    assert_eq!(first(12, 0), " ", "the right panel starts 30 ms later");
+    assert_eq!(first(0, 1), " ", "its next frame row 8 ms on");
+    let rows = at(88 + 30);
+    // Row 1 of the left panel started at 40 + 8 + 40 = 88 ms; half its 10 cells after 30 ms.
+    assert_eq!((1..=5).map(|x| rows(x, 1)).collect::<String>(), "row 1");
+    assert_eq!(rows(6, 1), " ");
+    let end = at(assemble::ASSEMBLE_MS);
+    assert!((0..8).all(|y| (0..30).all(|x| end(x, y) == frame.content[y * 30 + x].symbol())));
+}
+
+#[test]
+fn assemble_runs_at_full_and_subtle_keeps_the_fade() {
+    let t = theme();
+    let (mut full, clock) = engine(Level::Full);
+    full.cue(Cue::Screen, &t);
+    clock.advance(40);
+    begin();
+    region(Region::Body, AREA);
+    let mut b = panels_frame(&t);
+    full.draw(&mut b, &t);
+    assert_eq!(b[(12, 0)].symbol(), " ", "full: the right panel is still to come");
+    let (mut subtle, clock) = engine(Level::Subtle);
+    subtle.cue(Cue::Screen, &t);
+    clock.advance(40);
+    begin();
+    region(Region::Body, AREA);
+    let mut b = panels_frame(&t);
+    subtle.draw(&mut b, &t);
+    assert_eq!(b[(12, 0)].symbol(), "╭", "subtle: every glyph is there, fading in");
+    full.input();
+    begin();
+    region(Region::Body, AREA);
+    let mut b = panels_frame(&t);
+    full.draw(&mut b, &t);
+    assert_eq!(b, panels_frame(&t), "a key finishes the build at once");
+}
+
 fn row_rect(y: u16) -> Rect {
     Rect {
         y,
@@ -124,7 +194,7 @@ fn a_popup_sweeps_in_over_its_own_area_and_ends_exactly_as_drawn() {
 fn each_effect_runs_for_its_time_and_no_longer() {
     let t = theme();
     for (cue, ms) in [
-        (Cue::Screen, SCREEN_MS),
+        (Cue::Screen, assemble::ASSEMBLE_MS),
         (Cue::Page, PAGE_MS),
         (Cue::Popup, POPUP_MS),
         (Cue::Message, MESSAGE_MS),
@@ -166,7 +236,7 @@ fn subtle_has_switches_popups_and_the_glow_only() {
 fn a_key_during_an_effect_drops_it_and_the_next_frame_is_plain() {
     let t = theme();
     let (mut e, clock) = engine(Level::Full);
-    e.cue(Cue::Screen, &t);
+    e.cue(Cue::Page, &t);
     let first = draw(&mut e, &t, popup_marks);
     assert_ne!(first, plain(&t));
     clock.advance(30);
@@ -237,7 +307,8 @@ fn new_rows_sweep_in_at_full_and_glow_at_subtle() {
 fn a_waiting_panel_shimmers_at_full_while_it_is_marked_and_input_does_not_stop_it() {
     let t = theme();
     let (mut e, clock) = engine(Level::Full);
-    let wait = || loading(AREA);
+    // The blank columns right of each row's words: outlines are drawn on blank rows only.
+    let wait = || loading(Rect::new(22, 0, 8, AREA.height));
     let _ = draw(&mut e, &t, wait);
     assert!(e.running(), "frames keep coming while it waits");
     let mut changed = false;
@@ -245,7 +316,7 @@ fn a_waiting_panel_shimmers_at_full_while_it_is_marked_and_input_does_not_stop_i
         clock.advance(100);
         changed |= draw(&mut e, &t, wait) != plain(&t);
     }
-    assert!(changed, "a band of light crosses it");
+    assert!(changed, "the rows to come are outlined");
     e.input();
     let _ = draw(&mut e, &t, wait);
     assert!(e.running(), "a key does not stop the wait showing");
@@ -268,8 +339,8 @@ mod loading_policy {
         let t = theme();
         let (mut e, clock) = engine(Level::Full);
         let wait = || {
-            loading(row_rect(1));
-            loading(row_rect(5));
+            loading(Rect::new(22, 1, 8, 1));
+            loading(Rect::new(22, 5, 8, 1));
         };
         let _ = draw(&mut e, &t, wait);
         clock.advance(300);
@@ -500,6 +571,7 @@ fn the_ink_motion_reference_is_what_this_engine_draws() {
     let scenarios: Vec<(&str, Level, Option<Cue>, Vec<u64>)> = vec![
         ("plain", Level::Full, None, vec![0]),
         ("screen", Level::Subtle, Some(Cue::Screen), effect_times.clone()),
+        ("assemble", Level::Full, Some(Cue::Screen), effect_times.clone()),
         ("page", Level::Full, Some(Cue::Page), effect_times.clone()),
         ("popup", Level::Subtle, Some(Cue::Popup), effect_times.clone()),
         ("message", Level::Full, Some(Cue::Message), effect_times.clone()),
@@ -526,7 +598,13 @@ fn the_ink_motion_reference_is_what_this_engine_draws() {
             now = at;
             begin();
             mk();
-            let mut b = if gone { after_message() } else { plain(&t) };
+            let mut b = if gone {
+                after_message()
+            } else if name == "assemble" {
+                panels_frame(&t)
+            } else {
+                plain(&t)
+            };
             e.draw(&mut b, &t);
             let cells: Vec<Value> = b
                 .content

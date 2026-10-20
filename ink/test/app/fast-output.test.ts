@@ -14,7 +14,7 @@ import { freezeClock, mount, tick } from "./harness.js";
 import Output from "ink-output";
 import chalk from "chalk";
 import { fallbackFrames, inkOutputGet, useFastOutput } from "../../src/app/fast-output.js";
-import { charWidth } from "../../src/chrome/width.js";
+import { cellWidth, charWidth } from "../../src/chrome/width.js";
 
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../fixtures");
 const load = (f: string) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
@@ -130,6 +130,45 @@ describe("fast Output draws what Ink's Output draws", () => {
     expect(grid(draw().output)).toEqual(grid(slow.output));
     expect(grid(draw().output)).toEqual(grid(slow.output));
     expect(fallbackFrames).toBe(before);
+  });
+
+  it("an emoji made wide by U+FE0F, a keycap or a joiner takes the cells the layout gave it, so no row outgrows the frame", () => {
+    // renovate's descriptions quote `⚠️ **Warning**`: ⚠ is one cell, ⚠ + U+FE0F two. Counted as one, the row was a
+    // cell wider on screen than in the grid, wrapped, and scrolled the frame a line.
+    const draw = () => {
+      const o = new Output({ width: 12, height: 3 }) as any;
+      o.write(0, 0, "a⚠️b", { transformers: [] });
+      o.write(4, 0, "│x⚠️y⚠️│", { transformers: [(s: string) => chalk.red(s)] });
+      o.write(0, 1, "1️⃣👩‍💻♻️z", { transformers: [] });
+      o.write(7, 1, "│", { transformers: [] });
+      o.write(0, 2, "abcdefghijk⚠️", { transformers: [] });
+      return o.get().output as string;
+    };
+    useFastOutput(false);
+    const slow = draw();
+    useFastOutput(true);
+    const fast = draw();
+    const plain = (s: string) => s.split("\n").map((l) => l.replace(/\x1b\[[0-9;]*m/g, ""));
+    expect(plain(fast).slice(0, 2)).toEqual(plain(slow).slice(0, 2));
+    for (const row of plain(fast)) expect(cellWidth(row)).toBeLessThanOrEqual(12);
+    expect(plain(fast)[0]).toBe("a⚠️b│x⚠️y⚠️│");
+    // a wide emoji in the last cell is not drawn, as Ratatui's buffer drops it (Ink's own get() writes it: 13 cells)
+    expect(plain(fast)[2]).toBe("abcdefghijk");
+  });
+
+  it("a screen whose every text starts with wide emoji clusters: no row of the frame is wider than the terminal", async () => {
+    // A row a cell wider than the terminal wraps, the frame scrolls a line, and the incremental write leaves the rows
+    // it does not rewrite a line too high (an MR page with renovate's `⚠️ **Warning**` doubled its tab row).
+    const screen = JSON.parse(
+      // With a zero-width space the text reaches the grid as it is, not through the glyph table (text/cells.tsx marks).
+      // Only clusters a code-point count makes narrower: a ZWJ sequence it makes wider would hide them in one row.
+      JSON.stringify(load("gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_160x40.json")).replace(/"(text|label|title)":"/g, '"$1":"⚠️1️⃣\\u200b '),
+    );
+    const frame = await frameOf(true, { chrome: load("host_chrome_160x40.json"), screen }, 160, 40);
+    expect(frame).toContain("⚠️1️⃣");
+    const rows = frame.split("\n");
+    expect(rows.length).toBeLessThanOrEqual(40);
+    for (const row of rows) expect(cellWidth(row.replace(/\x1b\[[0-9;]*m/g, "")), row).toBeLessThanOrEqual(160);
   });
 
   it("a menu over a list", async () => {

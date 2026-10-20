@@ -1675,7 +1675,8 @@ fn a_merge_request_naming_a_ticket_gets_its_column_section_tab_and_actions() {
     );
     let shown = cell.show.expect("it opens the ticket");
     assert_eq!((shown.kind.as_str(), shown.id.as_str()), ("ticket", "ABC-12"));
-    let Some(Contribution::Section { title, lines }) = p.contribute(Point::Section, &s) else { panic!() };
+    let Some(Contribution::Section { icon, title, lines }) = p.contribute(Point::Section, &s) else { panic!() };
+    assert_eq!(icon, Some(radar_core::ui::icon::Icon::Issue), "marked like the owner's sections");
     assert_eq!(title, "Tickets");
     assert_eq!(lines[0].to_string(), "ABC-12 · ◐ In Progress · Story");
     let Some(Contribution::Actions(actions)) = p.contribute(Point::Actions, &s) else { panic!() };

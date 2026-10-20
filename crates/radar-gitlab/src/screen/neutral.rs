@@ -823,6 +823,9 @@ fn mr_foot(p: &GitlabPlugin, mr: &Mr) -> FootActions {
     FootActions::new(controls)
 }
 
+/// How many lines of the last comment the detail pane shows.
+const COMMENT_MOST: usize = 12;
+
 fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailContent {
     let mr = item.mr;
     let who = if mr.author.username == p.me && !p.me.is_empty() {
@@ -1027,38 +1030,39 @@ fn mr_detail(p: &GitlabPlugin, item: &Item<'_>, cx: &v::ViewCx<'_>) -> DetailCon
             Seg::new(format!(" −{}", mr.deletions), Ink::Removed),
         ])],
     ));
+    // A plain comment is not a thread: with none, say what is shown.
     let thread_detail = match (mr.threads, mr.threads.saturating_sub(mr.threads_resolved)) {
+        (0, _) if mr.last_comment.is_some() => "none · the last comment".to_string(),
         (0, _) => "none".to_string(),
         (n, 0) => format!("{n}, all resolved"),
         (n, open) => format!("{n}, {open} open"),
     };
-    // The last comment, whole: the pane scrolls.
-    let mut threads = Vec::new();
-    if let Some(comment) = &mr.last_comment {
-        threads.push(Block::line(Text::from(vec![
-            Seg::new("│ ", Ink::AccentMuted),
-            Seg::icon(Icon::Person),
-            Seg::new(comment.author.clone(), Ink::Secondary),
-            Seg::new(
-                format!(" · {} ago", time::ago_str(&comment.at, cx.now)),
-                Ink::Muted,
-            ),
-        ])));
-        threads.push(Block::Wrapped {
-            text: comment.body.clone(),
-            prefix: Seg::new("│ ", Ink::AccentMuted),
-            ink: Ink::Primary,
-        });
-    }
+    // The last comment: who, where it lives on GitLab (a click opens it
+    // there, else the merge request), and its start; the page has it whole.
+    let threads = mr.last_comment.as_ref().map_or_else(Vec::new, |comment| {
+        let whence = crate::screen::Whence {
+            words: format!("comment on !{} in GitLab", mr.iid),
+            url: comment.url.as_deref().unwrap_or(&mr.web_url),
+        };
+        crate::screen::comment_blocks(
+            p,
+            &mr.project_path,
+            &comment.author,
+            &comment.at,
+            &comment.body,
+            None,
+            Some(whence),
+            Some(COMMENT_MOST),
+            cx.now,
+        )
+    });
     blocks.push(Block::section(
         Some(Icon::Thread),
         "threads",
         Some(thread_detail),
         threads,
     ));
-    for (title, section) in cx.parts.sections(&subject) {
-        blocks.push(Block::section_of(None, &title, None, section));
-    }
+    blocks.extend(cx.parts.detail_sections(&subject));
     DetailContent::new(header, facts, blocks)
 }
 

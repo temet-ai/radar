@@ -111,7 +111,7 @@ fn a_ticket_gets_a_notes_tab_readme_first_each_row_a_note_to_open() {
 #[test]
 fn the_notes_section_is_the_readmes_first_lines() {
     let p = sample();
-    let Some(Contribution::Section { title, lines }) = p.contribute(Point::Section, &ticket(KEY))
+    let Some(Contribution::Section { title, lines, .. }) = p.contribute(Point::Section, &ticket(KEY))
     else {
         panic!("no section")
     };

@@ -35,6 +35,7 @@ base64 = "0.22"
 # Markdown text (descriptions, comments) parsed for the kit's renderer.
 pulldown-cmark = { version = "0.13", default-features = false }
 unicode-width = "0.2"
+unicode-segmentation = "1"
 # `radar shot`'s PNGs: an SVG rendered by resvg (tiny-skia), with the system's fonts.
 resvg = { version = "0.47", default-features = false, features = ["text", "system-fonts", "memmap-fonts"] }
 # Code highlighted by language (the kit's highlight): pure-Rust regexes, the

@@ -124,14 +124,12 @@ async function rig(columns = 80, rows = 24, context: unknown = CONTEXT, preloade
 
 function movingOnlyInside(ansi: string, clean: string, columns: number, rows: number, area: Rect) {
   const actual = parseFrame(ansi, columns, rows), plain = parseFrame(clean, columns, rows);
-  const glyphs = (cells: typeof actual.cells) => cells.map(({ ch, attr }) => ({ ch, attr }));
-  expect(glyphs(actual.cells)).toEqual(glyphs(plain.cells));
   const changed: number[] = [];
   for (let i = 0; i < actual.cells.length; i++) {
     const cell = actual.cells[i]!, before = plain.cells[i]!;
-    if (cell.fg !== before.fg || cell.bg !== before.bg) changed.push(i);
+    if (cell.ch !== before.ch || cell.fg !== before.fg || cell.bg !== before.bg) changed.push(i);
   }
-  expect(changed.length, "the uncued loading shimmer actually changes cells").toBeGreaterThan(0);
+  expect(changed.length, "the uncued loading outlines actually change cells").toBeGreaterThan(0);
   expect(changed.every((i) => i % columns >= area.x && i % columns < area.x + area.w &&
     Math.floor(i / columns) >= area.y && Math.floor(i / columns) < area.y + area.h)).toBe(true);
 }

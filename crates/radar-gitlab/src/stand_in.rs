@@ -6,7 +6,7 @@
 
 use radar_core::host::{Event, View};
 use radar_core::plugin::{Binding, Effect, Outcome, Pane, ScreenSpec, SectionSpec, Tone};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use crate::tests::shown as to_text;
 use radar_core::view as v;
 use radar_core::{
@@ -202,15 +202,15 @@ pub(crate) fn hosted_with_tracker() -> Host {
     host
 }
 
-fn press(host: &mut Host, code: KeyCode) {
+fn press(host: &mut Host, code: Key) {
     let _ = to_text(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+    host.update(crate::key_event(Chord::new(code)));
 }
 
 /// !263 in api: the tree is b, worker, !342, a, api, !263.
 fn on_263(host: &mut Host) {
     for _ in 0..5 {
-        press(host, KeyCode::Down);
+        press(host, Key::Down);
     }
 }
 
@@ -277,18 +277,18 @@ fn tree_paths(rows: &[v::TreeRow]) -> Vec<(Vec<String>, &v::TreeRow)> {
 fn the_merge_request_page_has_the_trackers_section_and_tab() {
     let mut host = hosted_with_tracker();
     on_263(&mut host);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = to_text(&host, 160, 40);
     assert!(text.contains("TICKET ABC-12"), "{text}");
     assert!(text.contains("Commits  Ticket"), "{text}");
     insta::assert_snapshot!("mr_page_with_tracker", text);
     for _ in 0..5 {
-        press(&mut host, KeyCode::Char(']'));
+        press(&mut host, Key::Char(']'));
     }
     let text = to_text(&host, 160, 40);
     assert!(text.contains("Ticket>"), "{text}");
     insta::assert_snapshot!("mr_page_tracker_tab", text);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     insta::assert_snapshot!("mr_page_tracker_tab_keys", to_text(&host, 160, 40));
 }
 
@@ -335,7 +335,7 @@ fn another_parts_line_sits_under_the_title_and_its_actions_in_the_preview_act_on
     assert_eq!(host.notices.since(before).map(|notice| notice.text.as_str()).collect::<Vec<_>>(),
         ["start: api !263"], "one activation dispatches the contribution exactly once");
     // Its page: the tracker's line under the title.
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let text = to_text(&host, 160, 40);
     assert!(text.contains("tracked as ABC-12"), "{text}");
     assert_eq!(host.plugins[0].depth("repos"), 1);
@@ -360,14 +360,14 @@ fn contributed_preview_actions_without_an_icon_get_a_generic_action_icon() {
 fn enter_on_the_ticket_tab_shows_it_and_esc_comes_back_to_the_page() {
     let mut host = hosted_with_tracker();
     on_263(&mut host);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     for _ in 0..5 {
-        press(&mut host, KeyCode::Char(']'));
+        press(&mut host, Key::Char(']'));
     }
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.screen().unwrap().1.name, "tickets");
     assert!(to_text(&host, 160, 40).contains("ticket page ABC-12"));
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.screen().unwrap().1.name, "repositories");
     let text = to_text(&host, 160, 40);
     assert!(
@@ -380,13 +380,10 @@ fn enter_on_the_ticket_tab_shows_it_and_esc_comes_back_to_the_page() {
 fn o_and_y_on_another_parts_tab_act_on_the_rows_link() {
     let mut host = hosted_with_tracker();
     on_263(&mut host);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let open = |host: &mut Host, c: char| {
         let _ = to_text(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char(c),
-            KeyModifiers::NONE,
-        )))
+        host.update(crate::key_event(Chord::char(c)))
     };
     // On GitLab's own tabs, o is the merge request.
     let fx = open(&mut host, 'o');
@@ -395,7 +392,7 @@ fn o_and_y_on_another_parts_tab_act_on_the_rows_link() {
         "{fx:?}"
     );
     for _ in 0..5 {
-        press(&mut host, KeyCode::Char(']'));
+        press(&mut host, Key::Char(']'));
     }
     let fx = open(&mut host, 'o');
     assert!(
@@ -407,7 +404,7 @@ fn o_and_y_on_another_parts_tab_act_on_the_rows_link() {
         matches!(&fx[..], [radar_core::host::HostEffect::Copy(u)] if u == "https://tracker.example/ABC-12"),
         "{fx:?}"
     );
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let labels: Vec<String> = host
         .menu
         .as_ref()
@@ -424,16 +421,16 @@ fn o_and_y_on_another_parts_tab_act_on_the_rows_link() {
 #[test]
 fn the_tracker_shows_a_merge_request_and_esc_returns_to_it() {
     let mut host = hosted_with_tracker();
-    press(&mut host, KeyCode::Char('T'));
-    press(&mut host, KeyCode::Char('e'));
+    press(&mut host, Key::Char('T'));
+    press(&mut host, Key::Char('e'));
     assert_eq!(host.screen().unwrap().1.name, "repositories");
     let text = to_text(&host, 160, 40);
     assert!(text.contains("Repositories / a / api / !263"), "{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let menu = to_text(&host, 160, 40);
     assert!(menu.contains("back to tickets"), "{menu}");
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.screen().unwrap().1.name, "tickets");
     assert_eq!(host.plugins[0].depth("repos"), 0, "GitLab's tree as it was");
 }
@@ -442,7 +439,7 @@ fn the_tracker_shows_a_merge_request_and_esc_returns_to_it() {
 fn a_contributed_action_with_gitlabs_key_is_chosen_from_the_menu_only() {
     let mut host = hosted_with_tracker();
     on_263(&mut host);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
     let row = |label: &str| menu.items.iter().find(|i| i.label == label).cloned();
     assert_eq!(row("start work on ABC-12…").unwrap().keys, "s");
@@ -453,20 +450,17 @@ fn a_contributed_action_with_gitlabs_key_is_chosen_from_the_menu_only() {
     );
     assert!(row("Tracker").unwrap().heading);
     // o still opens the merge request in GitLab.
-    press(&mut host, KeyCode::Esc);
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('o'),
-        KeyModifiers::NONE,
-    )));
+    press(&mut host, Key::Esc);
+    let fx = host.update(crate::key_event(Chord::char('o')));
     assert!(
         matches!(&fx[..], [radar_core::host::HostEffect::Open(u)] if u.contains("merge_requests/263")),
         "{fx:?}"
     );
     // s, which GitLab does not use on a tree row, is the tracker's.
-    press(&mut host, KeyCode::Char('s'));
+    press(&mut host, Key::Char('s'));
     assert_eq!(host.message.as_deref(), Some("start: api !263"));
     // Choosing the keyless row shows the ticket.
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let at = host
         .menu
         .as_ref()
@@ -477,7 +471,7 @@ fn a_contributed_action_with_gitlabs_key_is_chosen_from_the_menu_only() {
         .position(|i| i.label == "open ABC-12 in the tracker")
         .unwrap();
     host.menu.as_mut().unwrap().row = at;
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     assert_eq!(host.view, View::Screen(1));
 }
 
@@ -485,9 +479,9 @@ fn a_contributed_action_with_gitlabs_key_is_chosen_from_the_menu_only() {
 fn a_merge_request_with_no_ticket_gets_nothing_from_the_tracker() {
     let mut host = hosted_with_tracker();
     // !342 in worker: no ticket key in its title.
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Down);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Down);
+    press(&mut host, Key::Char('x'));
     let labels: Vec<String> = host
         .menu
         .as_ref()

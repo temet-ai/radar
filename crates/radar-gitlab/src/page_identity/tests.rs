@@ -487,10 +487,7 @@ fn explicit_refresh_after_rejection_can_replace_a_still_fresh_held_value() {
     let radar_core::plugin::Outcome::Handled(fx) = pages::key(
         &mut p,
         radar_core::plugin::Pane::Middle,
-        radar_core::ratatui::crossterm::event::KeyEvent::new(
-            radar_core::ratatui::crossterm::event::KeyCode::Char('r'),
-            radar_core::ratatui::crossterm::event::KeyModifiers::NONE,
-        ),
+        Chord::char('r'),
     ) else {
         panic!("explicit refresh handled")
     };

@@ -23,11 +23,12 @@ use std::cell::{Cell, RefCell};
 
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
 use radar_core::{Row, Subject};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::diff::DiffState;
 use radar_core::ui::icon::Icon;
 use radar_core::ui::log::LogState;
-use radar_core::ui::{Mark, Scroll};
+use radar_core::ui::Mark;
+use radar_core::view::scroll::Scroll;
 
 use crate::config::Source;
 use crate::log_ownership::{self, JobKey};
@@ -96,7 +97,7 @@ pub(crate) struct Page {
     /// folders already opened once, whether it is on screen (then it is
     /// the page's first pane, `Nav`, beside the diff), and whether the
     /// first file in tree order was chosen to open.
-    pub tree: RefCell<radar_core::ui::tree::TreeState<String>>,
+    pub tree: RefCell<radar_core::view::TreeNav>,
     pub tree_seen: RefCell<std::collections::HashSet<Vec<String>>>,
     pub tree_shown: Cell<bool>,
     /// The diff was drawn side by side (wanted, and wide enough).
@@ -737,7 +738,7 @@ fn enter(p: &GitlabPlugin, page: &Page) -> Option<Enter> {
     }
 }
 
-pub(crate) fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
+pub(crate) fn key(p: &mut GitlabPlugin, pane: Pane, key: Chord) -> Outcome {
     let out = page_key(p, pane, key);
     // A tab or file newly showing asks for its diff.
     match out {
@@ -749,7 +750,7 @@ pub(crate) fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
     }
 }
 
-fn page_key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
+fn page_key(p: &mut GitlabPlugin, pane: Pane, key: Chord) -> Outcome {
     let Some(page) = p.pages.last() else {
         return Outcome::Ignored;
     };
@@ -764,8 +765,8 @@ fn page_key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
     {
         return out;
     }
-    match key.code {
-        KeyCode::Esc => {
+    match key.key {
+        Key::Esc => {
             p.pages.pop();
             let fx = if p.pages.is_empty() {
                 vec![Effect::Focus(Pane::Middle)]
@@ -774,13 +775,13 @@ fn page_key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             };
             Outcome::Handled(fx)
         }
-        KeyCode::Char(c @ ('[' | ']')) => {
+        Key::Char(c @ ('[' | ']')) => {
             let page = p.pages.last().expect("checked");
             let n = tab_count(page);
             let to = if c == ']' { (page.tab + 1) % n } else { (page.tab + n - 1) % n };
             Outcome::Handled(show_tab(p, to))
         }
-        KeyCode::Char('r') => {
+        Key::Char('r') => {
             let mut fx = fetch(p, &kind, true);
             if matches!(kind, Kind::Repo(_) | Kind::Tenancy(_)) {
                 // The repo's and tenancy's merge requests and main pipelines
@@ -792,7 +793,7 @@ fn page_key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             }
             Outcome::Handled(fx)
         }
-        KeyCode::Char(c @ ('o' | 'p')) => {
+        Key::Char(c @ ('o' | 'p')) => {
             let page = p.pages.last().expect("checked");
             let row = (c == 'o').then(|| row_link(page)).flatten();
             Outcome::Handled(
@@ -803,7 +804,7 @@ fn page_key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
                     .collect(),
             )
         }
-        KeyCode::Char('y') => {
+        Key::Char('y') => {
             let page = p.pages.last().expect("checked");
             let row = row_link(page).map(|(_, url)| url);
             Outcome::Handled(match row.or_else(|| link(p, page, false)) {
@@ -811,9 +812,9 @@ fn page_key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
                 None => vec![],
             })
         }
-        KeyCode::Enter => follow(p, &kind),
+        Key::Enter => follow(p, &kind),
         _ => {
-            if let KeyCode::Char(c) = key.code
+            if let Key::Char(c) = key.key
                 && let Some(out) = review::key(p, c).or_else(|| act::key(p, c, &kind))
             {
                 return out;
@@ -902,26 +903,26 @@ fn seed_job(p: &mut GitlabPlugin, kind: &Kind) {
 }
 
 /// `↑↓ j k`, PgUp/PgDn, `g G`: the cursor on a list, the view on text.
-fn move_in(p: &GitlabPlugin, page: &Page, key: &KeyEvent) -> bool {
+fn move_in(p: &GitlabPlugin, page: &Page, key: &Chord) -> bool {
     let Some(n) = list_len(p, page) else {
         return page.scroll.key(key);
     };
     let step = page.scroll.height().saturating_sub(1).max(1) as usize;
     let last = n.saturating_sub(1);
     let at = page.row.get();
-    let to = match key.code {
-        KeyCode::Char('j') | KeyCode::Down => (at + 1).min(last),
-        KeyCode::Char('k') | KeyCode::Up => at.saturating_sub(1),
-        KeyCode::PageDown => (at + step).min(last),
-        KeyCode::PageUp => at.saturating_sub(step),
-        KeyCode::Char('g') | KeyCode::Home => 0,
-        KeyCode::Char('G') | KeyCode::End => last,
+    let to = match key.key {
+        Key::Char('j') | Key::Down => (at + 1).min(last),
+        Key::Char('k') | Key::Up => at.saturating_sub(1),
+        Key::PageDown => (at + step).min(last),
+        Key::PageUp => at.saturating_sub(step),
+        Key::Char('g') | Key::Home => 0,
+        Key::Char('G') | Key::End => last,
         _ => return false,
     };
     page.row.set(to);
     // PgUp/PgDn that move nothing are not handled: the host says so; nor
     // is ↑ at the top: the host takes it up to the page's tab row.
-    to != at || !matches!(key.code, KeyCode::PageDown | KeyCode::PageUp | KeyCode::Up | KeyCode::Char('k'))
+    to != at || !matches!(key.key, Key::PageDown | Key::PageUp | Key::Up | Key::Char('k'))
 }
 
 pub(crate) fn click(p: &mut GitlabPlugin, id: &str) -> Outcome {

@@ -11,9 +11,8 @@
 use std::collections::BTreeSet;
 
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::diff::{self, DiffLine};
-use radar_core::ui::{Node, tree};
 use radar_core::ui;
 
 use super::{Kind, Page, mr_key};
@@ -319,12 +318,12 @@ pub(super) fn path_to(entries: &[Entry], id: &str) -> Option<Vec<String>> {
 }
 
 /// Just ids and children, for the kit to open each folder the first time.
-pub(super) fn skeleton(entries: &[Entry]) -> Vec<Node> {
+pub(super) fn skeleton(entries: &[Entry]) -> Vec<crate::nav::Skel> {
     entries
         .iter()
         .map(|e| match e {
-            Entry::Dir { kids, .. } => Node::new(e.id(), vec![]).children(skeleton(kids)),
-            Entry::File { .. } => Node::new(e.id(), vec![]),
+            Entry::Dir { kids, .. } => crate::nav::Skel { id: e.id(), children: skeleton(kids) },
+            Entry::File { .. } => crate::nav::Skel { id: e.id(), children: vec![] },
         })
         .collect()
 }
@@ -407,14 +406,11 @@ fn neighbour(p: &GitlabPlugin, project: &str, iid: u64, at: usize, step: isize) 
 
 /// Keys in the files pane: it moves and folds, `⏎` opens a file or folds
 /// a folder; `↑` at its top is not its (the host takes it up).
-fn tree_key(p: &mut GitlabPlugin, key: &KeyEvent) -> Option<Outcome> {
-    if key.code == KeyCode::Enter {
+fn tree_key(p: &mut GitlabPlugin, key: &Chord) -> Option<Outcome> {
+    if key.key == Key::Enter {
         return tree_enter(p);
     }
-    let page = p.pages.last()?;
-    if tree::key(&mut page.tree.borrow_mut(), key) {
-        return Some(Outcome::done());
-    }
+    // Moving and folding are the frontend's, as intents.
     None
 }
 
@@ -451,14 +447,14 @@ fn files_len(p: &GitlabPlugin, project: &str, iid: u64) -> usize {
 
 /// A key on the Changes tab, in `pane` (the files are `Nav`, the diff
 /// `Middle`); `None` when it is not one of its own.
-pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key: &KeyEvent) -> Option<Outcome> {
+pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key: &Chord) -> Option<Outcome> {
     let n = files_len(p, project, iid);
     if n == 0 {
         return None;
     }
     // Collapse the files (the diff takes the width) or bring them back;
     // kept in the config. From either pane.
-    if key.code == KeyCode::Char('f') {
+    if key.key == Key::Char('f') {
         p.cfg.hide_files = !p.cfg.hide_files;
         let mut fx = vec![Effect::Notify(
             if p.cfg.hide_files { "files collapsed: f shows them again" } else { "files shown beside the diff" }.into(),
@@ -473,11 +469,11 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key
     if pane == Pane::Nav && page.tree_shown.get() {
         return tree_key(p, key);
     }
-    let fx = match key.code {
+    let fx = match key.key {
         // ⏎ on a line comments on it, or replies in its thread (as `c`).
-        KeyCode::Enter => return super::review::key(p, 'c'),
+        Key::Enter => return super::review::key(p, 'c'),
         // Side by side or one column; kept in the config.
-        KeyCode::Char('v') => {
+        Key::Char('v') => {
             p.cfg.side_by_side = !p.cfg.side_by_side;
             vec![Effect::Notify(
                 if p.cfg.side_by_side {
@@ -488,19 +484,19 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key
                 .into(),
             )]
         }
-        KeyCode::Char('n') => {
+        Key::Char('n') => {
             let Some(to) = neighbour(p, project, iid, at, 1) else {
                 return Some(Outcome::Handled(vec![Effect::Notify("that was the last file".into())]));
             };
             open_file(p, to)
         }
-        KeyCode::Char('N') => {
+        Key::Char('N') => {
             let Some(to) = neighbour(p, project, iid, at, -1) else {
                 return Some(Outcome::Handled(vec![Effect::Notify("this is the first file".into())]));
             };
             open_file(p, to)
         }
-        KeyCode::Char('}') => {
+        Key::Char('}') => {
             let lines = lines(p, page, project, iid);
             if page.diff.next_hunk(&lines) {
                 vec![]
@@ -511,7 +507,7 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key
                 vec![Effect::Notify("that was the last hunk of the last file".into())]
             }
         }
-        KeyCode::Char(' ') => {
+        Key::Char(' ') => {
             let here = at_cursor(p, page, project, iid);
             if here.is_empty() {
                 vec![Effect::Notify("no thread on this line".into())]
@@ -525,7 +521,7 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, iid: u64, pane: Pane, key
                 vec![]
             }
         }
-        KeyCode::Char('{') => {
+        Key::Char('{') => {
             let lines = lines(p, page, project, iid);
             if page.diff.previous_hunk(&lines) {
                 vec![]

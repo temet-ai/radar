@@ -84,7 +84,7 @@ fn text(p: &GitlabPlugin) -> &radar_core::ui::log::LogText {
 
 fn fold(p: &mut GitlabPlugin) {
     p.pages.last().unwrap().log.goto(text(p), 2);
-    press(p, KeyCode::Char(' '));
+    press(p, Key::Char(' '));
     assert!(text(p).sections.len() > 1);
     assert!(
         !p.pages
@@ -98,7 +98,7 @@ fn fold(p: &mut GitlabPlugin) {
 }
 
 fn refresh(p: &mut GitlabPlugin) {
-    let effects = press(p, KeyCode::Char('r'));
+    let effects = press(p, Key::Char('r'));
     assert!(matches!(&effects[..], [Effect::SpawnAction { action, .. }]
         if action.kind.as_str() == "gitlab.job.log"));
     assert!(p.logs[&JobKey::new(WORKER, JOB)].loading);
@@ -117,9 +117,9 @@ fn folded_title_refresh_to_plain_text_renders_and_navigates() {
     let rendered = draw(&p, 80, 24);
     assert!(rendered.contains("ordinary output"), "{rendered}");
     assert!(text(&p).sections.is_empty());
-    press(&mut p, KeyCode::Home);
+    press(&mut p, Key::Home);
     assert_eq!(p.pages[0].log.line(text(&p)), Some(0));
-    press(&mut p, KeyCode::Down);
+    press(&mut p, Key::Down);
     assert_eq!(p.pages[0].log.line(text(&p)), Some(1));
 }
 
@@ -141,16 +141,16 @@ fn replacement_rebuilds_search_matches_and_drops_old_folds() {
     assert_eq!(p.pages[0].log.query(), "NEEDLE");
     assert_eq!(p.pages[0].log.found(text(&p)), (3, 3));
     assert!(p.pages[0].log.rows(text(&p)).contains(&(Row::Line(1), 1)));
-    press(&mut p, KeyCode::Char('n'));
+    press(&mut p, Key::Char('n'));
     assert_eq!(p.pages[0].log.line(text(&p)), Some(1));
-    press(&mut p, KeyCode::Char('N'));
+    press(&mut p, Key::Char('N'));
     assert_eq!(p.pages[0].log.line(text(&p)), Some(3));
 
     deliver(&mut p, false, Ok(part("nothing matching\n")));
     assert_eq!(p.pages[0].log.query(), "NEEDLE");
     assert_eq!(p.pages[0].log.found(text(&p)), (0, 0));
     assert!(draw(&p, 80, 24).contains("log · /NEEDLE · no match"));
-    press(&mut p, KeyCode::Char('n'));
+    press(&mut p, Key::Char('n'));
     assert_eq!(p.pages[0].log.line(text(&p)), Some(0));
 }
 
@@ -188,10 +188,10 @@ fn direct_and_bundled_replacements_reconcile_hidden_duplicate_job_pages_only() {
         // Reveal each hidden page without opening a new one or resetting state.
         p.pages.pop();
         assert!(draw(&p, 80, 24).contains("no match"));
-        press(&mut p, KeyCode::Home);
+        press(&mut p, Key::Home);
         p.pages.pop();
         assert!(draw(&p, 80, 24).contains("1 of 1"));
-        press(&mut p, KeyCode::Down);
+        press(&mut p, Key::Down);
     }
 }
 
@@ -276,11 +276,11 @@ fn replacement_does_not_recreate_the_active_search_editor() {
         let mut p = page();
         p.pages[0].log.search(text(&p), "needle");
         fold(&mut p);
-        press(&mut p, KeyCode::Char('/'));
-        press(&mut p, KeyCode::Char('!'));
+        press(&mut p, Key::Char('/'));
+        press(&mut p, Key::Char('!'));
         let mut expected = TextInput::new("needle");
-        expected.key(KeyEvent::new(KeyCode::Char('!'), KeyModifiers::NONE));
-        let left = KeyEvent::new(KeyCode::Left, KeyModifiers::NONE);
+        expected.key(Chord::new(Key::Char('!')));
+        let left = Chord::new(Key::Left);
         p.log_search.as_mut().unwrap().key(left);
         expected.key(left);
         deliver(&mut p, bundled, Ok(part("needle replacement\n")));
@@ -288,7 +288,7 @@ fn replacement_does_not_recreate_the_active_search_editor() {
         assert_eq!(p.log_search.as_ref().unwrap().value(), expected.value());
         assert_eq!(p.log_search.as_ref().unwrap().cursor(), expected.cursor());
         assert_eq!(p.pages[0].log.query(), "needle");
-        let undo = KeyEvent::new(KeyCode::Char('z'), KeyModifiers::CONTROL);
+        let undo = Chord::ctrl('z');
         p.log_search.as_mut().unwrap().key(undo);
         expected.key(undo);
         assert_eq!(p.log_search.as_ref().unwrap().value(), expected.value());
@@ -368,7 +368,7 @@ fn empty_replacement_clears_old_coordinates_and_keeps_the_query() {
     assert_eq!(p.pages[0].log.found(text(&p)), (0, 0));
     assert_eq!(p.pages[0].log.line(text(&p)), None);
     assert!(draw(&p, 80, 24).contains("This job wrote nothing to its log."));
-    press(&mut p, KeyCode::Down);
+    press(&mut p, Key::Down);
     deliver(&mut p, false, Ok(part("needle returned\n")));
     assert_eq!(p.pages[0].log.found(text(&p)), (1, 1));
     assert!(draw(&p, 80, 24).contains("needle returned"));
@@ -412,7 +412,7 @@ fn same_numeric_job_in_another_project_keeps_its_log_coordinates_metadata_and_li
         link(&p, &p.pages[1], true).unwrap(),
         format!("https://gitlab.com/{other}/-/pipelines/4321")
     );
-    let copied = press(&mut p, KeyCode::Char('c'));
+    let copied = press(&mut p, Key::Char('c'));
     assert!(copied.iter().any(|fx| matches!(fx, Effect::Copy(text) if text.contains("other failure") && !text.contains("needle new"))));
     assert_eq!(
         why::excerpt_text(&p, WORKER, JOB).as_deref(),
@@ -451,7 +451,7 @@ fn connection_change_retires_job_remote_buffers_but_keeps_query_editor_and_navig
     p.log_search
         .as_mut()
         .unwrap()
-        .key(KeyEvent::new(KeyCode::Left, KeyModifiers::NONE));
+        .key(Chord::new(Key::Left));
     let editor = (
         p.log_search.as_ref().unwrap().value(),
         p.log_search.as_ref().unwrap().cursor(),
@@ -506,9 +506,9 @@ fn connection_change_retires_job_remote_buffers_but_keeps_query_editor_and_navig
     draw(&p, 80, 24);
     click(&mut p, "log:0");
     assert_eq!(p.pages[0].log.line(text(&p)), Some(0));
-    press(&mut p, KeyCode::Esc);
+    press(&mut p, Key::Esc);
     assert_eq!(p.pages[0].log.query(), "");
-    press(&mut p, KeyCode::Esc);
+    press(&mut p, Key::Esc);
     assert!(p.pages.is_empty());
 }
 

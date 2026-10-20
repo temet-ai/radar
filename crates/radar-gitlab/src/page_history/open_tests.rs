@@ -6,7 +6,7 @@ use crate::{GitlabPlugin, Plugin, SCREEN, demo, join, model, screen};
 use radar_core::host::{Event, HostEffect, JournalRecord};
 use radar_core::journal::{ActionEvent, ActionId, Journal, Metadata, Query};
 use radar_core::plugin::{Outcome as KeyOutcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Host, Showing, Subject};
 
 const OPEN: &str = "gitlab.page.open";
@@ -109,8 +109,8 @@ fn handled(outcome: KeyOutcome) -> Vec<Effect> {
         KeyOutcome::Ignored => vec![],
     }
 }
-fn key(p: &mut GitlabPlugin, pane: Pane, code: KeyCode) -> Vec<Effect> {
-    handled(p.key(SCREEN.id, pane, KeyEvent::new(code, KeyModifiers::NONE)))
+fn key(p: &mut GitlabPlugin, pane: Pane, code: Key) -> Vec<Effect> {
+    handled(p.key(SCREEN.id, pane, Chord::new(code)))
 }
 fn select(p: &mut GitlabPlugin, id: &str) {
     let target = screen::targets(p)
@@ -469,7 +469,7 @@ fn tree_and_preview_enter_capture_each_selected_kind_with_existing_focus_order()
             let mut p = sample();
             select(&mut p, id);
             let selected = p.tree.borrow().selected().to_vec();
-            let fx = key(&mut p, pane, KeyCode::Enter);
+            let fx = key(&mut p, pane, Key::Enter);
             open(&fx);
             assert!(matches!(fx.first(), Some(Effect::Focus(Pane::Middle))));
             assert_eq!(p.pages.len(), 1);
@@ -486,16 +486,16 @@ fn nested_enters_capture_actual_repo_mr_and_failed_job_pushes() {
     // Choose the api row through the page's unchanged repository ordering.
     for row in 0..4 {
         p.pages.last().unwrap().row.set(row);
-        let fx = key(&mut p, Pane::Middle, KeyCode::Enter);
+        let fx = key(&mut p, Pane::Middle, Key::Enter);
         open(&fx);
         let target = p.pages.last().unwrap().kind.clone();
         if target == Kind::Repo(PROJECT.into()) {
             break;
         }
-        no_open(&key(&mut p, Pane::Middle, KeyCode::Esc));
+        no_open(&key(&mut p, Pane::Middle, Key::Esc));
     }
     assert_eq!(p.pages.last().unwrap().kind, Kind::Repo(PROJECT.into()));
-    let fx = key(&mut p, Pane::Middle, KeyCode::Enter);
+    let fx = key(&mut p, Pane::Middle, Key::Enter);
     scope(
         open(&fx),
         "https://git.example/install/",
@@ -504,7 +504,7 @@ fn nested_enters_capture_actual_repo_mr_and_failed_job_pushes() {
     );
     assert_eq!(p.pages.len(), 3);
     pages::push(&mut p, Kind::Repo(WEB.into()));
-    let fx = key(&mut p, Pane::Middle, KeyCode::Enter);
+    let fx = key(&mut p, Pane::Middle, Key::Enter);
     scope(
         open(&fx),
         "https://git.example/install/",
@@ -520,7 +520,7 @@ fn nested_enters_capture_actual_repo_mr_and_failed_job_pushes() {
         },
     );
     no_open(&p.show_tab(SCREEN.id, 3));
-    let fx = key(&mut p, Pane::Middle, KeyCode::Enter);
+    let fx = key(&mut p, Pane::Middle, Key::Enter);
     open(&fx);
     assert!(matches!(p.pages.last().unwrap().kind, Kind::Job { .. }));
 }
@@ -601,17 +601,17 @@ fn selection_folds_filters_goto_tabs_scroll_refresh_callbacks_back_and_external_
     let mut p = sample();
     select(&mut p, "m:acme/team-a/api!263");
     for code in [
-        KeyCode::Down,
-        KeyCode::Char(' '),
-        KeyCode::Char('/'),
-        KeyCode::Char('a'),
-        KeyCode::Enter,
-        KeyCode::Esc,
-        KeyCode::Char(':'),
-        KeyCode::Char('a'),
-        KeyCode::Enter,
-        KeyCode::Char('o'),
-        KeyCode::Char('p'),
+        Key::Down,
+        Key::Char(' '),
+        Key::Char('/'),
+        Key::Char('a'),
+        Key::Enter,
+        Key::Esc,
+        Key::Char(':'),
+        Key::Char('a'),
+        Key::Enter,
+        Key::Char('o'),
+        Key::Char('p'),
     ] {
         no_open(&key(&mut p, Pane::Middle, code));
     }
@@ -620,13 +620,13 @@ fn selection_folds_filters_goto_tabs_scroll_refresh_callbacks_back_and_external_
     }
     pages::push(&mut p, mr());
     for code in [
-        KeyCode::Down,
-        KeyCode::PageDown,
-        KeyCode::Char(']'),
-        KeyCode::Char('['),
-        KeyCode::Char('o'),
-        KeyCode::Char('p'),
-        KeyCode::Char('r'),
+        Key::Down,
+        Key::PageDown,
+        Key::Char(']'),
+        Key::Char('['),
+        Key::Char('o'),
+        Key::Char('p'),
+        Key::Char('r'),
     ] {
         no_open(&key(&mut p, Pane::Middle, code));
     }
@@ -640,16 +640,16 @@ fn selection_folds_filters_goto_tabs_scroll_refresh_callbacks_back_and_external_
         pages::mr_key(PROJECT, 263),
         Err(PRIVATE.into()),
     ));
-    no_open(&key(&mut p, Pane::Middle, KeyCode::Esc));
+    no_open(&key(&mut p, Pane::Middle, Key::Esc));
     pages::push(&mut p, job());
     for code in [
-        KeyCode::Char('/'),
-        KeyCode::Char('x'),
-        KeyCode::Enter,
-        KeyCode::Char('n'),
-        KeyCode::Char(' '),
-        KeyCode::Down,
-        KeyCode::Esc,
+        Key::Char('/'),
+        Key::Char('x'),
+        Key::Enter,
+        Key::Char('n'),
+        Key::Char(' '),
+        Key::Down,
+        Key::Esc,
     ] {
         no_open(&key(&mut p, Pane::Middle, code));
     }
@@ -668,14 +668,14 @@ fn within_page_thread_diff_and_pipeline_link_enters_and_write_callbacks_do_not_p
     p.pages.last_mut().unwrap().tab = 2;
     p.pages.last().unwrap().row.set(1);
     p.pages.last().unwrap().detail_painted.set(true);
-    no_open(&key(&mut p, Pane::Middle, KeyCode::Enter));
+    no_open(&key(&mut p, Pane::Middle, Key::Enter));
     assert_eq!(p.pages.len(), 1);
     assert_eq!(
         p.pages.last().unwrap().tab,
         1,
         "thread navigates within the MR"
     );
-    for code in [KeyCode::Enter, KeyCode::Down, KeyCode::PageDown] {
+    for code in [Key::Enter, Key::Down, Key::PageDown] {
         no_open(&key(&mut p, Pane::Middle, code));
         assert_eq!(p.pages.len(), 1);
     }
@@ -739,8 +739,8 @@ impl Plugin for Sender {
         vec![Effect::Show(*msg.downcast::<Subject>().unwrap())]
     }
 }
-fn press(h: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    h.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(h: &mut Host, code: Key) -> Vec<HostEffect> {
+    h.update(crate::key_event(Chord::new(code)))
 }
 fn records(fx: &[HostEffect]) -> Vec<JournalRecord> {
     fx.iter()
@@ -872,7 +872,7 @@ fn host_cached_repeated_enter_back_keeps_distinct_success_and_no_reads_or_payloa
     let mut all = vec![];
     let mut ids = vec![];
     for _ in 0..2 {
-        let fx = press(&mut h, KeyCode::Enter);
+        let fx = press(&mut h, Key::Enter);
         assert!(tasks(&fx).is_empty());
         let got = records(&fx);
         let (id, a, parent) = begin(&got, OPEN);
@@ -888,7 +888,7 @@ fn host_cached_repeated_enter_back_keeps_distinct_success_and_no_reads_or_payloa
         ids.push(id);
         all.extend(got);
         assert_eq!(h.focus, Pane::Middle);
-        let back = records(&press(&mut h, KeyCode::Esc));
+        let back = records(&press(&mut h, Key::Esc));
         no_host_open(&back);
         all.extend(back);
     }
@@ -946,7 +946,7 @@ fn host_show_and_failed_state_click_keep_their_real_causes_and_accepted_scope() 
         "acme/team-a/api!263",
     );
     assert_eq!(terminal(&all, &id), [Outcome::Succeeded]);
-    let back = records(&press(&mut h, KeyCode::Esc));
+    let back = records(&press(&mut h, Key::Esc));
     no_host_open(&back);
     all.extend(back);
     // Use the failed-state target the view shows, not an artificial routing call.
@@ -999,7 +999,7 @@ fn host_failed_partial_and_interrupted_read_and_diagnosis_siblings_never_relabel
         m.pipeline_url = Some(format!("https://git.example/{PROJECT}/-/pipelines/901"));
         select(&mut p, "m:acme/team-a/api!263");
         let mut h = host(p);
-        let started = press(&mut h, KeyCode::Enter);
+        let started = press(&mut h, Key::Enter);
         let pending = tasks(&started);
         assert_eq!(pending.len(), 2);
         let mut all = records(&started);
@@ -1015,10 +1015,10 @@ fn host_failed_partial_and_interrupted_read_and_diagnosis_siblings_never_relabel
         // Drop real provider closures unpolled. Completion fixtures below preserve
         // the actual request owner and runner context, without credentials/I/O.
         drop(started);
-        let got = records(&press(&mut h, KeyCode::Esc));
+        let got = records(&press(&mut h, Key::Esc));
         no_host_open(&got);
         all.extend(got);
-        let again = press(&mut h, KeyCode::Enter);
+        let again = press(&mut h, Key::Enter);
         assert!(tasks(&again).is_empty(), "busy siblings remain suppressed");
         let got = records(&again);
         let reopen = begin(&got, OPEN).0;

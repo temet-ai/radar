@@ -5,7 +5,7 @@ use crate::{GitlabPlugin, demo, pages};
 use radar_core::host::{Event, HostEffect, JournalRecord};
 use radar_core::journal::{ActionId, Journal, Query, SubjectRole};
 use radar_core::plugin::Pane;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Host, Plugin};
 use serde_json::{Value, json};
 
@@ -697,7 +697,7 @@ fn fresh_and_busy_noops_forced_overlap_independent_red_diagnosis_and_ticks_are_p
         let radar_core::plugin::Outcome::Handled(fx) = pages::key(
             &mut plugin,
             Pane::Middle,
-            KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE),
+            Chord::new(Key::Char('r')),
         ) else {
             panic!("refresh handled")
         };

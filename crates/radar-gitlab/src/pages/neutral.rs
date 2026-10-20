@@ -1656,7 +1656,7 @@ pub(crate) fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Ou
                 page.tree.borrow_mut().open(path);
             } else {
                 let mut tree = page.tree.borrow_mut();
-                tree.close(&path);
+                crate::nav::NavExt::close(&mut *tree, &path);
                 if tree.selected().len() > path.len() && tree.selected().starts_with(&path) {
                     tree.select(path);
                 }
@@ -1665,7 +1665,7 @@ pub(crate) fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Ou
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => {
             intent.chord().map_or(Outcome::Ignored, |chord| {
-                p.on_key(pane, radar_core::view_tui::key_of(chord))
+                p.on_key(pane, chord)
             })
         }
         v::Intent::EditSelect { anchor, extent } => match p.compose.as_mut() {

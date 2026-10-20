@@ -13,7 +13,7 @@ use radar_core::agent_context::{
 };
 use radar_core::journal::{SafeUrl, SubjectKey};
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::Icon;
 
 use crate::{GitlabPlugin, Row, act, head};
@@ -207,11 +207,11 @@ pub(crate) fn rows(p: &GitlabPlugin, pane: Pane) -> Vec<Row> {
 /// start the local review of the merge request. Nothing is sent or posted
 /// from here: the host asks [`agent_context`] for the context, or the sessions
 /// part runs the journey, which asks [`resolve`] and makes a worktree.
-pub(crate) fn key_press(p: &GitlabPlugin, pane: Pane, pressed: KeyEvent) -> Option<Outcome> {
-    if pressed.modifiers.difference(KeyModifiers::SHIFT) != KeyModifiers::NONE {
+pub(crate) fn key_press(p: &GitlabPlugin, pane: Pane, pressed: Chord) -> Option<Outcome> {
+    if !pressed.plain() {
         return None;
     }
-    let KeyCode::Char(c) = pressed.code else { return None };
+    let Key::Char(c) = pressed.key else { return None };
     if c != SEND_KEY && c != REVIEW_KEY {
         return None;
     }
@@ -401,7 +401,7 @@ mod tests {
         );
         assert_eq!(rows[1].1.keys, "A");
         assert_eq!(rows[2].1.keys, "i");
-        let pressed = KeyEvent::new(KeyCode::Char('A'), KeyModifiers::SHIFT);
+        let pressed = Chord::char('A');
         let Some(Outcome::Handled(fx)) = key_press(&p, Pane::Middle, pressed) else { panic!("not handled") };
         let [Effect::SendToAgent(req)] = fx.as_slice() else { panic!("{fx:?}") };
         assert_eq!(req.subject, request(&p, 263));
@@ -413,11 +413,11 @@ mod tests {
             p.on_key(Pane::Nav, pressed),
             Outcome::Handled(_)
         ));
-        assert!(key_press(&p, Pane::Middle, KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE)).is_none());
+        assert!(key_press(&p, Pane::Middle, Chord::char('a')).is_none());
     }
 
     fn press(p: &GitlabPlugin, pane: Pane, c: char) -> Option<Vec<Effect>> {
-        match key_press(p, pane, KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE)) {
+        match key_press(p, pane, Chord::char(c)) {
             Some(Outcome::Handled(fx)) => Some(fx),
             Some(_) => panic!("only handled outcomes"),
             None => None,
@@ -458,7 +458,7 @@ mod tests {
         let mut p = crate::demo::sample_reviewed(false);
         open_page(&mut p);
         assert!(press(&p, Pane::Nav, 'i').is_none());
-        assert!(key_press(&p, Pane::Middle, KeyEvent::new(KeyCode::Char('i'), KeyModifiers::CONTROL)).is_none());
+        assert!(key_press(&p, Pane::Middle, Chord::ctrl('i')).is_none());
         // `i` is the one key the row uses once: no other row of the menu takes it.
         let keys: Vec<String> = p.rows(Pane::Middle).into_iter().map(|(_, b)| b.keys).collect();
         assert_eq!(keys.iter().filter(|k| *k == "i").count(), 1, "{keys:?}");

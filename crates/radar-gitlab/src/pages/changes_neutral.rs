@@ -103,7 +103,7 @@ fn files_pane(
     let at = page.file.get().min(detail.files.len().saturating_sub(1));
     {
         let mut state = page.tree.borrow_mut();
-        radar_core::ui::tree::open_new(
+        crate::nav::open_new(
             &mut state,
             &changes::skeleton(&tops),
             &mut page.tree_seen.borrow_mut(),
@@ -112,9 +112,8 @@ fn files_pane(
             && cx.focus != PaneId::Nav
             && let Some(path) = changes::path_to(&tops, &format!("f:{at}"))
         {
-            let opened = state.opened();
             let depth = (1..path.len())
-                .find(|k| !opened.contains(&path[..*k]))
+                .find(|k| !state.is_open(&path[..*k]))
                 .unwrap_or(path.len());
             if state.selected() != &path[..depth] {
                 state.select(path[..depth].to_vec());
@@ -133,12 +132,7 @@ fn files_pane(
         ordered_columns: true,
         rows,
         selected: state.selected().to_vec(),
-        open: {
-            // A set: sorted, so two hosts send the same view.
-            let mut open: Vec<Vec<String>> = state.opened().iter().cloned().collect();
-            open.sort();
-            open
-        },
+        open: crate::nav::NavExt::open_sorted(&*state),
         name_width: room as u16,
         look: Some(v::TreeLook {
             lines: p.cfg.style_for("lines"),
@@ -160,7 +154,7 @@ fn file_tree_row(
     detail: &MrDetail,
     seen: &std::collections::BTreeSet<String>,
     open_at: usize,
-    state: &radar_core::ui::tree::TreeState<String>,
+    state: &radar_core::view::TreeNav,
     entry: &changes::Entry,
     room: usize,
     depth: usize,
@@ -175,7 +169,7 @@ fn file_tree_row(
             kids,
             ..
         } => {
-            let open = state.opened().contains(path.as_slice());
+            let open = state.is_open(path.as_slice());
             let row = Text::from(vec![
                 Seg::icon(if open { Icon::FolderOpen } else { Icon::Folder }),
                 Seg::new(

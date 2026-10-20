@@ -4,7 +4,7 @@
 use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::journal::{ActionId, Outcome};
 use radar_core::plugin::{Effect, Msg, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Host, Plugin, writes};
 
 use super::*;
@@ -19,8 +19,8 @@ const IID: u64 = 263;
 const OTHER_URL: &str = "https://other.example";
 const SKIPPED: &str = "gitlab.write.refresh.skipped.stale";
 
-fn key(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn key(code: Key) -> Chord {
+    Chord::new(code)
 }
 
 fn note() -> Change {
@@ -49,10 +49,10 @@ fn edit_connection(p: &mut GitlabPlugin, field: Field, text: &str) {
         .unwrap();
     settings::on_menu(p, &format!("conn:{}", field.label()), "edit");
     for _ in 0..100 {
-        settings::key(p, "connection", key(KeyCode::Backspace));
+        settings::key(p, "connection", key(Key::Backspace));
     }
     p.paste(text);
-    settings::key(p, "connection", key(KeyCode::Enter));
+    settings::key(p, "connection", key(Key::Enter));
     assert!(p.edit.is_none(), "setting accepted");
 }
 
@@ -420,21 +420,21 @@ fn host_edit(host: &mut Host, field: Field, text: &str) {
     host.focus = Pane::Middle;
     // The host entered connection on its first row; navigate to the requested row.
     for _ in 0..Field::ALL.iter().position(|f| *f == field).unwrap() {
-        host.update(Event::Key(key(KeyCode::Down)));
+        host.update(crate::key_event(key(Key::Down)));
     }
-    host.update(Event::Key(key(KeyCode::Char('e'))));
+    host.update(crate::key_event(key(Key::Char('e'))));
     assert!(host.capturing());
     for _ in 0..100 {
-        host.update(Event::Key(key(KeyCode::Backspace)));
+        host.update(crate::key_event(key(Key::Backspace)));
     }
     host.update(Event::Paste(text.into()));
-    host.update(Event::Key(key(KeyCode::Enter)));
+    host.update(crate::key_event(key(Key::Enter)));
     assert!(!host.capturing());
     assert_eq!(
         host.menu.as_ref().unwrap().menu.id,
         crate::settings_checks::Target::Auth.menu()
     );
-    host.update(Event::Key(key(KeyCode::Char('n'))));
+    host.update(crate::key_event(key(Key::Char('n'))));
 }
 
 #[test]
@@ -468,24 +468,24 @@ fn real_host_allows_settings_after_confirmation_and_preserves_correlated_write_o
             .unwrap();
         host.enable_journal();
         let review = if comment {
-            KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL)
+            Chord::ctrl('s')
         } else {
-            key(KeyCode::Char('m'))
+            key(Key::Char('m'))
         };
-        let asked = host.update(Event::Key(review));
+        let asked = host.update(crate::key_event(review));
         assert!(host.menu.is_some());
-        host.update(Event::Key(key(KeyCode::Char(','))));
+        host.update(crate::key_event(key(Key::Char(','))));
         assert_eq!(
             host.view,
             View::Screen(0),
             "unconfirmed modal blocks settings"
         );
-        let dispatched = host.update(Event::Key(key(KeyCode::Char('y'))));
+        let dispatched = host.update(crate::key_event(key(Key::Char('y'))));
         let pending = tasks(&dispatched);
         assert_eq!(pending.len(), 1);
         assert!(host.menu.is_none());
         assert!(!host.capturing());
-        host.update(Event::Key(key(KeyCode::Char(','))));
+        host.update(crate::key_event(key(Key::Char(','))));
         host_edit(&mut host, field, new_value);
         let cfg = host.plugins[0].config().unwrap();
         assert_eq!(

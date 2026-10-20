@@ -580,9 +580,7 @@ fn empty_and_whitespace_base_dispatch_differences_remain_unchanged() {
         let radar_core::plugin::Outcome::Handled(connection) = settings::key(
             &mut p,
             "connection",
-            radar_core::ratatui::crossterm::event::KeyEvent::from(
-                radar_core::ratatui::crossterm::event::KeyCode::Enter,
-            ),
+            radar_core::view::Chord::new(radar_core::view::Key::Enter),
         ) else {
             panic!()
         };

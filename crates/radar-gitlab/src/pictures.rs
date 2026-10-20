@@ -4,7 +4,7 @@
 //! the configured server.
 
 use anyhow::{Result, bail};
-use radar_core::ui::image::Fetch;
+use radar_core::fetch::Fetch;
 use radar_core::ui::rich::{Block, Doc, Kind};
 
 /// `src` as a whole address: an upload is the project's, another path the
@@ -91,7 +91,7 @@ pub fn tries(url: &str, server: &str) -> Vec<String> {
 /// `spec` resolves to (asked off the event loop: `glab` runs a program);
 /// anywhere else, without it.
 pub fn fetch(server: String, spec: String) -> Fetch {
-    radar_core::ui::image::fetch(move |src: String| {
+    radar_core::fetch::fetch(move |src: String| {
         let (server, spec) = (server.clone(), spec.clone());
         async move { picture(&src, &server, &spec).await }
     })

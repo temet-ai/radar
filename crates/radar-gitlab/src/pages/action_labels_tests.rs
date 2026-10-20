@@ -3,7 +3,7 @@
 use super::*;
 use crate::model::fixtures;
 use crate::tests::sample;
-use radar_core::ratatui::crossterm::event::KeyModifiers;
+use radar_core::view::{Chord, Key};
 
 /// The page's menu rows as bindings.
 fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<Binding> {
@@ -64,7 +64,7 @@ fn contextual_repo_pipeline_actions_name_the_known_default_branch() {
                 screen::key(
                     &mut p,
                     pane,
-                    KeyEvent::new(KeyCode::Char('p'), KeyModifiers::NONE),
+                    Chord::new(Key::Char('p')),
                 ),
                 PIPELINE,
             );
@@ -75,7 +75,7 @@ fn contextual_repo_pipeline_actions_name_the_known_default_branch() {
             key(
                 &mut p,
                 Pane::Middle,
-                KeyEvent::new(KeyCode::Char('p'), KeyModifiers::NONE),
+                Chord::new(Key::Char('p')),
             ),
             PIPELINE,
         );
@@ -106,7 +106,7 @@ fn contextual_repo_pipeline_tab_names_and_opens_the_selected_run() {
         key(
             &mut p,
             Pane::Middle,
-            KeyEvent::new(KeyCode::Char('p'), KeyModifiers::NONE),
+            Chord::new(Key::Char('p')),
         ),
         &expected,
     );

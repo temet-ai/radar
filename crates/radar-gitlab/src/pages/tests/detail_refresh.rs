@@ -315,10 +315,7 @@ fn select(host: &mut radar_core::Host, target: &str) {
 }
 
 fn enter(host: &mut radar_core::Host) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
-    )))
+    host.update(crate::key_event(Chord::new(Key::Enter)))
 }
 
 #[test]
@@ -374,10 +371,7 @@ fn detail_error_is_not_a_row_and_thread_comment_and_file_targets_keep_their_iden
             plugin(&mut host).compose.is_none(),
             "Enter on comment row stays a no-op"
         );
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('c'),
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::key_event(Chord::char('c')));
         assert!(matches!(
             plugin(&mut host).compose.as_ref().unwrap().target,
             crate::write::Target::Note

@@ -18,7 +18,7 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Menu, Msg, Outcome};
-use radar_core::ratatui::crossterm::event::KeyEvent;
+use radar_core::view::{Chord, Key};
 use radar_core::ui::composer::{self, Composer, Typed};
 use radar_core::writes::{self, Service};
 use radar_core::log;
@@ -480,7 +480,7 @@ pub(crate) fn start(p: &mut GitlabPlugin, project: &str, iid: u64, target: Targe
 }
 
 /// Keys while a comment is typed.
-pub(crate) fn compose_key(p: &mut GitlabPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn compose_key(p: &mut GitlabPlugin, key: Chord) -> Outcome {
     let Some(c) = p.compose.as_mut() else {
         return Outcome::Ignored;
     };

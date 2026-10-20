@@ -6,7 +6,7 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Effect, Outcome};
-use radar_core::ratatui::crossterm::event::KeyEvent;
+use radar_core::view::{Chord, Key};
 use radar_core::log;
 
 use crate::{GitlabPlugin, screen};
@@ -104,7 +104,7 @@ fn jump(p: &GitlabPlugin, g: &mut Goto) {
     }
 }
 
-pub(crate) fn key(p: &mut GitlabPlugin, key: KeyEvent) -> Outcome {
+pub(crate) fn key(p: &mut GitlabPlugin, key: Chord) -> Outcome {
     let Some(mut g) = p.goto.take() else {
         return Outcome::Ignored;
     };
@@ -142,7 +142,7 @@ pub(crate) fn hints() -> Vec<KeyHint<'static>> {
 mod tests {
     use super::*;
     use crate::tests::sample;
-    use radar_core::ratatui::crossterm::event::{KeyCode, KeyModifiers};
+
 
     fn t(path: &str, words: &[&str]) -> Target {
         Target {
@@ -180,8 +180,8 @@ mod tests {
         assert_eq!(best("nothing", &targets), None);
     }
 
-    fn press(p: &mut GitlabPlugin, code: KeyCode) {
-        key(p, KeyEvent::new(code, KeyModifiers::NONE));
+    fn press(p: &mut GitlabPlugin, code: Key) {
+        key(p, Chord::new(code));
     }
 
     /// Show the screen, as the app does: the tree learns what is visible.
@@ -207,12 +207,12 @@ mod tests {
                 .unwrap()
                 .contains("!263")
         );
-        press(&mut p, KeyCode::Esc);
+        press(&mut p, Key::Esc);
         assert!(p.goto.is_none());
         assert_eq!(p.tree.borrow().selected(), start, "back where it was");
 
         start_and_type(&mut p, "web");
-        press(&mut p, KeyCode::Enter);
+        press(&mut p, Key::Enter);
         assert!(p.goto.is_none());
         assert_eq!(
             p.tree.borrow().selected().last().map(String::as_str),
@@ -236,7 +236,7 @@ mod tests {
     fn start_and_type(p: &mut GitlabPlugin, text: &str) {
         start(p);
         for c in text.chars() {
-            press(p, KeyCode::Char(c));
+            press(p, Key::Char(c));
         }
     }
 }

@@ -4,7 +4,7 @@
 
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Outcome};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 
 use super::Page;
 use crate::model::JobInfo;
@@ -43,7 +43,7 @@ pub(super) fn opened(p: &GitlabPlugin, page: &Page, project: &str, id: u64) {
 }
 
 /// A key on a job's page; `None` leaves it to the page's own keys.
-pub(super) fn key(p: &mut GitlabPlugin, project: &str, id: u64, key: KeyEvent) -> Option<Outcome> {
+pub(super) fn key(p: &mut GitlabPlugin, project: &str, id: u64, key: Chord) -> Option<Outcome> {
     if let Some(mut input) = p.log_search.take() {
         let page = p.pages.last()?;
         let text = p.logs.get(&JobKey::new(project, id)).and_then(|f| f.value.as_ref()).map(|l| &l.text);
@@ -70,16 +70,16 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, id: u64, key: KeyEvent) -
     }
     let page = p.pages.last()?;
     let log = p.logs.get(&JobKey::new(project, id)).and_then(|f| f.value.as_ref());
-    match key.code {
-        KeyCode::Char('/') => {
+    match key.key {
+        Key::Char('/') => {
             p.log_search = Some(TextInput::new(&page.log.query()));
             Some(Outcome::done())
         }
-        KeyCode::Esc if !page.log.query().is_empty() => {
+        Key::Esc if !page.log.query().is_empty() => {
             page.log.clear_search();
             Some(Outcome::done())
         }
-        KeyCode::Char('c') => Some(Outcome::Handled(match why::excerpt_text(p, project, id) {
+        Key::Char('c') => Some(Outcome::Handled(match why::excerpt_text(p, project, id) {
             Some(text) => vec![
                 Effect::Copy(text),
                 Effect::Notify(format!("copied the lines of {}'s log that say why", name(p, project, id))),
@@ -88,13 +88,13 @@ pub(super) fn key(p: &mut GitlabPlugin, project: &str, id: u64, key: KeyEvent) -
         })),
         _ => {
             let log = log?;
-            if !page.log.key(&log.text, &key) {
+            if !page.log.key(&log.text, key) {
                 return None;
             }
             // Reaching the top asks for the part before.
             let up = matches!(
-                key.code,
-                KeyCode::Up | KeyCode::Char('k' | 'g') | KeyCode::PageUp | KeyCode::Home
+                key.key,
+                Key::Up | Key::Char('k' | 'g') | Key::PageUp | Key::Home
             );
             let fx = if up && page.log.at_top(&log.text) {
                 why::earlier(p, project, id)

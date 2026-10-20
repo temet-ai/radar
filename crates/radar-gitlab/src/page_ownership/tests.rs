@@ -7,7 +7,7 @@ use crate::client::{Client, DiffRead, MrDetailRead};
 use crate::{GlMsg, demo, diff_history, page_history, pages};
 use radar_core::journal::{ActionDescriptor, Outcome as JournalOutcome};
 use radar_core::plugin::{Effect, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::Plugin;
 use serde_json::{Value, json};
 
@@ -27,8 +27,8 @@ struct Pending {
 fn key(iid: u64) -> String {
     pages::mr_key(PROJECT, iid)
 }
-fn event(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn event(code: Key) -> Chord {
+    Chord::new(code)
 }
 fn node(title: &str, head: &str, iid: u64) -> Value {
     json!({"iid": iid.to_string(), "title": title, "description": "SECRET_BODY",
@@ -54,7 +54,7 @@ fn launch(p: &mut GitlabPlugin, iid: u64) -> Pending {
         iid,
     };
     let fx = if p.pages.last().is_some_and(|page| page.kind == kind) {
-        let Outcome::Handled(fx) = pages::key(p, Pane::Middle, event(KeyCode::Char('r'))) else {
+        let Outcome::Handled(fx) = pages::key(p, Pane::Middle, event(Key::Char('r'))) else {
             panic!("force handled")
         };
         fx
@@ -791,7 +791,7 @@ fn connection_invalidation_clears_all_mr_buffers_but_preserves_stack_source_and_
     assert!(pages::find_mr(&p, PROJECT, IID).is_some());
     p.pages.pop();
     p.pages.pop();
-    let fx = pages::key(&mut p, Pane::Middle, event(KeyCode::Char('o')));
+    let fx = pages::key(&mut p, Pane::Middle, event(Key::Char('o')));
     assert!(matches!(fx,Outcome::Handled(ref fx) if fx.iter().any(|e|matches!(e,Effect::Open(_)))));
     assert_eq!(p.compose.as_ref().unwrap().text(), "SECRET_AUTHORED_TEXT");
 }
@@ -815,9 +815,9 @@ fn actual_pre_redraw_clicks_and_coordinate_keys_are_inert_after_connection_inval
         p.click("repos", id);
     }
     for c in ['c', 'd'] {
-        pages::key(&mut p, Pane::Middle, event(KeyCode::Char(c)));
+        pages::key(&mut p, Pane::Middle, event(Key::Char(c)));
     }
-    pages::key(&mut p, Pane::Nav, event(KeyCode::Enter));
+    pages::key(&mut p, Pane::Nav, event(Key::Enter));
     assert_eq!(state(&p), before);
     assert!(p.compose.is_none() && p.change.is_none());
     // Source fallback rendering does not certify removed dedicated payloads.
@@ -867,8 +867,8 @@ fn accepted_same_head_detail_replacement_invalidates_file_thread_and_diff_coordi
     for id in ["node:f:1", "line:2", "comment:1"] {
         p.click("repos", id);
     }
-    pages::key(&mut p, Pane::Nav, event(KeyCode::Enter));
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Char('c')));
+    pages::key(&mut p, Pane::Nav, event(Key::Enter));
+    pages::key(&mut p, Pane::Middle, event(Key::Char('c')));
     assert_eq!(p.pages[0].file.get(), 0);
     assert!(p.compose.is_none());
     paint(&p);
@@ -894,11 +894,11 @@ fn accepted_diff_replacement_requires_fresh_diff_paint_but_keeps_file_navigation
     assert!(p.pages[0].detail_painted.get());
     diff_receive(&mut p, &diff, diff_result("SECRET_FILE"));
     assert!(p.pages[0].detail_painted.get() && !p.pages[0].diff_painted.get());
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Char('c')));
+    pages::key(&mut p, Pane::Middle, event(Key::Char('c')));
     assert!(p.compose.is_none());
     paint(&p);
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Down));
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Char('c')));
+    pages::key(&mut p, Pane::Middle, event(Key::Down));
+    pages::key(&mut p, Pane::Middle, event(Key::Char('c')));
     assert!(p.compose.is_some());
 }
 
@@ -967,7 +967,7 @@ fn reordered_threads_are_inert_before_redraw_and_new_row_works_after_render() {
     assert!(!p.pages[0].detail_painted.get());
     p.click("repos", "row:2");
     assert_eq!(p.pages[0].row.get(), 1);
-    for key in [KeyCode::Char('c'), KeyCode::Char('d'), KeyCode::Enter] {
+    for key in [Key::Char('c'), Key::Char('d'), Key::Enter] {
         pages::key(&mut p, Pane::Middle, event(key));
         assert!(p.compose.is_none() && p.change.is_none());
         assert_eq!(p.pages[0].tab, 2);
@@ -976,7 +976,7 @@ fn reordered_threads_are_inert_before_redraw_and_new_row_works_after_render() {
     let next = launch(&mut p, IID);
     assert_eq!(p.mr_page_reads[&key(IID)], next.read);
     paint(&p);
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Char('c')));
+    pages::key(&mut p, Pane::Middle, event(Key::Char('c')));
     assert!(
         matches!(&p.compose.as_ref().unwrap().target,crate::write::Target::Reply{discussion,..} if discussion=="SECRET_NEW_THREAD")
     );
@@ -1014,7 +1014,7 @@ fn removed_extra_tab_and_under_link_buffers_are_inert_before_next_render() {
         effect,
         Effect::Act { .. } | Effect::Open(_) | Effect::Show(_)
     )));
-    let Outcome::Handled(fx) = pages::key(&mut p, Pane::Middle, event(KeyCode::Enter)) else {
+    let Outcome::Handled(fx) = pages::key(&mut p, Pane::Middle, event(Key::Enter)) else {
         panic!("enter handled")
     };
     assert!(!fx.iter().any(|effect| matches!(
@@ -1022,9 +1022,9 @@ fn removed_extra_tab_and_under_link_buffers_are_inert_before_next_render() {
         Effect::Act { .. } | Effect::Open(_) | Effect::Show(_)
     )));
     assert!(!format!("{:?}", pages::act::links_menu(&p, IID)).contains("SECRET"));
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Char('[')));
+    pages::key(&mut p, Pane::Middle, event(Key::Char('[')));
     assert_eq!(p.pages[0].tab, 3);
-    pages::key(&mut p, Pane::Middle, event(KeyCode::Esc));
+    pages::key(&mut p, Pane::Middle, event(Key::Esc));
     assert!(p.pages.is_empty());
 }
 
@@ -1064,7 +1064,7 @@ fn tracked_stale_outcomes_keep_original_scopes_siblings_and_private_sqlite_histo
                         ))];
                         for _ in 0..2 {
                             let Outcome::Handled(fx) =
-                                pages::key(&mut self.p, Pane::Middle, event(KeyCode::Char('r')))
+                                pages::key(&mut self.p, Pane::Middle, event(Key::Char('r')))
                             else {
                                 unreachable!()
                             };

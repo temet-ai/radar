@@ -90,7 +90,7 @@ fn busy_note_line_and_reply_keep_exact_composer_pending_change_and_first_result(
                 assert_eq!(format!("{:?}", p.acting), acting);
                 assert!(p.capturing());
             }
-            press(&mut p, KeyCode::Char('!'));
+            press(&mut p, Key::Char('!'));
             p.paste("PRIVATE_PASTE");
             let edited = format!("{SECOND}!PRIVATE_PASTE");
             assert_eq!(p.compose.as_ref().unwrap().text(), edited);
@@ -170,12 +170,12 @@ fn tasks(effects: &[HostEffect]) -> Vec<(ActionId, ActionId)> {
         .collect()
 }
 
-fn key(code: KeyCode) -> Event {
-    Event::Key(KeyEvent::new(code, KeyModifiers::NONE))
+fn key(code: Key) -> Event {
+    crate::key_event(Chord::new(code))
 }
 
 fn review() -> Event {
-    Event::Key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL))
+    crate::key_event(Chord::ctrl('s'))
 }
 
 #[test]
@@ -190,16 +190,16 @@ fn host_busy_confirmation_returns_to_editing_and_keeps_original_action_outcome_p
         host.focus = Pane::Middle;
         host.enable_journal();
         let mut journal = Vec::new();
-        journal.extend(records(&host.update(key(KeyCode::Char('c')))));
+        journal.extend(records(&host.update(key(Key::Char('c')))));
         journal.extend(records(&host.update(Event::Paste(FIRST.into()))));
         journal.extend(records(&host.update(review())));
-        let dispatched = host.update(key(KeyCode::Char('y')));
+        let dispatched = host.update(key(Key::Char('y')));
         journal.extend(records(&dispatched));
         let pending = tasks(&dispatched);
         assert_eq!(pending.len(), 1);
         assert!(!host.capturing() && host.menu.is_none());
-        journal.extend(records(&host.update(key(KeyCode::Char('c')))));
-        journal.extend(records(&host.update(key(KeyCode::Char('n')))));
+        journal.extend(records(&host.update(key(Key::Char('c')))));
+        journal.extend(records(&host.update(key(Key::Char('n')))));
         journal.extend(records(&host.update(Event::Paste(SECOND.into()))));
         let preview = host.update(review());
         let newer = records(&preview)
@@ -214,7 +214,7 @@ fn host_busy_confirmation_returns_to_editing_and_keeps_original_action_outcome_p
             })
             .unwrap();
         journal.extend(records(&preview));
-        let refused = host.update(key(KeyCode::Char('y')));
+        let refused = host.update(key(Key::Char('y')));
         journal.extend(records(&refused));
         assert!(tasks(&refused).is_empty(), "no second send task");
         assert!(host.menu.is_none() && host.capturing());
@@ -233,7 +233,7 @@ fn host_busy_confirmation_returns_to_editing_and_keeps_original_action_outcome_p
                 if (id == &pending[0].0 || id == &pending[0].1) && outcome.is_terminal())));
         let drawn = crate::tests::shown(&host, 160, 40);
         assert!(drawn.contains("PRIVATE_SECOND_COMMENT"), "{drawn}");
-        journal.extend(records(&host.update(key(KeyCode::Char('!')))));
+        journal.extend(records(&host.update(key(Key::Char('!')))));
         journal.extend(records(&host.update(Event::Paste("PRIVATE_PASTE".into()))));
         let completed = host.update(Event::Tracked {
             action: pending[0].0.clone(),
@@ -295,7 +295,7 @@ fn host_busy_confirmation_returns_to_editing_and_keeps_original_action_outcome_p
                 "  !PRIVATE_PASTE"
             ]
         );
-        let second_dispatch = host.update(key(KeyCode::Char('y')));
+        let second_dispatch = host.update(key(Key::Char('y')));
         journal.extend(records(&second_dispatch));
         assert_eq!(
             tasks(&second_dispatch).len(),
@@ -327,7 +327,7 @@ fn host_escape_from_nontext_review_allows_blank_new_and_restored_comments() {
             }
             draw(&p, 160, 40); // Review keys consume the painted thread row.
             if recovery != "blank" {
-                press(&mut p, KeyCode::Char('c'));
+                press(&mut p, Key::Char('c'));
                 p.paste(SECOND);
                 ctrl_s(&mut p);
                 p.on_menu("gl-write", "no");
@@ -335,11 +335,11 @@ fn host_escape_from_nontext_review_allows_blank_new_and_restored_comments() {
             let mut host = radar_core::Host::new(vec![Box::new(p)], 1).unwrap();
             host.view = View::Screen(0);
             host.focus = Pane::Middle;
-            host.update(key(KeyCode::Char(action)));
+            host.update(key(Key::Char(action)));
             assert!(host.menu.is_some(), "{action}: nontext review open");
-            host.update(key(KeyCode::Esc));
+            host.update(key(Key::Esc));
             assert!(host.menu.is_none() && !host.capturing());
-            host.update(key(KeyCode::Char('c')));
+            host.update(key(Key::Char('c')));
             if recovery != "blank" {
                 assert!(
                     host.menu
@@ -350,10 +350,10 @@ fn host_escape_from_nontext_review_allows_blank_new_and_restored_comments() {
                         .contains("kept comments")
                 );
                 if recovery == "new" {
-                    host.update(key(KeyCode::Char('n')));
+                    host.update(key(Key::Char('n')));
                 } else {
-                    host.update(key(KeyCode::Enter));
-                    host.update(key(KeyCode::Char('e')));
+                    host.update(key(Key::Enter));
+                    host.update(key(Key::Char('e')));
                 }
             }
             assert!(

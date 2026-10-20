@@ -139,7 +139,7 @@ mod integration {
         initial_group_requests,
     };
     use radar_core::host::Event;
-    use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use radar_core::view::{Chord, Key};
     use radar_core::scenario::Scenario;
     use radar_core::view::{Intent, Node, PaneId, ScreenView, Target, TreeRow};
     use radar_core::writes::Mode;
@@ -340,8 +340,8 @@ query($project: ID!, $iid: String!) {
         None
     }
 
-    fn press(s: &mut Scenario, code: KeyCode) {
-        s.dispatch(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    fn press(s: &mut Scenario, code: Key) {
+        s.dispatch(crate::key_event(Chord::new(code)))
             .unwrap();
     }
 
@@ -353,7 +353,7 @@ query($project: ID!, $iid: String!) {
         let target = target(&tree.rows, &[], &mr.title).expect("the refreshed MR row");
         s.dispatch(Event::Intent(Intent::Select { target }))
             .unwrap();
-        press(s, KeyCode::Enter);
+        press(s, Key::Enter);
         s.settle(BUDGET).await.unwrap();
         let screen = view(s);
         let crumbs: Vec<_> = screen
@@ -419,18 +419,18 @@ query($project: ID!, $iid: String!) {
         let before = fixture.ledger().len();
 
         // x really replays the selected page's key, and no means no.
-        press(&mut s, KeyCode::Char('x'));
-        press(&mut s, KeyCode::Char('u'));
+        press(&mut s, Key::Char('x'));
+        press(&mut s, Key::Char('u'));
         assert_eq!(
             s.host().menu.as_ref().unwrap().menu.title,
             "rebase feature/ABC-263 onto main?"
         );
         no_work(&mut s, &fixture, before).await;
-        press(&mut s, KeyCode::Char('n'));
+        press(&mut s, Key::Char('n'));
         assert!(s.host().menu.is_none());
         no_work(&mut s, &fixture, before).await;
-        press(&mut s, KeyCode::Char('x'));
-        press(&mut s, KeyCode::Char('m'));
+        press(&mut s, Key::Char('x'));
+        press(&mut s, Key::Char('m'));
         assert!(s.host().menu.is_none());
         assert_eq!(
             s.host().message.as_deref(),
@@ -439,9 +439,9 @@ query($project: ID!, $iid: String!) {
         no_work(&mut s, &fixture, before).await;
 
         // Direct key, affirmative confirmation, real task, held wire request.
-        press(&mut s, KeyCode::Char('u'));
+        press(&mut s, Key::Char('u'));
         no_work(&mut s, &fixture, before).await;
-        press(&mut s, KeyCode::Char('y'));
+        press(&mut s, Key::Char('y'));
         assert!(s.host().menu.is_none());
         assert_eq!(s.pending_tasks(), 1, "yes spawned the real rebase task");
         held(&mut s, &fixture, "rebase").await;
@@ -457,10 +457,10 @@ query($project: ID!, $iid: String!) {
         assert!(!refreshed.contains("rebase asked of GitLab…"));
         assert_eq!(fixture.ledger().len(), before + 4);
 
-        press(&mut s, KeyCode::Esc);
+        press(&mut s, Key::Esc);
         open(&mut s, &approved()).await;
         let before = fixture.ledger().len();
-        press(&mut s, KeyCode::Char('x'));
+        press(&mut s, Key::Char('x'));
         assert!(
             s.host()
                 .menu
@@ -471,14 +471,14 @@ query($project: ID!, $iid: String!) {
                 .iter()
                 .any(|i| i.label == "merge into main…")
         );
-        press(&mut s, KeyCode::Esc);
-        press(&mut s, KeyCode::Char('m'));
+        press(&mut s, Key::Esc);
+        press(&mut s, Key::Char('m'));
         assert_eq!(
             s.host().menu.as_ref().unwrap().menu.title,
             "merge !187 into main? It cannot be undone."
         );
         no_work(&mut s, &fixture, before).await;
-        press(&mut s, KeyCode::Char('y'));
+        press(&mut s, Key::Char('y'));
         assert_eq!(s.pending_tasks(), 1, "yes spawned the real merge task");
         held(&mut s, &fixture, "fresh-before-merge").await;
         assert_eq!(

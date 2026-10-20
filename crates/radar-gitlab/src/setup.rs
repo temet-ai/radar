@@ -198,7 +198,7 @@ mod tests {
     fn the_setup_card_leaves_out_what_only_settings_needs_and_the_cursor_skips_nothing_drawn() {
         use crate::settings::{ConnRow, Field, conn_rows, key};
         use radar_core::plugin::Plugin;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         use radar_core::view::{Node, ViewCx};
         let cx = |setup| ViewCx {
             now: 0,
@@ -238,7 +238,7 @@ mod tests {
         // ↓ through the whole card never lands on a hidden row or a heading.
         p.section_rows[0] = 0;
         for _ in 0..rows.len() + 2 {
-            key(&mut p, "connection", KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+            key(&mut p, "connection", Chord::new(Key::Down));
             let row = rows[p.section_rows[0]];
             assert!(!matches!(row, ConnRow::Gap | ConnRow::AccessHeading | ConnRow::FollowHeading), "{row:?}");
             assert!(!matches!(row, ConnRow::Field(Field::Base | Field::Refresh | Field::History)));

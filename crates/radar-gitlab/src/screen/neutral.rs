@@ -107,7 +107,7 @@ pub fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
                 return Outcome::done();
             }
             let before = p.tree.borrow().selected().to_vec();
-            p.tree.borrow_mut().close(&path);
+            crate::nav::NavExt::close(&mut *p.tree.borrow_mut(), &path);
             // The cursor was on a row inside what closed: it goes to the group.
             if before.len() > path.len() && before.starts_with(&path) {
                 p.tree.borrow_mut().select(path);
@@ -127,7 +127,7 @@ pub fn intent(p: &mut GitlabPlugin, pane: Pane, intent: &v::Intent) -> Outcome {
                 {
                     return Outcome::Ignored;
                 }
-                p.on_key(pane, radar_core::view_tui::key_of(chord))
+                p.on_key(pane, chord)
             })
         }
         v::Intent::EditSelect { anchor, extent } => match p.compose.as_mut() {
@@ -366,12 +366,7 @@ fn tree_body(p: &GitlabPlugin, cx: &v::ViewCx<'_>, nodes: &[TenancyNode<'_>]) ->
         ordered_columns: true,
         rows,
         selected: state.selected().to_vec(),
-        open: {
-            // A set: sorted, so two hosts send the same view.
-            let mut open: Vec<Vec<String>> = state.opened().iter().cloned().collect();
-            open.sort();
-            open
-        },
+        open: crate::nav::NavExt::open_sorted(&*state),
         name_width: NAME as u16,
         look: Some(v::TreeLook {
             lines: p.cfg.style_for("lines"),

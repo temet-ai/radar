@@ -5,7 +5,7 @@ use radar_core::Plugin;
 use radar_core::input::TextInput;
 use radar_core::journal::{ActionDescriptor, Outcome as JournalOutcome};
 use radar_core::plugin::{Effect, Outcome};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 
 #[derive(Clone)]
 struct Pending {
@@ -112,7 +112,7 @@ fn configure(p: &mut GitlabPlugin, cfg: Settings) {
 }
 fn edit(p: &mut GitlabPlugin, target: crate::Target, text: &str) -> Vec<Effect> {
     p.edit = Some((target, TextInput::new(text)));
-    let Outcome::Handled(fx) = settings::key(p, "connection", KeyEvent::from(KeyCode::Enter))
+    let Outcome::Handled(fx) = settings::key(p, "connection", Chord::new(Key::Enter))
     else {
         panic!()
     };

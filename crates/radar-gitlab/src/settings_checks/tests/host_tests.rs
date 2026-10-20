@@ -48,8 +48,8 @@ fn hosted(p: GitlabPlugin, section: &str) -> (Host, Arc<Mutex<GitlabPlugin>>) {
         .unwrap();
     (host, shared)
 }
-fn key(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
-    host.update(Event::Key(KeyEvent::from(code)))
+fn key(host: &mut Host, code: Key) -> Vec<HostEffect> {
+    host.update(crate::key_event(Chord::new(code)))
 }
 fn loaded(host: &mut Host, group: &str) {
     let want = Want {
@@ -109,7 +109,7 @@ fn x_menu_base_check_keeps_surviving_field_when_loaded_removes_token_offer() {
         settings::ConnRow::Field(settings::Field::Base)
     );
     let (mut host, shared) = hosted(p, "connection");
-    key(&mut host, KeyCode::Char('x'));
+    key(&mut host, Key::Char('x'));
     assert!(
         host.menu
             .as_ref()
@@ -120,7 +120,7 @@ fn x_menu_base_check_keeps_surviving_field_when_loaded_removes_token_offer() {
             .any(|i| i.label == "check the base group")
     );
     loaded(&mut host, "acme/team-a");
-    let fx = key(&mut host, KeyCode::Char('c'));
+    let fx = key(&mut host, Key::Char('c'));
     assert_eq!(
         checks(&fx),
         [("gitlab.settings.check.base".into(), "acme".into())]
@@ -165,7 +165,7 @@ fn x_menu_source_check_keeps_surviving_tenancy_when_loaded_removes_prior_repos()
         settings::SourceRow::Tenancy(1)
     );
     let (mut host, shared) = hosted(p, "tenancies");
-    key(&mut host, KeyCode::Char('x'));
+    key(&mut host, Key::Char('x'));
     assert!(
         host.menu
             .as_ref()
@@ -176,7 +176,7 @@ fn x_menu_source_check_keeps_surviving_tenancy_when_loaded_removes_prior_repos()
             .any(|i| i.label == "check it")
     );
     loaded(&mut host, "acme/a");
-    let fx = key(&mut host, KeyCode::Char('c'));
+    let fx = key(&mut host, Key::Char('c'));
     assert_eq!(
         checks(&fx),
         [("gitlab.settings.check.source".into(), "acme/b".into())]
@@ -204,7 +204,7 @@ fn x_menu_source_check_keeps_surviving_tenancy_when_loaded_removes_prior_repos()
 fn explicit_source_menu_check_captures_original_path_across_reorder() {
     let mut p = demo::sample();
     p.section_rows[1] = 1;
-    let Outcome::Handled(fx) = settings::key(&mut p, "tenancies", KeyEvent::from(KeyCode::Enter))
+    let Outcome::Handled(fx) = settings::key(&mut p, "tenancies", Chord::new(Key::Enter))
     else {
         panic!()
     };

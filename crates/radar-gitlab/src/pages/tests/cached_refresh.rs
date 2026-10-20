@@ -152,19 +152,13 @@ fn cached_runs_error_is_not_a_row_and_row_targets_keep_red_main_offsets() {
         assert!(line.contains("#1838"), "{line}");
         select(&mut host, id);
         assert_eq!(plugin(&mut host).pages[0].row.get(), lead + 1);
-        let fx = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
-        )));
+        let fx = host.update(crate::key_event(Chord::new(Key::Enter)));
         assert!(fx.iter().any(|e| matches!(e, HostEffect::Open(url) if url == &format!("https://gitlab.com/{path}/-/pipelines/1"))));
         if lead > 0 {
             let (id, line) = rows.iter().find(|(id, _)| id == "row:0").unwrap();
             assert!(line.contains("unit-test"), "{line}");
             select(&mut host, id);
-            host.update(Event::Key(KeyEvent::new(
-                KeyCode::Enter,
-                KeyModifiers::NONE,
-            )));
+            host.update(crate::key_event(Chord::new(Key::Enter)));
             assert_eq!(
                 plugin(&mut host).pages.last().unwrap().kind,
                 Kind::Job {
@@ -172,7 +166,7 @@ fn cached_runs_error_is_not_a_row_and_row_targets_keep_red_main_offsets() {
                     id: 5001
                 }
             );
-            host.update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+            host.update(crate::key_event(Chord::new(Key::Esc)));
             assert_eq!(plugin(&mut host).pages[0].row.get(), 0);
         }
     }
@@ -192,7 +186,7 @@ fn changed_default_ref_hides_old_rows_before_render_and_keyboard_or_row_activati
         }
     }
     // The scope guard also protects input before a fresh paint.
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
+    let fx = host.update(crate::key_event(Chord::new(Key::Enter)));
     assert!(!fx.iter().any(|e| matches!(e, HostEffect::Open(_))));
     let fx = host.update(Event::Intent(Intent::Select { target: Target::new("row:0") }));
     assert!(!fx.iter().any(|e| matches!(e, HostEffect::Open(_))));
@@ -202,11 +196,11 @@ fn changed_default_ref_hides_old_rows_before_render_and_keyboard_or_row_activati
     let shown = crate::tests::shown(&host, w, h);
     assert!(!shown.contains("#1842") && !shown.contains("#1838"), "{shown}");
     assert!(shown.contains("release/new"));
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE)));
+    let fx = host.update(crate::key_event(Chord::char('r')));
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. } | HostEffect::Tracked { .. })));
     receive(plugin(&mut host), API, Ok(fixture(API, false)));
     let shown = crate::tests::shown(&host, w, h);
     assert!(shown.contains("#1842") && shown.contains("release/new"));
-    let fx = host.update(Event::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)));
+    let fx = host.update(crate::key_event(Chord::new(Key::Enter)));
     assert!(fx.iter().any(|e| matches!(e, HostEffect::Open(_))));
 }

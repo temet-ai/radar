@@ -1,5 +1,5 @@
 //! The repositories screen: a nav pane (views with counts, tenancies) │ a middle pane (a tree) of
-//! tenancies → repos → merge requests (collapsible, `tui-tree-widget`) │ a
+//! tenancies → repos → merge requests (collapsible, the tree view) │ a
 //! detail pane of whatever is selected: a merge request, a repo or a tenancy.
 
 use std::collections::BTreeMap;
@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, MenuItem, Outcome, Pane, Tone};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::ui::icon::{self, Icon};
 use radar_core::{time, ui, widgets};
 
@@ -559,10 +559,10 @@ pub(crate) fn copy_link(p: &GitlabPlugin) -> Outcome {
     })
 }
 
-pub fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
+pub fn key(p: &mut GitlabPlugin, pane: Pane, key: Chord) -> Outcome {
     if let Some(mut input) = p.filter_input.take() {
         // ↓ keeps the words and goes down into what they found.
-        if key.code == KeyCode::Down {
+        if key.key == Key::Down {
             p.filter = input.value();
             return Outcome::Handled(to_results(p, false));
         }
@@ -579,23 +579,23 @@ pub fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
         }
         return Outcome::done();
     }
-    match key.code {
-        KeyCode::Char('/') => {
+    match key.key {
+        Key::Char('/') => {
             p.filter_input = Some(TextInput::new(&p.filter));
             return Outcome::done();
         }
-        KeyCode::Char('r') => return Outcome::Handled(p.refresh()),
+        Key::Char('r') => return Outcome::Handled(p.refresh()),
         // The detail pane scrolls a page at a time from any pane, as
         // lazydocker's main panel does.
         // Not handled when there is nothing more to see: the host says so.
-        KeyCode::PageDown | KeyCode::PageUp => {
-            return if p.detail_scroll.page(key.code == KeyCode::PageDown) {
+        Key::PageDown | Key::PageUp => {
+            return if p.detail_scroll.page(key.key == Key::PageDown) {
                 Outcome::done()
             } else {
                 Outcome::Ignored
             };
         }
-        KeyCode::Char('.') => {
+        Key::Char('.') => {
             // A setting of the view, saved with it (w).
             let Some(v) = p.cfg.views.get_mut(p.view) else {
                 return Outcome::done();
@@ -603,9 +603,9 @@ pub fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             v.repos = v.repos.flipped();
             return Outcome::done();
         }
-        KeyCode::Char('o') => return open_link(p, false),
-        KeyCode::Char('p') => return open_link(p, true),
-        KeyCode::Char('y') => return copy_link(p),
+        Key::Char('o') => return open_link(p, false),
+        Key::Char('p') => return open_link(p, true),
+        Key::Char('y') => return copy_link(p),
         _ => {}
     }
     // The selected merge request's rebase, merge, approve and check out.
@@ -629,7 +629,7 @@ pub fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
         Pane::Detail => {
             if p.detail_scroll.key(&key) {
                 Outcome::done()
-            } else if key.code == KeyCode::Enter {
+            } else if key.key == Key::Enter {
                 // As in Jira and Slack: ⏎ goes in, to the selected item's page.
                 Outcome::Handled(crate::pages::open_from_tree(p))
             } else {
@@ -637,14 +637,11 @@ pub fn key(p: &mut GitlabPlugin, pane: Pane, key: KeyEvent) -> Outcome {
             }
         }
         Pane::Middle => {
-            let before = p.tree.borrow().selected().to_vec();
-            // Moving, and space folding; ⏎ opens the row's page.
-            if ui::tree::key(&mut p.tree.borrow_mut(), &key) {
-                return Outcome::Handled(moved(p, &before));
-            }
-            match key.code {
-                KeyCode::Enter => Outcome::Handled(crate::pages::open_from_tree(p)),
-                KeyCode::Esc if !p.filter.is_empty() => {
+            // Moving and folding are the frontend's, as intents; ⏎ opens
+            // the row's page.
+            match key.key {
+                Key::Enter => Outcome::Handled(crate::pages::open_from_tree(p)),
+                Key::Esc if !p.filter.is_empty() => {
                     p.filter.clear();
                     Outcome::done()
                 }
@@ -814,11 +811,7 @@ pub fn keys(p: &GitlabPlugin, pane: Pane) -> Vec<Row> {
         Pane::Middle => {
             let mut b =
                 vec![head(Binding::heading(name_of(p, sel.as_ref())).icon(sel_icon(sel.as_ref())))];
-            let open = p
-                .tree
-                .borrow()
-                .opened()
-                .contains(p.tree.borrow().selected());
+            let open = p.tree.borrow().is_open(p.tree.borrow().selected());
             if sel.is_some() {
                 b.push(act("gitlab.repos.open", Binding::new("⏎", "open its page")));
             }
@@ -890,7 +883,7 @@ pub(crate) fn fold_keys(p: &GitlabPlugin) -> Vec<Row> {
     if !has_children {
         return Vec::new();
     }
-    if p.tree.borrow().opened().contains(&path) {
+    if p.tree.borrow().is_open(&path) {
         vec![act("gitlab.repos.collapse", Binding::new("-", "collapse this group"))]
     } else {
         vec![act("gitlab.repos.expand", Binding::new("+", "expand this group"))]
@@ -901,10 +894,9 @@ pub(crate) fn fold_keys(p: &GitlabPlugin) -> Vec<Row> {
 mod tests {
     use super::*;
     use crate::tests::sample;
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
 
-    fn press(p: &mut GitlabPlugin, pane: Pane, code: KeyCode) -> Outcome {
-        p.key("repos", pane, KeyEvent::new(code, KeyModifiers::NONE))
+    fn press(p: &mut GitlabPlugin, pane: Pane, code: Key) -> Outcome {
+        p.key("repos", pane, Chord::new(code))
     }
 
     /// ⏎ in the focused detail pane goes in, as it does in Jira and Slack.
@@ -912,10 +904,10 @@ mod tests {
     fn enter_in_the_focused_preview_opens_the_items_page() {
         let mut p = sample();
         draw(&p);
-        press(&mut p, Pane::Middle, KeyCode::Down);
+        press(&mut p, Pane::Middle, Key::Down);
         draw(&p);
         assert!(p.pages.is_empty());
-        press(&mut p, Pane::Detail, KeyCode::Enter);
+        press(&mut p, Pane::Detail, Key::Enter);
         assert_eq!(p.pages.len(), 1, "its page is open");
     }
 
@@ -957,13 +949,13 @@ mod tests {
         let mut p = sample();
         draw(&p);
         for _ in 0..3 {
-            press(&mut p, Pane::Middle, KeyCode::Down);
+            press(&mut p, Pane::Middle, Key::Down);
         }
         let _ = crate::tests::view_text_in(&p, "repos", Pane::Detail, 160, 6);
         let on = p.tree.borrow().selected().to_vec();
         // Moving in the preview is the renderer's (Ink: ink/test/app/
         // detail-scroll.test.tsx); the keys are the preview's, not the tree's.
-        for code in [KeyCode::Down, KeyCode::Char('j'), KeyCode::Char('G'), KeyCode::Up, KeyCode::Char('g')] {
+        for code in [Key::Down, Key::Char('j'), Key::Char('G'), Key::Up, Key::Char('g')] {
             press(&mut p, Pane::Detail, code);
             assert_eq!(p.tree.borrow().selected(), on, "the tree stays put on {code:?}");
         }
@@ -981,7 +973,7 @@ mod tests {
         let mut p = sample();
         draw(&p);
         for _ in 0..3 {
-            press(&mut p, Pane::Middle, KeyCode::Down);
+            press(&mut p, Pane::Middle, Key::Down);
         }
         let on = p.tree.borrow().selected().to_vec();
         let now = p.now;
@@ -1048,9 +1040,9 @@ mod tests {
         let mut p = sample();
         draw(&p);
         on_bulk(&mut p, "close");
-        assert!(p.tree.borrow().opened().is_empty());
+        assert!(p.tree.borrow().open.is_empty());
         on_bulk(&mut p, "open");
-        assert!(!p.tree.borrow().opened().is_empty());
+        assert!(!p.tree.borrow().open.is_empty());
         let n = p.visible().len();
         let fx = on_bulk(&mut p, "copy");
         assert!(
@@ -1078,7 +1070,7 @@ mod tests {
         assert!(names.contains(&"docs"), "quiet repos are shown too");
         assert!(!names.contains(&"renovate"), "hidden repos are not");
         // `.` flips the view's own setting, which is saved with the view.
-        press(&mut p, Pane::Middle, KeyCode::Char('.'));
+        press(&mut p, Pane::Middle, Key::Char('.'));
         assert_eq!(
             p.cfg.views[p.view].repos,
             crate::config::RepoScope::WithMergeRequests
@@ -1117,19 +1109,19 @@ mod tests {
         assert!(radar_core::Plugin::folds(&p, "repos", Pane::Middle));
         assert!(!radar_core::Plugin::folds(&p, "repos", Pane::Detail));
         // Down to a merge request: tenancy, repo, merge request.
-        press(&mut p, Pane::Middle, KeyCode::Char('j'));
-        press(&mut p, Pane::Middle, KeyCode::Char('j'));
+        press(&mut p, Pane::Middle, Key::Char('j'));
+        press(&mut p, Pane::Middle, Key::Char('j'));
         draw(&p);
         let mr = p.tree.borrow().selected().to_vec();
         assert_eq!(mr.len(), 3, "{mr:?}");
         assert!(
             matches!(
-                press(&mut p, Pane::Middle, KeyCode::Char('+')),
+                press(&mut p, Pane::Middle, Key::Char('+')),
                 Outcome::Ignored
             ),
             "nothing to open"
         );
-        press(&mut p, Pane::Middle, KeyCode::Char('-'));
+        press(&mut p, Pane::Middle, Key::Char('-'));
         draw(&p);
         let repo = mr[..2].to_vec();
         assert_eq!(
@@ -1137,7 +1129,7 @@ mod tests {
             repo.as_slice(),
             "its repo, selected"
         );
-        assert!(!p.tree.borrow().opened().contains(&repo), "and closed");
+        assert!(!p.tree.borrow().is_open(&repo), "and closed");
         // Open-all is host-owned; it expands every held group through the
         // owner's existing Fold intent rather than an owner-local '=' key.
         let now = p.now;
@@ -1156,9 +1148,7 @@ mod tests {
             tree.clone()
         };
         for key in ['=', '-', '+'] {
-            assert!(host.update(radar_core::host::Event::Key(KeyEvent::new(
-                KeyCode::Char(key), KeyModifiers::NONE,
-            ))).is_empty(), "folds have no external effects");
+            assert!(host.update(crate::key_event(Chord::char(key))).is_empty(), "folds have no external effects");
             let after = tree(&host);
             assert_eq!(after.selected, repo, "folding keeps the selected repo");
             assert_eq!(after.open.contains(&repo), key != '-', "{key}");
@@ -1175,10 +1165,10 @@ mod tests {
         p.view = p.cfg.views.iter().position(|v| v.name == "Everything").unwrap();
         draw(&p);
         assert_eq!(fold_keys(&p).iter().map(|(_, b)| b.keys.as_str()).collect::<Vec<_>>(), vec!["-"]);
-        press(&mut p, Pane::Middle, KeyCode::Char('j'));
+        press(&mut p, Pane::Middle, Key::Char('j'));
         draw(&p);
         assert_eq!(fold_keys(&p).iter().map(|(_, b)| b.keys.as_str()).collect::<Vec<_>>(), vec!["-"]);
-        press(&mut p, Pane::Middle, KeyCode::Char('j'));
+        press(&mut p, Pane::Middle, Key::Char('j'));
         draw(&p);
         assert!(fold_keys(&p).is_empty(), "an MR row has no fold action");
     }
@@ -1194,17 +1184,17 @@ mod tests {
             .unwrap();
         draw(&p);
         assert_eq!(p.tree.borrow().selected(), ["t:team-b"]);
-        press(&mut p, Pane::Middle, KeyCode::Char('j'));
+        press(&mut p, Pane::Middle, Key::Char('j'));
         draw(&p);
         assert_eq!(
             p.tree.borrow().selected().len(),
             2,
             "into a repo of the first tenancy"
         );
-        press(&mut p, Pane::Middle, KeyCode::Char('k'));
-        press(&mut p, Pane::Middle, KeyCode::Char(' ')); // space folds; ⏎ opens a page
+        press(&mut p, Pane::Middle, Key::Char('k'));
+        press(&mut p, Pane::Middle, Key::Char(' ')); // space folds; ⏎ opens a page
         draw(&p);
-        press(&mut p, Pane::Middle, KeyCode::Char('j'));
+        press(&mut p, Pane::Middle, Key::Char('j'));
         assert_eq!(
             p.tree.borrow().selected(),
             ["t:team-a"],
@@ -1215,15 +1205,15 @@ mod tests {
     #[test]
     fn filter_keeps_and_clears() {
         let mut p = sample();
-        press(&mut p, Pane::Middle, KeyCode::Char('/'));
+        press(&mut p, Pane::Middle, Key::Char('/'));
         for c in "worker".chars() {
-            press(&mut p, Pane::Middle, KeyCode::Char(c));
+            press(&mut p, Pane::Middle, Key::Char(c));
         }
-        press(&mut p, Pane::Middle, KeyCode::Enter);
+        press(&mut p, Pane::Middle, Key::Enter);
         assert!(p.filter_input.is_none());
         assert_eq!(p.filter, "worker");
-        press(&mut p, Pane::Middle, KeyCode::Char('/'));
-        press(&mut p, Pane::Middle, KeyCode::Esc);
+        press(&mut p, Pane::Middle, Key::Char('/'));
+        press(&mut p, Pane::Middle, Key::Esc);
         assert!(p.filter.is_empty());
     }
 
@@ -1278,11 +1268,11 @@ mod tests {
         let mut p = sample();
         p.view = p.cfg.views.iter().position(|v| v.name == "Everything").unwrap();
         draw(&p);
-        press(&mut p, Pane::Nav, KeyCode::Char('/'));
+        press(&mut p, Pane::Nav, Key::Char('/'));
         for c in "stats".chars() {
-            press(&mut p, Pane::Nav, KeyCode::Char(c));
+            press(&mut p, Pane::Nav, Key::Char(c));
         }
-        let out = key(&mut p, Pane::Nav, KeyEvent::from(KeyCode::Down));
+        let out = key(&mut p, Pane::Nav, Chord::new(Key::Down));
         let Outcome::Handled(fx) = out else { panic!("↓ is the filter's") };
         assert!(fx.iter().any(|e| matches!(e, Effect::Focus(Pane::Middle))));
         assert!(p.filter_input.is_none());
@@ -1296,9 +1286,9 @@ mod tests {
     fn enter_from_the_filter_goes_to_the_results() {
         let mut p = sample();
         draw(&p);
-        press(&mut p, Pane::Nav, KeyCode::Char('/'));
-        press(&mut p, Pane::Nav, KeyCode::Char('x'));
-        let out = key(&mut p, Pane::Nav, KeyEvent::from(KeyCode::Enter));
+        press(&mut p, Pane::Nav, Key::Char('/'));
+        press(&mut p, Pane::Nav, Key::Char('x'));
+        let out = key(&mut p, Pane::Nav, Chord::new(Key::Enter));
         let Outcome::Handled(fx) = out else { panic!("⏎ is the filter's") };
         assert!(fx.iter().any(|e| matches!(e, Effect::Focus(Pane::Middle))));
     }

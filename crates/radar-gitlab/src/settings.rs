@@ -7,7 +7,7 @@
 use radar_core::design::help_bar::KeyHint;
 use radar_core::input::{Edit, TextInput};
 use radar_core::plugin::{Binding, Effect, Menu, MenuItem, Outcome, key_text};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use radar_core::theme::slot_info;
 use radar_core::ui::connection;
 use radar_core::ui::rows::{Move, select};
@@ -1262,7 +1262,7 @@ pub fn tenancies_intent(p: &mut GitlabPlugin, intent: &v::Intent) -> Outcome {
         }
         v::Intent::Activate { target } => {
             if !select(p, target) { return Outcome::Ignored; }
-            key(p, "tenancies", radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, "tenancies", v::Chord::new(v::Key::Enter))
         }
         v::Intent::Fold { target, open } => {
             if p.edit.is_some() {
@@ -1295,7 +1295,7 @@ pub fn tenancies_intent(p: &mut GitlabPlugin, intent: &v::Intent) -> Outcome {
             Outcome::done()
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, "tenancies", radar_core::view_tui::key_of(chord))
+            key(p, "tenancies", chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -1306,10 +1306,10 @@ pub fn list_intent(p: &mut GitlabPlugin, section: &str, intent: &v::Intent) -> O
         v::Intent::Select { target } | v::Intent::Context { target } => click(p, section, target.as_str()),
         v::Intent::Activate { target } => {
             click(p, section, target.as_str());
-            key(p, section, radar_core::view_tui::key_of(v::Chord::new(v::Key::Enter)))
+            key(p, section, v::Chord::new(v::Key::Enter))
         }
         v::Intent::Key { .. } | v::Intent::Invoke { .. } => intent.chord().map_or(Outcome::Ignored, |chord| {
-            key(p, section, radar_core::view_tui::key_of(chord))
+            key(p, section, chord)
         }),
         _ => Outcome::Ignored,
     }
@@ -2004,7 +2004,7 @@ pub(crate) fn action_specs(p: &GitlabPlugin, section: &str) -> Vec<v::ActionSpec
     crate::actions(&rows)
 }
 
-pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
+pub fn key(p: &mut GitlabPlugin, section: &str, key: Chord) -> Outcome {
     if let Some((target, mut input)) = p.edit.take() {
         return match input.key(key) {
             Edit::Cancel => Outcome::done(),
@@ -2022,7 +2022,7 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
         };
     }
     let at = index(section);
-    if let Some(mv) = Move::from_key(&key, p.section_scroll[at].height()) {
+    if let Some(mv) = Move::from_key(key, p.section_scroll[at].height()) {
         // Headings are not selectable, in look and in connection.
         let conn = conn_rows(p);
         let can = |row: usize| match section {
@@ -2035,7 +2035,7 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
     }
     // Space folds and unfolds a tenancy (h and l move between panes).
     if section == "tenancies"
-        && key.code == KeyCode::Char(' ')
+        && key.key == Key::Char(' ')
         && let Some(SourceRow::Tenancy(i)) = source_rows(p).get(p.section_rows[1]).cloned()
     {
         let g = p.cfg.sources[i].group.clone();
@@ -2047,7 +2047,7 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
     // `+` (or `=`) opens a folded tenancy; `-` folds the tenancy the row is
     // in, the cursor to it.
     if section == "tenancies"
-        && let KeyCode::Char(c @ ('+' | '=' | '-')) = key.code
+        && let Key::Char(c @ ('+' | '=' | '-')) = key.key
     {
         let rows = source_rows(p);
         let here = p.section_rows[1];
@@ -2088,7 +2088,7 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
         _ => false,
     };
     // ⏎ answers a found token's question, and asks GitLab on the check row.
-    if key.code == KeyCode::Enter && section == "connection" {
+    if key.key == Key::Enter && section == "connection" {
         match conn_row(p) {
             ConnRow::Offer(k) => return Outcome::Handled(use_offer(p, k)),
             ConnRow::Field(Field::Check) => return Outcome::Handled(check_connection(p)),
@@ -2114,7 +2114,7 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
             }
         }
     }
-    if key.code == KeyCode::Enter && on_add_row {
+    if key.key == Key::Enter && on_add_row {
         p.edit = Some(if section == "tenancies" {
             (Target::SourceAdd, TextInput::new(""))
         } else {
@@ -2122,11 +2122,11 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
         });
         return Outcome::done();
     }
-    if key.code == KeyCode::Enter {
+    if key.key == Key::Enter {
         return Outcome::Handled(row_menu(p, section).map(Effect::Menu).into_iter().collect());
     }
     // A menu item's key works straight from the row.
-    if let KeyCode::Char(c) = key.code
+    if let Key::Char(c) = key.key
         && let Some(menu) = row_menu(p, section)
         && let Some(item) = menu.items.iter().find(|i| i.key == Some(c))
     {
@@ -2134,22 +2134,22 @@ pub fn key(p: &mut GitlabPlugin, section: &str, key: KeyEvent) -> Outcome {
         return Outcome::Handled(on_menu(p, &menu.id, &value));
     }
     // Adding works from anywhere in the section, even when it is empty.
-    match (section, key.code) {
+    match (section, key.key) {
         // The server's new-token page: `o` opens it, `y` copies its link.
-        ("connection", KeyCode::Char('o')) => {
+        ("connection", Key::Char('o')) => {
             Outcome::Handled(vec![Effect::Open(crate::setup::token_page(p))])
         }
-        ("connection", KeyCode::Char('y')) => Outcome::Handled(vec![
+        ("connection", Key::Char('y')) => Outcome::Handled(vec![
             Effect::Copy(crate::setup::token_page(p)),
             Effect::Notify("copied the new-token page's link".into()),
         ]),
         // From anywhere in the section: jump to the add row and type there.
-        ("tenancies", KeyCode::Char('a')) => {
+        ("tenancies", Key::Char('a')) => {
             p.section_rows[1] = 0;
             p.edit = Some((Target::SourceAdd, TextInput::new("")));
             Outcome::done()
         }
-        ("views", KeyCode::Char('n')) => {
+        ("views", Key::Char('n')) => {
             p.section_rows[2] = 0;
             p.edit = Some((Target::ViewAdd, TextInput::new("")));
             Outcome::done()
@@ -2433,17 +2433,16 @@ fn key_rows_of_menu(p: &GitlabPlugin, section: &str) -> Vec<crate::Row> {
 mod tests {
     use super::*;
     use crate::tests::{iids, sample};
-    use radar_core::ratatui::crossterm::event::KeyModifiers;
 
-    fn press(p: &mut GitlabPlugin, section: &str, code: KeyCode) -> Outcome {
-        key(p, section, KeyEvent::new(code, KeyModifiers::NONE))
+    fn press(p: &mut GitlabPlugin, section: &str, code: Key) -> Outcome {
+        key(p, section, Chord::new(code))
     }
 
     fn typed(p: &mut GitlabPlugin, section: &str, text: &str) -> Outcome {
         for c in text.chars() {
-            press(p, section, KeyCode::Char(c));
+            press(p, section, Key::Char(c));
         }
-        press(p, section, KeyCode::Enter)
+        press(p, section, Key::Enter)
     }
 
     /// `<` and `>` move a tenancy or a view: never `J`/`K`, which the host
@@ -2464,21 +2463,21 @@ mod tests {
             "first: only down"
         );
         assert!(!keys.iter().any(|k| matches!(k, Some('J' | 'K'))));
-        press(&mut p, "tenancies", KeyCode::Char('>'));
+        press(&mut p, "tenancies", Key::Char('>'));
         assert_eq!(p.cfg.sources[1].group, groups[0]);
         assert_eq!(
             source_rows(&p)[p.section_rows[1]],
             SourceRow::Tenancy(1),
             "the cursor follows it"
         );
-        press(&mut p, "tenancies", KeyCode::Char('<'));
+        press(&mut p, "tenancies", Key::Char('<'));
         assert_eq!(p.cfg.sources[0].group, groups[0]);
 
         let names: Vec<String> = p.cfg.views.iter().map(|v| v.name.clone()).collect();
         p.section_rows[2] = view_row(1);
-        press(&mut p, "views", KeyCode::Char('>'));
+        press(&mut p, "views", Key::Char('>'));
         assert_eq!(p.cfg.views[2].name, names[1]);
-        press(&mut p, "views", KeyCode::Char('K'));
+        press(&mut p, "views", Key::Char('K'));
         assert_eq!(p.cfg.views[2].name, names[1], "K is not a move key");
     }
 
@@ -2503,7 +2502,7 @@ mod tests {
             .position(|r| matches!(r, SourceRow::Repo { rel, .. } if rel == "web"))
             .unwrap();
         p.section_rows[1] = at;
-        press(&mut p, "tenancies", KeyCode::Char(' '));
+        press(&mut p, "tenancies", Key::Char(' '));
         assert!(!iids(&p).contains(&187), "web's merge request is gone");
         assert_eq!(p.cfg.sources[1].hide, vec!["tools/renovate", "web"]);
     }
@@ -2587,19 +2586,19 @@ mod tests {
         };
         let g = p.cfg.sources[source].group.clone();
         p.section_rows[1] = at;
-        press(&mut p, "tenancies", KeyCode::Char('+'));
+        press(&mut p, "tenancies", Key::Char('+'));
         assert!(!p.folded.contains(&g), "+ on a repo opens nothing");
-        press(&mut p, "tenancies", KeyCode::Char('-'));
+        press(&mut p, "tenancies", Key::Char('-'));
         assert!(p.folded.contains(&g));
         assert_eq!(
             source_rows(&p)[p.section_rows[1]],
             SourceRow::Tenancy(source),
             "on its tenancy"
         );
-        press(&mut p, "tenancies", KeyCode::Char('+'));
+        press(&mut p, "tenancies", Key::Char('+'));
         assert!(!p.folded.contains(&g));
-        press(&mut p, "tenancies", KeyCode::Char('-'));
-        press(&mut p, "tenancies", KeyCode::Char('='));
+        press(&mut p, "tenancies", Key::Char('-'));
+        press(&mut p, "tenancies", Key::Char('='));
         assert!(!p.folded.contains(&g));
         assert_eq!(
             p.cfg.sources[source].hide,
@@ -2612,10 +2611,10 @@ mod tests {
     fn enter_opens_options_and_removing_asks_first() {
         let mut p = sample();
         p.section_rows[1] = 1; // the first tenancy, below "+ add a tenancy"
-        let out = press(&mut p, "tenancies", KeyCode::Enter);
+        let out = press(&mut p, "tenancies", Key::Enter);
         let m = menu_of(&out).unwrap();
         assert!(m.items.iter().any(|i| i.label == "drop from tracking…"));
-        let out = press(&mut p, "tenancies", KeyCode::Char('d'));
+        let out = press(&mut p, "tenancies", Key::Char('d'));
         let confirm = menu_of(&out).unwrap().id.clone();
         assert_eq!(p.cfg.sources.len(), 2, "nothing removed before yes");
         on_menu(&mut p, &confirm, "yes");
@@ -2626,9 +2625,9 @@ mod tests {
     fn changing_the_token_validates_and_offers_a_check() {
         let mut p = sample();
         p.section_rows[0] = Field::ALL.iter().position(|f| *f == Field::Token).unwrap();
-        press(&mut p, "connection", KeyCode::Char('e'));
+        press(&mut p, "connection", Key::Char('e'));
         for _ in 0..40 {
-            press(&mut p, "connection", KeyCode::Backspace);
+            press(&mut p, "connection", Key::Backspace);
         }
         let out = typed(&mut p, "connection", "short");
         assert!(
@@ -2636,7 +2635,7 @@ mod tests {
         );
         assert!(p.edit.is_some(), "still editing after a refusal");
         for _ in 0..5 {
-            press(&mut p, "connection", KeyCode::Backspace);
+            press(&mut p, "connection", Key::Backspace);
         }
         let out = typed(&mut p, "connection", "glab");
         assert_eq!(p.cfg.token, "glab");
@@ -2659,7 +2658,7 @@ mod tests {
             .position(|v| v.name == "Everything")
             .unwrap();
         p.section_rows[2] = view_row(i);
-        let out = press(&mut p, "views", KeyCode::Char('a'));
+        let out = press(&mut p, "views", Key::Char('a'));
         assert_eq!(menu_of(&out).unwrap().id, format!("cond:{i}"));
         let fx = on_menu(&mut p, &format!("cond:{i}"), "is");
         let Effect::Menu(m) = &fx[0] else { panic!() };
@@ -2677,13 +2676,13 @@ mod tests {
             .iter()
             .position(|r| matches!(r, LookRow::Word("review", _)))
             .unwrap();
-        press(&mut p, "look", KeyCode::Char('o'));
+        press(&mut p, "look", Key::Char('o'));
         assert_eq!(p.cfg.style_for("review"), "status.warning");
-        let out = press(&mut p, "look", KeyCode::Char('c'));
+        let out = press(&mut p, "look", Key::Char('c'));
         let id = menu_of(&out).unwrap().id.clone();
         on_menu(&mut p, &id, "accent.primary");
         assert_eq!(p.cfg.style_for("review"), "accent.primary");
-        press(&mut p, "look", KeyCode::Char('r'));
+        press(&mut p, "look", Key::Char('r'));
         assert_eq!(p.cfg.style_for("review"), "status.warning bold");
     }
 
@@ -2693,7 +2692,7 @@ mod tests {
         p.section_rows[3] = 1;
         // Eleven words, then the pipelines heading is skipped.
         for _ in 0..11 {
-            press(&mut p, "look", KeyCode::Char('j'));
+            press(&mut p, "look", Key::Char('j'));
         }
         assert!(matches!(
             look_rows()[p.section_rows[3]],
@@ -2707,17 +2706,17 @@ mod tests {
         let on_word =
             |p: &GitlabPlugin| matches!(look_rows()[p.section_rows[3]], LookRow::Word(..));
         for k in [
-            KeyCode::Home,
-            KeyCode::End,
-            KeyCode::PageUp,
-            KeyCode::PageDown,
-            KeyCode::Char('g'),
-            KeyCode::Char('G'),
+            Key::Home,
+            Key::End,
+            Key::PageUp,
+            Key::PageDown,
+            Key::Char('g'),
+            Key::Char('G'),
         ] {
             press(&mut p, "look", k);
             assert!(on_word(&p), "{k:?}");
         }
-        press(&mut p, "look", KeyCode::Home);
+        press(&mut p, "look", Key::Home);
         assert_eq!(
             p.section_rows[3], 1,
             "the first word, under the first heading"
@@ -2731,9 +2730,9 @@ mod tests {
             .iter()
             .position(|x| *x == Field::History)
             .unwrap();
-        press(&mut p, "connection", KeyCode::Char('e'));
+        press(&mut p, "connection", Key::Char('e'));
         for _ in 0..4 {
-            press(&mut p, "connection", KeyCode::Backspace);
+            press(&mut p, "connection", Key::Backspace);
         }
         assert!(validate(&p, &Target::Conn(Field::History), "365").is_err());
         typed(&mut p, "connection", "30");
@@ -2846,7 +2845,7 @@ mod tests {
             row,
             " ? Found in your environment: a GitLab token (GITLAB_TOKEN). Use it?"
         );
-        let out = press(&mut p, "connection", KeyCode::Enter);
+        let out = press(&mut p, "connection", Key::Enter);
         assert_eq!(
             p.cfg.token, "env:GITLAB_TOKEN",
             "the name, never the value"
@@ -2872,9 +2871,9 @@ mod tests {
         let rows = conn_rows(&p);
         let add = rows.iter().position(|r| *r == ConnRow::FollowAdd).unwrap();
         p.section_rows[0] = add - 3;
-        press(&mut p, "connection", KeyCode::Down);
+        press(&mut p, "connection", Key::Down);
         assert_eq!(conn_rows(&p)[p.section_rows[0]], ConnRow::FollowAdd, "past the gap and the heading");
-        press(&mut p, "connection", KeyCode::Enter);
+        press(&mut p, "connection", Key::Enter);
         assert!(matches!(p.edit, Some((Target::SourceAdd, _))));
         let out = typed(&mut p, "connection", "ankh-morpork/watch");
         assert_eq!(p.cfg.sources.len(), before + 1);
@@ -2883,7 +2882,7 @@ mod tests {
         assert!(conn_rows(&p).contains(&ConnRow::Follow(before)));
 
         p.section_rows[0] = conn_rows(&p).iter().position(|r| *r == ConnRow::Follow(before)).unwrap();
-        let out = press(&mut p, "connection", KeyCode::Char('d'));
+        let out = press(&mut p, "connection", Key::Char('d'));
         assert!(menu_of(&out).is_some_and(|m| m.id == format!("tenancy-remove:{before}")), "asked first");
         let ids: Vec<String> = action_specs(&p, "connection").into_iter().map(|a| a.id).collect();
         assert!(ids.contains(&"gitlab.connection.unfollow".to_string()));
@@ -2892,7 +2891,7 @@ mod tests {
         let view = connection_view(&p, 80, 0);
         let sheet = format!("{:?}", view.detail_blocks);
         assert!(sheet.contains("GET A GITLAB TOKEN") && sheet.contains("personal_access_tokens?name=radar"));
-        let out = press(&mut p, "connection", KeyCode::Char('o'));
+        let out = press(&mut p, "connection", Key::Char('o'));
         assert!(matches!(&out, Outcome::Handled(fx) if matches!(fx.as_slice(), [Effect::Open(url)] if url.contains("/-/user_settings/personal_access_tokens"))));
     }
 
@@ -2908,7 +2907,7 @@ mod tests {
         assert_eq!(&rows[heading + 1..heading + 3], [ConnRow::Access(TokenAccess::Read), ConnRow::Access(TokenAccess::Write)]);
         // Up from the follow list's add row: over the gap and the heading.
         p.section_rows[0] = at(&p, ConnRow::FollowAdd);
-        press(&mut p, "connection", KeyCode::Up);
+        press(&mut p, "connection", Key::Up);
         assert_eq!(conn_row(&p), ConnRow::Access(TokenAccess::Write));
         let ids: Vec<String> = action_specs(&p, "connection").into_iter().map(|a| a.id).collect();
         assert!(ids.contains(&"gitlab.connection.choose".to_string()), "{ids:?}");
@@ -2917,7 +2916,7 @@ mod tests {
         let sheet = format!("{:?}", view.detail_blocks);
         assert!(sheet.contains("scopes=read_api") && sheet.contains("scope from access: read_api"), "{sheet}");
         // Nothing checked yet: choosing asks nothing of GitLab.
-        let out = press(&mut p, "connection", KeyCode::Enter);
+        let out = press(&mut p, "connection", Key::Enter);
         assert_eq!(p.cfg.access, TokenAccess::Write);
         assert!(matches!(&out, Outcome::Handled(fx) if !fx.iter().any(|e| matches!(e, Effect::SpawnAction { .. }))));
         assert!(p.config().is_some_and(|c| c["access"].as_str() == Some("write")), "saved");
@@ -2925,14 +2924,14 @@ mod tests {
         let sheet = format!("{:?}", view.detail_blocks);
         assert!(sheet.contains("scopes=api\"") && sheet.contains("scope from access: api"), "{sheet}");
         assert!(format!("{:?}", view.detail).contains("[gitlab] access"));
-        let out = press(&mut p, "connection", KeyCode::Char('o'));
+        let out = press(&mut p, "connection", Key::Char('o'));
         assert!(matches!(&out, Outcome::Handled(fx) if matches!(fx.as_slice(), [Effect::Open(url)] if url.ends_with("scopes=api"))));
 
         // Once checked, a new choice asks again, so the check row says
         // whether the token allows it.
         p.checks.insert("auth".into(), (Check::Passed("signed in as vimes (Sam Vimes)".into()), 0));
         p.section_rows[0] = at(&p, ConnRow::Access(TokenAccess::Read));
-        let out = press(&mut p, "connection", KeyCode::Enter);
+        let out = press(&mut p, "connection", Key::Enter);
         assert_eq!(p.cfg.access, TokenAccess::Read);
         assert!(matches!(&out, Outcome::Handled(fx) if fx.iter().any(|e| matches!(e, Effect::SpawnAction { .. }))));
         assert_eq!(p.checks.get("auth").map(|(c, _)| c.clone()), Some(Check::Running));
@@ -2943,7 +2942,7 @@ mod tests {
     fn enter_on_the_check_row_asks_gitlab() {
         let mut p = sample();
         p.section_rows[0] = Field::ALL.iter().position(|f| *f == Field::Check).unwrap();
-        let out = press(&mut p, "connection", KeyCode::Enter);
+        let out = press(&mut p, "connection", Key::Enter);
         assert!(
             matches!(&out, Outcome::Handled(fx) if fx.len() == 2),
             "the connection and the base group"

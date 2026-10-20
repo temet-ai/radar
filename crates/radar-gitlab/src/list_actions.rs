@@ -12,7 +12,7 @@
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{Binding, Effect, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 
 use crate::model::{Mr, MrState, Pipeline};
 use crate::mr_actions::{self, Acting};
@@ -183,11 +183,11 @@ fn selected(p: &GitlabPlugin) -> Option<Mr> {
 /// A key on a merge request's row (in the tree or its detail pane); `None` when
 /// it is not one of these, or no merge request is selected. `o p y` are the
 /// screen's own.
-pub(crate) fn key(p: &mut GitlabPlugin, pane: Pane, key: &KeyEvent) -> Option<Outcome> {
-    if !matches!(pane, Pane::Middle | Pane::Detail) || key.modifiers != KeyModifiers::NONE {
+pub(crate) fn key(p: &mut GitlabPlugin, pane: Pane, key: &Chord) -> Option<Outcome> {
+    if !matches!(pane, Pane::Middle | Pane::Detail) || !key.bare() {
         return None;
     }
-    let KeyCode::Char(c) = key.code else { return None };
+    let Key::Char(c) = key.key else { return None };
     let what = Do::of_key(c).filter(|d| d.asks())?;
     let mr = selected(p)?;
     Some(Outcome::Handled(act(p, what, &mr)))

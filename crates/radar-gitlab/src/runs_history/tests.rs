@@ -4,7 +4,7 @@ use crate::client::{Client, Method, Resp, RunsEvidence, parse_runs};
 use crate::{GitlabPlugin, demo, pages};
 use radar_core::Plugin;
 use radar_core::plugin::Pane;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use serde_json::{Value, json};
 
 const PROJECT: &str = "acme/team-a/api";
@@ -499,7 +499,7 @@ fn refresh(p: &mut GitlabPlugin) -> Vec<Effect> {
     let radar_core::plugin::Outcome::Handled(fx) = pages::key(
         p,
         Pane::Middle,
-        KeyEvent::new(KeyCode::Char('r'), KeyModifiers::NONE),
+        Chord::new(Key::Char('r')),
     ) else {
         panic!("refresh handled")
     };

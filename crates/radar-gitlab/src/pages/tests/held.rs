@@ -64,7 +64,7 @@ fn a_changed_updated_at_or_pipeline_asks_again() {
 fn r_on_the_page_asks_though_nothing_changed() {
     let mut p = closed_and_later();
     push(&mut p, kind());
-    let fx = press(&mut p, KeyCode::Char('r'));
+    let fx = press(&mut p, Key::Char('r'));
     assert_eq!(asks(&fx, "gitlab.page.detail"), 1, "{fx:?}");
 }
 

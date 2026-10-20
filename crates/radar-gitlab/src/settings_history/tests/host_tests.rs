@@ -3,7 +3,7 @@ use radar_core::Host;
 use radar_core::host::{Event, HostEffect, JournalRecord};
 use radar_core::journal::{ActionEvent, ActionId, Journal, Query};
 use radar_core::plugin::{ScreenSpec, Task};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent};
+use radar_core::view::{Chord, Key};
 use std::sync::{Arc, Mutex};
 
 enum Begin {
@@ -351,7 +351,7 @@ fn typing_and_declining_have_no_check_observations_but_confirmation_dispatches()
     }));
     for event in [
         Event::Paste("SECRET_TYPED_URL".into()),
-        Event::Key(KeyEvent::from(KeyCode::Esc)),
+        crate::key_event(Chord::new(Key::Esc)),
     ] {
         let fx = host.update(event);
         all.extend(records(&fx));
@@ -361,7 +361,7 @@ fn typing_and_declining_have_no_check_observations_but_confirmation_dispatches()
         plugin: 0,
         msg: Box::new(Begin::Ask),
     })));
-    let declined = host.update(Event::Key(KeyEvent::from(KeyCode::Char('n'))));
+    let declined = host.update(crate::key_event(Chord::new(Key::Char('n'))));
     all.extend(records(&declined));
     assert!(tasks(declined).is_empty());
     assert!(plugin.lock().unwrap().checks.is_empty());
@@ -370,7 +370,7 @@ fn typing_and_declining_have_no_check_observations_but_confirmation_dispatches()
         plugin: 0,
         msg: Box::new(Begin::Ask),
     })));
-    let confirmed = host.update(Event::Key(KeyEvent::from(KeyCode::Char('y'))));
+    let confirmed = host.update(crate::key_event(Chord::new(Key::Char('y'))));
     all.extend(records(&confirmed));
     assert_eq!(tasks(confirmed).len(), 1);
     assert_eq!(plugin.lock().unwrap().checks["auth"].0, Check::Running);

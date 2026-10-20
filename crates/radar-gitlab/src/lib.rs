@@ -5,6 +5,7 @@
 //! table, the `tenant.*` theme slots, a cache, the `gitlab.selected` bus
 //! topic and the `radar gitlab list` command.
 
+mod nav;
 mod palette;
 mod source_navigation;
 mod agent_context;
@@ -59,9 +60,14 @@ use std::collections::BTreeMap;
 
 use radar_core::design::help_bar::KeyHint;
 use radar_core::plugin::{Binding, CliTask, Effect, MenuItem, Msg, Outcome, Pane, ScreenSpec, SectionSpec, SlotValue};
-use radar_core::ratatui::crossterm::event::KeyCode;
-use radar_core::ratatui::crossterm::event::KeyEvent;
-use radar_core::ratatui::style::Color;
+use radar_core::design::theme::Color;
+use radar_core::view::{Chord, Key};
+
+/// A key as the event a renderer sends for it, for the tests.
+#[cfg(test)]
+pub(crate) fn key_event(chord: Chord) -> radar_core::host::Event {
+    radar_core::host::Event::Intent(radar_core::view::Intent::Key { chord })
+}
 use radar_core::{Plugin, log, time};
 use serde_json::{Value, json};
 
@@ -256,12 +262,12 @@ pub struct GitlabPlugin {
     /// The `/` filter while it is being typed.
     pub(crate) filter_input: Option<radar_core::input::TextInput>,
     /// The repositories tree: what is selected and what is open.
-    pub(crate) tree: std::cell::RefCell<tui_tree_widget::TreeState<String>>,
+    pub(crate) tree: std::cell::RefCell<radar_core::view::TreeNav>,
     /// Tree nodes already opened once by default, so closing one sticks.
     pub(crate) opened_once: std::cell::RefCell<std::collections::HashSet<Vec<String>>>,
     /// How far the detail pane is scrolled (PgUp/PgDn); back to the top when the
     /// selection moves.
-    pub(crate) detail_scroll: radar_core::ui::Scroll,
+    pub(crate) detail_scroll: radar_core::view::scroll::Scroll,
     /// Tenancies folded in the settings tree (by group).
     pub(crate) folded: std::collections::BTreeSet<String>,
     // settings
@@ -270,7 +276,7 @@ pub struct GitlabPlugin {
     /// rows only Settings needs; `conn_rows` follows it.
     pub(crate) setup_card: std::cell::Cell<bool>,
     /// How far each section's rows are scrolled.
-    pub(crate) section_scroll: [radar_core::ui::Scroll; 4],
+    pub(crate) section_scroll: [radar_core::view::scroll::Scroll; 4],
     pub(crate) edit: Option<(Target, radar_core::input::TextInput)>,
     /// Checks of settings against GitLab, by key: `auth`, `base`,
     /// `group:<full path>`. With when each finished.
@@ -708,18 +714,16 @@ impl GitlabPlugin {
 
     /// Keys the tree, the nav pane and pages share: go to and authors.
     /// `None` when the key is not one of them.
-    fn shared_key(&mut self, pane: Pane, key: KeyEvent) -> Option<Outcome> {
-        if key.modifiers != radar_core::ratatui::crossterm::event::KeyModifiers::NONE
-            && key.modifiers != radar_core::ratatui::crossterm::event::KeyModifiers::SHIFT
-        {
+    fn shared_key(&mut self, pane: Pane, key: Chord) -> Option<Outcome> {
+        if !key.plain() {
             return None;
         }
         let tree = self.pages.is_empty() && matches!(pane, Pane::Nav | Pane::Middle);
-        match key.code {
-            KeyCode::Char(AUTHOR_KEY) if tree => {
+        match key.key {
+            Key::Char(AUTHOR_KEY) if tree => {
                 Some(Outcome::Handled(vec![Effect::Menu(self.author_menu())]))
             }
-            KeyCode::Char(GOTO_KEY) if tree && !self.cfg.sources.is_empty() => {
+            Key::Char(GOTO_KEY) if tree && !self.cfg.sources.is_empty() => {
                 goto::start(self);
                 Some(Outcome::Handled(vec![Effect::Focus(Pane::Middle)]))
             }
@@ -842,12 +846,8 @@ pub(crate) fn author_name(mr: &Mr) -> String {
 }
 
 impl GitlabPlugin {
-    fn on_key(&mut self, pane: Pane, key: KeyEvent) -> Outcome {
-        if key
-            .modifiers
-            .contains(radar_core::ratatui::crossterm::event::KeyModifiers::CONTROL)
-            && key.code == KeyCode::Char('r')
-        {
+    fn on_key(&mut self, pane: Pane, key: Chord) -> Outcome {
+        if key.ctrl && key.key == Key::Char('r') {
             return Outcome::Handled(comment_recovery::list(self, None));
         }
         if self.compose.is_some() {
@@ -874,7 +874,7 @@ impl GitlabPlugin {
         let out = screen::key(self, pane, key);
         // esc with no filter left clears the author picked.
         if matches!(out, Outcome::Ignored)
-            && key.code == KeyCode::Esc
+            && key.key == Key::Esc
             && pane == Pane::Middle
             && self.author.is_some()
         {
@@ -894,11 +894,9 @@ impl GitlabPlugin {
     /// (movement along rows and trees is the frontend's, selecting through
     /// the part), the rest handed to the part as an intent.
     #[cfg(test)]
-    fn key(&mut self, scope: &str, pane: Pane, key: KeyEvent) -> Outcome {
+    fn key(&mut self, scope: &str, pane: Pane, key: Chord) -> Outcome {
         use radar_core::view_tui::Routed;
-        let Some(chord) = radar_core::view_tui::chord_of(&key) else {
-            return self.on_key(pane, key);
-        };
+        let chord = key;
         let vcx = radar_core::view::ViewCx {
             now: self.now,
             focus: pane.into(),
@@ -1519,11 +1517,11 @@ impl Plugin for GitlabPlugin {
         self.clamp();
         out
     }
-    fn pictures(&self, _source: &str) -> Option<radar_core::ui::image::Fetch> {
+    fn pictures(&self, _source: &str) -> Option<radar_core::fetch::Fetch> {
         #[cfg(any(test, feature = "test-support"))]
         if self.scripted_fixture {
             let fixture = self.fixture.clone();
-            return Some(radar_core::ui::image::fetch(move |_src: String| {
+            return Some(radar_core::fetch::fetch(move |_src: String| {
                 let fixture = fixture.clone();
                 async move {
                     if let Some(fixture) = fixture { fixture.blocked("picture fetch"); }
@@ -1535,7 +1533,7 @@ impl Plugin for GitlabPlugin {
     }
     // The preview pages from any pane (PgDn) and offers its page keys by
     // how far the renderer laid it out; a page keeps its own scroll.
-    fn scroll(&self, screen: &str, pane: Pane) -> Option<&radar_core::ui::Scroll> {
+    fn scroll(&self, screen: &str, pane: Pane) -> Option<&radar_core::view::scroll::Scroll> {
         (screen == SCREEN.id && pane == Pane::Detail && self.pages.is_empty()).then_some(&self.detail_scroll)
     }
     // An open page takes the whole body, its keys, clicks and actions.
@@ -2172,23 +2170,20 @@ pub(crate) mod tests {
     #[test]
     fn go_to_through_the_host_types_jumps_and_keeps() {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         let mut host = hosted();
-        let key = |c| Event::Key(KeyEvent::new(c, KeyModifiers::NONE));
+        let key = |c| crate::key_event(Chord::new(c));
         let _ = crate::tests::shown(&host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char(':'),
-            KeyModifiers::SHIFT,
-        )));
+        host.update(crate::key_event(Chord::char(':')));
         assert!(host.plugins[0].capturing(), "go to takes the keys");
         for c in "stats".chars() {
-            host.update(key(KeyCode::Char(c)));
+            host.update(key(Key::Char(c)));
         }
         let text = crate::tests::shown(&host, 160, 40);
         assert!(text.contains(":  [stats|]"), "{text}");
         assert!(text.contains("at api !263 ABC-12"), "{text}");
         host.update(Event::Paste(" endpoint".into()));
-        host.update(key(KeyCode::Enter));
+        host.update(key(Key::Enter));
         assert!(!host.plugins[0].capturing());
         let text = crate::tests::shown(&host, 160, 40);
         // The detail pane shows what the tree landed on.
@@ -2284,21 +2279,21 @@ pub(crate) mod tests {
     #[test]
     fn up_from_the_top_of_each_pane_reaches_the_bar_and_down_comes_back() {
         use radar_core::host::{Event, View};
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         let press = |host: &mut radar_core::Host, code| {
             let _ = crate::tests::shown(host, 160, 40);
-            host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+            host.update(crate::key_event(Chord::new(code)));
         };
         for pane in [Pane::Nav, Pane::Middle, Pane::Detail] {
             let mut host = hosted();
             host.focus = pane;
-            press(&mut host, KeyCode::Char('g'));
-            press(&mut host, KeyCode::Up);
+            press(&mut host, Key::Char('g'));
+            press(&mut host, Key::Up);
             assert!(host.bar, "{pane:?}: ↑ at the top reaches the bar");
-            press(&mut host, KeyCode::Right);
+            press(&mut host, Key::Right);
             assert_eq!(host.view, View::Settings, "→ is the next screen");
-            press(&mut host, KeyCode::Left);
-            press(&mut host, KeyCode::Down);
+            press(&mut host, Key::Left);
+            press(&mut host, Key::Down);
             assert_eq!(
                 (host.view, host.bar, host.focus),
                 (View::Screen(0), false, pane),
@@ -2308,21 +2303,21 @@ pub(crate) mod tests {
         // Not from the second row: ↑ moves up a row.
         let mut host = hosted();
         host.focus = Pane::Middle;
-        press(&mut host, KeyCode::Char('j'));
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Char('j'));
+        press(&mut host, Key::Up);
         assert!(!host.bar);
         // Inside a page ↑ at the top does nothing.
-        press(&mut host, KeyCode::Enter);
+        press(&mut host, Key::Enter);
         assert_eq!(radar_core::Plugin::depth(host.plugins[0].as_ref(), "repos"), 1);
-        press(&mut host, KeyCode::Char('g'));
-        press(&mut host, KeyCode::Up);
+        press(&mut host, Key::Char('g'));
+        press(&mut host, Key::Up);
         assert!(!host.bar, "inside a page");
     }
 
     #[test]
     fn choosing_out_of_and_back_into_a_pane_keeps_its_cursor() {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         use radar_core::view::{Intent, Node, PaneId, Target, TreeRow};
         let mut host = hosted();
         let select = |host: &mut radar_core::Host, target: Target| {
@@ -2338,7 +2333,7 @@ pub(crate) mod tests {
         };
         let _ = crate::tests::shown(&host, 160, 40);
         for _ in 0..2 {
-            host.update(Event::Key(KeyEvent::new(KeyCode::Char('j'), KeyModifiers::NONE)));
+            host.update(crate::key_event(Chord::char('j')));
         }
         let _ = crate::tests::shown(&host, 160, 40);
         let before = tree(&host).selected;
@@ -2376,17 +2371,14 @@ pub(crate) mod tests {
     #[test]
     fn context_on_a_tree_row_offers_that_rows_actions() {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         use radar_core::view::Intent;
 
         let mut expected = hosted();
         let _ = crate::tests::shown(&expected, 160, 40);
         let target = first_row_target(&expected);
         expected.update(Event::Intent(Intent::Select { target: target.clone() }));
-        expected.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('x'),
-            KeyModifiers::NONE,
-        )));
+        expected.update(crate::key_event(Chord::char('x')));
         let expected_menu = expected
             .menu
             .as_ref()
@@ -2470,12 +2462,12 @@ pub(crate) mod tests {
     #[test]
     fn mr_actions_menu_folds_its_parent_without_expanding_or_acting_on_the_mr() {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         use radar_core::view::{Node, PaneId};
 
         let press = |host: &mut radar_core::Host, code| {
             let _ = crate::tests::shown(host, 160, 40);
-            host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+            host.update(crate::key_event(Chord::new(code)))
         };
         let tree = |host: &radar_core::Host| {
             let view = host.screen_view(0, SCREEN.id).expect("repositories screen");
@@ -2486,7 +2478,7 @@ pub(crate) mod tests {
         };
         let mut host = hosted();
         for _ in 0..5 {
-            press(&mut host, KeyCode::Down);
+            press(&mut host, Key::Down);
         }
         let before = tree(&host);
         assert_eq!(before.selected.len(), 3, "a merge request under its repo and tenancy");
@@ -2494,7 +2486,7 @@ pub(crate) mod tests {
         let subject = host.plugins[0].subject(SCREEN.id, Pane::Middle).expect("selected MR");
         assert!(subject.is("merge-request"));
 
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         let menu = &host.menu.as_ref().expect("MR actions menu").menu;
         for key in ['+', '-', '='] {
             assert_eq!(menu.items.iter().filter(|item| item.key == Some(key)).count(), 1,
@@ -2502,14 +2494,14 @@ pub(crate) mod tests {
         }
         // The shared keys apply to this tree, but '+' must not invent MR children
         // or silently retarget the operation to its parent.
-        assert!(press(&mut host, KeyCode::Char('+')).is_empty());
+        assert!(press(&mut host, Key::Char('+')).is_empty());
         assert!(host.menu.is_none());
         assert_eq!(tree(&host), before);
         assert_eq!(host.plugins[0].subject(SCREEN.id, Pane::Middle), Some(subject));
         assert_eq!(host.plugins[0].depth(SCREEN.id), 0, "no MR page was opened");
 
-        press(&mut host, KeyCode::Char('x'));
-        assert!(press(&mut host, KeyCode::Char('-')).is_empty(), "folding sends no write or request");
+        press(&mut host, Key::Char('x'));
+        assert!(press(&mut host, Key::Char('-')).is_empty(), "folding sends no write or request");
         assert!(host.menu.is_none());
         let after = tree(&host);
         let parent = before.selected[..2].to_vec();
@@ -2628,14 +2620,11 @@ pub(crate) mod tests {
     #[test]
     fn keys_menu() {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         let mut host = hosted();
         // As the app does: a frame first, which selects the first row.
         let _ = crate::tests::shown(&host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('x'),
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::key_event(Chord::char('x')));
         insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
     }
 
@@ -2675,24 +2664,24 @@ pub(crate) mod tests {
         host: &mut radar_core::Host,
         name: &str,
         downs: usize,
-        open: &[radar_core::ratatui::crossterm::event::KeyCode],
+        open: &[Key],
         row: &str,
         value: &str,
     ) {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         use radar_core::view::Node;
-        let press = |host: &mut radar_core::Host, code: KeyCode, m: KeyModifiers| {
+        let press = |host: &mut radar_core::Host, chord: Chord| {
             let _ = crate::tests::shown(host, 160, 40);
-            host.update(Event::Key(KeyEvent::new(code, m)))
+            host.update(crate::key_event(chord))
         };
         section(host, name);
         host.focus = radar_core::Pane::Middle;
         for _ in 0..20 {
-            press(host, KeyCode::Up, KeyModifiers::NONE);
+            press(host, Chord::new(Key::Up));
         }
         for _ in 0..downs {
-            press(host, KeyCode::Down, KeyModifiers::NONE);
+            press(host, Chord::new(Key::Down));
         }
         let before = crate::tests::shown(host, 160, 40);
         let text = section_row_text(host, row)
@@ -2703,16 +2692,16 @@ pub(crate) mod tests {
             None => panic!("no {value:?} on {text:?}"),
         };
         for code in open {
-            press(host, *code, KeyModifiers::NONE);
+            press(host, Chord::new(*code));
         }
         assert!(
             host.plugins[0].capturing(),
             "{name}: {open:?} on {row:?} opened no input"
         );
-        press(host, KeyCode::Char('e'), KeyModifiers::CONTROL);
-        press(host, KeyCode::Char('u'), KeyModifiers::CONTROL);
+        press(host, Chord::ctrl('e'));
+        press(host, Chord::ctrl('u'));
         // w is text here, not the save key.
-        let fx = press(host, KeyCode::Char('w'), KeyModifiers::NONE);
+        let fx = press(host, Chord::char('w'));
         assert!(
             !fx.iter()
                 .any(|e| matches!(e, radar_core::host::HostEffect::Save(_))),
@@ -2734,13 +2723,13 @@ pub(crate) mod tests {
             ("w", c + mark),
             "{name}, {row:?}: the input does not start where {value:?} was in {text:?}"
         );
-        press(host, KeyCode::Esc, KeyModifiers::NONE);
+        press(host, Chord::new(Key::Esc));
         assert!(!host.plugins[0].capturing());
     }
 
     #[test]
     fn every_settings_input_starts_where_its_value_was_drawn() {
-        use radar_core::ratatui::crossterm::event::KeyCode::{Char, Enter};
+        use Key::{Char, Enter};
         let mut host = hosted();
         // connection: server, base group, token, refresh, history
         // (signed in as and check have no input).
@@ -2814,7 +2803,7 @@ pub(crate) mod tests {
     #[test]
     fn every_row_and_target_is_taken() {
         use radar_core::check::{Check, Place};
-        use radar_core::ratatui::crossterm::event::KeyCode;
+        use radar_core::view::{Chord, Key};
         let tree = || Place::screen("repos", Pane::Middle);
         let mut places = Vec::new();
         for down in 0..6 {
@@ -2832,7 +2821,7 @@ pub(crate) mod tests {
         // !342's failed job, and a search in its log; web's pipelines.
         let job = tree().down(2).enter().tab(3).enter();
         places.push(job.clone());
-        places.push(job.press(KeyCode::Char('/'), 1).typed("test").enter());
+        places.push(job.press(Key::Char('/'), 1).typed("test").enter());
         places.push(tree().down(6).enter().tab(1));
         places.push(tree().down(6).enter().tab(1).enter());
         let sections: Vec<&'static str> = sample().sections().iter().map(|s| s.id).collect();
@@ -2892,12 +2881,12 @@ pub(crate) mod tests {
     #[test]
     fn every_row_and_target_of_the_review_is_taken() {
         use radar_core::check::{Check, Place};
-        use radar_core::ratatui::crossterm::event::KeyCode;
+        use radar_core::view::{Chord, Key};
         let page = || Place::screen("repos", Pane::Middle).down(5).enter();
         let mut places: Vec<Place> = (0..5).map(|t| page().tab(t)).collect();
         places.push(page().tab(1).down(5));
         places.push(page().tab(1).down(21));
-        places.push(page().tab(1).press(KeyCode::Char('n'), 1));
+        places.push(page().tab(1).press(Key::Char('n'), 1));
         places.push(page().tab(2).down(1));
         places.push(page().tab(2).down(2));
         let make = || Box::new(sample_reviewed()) as Box<dyn Plugin>;
@@ -2910,14 +2899,14 @@ pub(crate) mod tests {
     #[test]
     fn choosing_a_row_in_the_keys_menu_presses_its_key() {
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         let mut host = hosted();
         let press = |host: &mut radar_core::Host, c| {
-            host.update(Event::Key(KeyEvent::new(c, KeyModifiers::NONE)));
+            host.update(crate::key_event(Chord::new(c)));
         };
-        press(&mut host, KeyCode::Char('x'));
+        press(&mut host, Key::Char('x'));
         // `/` in the menu runs "filter this view": the filter input opens.
-        press(&mut host, KeyCode::Char('/'));
+        press(&mut host, Key::Char('/'));
         assert!(host.menu.is_none());
         assert!(host.plugins[0].capturing());
     }
@@ -2926,28 +2915,28 @@ pub(crate) mod tests {
     fn h_and_l_move_between_panes_and_esc_comes_back() {
         use radar_core::Pane;
         use radar_core::host::Event;
-        use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+        use radar_core::view::{Chord, Key};
         let mut host = hosted();
         let press = |host: &mut radar_core::Host, c| {
-            host.update(Event::Key(KeyEvent::new(c, KeyModifiers::NONE)));
+            host.update(crate::key_event(Chord::new(c)));
         };
         assert_eq!(host.focus, Pane::Middle);
-        press(&mut host, KeyCode::Char('l'));
+        press(&mut host, Key::Char('l'));
         assert_eq!(host.focus, Pane::Detail);
         // Past the right edge: the next screen (settings), and back.
-        press(&mut host, KeyCode::Char('l'));
+        press(&mut host, Key::Char('l'));
         assert_eq!(
             (host.view, host.focus),
             (radar_core::host::View::Settings, Pane::Nav)
         );
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Char('h'));
         assert_eq!(host.focus, Pane::Detail);
-        press(&mut host, KeyCode::Left);
-        press(&mut host, KeyCode::Char('h'));
+        press(&mut host, Key::Left);
+        press(&mut host, Key::Char('h'));
         assert_eq!(host.focus, Pane::Nav);
-        press(&mut host, KeyCode::Char('3'));
+        press(&mut host, Key::Char('3'));
         assert_eq!(host.focus, Pane::Detail);
-        press(&mut host, KeyCode::Esc);
+        press(&mut host, Key::Esc);
         assert_eq!(host.focus, Pane::Middle);
     }
 }

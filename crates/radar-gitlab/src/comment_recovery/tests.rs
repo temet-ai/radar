@@ -3,7 +3,7 @@ use super::*;
 use crate::write::{self, LineAt};
 use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::plugin::Pane;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Host, Plugin, writes};
 
 const PROJECT: &str = "acme/team-a/api";
@@ -24,15 +24,8 @@ impl Drop for ModeGuard {
         writes::set_mode(self.0.0, self.0.1.take());
     }
 }
-fn key(c: char, control: bool) -> KeyEvent {
-    KeyEvent::new(
-        KeyCode::Char(c),
-        if control {
-            KeyModifiers::CONTROL
-        } else {
-            KeyModifiers::NONE
-        },
-    )
+fn key(c: char, control: bool) -> Chord {
+    if control { Chord::ctrl(c) } else { Chord::char(c) }
 }
 fn menu(fx: &[Effect]) -> &Menu {
     fx.iter()
@@ -457,7 +450,7 @@ fn other_editors_block_restore_and_start_without_changing_keyboard_or_paste_targ
 }
 
 fn host_key(host: &mut Host, c: char, control: bool) -> Vec<HostEffect> {
-    host.update(Event::Key(key(c, control)))
+    host.update(crate::key_event(key(c, control)))
 }
 fn host_copy(fx: &[HostEffect]) -> Option<&str> {
     fx.iter().find_map(|e| match e {
@@ -521,10 +514,7 @@ fn real_host_exposes_offline_recovery_with_no_hidden_composer_or_journal_text() 
             .title
             .contains("kept comments")
     );
-    trace.push_str(&journal(&host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
-    )))));
+    trace.push_str(&journal(&host.update(crate::key_event(Chord::new(Key::Enter)))));
     assert!(
         !host
             .menu
@@ -545,10 +535,7 @@ fn real_host_exposes_offline_recovery_with_no_hidden_composer_or_journal_text() 
     assert!(!trace.contains("PRIVATE_"));
     assert!(!trace.contains("entry:1"));
     host_key(&mut host, 'r', true);
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Enter,
-        KeyModifiers::NONE,
-    )));
+    host.update(crate::key_event(Chord::new(Key::Enter)));
     host_key(&mut host, 'd', false);
     let fx = host_key(&mut host, 'y', false);
     assert!(journal(&fx).contains("gitlab.comment.recovery.dropped"));
@@ -573,10 +560,7 @@ fn real_host_recovery_from_typing_and_settings_edit_preserves_text_and_paste() {
         let mut host = host(p, settings);
         host_key(&mut host, 'r', true);
         host.update(Event::Paste("PRIVATE_IGNORED".into()));
-        host.update(Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
-        )));
+        host.update(crate::key_event(Chord::new(Key::Enter)));
         assert!(
             !host
                 .menu
@@ -593,10 +577,7 @@ fn real_host_recovery_from_typing_and_settings_edit_preserves_text_and_paste() {
         host_key(&mut host, if settings { 'a' } else { '!' }, false);
         host.update(Event::Paste("_paste".into()));
         if settings {
-            host.update(Event::Key(KeyEvent::new(
-                KeyCode::Enter,
-                KeyModifiers::NONE,
-            )));
+            host.update(crate::key_event(Chord::new(Key::Enter)));
             assert_eq!(
                 host.plugins[0].config().unwrap()["base"].as_str(),
                 Some("basea_paste")

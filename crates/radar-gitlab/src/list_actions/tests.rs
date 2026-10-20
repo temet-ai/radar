@@ -5,7 +5,7 @@
 use radar_core::Plugin;
 use radar_core::host::Event;
 use radar_core::plugin::{Effect, Menu, Outcome, Pane};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::Host;
 
 use super::*;
@@ -71,11 +71,11 @@ fn repo_rows_show_the_default_branch_pipeline_without_repeating_its_name() {
     assert!(docs.contains("no recent run"), "{text}");
 }
 
-fn key_of(code: KeyCode) -> KeyEvent {
-    KeyEvent::new(code, KeyModifiers::NONE)
+fn key_of(code: Key) -> Chord {
+    Chord::new(code)
 }
 
-fn press_in(p: &mut GitlabPlugin, pane: Pane, code: KeyCode) -> Vec<Effect> {
+fn press_in(p: &mut GitlabPlugin, pane: Pane, code: Key) -> Vec<Effect> {
     match p.key("repos", pane, key_of(code)) {
         Outcome::Handled(fx) => fx,
         Outcome::Ignored => vec![],
@@ -83,7 +83,7 @@ fn press_in(p: &mut GitlabPlugin, pane: Pane, code: KeyCode) -> Vec<Effect> {
 }
 
 fn press(p: &mut GitlabPlugin, c: char) -> Vec<Effect> {
-    press_in(p, Pane::Middle, KeyCode::Char(c))
+    press_in(p, Pane::Middle, Key::Char(c))
 }
 
 /// The screen body, as view text.
@@ -356,10 +356,10 @@ fn the_keys_belong_to_a_merge_request_row_in_the_tree_or_its_preview_and_nowhere
     }
     select(&mut p, 410);
     // In the detail pane too, but not on the nav pane.
-    assert!(matches!(press_in(&mut p, Pane::Detail, KeyCode::Char('u'))[..], [Effect::Journal(_), Effect::Menu(_)]));
-    assert!(press_in(&mut p, Pane::Nav, KeyCode::Char('u')).is_empty());
+    assert!(matches!(press_in(&mut p, Pane::Detail, Key::Char('u'))[..], [Effect::Journal(_), Effect::Menu(_)]));
+    assert!(press_in(&mut p, Pane::Nav, Key::Char('u')).is_empty());
     // With a modifier it is not the key.
-    let ctrl = KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL);
+    let ctrl = Chord::ctrl('u');
     assert!(matches!(p.key("repos", Pane::Middle, ctrl), Outcome::Ignored));
     // `a` is still the authors.
     assert!(matches!(press(&mut p, 'a')[..], [Effect::Menu(_)]));
@@ -504,7 +504,7 @@ fn the_actions_menu_of_a_row() {
     select(&mut p, 410);
     let mut host = host_of(p, "");
     let _ = crate::tests::shown(&host, 160, 40);
-    host.update(Event::Key(key_of(KeyCode::Char('x'))));
+    host.update(crate::key_event(key_of(Key::Char('x'))));
     insta::assert_snapshot!(crate::tests::shown(&host, 160, 40));
 }
 

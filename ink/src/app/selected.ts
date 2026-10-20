@@ -18,7 +18,7 @@ export function paintSelection(output: string, width: number, sel: Selection, pl
     let to = memo.get(id);
     if (to === undefined) {
       const s = styleOf(id);
-      to = reverse ? styleId(s.fg, s.bg, s.attr | INVERSE) : styleId(s.fg, lit, s.attr);
+      to = reverse ? styleId(s.fg, s.bg, s.attr | INVERSE, s.link) : styleId(s.fg, lit, s.attr, s.link);
       memo.set(id, to);
     }
     return to;

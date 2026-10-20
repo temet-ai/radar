@@ -104,6 +104,8 @@ fn samples() -> (Vec<ToHost>, Vec<ToRenderer>) {
             .into(),
             icon_width: 1,
             pack: "unicode".into(),
+            hyperlinks: true,
+            pointer: false,
         })),
         ToRenderer::Snapshot(Box::new(Snapshot {
             motion: Default::default(),

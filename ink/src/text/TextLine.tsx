@@ -6,6 +6,7 @@ import { inkStyle, lookStyle, toneInk, type Style } from "./theme.js";
 import { bgOf, iconOf, slotStyle, specStyle } from "./look.js";
 import { withEmoji } from "./emoji.js";
 import { Rows, useBg } from "./cells.js";
+import { hyperlink } from "./link.js";
 import { chipRuns, chipText, chipWordStyle } from "./chips.js";
 
 /** The words a segment draws: its icon's glyph and/or its text. An icon with words is drawn bare (the words stand in
@@ -92,9 +93,9 @@ export function SegRun({ seg, plain }: { seg: Seg; plain?: boolean }) {
     // widgets::chip: ` words ` in the tone's colour on the overlay shade.
     return <InkText {...textProps(chipWordStyle(seg))}>{` ${words} `}</InkText>;
   }
-  // A link travels as an OSC 8 hyperlink in Ratatui, not as underlined text.
+  // A link travels as an OSC 8 hyperlink (text/link.ts), as in Ratatui, not as underlined text.
   return (
-    <InkText {...textProps(style, { inverse: seg.marked })}>{words}</InkText>
+    <InkText {...textProps(style, { inverse: seg.marked })}>{hyperlink(seg.link, words)}</InkText>
   );
 }
 
@@ -117,6 +118,7 @@ function fillLine(rows: Rows, text: Text, plain?: boolean) {
       rows.put(` ${words} `, style);
     } else {
       if (seg.marked) style = { ...style, inverse: true };
+      if (seg.link) style = { ...style, link: seg.link };
       rows.put(words, style);
     }
   }

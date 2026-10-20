@@ -18,6 +18,7 @@ vi.hoisted(() => {
   process.env.FORCE_COLOR = "3";
 });
 
+import { applyLook, defaultLook } from "../../src/text/look.js";
 import { Motion } from "../../src/motion/motion.js";
 import { noticePresentation } from "../../src/notices/paint.js";
 import { NOTICE_CASES, NOTICE_INVISIBLE } from "./cases-notices.js";
@@ -29,6 +30,9 @@ import { DOCK_CASES, DOCK_INVISIBLE, DOCK_KNOWN_UNDRAWN } from "./cases-dock.js"
 
 const W = 160;
 const H = 40;
+
+// Links as the setup in use writes them (Ghostty: OSC 8 on), so a link is part of the frame (Seg.link, ListRow.link).
+applyLook({ ...defaultLook(), hyperlinks: true });
 
 import type { Scene, Case } from "./cases-screen.js";
 

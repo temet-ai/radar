@@ -10,9 +10,10 @@ import React, {
 import { Box, measureElement, Text as InkText, type DOMElement } from "ink";
 import type { Block, Node, NodeContext, Text } from "./view.js";
 import { TextLine, SegRun, segWords, textProps } from "../text/TextLine.js";
+import { inkStyle } from "../text/theme.js";
 import { wrapWords } from "../text/wrap.js";
 import { cellWidth } from "../chrome/width.js";
-import { RichBlocks, RichBlockView } from "../text/RichDoc.js";
+import { docBlockRows } from "../text/richRows.js";
 import { DiffView } from "../text/DiffView.js";
 import { StateView } from "../text/StateView.js";
 import { EditorView, isEditorData } from "../editor/EditorView.js";
@@ -507,24 +508,13 @@ function BlockView({ block, ctx }: { block: Block; ctx: NodeContext }) {
       );
     }
     case "doc":
+      // view_tui rich_lines: the document laid out by ui::rich a column short of the room, the bar before each line,
+      // at most `most` lines then `…`, a link's address after its words unless `urls` is off.
       return (
-        <Box>
-          {block.bar ? (
-            <Box marginRight={1}>
-              <SegRun seg={block.bar} plain={ctx.plainText} />
-            </Box>
-          ) : null}
-          <Box flexDirection="column" flexGrow={1}>
-            <RichBlocks
-              blocks={block.doc}
-              plain={ctx.plainText}
-              width={Math.max(
-                1,
-                ctx.width -
-                  (block.bar ? cellWidth(segWords(block.bar)) + 1 : 0),
-              )}
-            />
-          </Box>
+        <Box flexDirection="column">
+          {docBlockRows(block, ctx.width, ctx.plainText, !ctx.sheet).map((r, i) => (
+            <CellLine key={i} cells={r} plain={ctx.plainText} />
+          ))}
         </Box>
       );
     case "meter":
@@ -546,7 +536,7 @@ function BlockView({ block, ctx }: { block: Block; ctx: NodeContext }) {
           ).map((line, i) => (
             <Box key={i}>
               <SegRun seg={block.prefix} plain={ctx.plainText} />
-              <InkText wrap="truncate">{line}</InkText>
+              <InkText wrap="truncate" {...(ctx.plainText ? {} : textProps(inkStyle(block.ink)))}>{line}</InkText>
             </Box>
           ))}
         </Box>

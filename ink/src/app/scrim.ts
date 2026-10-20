@@ -53,13 +53,13 @@ export function paintScrim(output: string, width: number, height: number, layer:
   const dim = memo((s) => {
     const attr = s.attr & ~BOLD;
     const c = colours(s, base, primary);
-    return c ? styleId(fgOf(mix(c[0], c[2], SCRIM_FG)), bgParamsOf(mix(c[1], c[2], SCRIM_BG)), attr) : styleId(s.fg, s.bg, attr | DIM);
+    return c ? styleId(fgOf(mix(c[0], c[2], SCRIM_FG)), bgParamsOf(mix(c[1], c[2], SCRIM_BG)), attr, s.link) : styleId(s.fg, s.bg, attr | DIM, s.link);
   });
   const shade = memo((s) => {
     const c = colours(s, base, primary);
     return c
-      ? styleId(fgOf(mix(c[0], c[2], SHADOW_FG)), bgParamsOf(mix(c[1], [0, 0, 0], SHADOW_BG)), s.attr)
-      : styleId(s.fg, mono ? s.bg : "40", s.attr | DIM);
+      ? styleId(fgOf(mix(c[0], c[2], SHADOW_FG)), bgParamsOf(mix(c[1], [0, 0, 0], SHADOW_BG)), s.attr, s.link)
+      : styleId(s.fg, mono ? s.bg : "40", s.attr | DIM, s.link);
   });
   const { x, y, w, h } = layer;
   let out = output;

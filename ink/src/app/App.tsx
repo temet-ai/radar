@@ -1,5 +1,6 @@
 import "./fast-output.js";
 import { hover } from "./hover.js";
+import { pointerShape } from "./pointer.js";
 import { EditorOverlay, editorOverlayHeight } from "../editor/EditorOverlay.js";
 import { isEditorData } from "../editor/EditorView.js";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -23,7 +24,7 @@ import { useSplashPicture } from "./splashPicture.js";
 import { SetupBody } from "./SetupBody.js";
 import { InputController, menuShowing, type InputView } from "../input/controller.js";
 import { WorkArea } from "../workarea/index.js";
-import { FrameRampOwnership, Framed, PageBody, PaneArea, ScreenPanes, share, paneTitle, type DockSlot } from "./Panes.js";
+import { FrameRampOwnership, Framed, PageBody, PaneArea, PaneFrame, ScreenPanes, share, paneTitle, type DockSlot } from "./Panes.js";
 import { splitDock } from "../dock/layout.js";
 import { Dock } from "../dock/Dock.js";
 import { TerminalSurface } from "../terminal/index.js";
@@ -165,6 +166,8 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
   // A capturing editor over the foot of the body (view_tui.rs draw_overlay).
   const overlayBody = snap?.screen?.overlay?.body;
   const editor = overlayBody?.node === "extension" && isEditorData(overlayBody.data) ? overlayBody.data : null;
+  // Any other overlay is a pane drawn over the foot of the body (draw_overlay): a third of its height, at least 5 rows.
+  const paneOverlay = snap?.screen?.overlay && !editor ? snap.screen.overlay : null;
   const capturing = !history && !noticeHistory && (!!state.inputRequest || menu?.typed != null || editor !== null);
 
   // Body hits are registered by node components while the frame renders; the controller reads
@@ -326,6 +329,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
       showSelection: (sel, dragging) => {
         selected.set(sel, session.plainText);
         setDragging(dragging);
+        pointerShape.drag(dragging);
       },
       wheel: (pane, up, x, y) => {
         // The history overlay is the host's: it takes the wheel as k/j (history.rs on_mouse).
@@ -406,6 +410,7 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
         // no React render.
         (hit) => hover.set(hit, session.plainText),
         (column, row) => session.sendPointer(column, row),
+        (shape) => pointerShape.set(shape),
       ),
     [view, session, ui],
   );
@@ -589,6 +594,11 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
             <EditorOverlay data={editor} width={size.columns} areaHeight={bodyH} registry={registry} />
           </Box>
         ) : null}
+        {paneOverlay && !history && !noticeHistory ? (
+          <Box position="absolute" marginTop={bodyH - paneOverlayHeight(bodyH)} width={size.columns}>
+            <PaneFrame pane={paneOverlay} width={size.columns} height={paneOverlayHeight(bodyH)} focused cx={cx} renderNode={renderNode} />
+          </Box>
+        ) : null}
         {shownChrome.tour ? <TourCardBox card={shownChrome.tour} width={size.columns} height={bodyH} plain={session.plainText} /> : null}
         {menu ? <MenuBox menu={menu} frame={frame} /> : null}
       </Box>
@@ -598,6 +608,9 @@ export function App({ session, ui: uiProp, registry: regProp, renderNode = shell
     </MotionSceneContext.Provider>
   );
 }
+
+/** view_tui.rs `draw_overlay` for any node but an editor: a third of the body's height, at least 5 rows, never more than it. */
+export const paneOverlayHeight = (areaHeight: number): number => Math.min(areaHeight, Math.max(5, Math.floor(areaHeight / 3)));
 
 type Metrics = { current: { max: number; total: number } };
 type DockOpts = { dockLocal: DockLocal; bus?: MouseBus; metrics: Metrics; menuOpen: boolean; leave: () => void; cx: NodeCx };

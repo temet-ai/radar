@@ -107,6 +107,8 @@ export function ListNode({
           left = [...left, ...d];
       }
       left = clipCells(left, room);
+      // A row about something with a link opens it (ui::link::line): its words carry the address.
+      if (r.link) left = left.map((c) => ({ ...c, s: { ...c.s, link: r.link! } }));
       let line = [...cellsOf(" "), ...left];
       if (rw > 0)
         line = [...padCells(line, Math.max(0, width - rw - 1)), ...right];

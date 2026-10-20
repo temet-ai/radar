@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 import { Box, type DOMElement } from "ink";
 import type { HitRegistry } from "../state/ui-state.js";
 import { Framed } from "../app/Panes.js";
-import { CellBlock, CellLine, padCells, cellsOf, type Cell } from "../text/cells.js";
+import { CellBlock, CellLine, padCells, cellsOf, clipCells, type Cell } from "../text/cells.js";
 
 /** A transcript row padded to the body's width, once per row and width (the rows come from dock/rows.ts's cache). */
 const padded = new WeakMap<Cell[], { width: number; row: Cell[] }>();
@@ -17,6 +17,7 @@ import { InputField } from "../editor/InputField.js";
 import { slotStyle } from "../text/look.js";
 import type { DockView } from "./model.js";
 import { activityCells, commandRows, pickerRows, spinAt, statusCells, tabRowCells, tabSpans, transcriptView } from "./rows.js";
+import { shortPaths } from "./tools.js";
 import { MENU_ROWS, dockHint, matchingCommands, menuWindow } from "./composer.js";
 
 /** The lines shown of a draft in `rows` rows (the ones around the caret) and the caret within its line, null elsewhere. */
@@ -169,7 +170,7 @@ export function Dock({
         {tab?.terminal ? (
           // The host has not given the terminal a socket yet (or a story draws it without one): say what runs.
           (tab.terminal.socket && terminal ? terminal(inner, bodyH + composerH, origin) : null) ?? (
-            <CellLine cells={padCells(cellsOf(` ${tab.terminal.command} · ${tab.terminal.state.state}`, slotStyle("text.muted")), inner)} plain={plain} />
+            <CellLine cells={padCells(clipCells(cellsOf(` ${[tab.terminal.command, shortPaths(tab.terminal.cwd, undefined, home), tab.terminal.state.state].filter(Boolean).join(" · ")}`, slotStyle("text.muted")), inner), inner)} plain={plain} />
           )
         ) : data.picker ? (
           pickerRows(data.picker, pick, inner, bodyH).map((r, i) => <CellLine key={i} cells={r} plain={plain} />)

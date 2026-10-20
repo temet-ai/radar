@@ -26,7 +26,7 @@ const joinedCells = (cell: string, w: number) => Math.max(w, graphemeCells(cell)
 
 type RadarRows = {
   cols: number[];
-  infos: Array<{ fg: string; bg: string; attr: number; sid?: number }>;
+  infos: Array<{ fg: string; bg: string; attr: number; link?: string; sid?: number }>;
   g: Array<[number, string, number]>;
 };
 type Clip = { x1?: number; x2?: number; y1?: number; y2?: number };
@@ -56,7 +56,18 @@ const ATTR_CODES: Array<[number, number]> = [
   [STRIKE, 9],
 ];
 
-type Sgr = { fg: string; bg: string; attr: number };
+/** A cell's style: colours, attributes, and the address it opens (an OSC 8 hyperlink; "" for none). A link travels
+ * with the style, as Ratatui's ui::link carries it in the cell, so clipping, the hover, the selection and the scrim keep
+ * it, and a row closes it where its cells end. */
+type Sgr = { fg: string; bg: string; attr: number; link?: string };
+
+/** `ESC ] 8 ; params ; url` (the text between `ESC ]` and its terminator) as the address it opens; undefined for any
+ * other OSC. */
+function oscLink(body: string): string | undefined {
+  if (!body.startsWith("8;")) return undefined;
+  const at = body.indexOf(";", 2);
+  return at < 0 ? undefined : body.slice(at + 1);
+}
 
 /** Apply the parameters of one `ESC [ ... m` to `s`. */
 const splitCache = new Map<string, string[]>();
@@ -113,7 +124,18 @@ const styleKey = new Map<string, number>([["||0", 0]]);
 const styles: Sgr[] = [{ fg: "", bg: "", attr: 0 }];
 const transitions = new Map<number, string>();
 const styleTree = new Map<string, Map<string, Map<number, number>>>();
-function styleId(fg: string, bg: string, attr: number): number {
+function styleId(fg: string, bg: string, attr: number, link = ""): number {
+  if (link !== "") {
+    // Linked cells are few: looked up by their whole key.
+    const key = `${fg}|${bg}|${attr}|${link}`;
+    let id = styleKey.get(key);
+    if (id === undefined) {
+      id = styles.length;
+      styles.push({ fg, bg, attr, link });
+      styleKey.set(key, id);
+    }
+    return id;
+  }
   let byBg = styleTree.get(fg);
   if (byBg === undefined) styleTree.set(fg, (byBg = new Map()));
   let byAttr = byBg.get(bg);
@@ -162,6 +184,8 @@ function transition(a: number, b: number): string {
   // Background first, then foreground: the order Ink writes them in.
   if (B.bg !== A.bg) code(B.bg === "" ? "49" : B.bg);
   if (B.fg !== A.fg) code(B.fg === "" ? "39" : B.fg);
+  // The link last: opened where it starts, closed where it ends (a row's end goes back to style 0).
+  if ((B.link ?? "") !== (A.link ?? "")) out += `\x1b]8;;${B.link ?? ""}\x1b\\`;
   transitions.set(k, out);
   return out;
 }
@@ -220,8 +244,8 @@ function decode(text: string, base: Sgr, rowsOf: RadarRows[] | undefined): Decod
         if (inf && r.cols[ri]! <= col)
           id =
             baseId === 0
-              ? (inf.sid ??= styleId(inf.fg, inf.bg, inf.attr))
-              : styleId(inf.fg || base.fg, inf.bg || base.bg, inf.attr | base.attr);
+              ? (inf.sid ??= styleId(inf.fg, inf.bg, inf.attr, inf.link))
+              : styleId(inf.fg || base.fg, inf.bg || base.bg, inf.attr | base.attr, inf.link);
         else id = baseId;
       }
     }
@@ -263,15 +287,20 @@ function decode(text: string, base: Sgr, rowsOf: RadarRows[] | undefined): Decod
         }
         if (text.charCodeAt(j) === 0x6d) {
           applySgr(text.slice(i + 2, j), st);
-          id = styleId(st.fg || base.fg, st.bg || base.bg, st.attr | base.attr);
+          id = styleId(st.fg || base.fg, st.bg || base.bg, st.attr | base.attr, st.link);
         }
         i = j + 1;
         continue;
       }
       if (next === 0x5d) {
-        // OSC: up to BEL or ESC \ (hyperlinks); dropped.
+        // OSC: up to BEL or ESC \. A hyperlink (OSC 8) goes into the style of the cells after it; any other is dropped.
         let j = i + 2;
         while (j < n && text.charCodeAt(j) !== 0x07 && !(text.charCodeAt(j) === 0x1b && text.charCodeAt(j + 1) === 0x5c)) j++;
+        const link = oscLink(text.slice(i + 2, j));
+        if (link !== undefined) {
+          st.link = link;
+          id = styleId(st.fg || base.fg, st.bg || base.bg, st.attr | base.attr, st.link);
+        }
         i = j + (text.charCodeAt(j) === 0x07 ? 1 : 2);
         continue;
       }
@@ -514,7 +543,7 @@ function parseRow(line: string, width: number): { chars: string[]; sty: Int32Arr
         }
         if (line.charCodeAt(j) === 0x6d) {
           applySgr(line.slice(i + 2, j), st);
-          id = styleId(st.fg, st.bg, st.attr);
+          id = styleId(st.fg, st.bg, st.attr, st.link);
         }
         i = j + 1;
         continue;
@@ -522,6 +551,11 @@ function parseRow(line: string, width: number): { chars: string[]; sty: Int32Arr
       if (next === 0x5d) {
         let j = i + 2;
         while (j < n && line.charCodeAt(j) !== 0x07 && !(line.charCodeAt(j) === 0x1b && line.charCodeAt(j + 1) === 0x5c)) j++;
+        const link = oscLink(line.slice(i + 2, j));
+        if (link !== undefined) {
+          st.link = link;
+          id = styleId(st.fg, st.bg, st.attr, st.link);
+        }
         i = j + (line.charCodeAt(j) === 0x07 ? 1 : 2);
         continue;
       }

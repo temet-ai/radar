@@ -91,13 +91,22 @@ const treeNarrow = (f: (n: any, on: boolean) => void): Case => (on) => {
   f(n, on);
   return sceneOf(screenOf([paneOf(n)]), [50, 24]);
 };
-/** A tree row in a room wide enough for chips (the renderer shows them from 100 cells). */
-const treeWide = (f: (r: any, on: boolean) => void, needle?: string): Case => (on) => {
+const treeRow = (f: (r: any, on: boolean) => void): Case => tree((n, on) => f(n.rows[1], on));
+/** A tree whose open root holds three blocks, so the band (every other block at the band level) has one to light. */
+const treeBanded = (look: (on: boolean) => any): Case => (on) => {
   const n = treeBase();
-  f(n.rows[1], on);
+  n.selected = ["b"];
+  n.rows[0]!.children = [{ id: "a1", name: t("achild") }, { id: "a2", name: t("asecond") }, { id: "a3", name: t("athird") }];
+  n.look = look(on);
+  return sceneOf(screenOf([paneOf(n)]));
+};
+/** A tree row with two name spans and chips after them, in a room wide enough for chips (from 100 cells). */
+const treeChips = (chips: (on: boolean) => any, needle?: string): Case => (on) => {
+  const n = treeBase();
+  n.rows[1].name = [{ text: "bravo-title-that-is-long" }, { text: " main" }];
+  n.rows[1].chips = chips(on);
   return { ...sceneOf(screenOf([paneOf(n)]), [240, 40]), needle };
 };
-const treeRow = (f: (r: any, on: boolean) => void): Case => tree((n, on) => f(n.rows[1], on));
 const list = (f: (n: any, on: boolean) => void): Case => node(listBase, f);
 const listRow = (f: (r: any, on: boolean) => void): Case => list((n, on) => f(n.rows[1], on));
 const table = (f: (n: any, on: boolean) => void): Case => node(tableBase, f);
@@ -159,8 +168,7 @@ export const SCREEN_CASES: Record<string, Case> = {
   "ScreenView.panes": (on) => sceneOf(screenOf(on ? [paneOf(doc("ZZPANE"))] : [])),
   "ScreenView.medium_from": (on) => sceneOf(screenOf([paneOf(doc("NAVPANE"), { pane: "nav", title: "NAV" }), paneOf(doc("MIDPANE"))], { medium_from: on ? 60 : 150 }), [100, 30]),
   "ScreenView.page": (on) => sceneOf(screenOf([paneOf(doc("UNDERPAGE"))], { page: on ? pageBase() : null })),
-  // Presence now suppresses the background focus ramp; the generic overlay's
-  // content is still missing. Test its text so the style change cannot hide that gap.
+  // A generic overlay is a titled pane over the foot of the body; its text must show, not only the focus ramp's change.
   "ScreenView.overlay": (on) => ({ ...sceneOf(screenOf([paneOf(doc("BODYUNDER"))], { overlay: on ? paneOf(doc("OVERLAYTEXT"), { title: "OVERLAY" }) : null })), needle: "OVERLAYTEXT" }),
 
   // Actions stay visible when the shell cannot draw a node.
@@ -188,7 +196,11 @@ export const SCREEN_CASES: Record<string, Case> = {
   "PaneView.fields": pane((p, on) => (p.fields = on ? [{ mark: "?", text: "ZZFIELD", hint: [] }] : [])),
   "PaneView.bottom_field": pane((p, on) => (p.bottom_field = on ? { mark: "?", text: "ZZBOTTOM", hint: [] } : null)),
   "PaneView.head": pane((p, on) => (p.head = on ? t("ZZHEAD") : null)),
-  "PaneView.from": (on) => sceneOf(screenOf([paneOf(doc("NAVPANE"), { pane: "nav", title: "NAV", from: on ? 150 : 60 }), paneOf(doc("MIDPANE"))]), [100, 30]),
+  // `from` holds on a page: the first pane is not drawn on a page narrower than it (view_tui render_page).
+  "PaneView.from": page((p, on) => {
+    p.panes = twoPanes();
+    p.panes[0].from = on ? 200 : 60;
+  }),
   "PaneView.notes_most": pane((p, on) => {
     p.notes = ["n1", "n2", "n3", "n4", "n5"].map((x) => t(`NOTE${x}`));
     p.notes_most = on ? 1 : null;
@@ -240,7 +252,11 @@ export const SCREEN_CASES: Record<string, Case> = {
   "ListRow.right": listRow((r, on) => (r.right = on ? t("ZZRIGHT") : null)),
   "ListRow.link": listRow((r, on) => (r.link = on ? "https://example.test/x" : null)),
   "ListRow.detail": listRow((r, on) => (r.detail = on ? t("ZZDETAIL") : null)),
-  "ListRow.heading": listRow((r, on) => (r.heading = on)),
+  // The cursor rests on the next row that is no heading, so a heading under the cursor moves it.
+  "ListRow.heading": list((n, on) => {
+    n.selected = 1;
+    n.rows[1].heading = on;
+  }),
 
   // Node.tree and what it holds
   "Tree.header": tree((n, on) => (n.header = on ? t("ZZHEADER") : [])),
@@ -248,17 +264,21 @@ export const SCREEN_CASES: Record<string, Case> = {
     n.columns = on ? [{ heading: "COLX", width: 10, keep: 0 }] : [];
     n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }];
   }),
+  // 47 cells of row, names of at least 20: own COLX and COLZ fit (20 + 20), the extra COLY does not fit beside them, so it
+  // is left out; fitted in declared order the lowest keep goes (the later of equals, COLZ) and COLY stays.
   "Tree.ordered_columns": treeNarrow((n, on) => {
-    n.columns = [{ heading: "COLX", width: 10, keep: 0 }, { heading: "COLY", width: 10, keep: 0 }];
-    n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }];
+    n.columns = [{ heading: "COLX", width: 10, keep: 0 }, { heading: "COLY", width: 10, keep: 0, extra: true }, { heading: "COLZ", width: 10, keep: 0 }];
+    n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }, { heading: "COLZ", text: t("cellz") }];
+    n.name_width = 20;
     n.ordered_columns = on;
   }),
   "Tree.rows": tree((n, on) => (n.rows = on ? n.rows : [])),
   "Tree.selected": tree((n, on) => (n.selected = on ? ["b"] : ["a"])),
   "Tree.open": tree((n, on) => (n.open = on ? [["a"]] : [])),
+  // Two columns of 18: both fit beside names of 8, with names of 30 the lower keep (COLX) goes.
   "Tree.name_width": treeNarrow((n, on) => {
-    n.columns = [{ heading: "COLX", width: 30, keep: 0 }];
-    n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }];
+    n.columns = [{ heading: "COLX", width: 18, keep: 0 }, { heading: "COLY", width: 18, keep: 1 }];
+    n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }];
     n.name_width = on ? 30 : 8;
   }),
   "Tree.look": tree((n, on) => (n.look = on ? { lines: "dots", band: "x", heading: "y", band_level: 1 } : null)),
@@ -277,15 +297,12 @@ export const SCREEN_CASES: Record<string, Case> = {
   "TreeEditing.at": tree((n, on) => (n.editing = { path: ["b"], at: on ? 3 : 0, text: "edit", caret: 1 })),
   "TreeEditing.text": tree((n, on) => (n.editing = { path: ["b"], at: 0, text: pick(on, "edit", "ZZEDIT"), caret: 1 })),
   "TreeEditing.caret": tree((n, on) => (n.editing = { path: ["b"], at: 0, text: "edit", caret: on ? 3 : 0 })),
-  "TreeLook.lines": tree((n, on) => (n.look = { lines: pick(on, "plain", "dots"), band: "x", heading: "y", band_level: 1 })),
-  "TreeLook.band": tree((n, on) => (n.look = { lines: "plain", band: pick(on, "x", "accent"), heading: "y", band_level: 1 })),
-  "TreeLook.heading": tree((n, on) => {
-    n.rows[1].heading = true;
-    n.look = { lines: "plain", band: "x", heading: pick(on, "y", "accent"), band_level: 1 };
-  }),
-  "TreeLook.band_level": tree((n, on) => (n.look = { lines: "plain", band: "accent", heading: "y", band_level: on ? 1 : 0 })),
+  // A look is slot names (Theme::spec); the lines are a foreground, the band and the heading shade backgrounds.
+  "TreeLook.lines": treeBanded((on) => ({ lines: pick(on, "text.muted", "status.error"), band: "bg.overlay", heading: "bg.overlay", band_level: 1 })),
+  "TreeLook.band": treeBanded((on) => ({ lines: "text.muted", band: pick(on, "bg.overlay", "bg.selection"), heading: "bg.surface", band_level: 1 })),
+  "TreeLook.heading": treeBanded((on) => ({ lines: "text.muted", band: "bg.overlay", heading: pick(on, "bg.overlay", "bg.selection"), band_level: 1 })),
+  "TreeLook.band_level": treeBanded((on) => ({ lines: "text.muted", band: "bg.selection", heading: "bg.surface", band_level: on ? 1 : 2 })),
   "TreeRow.name": treeRow((r, on) => (r.name = t(pick(on, "bravo", "ZZNAME")))),
-  "TreeRow.heading": treeRow((r, on) => (r.heading = on)),
   "TreeRow.cells": tree((n, on) => {
     n.columns = [{ heading: "COLX", width: 10, keep: 0 }];
     n.rows[1].cells = on ? [{ heading: "COLX", text: t("ZZCELL") }] : [];
@@ -296,11 +313,11 @@ export const SCREEN_CASES: Record<string, Case> = {
   }),
   // The open root and its descendant must both ignore this retained compatibility field (#45).
   "TreeRow.stripe": tree((n, on) => (n.rows[0].stripe = on ? "accent" : null)),
-  "TreeRow.chips": treeWide((r, on) => (r.chips = on ? { gives: 4, text: t("ZZCHIP") } : null), "ZZCHIP"),
-  "TreeRow.glow": treeRow((r, on) => (r.glow = on ? "accent" : null)),
+  "TreeRow.chips": treeChips((on) => (on ? { gives: 0, text: t("ZZCHIP") } : null), "ZZCHIP"),
   "TreeRow.detail": treeRow((r, on) => (r.detail = on ? t("ZZDETAIL") : null)),
-  "Chips.gives": treeWide((r, on) => (r.chips = { gives: on ? 12 : 4, text: t("chiptext") })),
-  "Chips.text": treeWide((r, on) => (r.chips = { gives: 8, text: t(pick(on, "chiptext", "ZZCHIP")) }), "ZZCHIP"),
+  // `gives` names the name span that gives way to the chips: span 0 is the title; none at 2, there are two spans
+  "Chips.gives": treeChips((on) => ({ gives: on ? 0 : 2, text: t("ZZCHIP") }), "ZZCHIP"),
+  "Chips.text": treeChips((on) => ({ gives: 0, text: t(pick(on, "chiptext", "ZZCHIP")) }), "ZZCHIP"),
   "ColumnSpec.heading": tree((n, on) => {
     n.columns = [{ heading: pick(on, "COLX", "ZZHEAD"), width: 10, keep: 0 }];
     n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }];
@@ -313,8 +330,9 @@ export const SCREEN_CASES: Record<string, Case> = {
   }),
   "ColumnSpec.icon": table((n, on) => (n.columns[0].icon = on ? "settings" : null)),
   "ColumnSpec.flex": table((n, on) => (n.columns[0].flex = on)),
+  // Fitted by keep COLZ stays (keep 5) and COLY goes; marked extra it is only added where it fits beside the part's own: not here.
   "ColumnSpec.extra": treeNarrow((n, on) => {
-    n.columns = [{ heading: "COLX", width: 12, keep: 0 }, { heading: "COLY", width: 12, keep: 0 }, { heading: "COLZ", width: 12, keep: 0, extra: on }];
+    n.columns = [{ heading: "COLX", width: 12, keep: 0 }, { heading: "COLY", width: 12, keep: 0 }, { heading: "COLZ", width: 12, keep: 5, extra: on }];
     n.rows[1].cells = [{ heading: "COLX", text: t("cellx") }, { heading: "COLY", text: t("celly") }, { heading: "COLZ", text: t("cellz") }];
     n.name_width = 20;
   }),
@@ -343,10 +361,11 @@ export const SCREEN_CASES: Record<string, Case> = {
   "EntryView.before": entries((n, on) => (n.rows[1].before = on ? [t("ZZBEFORE")] : [])),
   "EntryView.body": entries((n, on) => (n.rows[1].body = on ? [t("ZZBODY")] : [])),
   "Node.log.lines": log((n, on) => (n.lines = on ? n.lines : [])),
+  // The scrollbar on the pane's border: more rows held (30) than shown (3), the thumb where `top` is.
   "Node.log.top": log((n, on) => {
     n.lines = [0, 1, 2].map((i) => ({ text: t(`LOG${i}`), row: i, selected: false }));
-    n.total = 3;
-    n.top = on ? 2 : 0;
+    n.total = 30;
+    n.top = on ? 20 : 0;
   }),
   "Node.log.total": log((n, on) => (n.total = on ? 300 : 3)),
   "Node.log.empty": log((n, on) => {
@@ -354,14 +373,23 @@ export const SCREEN_CASES: Record<string, Case> = {
     n.empty = pick(on, "NOLOG", "ZZEMPTY");
   }),
   "LogPaintLine.text": log((n, on) => (n.lines[0].text = t(pick(on, "LOGONE", "ZZLOG")))),
-  "LogPaintLine.row": log((n, on) => (n.lines[0].row = on ? 5 : 0)),
+  // Lines of one row count once toward what is shown (a wrapped row), so the rows hidden are total less those.
+  "LogPaintLine.row": log((n, on) => {
+    n.lines = [0, 1, 2, 3].map((i) => ({ text: t(`LOG${i}`), row: on ? i : 0, selected: false }));
+    n.total = 8;
+    n.top = 4;
+  }),
   "LogPaintLine.selected": log((n, on) => (n.lines[0].selected = on)),
   "Node.diff.lines": diff((n, on) => (n.lines = on ? n.lines : [])),
   "Node.diff.under": diff((n, on) => (n.under = on ? [{ line: 1, lines: [t("ZZUNDER")] }] : [])),
   "Node.diff.selected": diff((n, on) => (n.selected = on ? 2 : 0)),
-  "Node.diff.top": diff((n, on) => (n.top = on ? 1 : 0)),
+  // The view scrolls to keep the cursor's line in sight, so the cursor sits where `top` decides: far down, a tall diff.
+  "Node.diff.top": diff((n, on) => {
+    n.lines = Array.from({ length: 80 }, (_, i) => ({ kind: "Context", old: i + 1, new: i + 1, text: `diffline${i}` }));
+    n.selected = 30;
+    n.top = on ? 20 : 0;
+  }),
   "Node.diff.split": diff((n, on) => (n.split = on)),
-  "Node.diff.language": diff((n, on) => (n.language = on ? "rust" : null)),
   "Node.diff.painted": diff((n, on) => (n.painted = on ? n.lines.map((l: any) => [{ text: String(l.text ?? ""), token: "keyword" }]) : [])),
   "Node.diff.words": diff((n, on) => (n.words = on ? n.lines.map(() => [[0, 3]]) : [])),
   "PaintRun.text": diff((n, on) => (n.painted = n.lines.map((l: any) => [{ text: on ? "ZZPAINT" : String(l.text ?? ""), token: "plain" }]))),
@@ -376,11 +404,11 @@ export const SCREEN_CASES: Record<string, Case> = {
   "DiffLine.text": diff((n, on) => (n.lines[2].text = pick(on, "new line", "ZZTEXT"))),
   "DiffUnder.line": diff((n, on) => (n.under = [{ line: on ? 2 : 1, lines: [t("underline")] }])),
   "DiffUnder.lines": diff((n, on) => (n.under = [{ line: 1, lines: on ? [t("underline")] : [] }])),
-  "DiffUnder.input": diff((n, on) => (n.under = [{ line: 1, lines: [], input: on ? { text: "ZZINPUT", caret: 1 } : null }])),
-  "InlineInput.text": diff((n, on) => (n.under = [{ line: 1, lines: [], input: { text: pick(on, "input", "ZZINPUT"), caret: 1 } }])),
-  "InlineInput.caret": diff((n, on) => (n.under = [{ line: 1, lines: [], input: { text: "input", caret: on ? 4 : 0 } }])),
-  "InlineInput.selection": diff((n, on) => (n.under = [{ line: 1, lines: [], input: { text: "input", caret: 2, selection: on ? [0, 3] : null } }])),
-  "Node.state.state": (on) => sceneOf(screenOf([paneOf({ node: "state", state: pick(on, "empty", "failed"), text: "statetext" })])),
+  // The field takes the block's last line (view_tui: the rect's last row), so the block holds one for it to stand on.
+  "DiffUnder.input": diff((n, on) => (n.under = [{ line: 1, lines: [t("underline")], input: on ? { text: "ZZINPUT", caret: 1 } : null }])),
+  "InlineInput.text": diff((n, on) => (n.under = [{ line: 1, lines: [t("underline")], input: { text: pick(on, "input", "ZZINPUT"), caret: 1 } }])),
+  "InlineInput.caret": diff((n, on) => (n.under = [{ line: 1, lines: [t("underline")], input: { text: "input", caret: on ? 4 : 0 } }])),
+  "InlineInput.selection": diff((n, on) => (n.under = [{ line: 1, lines: [t("underline")], input: { text: "input", caret: 2, selection: on ? [0, 3] : null } }])),
   "Node.state.text": (on) => sceneOf(screenOf([paneOf({ node: "state", state: "empty", text: pick(on, "statetext", "ZZSTATE") })])),
   "Node.extension.capability": (on) => sceneOf(screenOf([paneOf({ node: "extension", capability: pick(on, "zz.unknown", "zz.other"), version: 1, data: {}, fallback: doc("FALLBACK") })])),
   "Node.extension.fallback": (on) => sceneOf(screenOf([paneOf({ node: "extension", capability: "zz.unknown", version: 1, data: {}, fallback: doc(pick(on, "FALLBACK", "ZZFALLBACK")) })])),
@@ -408,7 +436,7 @@ export const SCREEN_CASES: Record<string, Case> = {
   "Block.wrapped.ink": (on) => sceneOf(screenOf([paneOf(richOf({ block: "wrapped", text: "wrapped", prefix: { text: "> " }, ink: pick(on, "plain", "bad") }))])),
   "MeterStage.name": (on) => sceneOf(screenOf([paneOf(richOf({ block: "meter", stages: [{ name: pick(on, "stage", "ZZSTAGE"), mark: "done", look: "good" }] }))])),
   "MeterStage.mark": (on) => sceneOf(screenOf([paneOf(richOf({ block: "meter", stages: [{ name: "stage", mark: pick(on, "done", "failed"), look: "good" }] }))])),
-  "MeterStage.look": (on) => sceneOf(screenOf([paneOf(richOf({ block: "meter", stages: [{ name: "stage", mark: "done", look: pick(on, "good", "bad") }] }))])),
+  "MeterStage.look": (on) => sceneOf(screenOf([paneOf(richOf({ block: "meter", stages: [{ name: "stage", mark: "done", look: pick(on, "status.success", "status.error") }] }))])),
 
   // RichBlock and what it holds
   "RichBlock.para.text": rich((on) => para([{ text: pick(on, "para", "ZZPARA") }])),
@@ -419,7 +447,6 @@ export const SCREEN_CASES: Record<string, Case> = {
   "RichBlock.callout.tone": rich((on) => ({ t: "callout", tone: pick(on, "plain", "bad"), blocks: [para([{ text: "callout" }])] })),
   "RichBlock.callout.symbol": rich((on) => ({ t: "callout", tone: "plain", symbol: on ? "Z" : undefined, blocks: [para([{ text: "callout" }])] })),
   "RichBlock.callout.blocks": rich((on) => ({ t: "callout", tone: "plain", blocks: on ? [para([{ text: "ZZCALLOUT" }])] : [] })),
-  "RichBlock.code.lang": rich((on) => ({ t: "code", lang: on ? "rust" : undefined, text: "let x = 1;" })),
   "RichBlock.code.text": rich((on) => ({ t: "code", text: pick(on, "let x = 1;", "ZZCODE") })),
   "RichBlock.table.aligns": rich((on) => ({ t: "table", aligns: on ? ["right", "right"] : undefined, head: [[{ text: "HEADERLONGA" }], [{ text: "HEADERLONGB" }]], rows: [[[{ text: "ca" }], [{ text: "cb" }]]] })),
   "RichBlock.table.head": rich((on) => ({ t: "table", head: on ? [[{ text: "ZZHEAD" }]] : undefined, rows: [[[{ text: "ca" }]]] })),
@@ -443,7 +470,6 @@ export const SCREEN_CASES: Record<string, Case> = {
   "InlineKind.link.url": inline((i, on) => (i.kind = { link: { url: pick(on, "https://example.test/a", "https://example.test/b") } })),
   "InlineKind.mention.me": inline((i, on) => (i.kind = { mention: { me: on } })),
   "InlineKind.badge.tone": inline((i, on) => (i.kind = { badge: { tone: pick(on, "plain", "bad") } })),
-  "InlineKind.image.src": inline((i, on) => (i.kind = { image: { src: pick(on, "/a.png", "/b.png") } })),
 
   // Seg
   "Seg.text": seg((s, on) => (s.text = pick(on, "segtext", "ZZSEG"))),
@@ -457,7 +483,7 @@ export const SCREEN_CASES: Record<string, Case> = {
     s.icon_lead = on;
   }),
   "Seg.link": seg((s, on) => (s.link = on ? "https://example.test/x" : null)),
-  "Seg.look": seg((s, on) => (s.look = on ? "bad" : null)),
+  "Seg.look": seg((s, on) => (s.look = on ? "status.error" : null)),
   "Seg.chip": seg((s, on) => (s.chip = on)),
 
   // What the session sends outside a snapshot
@@ -473,6 +499,12 @@ export const SCREEN_CASES: Record<string, Case> = {
 
 /** Fields that carry no drawing, each with its reason. */
 export const SCREEN_INVISIBLE: Record<string, string> = {
+  "Node.state.state": "Ratatui draws every state as widgets::empty (the icon and the words, muted); a loading one also marks its panel for the shimmer (motion/node-marks.ts, test/motion/fixtures.test.ts), which is no cell of a settled frame",
+  "TreeRow.glow": "Ratatui marks the row for the change glow (motion::row), an effect over a settled frame (motion/node-marks.ts, test/motion/fixtures.test.ts)",
+  "TreeRow.heading": "a heading row has no press target and the host never selects it; its cells are drawn as any row's (ui::tree has no heading look); nodes/hits.tsx, test/nodes/hits.test.tsx",
+  "RichBlock.code.lang": "ui::rich lays a code block out without a language label or colours (ui/rich.rs `code`); Ratatui and Ink both draw its lines alone",
+  "Node.diff.language": "the host highlights by it and sends `painted` (Node.diff.painted, drawn); Ink has no grammars",
+  "InlineKind.image.src": "ui::rich draws an inline image as its words, muted, and fetches src only for a picture, which comes after the Ratatui removal (#14)",
   "ScreenView.version": "view contract version",
   "ScreenView.scope": "the screen's id; the chrome's status chip carries the name shown",
   "ScreenView.actions": "the actions menu is the host's MenuView; these rows only name the keys (input tests)",
@@ -515,44 +547,10 @@ export const SCREEN_INVISIBLE: Record<string, string> = {
 };
 
 /**
- * Fields the renderer does not draw yet (live defects the contract found): the field, why, and the owning
- * task. Each case asserts the frame is still unchanged, so the entry goes red, saying "now drawn", when fixed.
- * T11 owns ink/src/nodes, ink/src/text and ink/src/app/Panes.tsx; T12 ink/src/workarea and ink/src/media.
+ * Fields the renderer does not draw yet (live defects the contract found): the field and why. Each case asserts the
+ * frame is still unchanged, so the entry goes red, saying "now drawn", when fixed.
  */
 export const SCREEN_KNOWN_UNDRAWN: Record<string, string> = {
-  "Node.state.state": "T11: a state node looks the same whether empty or failed (it differed at e24c123: regressed; nodes/index.tsx state)",
-  "Tree.ordered_columns": "T11: no frame difference with columns declared in order, in a 50-column room (nodes/columns.ts); T11 to confirm or fix",
-  "Tree.name_width": "T11: no frame difference when name_width forces a column to drop, in a 50-column room (nodes/tree.tsx); T11 to confirm or fix",
-  "ColumnSpec.extra": "T11: no frame difference when a column is marked extra, in a 50-column room (nodes/columns.ts); T11 to confirm or fix",
-  "ListRow.heading": "T11: a list row's heading look is not drawn (it was, at e24c123: regressed; nodes/lists.tsx)",
-  "TreeRow.heading": "T11: a tree row's heading look is not drawn (it was, at e24c123: regressed; nodes/tree.tsx)",
-  "Node.diff.top": "T11: a diff's scroll offset no longer changes the frame (it did at e24c123: regressed; text/DiffView.tsx)",
-  "DiffUnder.input": "T11: an inline input under a diff line is not drawn (it was at e24c123: regressed; text/DiffView.tsx)",
-  "InlineInput.text": "T11: an inline input under a diff line is not drawn (it was at e24c123: regressed; text/DiffView.tsx)",
-  "InlineInput.caret": "T11: an inline input under a diff line is not drawn (it was at e24c123: regressed; text/DiffView.tsx)",
-  "InlineInput.selection": "T8: an inline input under a diff line is not drawn, so neither is its selection (text/DiffView.tsx)",
-  "Seg.link": "T11: a link segment is not drawn differently (underline, it was at e24c123: regressed; text/TextLine.tsx)",
-  "Seg.look": "T11: a segment's look is not applied (it was at e24c123: regressed; text/TextLine.tsx)",
-  "TreeRow.chips": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
-  "Chips.text": "T11: a row's chips text never appears, at 160 or 240 columns (nodes/tree.tsx)",
-  "PaneView.from": "T11: a pane's `from` (the width it shows from) is not applied (app/Panes.tsx)",
-  "ScreenView.overlay": "T11: generic overlay content is not drawn; overlay presence does suppress the background focus ramp (recognized editor overlays are supported)",
-  "ListRow.link": "T11: a list row's link is not drawn (nodes/lists.tsx)",
-  "TreeLook.lines": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",
-  "TreeLook.band": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",
-  "TreeLook.heading": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",
-  "TreeLook.band_level": "T11: the tree's look (TreeLook) is not read by nodes/tree.tsx",
-  "TreeRow.glow": "T11: a tree row's glow is not drawn (nodes/tree.tsx)",
-  "Chips.gives": "T11: a row's chips are drawn but never sized by how many cells they give up (nodes/tree.tsx)",
-  "Node.log.top": "T11: a log's scroll offset is not drawn (nodes/index.tsx log)",
-  "LogPaintLine.row": "T11: a log line's row number is not drawn",
-  "Node.diff.language": "T11: a diff's language (highlighting) is not applied (text/DiffView.tsx)",
-  "Node.rich.pictures": "T12: a rich node's picture protocol is not read (media is capability-graded elsewhere)",
-  "Block.doc.most": "T11: a doc block's line cap is not applied (text/RichDoc.tsx)",
-  "Block.doc.urls": "T11: a doc block's urls flag is not applied (text/RichDoc.tsx)",
-  "Block.wrapped.ink": "T11: a wrapped block's ink slot is not applied (nodes/index.tsx)",
-  "MeterStage.look": "T11: a meter stage's look is not applied (nodes/index.tsx)",
-  "Media.src": "T12: a media item's source is not drawn unless the image path takes it (media/MediaSurface.tsx)",
-  "InlineKind.link.url": "T11: an inline link's address is not shown (underline only) (text/RichDoc.tsx)",
-  "InlineKind.image.src": "T11: an inline image's source is not shown (text/RichDoc.tsx)",
+  "Node.rich.pictures": "pictures come after the Ratatui removal (#14): a picture needs the picture protocol (media/kitty.ts), and the host's bytes",
+  "Media.src": "pictures come after the Ratatui removal (#14): src is what a picture fetches; without one the line `▣ image <name>  <url>` is drawn from name and url",
 };

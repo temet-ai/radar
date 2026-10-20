@@ -20,6 +20,8 @@ interface Pane {
   body: Node;
   head?: unknown;
   notes?: unknown[];
+  /** The settings sheet's detail (NodeContext.sheet): a link's address is not written after its words there. */
+  sheet?: boolean;
 }
 
 /** Every pane (title + body) a view holds, in reading order. */
@@ -35,7 +37,7 @@ export function panesOf(view: any): Pane[] {
     out.push({ title: "settings", body: view.body });
     const detail = (view.detail ?? []) as unknown[];
     out.push({ title: String(view.detail_title), body: { node: "document", lines: detail } as Node });
-    if ((view.detail_blocks ?? []).length) out.push({ title: "detail", body: { node: "rich", blocks: view.detail_blocks } as Node });
+    if ((view.detail_blocks ?? []).length) out.push({ title: "detail", body: { node: "rich", blocks: view.detail_blocks } as Node, sheet: true });
   }
   return out;
 }
@@ -46,7 +48,7 @@ function Fixture({ view, width, height }: { view: unknown; width: number; height
       {panesOf(view).map((p, i) => (
         <Box key={i} flexDirection="column" marginBottom={1}>
           <Text bold>{`── ${p.title} ──`}</Text>
-          {renderNode(p.body, { width, height, focused: true })}
+          {renderNode(p.body, { width, height, focused: true, sheet: p.sheet })}
         </Box>
       ))}
     </Box>

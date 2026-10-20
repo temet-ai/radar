@@ -34,12 +34,12 @@ const SIZES: Array<[number, number]> = [
 
 const plain = (frame: string) => parseAnsi(frame).map((row) => row.map((c) => c.ch).join("").trimEnd());
 
-async function draw(name: string, cols: number, rows: number) {
+async function draw(name: string, cols: number, rows: number, dock = STATES[name]) {
   const m = mount(cols, rows);
   live.push(m.stop);
   m.welcome();
   const chrome = viewOnlyChrome(cols, rows);
-  const screen = { ...load(`gitlab_repos_${cols}x${rows}.json`), dock: STATES[name] };
+  const screen = { ...load(`gitlab_repos_${cols}x${rows}.json`), dock };
   m.snapshot({ chrome, screen }, 1);
   await tick(40);
   return { m, frame: m.frame(), rows: plain(m.frame()) };
@@ -76,6 +76,24 @@ describe("the dock, every state, both sizes", () => {
     expect(text).toContain("cargo test -p radar-core --no-fail-fast");
     expect(text).toContain("approve once  approve for session  deny  view diff");
   });
+
+  // A terminal tab the host has given no socket yet draws what runs: the command, the directory (home as `~`), the state.
+  for (const [cols, rows] of SIZES) {
+    it(`a terminal tab without a socket names its command, directory and state at ${cols}x${rows}`, async () => {
+      const home = process.env.HOME;
+      process.env.HOME = "/home/vimes";
+      try {
+        const pty = STATES.pty!;
+        const tab = pty.tabs[0]!;
+        const bare = { ...pty, tabs: [{ ...tab, terminal: { ...tab.terminal!, socket: "", cwd: "/home/vimes/projects/radar" } }] };
+        const d = await draw("pty", cols, rows, bare);
+        expect(d.rows.join("\n")).toContain("codex login · ~/projects/radar · running");
+      } finally {
+        if (home === undefined) delete process.env.HOME;
+        else process.env.HOME = home;
+      }
+    });
+  }
 
   it("hidden dock draws nothing", async () => {
     const m = mount(160, 40);

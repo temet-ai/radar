@@ -2840,8 +2840,8 @@ exports[`recorded view fixtures through the whole App > slack_settings-review_16
 │                      ││                                                                                ││ team                                               │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ WITH A SAMPLE MERGE REQUEST                        │
-│                      ││                                                                                ││ @review-squad :gitlab: mr Add a stats endpoint for │
-│                      ││                                                                                ││ the dashboard                                      │
+│                      ││                                                                                ││ @review-squad :gitlab: mr Add a stats endpoint     │
+│                      ││                                                                                ││ for the dashboard                                  │
 │                      ││                                                                                ││                                                    │
 │                      ││                                                                                ││ WITH TWO                                           │
 │                      ││                                                                                ││ @review-squad :gitlab:                             │

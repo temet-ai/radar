@@ -1,9 +1,12 @@
-import type { Inline, RichBlock, Tone } from "../nodes/view.js";
-import { cellsOf, type Cell } from "./cells.js";
+import type { Block, Inline, RichBlock, Tone } from "../nodes/view.js";
+import { cellsOf, lineCells, widthOfCells, type Cell } from "./cells.js";
 import { chipWordStyle } from "./chips.js";
 import { tokenStyle, type PaintRun } from "./DiffView.js";
 import { emojiOf } from "./emoji.js";
-import { slotStyle, type Style } from "./look.js";
+import { currentLook, slotStyle, type Style } from "./look.js";
+
+/** Links are written as OSC 8 here (Look.hyperlinks): the words open the address, which is then not repeated. */
+const linksOn = () => currentLook().hyperlinks ?? false;
 import { toneInk } from "./theme.js";
 import { textPieces, trimPieces, wrapPieces, type Piece } from "./wrap.js";
 import { cellWidth } from "../chrome/width.js";
@@ -133,7 +136,7 @@ class Lay {
     if (i.marks?.code) s = l.code;
     const k = i.kind ?? "text";
     if (typeof k === "object") {
-      if ("link" in k) s = l.link;
+      if ("link" in k) s = { ...l.link, link: k.link.url };
       else if ("mention" in k) s = k.mention.me ? l.me : l.mention;
       else if ("image" in k) s = l.muted;
       else if ("badge" in k) s = chipWordStyle({ text: i.text, ink: toneInk(k.badge.tone), chip: true });
@@ -419,7 +422,7 @@ class Lay {
 }
 
 /** A document laid out `width` cells wide, as ui::rich::layout lays it out (with link addresses shown). */
-export function docRows(blocks: RichBlock[], width: number, painted: PaintRun[][][] = [], urls = true): Cell[][] {
+export function docRows(blocks: RichBlock[], width: number, painted: PaintRun[][][] = [], urls = !linksOn()): Cell[][] {
   const l = new Lay(lookNow(), Math.max(1, width), painted, urls);
   l.blocks(blocks);
   return l.finish();
@@ -427,3 +430,14 @@ export function docRows(blocks: RichBlock[], width: number, painted: PaintRun[][
 
 /** The rows' text, a line each (tests). */
 export const rowsText = (rows: Cell[][]): string[] => rows.map((r) => r.map((c) => c.ch).join(""));
+
+/** view_tui rich_lines, a `doc` block: the document laid out a column short of the room the block has and the bar
+ * before every line; at most `most` lines, then a muted `…`. The block's `urls` falls to `urls`: the address follows
+ * the words where links are not written as OSC 8 (Ratatui's `!link::on()`), never on the settings sheet (shell.rs
+ * gives it `false`). */
+export function docBlockRows(block: Extract<Block, { block: "doc" }>, room: number, plain = false, urls = true): Cell[][] {
+  const bar = block.bar ? lineCells([block.bar], plain) : [];
+  let made = docRows(block.doc as RichBlock[], Math.max(1, room - 1 - widthOfCells(bar)), [], block.urls ?? (urls && !linksOn()));
+  if (block.most != null && made.length > block.most) made = [...made.slice(0, block.most), cellsOf("\u2026", plain ? {} : slotStyle("text.muted"))];
+  return bar.length ? made.map((row) => [...bar, ...row]) : made;
+}

@@ -107,7 +107,7 @@ Those two lists are the live parity backlog.
 | `MenuView`, `Choice` | `shell/menu.rs` | `chrome/layout.ts` `layoutMenu`, `Chrome.tsx` `MenuBox` | `change` deliberately undrawn |
 | `SettingsNav` | `shell::settings` | `chrome/layout.ts` `layoutNav` | none known |
 | `HistoryView` | `history.rs` | `chrome/history.ts` | `pending` deliberately undrawn |
-| `Text`, `Seg`, `Ink`, `Tone` | `view_tui::span`, `words`, `slot` | `text/TextLine.tsx`, `text/cells.tsx` | `marked`, `link`, `look` listed undrawn; may be stale (text tests cover them) |
+| `Text`, `Seg`, `Ink`, `Tone` | `view_tui::span`, `words`, `slot` | `text/TextLine.tsx`, `text/cells.tsx` | `link` listed undrawn (OSC 8 only); `marked` and `look` are drawn |
 | `Media` | `ui::rich::media`, `ui::image` | `media/MediaBlock.tsx` (fallback line only; kitty drawer not wired) | pictures: #38 |
 
 Ink draws a few things that have no view type behind them: scrollbars and scroll state,
@@ -210,16 +210,16 @@ with `RADAR_NOTICE_CELLS_DIR`; snapshots still require review before acceptance.
 | `widgets::chip` | widgets.rs / `text/chips.ts` | A label on its tone's tint | by tone; the ground is the tone 16% over BgOverlay in truecolour (`chip_ground`, #30), the flat BgOverlay on 256, 16 and mono | tone + BgOverlay | ` text ` | Card, Tones |
 | `widgets::key_hint` | widgets.rs / `text/mnemonic.ts` | Host-positioned underlined letter inside the action word | Unicode graphemes, explicit Shift for uppercase, named/glyph/numeric prefixes; invalid legacy metadata retains its key (#44) | TextMuted underline; AccentSecondary b for explicit prefixes | | gallery footer |
 | `widgets::row`, `row_style` | widgets.rs | Selected row with a right-hand word | selected focused or unfocused, plain | see drift 6.2 | | |
-| `widgets::Button`, `buttons` | widgets.rs | Three-row raised button row | focused, unfocused, muted, icon | AccentPrimary, BgSelection, BgBase | `▔ ▁` | **missing** |
+| `widgets::Button`, `buttons` | widgets.rs / `chrome/layout.ts` (a question's choices) | Three-row raised button row | focused, unfocused, muted, icon | AccentPrimary, BgSelection, BgBase | `▔ ▁` | **missing** |
 | `widgets::kv`, `empty`, `paragraph`, `padded` | widgets.rs | Small helpers | | | | |
 | `design::select` | design/select.rs | Row selection styles, no glyphs | focused: TextEmphasis on BgSelection, bold; unfocused: TextPrimary on BgOverlay; Mono adds underline | | none | |
 | `design::theme`, `theme::Theme` | design/theme/, theme.rs | Slot palette, tiers, style specs | TrueColor, 256, Ansi16, Mono | all slots | | Colours |
 | `design::help_bar::KeyHint` | design/help_bar.rs | (keys, action) data | | | | |
 | `input::TextInput` | input.rs | One-row editable field | | BgOverlay, TextEmphasis | reversed block caret | Grid states |
 | `Icon`, `icon::*` | ui/icon.rs | Semantic icons and packs | nerd, unicode, emoji, off | icon's own slot | from pack | Icons |
-| `hover::paint` | ui/hover.rs | Lights what the pointer is over | BgHover, or underline on Ansi16 and Mono | BgHover | | **missing** |
+| `hover::paint` | ui/hover.rs / `app/hover.ts` | Lights what the pointer is over, painted over the finished frame | BgHover, or underline on Ansi16 and Mono | BgHover | | **missing** |
 | `scrim::scrim`, `scrim::shadow` | ui/scrim.rs / `app/scrim.ts` | Dims the screen behind a menu, question or help; a one-cell shadow right of and below the box, glyphs kept | truecolour: fg 55%, bg 43% toward BgBase, bold off; shadow bg 60% toward black, fg 45% toward BgBase. 256/16: SGR dim, shadow on black. Mono: dim | BgBase, TextPrimary | | none (Storybook Design/Surfaces, Overlays) |
-| `link`, `pointer` | ui/link.rs, ui/pointer.rs | OSC 8 links, OSC 22 pointer shape | on, off, detect | | | **missing** |
+| `link`, `pointer` | ui/link.rs, ui/pointer.rs / `text/link.ts`, `app/pointer.ts` | OSC 8 links (the address rides in the cells' style through `app/fast-output.ts`), OSC 22 pointer shape (hand over a target, text over selectable text and while a drag selects); the host decides both per terminal and sends them in `Look.hyperlinks`, `Look.pointer` | on, off, detect | | | **missing** |
 | Text helpers `width`, `take`, `pad`, `fit`, `clip`, `wrapped`, `duration`, `short_name` | ui/mod.rs | Display-cell string handling | | | | Long text |
 | `Mark` | ui/mod.rs | Run-state symbol and icon | Done, Failed, Running, Waiting, Manual, Stopped, Skipped | via Tone | `✓ ✗ ● ◷ ▷ ⊘ »` | Tones |
 
@@ -353,11 +353,16 @@ Found by inventory on 13 October 2026. Each item is a defect against the rules a
 13. **GUIDE names that no longer exist**: GUIDE 2.1 and 2.2 cite `shell::hints`;
     the work is in `status_line` and `key_hits`.
 14. **Dead ratatui render in a part**: `radar-workspace/src/screen.rs` (`#[allow(dead_code)]`).
-15. **`KNOWN_UNDRAWN` entries that may be stale**: `SCREEN_KNOWN_UNDRAWN` holds 27 fields
-    today (state nodes, tree look and chips, `heading`, `Seg.marked`, `Seg.link`, `Seg.look`,
-    `PaneView.from`, `ScreenView.overlay`, inline inputs under a diff, `TerminalState.exited.code`, ...);
-    `DOCK_KNOWN_UNDRAWN` holds `DockTab.provider` and `TerminalView.cwd`. Each goes red with
-    "now drawn" when fixed. Check each against its renderer and remove the ones already drawn.
+15. **`KNOWN_UNDRAWN` entries**: `SCREEN_KNOWN_UNDRAWN` holds `Seg.link` and `ListRow.link` (Ratatui writes a
+    link as an OSC 8 hyperlink and its native cells carry no underline, so Ink has no look of its own until it
+    writes OSC 8 too), and `Node.rich.pictures` and `Media.src` (pictures come after the Ratatui removal, #14; without
+    one the line `▣ image <name>  <url>` is drawn). `DOCK_KNOWN_UNDRAWN` holds `DockTab.provider` (the host will stop
+    sending it). Each goes red with "now drawn" when fixed. The other fields the contract once listed are drawn, or
+    are in `SCREEN_INVISIBLE` with their reason (a motion mark: `Node.state.state` loading and `TreeRow.glow`; hit
+    only: `TreeRow.heading`; the host's: `Node.diff.language`; not drawn by `ui::rich` either: `RichBlock.code.lang`,
+    `InlineKind.image.src`).
+    Known drift found on the way: a tree's `Tree.note` is one line with `… ` or `✗ ` marks in Ink, and
+    `widgets::empty` over three rows in Ratatui, whatever its state; a log's `n–m of total` line has no Ratatui twin.
 
 ---
 

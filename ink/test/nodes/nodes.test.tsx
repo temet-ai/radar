@@ -57,10 +57,10 @@ describe("one test per node variant (hand-written minimal nodes)", () => {
         { block: "line", text: t("Title") },
         {
           block: "doc",
-          bar: { text: "│", ink: "muted" },
+          bar: { text: "│ ", ink: "muted" }, // the bar carries its own gap (view_tui inserts it before each line as it is)
           doc: [
             { t: "heading", level: 2, text: [{ text: "Plan" }] },
-            { t: "para", text: [{ text: "Do " }, { text: "this", marks: { bold: true } }, { text: " :tada:", kind: "text" }] },
+            { t: "para", text: [{ text: "Do " }, { text: "this", marks: { bold: true } }, { text: " " }, { text: ":tada:", kind: "emoji" }] },
             { t: "list", items: [{ marker: "bullet", blocks: [{ t: "para", text: [{ text: "one" }] }] }, { marker: { number: 2 }, blocks: [{ t: "para", text: [{ text: "two" }] }] }] },
             { t: "code", lang: "rs", text: "let x = 1;" },
           ],

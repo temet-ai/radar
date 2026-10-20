@@ -272,9 +272,16 @@ impl Bridge {
         self.held = None;
     }
 
-    /// The look the renderer is sent: the host's theme at this tier.
+    /// The look the renderer is sent: the host's theme at this tier, and
+    /// whether links and the pointer's shape are written here.
     pub fn look(&self) -> Look {
-        Look::of(&self.host.build_theme(self.tier))
+        let cfg = &self.host.colours.cfg;
+        let var = |k: &str| std::env::var(k).ok();
+        Look {
+            hyperlinks: crate::ui::link::wanted(&cfg.hyperlinks, &var),
+            pointer: crate::ui::pointer::wanted(&cfg.pointer, &var),
+            ..Look::of(&self.host.build_theme(self.tier))
+        }
     }
 
     pub fn host(&self) -> &Host {

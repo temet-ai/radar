@@ -29,7 +29,7 @@ export function paintHover(output: string, width: number, rect: HoverRect, plain
     let to = memo.get(id);
     if (to === undefined) {
       const s = styleOf(id);
-      to = keep.has(s.bg) ? id : underline ? styleId(s.fg, s.bg, s.attr | UNDERLINE) : styleId(s.fg, lit, s.attr);
+      to = keep.has(s.bg) ? id : underline ? styleId(s.fg, s.bg, s.attr | UNDERLINE, s.link) : styleId(s.fg, lit, s.attr, s.link);
       memo.set(id, to);
     }
     return to;

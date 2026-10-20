@@ -13,6 +13,10 @@ export interface Look {
   modifiers?: Readonly<Record<string, string>>;
   /** Cells a glyph takes (0 = icons off, 1, or 2 for emoji). */
   iconWidth: number;
+  /** Links are written as OSC 8 hyperlinks (the host decides, from `[theme] hyperlinks` and the terminal). */
+  hyperlinks?: boolean;
+  /** The pointer's shape follows what it is over, by OSC 22 (`[theme] pointer`). */
+  pointer?: boolean;
 }
 
 /** The host's `look` message (snake_case, ts-rs) as this module holds it. */
@@ -22,6 +26,8 @@ export interface HostLook {
   modifiers?: Record<string, string>;
   icons: Record<string, { glyph: string; style: string }>;
   icon_width: number;
+  hyperlinks?: boolean;
+  pointer?: boolean;
 }
 export function applyHostLook(l: HostLook) {
   applyLook({
@@ -30,6 +36,8 @@ export function applyHostLook(l: HostLook) {
     modifiers: l.modifiers,
     icons: l.icons,
     iconWidth: l.icon_width,
+    hyperlinks: l.hyperlinks ?? false,
+    pointer: l.pointer ?? false,
   });
 }
 
@@ -68,6 +76,8 @@ export interface Style {
   underline?: boolean;
   inverse?: boolean;
   strike?: boolean;
+  /** The address the words open (OSC 8, text/link.ts): written only where the host turned links on. */
+  link?: string;
 }
 
 /** Theme::style: a slot's own style (the colour, and the modifiers the slot carries); an unknown name is

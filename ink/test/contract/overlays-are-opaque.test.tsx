@@ -228,3 +228,22 @@ describe("the session's own transient states keep the body out of their rows", (
     });
   }
 });
+
+describe("a generic overlay (any node but an editor) is a titled pane over the foot of the body", () => {
+  for (const [w, h] of SIZES) {
+    it(`at ${w}x${h}: a third of the body, at least 5 rows, none of the list inside it`, async () => {
+      const screen = { ...listScreen(h, w), overlay: { pane: "middle", title: "OVERLAYPANE", body: { node: "document", lines: [[{ text: "overlay words" }]] } } };
+      const m = await frameWith(w, h, {}, screen);
+      const lines = m.lines();
+      const top = lines.findIndex((l) => l.includes("OVERLAYPANE"));
+      expect(top, "the overlay's title is on screen").toBeGreaterThan(0);
+      expect(lines.join("\n")).toContain("overlay words");
+      // the body is the frame less the top bar and the status line
+      const body = h - 2;
+      const rows = Math.min(body, Math.max(5, Math.floor(body / 3)));
+      const bottom = lines.findIndex((l, i) => i > top && l.includes("╰"));
+      expect(bottom - top + 1, "its height").toBe(rows);
+      lines.slice(top + 1, bottom).forEach((l, i) => expect(l, `overlay row ${i}`).not.toMatch(SENTINEL));
+    });
+  }
+});

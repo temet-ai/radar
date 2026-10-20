@@ -5,6 +5,7 @@ import { App } from "./App.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
 import { Session, capabilitiesFrom, EXIT_ERROR, EXIT_NO_SOCKET } from "./session.js";
 import { Terminal } from "./terminal.js";
+import { pointerShape } from "./pointer.js";
 import { RENDER_OPTIONS } from "./render-options.js";
 import { MouseBus, tapMouse } from "../input/stdin-tap.js";
 import { routeHerdrRightClick } from "../input/mouse.js";
@@ -32,6 +33,7 @@ export async function run(env: NodeJS.ProcessEnv = process.env): Promise<never> 
       try {
         instance?.unmount();
       } catch {}
+      pointerShape.restore();
       terminal.restore();
       if (message) process.stderr.write(`radar: ${message}\n`);
     }
@@ -50,6 +52,7 @@ export async function run(env: NodeJS.ProcessEnv = process.env): Promise<never> 
     return exit(EXIT_ERROR, `cannot connect to the host: ${(e as Error).message}`);
   }
   terminal.enter();
+  pointerShape.attach((s) => process.stdout.write(s));
   // In a Herdr pane the right button is Herdr's until the pane is told to pass it on (as the Ratatui runner does).
   routeHerdrRightClick(env, spawn, (err) =>
     err ? session.log("warn", err) : session.log("info", "Herdr right-clicks routed to this pane"),

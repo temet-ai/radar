@@ -2,7 +2,7 @@ import type { Block, DetailContent } from "./view.js";
 import { cellsOf, clipCells, lineCells, padCells, paragraphCells, widthOfCells, type Cell } from "../text/cells.js";
 import { detailFactRows, detailHeaderRows, fitDetailCells, survivingFacts } from "./detail.js";
 import { lineRows, sectionHeading } from "./index.js";
-import { docRows } from "../text/richRows.js";
+import { docBlockRows } from "../text/richRows.js";
 import { slotStyle, specStyle } from "../text/look.js";
 import { wrapWords } from "../text/wrap.js";
 import { segWords } from "../text/TextLine.js";
@@ -64,10 +64,7 @@ export function detailBodyRows(content: DetailContent, width: number, plain = fa
         break;
       }
       case "doc": {
-        const bar = block.bar ? lineCells([block.bar], plain) : [];
-        made = docRows(block.doc, Math.max(1, w - 1 - widthOfCells(bar)), [], block.urls ?? true);
-        if (block.most != null && made.length > block.most) made = [...made.slice(0, block.most), cellsOf("…", plain ? {} : slotStyle("text.muted"))];
-        made = made.flatMap((row) => paragraphCells([...bar, ...row], w));
+        made = docBlockRows(block, w, plain).flatMap((row) => paragraphCells(row, w));
         break;
       }
       case "wrapped": {

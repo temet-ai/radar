@@ -6,6 +6,7 @@ import { selectIntent, type SelectMove } from "../editor/selection.js";
 import { parseMouse, type MouseEvent } from "./mouse.js";
 import type { UiState } from "../state/ui-state.js";
 import { Selector, type RowCells, type SelectArea, type Selection } from "./selection.js";
+import type { Shape } from "../app/pointer.js";
 
 /** What the controller needs to know about the frame showing. */
 export interface InputView {
@@ -90,6 +91,8 @@ export class InputController {
     private readonly hover: (hit: Hit | null) => void = () => {},
     /** The cell a right-click pressed (0-based), told to the host just before its Context so the menu opens there. */
     private readonly pointer: (column: number, row: number) => void = () => {},
+    /** The pointer's shape for what it is over (app/pointer.ts): told on every motion report and after every draw. */
+    private readonly shape: (shape: Shape) => void = () => {},
   ) {
     // A left press inside a pane's text is held until it moves (a selection, copied when let go) or is let go (a click,
     // handled then, as the Ratatui runner does: runner.rs Pointer::Up).
@@ -229,6 +232,7 @@ export class InputController {
   blur() {
     this.pointerAt = undefined;
     this.hover(null);
+    this.shape("default");
   }
 
   /** Where the pointer last was: shell.rs hover lights what a redraw puts under a still pointer, so the frame asks again
@@ -238,6 +242,21 @@ export class InputController {
     const at = this.pointerAt;
     if (!at) return;
     this.hover(this.view.menu() ? null : this.litAt(at.x, at.y));
+    this.shape(this.shapeAt(at.x, at.y));
+  }
+
+  /** ui::pointer: a hand over what a click acts on (a menu's item, a notice, anything the hover lights), a text cursor
+   * over text a drag selects, the arrow elsewhere. */
+  private shapeAt(x: number, y: number): Shape {
+    if (this.view.noticeAt?.(x, y)) return "pointer";
+    const menu = this.view.menu();
+    if (menu) {
+      const at = hitAt(this.view.hits(), x, y);
+      const item = at ? menu.items.find((c) => c.target === at.target) : undefined;
+      return at && (!item || !(item.shown_only || item.heading || item.note)) ? "pointer" : "default";
+    }
+    if (this.litAt(x, y)) return "pointer";
+    return this.view.selectAt?.(x, y) ? "text" : "default";
   }
 
   /** host.rs hover_at: the hit under the pointer, cut to the pointer's row; while text is typed only the status line's
@@ -268,7 +287,9 @@ export class InputController {
     }
     if (notice) {
       if (ev.kind === "press") this.noticePress = { target: notice.target, button: ev.button };
-      this.hover(null); return;
+      this.hover(null);
+      this.shape("pointer");
+      return;
     }
     // The selection first: a left press in a pane's text, the moves and release after it, and any press clears it.
     // The wheel ends a selection showing (runner.rs) and scrolls as before.
@@ -301,6 +322,7 @@ export class InputController {
       return;
     }
     if (ev.kind === "motion" || ev.kind === "press") this.pointerAt = { x: ev.x, y: ev.y };
+    if (ev.kind === "motion") this.shape(this.shapeAt(ev.x, ev.y));
     if (ev.kind === "motion") {
       // What a click would act on is lit under the pointer (ui::hover::paint, shell.rs hover): any hit but a menu item.
       if (menu && (!typing || menu.palette)) {

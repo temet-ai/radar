@@ -70,6 +70,14 @@ pub struct Look {
     pub icon_width: u8,
     /// The pack in use (`nerd`, `unicode`, `emoji`, `off`, or a user's).
     pub pack: String,
+    /// Links are written as OSC 8 hyperlinks (`[theme] hyperlinks`, as
+    /// `ui::link::wanted` decides for this terminal).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub hyperlinks: bool,
+    /// The pointer's shape follows what it is over, by OSC 22 (`[theme]
+    /// pointer`, as `ui::pointer::wanted` decides for this terminal).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub pointer: bool,
 }
 
 impl Look {
@@ -105,6 +113,8 @@ impl Look {
                 .collect(),
             icon_width: icons.width.min(u8::MAX as usize) as u8,
             pack: icons.pack.clone(),
+            hyperlinks: false,
+            pointer: false,
         }
     }
 }

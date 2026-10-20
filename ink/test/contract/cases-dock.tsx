@@ -222,5 +222,4 @@ export const DOCK_INVISIBLE: Record<string, string> = {
 /** Fields the renderer does not draw today (asserted to stay undrawn; the case fails with "now drawn" when one is). */
 export const DOCK_KNOWN_UNDRAWN: Record<string, string> = {
   "DockTab.provider": "the tab shows the host's icon and title; the provider name is not drawn (the status line has DockStatus.provider)",
-  "TerminalView.cwd": "the terminal tab's fallback line names the command and state; the working directory is not drawn",
 };

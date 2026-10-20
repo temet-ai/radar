@@ -32,4 +32,14 @@ icon_width: number,
 /**
  * The pack in use (`nerd`, `unicode`, `emoji`, `off`, or a user's).
  */
-pack: string, };
+pack: string, 
+/**
+ * Links are written as OSC 8 hyperlinks (`[theme] hyperlinks`, as
+ * `ui::link::wanted` decides for this terminal).
+ */
+hyperlinks?: boolean, 
+/**
+ * The pointer's shape follows what it is over, by OSC 22 (`[theme]
+ * pointer`, as `ui::pointer::wanted` decides for this terminal).
+ */
+pointer?: boolean, };

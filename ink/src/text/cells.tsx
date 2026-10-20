@@ -28,6 +28,7 @@ function colorize(
   return text;
 }
 import type { Text } from "../nodes/view.js";
+import { escaped, openable } from "./link.js";
 import { cellWidth, charWidth, graphemeCells } from "../chrome/width.js";
 import { currentLook, type Look, type Style } from "./look.js";
 import { segRunStyle, segRunWords } from "./TextLine.js";
@@ -53,6 +54,7 @@ const KEYS = [
   "underline",
   "inverse",
   "strike",
+  "link",
 ] as const;
 
 /** Style::patch: what `over` sets replaces what `base` has; modifiers add. */
@@ -121,6 +123,7 @@ export function lineCells(text: Text, plain?: boolean, literal = false): Cell[] 
     // widgets::chip: a chip with no icon is ` words ` on the overlay shade too, not only the labelled one.
     let style = plain ? {} : seg.chip ? chipWordStyle(seg) : segRunStyle(seg);
     if (!plain && seg.marked) style = { ...style, inverse: true };
+    if (!plain && seg.link) style = { ...style, link: seg.link };
     if (words) out.push(...cellsOf(words, style));
   }
   return joinCombiningCells(out);
@@ -200,6 +203,8 @@ export interface Info {
   fg: string;
   bg: string;
   attr: number;
+  /** The address the cells open (OSC 8), escaped; absent for none. */
+  link?: string;
   /** fast-output's interned style id for this info */
   sid?: number;
 }
@@ -216,7 +221,8 @@ for (const [, bit, f] of ATTRS) attrOpen.set(bit, paramsOf(f(MARK)));
 const infos = new Map<string, Info>();
 const DEFAULT: Info = { fg: "", bg: "", attr: 0 };
 function infoOf(s: Style, plain?: boolean, bg?: string): Info {
-  const key = `${plain ? 1 : 0}|${s.color ?? ""}|${(plain ? bg : (s.backgroundColor ?? bg)) ?? ""}|${s.bold ? 1 : 0}${s.dim ? 1 : 0}${s.italic ? 1 : 0}${s.underline ? 1 : 0}${s.inverse ? 1 : 0}${s.strike ? 1 : 0}`;
+  const link = s.link && (currentLook().hyperlinks ?? false) && openable(s.link) ? escaped(s.link) : "";
+  const key = `${plain ? 1 : 0}|${s.color ?? ""}|${(plain ? bg : (s.backgroundColor ?? bg)) ?? ""}|${s.bold ? 1 : 0}${s.dim ? 1 : 0}${s.italic ? 1 : 0}${s.underline ? 1 : 0}${s.inverse ? 1 : 0}${s.strike ? 1 : 0}|${link}`;
   let i = infos.get(key);
   if (i) return i;
   let attr = 0;
@@ -228,6 +234,7 @@ function infoOf(s: Style, plain?: boolean, bg?: string): Info {
       colorize(MARK, plain ? bg : (s.backgroundColor ?? bg), "background"),
     ),
     attr,
+    ...(link ? { link } : {}),
   };
   infos.set(key, i);
   return i;
@@ -251,6 +258,7 @@ function move(a: Info, b: Info): string {
   if (a.bg !== b.bg) p.push(b.bg || "49");
   if (a.fg !== b.fg) p.push(b.fg || "39");
   r = p.length ? `\x1b[${p.join(";")}m` : "";
+  if ((a.link ?? "") !== (b.link ?? "")) r += `\x1b]8;;${b.link ?? ""}\x1b\\`;
   m.set(b, r);
   return r;
 }

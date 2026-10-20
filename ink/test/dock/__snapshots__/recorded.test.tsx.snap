@@ -634,7 +634,7 @@ exports[`host-recorded dock states > pty_80x24.json 1`] = `
 " radar    R ●   J   S ●   B   I   History   Settings (,)  ⠷ local annot… ✎ edit
 ╭ agents · codex --version ────────────────────────────────────────────────────╮
 │ ◙ review dock ×  [$ codex --version ×]                                       │
-│ codex --version · running                                                    │
+│ codex --version · ~/projects/radar · running                                 │
 │                                                                              │
 │                                                                              │
 │                                                                              │
@@ -684,7 +684,7 @@ exports[`host-recorded dock states > pty_160x40.json 1`] = `
 │                        │╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 │                        │╭ agents · codex --version ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │                        ││ ◙ review dock ×  [$ codex --version ×]                                                                                             │
-│                        ││ codex --version · running                                                                                                          │
+│                        ││ codex --version · ~/projects/radar · running                                                                                       │
 │                        ││                                                                                                                                    │
 │                        ││                                                                                                                                    │
 │                        ││                                                                                                                                    │

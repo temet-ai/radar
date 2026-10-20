@@ -34,11 +34,8 @@ rendering, storage and contracts, so linking core is not unit-lane isolation.
 ## Tier ownership
 
 Notice coverage uses narrow owner modules. `core-notice-model` is pure bounded
-ledger logic with injected monotonic samples. `core-notice-kit` classifies local
-buffer/layout tests as unit and the actual native cell exporter as a contract;
-serialization and an explicit output directory are part of that exporter.
-`core-notice-shell` separates pure geometry from real shell/motion composition.
-`core-notice-host` requires production routing to prove input, confirmation and
+ledger logic with injected monotonic samples. Ink's tests own the notice cells and
+geometry (`ink/test/notices`). `core-notice-host` requires production routing to prove input, confirmation and
 session-history ownership. Explicit producer severity tests in Jira and Slack
 are contracts because they exercise and restore the existing thread-local icon
 pack; GitHub and Sessions reducer cases use owned synthetic results without
@@ -56,25 +53,9 @@ run with owned HOME/XDG and explicit synthetic paths. Compiled inventory must
 confirm all names. The existing general-view and key-intent journeys additionally
 check actual first-party mnemonic metadata, without adding a Host per action.
 
-The `core-focus-ramp-kit` scope classifies the color sampler, clockwise perimeter,
-protected-title geometry and wordmark helpers. These use explicit themes and
-caller-owned local buffers, without a Host or full application frame. Its three
-Block/card contracts intentionally compose production painters to prove clipped
-titles and legacy inner geometry survive, and scrollbars paint last. The
-`core-focus-ramp-view` contracts paint real screens to establish caret ownership,
-page/work-area dock eligibility and exact lower-tier preservation. The
-`core-focus-ramp-shell` unit cases cover pure chrome eligibility and wordmark
-span/clipping behavior. Cross-renderer App parity requires separate execution
-evidence.
-
-The `core-loading-policy` scope contains four narrow engine lifecycle integration
-cases. They use the production thread-local mark ledger, local 30-by-8 buffers
-and manual clocks to protect full-to-subtle shimmer removal, retained cue clocks,
-repeated settings, clean settlement, off reset and sticky slow-terminal policy.
-They construct no Host or full application frame and perform no I/O. The ledger's
-mutable thread-local state is why these are not classified as pure units. No
-special feature is required; Ink controller and real-App loading ownership need
-their own separate execution evidence.
+The focus ramp, loading policy, interaction cells and detail layout were painted by
+the Rust renderer; their scopes went with it. Ink's tests (`ink/test`) own those
+pictures.
 
 - **Unit:** one component's pure model, parsing or effect-envelope behavior. No
   real host, full frame, wall-clock reads, network, credential lookup, filesystem/database, process
@@ -94,19 +75,13 @@ their own separate execution evidence.
 - **Live:** explicitly ignored real-service checks, outside offline execution.
   Do not use `--run-ignored all` or `--include-ignored` for inventory validation.
 
-Names-only tab coverage has four narrow core scopes. `core-tab-attention-host`
+Names-only tab coverage has two narrow core scopes. `core-tab-attention-host`
 is integration: the host combines readiness, grouping, plugin badges and unsaved
-settings into chrome attention while preserving status data. The
-`core-tab-attention-shell` contract inspects the real Ratatui top bar's cells,
-mnemonics and click targets; `core-tab-attention-wire` protects JSON attention
-fields and their absent-field defaults without constructing a host.
-`core-page-tab-rows` classifies the complete small `ui::page::tests` module as
-unit: its cases use caller-owned tab values, local row-sized buffers and local
-hit collections. They do not construct a host, render a full application frame,
-read the clock, access persistence/network, or spawn a process. A local buffer
-alone does not make an isolated layout/hit-helper case integration. Ink rendering
-and cross-renderer parity remain separate checks; these declarations do not
-establish that either renderer's suite has run.
+settings into chrome attention while preserving status data.
+`core-tab-attention-wire` protects JSON attention fields and their absent-field
+defaults without constructing a host. Ink's tests draw the dot, mnemonic and click
+target from recorded view data; these declarations do not establish that Ink's
+suite has run.
 
 The owner-local `gitlab-page-tab-attention` unit scope uses `MrBuilder` and
 owned detail/discussion values to distinguish unresolved work and failed
@@ -138,8 +113,8 @@ protocol restrictions and owned-parent checks are not an operating-system sandbo
 GitLab confirmation migration similarly separates three fixed-time owner-local
 question/effect cases from one host contract. The latter preserves rebase/merge
 menu routing, held provider responses and production refresh ingestion with one
-full-frame pending-wording checkpoint and no SQLite. Source consolidation counts
-are distinct from execution timings and the measured per-host frame counter.
+pending-wording view checkpoint and no SQLite. Source consolidation counts
+are distinct from execution timings.
 
 The selected Jira checkpoint has four owner-local unit cases for selected-state
 values, neutral views/intents and identity replacement, one injected-client
@@ -162,7 +137,7 @@ probes cannot drive a host or release responses, and empty probe sets must fail.
 
 The Slack reply consolidation adds two
 narrow contract scopes. The shared host case retains one demo-backed host and
-exactly two real frames protecting the unchanged typing/confirmation goldens,
+the unchanged typing/confirmation goldens,
 while requiring no provider requests. The owner acceptance case uses fixed owned
 state and the real reply tasks/reducers against `Recorded` transport, with no host,
 demo or frame. It checks exact preview transmission and subsequent thread read;
@@ -172,16 +147,16 @@ Consolidation source counts and passing inventory are not execution timings.
 
 The Slack review-draft consolidation
 adds one narrow host contract. One real host retains six unchanged goldens and
-the prior escaped-text frame, with an actual seven-frame lifetime assertion.
+the prior escaped-text view.
 Local Code/Tracker contract stubs are not real sibling-part dependencies. The
 Recorded ledger stays empty and dispatch rejects provider work; edit/drop routing
 and rendered content are the boundary, not a successful external review. Source
-inventory and frame limits are separate from measured runtime verification.
+inventory is separate from measured runtime verification.
 
 The Slack review-post consolidation
 protects success and refusal with one sample-backed host, two actual production
-post tasks/reducers under `Scenario`, and exactly two lifetime shell frames. It
-retains the followed Code-row render and unchanged refusal golden. `Recorded`
+post tasks/reducers under `Scenario`. It
+retains the followed Code-row view and unchanged refusal golden. `Recorded`
 supplies ordered responses; complete literal ledgers and queue exhaustion are
 checked afterward. This is not strict pre-response request matching, actual
 bootstrap, persistent journal verification or sibling-part crate composition.
@@ -217,16 +192,11 @@ Full-default resolved-graph verification remains separate.
 Every non-unit case records the protected boundary, minimal involved parts and
 why a unit assertion cannot cover it. These are reviewed declarations; manifest
 validation does not enforce cost. The test-support-only `Scenario::costs()` now
-reports driver-dispatched events, returned effect envelopes, spawned completion
-tasks and lifetime `shell::render` calls on its owned host. Frame assertions in
-selected root journeys enforce their own zero/one-frame boundary at runtime,
-including calls through raw shell helpers. Neutral views, part-only buffers, Ink
-and other hosts are excluded. Host construction counts remain uninstrumented;
+reports driver-dispatched events, returned effect envelopes and spawned completion
+tasks. Host construction counts remain uninstrumented;
 event/task counts do not cover detached plugin work or prove complete idleness.
-Two explicit core regressions protect these wiring points: driver/task accounting
-is integration, and exercising every raw shell helper is a renderer contract.
-The latter intentionally renders several frames to prove coverage; it is not a
-zero/one-frame product journey. These counters measure work, not elapsed time,
+An explicit core regression protects the driver/task accounting (integration).
+These counters measure work, not elapsed time,
 purity or sandbox isolation. Existing
 whole-app cases list the complete set of participating part kinds rather than
 claiming a one-part fixture. No shared all-parts fixture is introduced.
@@ -286,13 +256,9 @@ scripts/check-test-tiers --nextest /tmp/headless-bridge-tests.json --scope headl
 cargo nextest list --locked -p radar-core --lib --features test-support --message-format json > /tmp/core-tests.json
 scripts/check-test-tiers --nextest /tmp/core-tests.json --scope core-completion --scope core-scenarios
 
-# Loading policy needs no extra feature; the same unfiltered core discovery works:
-scripts/check-test-tiers --nextest /tmp/core-tests.json --scope core-loading-policy
-
-# Names-only tabs: the same unfiltered core discovery checks all four narrow scopes:
+# Names-only tabs: the same unfiltered core discovery checks both narrow scopes:
 scripts/check-test-tiers --nextest /tmp/core-tests.json \
-  --scope core-tab-attention-host --scope core-tab-attention-shell \
-  --scope core-tab-attention-wire --scope core-page-tab-rows
+  --scope core-tab-attention-host --scope core-tab-attention-wire
 
 # Owner-local disposable checkout fixture discovery (real subprocess tests):
 cargo nextest list --locked -p radar-git --lib --features test-support,demo --message-format json > /tmp/git-tests.json
@@ -366,7 +332,7 @@ inventory gate measures no runtime and supplies no new timeout exemptions.
 
 Before calling an area “fast” or isolated, measure repeated warmed execution with
 unchanged feature configuration and coverage, separating build time from test
-execution. Before accepting heavy cases, review the actual host/frame count and
+execution. Before accepting heavy cases, review the actual host count and
 whether a smaller part-local assertion suffices. Neither timing guesses nor a
 passing name inventory is evidence of purity or a speed improvement.
 
@@ -379,19 +345,11 @@ resolved explicitly, never by deleting coverage or raising all budgets.
 
 ## Command palette coverage
 
-The `core-palette-matching`, `core-palette-host`, `core-palette-shell` and
-`core-palette-wire` scopes separate pure matching, host routing, Unicode layout,
-and protocol serialization. Each of GitLab, GitHub, Jira, Slack and Git has an
-owner-local `*-palette-targets` unit scope for cached inventory and scoped routing.
-The host's raw-mouse case is a renderer contract, not a unit: it constructs the
-real shell hit map and proves a second press cannot confirm a replacement menu.
-
-For focused visual diagnosis, that same contract accepts
-`RADAR_PALETTE_ARTIFACTS=/absolute/output/directory` to export synthetic discovery
-and search checkpoints at 80×24 and 160×40: real Ratatui SVG/text and Bridge JSON.
-Ordinary checks write nothing. Replay the JSON through the existing Ink App test
-harness to inspect the actual frontend; these artifacts do not establish live
-terminal/PTY behavior or pixel equivalence.
+The `core-palette-matching`, `core-palette-host` and `core-palette-wire` scopes
+separate pure matching, host routing and protocol serialization. Each of GitLab,
+GitHub, Jira, Slack and Git has an owner-local `*-palette-targets` unit scope for
+cached inventory and scoped routing. Unicode layout and the second-press guard on a
+replacement menu are Ink's to test.
 
 The `general-view-fixtures` scope owns the complete dedicated root test binary.
 Twenty pure helper cases validate first-party mnemonic metadata and structural captured-target normalization,

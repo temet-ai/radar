@@ -1477,13 +1477,6 @@ mod review_draft {
             rec.requests().is_empty(),
             "no provider request in this draft contract"
         );
-        assert_eq!(
-            radar_core::scenario::Scenario::new(host)
-                .costs()
-                .shell_frames,
-            0,
-            "the checkpoints read view data; no frame is painted"
-        );
     }
 }
 
@@ -1703,11 +1696,6 @@ mod review_post {
             "both responses were consumed"
         );
         assert!(s.desktop_effects().is_empty());
-        assert_eq!(
-            s.costs().shell_frames,
-            0,
-            "the checkpoints read view data; no frame is painted"
-        );
         s.finish_journal().unwrap();
     }
 }
@@ -1892,13 +1880,6 @@ mod reply_confirmation {
         assert!(
             rec.requests().is_empty(),
             "no provider request in this composer contract"
-        );
-        assert_eq!(
-            radar_core::scenario::Scenario::new(host)
-                .costs()
-                .shell_frames,
-            0,
-            "the checkpoints read view data; no frame is painted"
         );
     }
 }

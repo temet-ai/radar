@@ -315,7 +315,6 @@ fn hosted_fake_turn_waits_for_denial_then_fresh_approval() {
         }
         assert!(!s.records().iter().any(|record| matches!(record,
             JournalRecord::Begin { descriptor, .. } if descriptor.kind.as_str().starts_with("sessions."))));
-        assert_eq!(s.costs().shell_frames, 0, "neutral-view checkpoint: no owned-host Ratatui frames");
         s.finish_journal().unwrap();
         let journal = Journal::open(&journal_path).unwrap();
         let events = journal.query(&Query { limit: 1000, ..Default::default() }).unwrap();

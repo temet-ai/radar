@@ -12,7 +12,7 @@ use radar_core::journal::work_map::{
     Basis, HandoffRecord, ItemFilter, ItemId, Mutation, RelationKind, Selection,
 };
 use radar_core::journal::{ActionId, Journal, SessionId};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::source_context::WorkReply;
 use radar_core::view::{Intent, Node, PaneId};
 use radar_core::{Host, Pane};
@@ -138,12 +138,12 @@ impl Fixture {
             }
         }
     }
-    fn key(&mut self, key: KeyCode) {
+    fn key(&mut self, key: Key) {
         let _ = radar_core::headless::host_text_of(self.frontend.host(), 160, 40);
         let effects = self
             .frontend
             .host_mut()
-            .update(Event::Key(KeyEvent::new(key, KeyModifiers::NONE)));
+            .update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(key) }));
         self.pump(effects);
     }
     fn invoke(&mut self, action: &str) {
@@ -154,7 +154,7 @@ impl Fixture {
     }
     fn action(&mut self, key: char, action: &str) {
         if self.terminal {
-            self.key(KeyCode::Char(key));
+            self.key(Key::Char(key));
         } else {
             self.invoke(action);
         }
@@ -168,7 +168,7 @@ impl Fixture {
                 .iter()
                 .position(|item| item.value == value && !item.note && !item.heading)
                 .unwrap();
-            self.key(KeyCode::Enter);
+            self.key(Key::Enter);
         } else {
             self.invoke(value);
         }
@@ -176,7 +176,7 @@ impl Fixture {
     fn paste(&mut self, text: &str) {
         let effects = self.frontend.host_mut().update(Event::Paste(text.into()));
         self.pump(effects);
-        self.key(KeyCode::Enter);
+        self.key(Key::Enter);
     }
     fn selected_task(&self) -> ItemId {
         serde_json::from_value(
@@ -185,7 +185,7 @@ impl Fixture {
         .unwrap()
     }
     fn open_source(&mut self, label: &str) {
-        self.key(KeyCode::Char('I'));
+        self.key(Key::Char('I'));
         self.frontend.focus(PaneId::Detail);
         let screen = self.frontend.screen().unwrap();
         let Node::Entries { rows, .. } = &screen.pane(PaneId::Detail).unwrap().body else {
@@ -212,7 +212,7 @@ impl Drop for Fixture {
 fn actual_github_and_git_sources_complete_review_group_navigation_and_restart() {
     for terminal in [true, false] {
         let mut fixture = Fixture::new(terminal);
-        fixture.key(KeyCode::Char('G'));
+        fixture.key(Key::Char('G'));
         fixture.frontend.focus(PaneId::Middle);
         assert_eq!(
             fixture.frontend.host().plugins[0]
@@ -221,7 +221,7 @@ fn actual_github_and_git_sources_complete_review_group_navigation_and_restart() 
                 .id,
             "https://github.com/acme/api/pull/42"
         );
-        fixture.key(KeyCode::Char('x'));
+        fixture.key(Key::Char('x'));
         let add = fixture
             .frontend
             .menu()
@@ -357,7 +357,7 @@ fn actual_github_and_git_sources_complete_review_group_navigation_and_restart() 
         restarted.plugins[2].restore(saved);
         fixture.frontend =
             Headless::requiring_views(restarted, 160, 40).unwrap_or_else(|gaps| panic!("{gaps:?}"));
-        fixture.key(KeyCode::Char('I'));
+        fixture.key(Key::Char('I'));
         fixture.action('r', "work.refresh");
         assert_eq!(fixture.selected_task(), task);
         let view = fixture.frontend.screen().unwrap();

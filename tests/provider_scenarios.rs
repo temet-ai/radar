@@ -94,13 +94,7 @@ fn persisted(
     s: &mut Scenario,
     scratch: &Scratch,
     content: &str,
-    shell_frames: u64,
 ) -> Vec<ActionEvent> {
-    assert_eq!(
-        s.costs().shell_frames,
-        shell_frames,
-        "provider checkpoint: owned-host Ratatui frame budget"
-    );
     assert!(s.desktop_effects().is_empty(), "no desktop I/O requested");
     s.finish_journal().unwrap();
     let events = Journal::open(&scratch.journal())
@@ -156,7 +150,7 @@ fn count(events: &[ActionEvent], kind: &str, number: u32, outcome: Outcome) {
 mod github {
     use super::*;
     use radar_core::host::Event;
-    use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use radar_core::view::{Chord, Key};
     use radar_core::view::{Intent, Node, PaneId};
     use radar_github::test_support::{ExpectedRequest, Reply, Request, hosted_plugin};
 
@@ -168,8 +162,8 @@ mod github {
     /// One real checkpoint from the hosted refresh, never a demo world: the
     /// view data a renderer is sent. Default runs verify the checked-in JSON;
     /// regeneration is explicit. Beside it, `github_refresh_120x40.txt` is
-    /// Ink's golden of this checkpoint (Ratatui's text as it was when this
-    /// test moved to the view data's text form); this test no longer writes it.
+    /// Ink's golden of this checkpoint (the text as it was when this test
+    /// moved to the view data's text form); this test no longer writes it.
     fn renderer_checkpoint(s: &Scenario) {
         let (snapshot, text) = s.inspect(|host| {
             host.set_view_room(120, 40);
@@ -310,7 +304,7 @@ mod github {
         );
         s.advance_time(NOW + 1).unwrap();
         s.settle(BUDGET).await.unwrap();
-        s.dispatch(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)))
+        s.dispatch(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Esc) }))
             .unwrap();
         assert!(
             serde_json::to_string(&view(&s, "github"))
@@ -325,7 +319,7 @@ mod github {
             "failed detail does not silently retry"
         );
         // The checkpoint reads view data and paints no frame.
-        let events = persisted(&mut s, &scratch, TITLE, 0);
+        let events = persisted(&mut s, &scratch, TITLE);
         terminal(&events, "github.repository.read", Outcome::Succeeded);
         terminal(&events, "github.pull-request.read", Outcome::Failed);
         count(&events, "github.read.items", 1, Outcome::Succeeded);
@@ -392,7 +386,7 @@ mod gitlab {
                 .unwrap()
                 .contains(TITLE)
         );
-        let events = persisted(&mut s, &scratch, TITLE, 0);
+        let events = persisted(&mut s, &scratch, TITLE);
         terminal(&events, "gitlab.sync.full", Outcome::Succeeded);
         count(&events, "gitlab.sync.merge_requests", 1, Outcome::Succeeded);
         count(&events, "gitlab.sync.projects", 1, Outcome::Succeeded);
@@ -479,7 +473,7 @@ mod jira {
         let screen = serde_json::to_string(&view(&s, "tickets")).unwrap();
         assert!(screen.contains(TITLE));
         assert!(!screen.contains("Missing the ticket key"));
-        let events = persisted(&mut s, &scratch, TITLE, 0);
+        let events = persisted(&mut s, &scratch, TITLE);
         terminal(&events, "jira.sync.view", Outcome::Partial);
         count(&events, "jira.sync.tickets", 1, Outcome::Partial);
         count(&events, "jira.sync.issues.omitted", 1, Outcome::Partial);

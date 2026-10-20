@@ -382,11 +382,6 @@ fn refused_review(
     scratch: &Scratch,
 ) {
     let request = begin(s.records(), "agent.review.request").clone();
-    assert_eq!(
-        s.costs().shell_frames,
-        0,
-        "neutral-view checkpoint: no owned-host Ratatui frames"
-    );
     s.finish_journal().unwrap();
     let events = Journal::open(&scratch.journal())
         .unwrap()

@@ -31,7 +31,7 @@ else
 fi
 
 # The parts: the features in the root Cargo.toml that name a part crate
-# (`dep:radar-<name>`), not `default` nor the tooling ones (`shots`, `png`, `demo`, `test-support`).
+# (`dep:radar-<name>`), not `default` nor the tooling ones (`demo`, `test-support`).
 parts=()
 while IFS= read -r name; do
     [ -n "$name" ] && parts+=("$name")

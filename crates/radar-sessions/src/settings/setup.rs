@@ -688,7 +688,7 @@ mod tests {
             let mut host = radar_core::Host::new(vec![Box::new(Hosted(s))], radar_core::plugin::DEMO_NOW).unwrap();
             host.open_setup(Some("agents")).unwrap();
             assert!(host.setup_step_ids().contains(&"agents".to_string()), "{:?}", host.setup_step_ids());
-            let text = radar_core::shell::to_text(&host, w, h);
+            let text = radar_core::headless::text_of(&host, w, h);
             if std::env::var_os("RADAR_SHOW").is_some() {
                 println!("{text}");
             }

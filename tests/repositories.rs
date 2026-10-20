@@ -7,7 +7,7 @@
 
 use radar_core::Host;
 use radar_core::host::{Event, View};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::view::Intent;
 use radar_core::view::chrome::targets;
 
@@ -72,26 +72,20 @@ fn one_repositories_tab_switches_between_gitlab_github_and_local_workspaces() {
     let focused = text(&host);
     let status: Vec<&str> = focused.lines().skip_while(|l| !l.starts_with("── status · ")).collect();
     assert!(status.iter().any(|l| l.contains("sources")), "{focused}");
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('R'),
-        KeyModifiers::NONE,
-    )));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('R')) }));
     assert_eq!(
         host.view,
         View::Screen(1),
         "Repositories keeps the chosen source"
     );
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('W'),
-        KeyModifiers::NONE,
-    )));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('W')) }));
     assert_eq!(host.view, View::Screen(2));
     let local = text(&host);
     assert!(local.contains("local repositories"), "{local}");
     assert!(local.contains("acme"), "{local}");
     assert!(local.contains("api"), "{local}");
     host.focus = radar_core::Pane::Middle;
-    host.update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Down) }));
     let selected = text(&host);
     assert!(
         selected.contains("/work/acme/repositories/api"),
@@ -117,30 +111,30 @@ fn vertical_arrows_visit_the_source_row_between_top_tab_and_panes() {
     host.view = View::Screen(1);
     host.focus = radar_core::Pane::Nav;
     let press = |host: &mut Host, code| {
-        host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+        host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }));
     };
 
-    press(&mut host, KeyCode::Up);
+    press(&mut host, Key::Up);
     assert!(
         host.sources && !host.bar,
         "up from the first repository reaches the source row"
     );
-    press(&mut host, KeyCode::Up);
+    press(&mut host, Key::Up);
     assert!(
         host.bar && !host.sources,
         "up from sources reaches Repositories"
     );
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     assert!(
         host.sources && !host.bar,
         "down from Repositories reaches sources"
     );
-    press(&mut host, KeyCode::Right);
+    press(&mut host, Key::Right);
     assert_eq!(host.view, View::Screen(2));
     assert!(host.sources, "switching source keeps the row focused");
-    press(&mut host, KeyCode::Left);
+    press(&mut host, Key::Left);
     assert_eq!(host.view, View::Screen(1));
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     assert!(
         !host.sources && !host.bar,
         "down from sources enters the panes"
@@ -163,10 +157,7 @@ fn repositories_key_works_when_gitlab_is_absent() {
         .unwrap();
     assert_eq!(host.top_screens(), vec![0]);
     host.view = View::Settings;
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('R'),
-        KeyModifiers::NONE,
-    )));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('R')) }));
     assert_eq!(host.view, View::Screen(0));
     let top = text(&host);
     assert_eq!(screen_tabs(&host), ["repositories"], "{top}");

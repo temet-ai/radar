@@ -38,7 +38,7 @@ use std::path::{Path, PathBuf};
 use radar_core::Host;
 use radar_core::host::{Event, View};
 use radar_core::ipc::Bridge;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use serde_json::{Value, json};
 
 /// The recording's text, as `tests/mix.rs` records it: the view data's text
@@ -135,12 +135,12 @@ fn slack_fixture(host: &mut Host, at: usize, value: serde_json::Value) {
     host.plugins[at] = Box::new(radar_slack::test_support::offline_plugin(cfg, value["data"].clone()).unwrap());
 }
 
-fn press(host: &mut Host, code: KeyCode) -> usize {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE))).len()
+fn press(host: &mut Host, code: Key) -> usize {
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) })).len()
 }
 
 /// A key as the recordings press it: after a frame at 160x40.
-fn key(host: &mut Host, code: KeyCode) {
+fn key(host: &mut Host, code: Key) {
     let _ = to_text(host, 160, 40);
     press(host, code);
 }
@@ -159,7 +159,7 @@ fn down_to(host: &mut Host, text: &str, panel: &str) {
         if shown.lines().any(titled) {
             return;
         }
-        key(host, KeyCode::Down);
+        key(host, Key::Down);
     }
     panic!("never reached {text}:\n{}", to_text(host, 160, 40));
 }
@@ -290,10 +290,10 @@ fn row_actions(out: &mut Vec<Recording>) {
     host.load_config(Some(repos::GITLAB)).expect("the config loads");
     repos::gitlab_cache_as(&mut host, "NEED_REBASE", true);
     let _ = to_text(&host, 220, 40);
-    press(&mut host, KeyCode::Char('R'));
+    press(&mut host, Key::Char('R'));
     for _ in 0..2 {
         let _ = to_text(&host, 160, 40);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     out.push(record(format!("mix__{}_row_actions_160x40", mix_name()), &mut host, 160, 40, plain));
     // At 80 wide the detail pane is its own screen.
@@ -425,12 +425,12 @@ jql = "project = ABC ORDER BY updated DESC"
 
         // merge_requests_carry_their_tickets
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         out.push(record(name("repositories_220x40"), &mut host, 220, 40, plain));
 
         // tickets_carry_their_code_at_160x40 and _at_80x24
         let mut host = both();
-        key(&mut host, KeyCode::Char('J'));
+        key(&mut host, Key::Char('J'));
         out.push(record(name("tickets_160x40"), &mut host, 160, 40, plain));
         let _ = to_text(&host, 160, 40);
         out.push(record(name("tickets_80x24"), &mut host, 80, 24, plain));
@@ -448,24 +448,24 @@ jql = "project = ABC ORDER BY updated DESC"
             &mut again,
             json!({ "ABC-12": entry(json!([])), "ABC-20": entry(json!([])), "ABC-21": entry(link) }),
         );
-        key(&mut again, KeyCode::Char('R'));
+        key(&mut again, Key::Char('R'));
         out.push(record(name("background_chip_220x40"), &mut again, 220, 40, plain));
 
         // a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back
         let mut host = both();
-        key(&mut host, KeyCode::Char('J'));
+        key(&mut host, Key::Char('J'));
         down_to(&mut host, "ABC-12", "ABC-12");
-        key(&mut host, KeyCode::Enter);
-        key(&mut host, KeyCode::Char('['));
+        key(&mut host, Key::Enter);
+        key(&mut host, Key::Char('['));
         out.push(record(name("ticket_code_tab_160x40"), &mut host, 160, 40, plain));
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         out.push(record(name("mr_page_160x40"), &mut host, 160, 40, plain));
 
         // jiras_actions_on_a_merge_request_open_and_move_its_ticket
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         down_to(&mut host, "!263", "!263");
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         out.push(record(name("mr_keys_100x40"), &mut host, 100, 40, plain));
     }
 }
@@ -558,14 +558,14 @@ service = "api"
 
         let mut host = both();
         let _ = to_text(&host, 220, 40);
-        press(&mut host, KeyCode::Char('R'));
+        press(&mut host, Key::Char('R'));
         out.push(record(name("repositories_220x40"), &mut host, 220, 40, aged));
 
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
-        key(&mut host, KeyCode::Down);
-        key(&mut host, KeyCode::Enter);
-        key(&mut host, KeyCode::Char('['));
+        key(&mut host, Key::Char('R'));
+        key(&mut host, Key::Down);
+        key(&mut host, Key::Enter);
+        key(&mut host, Key::Char('['));
         out.push(record(name("repo_page_160x40"), &mut host, 160, 40, aged));
         out.push(record(name("repo_page_80x24"), &mut host, 80, 24, aged));
     }

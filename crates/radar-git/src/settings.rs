@@ -2181,7 +2181,7 @@ fn commit(p: &mut GitPlugin, field: Field, text: String) -> Vec<Effect> {
 #[cfg(test)]
 pub(crate) fn key(p: &mut GitPlugin, section: &str, chord: Chord) -> Outcome {
     use radar_core::Plugin;
-    use radar_core::view_tui::{Frontend, Routed, section_key, to_part};
+    use radar_core::route::{Frontend, Routed, section_key, to_part};
     let fe = Frontend::default();
     let (width, height) = fe.room();
     let pane = radar_core::Pane::Middle;

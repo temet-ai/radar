@@ -518,11 +518,6 @@ query($project: ID!, $iid: String!) {
             "the full refresh removed the merged MR from the open list"
         );
         assert!(s.desktop_effects().is_empty());
-        assert_eq!(
-            s.costs().shell_frames,
-            0,
-            "the confirmation checkpoint reads view text, not a painted frame"
-        );
         fixture.assert_finished();
     }
 }

@@ -2,7 +2,7 @@
 //! Every constructor owns fresh state and replays real setup; downstream tests
 //! can name the starting point without copying keys, requests or domain logic.
 use radar_core::host::Event;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::scenario::Scenario;
 use radar_core::view::{Intent, Node, PaneId, TreeRow};
 use radar_core::writes::Mode;
@@ -157,8 +157,8 @@ fn refresh() -> Vec<ExpectedRequest> {
         ),
     ]
 }
-pub(super) fn key(s: &mut Scenario, code: KeyCode) {
-    s.dispatch(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+pub(super) fn key(s: &mut Scenario, code: Key) {
+    s.dispatch(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }))
         .unwrap();
 }
 pub(super) fn view(s: &Scenario) -> Value {
@@ -273,17 +273,14 @@ pub(super) fn activate_gate_thread(s: &mut Scenario) {
 }
 
 pub(super) fn compose_reply(s: &mut Scenario, fixture: &HostedFixture) {
-    key(s, KeyCode::Char('c'));
+    key(s, Key::Char('c'));
     assert!(s.host().plugins[0].capturing());
     s.dispatch(Event::Paste(BODY.into())).unwrap();
     assert!(
         view(s).to_string().contains(BODY),
         "composer view holds the draft"
     );
-    s.dispatch(Event::Key(KeyEvent::new(
-        KeyCode::Char('s'),
-        KeyModifiers::CONTROL,
-    )))
+    s.dispatch(Event::Intent(radar_core::view::Intent::Key { chord: Chord::ctrl('s') }))
     .unwrap();
     let menu = &s
         .host()

@@ -11,7 +11,7 @@ use probes::{Probe, require, verify};
 
 use radar_core::host::JournalRecord;
 use radar_core::journal::{ActionEvent, Journal, Outcome, Query};
-use radar_core::ratatui::crossterm::event::KeyCode;
+use radar_core::view::Key;
 use radar_core::scenario::Scenario;
 use radar_core::writes::Mode;
 use radar_slack::test_support::{
@@ -26,7 +26,6 @@ struct PendingReply {
     view: serde_json::Value,
     notice: Option<String>,
     desktop_is_empty: bool,
-    shell_frames: u64,
 }
 
 fn pending_reply(s: &Scenario, fixture: &HostedFixture) {
@@ -36,7 +35,6 @@ fn pending_reply(s: &Scenario, fixture: &HostedFixture) {
         view: view(s),
         notice: s.host().message.as_ref().map(ToString::to_string),
         desktop_is_empty: s.desktop_effects().is_empty(),
-        shell_frames: s.costs().shell_frames,
     };
     verify("reply awaiting provider", &checkpoint, &[
         Probe { name: "exact single held write", check: |c| {
@@ -62,7 +60,6 @@ fn pending_reply(s: &Scenario, fixture: &HostedFixture) {
         Probe { name: "no premature success notice", check: |c| require(
             !c.notice.as_deref().unwrap_or("").contains("reply posted"), "success announced before release") },
         Probe { name: "no desktop effects", check: |c| require(c.desktop_is_empty, "desktop operation requested") },
-        Probe { name: "no owned-host frames", check: |c| require(c.shell_frames == 0, "neutral checkpoint drew a frame") },
     ]).unwrap_or_else(|error| panic!("{error}"));
 }
 
@@ -80,11 +77,6 @@ fn journal(s: &mut Scenario, scratch: &Scratch, expected: Outcome) {
     assert!(
         s.desktop_effects().is_empty(),
         "no desktop I/O was requested"
-    );
-    assert_eq!(
-        s.costs().shell_frames,
-        0,
-        "neutral-view checkpoint: no owned-host Ratatui frames"
     );
     s.finish_journal().unwrap();
     let events = persisted_events(scratch);
@@ -159,8 +151,8 @@ fn journal(s: &mut Scenario, scratch: &Scratch, expected: Outcome) {
 }
 
 fn reopen_retained_reply(s: &mut Scenario) {
-    key(s, KeyCode::Char('c'));
-    key(s, KeyCode::Enter);
+    key(s, Key::Char('c'));
+    key(s, Key::Enter);
     assert!(
         s.host()
             .menu
@@ -171,7 +163,7 @@ fn reopen_retained_reply(s: &mut Scenario) {
             .iter()
             .any(|row| row.label.contains(BODY))
     );
-    key(s, KeyCode::Char('e'));
+    key(s, Key::Char('e'));
     assert!(s.host().plugins[0].capturing());
     assert!(
         view(s).to_string().contains(BODY),
@@ -229,7 +221,6 @@ struct RestoredBeforeAuth {
     notice: String,
     capturing: bool,
     desktop_is_empty: bool,
-    shell_frames: u64,
 }
 
 fn restored_before_auth(s: &Scenario, fixture: &HostedFixture) {
@@ -245,7 +236,6 @@ fn restored_before_auth(s: &Scenario, fixture: &HostedFixture) {
             .unwrap_or_default(),
         capturing: s.host().plugins[0].capturing(),
         desktop_is_empty: s.desktop_effects().is_empty(),
-        shell_frames: s.costs().shell_frames,
     };
     verify(
         "restored feed awaiting fresh identity",
@@ -283,11 +273,11 @@ fn restored_before_auth(s: &Scenario, fixture: &HostedFixture) {
                 },
             },
             Probe {
-                name: "no desktop effects or frames",
+                name: "no desktop effects",
                 check: |c| {
                     require(
-                        c.desktop_is_empty && c.shell_frames == 0,
-                        "cached checkpoint performed desktop I/O or rendering",
+                        c.desktop_is_empty,
+                        "cached checkpoint performed desktop I/O",
                     )
                 },
             },
@@ -304,7 +294,6 @@ struct RestartedThread {
     accepted_ts: String,
     capturing: bool,
     desktop_is_empty: bool,
-    shell_frames: u64,
 }
 
 fn restarted_thread(s: &Scenario, fixture: &HostedFixture, accepted: &AcceptedPost) {
@@ -329,7 +318,6 @@ fn restarted_thread(s: &Scenario, fixture: &HostedFixture, accepted: &AcceptedPo
         accepted_ts: accepted.server_ts().into(),
         capturing: s.host().plugins[0].capturing(),
         desktop_is_empty: s.desktop_effects().is_empty(),
-        shell_frames: s.costs().shell_frames,
     };
     verify("accepted post read by a fresh Host", &checkpoint, &[
         Probe { name: "accepted post ingested and shown once", check: |c| require(
@@ -342,8 +330,8 @@ fn restarted_thread(s: &Scenario, fixture: &HostedFixture, accepted: &AcceptedPo
             "fresh session sent or accepted another write") },
         Probe { name: "server text is not a restored draft", check: |c| require(
             !c.capturing, "previous reply composer survived into the fresh Host") },
-        Probe { name: "no desktop effects or frames", check: |c| require(
-            c.desktop_is_empty && c.shell_frames == 0, "thread checkpoint performed desktop I/O or rendering") },
+        Probe { name: "no desktop effects", check: |c| require(
+            c.desktop_is_empty, "thread checkpoint performed desktop I/O") },
     ]).unwrap_or_else(|error| panic!("{error}"));
 }
 
@@ -359,7 +347,7 @@ async fn confirmed_reply_waits_for_provider_then_refreshes_and_persists_success(
     let (mut s, fixture) =
         at_open_thread(Mode::Write, vec![response, refreshed_thread()], &scratch).await;
     compose_reply(&mut s, &fixture);
-    key(&mut s, KeyCode::Char('y'));
+    key(&mut s, Key::Char('y'));
     s.settle_until(BUDGET, |_| writes(&fixture) == 1)
         .await
         .unwrap();
@@ -395,7 +383,7 @@ async fn read_only_confirmation_refuses_all_writes_and_keeps_the_reply() {
             .iter()
             .any(|r| r.label.contains("read only"))
     );
-    key(&mut s, KeyCode::Char('y'));
+    key(&mut s, Key::Char('y'));
     s.settle(BUDGET).await.unwrap();
     assert_eq!(writes(&fixture), 0);
     assert!(
@@ -405,8 +393,8 @@ async fn read_only_confirmation_refuses_all_writes_and_keeps_the_reply() {
             .unwrap()
             .contains("reply not sent")
     );
-    key(&mut s, KeyCode::Char('c'));
-    key(&mut s, KeyCode::Enter);
+    key(&mut s, Key::Char('c'));
+    key(&mut s, Key::Enter);
     assert!(
         s.host()
             .menu
@@ -417,7 +405,7 @@ async fn read_only_confirmation_refuses_all_writes_and_keeps_the_reply() {
             .iter()
             .any(|row| row.label.contains(BODY))
     );
-    key(&mut s, KeyCode::Char('e')); // Explicitly reopen the retained text.
+    key(&mut s, Key::Char('e')); // Explicitly reopen the retained text.
     assert!(s.host().plugins[0].capturing());
     assert!(
         view(&s).to_string().contains(BODY),
@@ -441,7 +429,7 @@ async fn uncertain_provider_failure_is_not_retried_and_retains_the_draft() {
     )
     .held();
     let (mut s, fixture) = at_reply_confirmation(Mode::Write, vec![response], &scratch).await;
-    key(&mut s, KeyCode::Char('y'));
+    key(&mut s, Key::Char('y'));
     s.settle_until(BUDGET, |_| writes(&fixture) == 1)
         .await
         .unwrap();
@@ -472,7 +460,7 @@ async fn accepted_post_with_lost_response_stays_unknown_and_is_not_resent_after_
             .held();
     let (mut first, first_fixture) =
         at_reply_confirmation(Mode::Write, vec![response], &first_scratch).await;
-    key(&mut first, KeyCode::Char('y'));
+    key(&mut first, Key::Char('y'));
     first
         .settle_until(BUDGET, |_| writes(&first_fixture) == 1)
         .await

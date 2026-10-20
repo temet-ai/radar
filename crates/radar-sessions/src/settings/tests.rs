@@ -758,7 +758,7 @@ fn shot(s: AgentsSettings, target: &str, w: u16, h: u16) -> String {
     let mut host = radar_core::Host::new(vec![Box::new(Hosted(s))], radar_core::plugin::DEMO_NOW).unwrap();
     host.view = radar_core::host::View::Settings;
     host.section = host.sections.iter().position(|(_, x)| x.name == "Tools and defaults").unwrap();
-    radar_core::shell::to_text(&host, w, h)
+    radar_core::headless::text_of(&host, w, h)
 }
 
 fn every_state() -> AgentsSettings {

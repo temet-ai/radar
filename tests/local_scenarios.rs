@@ -9,7 +9,7 @@ use radar_core::journal::work_map::{
     TagTarget,
 };
 use radar_core::journal::{ActionEvent, ActionId, Journal, Outcome, Query, SubjectKey};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::scenario::{JournalRecord, Scenario};
 use radar_core::view::{Intent, Node, PaneId, ScreenView, Target, Tree, TreeRow};
 use radar_core::writes::Mode;
@@ -72,8 +72,8 @@ fn installed_git() -> &'static Path {
     })
 }
 
-fn key(s: &mut Scenario, key: KeyCode) {
-    s.dispatch(Event::Key(KeyEvent::new(key, KeyModifiers::NONE)))
+fn key(s: &mut Scenario, key: Key) {
+    s.dispatch(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(key) }))
         .unwrap();
 }
 
@@ -183,7 +183,7 @@ async fn real_checkout_links_to_reviewed_work_and_reopens_exact_source() {
     // asking Branches to read. Its initial view may predate discovery.
     s.advance_time(NOW).unwrap();
     settle(&mut s).await;
-    key(&mut s, KeyCode::Char('B'));
+    key(&mut s, Key::Char('B'));
     let _ = view(&s, 0, "branch-screen");
     invoke(&mut s, "git.branch.read_again");
     settle(&mut s).await;
@@ -211,7 +211,7 @@ async fn real_checkout_links_to_reviewed_work_and_reopens_exact_source() {
         })
         .expect("actual branch read was dispatched");
 
-    key(&mut s, KeyCode::Char('x'));
+    key(&mut s, Key::Char('x'));
     let add = s
         .host()
         .menu
@@ -228,7 +228,7 @@ async fn real_checkout_links_to_reviewed_work_and_reopens_exact_source() {
     settle(&mut s).await;
     choose(&mut s, "work.choose", "new");
     s.dispatch(Event::Paste(TITLE.into())).unwrap();
-    key(&mut s, KeyCode::Enter);
+    key(&mut s, Key::Enter);
     let sources = &s.host().menu.as_ref().unwrap().menu;
     assert_eq!(sources.id, "work.sources");
     let candidates: Vec<_> = sources
@@ -302,11 +302,6 @@ async fn real_checkout_links_to_reviewed_work_and_reopens_exact_source() {
     let _ = branches(&s);
     assert!(s.desktop_effects().is_empty());
     assert!(s.is_idle());
-    assert_eq!(
-        s.costs().shell_frames,
-        0,
-        "neutral-view checkpoint: no owned-host Ratatui frames"
-    );
     s.finish_journal().unwrap();
     fixture.assert_finished();
     fixture.assert_unchanged();

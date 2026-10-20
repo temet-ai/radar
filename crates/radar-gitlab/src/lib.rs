@@ -895,7 +895,7 @@ impl GitlabPlugin {
     /// the part), the rest handed to the part as an intent.
     #[cfg(test)]
     fn key(&mut self, scope: &str, pane: Pane, key: Chord) -> Outcome {
-        use radar_core::view_tui::Routed;
+        use radar_core::route::Routed;
         let chord = key;
         let vcx = radar_core::view::ViewCx {
             now: self.now,
@@ -909,9 +909,9 @@ impl GitlabPlugin {
         let Some(view) = Plugin::view(self, scope, &vcx) else {
             return self.on_key(pane, key);
         };
-        let frontend = radar_core::view_tui::Frontend::default();
+        let frontend = radar_core::route::Frontend::default();
         frontend.set_room(160, 40);
-        match radar_core::view_tui::key(&frontend, &view, pane.into(), chord) {
+        match radar_core::route::key(&frontend, &view, pane.into(), chord) {
             Routed::Intent(intent) => Plugin::intent(self, scope, pane, &intent),
             Routed::Done => Outcome::done(),
             Routed::Ignored => Outcome::Ignored,
@@ -2576,7 +2576,7 @@ pub(crate) mod tests {
         let radar_core::view::Node::List { rows, selected, .. } = &look.body else { panic!("look is a list") };
         assert!(rows[0].heading);
         assert_eq!(*selected, Some(1));
-        let down = radar_core::view_tui::section_key(&look, radar_core::view::Chord::new(radar_core::view::Key::Down));
+        let down = radar_core::route::section_key(&look, radar_core::view::Chord::new(radar_core::view::Key::Down));
         settings::list_intent(&mut p, "look", &down);
         assert_eq!(p.section_rows[3], 2);
         let views = settings::views_view(&p, 100);

@@ -568,7 +568,7 @@ fn row_intents_select_blank_space_open_and_context_menu() {
     ));
     assert!(!p.capturing());
     assert!(matches!(
-        p.context_select("github", radar_core::view_tui::PANE_HIT),
+        p.context_select("github", radar_core::route::PANE_HIT),
         Outcome::Ignored
     ));
 }

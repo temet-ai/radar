@@ -9,7 +9,7 @@
 use radar_core::headless::Headless;
 use radar_core::host::{Event, HostEffect, JournalRecord, View};
 use radar_core::journal::ActionId;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::view::{Intent, Node, PaneId, Target, TreeRow};
 use radar_core::{Host, Plugin};
 
@@ -87,7 +87,7 @@ fn journal(fx: &[HostEffect]) -> Vec<JournalRecord> {
 }
 
 fn key(c: char) -> Event {
-    Event::Key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE))
+    Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char(c)) })
 }
 
 #[test]
@@ -129,7 +129,7 @@ fn the_same_part_state_question_and_journal_through_either_frontend() {
         if selected_of(&tui) == target {
             break;
         }
-        tui.host_mut().update(Event::Key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE)));
+        tui.host_mut().update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Down) }));
     }
     assert_eq!(selected_of(&tui), target, "↓ reaches the branch:\n{}", tui.text());
     headless.focus(PaneId::Middle);
@@ -193,7 +193,7 @@ fn a_contributed_cell_shows_its_subject() {
 
 /// Every compiled-in part, with its sample data, on a screen of `w` x `h`.
 fn all_parts(w: u16, h: u16) -> Headless {
-    let mut host = radar_core::shot::demo_host(radar::parts()).unwrap();
+    let mut host = radar_core::demo::demo_host(radar::parts()).unwrap();
     host.view = View::Screen(0);
     Headless::new(host, w, h)
 }

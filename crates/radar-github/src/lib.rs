@@ -334,7 +334,7 @@ impl GithubPlugin {
 
     #[cfg(test)]
     fn context_select(&mut self, scope: &str, id: &str) -> Outcome {
-        if id == radar_core::view_tui::PANE_HIT || id.starts_with("tab:") || id.starts_with("under:") {
+        if id == radar_core::route::PANE_HIT || id.starts_with("tab:") || id.starts_with("under:") {
             Outcome::Ignored
         } else {
             self.point(scope, id)

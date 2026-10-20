@@ -9,10 +9,9 @@
 //! the IPC bridge sends a renderer (`ipc::Bridge::snapshot_now`):
 //! `{width, height, chrome, screen, section, focus}` plus `overlay`, the
 //! screen's own `overlay` pane when it has one. Beside each is
-//! `<case>_<w>x<h>.txt`, the picture Ink compares its own with: Ratatui's
+//! `<case>_<w>x<h>.txt`, the picture Ink compares its own with: the
 //! text as it was when this test moved to the view data's text form, now
-//! Ink's golden (decision 5 of the Ratatui removal); this test no longer
-//! writes it. Side by side needs 92 columns, so that case exists at 160x40
+//! Ink's golden; this test no longer writes it. Side by side needs 92 columns, so that case exists at 160x40
 //! only.
 //!
 //! RADAR_DIFF_EDITOR_VIEWS_DIR=$PWD/ink/test/fixtures/diff \
@@ -29,7 +28,7 @@ use std::path::{Path, PathBuf};
 use radar_core::Host;
 use radar_core::host::{Event, Owner, View};
 use radar_core::headless::host_text_of as to_text;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::view::{PaneId, ScreenView};
 use serde_json::{Value, json};
 
@@ -44,22 +43,22 @@ struct Case {
 
 /// The demo host with !263's page and diffs held.
 fn host(side_by_side: bool) -> Host {
-    let mut host = radar_core::shot::demo_host(radar::parts()).unwrap();
+    let mut host = radar_core::demo::demo_host(radar::parts()).unwrap();
     host.view = View::Screen(0);
     let at = host.plugins.iter().position(|p| p.name() == "GitLab").expect("GitLab");
     host.plugins[at] = Box::new(radar_gitlab::sample_reviewed(side_by_side));
     host
 }
 
-fn press(host: &mut Host, code: KeyCode) {
+fn press(host: &mut Host, code: Key) {
     // A frame first: parts fit their words to the room they were drawn in.
     let _ = to_text(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }));
 }
 
 fn type_text(host: &mut Host, text: &str) {
     for c in text.chars() {
-        press(host, KeyCode::Char(c));
+        press(host, Key::Char(c));
     }
 }
 
@@ -67,11 +66,11 @@ fn type_text(host: &mut Host, text: &str) {
 fn page(side_by_side: bool, tab: usize) -> Host {
     let mut host = host(side_by_side);
     for _ in 0..5 {
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     for _ in 0..tab {
-        press(&mut host, KeyCode::Char(']'));
+        press(&mut host, Key::Char(']'));
     }
     host
 }
@@ -85,31 +84,31 @@ fn cases() -> Vec<Case> {
     // The cursor down in the diff, on a hunk's changed lines.
     let mut moved = page(false, 1);
     for _ in 0..3 {
-        press(&mut moved, KeyCode::Char('j'));
+        press(&mut moved, Key::Char('j'));
     }
     out.push(Case { name: "diff_cursor_down", sizes: SIZES.to_vec(), host: moved });
     // A new comment on the merge request, from the Threads tab: two kept
     // lines, then a line with Unicode in it and the caret two cells back.
     let mut compose = page(false, 2);
-    press(&mut compose, KeyCode::Char('c'));
+    press(&mut compose, Key::Char('c'));
     type_text(&mut compose, "first line");
-    press(&mut compose, KeyCode::Enter);
+    press(&mut compose, Key::Enter);
     type_text(&mut compose, "second line");
-    press(&mut compose, KeyCode::Enter);
+    press(&mut compose, Key::Enter);
     type_text(&mut compose, "héllo 日本");
-    press(&mut compose, KeyCode::Left);
-    press(&mut compose, KeyCode::Left);
+    press(&mut compose, Key::Left);
+    press(&mut compose, Key::Left);
     out.push(Case { name: "editor_compose", sizes: SIZES.to_vec(), host: compose });
     // An inline comment on the diff's line under the cursor.
     let mut inline = page(false, 1);
     // Off the hunk header, onto an added line.
     for _ in 0..3 {
-        press(&mut inline, KeyCode::Char('j'));
+        press(&mut inline, Key::Char('j'));
     }
-    press(&mut inline, KeyCode::Char('c'));
+    press(&mut inline, Key::Char('c'));
     type_text(&mut inline, "héllo 日本");
-    press(&mut inline, KeyCode::Left);
-    press(&mut inline, KeyCode::Left);
+    press(&mut inline, Key::Left);
+    press(&mut inline, Key::Left);
     out.push(Case { name: "diff_inline_comment", sizes: SIZES.to_vec(), host: inline });
     out
 }

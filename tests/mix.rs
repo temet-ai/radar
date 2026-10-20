@@ -10,7 +10,7 @@
 
 use radar_core::Host;
 use radar_core::host::{Event, View};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::view::{Intent, Target};
 
 /// What shows, as the view data's text form (`radar_core::headless`): the
@@ -164,8 +164,8 @@ fn slack_fixture(host: &mut Host, at: usize, value: serde_json::Value) {
         Box::new(radar_slack::test_support::offline_plugin(cfg, value["data"].clone()).unwrap());
 }
 
-fn press(host: &mut Host, code: KeyCode) -> usize {
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+fn press(host: &mut Host, code: Key) -> usize {
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }))
         .len()
 }
 
@@ -288,7 +288,7 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
     #[cfg(feature = "demo")]
     hosts.push(("with data", || {
         same_everywhere();
-        radar_core::shot::demo_host(radar::parts()).expect("the parts fit together")
+        radar_core::demo::demo_host(radar::parts()).expect("the parts fit together")
     }));
     for (name, make) in hosts {
         let source = make();
@@ -362,7 +362,7 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
             // Its key goes to the same place.
             let mut keyed = make();
             away(&mut keyed);
-            press(&mut keyed, KeyCode::Char(*key));
+            press(&mut keyed, Key::Char(*key));
             let want = if i + 1 == views.len() {
                 View::Settings
             } else {
@@ -371,7 +371,7 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
             assert_eq!(host.view, want, "{name}: a click on {tab} goes there");
             assert_eq!(keyed.view, want, "{name}: {key} goes to {tab}");
             // The first row of its x menu acts.
-            press(&mut host, KeyCode::Char('x'));
+            press(&mut host, Key::Char('x'));
             if host.menu.is_none() {
                 continue; // nothing to do here, and the status line says so
             }
@@ -381,7 +381,7 @@ fn each_screen_draws_and_a_click_and_a_key_act() {
                 host.view,
                 host.message.clone(),
             );
-            let fx = press(&mut host, KeyCode::Enter);
+            let fx = press(&mut host, Key::Enter);
             let after = (
                 to_text(&host, 120, 30),
                 host.focus,
@@ -427,7 +427,7 @@ fn no_x_row_is_on_a_screens_key() {
             );
         }
         for (at, b) in rows {
-            if let Some(KeyEvent { code: KeyCode::Char(c), .. }) = radar_core::plugin::parse_key(&b.keys)
+            if let Some(Chord { key: Key::Char(c), .. }) = radar_core::plugin::parse_chord(&b.keys)
                 && screens.contains(&c)
             {
                 found.push(format!("{} {at}: `{} {}`", p.name(), b.keys, b.what));
@@ -455,15 +455,15 @@ fn every_screen_reaches_the_top_bar_and_comes_back() {
         host.focus = radar_core::Pane::Middle;
         let _ = to_text(&host, 160, 40);
         // From the first pane, the nav pane where there is one.
-        press(&mut host, KeyCode::Char('1'));
+        press(&mut host, Key::Char('1'));
         let pane = host.focus;
-        press(&mut host, KeyCode::Char('g'));
+        press(&mut host, Key::Char('g'));
         let _ = to_text(&host, 160, 40);
         for _ in 0..20 {
             if host.bar {
                 break;
             }
-            press(&mut host, KeyCode::Up);
+            press(&mut host, Key::Up);
             let _ = to_text(&host, 160, 40);
         }
         assert!(
@@ -473,9 +473,9 @@ fn every_screen_reaches_the_top_bar_and_comes_back() {
         );
         let here = host.view;
         if n > 0 {
-            press(&mut host, KeyCode::Right);
+            press(&mut host, Key::Right);
             assert_ne!(host.view, here, "→ changes the screen");
-            press(&mut host, KeyCode::Left);
+            press(&mut host, Key::Left);
             let expected = match here {
                 View::Screen(index) if host.group_screens(index).len() > 1 => {
                     View::Screen(host.group_screens(index)[0])
@@ -484,9 +484,9 @@ fn every_screen_reaches_the_top_bar_and_comes_back() {
             };
             assert_eq!(host.view, expected, "← back to the same top-level place");
         }
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
         if host.sources {
-            press(&mut host, KeyCode::Down);
+            press(&mut host, Key::Down);
         }
         assert_eq!(
             (host.bar, host.sources, host.focus),
@@ -600,10 +600,10 @@ jql = "project = ABC ORDER BY updated DESC"
         host.plugins[0].restore(cache);
         let slack = host.plugins.iter().position(|p| p.id() == "slack").unwrap();
         slack_fixture(&mut host, slack, json!({"data": {}}));
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         down_to(&mut host, "!263", "!263");
         host.focus = radar_core::Pane::Middle;
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         let menu = host.menu.as_mut().expect("MR actions");
         menu.row = menu
             .menu
@@ -611,7 +611,7 @@ jql = "project = ABC ORDER BY updated DESC"
             .iter()
             .position(|i| i.label.contains("ask for review in Slack"))
             .expect("review ask action");
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         let shown = to_text(&host, 220, 40);
         assert!(
             shown.contains("<https://acme.atlassian.net/browse/ABC-12|ABC-12>"),
@@ -619,7 +619,7 @@ jql = "project = ABC ORDER BY updated DESC"
         );
     }
 
-    fn key(host: &mut Host, code: KeyCode) {
+    fn key(host: &mut Host, code: Key) {
         let _ = to_text(host, 160, 40);
         press(host, code);
     }
@@ -637,7 +637,7 @@ jql = "project = ABC ORDER BY updated DESC"
             if shown.lines().any(titled) {
                 return;
             }
-            key(host, KeyCode::Down);
+            key(host, Key::Down);
         }
         panic!("never reached {text}:\n{}", to_text(host, 160, 40));
     }
@@ -659,14 +659,14 @@ jql = "project = ABC ORDER BY updated DESC"
                 .map(|f| f.to_uppercase().chain(c).collect::<String>())
                 .unwrap_or_default()
         };
-        key(&mut host, KeyCode::Char('R'));
-        key(&mut host, KeyCode::Char('1'));
+        key(&mut host, Key::Char('R'));
+        key(&mut host, Key::Char('1'));
         assert_eq!(
             (screen(&host).as_str(), host.focus),
             ("Repositories", Pane::Nav)
         );
-        key(&mut host, KeyCode::Char('g'));
-        key(&mut host, KeyCode::Up);
+        key(&mut host, Key::Char('g'));
+        key(&mut host, Key::Up);
         // The source row shows only where the repositories group has more
         // than one screen (GitLab with GitHub or workspace); where it does
         // not, ↑ goes straight to the bar.
@@ -675,20 +675,20 @@ jql = "project = ABC ORDER BY updated DESC"
             assert!(host.sources, "Repositories' nav pane: ↑ reaches the source row");
         }
         if host.sources {
-            key(&mut host, KeyCode::Up);
+            key(&mut host, Key::Up);
         }
         assert!(host.bar, "↑ reaches the bar, through the source row when shown");
-        key(&mut host, KeyCode::Right);
+        key(&mut host, Key::Right);
         assert_eq!((screen(&host).as_str(), host.bar), ("Jira", true));
-        key(&mut host, KeyCode::Down);
+        key(&mut host, Key::Down);
         assert_eq!(
             (host.bar, host.focus),
             (false, Pane::Nav),
             "into Jira's nav pane"
         );
-        key(&mut host, KeyCode::Up);
+        key(&mut host, Key::Up);
         assert!(host.bar, "from the nav pane's first row, the bar");
-        key(&mut host, KeyCode::Right);
+        key(&mut host, Key::Right);
         // The tab after Jira: Slack where it is set up; a part that is not
         // has no tab, so the bar goes on to the next one.
         let after = host
@@ -703,19 +703,19 @@ jql = "project = ABC ORDER BY updated DESC"
             return;
         };
         assert_eq!((screen(&host).to_lowercase(), host.bar), (want, true));
-        key(&mut host, KeyCode::Down);
+        key(&mut host, Key::Down);
         assert!(!host.bar);
         // Back to Jira through the bar: the pane it had, the nav pane.
-        key(&mut host, KeyCode::Up);
+        key(&mut host, Key::Up);
         let _ = to_text(&host, 160, 40);
         for _ in 0..20 {
             if host.bar {
                 break;
             }
-            key(&mut host, KeyCode::Up);
+            key(&mut host, Key::Up);
         }
-        key(&mut host, KeyCode::Left);
-        key(&mut host, KeyCode::Down);
+        key(&mut host, Key::Left);
+        key(&mut host, Key::Down);
         assert_eq!((screen(&host).as_str(), host.focus), ("Jira", Pane::Nav));
     }
 
@@ -723,7 +723,7 @@ jql = "project = ABC ORDER BY updated DESC"
     pub(super) fn merge_requests_carry_their_tickets() {
         let mut host = both();
         // Repositories: the ticket column on the merge request naming it.
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         let shown = to_text(&host, 220, 40);
         assert!(shown.contains("ABC-12 · In Review"), "{shown}");
         assert!(shown.contains("ABC-20 · To Do"), "from the branch: {shown}");
@@ -738,7 +738,7 @@ jql = "project = ABC ORDER BY updated DESC"
     pub(super) fn tickets_carry_their_code_at_160x40() {
         let mut host = both();
         // Jira: a code column from GitLab, only where a ticket has some.
-        key(&mut host, KeyCode::Char('J'));
+        key(&mut host, Key::Char('J'));
         let shown = to_text(&host, 160, 40);
         let columns: Vec<String> = super::middle_tree(&host, 160, 40).columns.into_iter().map(|c| c.heading).collect();
         assert!(columns.iter().any(|c| c.eq_ignore_ascii_case("code")), "a code column: {columns:?}");
@@ -755,7 +755,7 @@ jql = "project = ABC ORDER BY updated DESC"
     #[test]
     pub(super) fn tickets_carry_their_code_at_80x24() {
         let mut host = both();
-        key(&mut host, KeyCode::Char('J'));
+        key(&mut host, Key::Char('J'));
         let _ = to_text(&host, 160, 40);
         record!(
             super::every_part(),
@@ -776,7 +776,7 @@ jql = "project = ABC ORDER BY updated DESC"
                 .count()
         };
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         let before = to_text(&host, 220, 40);
         assert!(
             !before.contains("ABC-21"),
@@ -830,7 +830,7 @@ jql = "project = ABC ORDER BY updated DESC"
             &mut again,
             json!({ "ABC-12": entry(json!([])), "ABC-20": entry(json!([])), "ABC-21": entry(link) }),
         );
-        key(&mut again, KeyCode::Char('R'));
+        key(&mut again, Key::Char('R'));
         let shown = to_text(&again, 220, 40);
         assert!(
             shown.contains("ABC-21 · To Do"),
@@ -851,7 +851,7 @@ jql = "project = ABC ORDER BY updated DESC"
     #[test]
     pub(super) fn a_tickets_code_tab_shows_the_merge_request_and_esc_comes_back() {
         let mut host = both();
-        key(&mut host, KeyCode::Char('J'));
+        key(&mut host, Key::Char('J'));
         down_to(&mut host, "ABC-12", "ABC-12");
         // The detail pane has GitLab's section.
         let shown = to_text(&host, 160, 40);
@@ -859,8 +859,8 @@ jql = "project = ABC ORDER BY updated DESC"
             shown.contains("MERGE REQUESTS") && shown.contains("api !263 · "),
             "{shown}"
         );
-        key(&mut host, KeyCode::Enter);
-        key(&mut host, KeyCode::Char('['));
+        key(&mut host, Key::Enter);
+        key(&mut host, Key::Char('['));
         let shown = to_text(&host, 160, 40);
         // The page's tab on: `<Code>`.
         assert!(
@@ -872,7 +872,7 @@ jql = "project = ABC ORDER BY updated DESC"
             format!("{}_joined_ticket_code_tab_160x40", super::mix_name()),
             shown
         );
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         let shown = to_text(&host, 160, 40);
         assert!(shown.contains("Repositories / a / api / !263"), "{shown}");
         // The merge request's page has Jira's ticket section.
@@ -891,7 +891,7 @@ jql = "project = ABC ORDER BY updated DESC"
             format!("{}_joined_mr_page_160x40", super::mix_name()),
             shown
         );
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         let shown = to_text(&host, 160, 40);
         assert!(
             shown.contains("── page · Jira / acme / ABC / ABC-12 ──") && shown.contains("<:change: Code>"),
@@ -902,10 +902,10 @@ jql = "project = ABC ORDER BY updated DESC"
     #[test]
     fn selected_merge_request_history_uses_its_owners_scoped_identity_and_returns() {
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         down_to(&mut host, "!263", "!263");
         let before = (host.view, host.focus);
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         let row = host
             .menu
             .as_ref()
@@ -916,10 +916,7 @@ jql = "project = ABC ORDER BY updated DESC"
             .position(|item| item.label == "history for selected item")
             .unwrap();
         host.menu.as_mut().unwrap().row = row;
-        let effects = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Enter,
-            KeyModifiers::NONE,
-        )));
+        let effects = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Enter) }));
         let [radar_core::host::HostEffect::History(request)] = effects.as_slice() else {
             panic!("selected history must only request a local page: {effects:?}");
         };
@@ -930,7 +927,7 @@ jql = "project = ABC ORDER BY updated DESC"
         assert!(subject.instance.starts_with("https://"));
         assert!(request.filter.since_ms.is_none());
         assert!(to_text(&host, 80, 24).contains("exact subject gitlab:merge-request"));
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         assert_eq!((host.view, host.focus), before);
         assert!(to_text(&host, 160, 40).contains("!263"));
     }
@@ -938,9 +935,9 @@ jql = "project = ABC ORDER BY updated DESC"
     #[test]
     pub(super) fn jiras_actions_on_a_merge_request_open_and_move_its_ticket() {
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
+        key(&mut host, Key::Char('R'));
         down_to(&mut host, "!263", "!263");
-        key(&mut host, KeyCode::Char('x'));
+        key(&mut host, Key::Char('x'));
         let menu = &host.menu.as_ref().expect("the actions menu").menu;
         let rows: Vec<(String, String)> = menu
             .items
@@ -956,27 +953,16 @@ jql = "project = ABC ORDER BY updated DESC"
             rows.contains(&(">".into(), "move ABC-12 to …".into())),
             "{rows:?}"
         );
-        #[cfg(feature = "png")]
-        if let Some(directory) = std::env::var_os("CARGO_RADAR_HISTORY_SHOTS") {
-            let directory = std::path::PathBuf::from(directory);
-            std::fs::create_dir_all(&directory).unwrap();
-            let svg = radar_core::shell::to_svg(&host, 100, 40);
-            std::fs::write(
-                directory.join("history_entry_menu_100x40.png"),
-                radar_core::shot::to_png(&svg).unwrap(),
-            )
-            .unwrap();
-        }
         record!(
             super::every_part(),
             format!("{}_joined_mr_keys_100x40", super::mix_name()),
             to_text(&host, 100, 40)
         );
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         // v: the ticket's page, on Jira's screen; esc comes back.
-        key(&mut host, KeyCode::Char('v'));
+        key(&mut host, Key::Char('v'));
         assert!(to_text(&host, 160, 40).contains("Jira / acme / ABC / ABC-12"));
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         let back = to_text(&host, 160, 40);
         assert!(
             back.contains("── status · REPOSITORIES ──") && back.contains("── detail · api !263 ──"),
@@ -984,10 +970,7 @@ jql = "project = ABC ORDER BY updated DESC"
         );
         // >: Jira is asked where it can go (a task, never run here).
         let _ = to_text(&host, 160, 40);
-        let fx = host.update(Event::Key(KeyEvent::new(
-            KeyCode::Char('>'),
-            KeyModifiers::NONE,
-        )));
+        let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('>')) }));
         assert!(
             fx.iter()
                 .any(|e| matches!(e, radar_core::host::HostEffect::Spawn { .. })),
@@ -1035,9 +1018,9 @@ kind = "team"
 watched = true
 "#;
 
-    fn key(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
+    fn key(host: &mut Host, code: Key) -> Vec<HostEffect> {
         let _ = to_text(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+        host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }))
     }
 
     fn discussion(url: &str) -> Host {
@@ -1062,11 +1045,11 @@ watched = true
             }}),
         );
         for code in [
-            KeyCode::Char('S'),
-            KeyCode::Char('1'),
-            KeyCode::Down,
-            KeyCode::Char('2'),
-            KeyCode::Char('g'),
+            Key::Char('S'),
+            Key::Char('1'),
+            Key::Down,
+            Key::Char('2'),
+            Key::Char('g'),
         ] {
             key(&mut host, code);
         }
@@ -1082,14 +1065,14 @@ watched = true
     let rows = foreign.plugins[slack].keys(screen.id, Pane::Middle);
     assert_eq!(rows.first().map(|row| row.what.as_str()), Some("general"));
     assert!(rows.iter().any(|row| row.what == "hide what is under it"));
-    key(&mut foreign, KeyCode::Down);
-    key(&mut foreign, KeyCode::Enter);
+    key(&mut foreign, Key::Down);
+    key(&mut foreign, Key::Enter);
     assert_eq!(
         foreign.plugins[slack].depth(screen.id),
         1,
         "the general discussion opens its thread"
     );
-    key(&mut foreign, KeyCode::Char(']'));
+    key(&mut foreign, Key::Char(']'));
     let shown = to_text(&foreign, 160, 40);
     let tabs = foreign.plugins[slack]
         .tabs(screen.id)
@@ -1100,7 +1083,7 @@ watched = true
         shown.contains(FOREIGN),
         "the original URL is retained in Links:\n{shown}"
     );
-    let effects = key(&mut foreign, KeyCode::Enter);
+    let effects = key(&mut foreign, Key::Enter);
     assert!(
         effects
             .iter()
@@ -1119,7 +1102,7 @@ watched = true
         rows.iter()
             .any(|row| row.what == "open ABC-12 in radar, or its link")
     );
-    key(&mut beta, KeyCode::Enter);
+    key(&mut beta, Key::Enter);
     let (jira, screen) = beta.screen().expect("the ticket screen");
     assert_eq!(beta.plugins[jira].id(), "jira");
     assert_eq!(beta.plugins[jira].depth(screen.id), 1);
@@ -1130,7 +1113,7 @@ watched = true
     assert_eq!(ticket.id, "ABC-12");
     assert_eq!(ticket.field("site"), Some("beta"));
     assert_eq!(ticket.url.as_deref(), Some(BETA));
-    key(&mut beta, KeyCode::Esc);
+    key(&mut beta, Key::Esc);
     assert_eq!(beta.screen().expect("back to discussions").0, slack);
 }
 
@@ -1205,10 +1188,10 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         .expect("the config loads");
     repos::gitlab_cache_as(&mut host, "NEED_REBASE", true);
     let _ = to_text(&host, 220, 40);
-    press(&mut host, KeyCode::Char('R'));
+    press(&mut host, Key::Char('R'));
     for _ in 0..2 {
         let _ = to_text(&host, 160, 40);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let shown = to_text(&host, 160, 40);
     assert!(
@@ -1237,7 +1220,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
     );
     host.focus = narrow;
     // The x menu lists it; choosing it presses u: a question, then a no.
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let rows: Vec<(String, String)> = host
         .menu
         .as_ref()
@@ -1255,20 +1238,14 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         rows.contains(&("e".into(), "approve !263…".into())),
         "{rows:?}"
     );
-    press(&mut host, KeyCode::Esc);
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('u'),
-        KeyModifiers::NONE,
-    )));
+    press(&mut host, Key::Esc);
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('u')) }));
     assert!(fx.is_empty(), "asked, not sent: {fx:?}");
     assert_eq!(
         host.menu.as_ref().expect("a question").menu.id,
         "act-rebase:acme/team-a/api!263"
     );
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('n'),
-        KeyModifiers::NONE,
-    )));
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('n')) }));
     assert!(
         host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
         "{fx:?}"
@@ -1302,10 +1279,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
         "act-rebase:acme/team-a/api!263"
     );
     let original_question = host.menu.as_ref().unwrap().menu.clone();
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('n'),
-        KeyModifiers::NONE,
-    )));
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('n')) }));
     assert!(
         host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
         "cancelling the native row question sends nothing: {fx:?}"
@@ -1338,7 +1312,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
     assert!(fx.is_empty(), "the footer asks without sending: {fx:?}");
     assert_eq!(host.focus, Pane::Detail, "admission focuses the owning pane");
     assert_eq!(host.menu.as_ref().expect("the original question").menu, original_question);
-    assert_eq!(press(&mut host, KeyCode::Right), 0);
+    assert_eq!(press(&mut host, Key::Right), 0);
     let no_row = host.menu.as_ref().unwrap().row;
     assert_eq!(original_question.items[no_row].value, "no");
     for _ in 0..2 {
@@ -1352,10 +1326,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
             "a stale target cannot replace the modal with an identical new question"
         );
     }
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('n'),
-        KeyModifiers::NONE,
-    )));
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('n')) }));
     assert!(
         host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
         "cancelling the footer question sends nothing: {fx:?}"
@@ -1382,10 +1353,7 @@ fn a_merge_request_that_needs_a_rebase_offers_it_on_its_row_and_asks_first() {
             "radar is read only (set by RADAR_MODE): nothing will be sent".into()
         ))
     );
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('y'),
-        KeyModifiers::NONE,
-    )));
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('y')) }));
     assert!(
         host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
         "the original owner write guard refuses even yes: {fx:?}"
@@ -1422,10 +1390,10 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
         }],
         "at": repos::NOW - 60, "folders": 3, "cut": false, "missing": []
     }}));
-    press(&mut host, KeyCode::Char('R'));
+    press(&mut host, Key::Char('R'));
     for _ in 0..2 {
         let _ = to_text(&host, 160, 40);
-        press(&mut host, KeyCode::Down);
+        press(&mut host, Key::Down);
     }
     let row = to_text(&host, 160, 40);
     let footer = under_rule(&row, "detail").last().copied().expect("the pinned detail footer");
@@ -1436,21 +1404,21 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
     // Contributed actions live in the Detail menu, reached through its footer.
     let focus = host.focus;
     host.focus = radar_core::Pane::Detail;
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().expect("the detail actions menu").menu;
     assert!(
         menu.items.iter().any(|item| item.keys == "c" && item.label == "check out stats…"),
         "the detail menu retains git's checkout action: {:?}",
         menu.items
     );
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     host.focus = focus;
     assert!(
         row.contains(":local: api  :branch: main"),
         "the repo row says it is cloned here, on its branch:\n{row}"
     );
     let _ = to_text(&host, 160, 40);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let page = to_text(&host, 160, 40);
     assert!(
         page.contains(":local: checkout  :terminal: terminal  :editor: editor  /work/acme/api · java · :branch: on main"),
@@ -1473,8 +1441,8 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
         host.menu.as_ref().expect("asked where").menu.title,
         "open stats: where?"
     );
-    press(&mut host, KeyCode::Esc);
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Esc);
+    press(&mut host, Key::Char('x'));
     let rows: Vec<(String, String)> = host
         .menu
         .as_ref()
@@ -1496,27 +1464,18 @@ fn git_says_where_a_repo_is_checked_out_and_checks_out_a_branch_after_asking() {
             "{want:?} in {rows:?}"
         );
     }
-    press(&mut host, KeyCode::Esc);
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('c'),
-        KeyModifiers::NONE,
-    )));
+    press(&mut host, Key::Esc);
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('c')) }));
     assert!(fx.is_empty(), "asked, not done: {fx:?}");
     let menu = &host.menu.as_ref().expect("a question").menu;
     assert_eq!(menu.title, "check out stats in /work/acme/api?");
-    let fx = host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('n'),
-        KeyModifiers::NONE,
-    )));
+    let fx = host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('n')) }));
     assert!(
         host.menu.is_none() && !fx.iter().any(|e| matches!(e, HostEffect::Spawn { .. })),
         "{fx:?}"
     );
     // A terminal on its branch: asked where; as it is, nothing is checked out.
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('t'),
-        KeyModifiers::NONE,
-    )));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('t')) }));
     assert_eq!(
         host.menu.as_ref().expect("asked where").menu.title,
         "open stats: where?"
@@ -1532,7 +1491,7 @@ fn without_slack_gitlab_shows_nothing_about_alerts() {
         .expect("the config loads");
     repos::gitlab_cache(&mut host);
     let _ = to_text(&host, 220, 40);
-    press(&mut host, KeyCode::Char('R'));
+    press(&mut host, Key::Char('R'));
     for (w, h) in [(220, 40), (80, 24)] {
         let shown = to_text(&host, w, h).to_lowercase();
         assert!(
@@ -1542,9 +1501,9 @@ fn without_slack_gitlab_shows_nothing_about_alerts() {
     }
     // Its repo page, every tab: no marker, no Alerts tab.
     let _ = to_text(&host, 160, 40);
-    press(&mut host, KeyCode::Down);
+    press(&mut host, Key::Down);
     let _ = to_text(&host, 160, 40);
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let shown = to_text(&host, 160, 40);
     assert!(shown.contains("Repositories /"), "{shown}");
     assert!(
@@ -1622,7 +1581,7 @@ service = "api"
         host
     }
 
-    fn key(host: &mut Host, code: KeyCode) {
+    fn key(host: &mut Host, code: Key) {
         let _ = to_text(host, 160, 40);
         press(host, code);
     }
@@ -1659,7 +1618,7 @@ service = "api"
     pub(super) fn a_firing_alert_marks_its_repo_row_and_not_a_repo_no_rule_names() {
         let mut host = both();
         let _ = to_text(&host, 220, 40);
-        press(&mut host, KeyCode::Char('R'));
+        press(&mut host, Key::Char('R'));
         let shown = to_text(&host, 220, 40);
         let api = shown
             .lines()
@@ -1681,16 +1640,16 @@ service = "api"
     #[test]
     pub(super) fn the_repo_page_carries_the_marker_and_an_alerts_tab_whose_row_opens_the_thread() {
         let mut host = both();
-        key(&mut host, KeyCode::Char('R'));
-        key(&mut host, KeyCode::Down);
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Char('R'));
+        key(&mut host, Key::Down);
+        key(&mut host, Key::Enter);
         let shown = to_text(&host, 160, 40);
         assert!(
             shown.contains("Repositories / a / api") && shown.contains("firing · 1"),
             "{shown}"
         );
         assert!(shown.contains("Alerts"), "{shown}");
-        key(&mut host, KeyCode::Char('['));
+        key(&mut host, Key::Char('['));
         let shown = aged(&to_text(&host, 160, 40));
         assert!(
             shown.contains("▲ api-HighErrorRate · prod · P1 · firing #h ##m · #team-alerts"),
@@ -1707,13 +1666,13 @@ service = "api"
             aged(&to_text(&host, 80, 24))
         );
         // ⏎: the alert's thread, on Slack's screen; esc comes back to the repo.
-        key(&mut host, KeyCode::Enter);
+        key(&mut host, Key::Enter);
         let shown = to_text(&host, 160, 40);
         assert!(
             shown.contains("Slack / #team-alerts / alertbot:"),
             "{shown}"
         );
-        key(&mut host, KeyCode::Esc);
+        key(&mut host, Key::Esc);
         assert!(to_text(&host, 160, 40).contains("Repositories / a / api"));
     }
 }

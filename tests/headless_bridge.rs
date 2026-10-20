@@ -3,7 +3,7 @@
 //! One repositories journey with the demo parts: choose a repository, open
 //! its page, switch its tab, go back. It runs through `Headless` and through
 //! `ipc::Bridge`, the host side of the Ink renderer's protocol, with no
-//! Ratatui and no Node: the renderer's messages are built here and the
+//! terminal and no Node: the renderer's messages are built here and the
 //! bridge's replies are read here. At each step both show the same screen
 //! view, the renderer was sent that view, and the journal records the same
 //! actions under the same causal parents.

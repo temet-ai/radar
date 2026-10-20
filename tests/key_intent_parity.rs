@@ -1,13 +1,11 @@
-//! Keys reach the same place whichever renderer sends them. The Ratatui
-//! runner sends terminal keys (`Event::Key`, an uppercase letter with
-//! SHIFT, as crossterm reports it); Ink and Headless send the same chord as
-//! `Intent::Key` (no SHIFT: the letter is the case). For every compiled-in
-//! part's screens and every settings section (its navigation and the
-//! section itself), every key the surface binds, the status line's keys and
-//! the shared navigation keys give the same effects, journal, chrome and
-//! view both ways; and every action invoked by its stable id does what its
-//! key does. A defect of this class left History, Settings and actions
-//! deaf under Ink while the terminal worked.
+//! Keys and actions reach the same place whichever way a renderer sends
+//! them. Every key a surface binds, the status line's keys and the shared
+//! navigation keys, sent as `Intent::Key` to two hosts in lockstep, give the
+//! same effects, journal, chrome and view; and every action invoked by its
+//! stable id (`Intent::Invoke`) does what its key does. This runs over every
+//! compiled-in part's screens and every settings section (its navigation and
+//! the section itself). A defect of this class left History, Settings and
+//! actions deaf under Ink.
 //!
 //! One host pair per surface, driven in lockstep and put back on the
 //! surface after each key, keeps this to one pass over every surface.
@@ -15,10 +13,9 @@
 #![cfg(feature = "demo")]
 
 use radar_core::headless::Headless;
-use radar_core::host::{Event, HostEffect, JournalRecord, View};
+use radar_core::host::{HostEffect, JournalRecord, View};
 use radar_core::journal::ActionId;
 use radar_core::plugin::Pane;
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use radar_core::view::{Chord, Intent, Key};
 
 #[path = "support/mnemonic_acceptance.rs"]
@@ -37,7 +34,7 @@ enum Surface {
 }
 
 fn hosted() -> Headless {
-    let mut host = radar_core::shot::demo_host(radar::parts()).expect("the parts fit together");
+    let mut host = radar_core::demo::demo_host(radar::parts()).expect("the parts fit together");
     host.enable_journal();
     Headless::new(host, W, H)
 }
@@ -63,18 +60,6 @@ fn place(h: &mut Headless, at: Surface) {
             host.focus = pane;
         }
     }
-}
-
-/// The terminal key a chord is, as crossterm reports it to the Ratatui
-/// runner: an uppercase letter comes with SHIFT.
-fn terminal(chord: Chord) -> Event {
-    let mut key: KeyEvent = radar_core::view_tui::key_of(chord);
-    if let KeyCode::Char(c) = key.code
-        && c.is_uppercase()
-    {
-        key.modifiers |= KeyModifiers::SHIFT;
-    }
-    Event::Key(key)
 }
 
 /// The effects, journal records numbered by first appearance (their ids
@@ -133,7 +118,7 @@ fn scrub_ids(text: String) -> String {
     out
 }
 
-/// What a user and a renderer can see after a key.
+/// What a user can see after a key.
 fn seen(h: &Headless) -> String {
     let host = h.host();
     let chrome = host.chrome_view(W, H);
@@ -174,7 +159,7 @@ fn differs(a: &str, b: &str) -> String {
     let at = a.chars().zip(b.chars()).take_while(|(x, y)| x == y).count();
     let from = at.saturating_sub(80);
     let cut = |s: &str| s.chars().skip(from).take(240).collect::<String>();
-    format!("\n  terminal …{}\n  intent   …{}", cut(a), cut(b))
+    format!("\n  first  …{}\n  second …{}", cut(a), cut(b))
 }
 
 /// The keys to try on a surface: what it binds, what its status line
@@ -231,7 +216,7 @@ fn surfaces() -> Vec<Surface> {
 /// starts on the surface.
 fn close_history(h: &mut Headless) {
     if h.host().chrome_view(W, H).history.is_some() {
-        h.host_mut().update(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+        h.send(Intent::Key { chord: Chord::new(Key::Esc) });
     }
 }
 
@@ -264,41 +249,41 @@ fn across_surfaces(per_surface: fn(Surface, &mut Vec<String>)) -> Vec<String> {
 }
 
 #[test]
-fn every_key_on_every_surface_does_the_same_as_a_terminal_key_or_an_intent() {
+fn every_key_on_every_surface_does_the_same_in_a_pair_of_hosts() {
     let gaps = across_surfaces(keys_on_surface);
-    assert!(gaps.is_empty(), "{} keys differ by renderer:\n{}", gaps.len(), gaps.join("\n"));
+    assert!(gaps.is_empty(), "{} keys differ between hosts:\n{}", gaps.len(), gaps.join("\n"));
 }
 
 fn keys_on_surface(at: Surface, gaps: &mut Vec<String>) {
     {
-        let (mut tui, mut ink) = (hosted(), hosted());
-        let (mut tui_ids, mut ink_ids) = (Vec::new(), Vec::new());
-        place(&mut tui, at);
-        let chords = keys(&tui);
-        place(&mut ink, at);
-        let _ = keys(&ink);
+        let (mut first, mut second) = (hosted(), hosted());
+        let (mut first_ids, mut second_ids) = (Vec::new(), Vec::new());
+        place(&mut first, at);
+        let chords = keys(&first);
+        place(&mut second, at);
+        let _ = keys(&second);
         for chord in chords {
-            place(&mut tui, at);
-            place(&mut ink, at);
-            let before = seen(&tui);
-            let other = seen(&ink);
+            place(&mut first, at);
+            place(&mut second, at);
+            let before = seen(&first);
+            let other = seen(&second);
             assert!(before == other, "{at:?}: the pair starts equal: {}", differs(&before, &other));
-            let a = tui.host_mut().update(terminal(chord));
-            let b = ink.send(Intent::Key { chord });
-            let (a, b) = (shape(&a, &mut tui_ids), shape(&b, &mut ink_ids));
-            let (sa, sb) = (seen(&tui), seen(&ink));
+            let a = first.send(Intent::Key { chord });
+            let b = second.send(Intent::Key { chord });
+            let (a, b) = (shape(&a, &mut first_ids), shape(&b, &mut second_ids));
+            let (sa, sb) = (seen(&first), seen(&second));
             if a != b || sa != sb {
                 gaps.push(format!(
-                    "{at:?} {chord:?}:\n  terminal {a:?}\n  intent   {b:?}{}",
+                    "{at:?} {chord:?}:\n  first  {a:?}\n  second {b:?}{}",
                     if sa == sb { String::new() } else { differs(&sa, &sb) }
                 ));
                 // Back in step for the next key.
-                (tui, ink) = (hosted(), hosted());
-                (tui_ids, ink_ids) = (Vec::new(), Vec::new());
+                (first, second) = (hosted(), hosted());
+                (first_ids, second_ids) = (Vec::new(), Vec::new());
                 continue;
             }
-            close_history(&mut tui);
-            close_history(&mut ink);
+            close_history(&mut first);
+            close_history(&mut second);
         }
     }
 }
@@ -311,41 +296,41 @@ fn every_action_invoked_by_its_id_does_what_its_key_does() {
 
 fn actions_on_surface(at: Surface, gaps: &mut Vec<String>) {
     {
-        let (mut tui, mut ink) = (hosted(), hosted());
-        let (mut tui_ids, mut ink_ids) = (Vec::new(), Vec::new());
-        place(&mut tui, at);
-        let resting = seen(&tui);
-        let actions = tui
+        let (mut first, mut second) = (hosted(), hosted());
+        let (mut first_ids, mut second_ids) = (Vec::new(), Vec::new());
+        place(&mut first, at);
+        let resting = seen(&first);
+        let actions = first
             .screen()
             .map(|v| v.actions)
-            .or_else(|| tui.section().map(|v| v.actions))
+            .or_else(|| first.section().map(|v| v.actions))
             .unwrap_or_default();
         for action in actions.iter().filter(|a| !a.heading) {
             let Some(chord) = action.key else { continue };
-            place(&mut tui, at);
-            place(&mut ink, at);
-            let a = tui.host_mut().update(terminal(chord));
-            let b = ink.send(Intent::Invoke { action: action.id.clone() });
-            let (a, b) = (shape(&a, &mut tui_ids), shape(&b, &mut ink_ids));
-            let (sa, sb) = (seen(&tui), seen(&ink));
+            place(&mut first, at);
+            place(&mut second, at);
+            let a = first.send(Intent::Key { chord });
+            let b = second.send(Intent::Invoke { action: action.id.clone() });
+            let (a, b) = (shape(&a, &mut first_ids), shape(&b, &mut second_ids));
+            let (sa, sb) = (seen(&first), seen(&second));
             if a != b || sa != sb {
                 gaps.push(format!(
                     "{at:?} {} ({chord:?}):\n  key    {a:?}\n  invoke {b:?}{}",
                     action.id,
                     if sa == sb { String::new() } else { differs(&sa, &sb) }
                 ));
-                (tui, ink) = (hosted(), hosted());
-                (tui_ids, ink_ids) = (Vec::new(), Vec::new());
+                (first, second) = (hosted(), hosted());
+                (first_ids, second_ids) = (Vec::new(), Vec::new());
                 continue;
             }
-            close_history(&mut tui);
-            close_history(&mut ink);
+            close_history(&mut first);
+            close_history(&mut second);
             // An action that opened a page, a menu or a field leaves the
             // pair somewhere the next id is not offered (a typed key goes
             // into the field): start the next from the surface again.
-            if seen(&tui) != resting {
-                (tui, ink) = (hosted(), hosted());
-                (tui_ids, ink_ids) = (Vec::new(), Vec::new());
+            if seen(&first) != resting {
+                (first, second) = (hosted(), hosted());
+                (first_ids, second_ids) = (Vec::new(), Vec::new());
             }
         }
     }

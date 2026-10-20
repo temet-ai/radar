@@ -21,7 +21,7 @@ use view_fixture_contract::{
 };
 
 fn demo(w: u16, h: u16) -> Headless {
-    let mut host = radar_core::shot::demo_host(radar::parts()).unwrap();
+    let mut host = radar_core::demo::demo_host(radar::parts()).unwrap();
     host.view = View::Screen(0);
     Headless::new(host, w, h)
 }

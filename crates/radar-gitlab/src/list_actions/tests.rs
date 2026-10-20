@@ -385,7 +385,7 @@ fn the_actions_menu_of_a_row_lists_them_with_why_for_the_ones_not_offered() {
     // Pressing a row presses its key.
     for r in &b {
         if matches!(r.keys.as_str(), "u" | "m" | "e") {
-            assert!(radar_core::plugin::parse_key(&r.keys).is_some(), "{}", r.keys);
+            assert!(radar_core::plugin::parse_chord(&r.keys).is_some(), "{}", r.keys);
         }
     }
     select(&mut p, 263);

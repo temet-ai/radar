@@ -11,8 +11,7 @@ publish = false
 
 [workspace.dependencies]
 # Theme palettes; radar-core's design layer maps them onto its colour slots.
-opaline = "0.4.1"
-ratatui = { version = "0.30", features = ["unstable-rendered-line-info"] }
+opaline = { version = "0.4.1", default-features = false, features = ["builtin-themes", "gradients"] }
 anyhow = "1"
 clap = { version = "4", features = ["string"] }
 dirs = "6"
@@ -26,18 +25,11 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"
 toml = "0.9"
 toml_edit = "0.22"
 insta = "1"
-ratatui-textarea = "0.9"
-tui-tree-widget = "0.24"
-throbber-widgets-tui = "0.11"
-tui-popup = "0.7"
-tui-scrollview = "0.6"
 base64 = "0.22"
 # Markdown text (descriptions, comments) parsed for the kit's renderer.
 pulldown-cmark = { version = "0.13", default-features = false }
 unicode-width = "0.2"
 unicode-segmentation = "1"
-# `radar shot`'s PNGs: an SVG rendered by resvg (tiny-skia), with the system's fonts.
-resvg = { version = "0.47", default-features = false, features = ["text", "system-fonts", "memmap-fonts"] }
 # Code highlighted by language (the kit's highlight): pure-Rust regexes, the
 # bundled grammars, no themes (scopes map onto radar's slots).
 syntect = { version = "5", default-features = false, features = ["default-syntaxes", "parsing", "regex-fancy"] }
@@ -45,13 +37,8 @@ syntect = { version = "5", default-features = false, features = ["default-syntax
 similar = "2"
 # Emoji short names (`:tada:`) to their glyphs, for rich text.
 emojis = "0.9"
-# Images drawn with the terminal's graphics protocol (kitty, sixel, iTerm2),
-# and the formats they arrive in.
-ratatui-image = { version = "11.1", default-features = false, features = ["crossterm"] }
+# The image formats a fetched picture arrives in.
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
-# Motion (radar_core::motion): effects over what was drawn. Built on ratatui-core
-# 0.1, the core of ratatui 0.30. Parts never depend on it.
-tachyonfx = { version = "0.25", default-features = false, features = ["std"] }
 radar-core = { path = "crates/radar-core" }
 radar-gitlab = { path = "crates/radar-gitlab" }
 radar-github = { path = "crates/radar-github" }
@@ -83,11 +70,9 @@ publish.workspace = true
 # is a part names its crate as `dep:radar-<name>` (scripts/check-mixes tells the
 # parts from the other features by that).
 #
-# `shots` is `radar shot`'s pictures: PNG output, and the parts' sample data
-# (their `demo` feature). Without it `radar shot` still writes SVGs, of screens
-# that have no data.
+# `demo` is the parts' sample data (their `demo` feature).
 [features]
-default = ["gitlab", "github", "jira", "slack", "git", "workspace", "workbench", "sessions", "sessions-pty", "sessions-copilot", "sessions-claude", "sessions-codex", "shots"]
+default = ["gitlab", "github", "jira", "slack", "git", "workspace", "workbench", "sessions", "sessions-pty", "sessions-copilot", "sessions-claude", "sessions-codex", "demo"]
 gitlab = ["dep:radar-gitlab"]
 github = ["dep:radar-github"]
 jira = ["dep:radar-jira"]
@@ -100,8 +85,6 @@ sessions-pty = ["sessions", "dep:radar-sessions-pty"]
 sessions-copilot = ["sessions", "dep:radar-sessions-copilot"]
 sessions-claude = ["sessions", "dep:radar-sessions-claude"]
 sessions-codex = ["sessions", "dep:radar-sessions-codex"]
-shots = ["png", "demo"]
-png = ["radar-core/png"]
 demo = ["radar-core/test-support", "radar-gitlab?/demo", "radar-github?/demo", "radar-jira?/demo", "radar-slack?/demo", "radar-git?/demo", "radar-workspace?/demo", "radar-workbench?/demo", "radar-sessions?/demo"]
 
 # Cross-crate fixtures only for selected parts; weak forwarding never selects one.
@@ -151,6 +134,11 @@ required-features = ["test-support"]
 name = "github_links"
 required-features = ["github", "git", "jira", "slack", "demo", "test-support"]
 
+# Headless and the IPC Bridge give the same view data and journal (#39).
+[[test]]
+name = "headless_bridge"
+required-features = ["gitlab", "demo"]
+
 # Heavy root fixture binaries opt in explicitly, so a targeted invocation with
 # missing support reports Cargo's required-feature error instead of zero tests.
 # Provider modules select their own part; Cargo has no any-of required-features.
@@ -174,9 +162,9 @@ required-features = ["sessions", "test-support"]
 name = "review_scenarios"
 required-features = ["gitlab", "sessions", "test-support"]
 
-# The libraries are built optimised in dev and test builds too: tests draw
-# frames through ratatui, which unoptimised is ten times slower. radar's own
-# crates stay unoptimised, for debugging.
+# The libraries are built optimised in dev and test builds too: unoptimised
+# they are several times slower. radar's own crates stay unoptimised, for
+# debugging.
 [profile.dev.package."*"]
 opt-level = 2
 debug = false

@@ -1661,7 +1661,7 @@ pub fn intent(p: &mut GitPlugin, pane: Pane, intent: &Intent) -> Outcome {
 #[cfg(test)]
 pub(crate) fn key(p: &mut GitPlugin, pane: Pane, chord: radar_core::view::Chord) -> Outcome {
     use radar_core::Plugin;
-    use radar_core::view_tui::{Frontend, Routed, to_part};
+    use radar_core::route::{Frontend, Routed, to_part};
     let fe = Frontend::default();
     let (width, height) = fe.room();
     let cx = v::ViewCx {
@@ -1677,7 +1677,7 @@ pub(crate) fn key(p: &mut GitPlugin, pane: Pane, chord: radar_core::view::Chord)
         Routed::Intent(Intent::Key { chord })
     } else {
         match p.view(SCREEN.id, &cx) {
-            Some(view) => radar_core::view_tui::key(&fe, &view, pane.into(), chord),
+            Some(view) => radar_core::route::key(&fe, &view, pane.into(), chord),
             None => Routed::Ignored,
         }
     };

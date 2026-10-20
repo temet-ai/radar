@@ -653,8 +653,7 @@ fn root_fixture_metadata() -> serde_json::Value {
     serde_json::json!({
         "dependencies": dependencies,
         "features": {
-            "default": ["shots"], "shots": ["png", "demo"],
-            "png": ["radar-core/png"], "demo": ["radar-core/test-support"],
+            "default": ["demo"], "demo": ["radar-core/test-support"],
             "test-support": support,
         },
         "targets": targets,

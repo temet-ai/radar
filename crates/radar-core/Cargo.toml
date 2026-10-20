@@ -9,7 +9,6 @@ publish.workspace = true
 
 [dependencies]
 opaline.workspace = true
-ratatui.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 dirs.workspace = true
@@ -21,28 +20,18 @@ uuid.workspace = true
 tokio = { workspace = true, features = ["process", "net", "io-util"] }
 toml.workspace = true
 toml_edit.workspace = true
-ratatui-textarea.workspace = true
-tui-tree-widget.workspace = true
-throbber-widgets-tui.workspace = true
-tui-popup.workspace = true
-tui-scrollview.workspace = true
 base64.workspace = true
 pulldown-cmark.workspace = true
 unicode-width.workspace = true
 unicode-segmentation.workspace = true
-resvg = { workspace = true, optional = true }
 syntect.workspace = true
 similar.workspace = true
 emojis.workspace = true
-ratatui-image.workspace = true
 image.workspace = true
-tachyonfx.workspace = true
 # The IPC messages' TypeScript side (ink/src/protocol/generated/).
 ts-rs = { version = "12", features = ["serde-json-impl"] }
 
 [features]
-# PNG output for `radar shot` (SVG needs nothing). Tests do not need it.
-png = ["dep:resvg"]
 # Opt-in for other workspace crates' scratch-SQLite integration fixtures only.
 test-support = []
 

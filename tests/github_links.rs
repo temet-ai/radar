@@ -7,7 +7,7 @@
     feature = "demo"
 ))]
 use radar_core::host::{Event, HostEffect};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Contribution, Host, Pane, Point};
 use serde_json::json;
 use std::path::{Path, PathBuf};
@@ -18,9 +18,9 @@ const PR: &str = "https://github.com/acme/api/pull/42";
 fn to_text(host: &Host, width: u16, height: u16) -> String {
     radar_core::headless::host_text_of(host, width, height)
 }
-fn press(host: &mut Host, code: KeyCode) -> Vec<HostEffect> {
+fn press(host: &mut Host, code: Key) -> Vec<HostEffect> {
     let _ = to_text(host, 160, 40);
-    host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }))
 }
 fn choose(host: &mut Host, label: &str) -> Vec<HostEffect> {
     let row = host
@@ -33,7 +33,7 @@ fn choose(host: &mut Host, label: &str) -> Vec<HostEffect> {
         .position(|r| r.label == label)
         .unwrap_or_else(|| panic!("missing menu row {label}"));
     host.menu.as_mut().unwrap().row = row;
-    press(host, KeyCode::Enter)
+    press(host, Key::Enter)
 }
 fn at(host: &Host, id: &str) -> usize {
     host.plugins.iter().position(|p| p.id() == id).unwrap()
@@ -73,7 +73,7 @@ fn fixture(config: &str) -> Host {
         "users":{"U000ALICE":"Alice Example"},
         "channels":{"C0000TEAM1":{"messages":[{"ts":"1791270000.000100","user":"U000ALICE","text":PR}]}}
     })).unwrap());
-    press(&mut host, KeyCode::Char('G'));
+    press(&mut host, Key::Char('G'));
     host.focus = Pane::Middle;
     host
 }
@@ -119,7 +119,7 @@ fn real_parts_offer_only_source_folder_and_read_only_cached_relationships() {
     assert!(text.contains("local folder"), "{text}");
     assert!(text.contains("/work/source"), "{text}");
     assert!(text.contains("on main"), "{text}");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
     let labels: Vec<_> = menu.items.iter().map(|r| r.label.as_str()).collect();
     assert!(labels.contains(&"open current folder in an editor"));
@@ -132,12 +132,12 @@ fn real_parts_offer_only_source_folder_and_read_only_cached_relationships() {
         || s.starts_with("check out ")));
     choose(&mut host, "open discussion thread in #team");
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "slack");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "github");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     choose(&mut host, "view ABC-12");
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "jira");
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert_eq!(host.plugins[host.screen().unwrap().0].id(), "github");
 }
 
@@ -220,10 +220,10 @@ fn complete_git(host: &mut Host, effects: Vec<HostEffect>) -> Vec<HostEffect> {
     out
 }
 fn link(host: &mut Host, dir: &Path) -> Vec<HostEffect> {
-    press(host, KeyCode::Char('x'));
+    press(host, Key::Char('x'));
     choose(host, "link a matching local folder…");
     host.update(Event::Paste(dir.display().to_string()));
-    let fx = press(host, KeyCode::Enter);
+    let fx = press(host, Key::Enter);
     complete_git(host, fx)
 }
 #[test]
@@ -300,7 +300,7 @@ fn integrated_preview_and_context_menu_render_at_both_widths() {
         );
         for (name, menu) in [("integrated_preview", false), ("integrated_actions", true)] {
             if menu {
-                press(&mut host, KeyCode::Char('x'));
+                press(&mut host, Key::Char('x'));
             }
             let text = to_text(&host, w, h);
             assert_eq!(host.plugins[host.screen().unwrap().0].id(), "github");
@@ -316,11 +316,6 @@ fn integrated_preview_and_context_menu_render_at_both_widths() {
                 std::fs::create_dir_all(&dir).unwrap();
                 let stem = format!("{name}_{w}x{h}");
                 std::fs::write(dir.join(format!("{stem}.txt")), &text).unwrap();
-                std::fs::write(
-                    dir.join(format!("{stem}.svg")),
-                    radar_core::shell::to_svg(&host, w, h),
-                )
-                .unwrap();
             }
         }
     }

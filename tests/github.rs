@@ -2,7 +2,7 @@
 #![cfg(feature = "github")]
 
 use radar_core::host::{Event, View};
-use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use radar_core::view::{Chord, Key};
 use radar_core::{Host, Plugin, Showing, Subject};
 
 fn host() -> Host {
@@ -22,19 +22,13 @@ fn feature_registers_a_public_read_part_without_stealing_history() {
         .position(|p| p.id() == "github")
         .unwrap();
     assert_eq!(host.plugins[index].set_up(), radar_core::Setup::Ready);
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('G'),
-        KeyModifiers::NONE,
-    )));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('G')) }));
     let View::Screen(screen) = host.view else {
         panic!("G should open the part");
     };
     assert_eq!(host.screens[screen].0, index);
     let screen_before = host.view;
-    host.update(Event::Key(KeyEvent::new(
-        KeyCode::Char('H'),
-        KeyModifiers::NONE,
-    )));
+    host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(Key::Char('H')) }));
     // The overlay keeps the underlying screen; H is never a part screen key.
     assert_eq!(host.view, screen_before);
     assert!(host.screens.iter().all(|(_, s)| s.key != 'H'));
@@ -199,14 +193,14 @@ fn native_actions_navigation_keeps_checks_and_runs_separate_in_the_real_mix() {
     host.plugins[index].demo();
     let press = |host: &mut Host, code| {
         let _ = radar_core::headless::host_text_of(host, 160, 40);
-        host.update(Event::Key(KeyEvent::new(code, KeyModifiers::NONE)))
+        host.update(Event::Intent(radar_core::view::Intent::Key { chord: Chord::new(code) }))
     };
-    press(&mut host, KeyCode::Char('G'));
+    press(&mut host, Key::Char('G'));
     host.focus = Pane::Middle;
-    press(&mut host, KeyCode::Up);
-    press(&mut host, KeyCode::Enter);
-    press(&mut host, KeyCode::Char(']'));
-    press(&mut host, KeyCode::Char(']'));
+    press(&mut host, Key::Up);
+    press(&mut host, Key::Enter);
+    press(&mut host, Key::Char(']'));
+    press(&mut host, Key::Char(']'));
     let shown = radar_core::headless::host_text_of(&host, 160, 40);
     assert!(shown.contains("Actions"), "{shown}");
     assert!(shown.contains("attempt"), "{shown}");
@@ -214,11 +208,11 @@ fn native_actions_navigation_keeps_checks_and_runs_separate_in_the_real_mix() {
     let selected = host.plugins[index].subject("github", Pane::Middle).unwrap();
     assert_eq!(selected.kind, "workflow-run");
     let before = selected.id.clone();
-    press(&mut host, KeyCode::Enter);
+    press(&mut host, Key::Enter);
     let opened = host.plugins[index].subject("github", Pane::Middle).unwrap();
     assert_eq!(opened.id, before);
     assert_eq!(opened.kind, "workflow-run");
-    press(&mut host, KeyCode::Char('x'));
+    press(&mut host, Key::Char('x'));
     let menu = &host.menu.as_ref().unwrap().menu;
     for item in &menu.items {
         let label = item.label.to_ascii_lowercase();
@@ -229,8 +223,8 @@ fn native_actions_navigation_keeps_checks_and_runs_separate_in_the_real_mix() {
                 && !label.contains("dispatch")
         );
     }
-    press(&mut host, KeyCode::Esc);
-    let effects = press(&mut host, KeyCode::Char('o'));
+    press(&mut host, Key::Esc);
+    let effects = press(&mut host, Key::Char('o'));
     fn opened_url(effect: &HostEffect) -> Option<&str> {
         match effect {
             HostEffect::Open(url) => Some(url),
@@ -243,9 +237,9 @@ fn native_actions_navigation_keeps_checks_and_runs_separate_in_the_real_mix() {
             .iter()
             .any(|e| opened_url(e) == Some(before.as_str()))
     );
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     let restored = host.plugins[index].subject("github", Pane::Middle).unwrap();
     assert_eq!(restored.id, before);
-    press(&mut host, KeyCode::Esc);
+    press(&mut host, Key::Esc);
     assert!(matches!(host.view, View::Screen(_)));
 }

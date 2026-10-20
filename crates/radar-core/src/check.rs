@@ -325,12 +325,18 @@ impl<'a> Check<'a> {
         p.intent(Self::id_of(scope), pane, &intent)
     }
 
-    /// A fresh plugin brought to `place`.
+    /// A fresh plugin brought to `place`, read before each `⏎` (a tree
+    /// knows its rows once viewed) and once at the end, so the intents
+    /// `place` sends find the rows the plugin last showed.
     pub fn at(&self, place: &Place) -> Box<dyn Plugin> {
         let mut p = (self.make)();
         for (pane, key) in &place.keys {
+            if *key == Chord::new(Key::Enter) {
+                let _ = self.shown(p.as_ref(), place.scope, *pane);
+            }
             let _ = self.press(p.as_mut(), place.scope, *pane, *key);
         }
+        let _ = self.shown(p.as_ref(), place.scope, place.pane());
         p
     }
 

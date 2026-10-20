@@ -1,0 +1,25 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── nav · views ──
+> Everything  2 repos  {view:0}
+  :group: acme  2 repos  {view:1}
+── middle · repositories * ──
+  :group: github.com/acme  2 repos  {group:github.com/acme}
+    :repo: acme/api  2 PRs  {group:github.com/acme/repo:acme/api}
+      #42  Keep background refreshes tied to their request  open  {group:github.com/acme/repo:acme/api/pull:42}
+      #43  Document the public endpoints  draft  {group:github.com/acme/repo:acme/api/pull:43}
+>   :repo: acme/docs  0 PRs  {group:github.com/acme/repo:acme/docs}
+── detail · acme/docs ──
+visibility  public
+default branch  main
+archived  no
+
+§ ACTIONS
+  Actions have not been loaded.
+
+§ DESCRIPTION
+  Documentation and examples.
+── status · GITHUB ──
+PgUp/PgDn scroll  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

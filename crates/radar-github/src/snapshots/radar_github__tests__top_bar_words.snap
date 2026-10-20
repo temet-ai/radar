@@ -1,0 +1,86 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: top_bars
+---
+[
+    (
+        "browse",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "overview",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "connection",
+        None,
+    ),
+    (
+        "repositories",
+        None,
+    ),
+    (
+        "checks",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "unknown_checks",
+        Some(
+            "read incomplete",
+        ),
+    ),
+    (
+        "deleted_source_checks",
+        Some(
+            "read incomplete",
+        ),
+    ),
+    (
+        "actions",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "repository_overview",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "repository_pulls",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "empty",
+        Some(
+            "synced 25s ago",
+        ),
+    ),
+    (
+        "loading",
+        Some(
+            "syncing GitHub",
+        ),
+    ),
+    (
+        "cached_error",
+        Some(
+            "GitHub connection check failed",
+        ),
+    ),
+    (
+        "partial",
+        Some(
+            "GitHub connection check failed",
+        ),
+    ),
+]

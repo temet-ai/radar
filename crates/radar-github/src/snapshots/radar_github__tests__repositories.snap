@@ -1,0 +1,13 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · repositories ──
+> create a group or add a repository  {add}
+  :group: github.com/acme  {group:github.com/acme}
+    api  {group:github.com/acme/repo:acme/api}
+    docs  {group:github.com/acme/repo:acme/docs}
+── detail · create a group or add a repository ──
+Create groups and choose repositories. Press a to browse, e to edit, d to remove, or m to move a repository.
+── status · SETTINGS ──
++/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

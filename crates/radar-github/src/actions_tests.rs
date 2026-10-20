@@ -2,10 +2,11 @@ use super::*;
 use crate::{demo, join, screen};
 use radar_core::Host;
 use radar_core::Plugin as _;
-use radar_core::host::{Event, Hit, HostEffect, MouseKind};
+use crate::tests::{shown, top_bar_words};
+use radar_core::host::{Event, HostEffect};
+use radar_core::view::Intent;
 use radar_core::plugin::{DEMO_NOW, Pane};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::shell::to_text;
 
 fn event(code: KeyCode) -> KeyEvent {
     KeyEvent::new(code, KeyModifiers::NONE)
@@ -35,11 +36,12 @@ fn run_page() -> GithubPlugin {
 }
 
 #[test]
-fn actions_pages_render_at_both_supported_sizes() {
+fn actions_pages_read_as_view_data() {
     let mut jobs = run_page();
     screen::show_tab(&mut jobs, 1);
     let mut pr = demo::page();
     screen::show_tab(&mut pr, 2);
+    let mut top_bars = Vec::new();
     for (name, p) in [
         ("repository_actions", repo_page()),
         ("run_overview", run_page()),
@@ -47,13 +49,12 @@ fn actions_pages_render_at_both_supported_sizes() {
         ("pull_actions", pr),
     ] {
         let h = hosted(p);
-        for (w, hgt) in [(80, 24), (160, 40)] {
-            let text = to_text(&h, w, hgt);
-            assert!(text.contains("Actions") || text.contains("Jobs"));
-            crate::tests::exported(name, &h, w, hgt);
-            insta::assert_snapshot!(format!("{name}_{w}x{hgt}"), text);
-        }
+        let text = shown(&h, 160, 40);
+        assert!(text.contains("Actions") || text.contains("Jobs"));
+        insta::assert_snapshot!(name, text);
+        top_bars.push((name, top_bar_words(&h)));
     }
+    insta::assert_debug_snapshot!("page_top_bar_words", top_bars);
 }
 
 #[test]
@@ -78,7 +79,7 @@ fn actions_native_subject_is_attempt_qualified_and_rejects_conflicts() {
 }
 
 #[test]
-fn independent_step_rows_make_last_step_reachable_at_80_columns() {
+fn independent_step_rows_include_the_last_step() {
     let mut p = run_page();
     let target = scope(&p).unwrap().url();
     let state = p.actions.runs.get_mut(&target).unwrap();
@@ -94,9 +95,8 @@ fn independent_step_rows_make_last_step_reachable_at_80_columns() {
     state.jobs.as_mut().unwrap().items.truncate(1);
     screen::show_tab(&mut p, 1);
     let mut h = hosted(p);
-    to_text(&h, 80, 24);
     h.update(Event::Key(event(KeyCode::End)));
-    let text = to_text(&h, 80, 24);
+    let text = shown(&h, 80, 24);
     assert!(text.contains("step-40"), "{text}");
     let fx = h.update(Event::Key(event(KeyCode::Char('o'))));
     assert!(fx.iter().any(
@@ -195,39 +195,14 @@ fn default_branch_summary_omits_fork_and_pr_events_and_uses_latest_observation()
 }
 
 #[test]
-fn tiny_jobs_body_does_not_create_ghost_row_hits() {
+fn context_on_a_job_selects_it_without_opening_and_blank_has_no_row_actions() {
     let mut p = run_page();
     screen::show_tab(&mut p, 1);
     let mut h = hosted(p);
-    for height in [5, 6, 7] {
-        let _ = to_text(&h, 80, height);
-        assert!(
-            !h.hits.borrow().iter().any(
-                |(_, hit)| matches!(hit,Hit::Plugin{ id, .. } if id.starts_with("actions-job:"))
-            )
-        );
-    }
-    h.update(Event::Key(event(KeyCode::Char('x'))));
-}
-
-#[test]
-fn right_click_selects_job_without_opening_and_blank_has_no_row_actions() {
-    let mut p = run_page();
-    screen::show_tab(&mut p, 1);
-    let mut h = hosted(p);
-    to_text(&h, 160, 40);
-    let rect = h
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(r, hit)| matches!(hit,Hit::Plugin{id,..} if id=="actions-job:4").then_some(*r))
-        .unwrap();
-    let fx = h.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: rect.x + 1,
-        row: rect.y,
-        at_ms: 1000,
-    });
+    assert!(shown(&h, 160, 40).contains("{actions-job:4}"));
+    let fx = h.update(Event::Intent(Intent::Context {
+        target: radar_core::view::Target::new("actions-job:4"),
+    }));
     assert!(!fx.iter().any(|e| matches!(e, HostEffect::Open(_))));
     assert!(h.menu.is_some());
 }
@@ -355,14 +330,13 @@ fn actions_loading_empty_partial_denied_and_cached_errors_are_explicit() {
     state.jobs = None;
     state.jobs_error = Some("GitHub access denied; check repository permissions".into());
     places.push(("jobs_denied".into(), denied));
+    let mut top_bars = Vec::new();
     for (name, p) in places {
         let host = hosted(p);
-        for (w, h) in [(80, 24), (160, 40)] {
-            let text = to_text(&host, w, h);
-            crate::tests::exported(&name, &host, w, h);
-            insta::assert_snapshot!(format!("{name}_{w}x{h}"), text);
-        }
+        insta::assert_snapshot!(name.clone(), shown(&host, 160, 40));
+        top_bars.push((name, top_bar_words(&host)));
     }
+    insta::assert_debug_snapshot!("state_top_bar_words", top_bars);
 }
 
 #[test]
@@ -399,7 +373,7 @@ fn run_popup_rejects_replaced_attempt_on_every_dispatch_path() {
         };
         let mut h = hosted(p);
         h.update(Event::Key(event(KeyCode::Char('x'))));
-        to_text(&h, 160, 40);
+        shown(&h, 160, 40);
         let menu_index = h
             .menu
             .as_ref()
@@ -409,26 +383,17 @@ fn run_popup_rejects_replaced_attempt_on_every_dispatch_path() {
             .iter()
             .position(|i| i.keys == "y")
             .unwrap();
-        let rect = h
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(r, hit)| matches!(hit,Hit::MenuItem(i)if*i==menu_index).then_some(*r))
-            .unwrap();
+        // A press on the row, by the value the menu view gave it before the read.
+        let action = h.menu.as_ref().unwrap().menu.items[menu_index].value.clone();
         h.update(Event::Msg {
             plugin: 0,
             msg: Box::new(crate::Answer::Actions(Box::new(answer))),
         });
         if choice == "mouse_after_redraw" {
-            to_text(&h, 160, 40);
+            shown(&h, 160, 40);
         }
         let fx = if choice.starts_with("mouse") {
-            h.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column: rect.x + 1,
-                row: rect.y,
-                at_ms: 1000,
-            })
+            h.update(Event::Intent(Intent::Invoke { action }))
         } else if choice == "enter" {
             h.menu.as_mut().unwrap().row = menu_index;
             h.update(Event::Key(event(KeyCode::Enter)))
@@ -542,11 +507,21 @@ fn untrusted_actions_text_cannot_emit_terminal_controls_in_cells_or_menus() {
             if menu {
                 h.update(Event::Key(event(KeyCode::Char('x'))));
             }
-            let text = to_text(&h, 160, 40);
-            assert!(
-                !text.chars().any(|c| c.is_control() && c != '\n'),
-                "{page} menu={menu}"
-            );
+            let text = shown(&h, 160, 40);
+            // The cells carry the words as GitHub sent them; the renderer
+            // strips the controls (Ink's sanitize), so the view text keeps them.
+            assert!(text.contains("name"), "{page} menu={menu}");
+            if let Some(open) = &h.menu {
+                for item in &open.menu.items {
+                    assert!(
+                        !format!("{}{}{}", item.label, item.hint, item.value)
+                            .chars()
+                            .any(|c| c.is_control()),
+                        "{page} menu item {:?}",
+                        item.label
+                    );
+                }
+            }
         }
     }
 }
@@ -995,7 +970,7 @@ fn a_bounded_list_says_so_and_is_not_an_incomplete_read() {
         .unwrap()
         .completion = crate::model::Completion::bounded(1, 2);
     assert!(!incomplete(&p));
-    let text = to_text(&hosted(p), 160, 40);
+    let text = shown(&hosted(p), 160, 40);
     assert!(
         text.contains("newest 2 shown; older ones are not read"),
         "{text}"

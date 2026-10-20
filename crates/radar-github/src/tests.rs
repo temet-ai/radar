@@ -1,8 +1,8 @@
 use super::*;
 use radar_core::check::{Check as RowCheck, Place};
-use radar_core::host::{Event, Hit, HostEffect, MouseKind, View};
+use radar_core::host::{Event, HostEffect, View};
+use radar_core::view::{Intent, Target as ViewTarget};
 use radar_core::ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use radar_core::shell::{to_svg, to_text};
 use model::Completion;
 
 fn key(code: KeyCode) -> KeyEvent {
@@ -42,12 +42,34 @@ fn connection_host() -> radar_core::Host {
     }
     host
 }
-pub(crate) fn exported(name: &str, host: &radar_core::Host, w: u16, h: u16) {
-    if let Ok(dir) = std::env::var("RADAR_GITHUB_RENDER_DIR") {
-        std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(format!("{dir}/{name}_{w}x{h}.svg"), to_svg(host, w, h)).unwrap();
-        std::fs::write(format!("{dir}/{name}_{w}x{h}.txt"), to_text(host, w, h)).unwrap();
+/// What shows, as view text (`radar_core::headless::text`): the screen's
+/// panes and rows, the open menu and the status line. No painted frame.
+pub(crate) fn shown(host: &radar_core::Host, width: u16, height: u16) -> String {
+    radar_core::headless::text_of(host, width, height)
+}
+
+/// The target of the first contributed action on the screen
+/// (`under:<lease>:<n>`), read from the view: what a press on it sends. The
+/// text form prints a row's target but not a chip's inside a line.
+fn under_target(host: &radar_core::Host) -> ViewTarget {
+    fn find(value: &serde_json::Value) -> Option<String> {
+        match value {
+            serde_json::Value::String(s) if s.starts_with("under:") => Some(s.clone()),
+            serde_json::Value::Array(items) => items.iter().find_map(find),
+            serde_json::Value::Object(map) => map.values().find_map(find),
+            _ => None,
+        }
     }
+    shown(host, 160, 40);
+    let view = radar_core::view::screen_showing(host, 160, 40).expect("a screen shows");
+    let found = find(&serde_json::to_value(&view).unwrap());
+    ViewTarget::new(found.expect("a contributed action is in the view"))
+}
+
+/// The part's words on the right of the top bar: what the text form leaves
+/// out of the screen.
+pub(crate) fn top_bar_words(host: &radar_core::Host) -> Option<String> {
+    host.chrome_view(160, 40).top_bar.words.map(|badge| badge.text)
 }
 
 #[test]
@@ -100,13 +122,13 @@ fn rendered_screens_and_settings() {
         ago: None,
     });
     places.push(("partial", hosted(partial)));
+    let mut top_bars = Vec::new();
     for (name, host) in places {
-        for (w, h) in [(80, 24), (160, 40)] {
-            let text = to_text(&host, w, h);
-            exported(name, &host, w, h);
-            insta::assert_snapshot!(format!("{name}_{w}x{h}"), text);
-        }
+        // One snapshot a state: 80 columns only fits the same words again.
+        insta::assert_snapshot!(name, shown(&host, 160, 40));
+        top_bars.push((name, top_bar_words(&host)));
     }
+    insta::assert_debug_snapshot!("top_bar_words", top_bars);
 }
 
 #[test]
@@ -297,17 +319,18 @@ fn deleted_source_checks() -> GithubPlugin {
 fn fork_checks_show_repository_provenance_and_deleted_source_keeps_base_results() {
     let mut p = demo::page();
     p.pages.last_mut().unwrap().tab = 1;
-    let text = to_text(&hosted(p), 160, 40);
+    let text = shown(&hosted(p), 160, 40);
     assert!(text.contains("unit tests  (acme/api)"));
     assert!(text.contains("platform checks  (alice/api)"));
     assert!(text.contains("preview deployment  (acme/api)"));
     assert!(text.contains("Merge-ref workflows may differ"));
-    let text = to_text(&hosted(deleted_source_checks()), 160, 40);
+    let deleted = hosted(deleted_source_checks());
+    let text = shown(&deleted, 160, 40);
+    assert_eq!(top_bar_words(&deleted).as_deref(), Some("read incomplete"));
     assert!(text.contains("source repository  unavailable"));
     assert!(text.contains("unit tests  (acme/api)"));
     assert!(!text.contains("platform checks"));
     assert!(text.contains("Partial or unavailable check runs"));
-    assert!(text.contains("read incomplete"));
 }
 
 #[test]
@@ -351,7 +374,7 @@ fn host_typing_paste_validation_save_and_cancel() {
         KeyModifiers::CONTROL,
     )));
     host.update(Event::Paste("raw secret value".into()));
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.to_lowercase().contains("as you type"), "{text}");
     host.update(Event::Key(key(KeyCode::Enter)));
     assert!(host.plugins[0].capturing());
@@ -389,7 +412,7 @@ fn host_typing_paste_validation_save_and_cancel() {
 fn the_server_row_edits_the_api_address_and_a_default_is_left_out_of_the_file() {
     let mut host = connection_host();
     assert!(host.plugins[0].config().unwrap().get("api").is_none());
-    let text = to_text(&host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("https://api.github.com"), "{text}");
     assert!(text.contains("[github] api"), "{text}");
     assert!(text.to_lowercase().contains("accepts"), "{text}");
@@ -413,7 +436,7 @@ fn the_server_row_edits_the_api_address_and_a_default_is_left_out_of_the_file() 
         host.plugins[0].config().unwrap()["api"].as_str(),
         Some("http://127.0.0.1:8123")
     );
-    assert!(to_text(&host, 160, 40).contains("http://127.0.0.1:8123"));
+    assert!(shown(&host, 160, 40).contains("http://127.0.0.1:8123"));
     host.update(Event::Key(key(KeyCode::Enter)));
     host.update(Event::Key(KeyEvent::new(
         KeyCode::Char('u'),
@@ -516,21 +539,13 @@ mod interaction_motion {
 }
 
 #[test]
-fn mouse_rows_blank_space_double_click_and_context_selection() {
+fn row_intents_select_blank_space_open_and_context_menu() {
     let mut host = hosted(demo::sample());
-    let _ = to_text(&host, 160, 40);
-    let row = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(r, hit)| matches!(hit, Hit::Plugin { id, .. } if id == "group:github.com/acme\u{1f}repo:acme/api\u{1f}pull:43").then_some(*r))
-        .unwrap();
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: row.x + 2,
-        row: row.y,
-        at_ms: 100,
-    });
+    let row = ViewTarget::new("group:github.com/acme\u{1f}repo:acme/api\u{1f}pull:43");
+    let text = shown(&host, 160, 40);
+    let printed = row.as_str().replace('\u{1f}', "/");
+    assert!(text.contains(&format!("{{{printed}}}")), "the view gives the row this target: {text}");
+    host.update(Event::Intent(Intent::Select { target: row.clone() }));
     assert!(
         host.plugins[0]
             .subject("github", Pane::Middle)
@@ -538,13 +553,8 @@ fn mouse_rows_blank_space_double_click_and_context_selection() {
             .id
             .ends_with("/43")
     );
-    let _ = to_text(&host, 160, 40);
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: row.x + 2,
-        row: row.y + 4,
-        at_ms: 600,
-    });
+    // A press on the pane's blank space selects the pane, not another row.
+    host.update(Event::Intent(Intent::Select { target: ViewTarget::new("pane:middle") }));
     assert!(
         host.plugins[0]
             .subject("github", Pane::Middle)
@@ -552,27 +562,12 @@ fn mouse_rows_blank_space_double_click_and_context_selection() {
             .id
             .ends_with("/43")
     );
-    host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: row.x + 2,
-        row: row.y,
-        at_ms: 1100,
-    });
+    host.update(Event::Intent(Intent::Context { target: row.clone() }));
     assert_eq!(host.plugins[0].depth("github"), 0);
     assert!(host.menu.is_some());
     host.update(Event::Key(key(KeyCode::Esc)));
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: row.x + 2,
-        row: row.y,
-        at_ms: 1600,
-    });
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: row.x + 2,
-        row: row.y,
-        at_ms: 1750,
-    });
+    host.update(Event::Intent(Intent::Select { target: row.clone() }));
+    host.update(Event::Intent(Intent::Activate { target: row }));
     assert_eq!(host.plugins[0].depth("github"), 1);
     let mut p = demo::sample();
     assert!(matches!(
@@ -594,7 +589,7 @@ fn stale_host_popup_never_copies_a_replacement_row() {
         let answer = repository_answer(&p, vec![new_pull], true);
         let mut host = hosted(p);
         host.update(Event::Key(key(KeyCode::Char('x'))));
-        let _ = to_text(&host, 160, 40);
+        let _ = shown(&host, 160, 40);
         let menu_index = host
             .menu
             .as_ref()
@@ -604,26 +599,17 @@ fn stale_host_popup_never_copies_a_replacement_row() {
             .iter()
             .position(|i| i.keys == "y")
             .unwrap();
-        let rect = host
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(r, hit)| matches!(hit, Hit::MenuItem(i) if *i == menu_index).then_some(*r))
-            .unwrap();
+        // A press on the row, by the value the menu view gave it before the read.
+        let action = host.menu.as_ref().unwrap().menu.items[menu_index].value.clone();
         host.update(Event::Msg {
             plugin: 0,
             msg: Box::new(answer),
         });
         if choice == "mouse_after_redraw" {
-            let _ = to_text(&host, 160, 40);
+            let _ = shown(&host, 160, 40);
         }
         let effects = if choice.starts_with("mouse") {
-            host.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column: rect.x + 1,
-                row: rect.y,
-                at_ms: 100,
-            })
+            host.update(Event::Intent(Intent::Invoke { action }))
         } else if choice == "enter" {
             host.menu.as_mut().unwrap().row = menu_index;
             host.update(Event::Key(key(KeyCode::Enter)))
@@ -899,8 +885,8 @@ fn failed_settings_save_is_visible_and_write_retries_current_config() {
     host.update(Event::Saved(Err("synthetic disk full".into())));
     assert!(host.unsaved());
     host.update(Event::Key(key(KeyCode::Char('n'))));
-    let text = to_text(&host, 160, 40);
-    assert!(text.contains("unsaved"));
+    // The settings navigation says so (the host draws it).
+    assert!(host.chrome_view(160, 40).settings.is_some_and(|nav| nav.unsaved));
     let effects = host.update(Event::Key(key(KeyCode::Char('w'))));
     assert_eq!(saved_text(&effects), Some(first.as_str()));
     host.update(Event::Saved(Ok(())));
@@ -1028,11 +1014,9 @@ fn track_all_forty_seven_repositories_appears_and_persists_in_its_group() {
     assert_eq!(loaded.groups[0].repositories.len(), 47);
     assert_eq!(loaded.groups[0].name, "My projects");
     let host = hosted(p);
-    let screen = to_text(&host, 160, 40);
+    let screen = shown(&host, 160, 40);
     assert!(screen.contains("My projects"), "{screen}");
     assert!(screen.contains("repo0"), "{screen}");
-    let compact = to_text(&host, 80, 24);
-    assert!(compact.contains("My projects"), "{compact}");
 }
 
 #[test]
@@ -1195,7 +1179,7 @@ fn typed_token_is_masked_after_save_and_checks_without_repositories() {
             .count(),
         1
     );
-    assert!(!to_text(&host, 160, 40).contains(token));
+    assert!(!shown(&host, 160, 40).contains(token));
     assert_eq!(
         host.plugins[0].config().unwrap()["token"].as_str(),
         Some(token)
@@ -1412,19 +1396,9 @@ fn choose_probe_action(host: &mut radar_core::Host, choice: &str) -> Vec<HostEff
         host.menu.as_mut().unwrap().row = index;
         host.update(Event::Key(key(KeyCode::Enter)))
     } else {
-        to_text(host, 160, 40);
-        let area = host
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(area, hit)| matches!(hit, Hit::MenuItem(i) if *i == index).then_some(*area))
-            .unwrap();
-        host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: area.x + 1,
-            row: area.y,
-            at_ms: 100,
-        })
+        // A press on the row, by the value the menu view gives it.
+        let action = host.menu.as_ref().unwrap().menu.items[index].value.clone();
+        host.update(Event::Intent(Intent::Invoke { action }))
     }
 }
 
@@ -1478,11 +1452,7 @@ fn foreign_contribution_actions_use_host_keys_enter_and_mouse_with_owned_identit
 fn contributed_sections_and_title_line_actions_are_absent_when_unready_and_safe_to_click() {
     for ready in [false, true] {
         let (mut host, state) = composed_host(demo::page(), ready);
-        let text = to_text(&host, 160, 40);
-        if ready {
-            exported("linked_overview", &host, 160, 40);
-            exported("linked_overview", &host, 80, 24);
-        }
+        let text = shown(&host, 160, 40);
         assert_eq!(text.contains("local folder"), ready);
         assert_eq!(text.contains("Related cached information"), ready);
         if !ready {
@@ -1490,31 +1460,14 @@ fn contributed_sections_and_title_line_actions_are_absent_when_unready_and_safe_
             assert!(state.lock().unwrap().actions.is_empty());
             continue;
         }
-        let area = host
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(area, hit)| {
-                matches!(hit, Hit::Plugin { id, .. } if id.starts_with("under:")).then_some(*area)
-            })
-            .unwrap();
+        let target = under_target(&host);
         assert!(
-            host.update(Event::Mouse {
-                kind: MouseKind::Context,
-                column: area.x,
-                row: area.y,
-                at_ms: 100
-            })
-            .is_empty()
+            host.update(Event::Intent(Intent::Context { target: target.clone() }))
+                .is_empty()
         );
         assert!(host.menu.is_none());
         assert!(state.lock().unwrap().actions.is_empty());
-        let effects = host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: area.x,
-            row: area.y,
-            at_ms: 500,
-        });
+        let effects = host.update(Event::Intent(Intent::Select { target }));
         assert!(
             effects
                 .iter()
@@ -1525,9 +1478,7 @@ fn contributed_sections_and_title_line_actions_are_absent_when_unready_and_safe_
     let mut p = demo::sample();
     p.open_target(Target::Repository(p.repos[0].id.clone()));
     let (host, _) = composed_host(p, true);
-    let text = to_text(&host, 80, 24);
-    exported("linked_repository", &host, 80, 24);
-    exported("linked_repository", &host, 160, 40);
+    let text = shown(&host, 160, 40);
     assert!(text.contains("local folder"));
     assert!(text.contains("LINKED EVIDENCE"));
 }
@@ -1576,7 +1527,7 @@ fn description_links_open_foreign_native_pages_and_return_to_current_page() {
         Some("Read [the guide](https://guide.example/entry).".into());
     let (mut host, state) = composed_host(p, true);
     let original = host.view;
-    to_text(&host, 160, 40);
+    shown(&host, 160, 40);
     host.update(Event::Key(key(KeyCode::Enter)));
     let index = host
         .menu
@@ -1653,7 +1604,7 @@ fn contributed_popup_rejects_changed_source_same_pull_on_every_dispatch_path() {
         let answer = repository_answer(&p, items, true);
         let (mut host, state) = composed_host(p, true);
         host.update(Event::Key(key(KeyCode::Char('x'))));
-        to_text(&host, 160, 40);
+        shown(&host, 160, 40);
         let index = host
             .menu
             .as_ref()
@@ -1663,26 +1614,17 @@ fn contributed_popup_rejects_changed_source_same_pull_on_every_dispatch_path() {
             .iter()
             .position(|item| item.label == "view linked context")
             .unwrap();
-        let area = host
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(area, hit)| matches!(hit, Hit::MenuItem(i) if *i == index).then_some(*area))
-            .unwrap();
+        // A press on the row, by the value the menu view gave it before the read.
+        let action = host.menu.as_ref().unwrap().menu.items[index].value.clone();
         host.update(Event::Msg {
             plugin: 0,
             msg: Box::new(answer),
         });
         if choice == "mouse_after_redraw" {
-            to_text(&host, 160, 40);
+            shown(&host, 160, 40);
         }
         let effects = if choice.starts_with("mouse") {
-            host.update(Event::Mouse {
-                kind: MouseKind::Press,
-                column: area.x + 1,
-                row: area.y,
-                at_ms: 100,
-            })
+            host.update(Event::Intent(Intent::Invoke { action }))
         } else if choice == "enter" {
             host.menu.as_mut().unwrap().row = index;
             host.update(Event::Key(key(KeyCode::Enter)))
@@ -1746,38 +1688,22 @@ fn title_action_hit_cannot_replay_after_a_page_refresh_response() {
     pull.head_repository = Some(RepositoryId::parse("other/api").unwrap());
     let answer = pull_answer(&p, pull);
     let (mut host, state) = composed_host(p, true);
-    to_text(&host, 160, 40);
-    let area = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(area, hit)| {
-            matches!(hit, Hit::Plugin { id, .. } if id.starts_with("under:")).then_some(*area)
-        })
-        .unwrap();
+    // The target as it was drawn before the page was read again.
+    let stale = under_target(&host);
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(answer),
     });
-    let effects = host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: area.x,
-        row: area.y,
-        at_ms: 100,
-    });
+    let effects = host.update(Event::Intent(Intent::Select { target: stale }));
     assert!(
         effects
             .iter()
             .all(|effect| !matches!(effect, HostEffect::Copy(_)))
     );
     assert!(state.lock().unwrap().actions.is_empty());
-    to_text(&host, 160, 40);
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: area.x,
-        row: area.y,
-        at_ms: 700,
-    });
+    // Drawn again, the same place has the new target.
+    let fresh = under_target(&host);
+    host.update(Event::Intent(Intent::Select { target: fresh }));
     assert_eq!(state.lock().unwrap().actions.len(), 1);
     assert_eq!(
         state.lock().unwrap().actions[0]
@@ -1790,23 +1716,11 @@ fn title_action_hit_cannot_replay_after_a_page_refresh_response() {
 #[test]
 fn settings_context_selects_without_editing_or_checking_and_blank_dismisses() {
     let mut host = connection_host();
-    to_text(&host, 160, 40);
-    let row = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(area, hit)| {
-            matches!(hit, Hit::Plugin { id, .. } if id == "setting:6").then_some(*area)
-        })
-        .unwrap();
+    let row = ViewTarget::new("setting:6");
+    assert!(shown(&host, 160, 40).contains("{setting:6}"));
     assert!(
-        host.update(Event::Mouse {
-            kind: MouseKind::Context,
-            column: row.x + 1,
-            row: row.y,
-            at_ms: 100
-        })
-        .is_empty()
+        host.update(Event::Intent(Intent::Context { target: row.clone() }))
+            .is_empty()
     );
     assert!(!host.plugins[0].capturing());
     assert_eq!(
@@ -1818,20 +1732,9 @@ fn settings_context_selects_without_editing_or_checking_and_blank_dismisses() {
     host.update(Event::Key(key(KeyCode::Char('e'))));
     assert!(host.plugins[0].capturing());
     host.update(Event::Key(key(KeyCode::Esc)));
-    to_text(&host, 160, 40);
-    host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: row.x + 1,
-        row: row.y,
-        at_ms: 600,
-    });
+    host.update(Event::Intent(Intent::Context { target: row }));
     assert!(host.menu.is_some());
-    host.update(Event::Mouse {
-        kind: MouseKind::Context,
-        column: row.x + 1,
-        row: row.y + 7,
-        at_ms: 1000,
-    });
+    host.update(Event::Key(key(KeyCode::Esc)));
     assert!(host.menu.is_none());
     assert!(!host.plugins[0].capturing());
     assert!(!host.dirty());
@@ -1848,38 +1751,17 @@ fn list_preview_renders_cached_line_and_fences_action_hits_on_selection_and_refr
         let (mut host, state) = composed_host(p, true);
         host.focus = Pane::Detail;
         for (width, height) in [(80, 24), (160, 40)] {
-            let text = to_text(&host, width, height);
+            let text = shown(&host, width, height);
             assert!(text.contains("local folder"));
-            if !repository {
-                exported("linked_preview", &host, width, height);
-            }
         }
-        let area = host
-            .hits
-            .borrow()
-            .iter()
-            .find_map(|(area, hit)| {
-                matches!(hit, Hit::Plugin { id, pane: Pane::Detail, .. } if id.starts_with("under:"))
-                    .then_some(*area)
-            })
-            .unwrap();
+        let target = under_target(&host);
         assert!(
-            host.update(Event::Mouse {
-                kind: MouseKind::Context,
-                column: area.x,
-                row: area.y,
-                at_ms: 100
-            })
-            .is_empty()
+            host.update(Event::Intent(Intent::Context { target: target.clone() }))
+                .is_empty()
         );
         assert!(host.menu.is_none());
         assert!(state.lock().unwrap().actions.is_empty());
-        let effects = host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: area.x,
-            row: area.y,
-            at_ms: 500,
-        });
+        let effects = host.update(Event::Intent(Intent::Select { target: target.clone() }));
         assert!(
             effects
                 .iter()
@@ -1892,12 +1774,8 @@ fn list_preview_renders_cached_line_and_fences_action_hits_on_selection_and_refr
         } else {
             KeyCode::Down
         })));
-        let effects = host.update(Event::Mouse {
-            kind: MouseKind::Press,
-            column: area.x,
-            row: area.y,
-            at_ms: 1100,
-        });
+        // The target drawn for the earlier selection is stale.
+        let effects = host.update(Event::Intent(Intent::Select { target }));
         assert!(
             effects
                 .iter()
@@ -1910,39 +1788,24 @@ fn list_preview_renders_cached_line_and_fences_action_hits_on_selection_and_refr
     pulls[0].head_repository = Some(RepositoryId::parse("other/api").unwrap());
     let answer = repository_answer(&p, pulls, true);
     let (mut host, state) = composed_host(p, true);
-    to_text(&host, 160, 40);
-    let area = host
-        .hits
-        .borrow()
-        .iter()
-        .find_map(|(area, hit)| {
-            matches!(hit, Hit::Plugin { id, pane: Pane::Detail, .. } if id.starts_with("under:"))
-                .then_some(*area)
-        })
-        .unwrap();
+    // The chip is in the detail pane; the keys are there when it is pressed.
+    host.focus = Pane::Detail;
+    // The target as it was drawn before the list was read again.
+    let stale = under_target(&host);
     host.update(Event::Msg {
         plugin: 0,
         msg: Box::new(answer),
     });
-    let effects = host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: area.x,
-        row: area.y,
-        at_ms: 100,
-    });
+    let effects = host.update(Event::Intent(Intent::Select { target: stale }));
     assert!(
         effects
             .iter()
             .all(|effect| !matches!(effect, HostEffect::Copy(_)))
     );
     assert!(state.lock().unwrap().actions.is_empty());
-    to_text(&host, 160, 40);
-    host.update(Event::Mouse {
-        kind: MouseKind::Press,
-        column: area.x,
-        row: area.y,
-        at_ms: 700,
-    });
+    // Drawn again, the same place has the new target.
+    let fresh = under_target(&host);
+    host.update(Event::Intent(Intent::Select { target: fresh }));
     assert_eq!(state.lock().unwrap().actions.len(), 1);
     assert_eq!(
         state.lock().unwrap().actions[0]

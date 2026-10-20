@@ -4,7 +4,7 @@
 use super::*;
 use crate::model::{ApiErrorKind, Completion, RateLimit};
 use crate::test_support::RepositoryBuilder;
-use radar_core::shell::to_text;
+use crate::tests::shown;
 use serde_json::json;
 
 const NOW: i64 = radar_core::plugin::DEMO_NOW;
@@ -136,7 +136,7 @@ fn only_the_repository_that_moved_is_read() {
     assert!(!p.repos[0].loading);
     assert!(p.repos[1].loading);
     // A background read keeps drawing what is held.
-    let text = to_text(&tests_host(&p), 160, 40);
+    let text = shown(&tests_host(&p), 160, 40);
     assert!(!text.contains("loading"), "{text}");
 }
 

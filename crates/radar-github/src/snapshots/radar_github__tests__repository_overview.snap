@@ -1,0 +1,21 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · GitHub / acme/api ──
+acme/api
+<Overview>  Pull requests  Actions
+── middle · Overview * ──
+visibility  public
+default branch  main
+archived  no
+
+§ ACTIONS
+  Latest observed Actions on main
+  failure  Build and test · #88 attempt 2 · updated 2026-10-06T10:05:00Z
+  Observed workflows only; this does not establish overall repository health.
+
+§ DESCRIPTION
+  An example API service. Read the contribution guide <https://github.com/acme/api/blob/main/CONTRIBUTING.md>.
+── status · GITHUB ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

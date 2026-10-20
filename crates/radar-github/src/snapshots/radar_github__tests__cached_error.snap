@@ -1,0 +1,30 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── nav · views ──
+> Everything  2 repos  {view:0}
+  :group: acme  2 repos  {view:1}
+── middle · repositories * ──
+  :group: github.com/acme  2 repos  {group:github.com/acme}
+    :repo: acme/api  failed  {group:github.com/acme/repo:acme/api}
+>     #42  Keep background refreshes tied to their request  open  {group:github.com/acme/repo:acme/api/pull:42}
+      #43  Document the public endpoints  draft  {group:github.com/acme/repo:acme/api/pull:43}
+    :repo: acme/docs  0 PRs  {group:github.com/acme/repo:acme/docs}
+── detail · acme/api #42 ──
+Keep background refreshes tied to their request
+
+state  open
+author  alice
+from  alice/api:refresh-ownership
+into  acme/api:main
+head commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+§ DESCRIPTION
+  ## What changed
+  Responses stay with the repository and commit they were requested for.
+  • Keep the selected pull request stable
+  • Show unavailable checks honestly
+  See the design notes <https://github.com/acme/api/issues/12>.
+── status · GITHUB ──
+PgUp/PgDn scroll  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

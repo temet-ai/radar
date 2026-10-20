@@ -1,0 +1,30 @@
+---
+source: crates/radar-github/src/actions_tests.rs
+expression: top_bars
+---
+[
+    (
+        "repository_actions",
+        Some(
+            "Actions · observed snapshot",
+        ),
+    ),
+    (
+        "run_overview",
+        Some(
+            "Actions · observed snapshot",
+        ),
+    ),
+    (
+        "run_jobs",
+        Some(
+            "Actions · observed snapshot",
+        ),
+    ),
+    (
+        "pull_actions",
+        Some(
+            "Actions · observed snapshot",
+        ),
+    ),
+]

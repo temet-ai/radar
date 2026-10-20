@@ -1,0 +1,13 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · GitHub / acme/api / #42 ──
+Keep background refreshes tied to their request
+Overview  <Checks>  Actions
+── middle · Checks * ──
+Checks in the base and available source repositories at the exact head commit. Merge-ref workflows may differ. No mergeability or required-check coverage is established.
+GitHub access denied; check repository permissions
+Checks are unknown; no results loaded.
+── status · GITHUB ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

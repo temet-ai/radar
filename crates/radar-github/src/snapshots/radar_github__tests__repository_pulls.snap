@@ -1,0 +1,13 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · GitHub / acme/api ──
+acme/api
+Overview  <Pull requests>  Actions
+── middle · acme/api * ──
+> #42  Keep background refreshes tied to their request  open  {pull:0}
+  #43  Document the public endpoints  draft  {pull:1}
+· Open pull requests · read-only
+── status · GITHUB ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

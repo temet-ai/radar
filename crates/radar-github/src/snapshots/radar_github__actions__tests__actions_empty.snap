@@ -1,0 +1,12 @@
+---
+source: crates/radar-github/src/actions_tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · GitHub / acme/api ──
+acme/api
+Overview  Pull requests  <Actions>
+── middle · Actions * ──
+Recent workflow runs · read-only · a run is not overall repository health.
+No workflow runs reported.
+── status · GITHUB ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

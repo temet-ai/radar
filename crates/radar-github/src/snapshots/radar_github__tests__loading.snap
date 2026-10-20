@@ -1,0 +1,16 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── nav · views ──
+> Everything  2 repos  {view:0}
+  :group: acme  2 repos  {view:1}
+── middle · repositories * ──
+  :group: github.com/acme  2 repos  {group:github.com/acme}
+>   :repo: acme/api  loading  {group:github.com/acme/repo:acme/api}
+    :repo: acme/docs  0 PRs  {group:github.com/acme/repo:acme/docs}
+── detail · acme/api ──
+loading repository…
+Repository details have not been loaded.
+── status · GITHUB ──
+PgUp/PgDn scroll  +/- expand/collapse  q quit  x extra actions  ~ notices  ←→↑↓ navigate

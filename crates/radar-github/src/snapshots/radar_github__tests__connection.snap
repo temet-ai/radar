@@ -1,0 +1,54 @@
+---
+source: crates/radar-github/src/tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── section · connection ──
+  #  SIGN IN  how radar reads GitHub  {setting:0}
+> :todo: [ ] public only     public repositories, no token  {setting:1}
+  :todo: [ ] gh's sign-in    asks gh for its token  {setting:2}
+  :done: [x] a token         env:NAME, or one pasted  {setting:3}
+  #  {setting:4}
+  server          https://api.github.com  {setting:5}
+  token           env:GITHUB_TOKEN  {setting:6}
+  check           not checked yet  {setting:7}
+  refresh         once on start, then on request  {setting:8}
+  #  {setting:9}
+  #  ACCESS  what radar may do on GitHub  {setting:10}
+  :done: [x] read only       pull requests, checks, runs  {setting:11}
+  :todo: [ ] read and write  adds comment, approve, merge, re-run  {setting:12}
+  #  {setting:13}
+  #  REPOSITORIES  github.com/owner, owner/repo or a group name  {setting:14}
+  + add a repository or group   paste or type it  {setting:15}
+  :group: github.com/acme   2 repositories  {setting:16}
+── detail · public only ──
+NOW
+env:GITHUB_TOKEN
+
+No token: radar reads public repositories only.
+
+ACCEPTS
+empty, gh, env:NAME, or a token
+
+config: [github] token
+
+§ :terminal: EASIEST: THE GH PROGRAM
+  Choose gh's sign-in. Not signed in yet?
+  $ gh auth login
+  cli.github.com: install gh
+§ :connection: OR A TOKEN
+  Public repositories need none. For private ones:
+  1 Open the fine-grained token page:
+  github.com / new token   open · copy
+  2 Repository access: the repositories to follow.
+  3 Permissions come filled in from access: contents, pull requests, actions, statuses: read.
+  4 Generate token, copy the github_pat_… value into token, or:
+  $ export GITHUB_TOKEN=…
+  then the token is env:GITHUB_TOKEN
+§ :team: AN ORGANISATION'S REPOSITORIES
+  Choose the organisation as the token's resource owner.
+  Some need an owner to approve the token.
+§ :link: MORE
+  GitHub docs: access tokens
+  radar guide: connect GitHub
+── status · SETTINGS ──
+q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -1,0 +1,31 @@
+---
+source: crates/radar-github/src/actions_tests.rs
+expression: "shown(&host, 160, 40)"
+---
+── page · GitHub / acme/api / run 501 · attempt 2 ──
+Build and test · run 501 · attempt 2
+Overview  <Jobs>
+── middle · Jobs * ──
+workflow  Build and test
+result  failure
+run  #88 · id 501 · attempt 2
+latest observed attempt  2
+event  push
+branch  main
+commit  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+created  2026-10-06T10:00:00Z
+updated  2026-10-06T10:05:00Z
+Keep responses with their request
+JOBS AND STEPS
+Jobs and steps belong to this exact run attempt. Step metadata contains no raw logs.
+Partial jobs result.
+GitHub rate limit reached; retry after 60s
+failure  Linux tests  {actions-job:0}
+started 2026-10-06T10:00:10Z · completed 2026-10-06T10:05:00Z
+1. success  Checkout  {actions-job:1}
+2. failure  Run unit tests  {actions-job:2}
+3. skipped  Publish results  {actions-job:3}
+success  Formatting  {actions-job:4}
+started unknown · completed not reported
+── status · GITHUB ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

@@ -1,0 +1,13 @@
+---
+source: crates/radar-github/src/actions_tests.rs
+expression: text
+---
+── page · GitHub / acme/api ──
+acme/api
+Overview  Pull requests  <Actions>
+── middle · Actions * ──
+Recent workflow runs · read-only · a run is not overall repository health.
+failure  Build and test #88 · attempt 2 · push · main · Keep responses with their request  {actions-run:0}
+in progress  Documentation #19 · attempt 1 · push · refresh-ownership · Keep responses with their request  {actions-run:1}
+── status · GITHUB ──
+PgUp/PgDn scroll  q quit  x extra actions  ~ notices  ←→↑↓ navigate

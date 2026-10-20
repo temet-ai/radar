@@ -6,6 +6,7 @@
 //! token is never printed.
 
 use crate::client::Client;
+use crate::tests::shown;
 use crate::config::Settings;
 use crate::model::{
     Collection, Fresh, PullRequest, RateLimit, Repository, RepositoryId, Traffic, Validator,
@@ -144,7 +145,7 @@ async fn live_refresh_costs() {
     fresh.apply_config(cfg.clone());
     fresh.restore(serde_json::from_str(&text).unwrap());
     let host = crate::tests::hosted(fresh);
-    let drawn = radar_core::shell::to_text(&host, 160, 40);
+    let drawn = shown(&host, 160, 40);
     println!(
         "cache: {} bytes; read, restored and drawn in {} ms ({} rows of text)",
         text.len(),

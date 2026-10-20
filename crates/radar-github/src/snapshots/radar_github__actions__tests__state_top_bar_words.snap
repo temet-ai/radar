@@ -1,0 +1,48 @@
+---
+source: crates/radar-github/src/actions_tests.rs
+expression: top_bars
+---
+[
+    (
+        "actions_loading",
+        Some(
+            "loading Actions…",
+        ),
+    ),
+    (
+        "actions_empty",
+        Some(
+            "Actions · observed snapshot",
+        ),
+    ),
+    (
+        "actions_partial",
+        Some(
+            "Actions read incomplete",
+        ),
+    ),
+    (
+        "actions_denied",
+        Some(
+            "Actions read incomplete",
+        ),
+    ),
+    (
+        "actions_cached_error",
+        Some(
+            "Actions read incomplete",
+        ),
+    ),
+    (
+        "jobs_partial",
+        Some(
+            "Actions read incomplete",
+        ),
+    ),
+    (
+        "jobs_denied",
+        Some(
+            "Actions read incomplete",
+        ),
+    ),
+]

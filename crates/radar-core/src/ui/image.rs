@@ -15,7 +15,7 @@
 use std::cell::Cell as Flag;
 use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
-use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 
 use image::DynamicImage;
 use ratatui::buffer::Buffer;

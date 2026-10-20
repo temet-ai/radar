@@ -215,7 +215,7 @@ Before handoff:
 - [ ] Compiled inventory/negative guards run where changed; ignored/live tests
   were not enabled merely for discovery.
 - [ ] Appropriate owner tests, host boundary/renderer checks and lint run. The
-  normal lint gate is `cargo clippy --workspace --all-features --all-targets -- -D warnings`;
+  normal lint gate is `cargo clippy --workspace --all-features --all-targets --keep-going -- -D warnings`;
   report narrower lint as narrower evidence. Run `scripts/check-mixes` only when
   features, `src/lib.rs` or `tests/mix.rs` changed; CI runs it on the pull request.
 - [ ] New golden output inspected; both renderer paths checked when applicable.

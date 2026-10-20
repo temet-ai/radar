@@ -24,7 +24,7 @@ Ink/React (`ink/`, the default). Read this file first; it points to the rest.
 
 ```bash
 cargo nextest run -p radar-<crate>     # test only the crate you changed (cargo test -p if no nextest)
-cargo clippy --workspace --all-features --all-targets -- -D warnings
+cargo clippy --workspace --all-features --all-targets --keep-going -- -D warnings   # every failing crate, not the first
 scripts/check-mixes                 # none, each part alone, all; when features, src/lib.rs or tests/mix.rs change (CI runs it)
 scripts/shots --compare main        # when a colour, style or layout changed
 cargo run -p radar-core --example gallery   # every kit element live

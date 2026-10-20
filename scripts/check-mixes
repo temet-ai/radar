@@ -79,7 +79,8 @@ started=$(date +%s)
 mix() {
     echo
     echo "== $test_cmd mix [${1:-no parts}]"
-    if ! cargo check --no-default-features --features "$1"; then
+    # --keep-going: every crate that fails is reported, not the first.
+    if ! cargo check --keep-going --no-default-features --features "$1"; then
         failed+=("cargo check --no-default-features --features \"$1\"")
         return
     fi

@@ -2070,7 +2070,7 @@ the workspace suite and the mix check on the pull request. Before handing over:
 
 ```bash
 cargo nextest run -p radar-<part>               # your crate, seconds (cargo test -p if no nextest)
-cargo clippy -p radar-<part> --all-features --all-targets -- -D warnings
+cargo clippy -p radar-<part> --all-features --all-targets --keep-going -- -D warnings
 cargo build --release                        # only when a live check needs the binary
 scripts/check-mixes                          # when Cargo features, src/lib.rs or tests/mix.rs changed (1.14)
 scripts/shots --compare main                 # when a colour, style or layout changed (3.1a)

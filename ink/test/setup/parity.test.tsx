@@ -14,18 +14,16 @@ vi.hoisted(() => {
 import { SCENES } from "./scenes.js";
 
 /**
- * Setup (crates/radar-core/src/shell/setup.rs): the sheet above the card (no rail), as Ratatui's text for the same four
- * screens (the insta snapshots in crates/radar-core/src/setup/snapshots, written by the radar-core setup tests) reads.
- * The scenes are the view data the host sends for them (./scenes.ts). Ratatui's test theme draws no icons.
+ * Setup: the sheet above the card (no rail), as the goldens in ./goldens read: Ink's own, frozen from the Ratatui
+ * text of the same screens before radar-core's setup tests moved to view text (e52f4ce).
+ * The scenes are the view data the host sends for them (./scenes.ts). The goldens draw no icons.
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
-const snaps = path.resolve(here, "../../../crates/radar-core/src/setup/snapshots");
+const goldens = path.resolve(here, "goldens");
 
-/** An insta snapshot's body: what follows the second `---`, each line without its trailing blanks. */
+/** A golden's lines, each without its trailing blanks. */
 function reference(name: string): string[] {
-  const text = fs.readFileSync(path.join(snaps, `radar_core__setup__tests__${name}.snap`), "utf8");
-  const body = text.split("\n---\n").slice(1).join("\n---\n");
-  return trimmed(body.split("\n"));
+  return trimmed(fs.readFileSync(path.join(goldens, `${name}.txt`), "utf8").split("\n"));
 }
 const trimmed = (lines: string[]): string[] => {
   const out = lines.map((l) => l.trimEnd());

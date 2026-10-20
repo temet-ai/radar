@@ -1,0 +1,24 @@
+ radar  setup / look for keys?                                           ✎ edit
+  about this step
+
+   WHAT IT READS ──────────────────────────────────────────────────────────   █
+     The names of the variables listed, and whether the sign-in files         █
+     listed exist.                                                            █
+     It does not read a token's value or a file's contents.                   ║
+     Nothing is sent anywhere, and nothing is saved until you finish a        ║
+     step.
+
+  look for keys?
+
+   May radar look for keys on this machine?
+   If you have tokens or sign-ins already, radar can use them instead of you
+
+    WHERE IT LOOKS
+    variables SHELF_TOKEN, LEDGER_…
+    sign-ins  shelfctl
+
+    YOUR CHOICE
+    ● yes, look
+    ○ no thanks
+
+ SETUP   ⏎ continue   ↑↓ move   esc no thanks   copy   PgUp/PgDn scroll

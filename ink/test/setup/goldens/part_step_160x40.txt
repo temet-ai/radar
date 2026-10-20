@@ -1,0 +1,40 @@
+ radar  setup / Shelves                                                                                                                    step 2 of 3   ✎ edit
+           about this step
+
+            A NEW TOKEN ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+              1 open the new-token page
+
+           Shelves
+
+             server   https://shelves.example
+             token    env:SHELF_TOKEN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ SETUP   ⏎ continue   space choose   esc skip this   ← back   finish later                                                                           shelf talk

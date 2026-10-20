@@ -188,10 +188,11 @@
     "top_bar": {
       "brand": "radar",
       "mode": {
+        "icon": "mode_read",
         "ink": "info",
         "strong": true,
         "target": "chrome:mode",
-        "text": "◉ read only"
+        "text": "read only"
       },
       "tabs": [
         {

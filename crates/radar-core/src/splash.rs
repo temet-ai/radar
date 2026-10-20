@@ -1688,8 +1688,8 @@ pub fn view(frame: &Frame) -> SplashView {
                 runs.iter()
                     .map(|r| SplashRun {
                         text: r.text.clone(),
-                        fg: colour_word(r.fg),
-                        bg: colour_word(r.bg),
+                        fg: colour_word(r.fg.map(Into::into)),
+                        bg: colour_word(r.bg.map(Into::into)),
                         bold: r.bold,
                     })
                     .collect()

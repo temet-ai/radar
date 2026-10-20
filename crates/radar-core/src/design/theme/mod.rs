@@ -20,12 +20,13 @@
 //! was overridden and what was added, and a unit test keeps that list honest.
 
 pub mod capability;
+pub mod style;
 pub mod tokens;
 
 use std::collections::BTreeMap;
 
 use opaline::{OpalineColor, OpalineStyle};
-use ratatui::style::{Color, Modifier, Style};
+pub use style::{Color, Modifier, Style};
 
 pub use capability::{TerminalEnv, Tier};
 pub use tokens::Slot;
@@ -50,11 +51,11 @@ pub struct SlotValue {
 impl SlotValue {
     /// A domain slot with no modifiers.
     #[must_use]
-    pub const fn new(truecolor: (u8, u8, u8), ansi256: u8, ansi16: Color) -> Self {
+    pub fn new(truecolor: (u8, u8, u8), ansi256: u8, ansi16: impl Into<Color>) -> Self {
         Self {
             truecolor,
             ansi256,
-            ansi16,
+            ansi16: ansi16.into(),
             modifiers: Modifier::empty(),
         }
     }
@@ -131,7 +132,7 @@ pub fn silkcircuit_neon_discrepancies() -> Vec<SlotDiscrepancy> {
         .collect()
 }
 
-/// The design theme: semantic slots in, tier-correct `ratatui` styles out.
+/// The design theme: semantic slots in, tier-correct styles out.
 ///
 /// Construct one at startup and pass it by reference (`&DesignTheme`) — this
 /// crate keeps no statics and no thread-locals, so a test can hold a

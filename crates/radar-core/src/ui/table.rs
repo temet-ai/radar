@@ -11,7 +11,6 @@ use ratatui::widgets::{Cell, Row, StatefulWidget, Table as RTable, TableState};
 
 use super::columns::Columns;
 use super::scroll::{Scroll, scrollbar};
-use crate::design::select;
 use crate::design::theme::Slot;
 use crate::theme::Theme;
 use crate::widgets;
@@ -157,7 +156,7 @@ impl<'a> Table<'a> {
             && row < first + h
         {
             let y = area.y + 1 + (row - first) as u16;
-            select::fill_row(buf, Rect { y, height: 1, ..area }, highlight);
+            widgets::fill_row(buf, Rect { y, height: 1, ..area }, highlight);
         }
         let table = RTable::new(rows, widths)
             .header(header)

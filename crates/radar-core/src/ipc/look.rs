@@ -1,18 +1,16 @@
 //! The look the host resolved, for a renderer in another process: every
 //! theme slot's colour at the active tier, the modifiers a slot carries of
-//! its own, and the icons in use. The Ratatui renderer reads these from
-//! [`Theme`] as it draws; the Ink renderer is sent them
+//! its own, and the icons in use. The Ink renderer is sent them
 //! ([`super::ToRenderer::Look`]) and chooses no colour or glyph of its own,
 //! so a palette, a colour tier, a slot override, an icon pack or an
 //! `[icons]` override reaches both renderers the same.
 
 use std::collections::BTreeMap;
 
-use ratatui::style::{Color, Modifier};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::design::theme::Tier;
+use crate::design::theme::{Color, Modifier, Tier};
 use crate::theme::Theme;
 use crate::ui::icon::Icon;
 
@@ -55,8 +53,8 @@ pub struct LookIcon {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 pub struct Look {
     pub tier: ColourTier,
-    /// Every slot name → its colour as Ratatui's `Theme::style(name)`
-    /// resolves it at `tier`, written as Ink's `color` takes it: `#rrggbb`
+    /// Every slot name → its colour as `Theme::resolve(name)`
+    /// resolves it at `tier` (`Theme::resolve`), written as Ink's `color` takes it: `#rrggbb`
     /// at truecolor, `ansi256(n)` at 256, a terminal colour's name at 16
     /// (`red`, `redBright`, `blackBright` …), and `""` (no colour, the
     /// terminal's own) at mono.
@@ -86,7 +84,7 @@ impl Look {
         let mut slots = BTreeMap::new();
         let mut modifiers = BTreeMap::new();
         for name in theme.slot_names() {
-            let style = theme.style(&name);
+            let style = theme.resolve(&name);
             slots.insert(name.clone(), colour_word(style.fg));
             let words = modifier_words(style.add_modifier);
             if !words.is_empty() {

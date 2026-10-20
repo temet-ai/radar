@@ -131,7 +131,7 @@ pub fn row(
         height: 1,
         ..inner
     };
-    select::fill_row(buf, r, style);
+    fill_row(buf, r, style);
     let rw = right.as_ref().map_or(0, |s| s.width() as u16);
     let room = inner.width.saturating_sub(if rw > 0 { rw + 3 } else { 2 });
     buf.set_line(inner.x + 1, y, &left, room);
@@ -140,14 +140,23 @@ pub fn row(
     }
 }
 
+/// Paint `style` across every cell of `row_area`: the highlight covers the
+/// panel's full inner width, not just the text.
+pub fn fill_row(buf: &mut Buffer, row_area: Rect, style: Style) {
+    if row_area.width == 0 || row_area.height == 0 {
+        return;
+    }
+    buf.set_style(row_area, style);
+}
+
 /// The selection style for a row (full-row treatment, LAYOUT.md).
 /// The focused pane's cursor is bold on the selection colour; a pane without
 /// focus keeps its cursor on the same colour, not bold, so you can always see
 /// where you were.
 pub fn row_style(theme: &Theme, focused: bool, selected: bool) -> Style {
     match (selected, focused) {
-        (false, _) => select::unselected_row(&theme.d),
-        (true, true) => select::selected_row(&theme.d, true),
+        (false, _) => select::unselected_row(&theme.d).into(),
+        (true, true) => select::selected_row(&theme.d, true).into(),
         // Only the pane with the keys carries the selection ground; another pane's current row sits quietly on the
         // overlay shade, its words still emphasised (the Ink style guide, sheet 08).
         (true, false) => {

@@ -1,13 +1,11 @@
-//! The look sent to a renderer is the look the Ratatui renderer draws with:
+//! The look sent to a renderer is what the theme resolves: every slot's colour at the tier, a slot's own modifiers, every icon's
 //! every slot's colour at the tier, a slot's own modifiers, every icon's
 //! glyph and style, for the same configuration.
-
-use ratatui::style::{Color, Modifier};
 
 use super::fixture;
 use super::look::colour_word;
 use super::*;
-use crate::design::theme::{SlotValue, Tier};
+use crate::design::theme::{Color, Modifier, SlotValue, Tier};
 use crate::theme::Theme;
 use crate::ui::icon::{Glyph, Icon};
 
@@ -84,11 +82,11 @@ fn looks(out: &[ToRenderer]) -> Vec<&Look> {
         .collect()
 }
 
-fn assert_same_as_ratatui(look: &Look, theme: &Theme) {
+fn assert_same_as_theme(look: &Look, theme: &Theme) {
     assert_eq!(look.tier, theme.tier().into());
     assert_eq!(look.slots.len(), theme.slot_names().len());
     for name in theme.slot_names() {
-        let style = theme.style(&name);
+        let style = theme.resolve(&name);
         assert_eq!(colour_of(&look.slots[&name]), style.fg, "slot {name} at {:?}", theme.tier());
         let own = look.modifiers.get(&name).map_or("", String::as_str);
         let m = own.split_whitespace().fold(Modifier::empty(), |m, w| {
@@ -115,16 +113,16 @@ fn assert_same_as_ratatui(look: &Look, theme: &Theme) {
 }
 
 #[test]
-fn the_look_sent_is_what_ratatui_resolves_at_every_tier() {
+fn the_look_sent_is_what_theme_resolves_at_every_tier() {
     for tier in [Tier::TrueColor, Tier::Ansi256, Tier::Ansi16, Tier::Mono] {
         let mut bridge = configured();
         bridge.set_tier(tier);
         let out = welcomed(&mut bridge);
         let sent = looks(&out);
         assert_eq!(sent.len(), 1, "one look after the welcome at {tier:?}");
-        // What the Ratatui runner draws with for the same host and tier.
+        // What the theme resolves for the same host and tier.
         let theme = bridge.host().build_theme(tier);
-        assert_same_as_ratatui(sent[0], &theme);
+        assert_same_as_theme(sent[0], &theme);
     }
 }
 

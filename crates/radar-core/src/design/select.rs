@@ -22,11 +22,7 @@
 //! `UNDERLINED`, so which row is active and which panel owns it are still
 //! readable with no color at all (TUI-P4, TUI-P7 tier 1).
 
-use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
-use ratatui::style::{Modifier, Style};
-
-use crate::design::theme::{DesignTheme, Slot, Tier};
+use crate::design::theme::{DesignTheme, Modifier, Slot, Style, Tier};
 
 /// The style for a row, given whether its panel has focus and whether the row
 /// is the selected one.
@@ -67,22 +63,10 @@ pub fn unselected_row(theme: &DesignTheme) -> Style {
     theme.style(Slot::TextPrimary)
 }
 
-/// Paint `style` across every cell of `row_area`.
-///
-/// This is the "across the row" half of the rule: the highlight covers the
-/// panel's full inner width, not just the text. Pass the row's rectangle
-/// inside the panel border.
-pub fn fill_row(buf: &mut Buffer, row_area: Rect, style: Style) {
-    if row_area.width == 0 || row_area.height == 0 {
-        return;
-    }
-    buf.set_style(row_area, style);
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ratatui::style::Color;
+    use crate::design::theme::Color;
 
     #[test]
     fn focused_selection_uses_bg_selection() {
@@ -141,38 +125,5 @@ mod tests {
         let theme = DesignTheme::with_tier(Tier::Ansi256);
         assert_eq!(selected_row(&theme, true).bg, Some(Color::Indexed(239)));
         assert_eq!(selected_row(&theme, false).bg, Some(Color::Indexed(235)));
-    }
-
-    #[test]
-    fn fill_row_covers_the_whole_row_and_adds_no_glyph() {
-        let theme = DesignTheme::with_tier(Tier::TrueColor);
-        let area = Rect::new(0, 0, 12, 3);
-        let mut buf = Buffer::empty(area);
-        buf.set_string(0, 1, "entries", Style::new());
-
-        let row_area = Rect::new(0, 1, 12, 1);
-        fill_row(&mut buf, row_area, selected_row(&theme, true));
-
-        for x in 0..12 {
-            assert_eq!(
-                buf[(x, 1)].bg,
-                theme.color(Slot::BgSelection).unwrap(),
-                "the highlight spans the full row at {x}"
-            );
-        }
-        let text: String = (0..12).map(|x| buf[(x, 1)].symbol()).collect();
-        assert_eq!(text, "entries     ", "no marker glyph, no indent shift");
-
-        // Neighbouring rows are untouched.
-        assert_eq!(buf[(0, 0)].bg, Color::Reset);
-        assert_eq!(buf[(0, 2)].bg, Color::Reset);
-    }
-
-    #[test]
-    fn fill_row_ignores_a_zero_sized_row() {
-        let theme = DesignTheme::with_tier(Tier::TrueColor);
-        let mut buf = Buffer::empty(Rect::new(0, 0, 4, 1));
-        fill_row(&mut buf, Rect::new(0, 0, 0, 0), selected_row(&theme, true));
-        assert_eq!(buf[(0, 0)].bg, Color::Reset);
     }
 }

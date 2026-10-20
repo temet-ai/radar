@@ -12,7 +12,7 @@
 //! directly — everything resolves through `DesignTheme` so the capability
 //! tier is honored (TUI-C4).
 
-use ratatui::style::{Color, Modifier};
+use super::style::{Color, Modifier};
 
 /// A named semantic color slot from TUI-C4a.
 ///

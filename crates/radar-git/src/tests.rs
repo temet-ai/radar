@@ -5,7 +5,10 @@ use radar_core::host::{Event, View};
 use radar_core::journal::Outcome as JournalOutcome;
 use radar_core::plugin::{Effect, Pane};
 use radar_core::view::{Chord, Intent, Key as KeyCode};
-use radar_core::ui::chips::words;
+/// A contributed line's chips as words: each chip's text, two spaces apart.
+fn words(chips: &[radar_core::compose::Chip]) -> String {
+    chips.iter().map(|c| c.text.as_str()).collect::<Vec<_>>().join("  ")
+}
 use radar_core::{Contribution, Host, Plugin, Point, Subject};
 
 use crate::GitPlugin;
@@ -60,9 +63,8 @@ fn mr(path: &str, branch: &str) -> Subject {
 
 /// The words of the line git puts under a subject's title.
 fn line(p: &GitPlugin, s: &Subject) -> String {
-    let t = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
     match p.contribute(Point::Line, s) {
-        Some(Contribution::Line(w)) => words(&t, &w).to_string(),
+        Some(Contribution::Line(w)) => words(&w),
         other => panic!("no line: {other:?}"),
     }
 }
@@ -108,8 +110,7 @@ fn a_repo_and_a_merge_request_say_where_they_are_checked_out() {
     );
     // The repo's row: cloned here, on its branch, in place of its own icon.
     let Some(Contribution::Mark { icon, words: w }) = p.contribute(Point::Mark, &repo(api)) else { panic!() };
-    let t = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-    assert_eq!((icon, words(&t, &w).to_string()), (radar_core::ui::icon::Icon::Local, "  feature/ABC-263".into()));
+    assert_eq!((icon, words(&w)), (radar_core::ui::icon::Icon::Local, "feature/ABC-263".into()));
     assert!(p.contribute(Point::Mark, &repo("acme/team-a/web")).is_none(), "no mark where it is not cloned");
     // Elsewhere: why not, and where to set the folders.
     assert_eq!(
@@ -198,11 +199,10 @@ fn checking_out_asks_first_and_a_yes_switches_off_the_event_loop() {
     let fx = p.on_menu(&id, "yes");
     assert!(fx.iter().any(|e| matches!(e, Effect::Spawn(_))), "{fx:?}");
     assert!(p.local.switching.contains("/work/acme/api"));
-    let t = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
     let Some(Contribution::Line(w)) = p.contribute(Point::Line, &s) else {
         panic!()
     };
-    assert!(words(&t, &w).to_string().contains("· checking out…"));
+    assert!(words(&w).contains("· checking out…"));
     // Elsewhere it says why not, and asks nothing.
     let fx = p.act(&mr("acme/team-a/web", "x"), "checkout");
     assert!(

@@ -1899,7 +1899,7 @@ async fn cli_show(cfg: Settings, m: &clap::ArgMatches) -> anyhow::Result<String>
 }
 
 /// A key as the event a test sends the host.
-#[cfg(any(test, feature = "demo"))]
+#[cfg(test)]
 pub(crate) fn key_event(chord: Chord) -> radar_core::host::Event {
     radar_core::host::Event::Intent(radar_core::view::Intent::Key { chord })
 }

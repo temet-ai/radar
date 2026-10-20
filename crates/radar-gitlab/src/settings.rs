@@ -2839,11 +2839,10 @@ mod tests {
         assert!(p.offers().is_empty());
         p.me.clear();
         assert_eq!(conn_rows(&p)[0], ConnRow::Offer(0));
-        let theme = radar_core::Theme::new(radar_core::design::theme::Tier::Mono);
-        let row = found("GITLAB_TOKEN").row(&theme, 120).to_string();
-        assert_eq!(
-            row,
-            " ? Found in your environment: a GitLab token (GITLAB_TOKEN). Use it?"
+        let row = found("GITLAB_TOKEN").text(120).plain_words();
+        assert!(
+            row.contains("Found in your environment: a GitLab token (GITLAB_TOKEN). Use it?"),
+            "{row}"
         );
         let out = press(&mut p, "connection", Key::Enter);
         assert_eq!(

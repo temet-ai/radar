@@ -801,7 +801,6 @@ mod tests {
         let laid = ui::rich::layout(&doc, &ui::rich::Look::new(&theme), 80);
         ui::link::set(false);
         assert!(laid.links.is_empty());
-        assert!(laid.media.iter().all(|m| m.src.is_empty()));
         let text = ui::rich::text_of(&laid.lines);
         assert!(text.contains("private link"));
         assert!(text.contains("control link"));

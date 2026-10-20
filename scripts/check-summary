@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# The failures in a check's log, one line each and each once: Rust compile and
+# clippy errors at their file:line, failing tests with where they panicked,
+# TypeScript errors, failing Ink tests, failing mixes. Used by scripts/check;
+# reads the log named, or standard input.
+#
+#   scripts/check-summary target/check/clippy.log
+#
+# POSIX awk (macOS and GNU): no \b or \< \>, and regexes with a slash are strings.
+
+exec awk '
+function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
+function cut(s) { return length(s) > 180 ? substr(s, 1, 177) "..." : s }
+function emit(s) { s = cut(s); if (!(s in seen)) { seen[s] = 1; out[++n] = s } }
+function flush() { if (pending != "") emit(pending); pending = "" }
+{ gsub(/\033\[[0-9;?]*[A-Za-z]/, "") }
+
+# Rust: `error[E0308]: msg` or `error: msg`, its place on the next ` --> ` line.
+$0 ~ "^error(\\[E[0-9]+\\])?: " {
+    flush()
+    if ($0 ~ "^error: (could not compile|aborting due to|build failed|test run failed|[0-9]+ (previous )?errors?)") next
+    msg = $0; sub(/^error(\[E[0-9]+\])?: /, "", msg)
+    pending = msg; next
+}
+pending != "" && $0 ~ "^ *--> " {
+    loc = $0; sub(/^ *--> /, "", loc)
+    emit(loc "  " pending); pending = ""; next
+}
+
+# A failing test (nextest prints each twice; `seen` keeps one).
+$0 ~ "^ *(FAIL|SIGSEGV|SIGABRT|SIGKILL|TIMEOUT|LEAK-FAIL) \\[" {
+    flush()
+    name = $0; sub(/^.*\) /, "", name); sub(/^ *[A-Z-]+ \[[^]]*\] */, "", name)
+    emit("test " trim(name)); next
+}
+# Where it panicked, and the first line of why.
+$0 ~ "panicked at .*:[0-9]+:[0-9]+:$" {
+    flush()
+    who = $0; sub(/^.*thread .\047?/, "", who); sub(/\047.*$/, "", who)
+    at = $0; sub(/^.* panicked at /, "", at); sub(/:[0-9]+:$/, "", at)
+    want_why = 1; next
+}
+want_why { emit("  " at "  " who ": " trim($0)); want_why = 0; next }
+
+# TypeScript: `src/x.ts(12,3): error TS2322: ...`
+$0 ~ "\\([0-9]+,[0-9]+\\): error TS[0-9]+" { flush(); emit(trim($0)); next }
+# Vitest: ` FAIL  test/x.test.tsx > group > name`, and its first error line.
+$0 ~ "^ *FAIL  " { flush(); s = $0; sub(/^ *FAIL +/, "", s); emit("ink " s); want_err = 1; next }
+want_err && $0 ~ "(Error|expected|Expected)" { emit("  " trim($0)); want_err = 0; next }
+
+# scripts/check-mixes: the mixes that failed, after `FAILED:`.
+$0 ~ "^FAILED:$" { flush(); in_failed = 1; next }
+in_failed && $0 ~ "^  " { emit("mix " trim($0)); next }
+{ in_failed = 0 }
+
+END {
+    flush()
+    for (i = 1; i <= n; i++) print "  " out[i]
+    exit n > 0 ? 1 : 0
+}
+' "$@"

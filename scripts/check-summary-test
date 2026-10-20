@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# scripts/check-summary against a log holding each kind of failure it knows,
+# and a clean log. Run on Linux and the Mac (system awk); on Linux also with
+# AWK_POSIX=1 (gawk --posix).
+cd "$(dirname "$0")"
+fixtures=check-summary-fixtures
+summary=./check-summary
+if [ -n "${AWK_POSIX:-}" ]; then
+    summary=$(mktemp)
+    sed 's/^exec awk/exec gawk --posix/' check-summary >"$summary"
+    trap 'rm -f "$summary"' EXIT
+fi
+got=$(bash "$summary" "$fixtures/mixed.log")
+if [ $? -ne 1 ]; then echo "FAIL: a log with failures must exit 1"; exit 1; fi
+if [ "$got" != "$(cat "$fixtures/mixed.expected")" ]; then
+    echo "FAIL: the summary differs:"; diff <(printf '%s\n' "$got") "$fixtures/mixed.expected"; exit 1
+fi
+if ! echo "Summary 3 tests run: 3 passed" | bash "$summary" >/dev/null; then
+    echo "FAIL: a clean log must exit 0"; exit 1
+fi
+echo "check-summary: ok"

@@ -23,6 +23,8 @@ Ink/React (`ink/`, the default). Read this file first; it points to the rest.
 ## Build and test
 
 ```bash
+scripts/check clippy test -p radar-<crate>   # runs each check to the end, lists only the failures (file:line), logs in target/check/
+scripts/check                       # clippy, tests, mixes, Ink: the batch check
 cargo nextest run -p radar-<crate>     # test only the crate you changed (cargo test -p if no nextest)
 cargo clippy --workspace --all-features --all-targets --keep-going -- -D warnings   # every failing crate, not the first
 scripts/check-mixes                 # none, each part alone, all; when features, src/lib.rs or tests/mix.rs change (CI runs it)

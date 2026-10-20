@@ -3019,6 +3019,31 @@ impl Host {
             let activate = matches!(intent, Intent::Activate { .. });
             return self.setup_target(&target.clone(), activate);
         }
+        // A row of the colours or icons section, from a renderer that lays
+        // the section out itself (Ink): selected as the arrows select it,
+        // and an activation is ⏎ on it.
+        if self.view == View::Settings
+            && self.current_section().is_some_and(|(o, _)| o == Owner::Host)
+            && let Intent::Activate { target } | Intent::Select { target } = &intent
+            && let Some((icons, n)) = target
+                .as_str()
+                .strip_prefix("row:")
+                .map(|n| (false, n))
+                .or_else(|| target.as_str().strip_prefix("icon:").map(|n| (true, n)))
+            && let Ok(n) = n.parse::<usize>()
+        {
+            if self.menu.is_some() || self.colours.capturing() {
+                return vec![];
+            }
+            let activate = matches!(intent, Intent::Activate { .. });
+            let picked = if icons { self.colours.select_icon(n) } else { self.colours.select(n) };
+            if !picked {
+                return vec![];
+            }
+            self.focus = Pane::Middle;
+            self.settings_detail.top();
+            return if activate { self.colours_key(KeyEvent::from(KeyCode::Enter)) } else { vec![] };
+        }
         // A row of Settings' look section (the same card as setup's look).
         if self.setup.is_none()
             && self.view == View::Settings
@@ -6639,6 +6664,24 @@ pub(crate) mod tests {
         host.load_config(None).unwrap();
         assert_eq!(host.view, View::Settings);
         assert!(host.dirty());
+    }
+
+    #[test]
+    fn a_renderers_press_selects_a_colours_row_and_activates_it() {
+        use crate::view::{Intent, Target};
+        let (mut host, _) = host(&[("a", 'A', "a")]);
+        press(&mut host, KeyCode::Char(SETTINGS_KEY));
+        host.section = host.sections.iter().position(|(o, s)| *o == Owner::Host && s.id == COLOURS_SECTION.id).unwrap();
+        host.focus = Pane::Nav;
+        let rows = host.colours.rows();
+        let slot = rows.iter().position(|r| matches!(r, crate::colours::Row::Slot(_))).unwrap();
+        let heading = rows.iter().position(|r| matches!(r, crate::colours::Row::Header(_))).unwrap();
+        host.update(Event::Intent(Intent::Select { target: Target::new(format!("row:{slot}")) }));
+        assert_eq!((host.colours.row, host.focus), (slot, Pane::Middle), "a press selects the row and the section");
+        host.update(Event::Intent(Intent::Select { target: Target::new(format!("row:{heading}")) }));
+        assert_eq!(host.colours.row, slot, "a heading is never selected");
+        host.update(Event::Intent(Intent::Activate { target: Target::new(format!("row:{slot}")) }));
+        assert!(host.colours.capturing() || host.menu.is_some(), "activating a slot opens its editor or menu");
     }
 
     #[test]

@@ -118,6 +118,25 @@ impl Colours {
     }
 
     /// Move to the next selectable row, skipping headings.
+    /// Select row `i` of the colours section, as a renderer's press or
+    /// movement does; false for a heading or a row past the end.
+    pub fn select(&mut self, i: usize) -> bool {
+        let ok = self.rows().get(i).is_some_and(|r| !matches!(r, Row::Header(_)));
+        if ok {
+            self.row = i;
+        }
+        ok
+    }
+
+    /// Select row `n` of the icons section; false for a heading or past the end.
+    pub fn select_icon(&mut self, n: usize) -> bool {
+        let ok = matches!(crate::icons::rows().get(n), Some(crate::icons::IconRow::Icon(_)));
+        if ok {
+            self.icon_row = n;
+        }
+        ok
+    }
+
     fn step(&mut self, down: bool) {
         let rows = self.rows();
         let mut i = self.row.min(rows.len() - 1);

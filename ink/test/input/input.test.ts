@@ -85,7 +85,7 @@ function setup(over: Partial<{ menu: MenuView | null; capturing: boolean }> = {}
 }
 
 describe("controller", () => {
-  it("a key on the body goes through the view's route (the Ratatui adapter's rules, pinned in ratatui-intents.test.ts)", () => {
+  it("a key on the body goes through the view's route (the rules pinned in intents.test.ts)", () => {
     const { c, sent } = setup();
     c.key("o", none);
     c.key("", k({ return: true }));

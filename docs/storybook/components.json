@@ -51,14 +51,14 @@
         {
           "id": "nodes-documentnode--page-pane",
           "name": "Page Pane",
-          "snippet": "const PagePane = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={merge}\n      focused={args.ctx.focused}\n      reference={fromScene(overview160Cells as RatatuiScene, { pane: \"can it merge?\" })}\n      body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}\n    />\n  );\n};",
+          "snippet": "const PagePane = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={merge}\n      focused={args.ctx.focused}\n      region={regionOf(overview160Cells as GoldenScene, { pane: \"can it merge?\" })}\n      body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}\n    />\n  );\n};",
           "description": "\"Can it merge?\" beside a merge request's overview at 160x40.",
           "warning": "Incomplete snippet: `merge` could not be resolved statically."
         },
         {
           "id": "nodes-documentnode--settings-detail",
           "name": "Settings Detail",
-          "snippet": "const SettingsDetail = function Render(args, { globals }) {\n  const ref = fromScene(connection80Cells as RatatuiScene, { pane: connection80.detail_title });\n  const { w, h } = sizeOf(ref, { w: 56, h: 11 });\n  return (\n    <Compare\n      globals={globals}\n      cols={w}\n      rows={h}\n      reference={ref}\n      ink={\n        <InPanel title={connection80.detail_title} width={w} height={h} focused={args.ctx.focused}>\n          <NodeView node={args.node} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused, scrolls: true }} />\n        </InPanel>\n      }\n    />\n  );\n};",
+          "snippet": "const SettingsDetail = function Render(args, { globals }) {\n  const ref = regionOf(connection80Cells as GoldenScene, { pane: connection80.detail_title });\n  const { w, h } = sizeOf(ref, { w: 56, h: 11 });\n  return (\n    <Compare\n      globals={globals}\n      cols={w}\n      rows={h}\n      ink={\n        <InPanel title={connection80.detail_title} width={w} height={h} focused={args.ctx.focused}>\n          <NodeView node={args.node} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused, scrolls: true }} />\n        </InPanel>\n      }\n    />\n  );\n};",
           "description": "A settings section's detail (GitLab connection, the server field): it scrolls in its panel."
         }
       ],
@@ -144,14 +144,14 @@
         {
           "id": "nodes-entriesnode--failed-jobs",
           "name": "Failed Jobs",
-          "snippet": "const FailedJobs = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={red80Cells as RatatuiScene} />;",
+          "snippet": "const FailedJobs = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={red80Cells as GoldenScene} />;",
           "description": "\"Why main is red\" on a repository's Pipelines on main tab at 80x24: the failed jobs with their lines.",
           "warning": "Incomplete snippet: `args: argsOf(pane80)` could not be resolved statically."
         },
         {
           "id": "nodes-entriesnode--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={red160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={red160Cells as GoldenScene} />;",
           "description": "The same at 160x40.",
           "warning": "Incomplete snippet: `args: argsOf(pane80)`, `args: argsOf(pane160)` could not be resolved statically."
         }
@@ -238,21 +238,21 @@
         {
           "id": "nodes-listnode--unfocused",
           "name": "Unfocused",
-          "snippet": "const Unfocused = (args, { globals }) => <InPane args={args} globals={globals} pane={views} scene={repos80Cells as RatatuiScene} />;",
+          "snippet": "const Unfocused = (args, { globals }) => <InPane args={args} globals={globals} pane={views} scene={repos80Cells as GoldenScene} />;",
           "description": "GitLab's views in the nav while the middle pane has the keys: the selected row on the quieter selection.",
           "warning": "Incomplete snippet: `views` could not be resolved statically."
         },
         {
           "id": "nodes-listnode--focused",
           "name": "Focused",
-          "snippet": "const Focused = (args, { globals }) => <InPane args={args} globals={globals} pane={navFocused} scene={navFocusCells as RatatuiScene} />;",
+          "snippet": "const Focused = (args, { globals }) => <InPane args={args} globals={globals} pane={navFocused} scene={navFocusCells as GoldenScene} />;",
           "description": "The nav pane has the keys (`highlight_focused-pane-nav`): the selected row bold on the selection background.",
           "warning": "Incomplete snippet: `navFocused` could not be resolved statically."
         },
         {
           "id": "nodes-listnode--settings-rows",
           "name": "Settings Rows",
-          "snippet": "const SettingsRows = function Render(args, { globals }) {\n  const ref = fromScene(connection80Cells as RatatuiScene, { pane: \"GitLab connection\" });\n  const { w, h } = sizeOf(ref, { w: 56, h: 10 });\n  return (\n    <Compare\n      globals={globals}\n      cols={w}\n      rows={h}\n      reference={ref}\n      ink={\n        <InPanel title=\"GitLab connection\" width={w} height={h} focused={args.ctx.focused}>\n          <ListNode {...args} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused }} />\n        </InPanel>\n      }\n    />\n  );\n};",
+          "snippet": "const SettingsRows = function Render(args, { globals }) {\n  const ref = regionOf(connection80Cells as GoldenScene, { pane: \"GitLab connection\" });\n  const { w, h } = sizeOf(ref, { w: 56, h: 10 });\n  return (\n    <Compare\n      globals={globals}\n      cols={w}\n      rows={h}\n      ink={\n        <InPanel title=\"GitLab connection\" width={w} height={h} focused={args.ctx.focused}>\n          <ListNode {...args} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused }} />\n        </InPanel>\n      }\n    />\n  );\n};",
           "description": "A settings section's rows (GitLab connection): label and value rows in a plain panel, as App's SectionBody\ndraws a section."
         }
       ],
@@ -353,14 +353,14 @@
         {
           "id": "nodes-lognode--tail",
           "name": "Tail",
-          "snippet": "const Tail = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={log80Cells as RatatuiScene} />;",
+          "snippet": "const Tail = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={log80Cells as GoldenScene} />;",
           "description": "A failed job's log tail on its page at 80x24.",
           "warning": "Incomplete snippet: `args: argsOf(pane80)` could not be resolved statically."
         },
         {
           "id": "nodes-lognode--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={log160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={log160Cells as GoldenScene} />;",
           "description": "The same at 160x40.",
           "warning": "Incomplete snippet: `args: argsOf(pane80)`, `args: argsOf(pane160)` could not be resolved statically."
         }
@@ -372,7 +372,7 @@
       "name": "NodeView",
       "path": "./stories/nodes/MeterLines.stories.tsx",
       "jsDocTags": {},
-      "description": "The stage bar (`Block::Meter` in a `Node::Rich`, Ratatui `ui::meter::stages`; Ink nodes/index.tsx MeterLines,\nreached through NodeView): the steps of a run across the width, a bar of `▀` over each stage's mark and name, each\nin the stage's look (its run state's tone). It sits under a PIPELINE section (`Block::Section`).\n\n**Use it** under a PIPELINE heading in a detail pane or an item page, for a pipeline's or a workflow's stages.\n\n**States:** each stage by its `Mark` (done ✓, failed ✗, running ●, waiting ◷, manual ▷, stopped ⊘, skipped »);\nnames cut to the stage's share of the width; no stages draws nothing.\n\n**Rules:** the marks read without colour; the colour is the stage's look, a theme slot. No pill or round caps on\nthe bars.\n\n**Data gap:** every recorded view (ink/test/fixtures) carries `\"stages\": []`, so this story shows the real detail\npane where the meter sits, with an empty bar. A surface with stages (a merge request page's Pipeline tab) recorded by\ntests/view_fixtures.rs and tests/ratatui_cells.rs would give both renderers' pictures of a filled bar.\n\nThe story's `node` is the whole rich node of the pane, as the host sent it.",
+      "description": "The stage bar (`Block::Meter` in a `Node::Rich`, Ratatui `ui::meter::stages`; Ink nodes/index.tsx MeterLines,\nreached through NodeView): the steps of a run across the width, a bar of `▀` over each stage's mark and name, each\nin the stage's look (its run state's tone). It sits under a PIPELINE section (`Block::Section`).\n\n**Use it** under a PIPELINE heading in a detail pane or an item page, for a pipeline's or a workflow's stages.\n\n**States:** each stage by its `Mark` (done ✓, failed ✗, running ●, waiting ◷, manual ▷, stopped ⊘, skipped »);\nnames cut to the stage's share of the width; no stages draws nothing.\n\n**Rules:** the marks read without colour; the colour is the stage's look, a theme slot. No pill or round caps on\nthe bars.\n\n**Data gap:** every recorded view (ink/test/fixtures) carries `\"stages\": []`, so this story shows the real detail\npane where the meter sits, with an empty bar. A surface with stages (a merge request page's Pipeline tab) recorded by\ntests/view_fixtures.rs would give a filled bar.\n\nThe story's `node` is the whole rich node of the pane, as the host sent it.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/nodes/index.tsx",
@@ -417,7 +417,7 @@
         {
           "id": "nodes-meterlines--recorded-detail",
           "name": "Recorded Detail",
-          "snippet": "const RecordedDetail = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={pane}\n      focused={args.ctx.focused}\n      reference={fromText(actions160Snap, \"tests/snapshots/mix__gitlab+github+jira+slack+git+workspace+workbench_row_actions_160x40.snap\", { snap: true, pane: \"api !263\" })}\n      body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}\n    />\n  );\n};",
+          "snippet": "const RecordedDetail = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={pane}\n      focused={args.ctx.focused}\n      size={{ w: 160, h: 40 }}\n      body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}\n    />\n  );\n};",
           "description": "A merge request's detail pane at 160x40: the PIPELINE section, passed, and the meter the host sent (no stages\nrecorded).",
           "warning": "Incomplete snippet: `pane` could not be resolved statically."
         }
@@ -519,21 +519,21 @@
         {
           "id": "nodes-tablenode--rows",
           "name": "Rows",
-          "snippet": "const Rows = (args, { globals }) => <InPane args={args} globals={globals} pane={mrs80Pane} scene={mrs80Cells as RatatuiScene} />;",
+          "snippet": "const Rows = (args, { globals }) => <InPane args={args} globals={globals} pane={mrs80Pane} scene={mrs80Cells as GoldenScene} />;",
           "description": "A repository's merge requests on its page at 80x24, the first row selected.",
           "warning": "Incomplete snippet: `args: argsOf(mrs80Pane)` could not be resolved statically."
         },
         {
           "id": "nodes-tablenode--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={mrs160Pane} scene={mrs160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={mrs160Pane} scene={mrs160Cells as GoldenScene} />;",
           "description": "The same table at 160x40: the columns dropped at 80 come back.",
           "warning": "Incomplete snippet: `args: argsOf(mrs80Pane)`, `args: argsOf(mrs160Pane)` could not be resolved statically."
         },
         {
           "id": "nodes-tablenode--empty",
           "name": "Empty",
-          "snippet": "const Empty = (args, { globals }) => <InPane args={args} globals={globals} pane={reposPane} scene={repos80Cells as RatatuiScene} />;",
+          "snippet": "const Empty = (args, { globals }) => <InPane args={args} globals={globals} pane={reposPane} scene={repos80Cells as GoldenScene} />;",
           "description": "A table with no rows: the host's `empty` words where the rows go.",
           "warning": "Incomplete snippet: `args: argsOf(mrs80Pane)`, `args: argsOf(reposPane)` could not be resolved statically."
         }
@@ -590,28 +590,28 @@
         {
           "id": "nodes-treenode--open",
           "name": "Open",
-          "snippet": "const Open = (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={repos80Cells as RatatuiScene} />;",
+          "snippet": "const Open = (args, { globals }) => <Figure args={args} globals={globals} pane={pane80} scene={repos80Cells as GoldenScene} />;",
           "description": "Every group open, the first group row selected with the keys in this pane (GitLab Repositories at 80x24).",
           "warning": "Incomplete snippet: `pane80` could not be resolved statically."
         },
         {
           "id": "nodes-treenode--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Figure args={args} globals={globals} pane={pane160} scene={repos160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <Figure args={args} globals={globals} pane={pane160} scene={repos160Cells as GoldenScene} />;",
           "description": "The same tree at 160x40: the columns the 80-cell pane dropped come back, aligned at every depth.",
           "warning": "Incomplete snippet: `pane160` could not be resolved statically."
         },
         {
           "id": "nodes-treenode--folded",
           "name": "Folded",
-          "snippet": "const Folded = (args, { globals }) => <Figure args={args} globals={globals} pane={foldedPane} scene={foldedCells as RatatuiScene} />;",
+          "snippet": "const Folded = (args, { globals }) => <Figure args={args} globals={globals} pane={foldedPane} scene={foldedCells as GoldenScene} />;",
           "description": "A loaded group folded by the host: `⋯ 2` counts its child and nested descendant, both still held in the view.",
           "warning": "Incomplete snippet: `foldedPane` could not be resolved statically."
         },
         {
           "id": "nodes-treenode--unfocused",
           "name": "Unfocused",
-          "snippet": "const Unfocused = (args, { globals }) => <Figure args={args} globals={globals} pane={paneOf((navFocusCells as RatatuiScene).view!.screen, \"Everything\")} scene={navFocusCells as RatatuiScene} />;",
+          "snippet": "const Unfocused = (args, { globals }) => <Figure args={args} globals={globals} pane={paneOf((navFocusCells as GoldenScene).view!.screen, \"Everything\")} scene={navFocusCells as GoldenScene} />;",
           "description": "The nav pane has the keys: the tree's selected row keeps a quieter selection background, the frame is muted.",
           "warning": "Incomplete snippet: `pane80` could not be resolved statically."
         }
@@ -668,15 +668,15 @@
         {
           "id": "text-chips--recorded",
           "name": "Recorded",
-          "snippet": "const Recorded = function Render(args: Args, { globals }: { globals: Globals }) {\n  const ref = discussedRef();\n  return (\n    <Compare\n      globals={globals}\n      cols={ref.cells[0]!.length}\n      rows={1}\n      reference={ref}\n      ink={\n        <Box width={ref.cells[0]!.length}>\n          <TextLine text={args.text.filter((s) => s.chip)} />\n        </Box>\n      }\n    />\n  );\n};",
-          "description": "The chip on Jira ABC-12 (`discussed · 1`, muted, the thread icon), beside Ratatui's cells for the same chip. Turn\nthe icons on in the toolbar to see the icon slot.",
+          "snippet": "const Recorded = function Render(args: Args, { globals }: { globals: Globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={discussedWidth}\n      rows={1}\n      ink={\n        <Box width={discussedWidth}>\n          <TextLine text={args.text.filter((s) => s.chip)} />\n        </Box>\n      }\n    />\n  );\n};",
+          "description": "The chip on Jira ABC-12 (`discussed · 1`, muted, the thread icon). Turn the icons on in the toolbar to see the icon\nslot.",
           "warning": "Incomplete snippet: `recordedChips` could not be resolved statically."
         },
         {
           "id": "text-chips--every-tone",
           "name": "Every Tone",
-          "snippet": "const EveryTone = function Render(args, { globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={110}\n      rows={1}\n      missing=\"the recorded views carry only the muted chip; a row with a chip in every tone recorded by tests/ratatui_cells.rs would give one.\"\n      ink={\n        <Box width={110}>\n          <TextLine text={args.text} />\n        </Box>\n      }\n    />\n  );\n};",
-          "description": "The recorded chip in each of the seven tones, with its words replaced by the tone's name. No recorded reference\nhas more than the muted chip.",
+          "snippet": "const EveryTone = function Render(args, { globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={110}\n      rows={1}        ink={\n        <Box width={110}>\n          <TextLine text={args.text} />\n        </Box>\n      }\n    />\n  );\n};",
+          "description": "The recorded chip in each of the seven tones, with its words replaced by the tone's name (the recorded views carry\nonly the muted chip).",
           "warning": "Incomplete snippet: `TONES`, `chip` could not be resolved statically."
         }
       ],
@@ -687,7 +687,7 @@
       "name": "DiffView",
       "path": "./stories/text/DiffView.stories.tsx",
       "jsDocTags": {},
-      "description": "One file's changes (`Node::Diff`, Ratatui `ui::diff::DiffView`): hunks with both sides' line numbers, added and\nremoved lines on a tint, the cursor row marked `▎`, code coloured by the host (`painted` runs; Ratatui highlights\nitself with syntect), and blocks under a line (`under`: a thread, a comment being written).\n\n**Use it** for a merge request's Changes tab, one file at a time; the files are a tree in the nav pane.\n\n**States:** unified, split (two sides, 160 wide), cursor moved, a comment being written under a line.\n\n**Rules:** the cursor mark `▎` is in the gutter cell, not a stripe down the rows; tints and token colours are theme\nslots (`diff.added`, `diff.removed`). Ink draws only rows in view.\n\nThe references are Ratatui's screens as text (tests/view_fixtures.rs writes the `.txt` beside each fixture), so they\nshow no colours.",
+      "description": "One file's changes (`Node::Diff`, Ratatui `ui::diff::DiffView`): hunks with both sides' line numbers, added and\nremoved lines on a tint, the cursor row marked `▎`, code coloured by the host (`painted` runs; Ratatui highlights\nitself with syntect), and blocks under a line (`under`: a thread, a comment being written).\n\n**Use it** for a merge request's Changes tab, one file at a time; the files are a tree in the nav pane.\n\n**States:** unified, split (two sides, 160 wide), cursor moved, a comment being written under a line.\n\n**Rules:** the cursor mark `▎` is in the gutter cell, not a stripe down the rows; tints and token colours are theme\nslots (`diff.added`, `diff.removed`). Ink draws only rows in view.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/text/DiffView.tsx",
@@ -930,28 +930,28 @@
         {
           "id": "text-diffview--unified",
           "name": "Unified",
-          "snippet": "const Unified = (args, { globals }) => <InPane args={args} globals={globals} view={unified80} text={unified80Text} file={\"diff_unified_80x24.txt\"} />;",
+          "snippet": "const Unified = (args, { globals }) => <InPane args={args} globals={globals} view={unified80} size={UNIFIED} />;",
           "description": "docs/README.md in unified form, the cursor on the first hunk.",
           "warning": "Incomplete snippet: `args: argsOf(unified80)` could not be resolved statically."
         },
         {
           "id": "text-diffview--cursor-moved",
           "name": "Cursor Moved",
-          "snippet": "const CursorMoved = (args, { globals }) => <InPane args={args} globals={globals} view={cursor80} text={cursor80Text} file={\"diff_cursor_down_80x24.txt\"} />;",
+          "snippet": "const CursorMoved = (args, { globals }) => <InPane args={args} globals={globals} view={cursor80} size={UNIFIED} />;",
           "description": "The cursor moved down: the `▎` mark follows it.",
           "warning": "Incomplete snippet: `args: argsOf(unified80)`, `args: argsOf(cursor80)` could not be resolved statically."
         },
         {
           "id": "text-diffview--inline-comment",
           "name": "Inline Comment",
-          "snippet": "const InlineComment = (args, { globals }) => <InPane args={args} globals={globals} view={comment80} text={comment80Text} file={\"diff_inline_comment_80x24.txt\"} />;",
+          "snippet": "const InlineComment = (args, { globals }) => <InPane args={args} globals={globals} view={comment80} size={UNIFIED} />;",
           "description": "A comment being written under line 2 (`under` with an input).",
           "warning": "Incomplete snippet: `args: argsOf(unified80)`, `args: argsOf(comment80)` could not be resolved statically."
         },
         {
           "id": "text-diffview--split",
           "name": "Split",
-          "snippet": "const Split = (args, { globals }) => <InPane args={args} globals={globals} view={split160} text={split160Text} file={\"diff_split_160x40.txt\"} />;",
+          "snippet": "const Split = (args, { globals }) => <InPane args={args} globals={globals} view={split160} size={SPLIT} />;",
           "description": "Split form at 160x40: old on the left, new on the right.",
           "warning": "Incomplete snippet: `args: argsOf(unified80)`, `args: argsOf(split160)` could not be resolved statically."
         }
@@ -1040,14 +1040,14 @@
         {
           "id": "text-richdoc--ticket-description",
           "name": "Ticket Description",
-          "snippet": "const TicketDescription = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={ticket80Cells as RatatuiScene} />;",
+          "snippet": "const TicketDescription = (args, { globals }) => <InPane args={args} globals={globals} pane={pane80} scene={ticket80Cells as GoldenScene} />;",
           "description": "A Jira ticket's overview at 80x24: facts, then the description.",
           "warning": "Incomplete snippet: `args: argsOf(pane80)` could not be resolved statically."
         },
         {
           "id": "text-richdoc--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={ticket160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <InPane args={args} globals={globals} pane={pane160} scene={ticket160Cells as GoldenScene} />;",
           "description": "The same at 160x40.",
           "warning": "Incomplete snippet: `args: argsOf(pane80)`, `args: argsOf(pane160)` could not be resolved statically."
         }
@@ -1148,22 +1148,22 @@
         {
           "id": "text-stateview--empty",
           "name": "Empty",
-          "snippet": "const Empty = (args, { globals }) => <InPane args={args} globals={globals} withReference={true} />;",
+          "snippet": "const Empty = (args, { globals }) => <InPane args={args} globals={globals} />;",
           "description": "Git with no clones known: the recorded empty state.",
           "warning": "Incomplete snippet: `pane` could not be resolved statically."
         },
         {
           "id": "text-stateview--loading",
           "name": "Loading",
-          "snippet": "const Loading = (args, { globals }) => <InPane args={args} globals={globals} withReference={false} />;",
-          "description": "The same node with `state: \"loading\"` (the recorded words kept). No recorded reference.",
+          "snippet": "const Loading = (args, { globals }) => <InPane args={args} globals={globals} />;",
+          "description": "The same node with `state: \"loading\"` (the recorded words kept).",
           "warning": "Incomplete snippet: `pane` could not be resolved statically."
         },
         {
           "id": "text-stateview--failed",
           "name": "Failed",
-          "snippet": "const Failed = (args, { globals }) => <InPane args={args} globals={globals} withReference={false} />;",
-          "description": "The same node with `state: \"failed\"` (the recorded words kept). No recorded reference.",
+          "snippet": "const Failed = (args, { globals }) => <InPane args={args} globals={globals} />;",
+          "description": "The same node with `state: \"failed\"` (the recorded words kept).",
           "warning": "Incomplete snippet: `pane` could not be resolved statically."
         }
       ],
@@ -1279,16 +1279,16 @@
         {
           "id": "chrome-fieldbar--typing",
           "name": "Typing",
-          "snippet": "const Typing = (args, { globals }) => <Draw args={args} globals={globals} scene={typing80Cells as RatatuiScene} />;",
+          "snippet": "const Typing = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "`/` then `g` `g` on the Repositories screen at 80x24 (`highlight_typing-filter`): the tree narrows to matches.",
-          "warning": "Incomplete snippet: `args: argsOf(typing80Cells as RatatuiScene)` could not be resolved statically."
+          "warning": "Incomplete snippet: `args: argsOf(typing80Cells as GoldenScene)` could not be resolved statically."
         },
         {
           "id": "chrome-fieldbar--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} scene={typing160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "The same at 160x40.",
-          "warning": "Incomplete snippet: `args: argsOf(typing80Cells as RatatuiScene)`, `args: argsOf(typing160Cells as RatatuiScene)` could not be resolved statically."
+          "warning": "Incomplete snippet: `args: argsOf(typing80Cells as GoldenScene)`, `args: argsOf(typing160Cells as GoldenScene)` could not be resolved statically."
         }
       ],
       "import": "import { Compare, PaneFrame } from 'radar-ink';"
@@ -1343,21 +1343,21 @@
         {
           "id": "chrome-menubox--menu",
           "name": "Menu",
-          "snippet": "const Menu = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} reference={true} />;",
-          "description": "The Repositories screen's actions menu (`x`) at 80x24 (`highlight_menu`).\n\n**Reference gap:** the scene's recorded `view.menu` is not the whole MenuView Ratatui drew: it has no `selected`\n(Ratatui highlights `/ filter`, Ink the first row) and no keys for \"go to its repositories\" (`⏎`) and \"kept\ncomments\" (`ctrl-r`), and the focused pane is not recorded. tests/ratatui_cells.rs would need to write the full\nMenuView and the focus for the two pictures to be comparable cell for cell.",
+          "snippet": "const Menu = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />;",
+          "description": "The Repositories screen's actions menu (`x`) at 80x24 (`highlight_menu`).\n\n**Data gap:** the scene's recorded `view.menu` is not the whole MenuView the host sent: it has no `selected` (Ink\nhighlights the first row) and no keys for \"go to its repositories\" (`⏎`) and \"kept comments\" (`ctrl-r`), and the\nfocused pane is not recorded.",
           "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)` could not be resolved statically."
         },
         {
           "id": "chrome-menubox--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} reference={false} missing=\"Illustrative palette data; a recorded palette scene is needed for the Ratatui comparison.\" />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} screen={scene160.view!.screen} geometry={scene160} />;",
           "description": "The command-search variant at 160x40, using the existing wide-menu story. The view is an explicit illustrative\nsample, not a recorded host frame; the matched offsets are scalar positions supplied by the host.",
           "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome160, { id: \"palette\", title: \"commands\", question: false, typed: \"re\", caret: 2, selected: 0, palette: { matched: 3, total: 12, highlights: [[0, 1], [0, 1], [0, 1]] }, items: [{ value: \"refresh\", label: \"Refresh\", hint: \"current view\", keys: \"ctrl-r\", target: \"chrome:menu:0\" }, { value: \"review\", label: \"Review Watch records\", hint: \"selected record\", keys: \"r\", target: \"chrome:menu:1\" }, { value: \"restore\", label: \"Restore session\", hint: \"last session\", keys: \"\", target: \"chrome:menu:2\" }] } satisfies MenuView)` could not be resolved statically."
         },
         {
           "id": "chrome-menubox--question",
           "name": "Question",
-          "snippet": "const Question = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} reference={false} missing={\"no recorded view holds a question. A `highlight_question` scene in tests/ratatui_cells.rs (a write's confirm open over a screen, with its view) would give the data and the reference.\"} />;",
+          "snippet": "const Question = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} screen={scene80.view!.screen} geometry={scene80} />;",
           "description": "A question before a write: a note, then two buttons. The data is Ink's hand-made test sample\n(ink/test/chrome/fixture.ts `confirm`): no recorded view holds a question.",
           "warning": "Incomplete snippet: `args: argsOf(chrome80, scene80.view!.menu)`, `args: argsOf(chrome80, confirm)` could not be resolved statically."
         }
@@ -1399,14 +1399,14 @@
         {
           "id": "chrome-statusline--hints",
           "name": "Hints",
-          "snippet": "const Hints = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} scene={chrome80Cells as RatatuiScene} />;",
+          "snippet": "const Hints = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} />;",
           "description": "The host's status line at 80 wide: the scope and the hints that fit.",
           "warning": "Incomplete snippet: `frame` could not be resolved statically."
         },
         {
           "id": "chrome-statusline--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} scene={chrome160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} />;",
           "description": "At 160 wide more hints fit.",
           "warning": "Incomplete snippet: `frame` could not be resolved statically."
         },
@@ -1432,7 +1432,7 @@
       "name": "RailRows",
       "path": "./stories/chrome/StepRail.stories.tsx",
       "jsDocTags": {},
-      "description": "The step rail of setup (`ChromeView.setup.rail`, Ratatui `ui::rail`, the kit's element for the steps of a run along\none line). Each stop sits on a track at its own place; under it a line says how it went. It is two rows tall, one\ncell in from each side of setup's body, and a click on a stop (its slot, both rows) goes back to it.\n\n**Use it** for the steps of a guided run: the host fills `RailStop` (id, label, icon, state, result, target); a part\noffers a step and the host puts it on the rail.\n\n**States:** `done` (a check, the label in primary text, its result under it), `skipped` (`»`, muted, `skipped`),\n`upcoming` (a hollow dot, muted), `current` (a square chip on the accent with the step's own icon, `step n of m`\nunder it). The track is lit up to the current stop, or the last one done or skipped when none is current.\n\n**Rules:** the chip is square, never a pill; a cell of ground on each side of a label breaks the track around it;\na label is cut to its stop's room in display cells with an ellipsis, never padded; a stop with no room for its words\ndraws nothing and is not a target. No chevrons, no left-edge stripes.\n\nThe story draws `layoutRail` (chrome/rail.ts) through `RailRows` (chrome/Chrome.tsx). The reference is the insta\ntext of the radar-core test (`ui/tests.rs rail_80`, `rail_160`): text only, so the colours are read from rail.rs in\ntest/chrome/rail.test.ts.",
+      "description": "The step rail of setup (`ChromeView.setup.rail`, Ratatui `ui::rail`, the kit's element for the steps of a run along\none line). Each stop sits on a track at its own place; under it a line says how it went. It is two rows tall, one\ncell in from each side of setup's body, and a click on a stop (its slot, both rows) goes back to it.\n\n**Use it** for the steps of a guided run: the host fills `RailStop` (id, label, icon, state, result, target); a part\noffers a step and the host puts it on the rail.\n\n**States:** `done` (a check, the label in primary text, its result under it), `skipped` (`»`, muted, `skipped`),\n`upcoming` (a hollow dot, muted), `current` (a square chip on the accent with the step's own icon, `step n of m`\nunder it). The track is lit up to the current stop, or the last one done or skipped when none is current.\n\n**Rules:** the chip is square, never a pill; a cell of ground on each side of a label breaks the track around it;\na label is cut to its stop's room in display cells with an ellipsis, never padded; a stop with no room for its words\ndraws nothing and is not a target. No chevrons, no left-edge stripes.\n\nThe story draws `layoutRail` (chrome/rail.ts) through `RailRows` (chrome/Chrome.tsx); the colours are asserted in\ntest/chrome/rail.test.ts.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/chrome/Chrome.tsx",
@@ -1479,14 +1479,14 @@
         {
           "id": "chrome-steprail--narrow",
           "name": "Narrow",
-          "snippet": "const Narrow = (_args, { globals }) => (\n  <Draw globals={globals} width={80} snap={rail80Snap} source=\"crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_80.snap\" />\n);",
+          "snippet": "const Narrow = (_args, { globals }) => <Draw globals={globals} width={80} />;",
           "description": "At 80 wide the labels are cut to their stops' room.",
           "warning": "Incomplete snippet: `STOPS` could not be resolved statically."
         },
         {
           "id": "chrome-steprail--wide",
           "name": "Wide",
-          "snippet": "const Wide = (_args, { globals }) => (\n  <Draw globals={globals} width={160} snap={rail160Snap} source=\"crates/radar-core/src/ui/snapshots/radar_core__ui__tests__rail_160.snap\" />\n);",
+          "snippet": "const Wide = (_args, { globals }) => <Draw globals={globals} width={160} />;",
           "description": "At 160 wide each stop has room for its words; the long name is cut once.",
           "warning": "Incomplete snippet: `STOPS` could not be resolved statically."
         }
@@ -1498,7 +1498,7 @@
       "name": "PaneFrame",
       "path": "./stories/chrome/TextSelection.stories.tsx",
       "jsDocTags": {},
-      "description": "Text selected with the mouse (issue #51; Ratatui `select::paint`, Ink `app/selected.ts` over `input/selection.ts`):\ngg captures the mouse, so the terminal cannot select text and the renderer does. A drag starts in the text of a pane\nand selects from the press to the pane's right edge, every row between from edge to edge, then from the left edge to\nthe pointer, as a terminal's selection runs. It belongs to the pane it started in: the border, the title row and the\nscrollbar are never part of it, and a pointer dragged outside stops at the pane's edge.\n\n**Use it** through the host: a drag in a document, rich text, a log or the dock's transcript selects, a double-click\nselects a word (a path or URL whole), a triple-click the line, shift+arrows extend, `ctrl+c` copies and any other key\nor the wheel clears it. On rows (a list, tree, table) a double-click still opens, so a drag there does not select. A\npart never draws a selection; it is a paint over the finished frame, like the hover.\n\n**States:** a drag across two rows (the press to the edge, then the left edge to the pointer), and the mono tier.\n\n**Rules:** the selected cells take `bg.selection` and keep their text colour and glyph; in the mono tier, where the\nslot has no colour, they are reversed instead. The cells just outside the pane (its border and scrollbar, the rows\nabove and below the drag, the cells before the press and after the pointer) are never selected. While a drag selects,\nthe status line names the key for the terminal's own selection.\n\n**Reference gap:** the scene records the drag (`view.selection`) but not which pane has the keys. The border colour\nsays: the log's is the accent (the keys), the detail pane's `accent.muted` (not), so the stories draw them so.\n`test/app/selection-cells.test.tsx` makes the same drag in the whole App and compares every body cell's selection\nbackground with these cells.",
+      "description": "Text selected with the mouse (issue #51; Ratatui `select::paint`, Ink `app/selected.ts` over `input/selection.ts`):\ngg captures the mouse, so the terminal cannot select text and the renderer does. A drag starts in the text of a pane\nand selects from the press to the pane's right edge, every row between from edge to edge, then from the left edge to\nthe pointer, as a terminal's selection runs. It belongs to the pane it started in: the border, the title row and the\nscrollbar are never part of it, and a pointer dragged outside stops at the pane's edge.\n\n**Use it** through the host: a drag in a document, rich text, a log or the dock's transcript selects, a double-click\nselects a word (a path or URL whole), a triple-click the line, shift+arrows extend, `ctrl+c` copies and any other key\nor the wheel clears it. On rows (a list, tree, table) a double-click still opens, so a drag there does not select. A\npart never draws a selection; it is a paint over the finished frame, like the hover.\n\n**States:** a drag across two rows (the press to the edge, then the left edge to the pointer), and the mono tier.\n\n**Rules:** the selected cells take `bg.selection` and keep their text colour and glyph; in the mono tier, where the\nslot has no colour, they are reversed instead. The cells just outside the pane (its border and scrollbar, the rows\nabove and below the drag, the cells before the press and after the pointer) are never selected. While a drag selects,\nthe status line names the key for the terminal's own selection.\n\n**Data gap:** the scene records the drag (`view.selection`) but not which pane has the keys. The border colour\nsays: the log's is the accent (the keys), the detail pane's `accent.muted` (not), so the stories draw them so.\n`test/app/selection-cells.test.tsx` makes the same drag in the whole App and compares every body cell's selection\nbackground with the scene's cells.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/app/Panes.tsx",
@@ -1617,14 +1617,14 @@
         {
           "id": "chrome-textselection--mono",
           "name": "Mono",
-          "snippet": "const Mono = (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: \"mono\" }} scene={scene80} mono />;",
+          "snippet": "const Mono = (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: \"mono\" }} scene={scene80} />;",
           "description": "The mono tier, where `bg.selection` has no colour: the selected cells are reversed.",
           "warning": "Incomplete snippet: `args: argsOf(scene80, true)` could not be resolved statically."
         },
         {
           "id": "chrome-textselection--mono-wide",
           "name": "Mono Wide",
-          "snippet": "const MonoWide = (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: \"mono\" }} scene={scene160} mono />;",
+          "snippet": "const MonoWide = (args, { globals }) => <Draw args={args} globals={{ ...globals, tier: \"mono\" }} scene={scene160} />;",
           "description": "The mono tier at 160x40.",
           "warning": "Incomplete snippet: `args: argsOf(scene80, true)`, `args: argsOf(scene160, false)` could not be resolved statically."
         }
@@ -1666,14 +1666,14 @@
         {
           "id": "chrome-topbar--narrow",
           "name": "Narrow",
-          "snippet": "const Narrow = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} scene={chrome80Cells as RatatuiScene} />;",
+          "snippet": "const Narrow = (args, { globals }) => <Draw args={args} globals={globals} c={chrome80} />;",
           "description": "The host's chrome at 80 wide: the tabs narrow to their keys and attention dots.",
           "warning": "Incomplete snippet: `frame` could not be resolved statically."
         },
         {
           "id": "chrome-topbar--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} scene={chrome160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} c={chrome160} />;",
           "description": "At 160 wide every tab shows its name.",
           "warning": "Incomplete snippet: `frame` could not be resolved statically."
         }
@@ -1893,21 +1893,21 @@
         {
           "id": "page-pagebody--overview",
           "name": "Overview",
-          "snippet": "const Overview = (args, { globals }) => <Draw args={args} globals={globals} scene={s80} reference={true} />;",
+          "snippet": "const Overview = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "A merge request's Overview tab at 80x24: \"can it merge?\" stacked above the overview (responsive layout).",
           "warning": "Incomplete snippet: `args: argsOf(page80, s80)` could not be resolved statically."
         },
         {
           "id": "page-pagebody--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} scene={s160} reference={true} />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "The same page at 160x40: \"can it merge?\" beside the overview.",
           "warning": "Incomplete snippet: `args: argsOf(page80, s80)`, `args: argsOf(page160, s160)` could not be resolved statically."
         },
         {
           "id": "page-pagebody--tabs-focused",
           "name": "Tabs Focused",
-          "snippet": "const TabsFocused = (args, { globals }) => <Draw args={args} globals={globals} scene={s80} reference={false} missing={\"tests/ratatui_cells.rs records no page with its tab row focused.\"} />;",
+          "snippet": "const TabsFocused = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "The tab row has the keys (`keys_at: page_tabs`): the chosen tab on the focused shade.",
           "warning": "Incomplete snippet: `args: argsOf(page80, s80)`, `args: argsOf(page80, s80, true)` could not be resolved statically."
         }
@@ -2024,21 +2024,21 @@
         {
           "id": "page-tabrow--tabs",
           "name": "Tabs",
-          "snippet": "const Tabs = (args, { globals }) => <Draw args={args} globals={globals} view={page80} c={chrome80} scene={page80Cells as RatatuiScene} />;",
+          "snippet": "const Tabs = (args, { globals }) => <Draw args={args} globals={globals} view={page80} c={chrome80} />;",
           "description": "A merge request's tabs at 80 wide, Overview chosen.",
           "warning": "Incomplete snippet: `args: argsOf(page80, chrome80)` could not be resolved statically."
         },
         {
           "id": "page-tabrow--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} view={page160} c={chrome160} scene={page160Cells as RatatuiScene} />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} view={page160} c={chrome160} />;",
           "description": "At 160 wide.",
           "warning": "Incomplete snippet: `args: argsOf(page80, chrome80)`, `args: argsOf(page160, chrome160)` could not be resolved statically."
         },
         {
           "id": "page-tabrow--focused",
           "name": "Focused",
-          "snippet": "const Focused = (args, { globals }) => <Draw args={args} globals={globals} view={page80} c={chrome80} scene={undefined} missing={\"tests/ratatui_cells.rs records no page with its tab row focused.\"} />;",
+          "snippet": "const Focused = (args, { globals }) => <Draw args={args} globals={globals} view={page80} c={chrome80} />;",
           "description": "The tab row has the keys.",
           "warning": "Incomplete snippet: `args: argsOf(page80, chrome80)`, `args: argsOf(page80, chrome80, true)` could not be resolved statically."
         }
@@ -2050,7 +2050,7 @@
       "name": "EditorOverlay",
       "path": "./stories/editor/EditorOverlay.stories.tsx",
       "jsDocTags": {},
-      "description": "The editor overlay (`Node::Extension` with the `editor` capability in `ScreenView.overlay`; Ratatui\n`view_tui::draw_overlay` and `field`; Ink editor/EditorOverlay.tsx): writing a comment or a description. A focused\npanel over the foot of the body, titled with what is written, the last lines that fit, then the line being typed\nas a field with the caret.\n\n**Use it** through the host's Composer: `⏎` a new line, `ctrl-s` review and send, `esc` stop (asking first when\nthere is text).\n\n**States:** one line, several lines (the panel grows up to two thirds of the body), a selection (Ink draws it;\nRatatui ignores `selection`), wide characters in the line.\n\n**Rules:** the caret is a reversed cell; the title's icon comes from the pack (`Icon::Comment`), not a typed `✎`\n(the recorded title still carries one, docs/components.md section 4). The host owns the text; the overlay only draws\nit.\n\nThe references are Ratatui's screens as text (no colours).",
+      "description": "The editor overlay (`Node::Extension` with the `editor` capability in `ScreenView.overlay`; Ratatui\n`view_tui::draw_overlay` and `field`; Ink editor/EditorOverlay.tsx): writing a comment or a description. A focused\npanel over the foot of the body, titled with what is written, the last lines that fit, then the line being typed\nas a field with the caret.\n\n**Use it** through the host's Composer: `⏎` a new line, `ctrl-s` review and send, `esc` stop (asking first when\nthere is text).\n\n**States:** one line, several lines (the panel grows up to two thirds of the body), a selection (Ink draws it;\nRatatui ignores `selection`), wide characters in the line.\n\n**Rules:** the caret is a reversed cell; the title's icon comes from the pack (`Icon::Comment`), not a typed `✎`\n(the recorded title still carries one, docs/components.md section 4). The host owns the text; the overlay only draws\nit.",
       "reactDocgenTypescript": {
         "tags": {},
         "filePath": "ink/src/editor/EditorOverlay.tsx",
@@ -2125,14 +2125,14 @@
         {
           "id": "editor-editoroverlay--compose",
           "name": "Compose",
-          "snippet": "const Compose = (args, { globals }) => <Draw args={args} globals={globals} text={compose80Text} file={\"editor_compose_80x24.txt\"} />;",
+          "snippet": "const Compose = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "A comment on !263 being written at 80x24: two lines kept, the third being typed with wide characters.",
           "warning": "Incomplete snippet: `args: argsOf(compose80)` could not be resolved statically."
         },
         {
           "id": "editor-editoroverlay--wide",
           "name": "Wide",
-          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} text={compose160Text} file={\"editor_compose_160x40.txt\"} />;",
+          "snippet": "const Wide = (args, { globals }) => <Draw args={args} globals={globals} />;",
           "description": "The same at 160x40.",
           "warning": "Incomplete snippet: `args: argsOf(compose80)`, `args: argsOf(compose160)` could not be resolved statically."
         }
@@ -2189,14 +2189,14 @@
         {
           "id": "media-mediablock--in-description",
           "name": "In Description",
-          "snippet": "const InDescription = function Render(args: Args, { globals }: { globals: Globals }) {\n  const blocks = pane.body.blocks.map((b: any, j: number) => (j === docAt ? { ...b, doc: doc.map((d, k) => (k === firstMedia ? { t: \"media\", ...args.media } : d)) } : b));\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={pane}\n      focused\n      size={{ w: 80, h: 22 }}\n      missing={MISSING}\n      body={(ctx) => <NodeView node={{ ...pane.body, blocks }} ctx={ctx} />}\n    />\n  );\n};",
+          "snippet": "const InDescription = function Render(args: Args, { globals }: { globals: Globals }) {\n  const blocks = pane.body.blocks.map((b: any, j: number) => (j === docAt ? { ...b, doc: doc.map((d, k) => (k === firstMedia ? { t: \"media\", ...args.media } : d)) } : b));\n  return (\n    <PaneFigure\n      globals={globals}\n      pane={pane}\n      focused\n      size={{ w: 80, h: 22 }}\n      body={(ctx) => <NodeView node={{ ...pane.body, blocks }} ctx={ctx} />}\n    />\n  );\n};",
           "description": "The fallback lines in a Jira ticket's description (dashboard.png at 640x480, a design image, two files).",
           "warning": "Incomplete snippet: `allMedia` could not be resolved statically."
         },
         {
           "id": "media-mediablock--each-kind",
           "name": "Each Kind",
-          "snippet": "const EachKind = function Render(_args, { globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={60}\n      rows={allMedia.length}\n      missing={MISSING}\n      ink={\n        <Box flexDirection=\"column\" width={60}>\n          {allMedia.map((m, i) => (\n            <MediaBlock key={i} media={m} />\n          ))}\n        </Box>\n      }\n    />\n  );\n};",
+          "snippet": "const EachKind = function Render(_args, { globals }) {\n  return (\n    <Compare\n      globals={globals}\n      cols={60}\n      rows={allMedia.length}\n      ink={\n        <Box flexDirection=\"column\" width={60}>\n          {allMedia.map((m, i) => (\n            <MediaBlock key={i} media={m} />\n          ))}\n        </Box>\n      }\n    />\n  );\n};",
           "description": "Each media block of that description on its own line, as MediaBlock draws it.",
           "warning": "Incomplete snippet: `allMedia` could not be resolved statically."
         }
@@ -2253,7 +2253,7 @@
         {
           "id": "design-components--fields",
           "name": "Fields",
-          "snippet": "const Fields = (_args, { globals }) => {\n  const pane = paneOf((typing80Cells as RatatuiScene).view!.screen, \"Everything\");\n  return (\n    <Row>\n      <Today globals={globals} cols={56} rows={8} caption=\"The field bar in its pane (highlight_typing-filter-80x24)\">\n        <InPane pane={pane} width={56} height={8} focused body={(ctx) => <TreeNode tree={pane.body as Tree} ctx={ctx} />} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"Fields\")} issues={[47]} note=\"no issue of its own yet\" width={760} />\n    </Row>\n  );\n};",
+          "snippet": "const Fields = (_args, { globals }) => {\n  const pane = paneOf((typing80Cells as GoldenScene).view!.screen, \"Everything\");\n  return (\n    <Row>\n      <Today globals={globals} cols={56} rows={8} caption=\"The field bar in its pane (highlight_typing-filter-80x24)\">\n        <InPane pane={pane} width={56} height={8} focused body={(ctx) => <TreeNode tree={pane.body as Tree} ctx={ctx} />} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"Fields\")} issues={[47]} note=\"no issue of its own yet\" width={760} />\n    </Row>\n  );\n};",
           "description": "Fields: today the `/` filter at the top of a pane (highlight_typing-filter); the target says what it acts on and\nhow many match."
         },
         {
@@ -2265,7 +2265,7 @@
         {
           "id": "design-components--buttons",
           "name": "Buttons",
-          "snippet": "const Buttons = (_args, { globals }) => {\n  const scene = menu80Cells as RatatuiScene;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={21} caption=\"MenuBox with a question (ink/test/chrome/fixture.ts confirm)\">\n        <BodyWithMenu chrome={chrome80 as ChromeView} screen={scene.view!.screen} menu={confirm as unknown as MenuView} width={80} bodyHeight={21} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"Buttons\")} issues={[44]} width={760} />\n    </Row>\n  );\n};",
+          "snippet": "const Buttons = (_args, { globals }) => {\n  const scene = menu80Cells as GoldenScene;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={21} caption=\"MenuBox with a question (ink/test/chrome/fixture.ts confirm)\">\n        <BodyWithMenu chrome={chrome80 as ChromeView} screen={scene.view!.screen} menu={confirm as unknown as MenuView} width={80} bodyHeight={21} />\n      </Today>\n      <Target board=\"Components\" picks={targetOf(\"Buttons\")} issues={[44]} width={760} />\n    </Row>\n  );\n};",
           "description": "Buttons: today a question's buttons (Ink's hand-made confirm sample over the Repositories screen; no recorded\nquestion exists); the target underlines each button's key in its label, one primary per box."
         }
       ],
@@ -2494,7 +2494,7 @@
           "description": "Notice drain: a notice's tinted ground drains as its time runs out."
         }
       ],
-      "import": "import {\n  InteractionReplay,\n  MotionReference,\n  MotionReplay,\n  NoticeDrainReplay,\n  Row,\n  ShippedLabel,\n  Target,\n} from 'radar-ink';"
+      "import": "import { InteractionReplay, MotionReplay, NoticeDrainReplay, Row, ShippedLabel, Target } from 'radar-ink';"
     },
     "design-screen": {
       "id": "design-screen",
@@ -2515,8 +2515,8 @@
         {
           "id": "design-screen--today",
           "name": "Today",
-          "snippet": "const Today = (_args, { globals }) => (\n  <Compare globals={globals} cols={160} rows={40} reference={fromScene(repos160Cells as RatatuiScene)} ink={<TodayScreen />} />\n);",
-          "description": "Today: Ink's Repositories screen at 160x40 from gitlab_repos_160x40 under the recorded host chrome, beside\nRatatui's cells for the same surface (the chrome rows differ: the host_chrome fixture has no sources row)."
+          "snippet": "const Today = (_args, { globals }) => <Compare globals={globals} cols={160} rows={40} ink={<TodayScreen />} />;",
+          "description": "Today: Ink's Repositories screen at 160x40 from gitlab_repos_160x40 under the recorded host chrome (the host_chrome\nfixture has no sources row)."
         }
       ],
       "import": "import { Board, Compare, ScreenPanes, StatusLine, TargetLabel, TopRows } from 'radar-ink';\nimport { Box } from 'ink';"
@@ -2540,7 +2540,7 @@
         {
           "id": "design-surfaces--palette-over-scrim",
           "name": "Palette Over Scrim",
-          "snippet": "const PaletteOverScrim = (_args, { globals }) => {\n  const scene = menu80Cells as RatatuiScene;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={21} caption=\"MenuBox over the Repositories screen (highlight_menu-80x24)\">\n        <BodyWithMenu chrome={chrome80 as ChromeView} screen={scene.view!.screen} menu={scene.view!.menu as any} width={80} bodyHeight={21} />\n      </Today>\n      <Target board=\"Surfaces\" picks={[section(\"Overlays\")]} issues={[29, 35]} note=\"#29 the scrim and shadow (shipped), #35 the palette\" />\n    </Row>\n  );\n};",
+          "snippet": "const PaletteOverScrim = (_args, { globals }) => {\n  const scene = menu80Cells as GoldenScene;\n  return (\n    <Row>\n      <Today globals={globals} cols={80} rows={21} caption=\"MenuBox over the Repositories screen (highlight_menu-80x24)\">\n        <BodyWithMenu chrome={chrome80 as ChromeView} screen={scene.view!.screen} menu={scene.view!.menu as any} width={80} bodyHeight={21} />\n      </Today>\n      <Target board=\"Surfaces\" picks={[section(\"Overlays\")]} issues={[29, 35]} note=\"#29 the scrim and shadow (shipped), #35 the palette\" />\n    </Row>\n  );\n};",
           "description": "Overlays: today a menu over the body (highlight_menu), the body dimmed behind it and a one-cell shadow under its\nright and bottom edges (#29); the target is a command palette over that scrim."
         },
         {
@@ -2841,7 +2841,7 @@
           "name": "Empty",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  82 |\n  83 | /** A session with nothing sent (empty_160x40). */\n> 84 | export const Empty = at(empty160);\n     |                      ^^^^^^^^^^^^\n  85 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n  86 | export const Streaming = at(streaming160);\n  87 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  80 |\n  81 | /** A session with nothing sent (empty_160x40). */\n> 82 | export const Empty = at(empty160);\n     |                      ^^^^^^^^^^^^\n  83 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n  84 | export const Streaming = at(streaming160);\n  85 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */"
           }
         },
         {
@@ -2849,7 +2849,7 @@
           "name": "Streaming",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  84 | export const Empty = at(empty160);\n  85 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n> 86 | export const Streaming = at(streaming160);\n     |                          ^^^^^^^^^^^^^^^^\n  87 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n  88 | export const ToolFolded = at(toolFolded160);\n  89 | /** The same open: tree lines for the result (tool-open_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  82 | export const Empty = at(empty160);\n  83 | /** A turn running: streamed text, a tool call running, sending off and stop on (streaming_160x40). */\n> 84 | export const Streaming = at(streaming160);\n     |                          ^^^^^^^^^^^^^^^^\n  85 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n  86 | export const ToolFolded = at(toolFolded160);\n  87 | /** The same open: tree lines for the result (tool-open_160x40). */"
           }
         },
         {
@@ -2857,7 +2857,7 @@
           "name": "Tool Folded",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  86 | export const Streaming = at(streaming160);\n  87 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n> 88 | export const ToolFolded = at(toolFolded160);\n     |                           ^^^^^^^^^^^^^^^^^\n  89 | /** The same open: tree lines for the result (tool-open_160x40). */\n  90 | export const ToolOpen = at(toolOpen160);\n  91 | /** A write request waits: the exact path and its keys (approval_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  84 | export const Streaming = at(streaming160);\n  85 | /** Tool calls folded to one line ending in `⋯ n` (tool-folded_160x40). */\n> 86 | export const ToolFolded = at(toolFolded160);\n     |                           ^^^^^^^^^^^^^^^^^\n  87 | /** The same open: tree lines for the result (tool-open_160x40). */\n  88 | export const ToolOpen = at(toolOpen160);\n  89 | /** A write request waits: the exact path and its keys (approval_160x40). */"
           }
         },
         {
@@ -2865,7 +2865,7 @@
           "name": "Tool Open",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  88 | export const ToolFolded = at(toolFolded160);\n  89 | /** The same open: tree lines for the result (tool-open_160x40). */\n> 90 | export const ToolOpen = at(toolOpen160);\n     |                         ^^^^^^^^^^^^^^^\n  91 | /** A write request waits: the exact path and its keys (approval_160x40). */\n  92 | export const Approval = at(approval160);\n  93 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the"
+            "message": "Expected story to be csf factory, function or an object expression\n  86 | export const ToolFolded = at(toolFolded160);\n  87 | /** The same open: tree lines for the result (tool-open_160x40). */\n> 88 | export const ToolOpen = at(toolOpen160);\n     |                         ^^^^^^^^^^^^^^^\n  89 | /** A write request waits: the exact path and its keys (approval_160x40). */\n  90 | export const Approval = at(approval160);\n  91 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the"
           }
         },
         {
@@ -2873,7 +2873,7 @@
           "name": "Approval",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  90 | export const ToolOpen = at(toolOpen160);\n  91 | /** A write request waits: the exact path and its keys (approval_160x40). */\n> 92 | export const Approval = at(approval160);\n     |                         ^^^^^^^^^^^^^^^\n  93 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  94 |  * composer's words answer it too, esc declines (question_160x40). */\n  95 | export const Question = at(question160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  88 | export const ToolOpen = at(toolOpen160);\n  89 | /** A write request waits: the exact path and its keys (approval_160x40). */\n> 90 | export const Approval = at(approval160);\n     |                         ^^^^^^^^^^^^^^^\n  91 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  92 |  * composer's words answer it too, esc declines (question_160x40). */\n  93 | export const Question = at(question160);"
           }
         },
         {
@@ -2881,7 +2881,7 @@
           "name": "Question",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  93 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  94 |  * composer's words answer it too, esc declines (question_160x40). */\n> 95 | export const Question = at(question160);\n     |                         ^^^^^^^^^^^^^^^\n  96 | /** The connection was lost (error_160x40). */\n  97 | export const Failed = at(error160);\n  98 | /** The user stopped the turn (stopped_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  91 | /** The agent asks a question: its choices numbered (the number is the key, a click on a choice answers), the\n  92 |  * composer's words answer it too, esc declines (question_160x40). */\n> 93 | export const Question = at(question160);\n     |                         ^^^^^^^^^^^^^^^\n  94 | /** The connection was lost (error_160x40). */\n  95 | export const Failed = at(error160);\n  96 | /** The user stopped the turn (stopped_160x40). */"
           }
         },
         {
@@ -2889,7 +2889,7 @@
           "name": "Failed",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n   95 | export const Question = at(question160);\n   96 | /** The connection was lost (error_160x40). */\n>  97 | export const Failed = at(error160);\n      |                       ^^^^^^^^^^^^\n   98 | /** The user stopped the turn (stopped_160x40). */\n   99 | export const Stopped = at(stopped160);\n  100 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  93 | export const Question = at(question160);\n  94 | /** The connection was lost (error_160x40). */\n> 95 | export const Failed = at(error160);\n     |                       ^^^^^^^^^^^^\n  96 | /** The user stopped the turn (stopped_160x40). */\n  97 | export const Stopped = at(stopped160);\n  98 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */"
           }
         },
         {
@@ -2897,7 +2897,7 @@
           "name": "Stopped",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n   97 | export const Failed = at(error160);\n   98 | /** The user stopped the turn (stopped_160x40). */\n>  99 | export const Stopped = at(stopped160);\n      |                        ^^^^^^^^^^^^^^\n  100 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n  101 | export const Pty = at(pty160);\n  102 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A"
+            "message": "Expected story to be csf factory, function or an object expression\n   95 | export const Failed = at(error160);\n   96 | /** The user stopped the turn (stopped_160x40). */\n>  97 | export const Stopped = at(stopped160);\n      |                        ^^^^^^^^^^^^^^\n   98 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n   99 | export const Pty = at(pty160);\n  100 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A"
           }
         },
         {
@@ -2905,7 +2905,7 @@
           "name": "Pty",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n   99 | export const Stopped = at(stopped160);\n  100 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n> 101 | export const Pty = at(pty160);\n      |                    ^^^^^^^^^^\n  102 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A\n  103 |  * click on a mark or a middle click on a tab closes it, `alt-w` closes the showing one (the status line says so); a\n  104 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the"
+            "message": "Expected story to be csf factory, function or an object expression\n   97 | export const Stopped = at(stopped160);\n   98 | /** A terminal tab: T7's surface fills the tab (pty_160x40). */\n>  99 | export const Pty = at(pty160);\n      |                    ^^^^^^^^^^\n  100 | /** Three sessions, the middle one showing (streaming): each tab ends in the close mark, the pack's `close` icon. A\n  101 |  * click on a mark or a middle click on a tab closes it, `alt-w` closes the showing one (the status line says so); a\n  102 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the"
           }
         },
         {
@@ -2913,7 +2913,7 @@
           "name": "Tabs",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  104 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the\n  105 |  * neighbour shows (tabs_160x40). */\n> 106 | export const Tabs = at(tabs160);\n      |                     ^^^^^^^^^^^\n  107 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  108 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n  109 | export const Activity = at(toolFolded160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  102 |  * session whose turn runs is asked about first (stop it and close / keep it), an idle one closes at once and the\n  103 |  * neighbour shows (tabs_160x40). */\n> 104 | export const Tabs = at(tabs160);\n      |                     ^^^^^^^^^^^\n  105 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  106 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n  107 | export const Activity = at(toolFolded160);"
           }
         },
         {
@@ -2921,7 +2921,7 @@
           "name": "Activity",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  107 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  108 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n> 109 | export const Activity = at(toolFolded160);\n      |                         ^^^^^^^^^^^^^^^^^\n  110 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  111 |  * jump when the next turn starts (tool-open_160x40). */\n  112 | export const ActivityDone = at(toolOpen160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  105 | /** A tool runs: the activity line above the composer says what the agent does now (`running cargo test -p radar-core`),\n  106 |  * for how long the turn has run, and its tokens when the provider reports usage; the tab spins (tool-folded_160x40). */\n> 107 | export const Activity = at(toolFolded160);\n      |                         ^^^^^^^^^^^^^^^^^\n  108 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  109 |  * jump when the next turn starts (tool-open_160x40). */\n  110 | export const ActivityDone = at(toolOpen160);"
           }
         },
         {
@@ -2929,7 +2929,7 @@
           "name": "Activity Done",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  110 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  111 |  * jump when the next turn starts (tool-open_160x40). */\n> 112 | export const ActivityDone = at(toolOpen160);\n      |                             ^^^^^^^^^^^^^^^\n  113 | /** Every tab state at once: the one showing thinks (the spinner), the others need you (the attention mark), failed,\n  114 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  115 |  * goes to the one that wants you most (attention_160x40). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  108 | /** The last turn ended: the activity line stays, muted, with how it ended and how long it took, so the dock does not\n  109 |  * jump when the next turn starts (tool-open_160x40). */\n> 110 | export const ActivityDone = at(toolOpen160);\n      |                             ^^^^^^^^^^^^^^^\n  111 | /** Every tab state at once: the one showing thinks (the spinner), the others need you (the attention mark), failed,\n  112 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  113 |  * goes to the one that wants you most (attention_160x40). */"
           }
         },
         {
@@ -2937,7 +2937,7 @@
           "name": "Tab States",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  114 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  115 |  * goes to the one that wants you most (attention_160x40). */\n> 116 | export const TabStates = at(attention160);\n      |                          ^^^^^^^^^^^^^^^^\n  117 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  118 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n  119 | export const FullHeight = at(full160, 132, 37);"
+            "message": "Expected story to be csf factory, function or an object expression\n  112 |  * or ended out of sight (the unread mark), each mark in its own slot inside the tab; names, never counts. The dock key\n  113 |  * goes to the one that wants you most (attention_160x40). */\n> 114 | export const TabStates = at(attention160);\n      |                          ^^^^^^^^^^^^^^^^\n  115 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  116 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n  117 | export const FullHeight = at(full160, 132, 37);"
           }
         },
         {
@@ -2945,7 +2945,7 @@
           "name": "Full Height",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  117 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  118 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n> 119 | export const FullHeight = at(full160, 132, 37);\n      |                           ^^^^^^^^^^^^^^^^^^^^\n  120 | /** Sessions restored from the last radar run. The showing one is attached; the request and the question that waited when\n  121 |  * radar closed come back lapsed (the process that asked is gone): muted, the pack's skipped mark, `lapsed · radar closed\n  122 |  * before this was answered` and `→ lapsed`, no buttons and no keys. A notice says the turn was ended and a message"
+            "message": "Expected story to be csf factory, function or an object expression\n  115 | /** The dock over the whole middle column (`alt-f`, host state kept for the run; `alt-f split` gives the column back,\n  116 |  * as does a drag of its top edge), here at the height a 160x40 body gives it (full_160x40). */\n> 117 | export const FullHeight = at(full160, 132, 37);\n      |                           ^^^^^^^^^^^^^^^^^^^^\n  118 | /** Sessions restored from the last radar run. The showing one is attached; the request and the question that waited when\n  119 |  * radar closed come back lapsed (the process that asked is gone): muted, the pack's skipped mark, `lapsed · radar closed\n  120 |  * before this was answered` and `→ lapsed`, no buttons and no keys. A notice says the turn was ended and a message"
           }
         },
         {
@@ -2953,7 +2953,7 @@
           "name": "Restored",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  123 |  * carries on. The other tabs are not attached (the pack's connection mark) or being read back (the spinner)\n  124 |  * (restored_160x40). */\n> 125 | export const Restored = at(restored160);\n      |                         ^^^^^^^^^^^^^^^\n  126 | /** A restored session not attached to its provider: the body says so, the activity line says `not attached to copilot ·\n  127 |  * a message or alt-r resumes it`, the status line leads with `⏎ or alt-r resume`, and `/resume` is in the slash menu.\n  128 |  * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back"
+            "message": "Expected story to be csf factory, function or an object expression\n  121 |  * carries on. The other tabs are not attached (the pack's connection mark) or being read back (the spinner)\n  122 |  * (restored_160x40). */\n> 123 | export const Restored = at(restored160);\n      |                         ^^^^^^^^^^^^^^^\n  124 | /** A restored session not attached to its provider: the body says so, the activity line says `not attached to copilot ·\n  125 |  * a message or alt-r resumes it`, the status line leads with `⏎ or alt-r resume`, and `/resume` is in the slash menu.\n  126 |  * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back"
           }
         },
         {
@@ -2961,7 +2961,7 @@
           "name": "Detached",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  128 |  * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back\n  129 |  * (detached_160x40). */\n> 130 | export const Detached = at(detached160);\n      |                         ^^^^^^^^^^^^^^^\n  131 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n  132 | export const Narrow = at(empty80, 56, 20);\n  133 | /** An approval at 80x24 (approval_80x24). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  126 |  * A message typed here resumes it first; alt-r resumes without sending anything. A second tab is being read back\n  127 |  * (detached_160x40). */\n> 128 | export const Detached = at(detached160);\n      |                         ^^^^^^^^^^^^^^^\n  129 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n  130 | export const Narrow = at(empty80, 56, 20);\n  131 | /** An approval at 80x24 (approval_80x24). */"
           }
         },
         {
@@ -2969,7 +2969,7 @@
           "name": "Narrow",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  130 | export const Detached = at(detached160);\n  131 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n> 132 | export const Narrow = at(empty80, 56, 20);\n      |                       ^^^^^^^^^^^^^^^^^^^\n  133 | /** An approval at 80x24 (approval_80x24). */\n  134 | export const NarrowApproval = at(approval80, 56, 20);\n  135 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code"
+            "message": "Expected story to be csf factory, function or an object expression\n  128 | export const Detached = at(detached160);\n  129 | /** The 80x24 terminal: the dock covers the middle pane (empty_80x24). */\n> 130 | export const Narrow = at(empty80, 56, 20);\n      |                       ^^^^^^^^^^^^^^^^^^^\n  131 | /** An approval at 80x24 (approval_80x24). */\n  132 | export const NarrowApproval = at(approval80, 56, 20);\n  133 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code"
           }
         },
         {
@@ -2977,7 +2977,7 @@
           "name": "Narrow Approval",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  132 | export const Narrow = at(empty80, 56, 20);\n  133 | /** An approval at 80x24 (approval_80x24). */\n> 134 | export const NarrowApproval = at(approval80, 56, 20);\n      |                               ^^^^^^^^^^^^^^^^^^^^^^\n  135 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code\n  136 |  * in accent.secondary, nested lists with hanging indents, a quote behind its bar, fenced code coloured by the host's\n  137 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart"
+            "message": "Expected story to be csf factory, function or an object expression\n  130 | export const Narrow = at(empty80, 56, 20);\n  131 | /** An approval at 80x24 (approval_80x24). */\n> 132 | export const NarrowApproval = at(approval80, 56, 20);\n      |                               ^^^^^^^^^^^^^^^^^^^^^^\n  133 | /** An answer in markdown, laid out as ui::rich lays out a description: headings and bold in text.emphasis, inline code\n  134 |  * in accent.secondary, nested lists with hanging indents, a quote behind its bar, fenced code coloured by the host's\n  135 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart"
           }
         },
         {
@@ -2985,7 +2985,7 @@
           "name": "Markdown",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  137 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart\n  138 |  * (markdown_160x40). */\n> 139 | export const Markdown = at(markdown160, 100, 34);\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  140 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  141 |  * (markdown-streaming_160x40). */\n  142 | export const MarkdownStreaming = at(markdownStreaming160);"
+            "message": "Expected story to be csf factory, function or an object expression\n  135 |  * highlighter, a table, a link with its address after it (cells carry no OSC 8). Prose stands a row apart\n  136 |  * (markdown_160x40). */\n> 137 | export const Markdown = at(markdown160, 100, 34);\n      |                         ^^^^^^^^^^^^^^^^^^^^^^^^\n  138 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  139 |  * (markdown-streaming_160x40). */\n  140 | export const MarkdownStreaming = at(markdownStreaming160);"
           }
         },
         {
@@ -2993,7 +2993,7 @@
           "name": "Markdown Streaming",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  140 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  141 |  * (markdown-streaming_160x40). */\n> 142 | export const MarkdownStreaming = at(markdownStreaming160);\n      |                                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  143 | /** A run of tool calls, one row each: the kind's pack icon, what it does, the target relative to the session's folder\n  144 |  * (cut in the middle by cells), `+n −m` for an edit, `failed` in the error slot, a running call's mark; five reads fold\n  145 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full"
+            "message": "Expected story to be csf factory, function or an object expression\n  138 | /** The same answer half received: the open `**` and code span read as if closed, so no stars flash while it streams\n  139 |  * (markdown-streaming_160x40). */\n> 140 | export const MarkdownStreaming = at(markdownStreaming160);\n      |                                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  141 | /** A run of tool calls, one row each: the kind's pack icon, what it does, the target relative to the session's folder\n  142 |  * (cut in the middle by cells), `+n −m` for an edit, `failed` in the error slot, a running call's mark; five reads fold\n  143 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full"
           }
         },
         {
@@ -3001,7 +3001,7 @@
           "name": "Tool Calls",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  145 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full\n  146 |  * (tools_160x40). */\n> 147 | export const ToolCalls = at(tools160, 100, 18);\n      |                          ^^^^^^^^^^^^^^^^^^^^^\n  148 | /** The reads opened (a click on the row, or alt-o): each on a tree line, each opening on its own (tools_160x40,\n  149 |  * DockLocal.groups). */\n  150 | export const ToolCallsOpen = { args: { recorded: tools160 as unknown as Recorded, cols: 100, rows: 22, groups: [\"group:t0\"] } } satisfies Story;"
+            "message": "Expected story to be csf factory, function or an object expression\n  143 |  * into `read 5 files ⋯ 5`; each approval already answered sits in its call's row; the one waiting stays below in full\n  144 |  * (tools_160x40). */\n> 145 | export const ToolCalls = at(tools160, 100, 18);\n      |                          ^^^^^^^^^^^^^^^^^^^^^\n  146 | /** The reads opened (a click on the row, or alt-o): each on a tree line, each opening on its own (tools_160x40,\n  147 |  * DockLocal.groups). */\n  148 | export const ToolCallsOpen = { args: { recorded: tools160 as unknown as Recorded, cols: 100, rows: 22, groups: [\"group:t0\"] } } satisfies Story;"
           }
         },
         {
@@ -3015,7 +3015,7 @@
           "name": "Edit Open",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  151 | /** An edit opened: its diff under the row in the diff view's look, the changed words on the stronger tint\n  152 |  * (edit-open_160x40). */\n> 153 | export const EditOpen = at(editOpen160);\n      |                         ^^^^^^^^^^^^^^^\n  154 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n  155 | export const ReasoningLive = at(reasoningLive160);\n  156 | /** The tool calls at 80x24 (tools_80x24). */"
+            "message": "Expected story to be csf factory, function or an object expression\n  149 | /** An edit opened: its diff under the row in the diff view's look, the changed words on the stronger tint\n  150 |  * (edit-open_160x40). */\n> 151 | export const EditOpen = at(editOpen160);\n      |                         ^^^^^^^^^^^^^^^\n  152 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n  153 | export const ReasoningLive = at(reasoningLive160);\n  154 | /** The tool calls at 80x24 (tools_80x24). */"
           }
         },
         {
@@ -3023,7 +3023,7 @@
           "name": "Reasoning Live",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  153 | export const EditOpen = at(editOpen160);\n  154 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n> 155 | export const ReasoningLive = at(reasoningLive160);\n      |                              ^^^^^^^^^^^^^^^^^^^^\n  156 | /** The tool calls at 80x24 (tools_80x24). */\n  157 | export const NarrowToolCalls = at(tools80, 56, 20);\n  158 |"
+            "message": "Expected story to be csf factory, function or an object expression\n  151 | export const EditOpen = at(editOpen160);\n  152 | /** Reasoning while the session works: folded, its latest line beside the fold (reasoning-live_160x40). */\n> 153 | export const ReasoningLive = at(reasoningLive160);\n      |                              ^^^^^^^^^^^^^^^^^^^^\n  154 | /** The tool calls at 80x24 (tools_80x24). */\n  155 | export const NarrowToolCalls = at(tools80, 56, 20);\n  156 |"
           }
         },
         {
@@ -3031,7 +3031,7 @@
           "name": "Narrow Tool Calls",
           "error": {
             "name": "SyntaxError",
-            "message": "Expected story to be csf factory, function or an object expression\n  155 | export const ReasoningLive = at(reasoningLive160);\n  156 | /** The tool calls at 80x24 (tools_80x24). */\n> 157 | export const NarrowToolCalls = at(tools80, 56, 20);\n      |                                ^^^^^^^^^^^^^^^^^^^\n  158 |"
+            "message": "Expected story to be csf factory, function or an object expression\n  153 | export const ReasoningLive = at(reasoningLive160);\n  154 | /** The tool calls at 80x24 (tools_80x24). */\n> 155 | export const NarrowToolCalls = at(tools80, 56, 20);\n      |                                ^^^^^^^^^^^^^^^^^^^\n  156 |"
           }
         }
       ],
@@ -3259,6 +3259,6 @@
   },
   "meta": {
     "docgen": "react-docgen-typescript",
-    "durationMs": 4523
+    "durationMs": 1085
   }
 }

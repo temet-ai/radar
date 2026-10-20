@@ -1,10 +1,10 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ListNode } from "../../src/nodes/lists";
-import { fromScene, sizeOf, Compare } from "../support/Compare";
+import { regionOf, sizeOf, Compare } from "../support/Compare";
 import { InPanel } from "../support/frames";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import repos80 from "../../test/fixtures/gitlab_repos_80x24.json";
 import repos80Cells from "../../test/cells/gitlab_repos-80x24.json";
 import navFocusCells from "../../test/cells/highlight_focused-pane-nav-80x24.json";
@@ -13,15 +13,15 @@ import connection80Cells from "../../test/cells/gitlab_settings-connection-80x24
 
 type Args = React.ComponentProps<typeof ListNode>;
 const views = paneOf(repos80, "views");
-const navFocused = paneOf((navFocusCells as RatatuiScene).view!.screen, "views");
+const navFocused = paneOf((navFocusCells as GoldenScene).view!.screen, "views");
 
-function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: RatatuiScene }) {
+function InPane({ args, globals, pane, scene }: { args: Args; globals: Globals; pane: any; scene: GoldenScene }) {
   return (
     <PaneFigure
       globals={globals}
       pane={pane}
       focused={args.ctx.focused}
-      reference={fromScene(scene, { pane: pane.title })}
+      region={regionOf(scene, { pane: pane.title })}
       body={(ctx) => <ListNode {...args} ctx={{ ...ctx, focused: args.ctx.focused }} />}
     />
   );
@@ -45,7 +45,7 @@ const meta = {
   title: "Nodes/ListNode",
   component: ListNode,
   args: { rows: views.body.rows, selected: views.body.selected, ctx: { width: 22, height: 19, focused: false } },
-  render: (args, { globals }) => <InPane args={args} globals={globals} pane={views} scene={repos80Cells as RatatuiScene} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} pane={views} scene={repos80Cells as GoldenScene} />,
 } satisfies Meta<typeof ListNode>;
 
 export default meta;
@@ -57,7 +57,7 @@ export const Unfocused: Story = {};
 /** The nav pane has the keys (`highlight_focused-pane-nav`): the selected row bold on the selection background. */
 export const Focused: Story = {
   args: { rows: navFocused.body.rows, selected: navFocused.body.selected, ctx: { width: 22, height: 19, focused: true } },
-  render: (args, { globals }) => <InPane args={args} globals={globals} pane={navFocused} scene={navFocusCells as RatatuiScene} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} pane={navFocused} scene={navFocusCells as GoldenScene} />,
 };
 
 /** A settings section's rows (GitLab connection): label and value rows in a plain panel, as App's SectionBody
@@ -65,14 +65,13 @@ export const Focused: Story = {
 export const SettingsRows: Story = {
   args: { rows: connection80.body.rows as Args["rows"], selected: connection80.body.selected, ctx: { width: 0, height: 0, focused: true } },
   render: function Render(args, { globals }) {
-    const ref = fromScene(connection80Cells as RatatuiScene, { pane: "GitLab connection" });
+    const ref = regionOf(connection80Cells as GoldenScene, { pane: "GitLab connection" });
     const { w, h } = sizeOf(ref, { w: 56, h: 10 });
     return (
       <Compare
         globals={globals}
         cols={w}
         rows={h}
-        reference={ref}
         ink={
           <InPanel title="GitLab connection" width={w} height={h} focused={args.ctx.focused}>
             <ListNode {...args} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused }} />

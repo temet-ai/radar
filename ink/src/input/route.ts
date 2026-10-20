@@ -8,7 +8,7 @@ import type { Tree, TreeRow } from "../nodes/view.js";
  * What a key comes to on a view, mirroring crates/radar-core/src/view_tui.rs (`key`, `section_key`)
  * and view.rs (`rows_step_by`, `tree_step`): movement along a list, table, entries or tree selects
  * the next row through the part, ⏎ activates the selection, any other key is passed on as
- * Intent::Key. test/input/ratatui-intents.json (written by a Rust test over the Ratatui adapter)
+ * Intent::Key. test/input/intents.json (Ink's golden, first written from the Ratatui adapter)
  * pins the pairs.
  */
 

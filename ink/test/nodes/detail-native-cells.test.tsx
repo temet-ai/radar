@@ -12,6 +12,7 @@ import { detailWidth } from "../../src/app/Panes.js";
 import { decodeDetail } from "../../src/nodes/detail.js";
 import { HitRegistry } from "../../src/state/ui-state.js";
 import type { ChromeView } from "../../src/chrome/types.js";
+import { adoptInkFrame, updatingGoldens, type SceneFile } from "../support/goldens.js";
 
 interface RatCell { ch?: string; fg?: string; bg?: string; mods?: string[] }
 interface Scene {
@@ -20,8 +21,8 @@ interface Scene {
   view: { screen: any; chrome: ChromeView; focus: string; look: HostLook; detail_foot_hits: Array<{ x: number; y: number; width: number; height: number; target: string }> };
   rows: RatCell[][];
 }
-// Candidate native captures can be replayed without replacing committed baselines.
-const dir = process.env.RADAR_CELLS_DIR ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../cells");
+// The committed goldens (ink/test/cells); INK_UPDATE_GOLDENS=1 rewrites them from Ink's own frame and foot hits.
+const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../cells");
 const textOf = (cells: { ch?: string }[]) => cells.map((c) => c.ch ?? " ").join("");
 let cleanup: Array<() => void> = [];
 afterEach(() => { cleanup.forEach((stop) => stop()); cleanup = []; applyLook(defaultLook()); });
@@ -31,7 +32,7 @@ describe("actual native detail captures replay in Ink", () => {
   for (const owner of ["gitlab", "jira", "slack"]) for (const [columns, height] of [[80, 24], [160, 40]]) {
     it(`${owner} ${columns}x${height}: characters, blank grounds, bold, underline, pinned controls and logical pane number`, async () => {
       const file = path.join(dir, `detail_${owner}-${columns}x${height}.json`);
-      expect(fs.existsSync(file), `native producer tests/ratatui_cells.rs must write ${file}`).toBe(true);
+      expect(fs.existsSync(file), `the committed golden ${file} is missing`).toBe(true);
       const scene = JSON.parse(fs.readFileSync(file, "utf8")) as Scene;
       expect(scene.view.focus).toBe("detail");
       expect(scene.view.look, "replay the recorded host look").toBeDefined();
@@ -45,6 +46,11 @@ describe("actual native detail captures replay in Ink", () => {
       m.snapshot({ chrome: scene.view.chrome, screen: scene.view.screen, focus: scene.view.focus }, 1);
       await until(() => parseAnsi(m.frame()).some((row) => textOf(row).includes("extra actions")));
       const actual = parseAnsi(m.frame());
+      if (updatingGoldens()) {
+        const foot = registry.all().filter((hit) => hit.target.startsWith("detail-foot:")).map(({ w, h, ...hit }) => ({ ...hit, width: w, height: h }));
+        scene.view.detail_foot_hits = foot;
+        adoptInkFrame(file, scene as unknown as SceneFile, actual);
+      }
       const frame = frameOf(scene.view.chrome, null, columns!, height!);
       const paneW = columns! >= 120 ? detailWidth(columns!) : columns!;
       const left = columns! - paneW;

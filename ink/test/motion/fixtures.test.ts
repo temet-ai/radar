@@ -1,10 +1,10 @@
-// Ink's motion engine against T31's Ratatui fixtures (ink/test/fixtures/motion/*.json, written by
-// tests/motion_cells.rs): real shell or gallery frames at 80x24, the cue as the bridge sends it, the marks made, and
-// the cells Ratatui's Engine+ManualClock produced at the start, middle and end of each effect. Each file is replayed
-// the way the Rust side ran it: the cue, then the same frame drawn at t=0 and at every moment up to the file's own;
-// every cell must equal Ratatui's (within one colour level), the frame after the end must be `after` exactly, and the
-// engine must then ask for no more frames. Message cases use the marked gallery primitive; host notices
-// are composited after motion and are not represented by these message-animation fixtures.
+// Ink's motion engine against its motion goldens (ink/test/fixtures/motion/*.json, first written by Ratatui's motion
+// tests, now Ink's: INK_UPDATE_GOLDENS=1 rewrites each file's `rows` and `settle` from Ink's engine): real shell or
+// gallery frames at 80x24, the cue as the bridge sends it, the marks made, and the cells the engine produced at the
+// start, middle and end of each effect. Each file is replayed: the cue, then the same frame drawn at t=0 and at every
+// moment up to the file's own; every cell must equal the golden's (within one colour level), the frame after the end
+// must be `after` exactly, and the engine must then ask for no more frames. Message cases use the marked gallery
+// primitive; host notices are composited after motion and are not represented by these message-animation fixtures.
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import { cueOf } from "../../src/motion/attach.js";
@@ -18,6 +18,7 @@ import { parseHex } from "../../src/motion/color.js";
 import { Grid } from "../../src/motion/grid.js";
 import { defaultLook } from "../../src/text/look.js";
 import { charWidth } from "../../src/chrome/width.js";
+import { sortedJson, updatingGoldens } from "../support/goldens.js";
 
 const dir = new URL("../fixtures/motion/", import.meta.url);
 type Run = [string, string, string, string];
@@ -72,6 +73,24 @@ function gridOf(rows: Run[][]): Grid {
     }
   });
   return g;
+}
+/** The inverse of gridOf, for INK_UPDATE_GOLDENS=1: a grid as runs of cells with one style, mods joined by `+`. */
+const MOD_OF: Record<string, string> = { "1": "bold", "2": "dim", "3": "italic", "4": "underline", "7": "reversed", "9": "crossed" };
+const colourWord = (c: number): string => (c < 0 ? "reset" : `#${c.toString(16).padStart(6, "0")}`);
+function runsOf(g: Grid): Run[][] {
+  const rows: Run[][] = [];
+  for (let y = 0; y < g.height; y++) {
+    const runs: Run[] = [];
+    for (let x = 0; x < g.width; x++) {
+      const c = g.at(x, y);
+      const style: [string, string, string] = [colourWord(c.fg), colourWord(c.bg), c.attr.split(";").map((a) => MOD_OF[a]).filter(Boolean).join("+")];
+      const last = runs[runs.length - 1];
+      if (last && last[1] === style[0] && last[2] === style[1] && last[3] === style[2]) last[0] += c.ch;
+      else runs.push([c.ch, ...style]);
+    }
+    rows.push(runs);
+  }
+  return rows;
 }
 function marksOf(f: Fixture): Marks {
   const m = f.marks;
@@ -144,6 +163,10 @@ describe("Ink's motion engine against T31's Ratatui fixtures", () => {
         last = gridOf(f.after);
         e.draw(last, marks, ink);
       }
+      if (updatingGoldens()) {
+        f.rows = runsOf(last);
+        fs.writeFileSync(new URL(file, dir), sortedJson(f, 0));
+      }
       same(last, gridOf(f.rows), file);
       if (f.moment !== "end" || f.effect === "loading") return; // a waiting panel shimmers on
       // The effect is over: Ratatui draws one plain frame next (`settle` == `after`), then asks for nothing.
@@ -154,6 +177,10 @@ describe("Ink's motion engine against T31's Ratatui fixtures", () => {
       const plain = gridOf(f.after);
       const changed = e.draw(plain, marks, ink);
       expect(changed, "the plain frame touches no cell").toEqual([]);
+      if (updatingGoldens()) {
+        f.settle = runsOf(plain);
+        fs.writeFileSync(new URL(file, dir), sortedJson(f, 0));
+      }
       same(plain, gridOf(f.settle), `${file} settle`);
       same(plain, gridOf(f.after), `${file} after`);
       expect(e.running(), "and then nothing runs").toBe(false);

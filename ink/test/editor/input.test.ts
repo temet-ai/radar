@@ -121,9 +121,9 @@ describe("a capturing editor gets every key of the contract as Ratatui's chord (
   });
 });
 
-describe("the overlay view of ratatui-intents.json sends every key to the editor", () => {
+describe("the overlay view of intents.json sends every key to the editor", () => {
   it("screenKey on that view is Intent::Key for every chord, whatever the list under it binds", () => {
-    const fixture = JSON.parse(readFileSync(new URL("../input/ratatui-intents.json", import.meta.url), "utf8"));
+    const fixture = JSON.parse(readFileSync(new URL("../input/intents.json", import.meta.url), "utf8"));
     const entry = (fixture.screens as Array<{ name: string; view: { overlay?: unknown }; focus: string }>).find((e) => e.name === "overlay")!;
     expect(entry.view.overlay).toBeTruthy();
     const chords = NAMED.map((key) => ({ key })).concat(["j", "k", "g", "G", "+", "-", " "].map((c) => ({ key: { char: c } })) as never);

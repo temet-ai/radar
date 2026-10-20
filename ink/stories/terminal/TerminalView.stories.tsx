@@ -39,9 +39,7 @@ function Draw({ rec, end, focused, globals }: Args & { globals: Globals }) {
     <Compare
       globals={globals}
       cols={rec.columns}
-      rows={rec.rows}
-      missing="Ratatui draws one line in the dock's place (the agent dock needs the Ink renderer); a terminal tab is Ink only."
-      ink={<TerminalView open={() => replay(rec, end)} openKey={`${rec.columns}-${String(!!end)}`} columns={rec.columns} rows={rec.rows} focused={focused} />}
+      rows={rec.rows}      ink={<TerminalView open={() => replay(rec, end)} openKey={`${rec.columns}-${String(!!end)}`} columns={rec.columns} rows={rec.rows} focused={focused} />}
     />
   );
 }

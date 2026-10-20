@@ -21,12 +21,12 @@ const preview: Preview = {
       },
     },
     pack: {
-      description: "Icon pack (the Ratatui references are drawn with icons off)",
+      description: "Icon pack",
       toolbar: {
         title: "Icons",
         icon: "star",
         items: [
-          { value: "off", title: "icons off (as the references)" },
+          { value: "off", title: "icons off" },
           { value: "unicode", title: "unicode" },
           { value: "nerd", title: "nerd" },
           { value: "emoji", title: "emoji" },

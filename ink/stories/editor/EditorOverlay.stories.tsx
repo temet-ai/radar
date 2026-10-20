@@ -3,13 +3,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { EditorOverlay, editorOverlayHeight } from "../../src/editor/EditorOverlay";
 import type { EditorData } from "../../src/nodes/view";
 import type { ChromeView } from "../../src/chrome/types";
-import { Compare, fromText } from "../support/Compare";
+import { Compare } from "../support/Compare";
 import { bodyArea } from "../support/frames";
 import { type Globals } from "../support/stories";
 import compose80 from "../../test/fixtures/diff/editor_compose_80x24.json";
-import compose80Text from "../../test/fixtures/diff/editor_compose_80x24.txt?raw";
 import compose160 from "../../test/fixtures/diff/editor_compose_160x40.json";
-import compose160Text from "../../test/fixtures/diff/editor_compose_160x40.txt?raw";
 
 type Args = React.ComponentProps<typeof EditorOverlay>;
 
@@ -18,14 +16,13 @@ const argsOf = (view: any): Args => {
   return { data: view.screen.overlay.body.data as EditorData, width: chrome.width, areaHeight: bodyArea(chrome, chrome.width, chrome.height).height };
 };
 
-function Draw({ args, globals, text, file }: { args: Args; globals: Globals; text: string; file: string }) {
+function Draw({ args, globals }: { args: Args; globals: Globals }) {
   const h = editorOverlayHeight(args.data.lines.length, args.areaHeight);
   return (
     <Compare
       globals={globals}
       cols={args.width}
       rows={h}
-      reference={fromText(text, `ink/test/fixtures/diff/${file}`, { pane: args.data.title })}
       ink={<EditorOverlay {...args} />}
     />
   );
@@ -46,14 +43,12 @@ function Draw({ args, globals, text, file }: { args: Args; globals: Globals; tex
  * **Rules:** the caret is a reversed cell; the title's icon comes from the pack (`Icon::Comment`), not a typed `✎`
  * (the recorded title still carries one, docs/components.md section 4). The host owns the text; the overlay only draws
  * it.
- *
- * The references are Ratatui's screens as text (no colours).
  */
 const meta = {
   title: "Editor/EditorOverlay",
   component: EditorOverlay,
   args: argsOf(compose80),
-  render: (args, { globals }) => <Draw args={args} globals={globals} text={compose80Text} file={"editor_compose_80x24.txt"} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 } satisfies Meta<typeof EditorOverlay>;
 
 export default meta;
@@ -65,5 +60,5 @@ export const Compose: Story = {};
 /** The same at 160x40. */
 export const Wide: Story = {
   args: argsOf(compose160),
-  render: (args, { globals }) => <Draw args={args} globals={globals} text={compose160Text} file={"editor_compose_160x40.txt"} />,
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 };

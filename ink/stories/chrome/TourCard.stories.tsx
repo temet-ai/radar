@@ -40,9 +40,7 @@ function Draw({ args, globals, width, height }: { args: Args; globals: Globals; 
     <Compare
       globals={globals}
       cols={width}
-      rows={height}
-      missing="No styled scene of the card is written in ink/test/cells. The text of the card is the Ratatui rows asserted in ink/test/chrome/tour.test.tsx, read from `radar setup tour` at 160x40 through scripts/ink-live; tests/ratatui_cells.rs would need a `tour` scene."
-      ink={
+      rows={height}      ink={
         <Box width={width} height={height}>
           <InPanel title="Repositories" width={width} height={height} focused>
             <Box />

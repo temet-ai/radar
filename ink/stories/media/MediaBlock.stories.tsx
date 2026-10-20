@@ -14,8 +14,6 @@ const docAt = pane.body.blocks.findIndex((b: any) => b.block === "doc" && b.doc.
 const doc: any[] = pane.body.blocks[docAt].doc;
 const firstMedia = doc.findIndex((d) => d.t === "media");
 const allMedia = doc.filter((d) => d.t === "media") as Media[];
-const MISSING =
-  "ink/test/fixtures/media is not drawn by tests/ratatui_cells.rs (no media scene in ink/test/cells). Adding the jira_ticket-media surface there would give Ratatui's fallback lines.";
 
 /**
  * A picture or a file in a document (`RichBlock` `t: "media"`, a `Media`; Ratatui `ui::rich::media` and `ui::image`;
@@ -41,7 +39,6 @@ const meta = {
         pane={pane}
         focused
         size={{ w: 80, h: 22 }}
-        missing={MISSING}
         body={(ctx) => <NodeView node={{ ...pane.body, blocks }} ctx={ctx} />}
       />
     );
@@ -62,7 +59,6 @@ export const EachKind: Story = {
         globals={globals}
         cols={60}
         rows={allMedia.length}
-        missing={MISSING}
         ink={
           <Box flexDirection="column" width={60}>
             {allMedia.map((m, i) => (

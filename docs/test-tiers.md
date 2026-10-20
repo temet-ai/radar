@@ -356,8 +356,8 @@ binary itself. Test execution remains a separate command, e.g.
 ## Runtime limits and migration discipline
 
 The existing nextest configuration is unchanged: slow at 2 seconds and terminate
-at 20 seconds; only the already named `key_intent_parity` and `ratatui_cells`
-binaries use 10/60 seconds. Keep roughly 10 seconds per crate. Cargo test alone does not enforce nextest hard timeouts. This
+at 20 seconds; only the already named `key_intent_parity` binary uses 10/60
+seconds. Keep roughly 10 seconds per crate. Cargo test alone does not enforce nextest hard timeouts. This
 inventory gate measures no runtime and supplies no new timeout exemptions.
 
 Before calling an area “fast” or isolated, measure repeated warmed execution with

@@ -2057,13 +2057,11 @@ minutes on a day-old project, and the same guarantee holds at unit speed.
 adapters, shipped), each a check and one test binary; most of its time is compiling, so
 it is not run while working on one part. `.config/nextest.toml` flags any
 test over 2s as SLOW (and kills one over 20s): make it smaller or move it down the pyramid
-(rebuild nothing per row, draw only the part's area, no real sleeps). Only the two
-whole-app sweeps in `tests/` get longer (`key_intent_parity`, which presses every key and
-action on every surface, and `ratatui_cells`, which draws every screen at two sizes:
-flagged at 10s, killed at 60s). The rest of `tests/` holds the mix smoke (`mix`), the
-guard (`parts`, `plugin_boundary`, 1.14), renderer parity and recorded views
-(`renderer_parity`, `view_fixtures`, `reference_views`, `motion_cells`, `wrap_goldens`),
-the Ink renderer in a real PTY (`ink_pty`) and CLI tests (`work_cli`,
+(rebuild nothing per row, draw only the part's area, no real sleeps). Only the
+whole-app sweep in `tests/` gets longer (`key_intent_parity`, which presses every key and
+action on every surface: flagged at 10s, killed at 60s). The rest of `tests/` holds the
+mix smoke (`mix`), the guard (`parts`, `plugin_boundary`, 1.14), recorded views
+(`view_fixtures`, `reference_views`), the Ink renderer in a real PTY (`ink_pty`) and CLI tests (`work_cli`,
 `slack_cli_history`, `mcp_relay`).
 
 **A session working on one part tests only that crate** (`cargo nextest run -p radar-<part>`,

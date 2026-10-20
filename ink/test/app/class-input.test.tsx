@@ -9,8 +9,8 @@ import { hitAt } from "../../src/chrome/layout.js";
 import { scrollers } from "../../src/nodes/index.js";
 
 /**
- * Class tests over every recorded screen and settings section at 160x40 (the Ratatui adapter's pairs are pinned in
- * ratatui-intents.test.ts; these run the whole App on each recorded view):
+ * Class tests over every recorded screen and settings section at 160x40 (the chord and click pairs are pinned in
+ * intents.test.ts; these run the whole App on each recorded view):
  *  - a right click on any row the screen registers sends Context with that row's own target and nothing else;
  *  - a left click sends Select with it (never Context), a right click off every row sends nothing;
  *  - a movement or ⏎ key sends exactly one intent, and a Select/Activate/Fold it sends names a target that is in

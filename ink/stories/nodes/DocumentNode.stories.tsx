@@ -2,10 +2,10 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { NodeView } from "../../src/nodes/index";
 import type { Node } from "../../src/nodes/view";
-import { Compare, fromScene, sizeOf } from "../support/Compare";
+import { Compare, regionOf, sizeOf } from "../support/Compare";
 import { InPanel } from "../support/frames";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import connection80 from "../../test/fixtures/gitlab_settings-connection_80x24.json";
 import connection80Cells from "../../test/cells/gitlab_settings-connection-80x24.json";
 import overview160 from "../../test/fixtures/gitlab_repos-page1-overview-changes-threads-pipeline-commits-ticket_160x40.json";
@@ -40,7 +40,7 @@ const meta = {
         globals={globals}
         pane={merge}
         focused={args.ctx.focused}
-        reference={fromScene(overview160Cells as RatatuiScene, { pane: "can it merge?" })}
+        region={regionOf(overview160Cells as GoldenScene, { pane: "can it merge?" })}
         body={(ctx) => <NodeView node={args.node} ctx={{ ...ctx, focused: args.ctx.focused }} />}
       />
     );
@@ -57,14 +57,13 @@ export const PagePane: Story = {};
 export const SettingsDetail: Story = {
   args: { node: { node: "document", lines: connection80.detail } as Node, ctx: { width: 0, height: 0, focused: false, scrolls: true } },
   render: function Render(args, { globals }) {
-    const ref = fromScene(connection80Cells as RatatuiScene, { pane: connection80.detail_title });
+    const ref = regionOf(connection80Cells as GoldenScene, { pane: connection80.detail_title });
     const { w, h } = sizeOf(ref, { w: 56, h: 11 });
     return (
       <Compare
         globals={globals}
         cols={w}
         rows={h}
-        reference={ref}
         ink={
           <InPanel title={connection80.detail_title} width={w} height={h} focused={args.ctx.focused}>
             <NodeView node={args.node} ctx={{ width: w - 2, height: h - 2, focused: args.ctx.focused, scrolls: true }} />

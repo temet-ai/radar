@@ -2,28 +2,27 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PaneFrame } from "../../src/app/Panes";
 import { shellRenderNode } from "../../src/app/Body";
-import { Compare, fromScene, sizeOf } from "../support/Compare";
+import { Compare, regionOf, sizeOf } from "../support/Compare";
 import { paneOf, type Globals } from "../support/stories";
-import type { RatatuiScene } from "../support/ratatui";
+import type { GoldenScene } from "../support/golden";
 import typing80Cells from "../../test/cells/highlight_typing-filter-80x24.json";
 import typing160Cells from "../../test/cells/highlight_typing-filter-160x40.json";
 
 type Args = React.ComponentProps<typeof PaneFrame>;
 
-const argsOf = (scene: RatatuiScene): Args => {
+const argsOf = (scene: GoldenScene): Args => {
   const pane = paneOf(scene.view!.screen, "Everything");
-  const ref = fromScene(scene, { pane: "Everything" });
+  const ref = regionOf(scene, { pane: "Everything" });
   const { w, h } = sizeOf(ref, { w: 56, h: 21 });
   return { pane, width: w, height: h, focused: true, cx: { width: w, height: h, actions: [], focused: true }, renderNode: shellRenderNode };
 };
 
-function Draw({ args, globals, scene }: { args: Args; globals: Globals; scene: RatatuiScene }) {
+function Draw({ args, globals }: { args: Args; globals: Globals }) {
   return (
     <Compare
       globals={globals}
       cols={args.width}
       rows={args.height}
-      reference={fromScene(scene, { pane: "Everything" })}
       ink={<PaneFrame {...args} />}
     />
   );
@@ -46,8 +45,8 @@ function Draw({ args, globals, scene }: { args: Args; globals: Globals; scene: R
 const meta = {
   title: "Chrome/FieldBar",
   component: PaneFrame,
-  args: argsOf(typing80Cells as RatatuiScene),
-  render: (args, { globals }) => <Draw args={args} globals={globals} scene={typing80Cells as RatatuiScene} />,
+  args: argsOf(typing80Cells as GoldenScene),
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 } satisfies Meta<typeof PaneFrame>;
 
 export default meta;
@@ -58,6 +57,6 @@ export const Typing: Story = {};
 
 /** The same at 160x40. */
 export const Wide: Story = {
-  args: argsOf(typing160Cells as RatatuiScene),
-  render: (args, { globals }) => <Draw args={args} globals={globals} scene={typing160Cells as RatatuiScene} />,
+  args: argsOf(typing160Cells as GoldenScene),
+  render: (args, { globals }) => <Draw args={args} globals={globals} />,
 };

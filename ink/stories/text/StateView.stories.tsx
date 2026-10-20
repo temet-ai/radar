@@ -1,24 +1,20 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { StateView } from "../../src/text/StateView";
-import { fromText } from "../support/Compare";
 import { PaneFigure, paneOf, type Globals } from "../support/stories";
 import start80 from "../../test/fixtures/reference/mix__git_start_80x24.json";
-import start80Snap from "../../../tests/snapshots/mix__git_start_80x24.snap?raw";
 
 type Args = React.ComponentProps<typeof StateView>;
 const pane = paneOf(start80.screen, "all");
-const SNAP = "tests/snapshots/mix__git_start_80x24.snap";
 
-function InPane({ args, globals, withReference }: { args: Args; globals: Globals; withReference: boolean }) {
+/** The recorded pane with its state set by the story: no recorded view has a pane loading or failed. */
+function InPane({ args, globals }: { args: Args; globals: Globals }) {
   return (
     <PaneFigure
       globals={globals}
       pane={pane}
       focused
-      size={{ w: 80, h: 22 }}
-      reference={withReference ? fromText(start80Snap, SNAP, { snap: true, pane: "all" }) : undefined}
-      missing="No recorded view has a pane loading or failed. tests/view_fixtures.rs and tests/ratatui_cells.rs would need a surface whose fetch is running and one whose fetch failed."
+      size={{ w: 80, h: 24 }}
       body={(ctx) => <StateView {...args} width={ctx.width} />}
     />
   );
@@ -41,7 +37,7 @@ const meta = {
   title: "Text/StateView",
   component: StateView,
   args: { state: pane.body.state, text: pane.body.text, width: 78 },
-  render: (args, { globals }) => <InPane args={args} globals={globals} withReference={true} />,
+  render: (args, { globals }) => <InPane args={args} globals={globals} />,
 } satisfies Meta<typeof StateView>;
 
 export default meta;
@@ -50,8 +46,8 @@ type Story = StoryObj<typeof meta>;
 /** Git with no clones known: the recorded empty state. */
 export const Empty: Story = {};
 
-/** The same node with `state: "loading"` (the recorded words kept). No recorded reference. */
-export const Loading: Story = { args: { state: "loading" }, render: (args, { globals }) => <InPane args={args} globals={globals} withReference={false} /> };
+/** The same node with `state: "loading"` (the recorded words kept). */
+export const Loading: Story = { args: { state: "loading" }, render: (args, { globals }) => <InPane args={args} globals={globals} /> };
 
-/** The same node with `state: "failed"` (the recorded words kept). No recorded reference. */
-export const Failed: Story = { args: { state: "failed" }, render: (args, { globals }) => <InPane args={args} globals={globals} withReference={false} /> };
+/** The same node with `state: "failed"` (the recorded words kept). */
+export const Failed: Story = { args: { state: "failed" }, render: (args, { globals }) => <InPane args={args} globals={globals} /> };

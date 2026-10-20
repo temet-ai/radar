@@ -17,15 +17,15 @@ You work in radar's host and binary. The host owns all state; Ratatui (radar-cor
 ## Commands (repo root, CARGO_TARGET_DIR=target/fleet)
 
 - IPC: `cargo nextest run -p radar-core -E 'test(/ipc::/)'`. One binary test: `cargo nextest run -p radar --test <file>`.
-- A change to host input, menus, intents or Headless: radar-core's tests are not enough. Also run the binary tests that drive the host through Headless: `cargo nextest run -p radar --no-fail-fast --test plugin_boundary --test key_intent_parity --test ratatui_cells --test renderer_parity`.
+- A change to host input, menus, intents or Headless: radar-core's tests are not enough. Also run the binary tests that drive the host through Headless: `cargo nextest run -p radar --no-fail-fast --test plugin_boundary --test key_intent_parity`.
 - A view or protocol type change, in the same commit: regenerate the TypeScript, then `cd ink && npm run typecheck && npx vitest run test/app test/contract` (Ink's App snapshots move with view data). New types derive `ts_rs::TS`; a `with = "icon_name"` field needs `#[ts(as = "Option<String>")]`.
 
 | Ink reference | Rewrite with (then read `git diff --stat`) |
 |---|---|
 | ink/src/protocol/generated/ | `RADAR_TS_UPDATE=1 cargo nextest run -p radar-core -E 'test(the_committed_typescript_matches_the_rust_types)'` |
-| ink/test/input/ratatui-intents.json | `RADAR_WRITE_INK_FIXTURES=1 cargo nextest run -p radar-core -E 'test(the_ink_input_fixture_matches_what_the_ratatui_adapter_sends)'` |
 | ink/test/fixtures/ | `RADAR_VIEW_FIXTURES_DIR=$PWD/ink/test/fixtures cargo nextest run -p radar --test view_fixtures` |
-| ink/test/cells/ | `RADAR_WRITE_CELLS=1 cargo nextest run -p radar --test ratatui_cells` |
+
+ink/test/cells/, ink/test/fixtures/motion, ink/test/fixtures/wrap and ink/test/input/intents.json are Ink's own goldens: nothing in Rust writes them (`INK_UPDATE_GOLDENS=1` in an Ink test rewrites one from Ink; ink/test/cells/README.md).
 
 - tests/ink_pty.rs's Ink runs are ignored: `cd ink && npm run bundle`, then `cargo nextest run -p radar --test ink_pty --run-ignored all`; `RADAR_PTY_OUT=<dir>` keeps each step's screen.
 

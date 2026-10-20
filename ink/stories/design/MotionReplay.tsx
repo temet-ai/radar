@@ -1,8 +1,6 @@
 // radar's shipped motion, run for real: Ink's own Engine (src/motion/engine.ts, the effects in effects.ts) over a real
 // shell frame, with the marks and the cue the host sent, exactly as test/motion/fixtures.test.ts replays them. The
-// frames, marks and cues are the Rust side's motion fixtures (ink/test/fixtures/motion/<effect>-<level>-<moment>.json,
-// written by tests/motion_cells.rs); each also holds Ratatui's cells at the effect's start, middle and end, shown
-// beside the live run as the reference.
+// frames, marks and cues are Ink's motion goldens (ink/test/fixtures/motion/<effect>-<level>-<moment>.json).
 import React, { useEffect, useState } from "react";
 import { Engine, type Cue, type InkColours, type Level, type Marks } from "../../src/motion/engine";
 import { cueOf } from "../../src/motion/attach";
@@ -149,27 +147,6 @@ export function MotionReplay({ name, speed, cue: cueOverride }: { name: string; 
   );
 }
 
-/** Ratatui's cells for the same effect at its start, middle and end (the fixtures' `rows`). */
-export function MotionReference({ base }: { base: string }) {
-  return (
-    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-      {(["start", "mid", "end"] as const).map((m) => {
-        const f = motionFixture(`${base}-${m}`);
-        return (
-          <figure key={m} style={{ margin: 0 }}>
-            <figcaption style={{ fontSize: 12, margin: "0 0 6px", color: "#888" }}>
-              Ratatui (reference), t = {f.t_ms} ms: ink/test/fixtures/motion/{base}-{m}.json
-            </figcaption>
-            <div style={{ zoom: 0.5 }}>
-              <CellGrid cells={cellsOf(gridOf(f.rows, f.width, f.height))} cols={f.width} rows={f.height} canvas={CANVAS} label={`Ratatui ${base} ${m}`} />
-            </div>
-          </figure>
-        );
-      })}
-    </div>
-  );
-}
-
 // #32 replays the same production cell compositor used after a committed App frame. The Rust fixture supplies
 // both clean sources and actual frame geometry; this does not pretend to be an end-to-end terminal timing test.
 import { borderForegrounds, composeFold, focusDrain, focusLap, type Border } from "../../src/motion/interaction-effects";
@@ -200,7 +177,7 @@ function interactionAt(f: InteractionCase, ms: number): Grid {
   return after;
 }
 
-/** Production integer composition, with the Rust physical-cell reference at the same elapsed time. */
+/** Production integer composition of a fold or a focus lap, run over the recorded frames. */
 export function InteractionReplay({ kind, open, speed }: { kind: InteractionCase["kind"]; open?: boolean; speed: "real" | "slow" }) {
   const f = interactionCases().find((c) => c.kind === kind && (kind !== "fold" || c.open === open));
   const [elapsed, setElapsed] = useState(0);
@@ -212,15 +189,10 @@ export function InteractionReplay({ kind, open, speed }: { kind: InteractionCase
     return () => clearInterval(id);
   }, [kind, open, rate, duration]);
   if (!f) return <p>The Rust interaction fixture must be generated before this replay is available.</p>;
-  const nearest = f.frames.reduce((a, b) => Math.abs(a.ms - elapsed) <= Math.abs(b.ms - elapsed) ? a : b);
   return <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
     <figure style={{ margin: 0 }}>
       <figcaption style={{ fontSize: 12, marginBottom: 6 }}>Production Ink compositor: {kind === "fold" ? open ? "fold open" : "reverse close" : kind.replace("_", " ")}, {duration} ms{speed === "slow" ? " at quarter speed" : ""}, t = {elapsed} ms</figcaption>
       <CellGrid cells={cellsOf(interactionAt(f, elapsed))} cols={f.width} rows={f.height} canvas={CANVAS} label={`Ink ${f.name}`} />
-    </figure>
-    <figure style={{ margin: 0 }}>
-      <figcaption style={{ fontSize: 12, marginBottom: 6 }}>Production Rust reference, t = {nearest.ms} ms</figcaption>
-      <CellGrid cells={cellsOf(interactionGrid(nearest.rows, f.width, f.height))} cols={f.width} rows={f.height} canvas={CANVAS} label={`Rust ${f.name}`} />
     </figure>
   </div>;
 }

@@ -11,9 +11,7 @@ fail-fast = false
 # 914f5f9d under load average 40 to 58 on 16 cores: every_key 15.6 s to over
 # 20 s, every_action 19.4 s to over 20 s (88 s and 29 s before the lanes). The
 # 20 s kill fell inside that spread. These two only get a longer kill; the
-# cases are all kept. tests/ratatui_cells.rs the_cells_match_the_files_or_are_written
-# renders every screen, section and page at two sizes: 15.8 s at load 25, which
-# a loaded gate pushes past 20 s. No other test's budget changes.
+# cases are all kept. No other test's budget changes.
 [[profile.default.overrides]]
-filter = 'binary(key_intent_parity) | binary(ratatui_cells)'
+filter = 'binary(key_intent_parity)'
 slow-timeout = { period = "10s", terminate-after = 6 }

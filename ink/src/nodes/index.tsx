@@ -107,7 +107,7 @@ let rowsQueued = false;
 export function onPaneRows(sink: (() => void) | null) {
   rowsSink = sink;
 }
-function rowsDrawn() {
+export function rowsDrawn() {
   if (!rowsSink || rowsQueued) return;
   rowsQueued = true;
   queueMicrotask(() => {

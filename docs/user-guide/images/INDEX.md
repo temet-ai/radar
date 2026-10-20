@@ -74,7 +74,7 @@ docs/user-guide/tools/capture-all.sh            # about two minutes; writes docs
 KEEP_ANS=/tmp/ans docs/user-guide/tools/capture-all.sh   # also keep each ANSI capture
 ```
 
-`capture-all.sh` starts radar through `scripts/ink-live/ink-live` (so a fall back to Ratatui
+`capture-all.sh` starts radar through `scripts/ink-live/ink-live` (so a start without Ink
 fails the run), drives it by keys and clicks, and turns each `ink-live colour` capture into a PNG with
 `tools/render.sh` (`ansi2html.py` puts every cell on a fixed grid, headless Chrome draws it in 0xProto Nerd
 Font Mono, ImageMagick crops it). One picture alone: `tools/render.sh capture.ans out.png 160 40`

@@ -17,6 +17,5 @@ labels: bug
 
 - `radar --version`:
 - Platform and terminal (for example macOS 15, Ghostty; Ubuntu 24.04, kitty, inside tmux):
-- Renderer, if you set one (`RADAR_RENDERER`):
 
 <!-- radar keeps a log at ~/.local/state/radar/radar.log. Attach the relevant part if it helps, after checking it holds nothing private. -->

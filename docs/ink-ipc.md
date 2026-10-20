@@ -1,12 +1,12 @@
 # The Ink renderer's IPC
 
-Ink is the default renderer; `RADAR_RENDERER=ratatui` is the tested way back.
+Ink is the only renderer. When it cannot start, radar says why and exits.
 
 How radar's host (Rust) and its Ink renderer (`ink/`, Node) talk, who owns the
-terminal when, what happens when the renderer is old, slow or dies, and how
-to choose the renderer. The code: `crates/radar-core/src/ipc.rs` (the
+terminal when, and what happens when the renderer is old, slow or dies. The
+code: `crates/radar-core/src/ipc.rs` (the
 messages and their bounds), `ipc/bridge.rs` (the host's side),
-`ipc/supervisor.rs` (the child process) and `runner.rs` (the switch). The
+`ipc/supervisor.rs` (the child process) and `runner.rs`. The
 TypeScript types are generated from the Rust ones into
 `ink/src/protocol/generated/`.
 
@@ -68,7 +68,7 @@ Host → renderer (`ToRenderer`):
 |---|---|---|---|
 | `welcome` | `protocol`, `view`, `cursor` | fixed size: two `u32`, one `u64` | The renderer is accepted; a snapshot follows. |
 | `refuse` | `wanted`, `got`, `message` | two `u32`; `message` is the host's own sentence, under 200 characters | Another protocol or view version: the renderer prints `message` and exits with code 3. `wanted` and `got` are always the protocol versions (the host's, the renderer's); when it is the view version that differs they are equal, and `message` names both view versions. |
-| `look` | `tier`: `truecolor`\|`256`\|`16`\|`mono`, `slots` {name → colour}, `modifiers` {name → words}, `icons` {name → {`glyph`, `style`}}, `icon_width`, `pack` | one entry per theme slot (the core slots and the ones the parts declare) and one per `ui::icon::Icon`; a colour is at most 13 characters, a glyph a few cells (`ui::icon::check`), a style a slot name and modifiers; `icon_width` 0–2 | The colours and icons to draw with, resolved by the host exactly as the Ratatui renderer draws them (`ipc::Look::of(&Theme)`, test `the_look_sent_is_what_ratatui_resolves_at_every_tier`). A slot's colour is written as Ink's `color` takes it: `#rrggbb` at truecolor, `ansi256(n)` at 256, a terminal colour's name (`red`, `redBright`, `blackBright` …) at 16, `""` (the terminal's own) at mono; a background slot (`bg.selection`) is drawn with the same string. `modifiers` lists only slots carrying their own (`text.emphasis` → `bold`). An icon's `glyph` is padded to the pack's width and empty when icons are off or the pack has none; its `style` is a spec (`status.error bold`). The renderer chooses no colour or glyph of its own once this arrives. |
+| `look` | `tier`: `truecolor`\|`256`\|`16`\|`mono`, `slots` {name → colour}, `modifiers` {name → words}, `icons` {name → {`glyph`, `style`}}, `icon_width`, `pack` | one entry per theme slot (the core slots and the ones the parts declare) and one per `ui::icon::Icon`; a colour is at most 13 characters, a glyph a few cells (`ui::icon::check`), a style a slot name and modifiers; `icon_width` 0–2 | The colours and icons to draw with, resolved by the host from the theme (`ipc::Look::of(&Theme)`, test `the_look_sent_is_what_theme_resolves_at_every_tier`). A slot's colour is written as Ink's `color` takes it: `#rrggbb` at truecolor, `ansi256(n)` at 256, a terminal colour's name (`red`, `redBright`, `blackBright` …) at 16, `""` (the terminal's own) at mono; a background slot (`bg.selection`) is drawn with the same string. `modifiers` lists only slots carrying their own (`text.emphasis` → `bold`). An icon's `glyph` is padded to the pack's width and empty when icons are off or the pack has none; its `style` is a spec (`status.error bold`). The renderer chooses no colour or glyph of its own once this arrives. |
 | `snapshot` | `cursor`, `chrome` (`view::ChromeView`), `screen` (`ScreenView` or null), `section` (`SectionView` or null), `focus` (`PaneId`) | the line bound; the views are bounded by the parts' own view bounds (`view::chrome::MOST` and the room given); a snapshot that would not fit is sent without `screen` and `section`, and logged | Everything showing, whole. With `RADAR_TRACE_LATENCY=1` only, `trace` (`SnapshotTrace`: the cause it answers, the intent `seq`, the cause's epoch ms, the host's ms, the bytes) so the renderer can log the latency to its frame. |
 | `question` | `id`, `cursor`, `menu` (`view::MenuView`) | two `u64`; the menu as `chrome.menu` carries it (at most `view::chrome::MOST` items) | A menu or a confirmation opened. Answered by `intent` `invoke` with a choice's value (Esc as a `key` closes it). |
 | `input_request` | `id`, `cursor`, `title`, `value` | `title` at most `MAX_NOTICE` = 2048 characters, `value` at most `MAX_INPUT` = 65536 characters; the host cuts the rest | A menu field capturing text opened; keys go back as `intent` `key`. |
@@ -81,10 +81,10 @@ Host → renderer (`ToRenderer`):
 1. The host starts the renderer (see *The child*) and waits for its
    connection.
 2. The renderer sends `hello`. If `protocol` or `view` differs from the
-   host's, the host sends `refuse` with a message naming both versions and
-   the way back (`RADAR_RENDERER=ratatui radar`), acts on nothing more from it,
-   and the Ratatui renderer takes over with that message on stderr and in
-   the status line. A refused renderer is not restarted.
+   host's, the host sends `refuse` with a message naming both versions,
+   acts on nothing more from it, restores the terminal, prints
+   `radar: the renderer did not start: <that message>` and
+   `run scripts/install to rebuild it`, and exits 1. A refused renderer is not restarted.
 3. Otherwise `welcome`, then `look`, then a `snapshot`, then whatever
    changes. `look` is sent again whenever the theme configuration changes
    (palette, colour tier, a slot's colour, the icon pack, an `[icons]`
@@ -109,7 +109,7 @@ Host → renderer (`ToRenderer`):
 - **A stale cursor.** An intent carries the newest cursor the renderer had
   seen, and that may be older than the host's newest (the user acted while
   a snapshot was on its way). The host handles it all the same, against
-  the state it has now, as it handles a key in the Ratatui renderer that
+  the state it has now, as it handles a key that
   arrives after a redraw: targets and action ids are stable within their
   scope, so an intent about an older snapshot still names the same row, and
   a target that is gone does nothing. A part that must not act on data
@@ -174,11 +174,9 @@ handling belong to one process at a time:
 | Before the renderer starts | host | Saves the terminal's line settings (`stty -g`); writes nothing. |
 | While the renderer runs | renderer | Turns on raw mode, the alternate screen and SGR mouse reporting, hides and moves the cursor, handles resizes (and sends `resize`), writes OSC 52 on `clipboard`. The host writes nothing to the terminal and reads nothing from it; stdin and stdout are the renderer's (inherited). |
 | After the renderer exits, for any reason | host | Writes `ipc::supervisor::RESTORE`: mouse reporting off (1000, 1002, 1003, 1006), focus and paste reports off (1004, 2004), the alternate screen left (1049), the cursor shown (25); then puts the saved line settings back (raw mode off). |
-| RADAR_RENDERER=ratatui, or after a fall back | host (Ratatui runner) | As before Ink: `runner::run_tui` turns them on and restores them on exit and on a panic. |
 
 `rg -n 'enable_raw_mode|EnterAlternateScreen|EnableMouseCapture' crates src`
-finds only the Ratatui runner (`runner.rs`); the Ink path's owner is the
-renderer process, and the host's part of it is the restore.
+finds nothing: the renderer process owns the terminal, and the host's part of it is the restore.
 
 ## The child
 
@@ -189,19 +187,18 @@ renderer process, and the host's part of it is the restore.
   `<folder of the radar executable>/../share/radar/ink/radar-ink.js`, else
   `ink/dist/radar-ink.js` in the checkout the executable was built in (the
   first folder above it holding `Cargo.toml` and `ink/`). The bundle is one
-  file: Ink's Yoga layout is inlined. `RADAR_INK_BUNDLE` is a path, not a
-  switch: it never turns Ink on or off. When it is set and the file is
+  file: Ink's Yoga layout is inlined. `RADAR_INK_BUNDLE` is a path only. When it is set and the file is
   missing, the other places are not tried.
 - It runs with stdin, stdout and stderr inherited and `RADAR_IPC_SOCKET` set.
   For a bundle, `node` must be a real binary on `PATH` (`find_node` looks for
   a file named `node` in each `PATH` folder). A mise shim with no global node
-  version is not one that works: the lookup fails and radar falls back as
+  version is not one that works: the lookup fails and radar exits as
   below. Put a real node first (a mise global or `mise exec -- radar`).
-- No renderer or no `node`: one line on stderr says which (`radar: the Ink
-  renderer is not installed (…); using the Ratatui renderer` or `radar: the
-  Ink renderer's bundle needs \`node\` on PATH; using the Ratatui
-  renderer`), radar's log has the reason, and the Ratatui renderer runs.
-  Never a silent fall back. When it does start, the log names the command.
+- No renderer or no `node`: radar restores the terminal and prints
+  `radar: the renderer did not start: <why>` (the renderer is not installed,
+  or its bundle needs `node` on `PATH`) and `run scripts/install to rebuild it`
+  on stderr, writes the reason to its log, and exits 1. When Ink does start,
+  the log names the command.
 - The renderer's process id is logged as `Ink renderer started, pid N` in
   radar's log, for tests that end it.
 
@@ -217,34 +214,21 @@ renderer process, and the host's part of it is the restore.
   succeeded. A question open before the crash is still open, and the new
   renderer is sent it again.
 - The host starts the renderer again, up to **3 restarts in any 60 s**. A
-  fourth crash inside the window hands the host to the Ratatui renderer,
-  with one line on stderr and in the status line:
-  `the Ink renderer stopped 4 times in a minute (…); using the Ratatui renderer`.
+  fourth crash inside the window ends radar: it restores the terminal, prints
+  `radar: the renderer did not start: the Ink renderer stopped 4 times in a minute (<last crash's reason>)`
+  and `run scripts/install to rebuild it`, and exits 1.
 
-## The switch and the way back
+## No other renderer
 
-There is one switch: the environment variable `RADAR_RENDERER`.
-
-| Value | What runs |
-|---|---|
-| `ink` | The Ink renderer in a supervised child, over this IPC. If it is not installed, `node` is missing for a bundle, or it crashes 4 times in a minute, the Ratatui renderer runs instead and says so. |
-| `ratatui` | The Ratatui runner in the radar process (`runner::run_tui`). No child, no socket. |
-| unset, or any other value | The build's default, `radar::DEFAULT_RENDERER` (`src/lib.rs`). |
-
-The default is **Ink** since 2026-10-13. Ratatui stays in the tree as the
-tested rollback (`tests/ink_pty.rs` runs the same journey with
-`RADAR_RENDERER=ratatui`).
-
-There is no second switch: no command-line flag, no config key, no cargo
-feature, no second environment variable. `RADAR_INK_BUNDLE` only says where the
-bundle is. The way back from Ink, at any time and without a rebuild:
-`RADAR_RENDERER=ratatui radar`. To make it stay, export it in the shell's profile;
-reverting the default is the one-line commit.
+Ink is the renderer. There is no environment variable, command-line flag, config key
+or cargo feature that picks another, and nothing runs in the radar process in its
+place. `RADAR_INK_BUNDLE` only says where the bundle is. To go back to an earlier
+renderer, pin the previous release (RELEASING.md).
 
 ## Tests
 
 - `ipc::tests`: one sample of every message (the schema snapshot), framing
-  and the line bound, the log bound, the switch, and
+  and the line bound, the log bound, and
   `the_committed_typescript_matches_the_rust_types` (fails when
   `ink/src/protocol/generated/` differs from a fresh ts-rs export;
   `RADAR_TS_UPDATE=1` writes it).
@@ -257,14 +241,13 @@ reverting the default is the one-line commit.
 - `ipc::supervisor_tests`: a fake renderer process (the test binary itself,
   run as the test `fake_renderer` with `RADAR_FAKE_RENDERER`) over the real
   socket: says goodbye; is refused for another protocol and for another
-  view version, the refusal in the status line and on stderr
-  (`say_fall_back`); acknowledges 150 ms late while the host handles 42
+  view version, radar stopping with the reason on stderr; acknowledges 150 ms late while the host handles 42
   events (21 notices, 20 ticks, one intent that asks a question) and still
   sees all 21 notices in order and the question, with fewer snapshots than
   changes; stops reading and is ended for it and started again;
   crashes once mid-run and is restarted with the terminal restored each
-  time and the host's question and journal intact; keeps crashing and falls
-  back after three restarts. Also the bundle lookup order, the restart
+  time and the host's question and journal intact; keeps crashing and radar
+  stops with the last reason after three restarts. Also the bundle lookup order, the restart
   window and the socket path.
 
 Regenerate the TypeScript after changing a message or a view type:

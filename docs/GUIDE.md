@@ -54,11 +54,10 @@ general sections), two settings sections with the same name under one group (the
 `connection` under its own heading), and two theme slots with the same name.
 
 Dependencies you are expected to use (declared in the root `Cargo.toml`, all from
-crates.io; never a path outside the repo): `ratatui` 0.30, `opaline` (palettes, mapped onto
-radar's slots by `radar_core::design`, which also has `KeyHint`), `ratatui-textarea`
-(through `radar_core::input::TextInput`), `tui-tree-widget`, `tui-popup` (menus, used by the
-shell), `throbber-widgets-tui` (spinner), `tui-scrollview` (scrolled bodies). The last
-three and ratatui's own widgets reach a part through the kit, `radar_core::ui` (1.15).
+crates.io; never a path outside the repo): `opaline` (palettes, mapped onto
+radar's slots by `radar_core::design`, which also has `KeyHint`). The host and the parts
+name no terminal library: colours, styles and keys are radar's own types
+(`design::theme::{Color, Modifier, Style}`, `view::Chord`), and Ink draws every view.
 
 ### 1.2 The reducer and effects model
 
@@ -66,7 +65,7 @@ Nothing does I/O inside a handler.
 
 - The host's `Host::update(Event) -> Vec<HostEffect>` is pure. `Event` is `Key`, `Tick`,
   `Wake`, `Msg` (a spawned task's result), `Saved`, `Notice`, `ErrorNotice`, `ToClipboard`, `Paste`,
-  `Mouse`, `Intent` (from a frontend), `History` and `Tracked` (the action journal),
+  `Mouse`, `Intent` (from Ink), `History` and `Tracked` (the action journal),
   `TerminalRoute` and `Scanned` (setup's look for keys).
 - A plugin's handlers (`intent`, `on_msg`, `on_bus`, `on_menu`, `tick`, `paste`)
   change the plugin's own state and return `Effect`s: `Spawn(Task)`, `Open(url)`,
@@ -93,19 +92,17 @@ Nothing does I/O inside a handler.
   provider/journal epoch time. Snapshots carry active occurrence IDs and bounded
   history only while open; immediate IPC delivery uses the same IDs.
 - Nothing a part or the host shows is drawn by it: both describe it as view data
-  (`radar_core::view`) and a frontend paints it. A part gives `Plugin::view` and
+  (`radar_core::view`) and Ink paints it. A part gives `Plugin::view` and
   `section_view` (its screens and sections); the host gives the chrome,
   `Host::chrome_view(width, height) -> view::ChromeView` (the top bar's tabs with their
   mnemonics, attention flags and targets, the part's words and the mode on its right, the source
   tabs, the status line's keys each with its chord and target, the open menu or question
-  as a `MenuView`, the settings navigation). The Ratatui frontend is
-  `radar_core::shell::render(&Host, &Theme, &mut Frame)`: an adapter, like `view_tui` for the
-  parts' views, that paints the chrome from that data and registers each pointer hit from a
-  target in it. A click on a chrome target reaches the host as
-  `Intent::Activate { target }` (`Host::chrome_target_of`), the same intent the headless
-  frontend and the Ink renderer send, so every frontend presses a tab, the mode, a settings
+  as a `MenuView`, the settings navigation). Ink draws the chrome from that data and
+  records each pointer area from a target in it. A click on a chrome target reaches the host as
+  `Intent::Activate { target }` (`Host::chrome_target_of`), the same intent
+  `Headless` and Ink send, so both press a tab, the mode, a settings
   row, a menu row or a status-line key the same way. State only known while drawing (how
-  far a pane can scroll) goes in the frontend's `Cell`/`RefCell` fields, never in a part.
+  far a pane can scroll) lives in Ink, or in the host's `Cell`/`RefCell` fields, never in a part.
 - The runner reads keys on a thread of its own, enables bracketed paste and mouse
   capture, and sends `Event::Tick` every 200 ms (and on resize). A part that woke the host
   (`radar_core::wake`) gets `Event::Wake` at once, then at most one per 40 ms however often it
@@ -116,10 +113,10 @@ Nothing does I/O inside a handler.
 ### 1.3 The `Plugin` trait, member by member
 
 Every member except `id`, `configure` and `config` has a default. The "called" column says
-when the host calls it. The trait names no terminal type (no Ratatui, Crossterm, `Buffer`,
-`Rect` or `KeyEvent`; `view::tests::the_plugin_trait_names_no_terminal_type` keeps it so):
+when the host calls it. The trait names no terminal type (no terminal library, `Buffer`,
+`Rect` or `KeyEvent`; a ban test over radar-core and every part crate keeps it so):
 a part describes its screens and sections as views and gets what the user did as
-`Intent`s, whichever frontend draws it.
+`Intent`s and keys as `view::Chord`s.
 
 | Member | What it is for | Called |
 |---|---|---|
@@ -128,7 +125,7 @@ a part describes its screens and sections as views and gets what the user did as
 | `config() -> Option<toml::Value>` | The table to write | **every frame** and after every event (the host compares it with how the last event left it, and saves a completed change, 1.7). Keep it cheap and deterministic |
 | `first_run() -> Option<String>` | Called when there is **no config file at all**; the host then opens setup (`Host::open_setup`) and does not show the note | only with no file; a file without your table gets `configure(None)` |
 | `slots()` | Your domain theme slots and defaults (1.8) | `Host::new` |
-| `demo()` | Replace what you hold with your sample data (the stand-ins your tests use), so `radar shot` can draw your screens with no network or config (3.1a). Default: nothing. Implement behind your `demo` feature | `radar shot` and `scripts/shots`, after `load_config`; never at a normal start |
+| `demo()` | Replace what you hold with your sample data (the stand-ins your tests use), so the offline demo and `ink-live` show your screens with no network or config. Default: nothing. Implement behind your `demo` feature | the demo host and `ink-live`, after `load_config`; never at a normal start |
 | `restore(Value)` / `snapshot()` | Cache read at start, so the first frame is never empty / the value to write | `restore` after `configure`; `snapshot` when you return `Effect::PersistCache` |
 | `tick(now)` | Time passing. Start refreshes here | every 200 ms and on resize; throttle yourself (`GitlabPlugin::tick` uses `refresh_secs`) |
 | `set_waker(Waker)` / `woken(now)` | Background work of your own that has something to show now (an agent's streamed text): keep the `Waker` and call `wake()` from any thread; take the news in `woken`. Wakes close together are one call (at most one per 40 ms). `SessionsPlugin` wakes on every push into its inbox | `set_waker` once, in `Host::new`; `woken` soon after a wake (not while paused; the next tick takes it in) |
@@ -143,9 +140,9 @@ a part describes its screens and sections as views and gets what the user did as
 | `busy(screen)` | True while loading: the top bar shows a spinner | each frame |
 | `status(screen) -> Vec<(String, Tone)>` | Counts for the right of the status line, e.g. "3 to review" | each frame |
 | `screen_group(screen)` / `icon(screen)` | Screens of several parts under one top-bar tab (each a source tab under it) / the tab's icon | each frame |
-| `view(screen, cx) -> Option<ScreenView>` | The screen as renderer-neutral data (`radar_core::view`): panes with lists, trees, documents or states, stable targets, and the actions where the focus is, each with the part's own stable id (`ActionSpec::named("gitlab.mr.approve", &binding)`; ids are written out, never made from a label or a key). Every frontend (the Ratatui adapter `view_tui`, the headless one, the Ink renderer over IPC) draws it; a screen without one shows "no view for this screen" | each frame, and before routing input |
+| `view(screen, cx) -> Option<ScreenView>` | The screen as renderer-neutral data (`radar_core::view`): panes with lists, trees, documents or states, stable targets, and the actions where the focus is, each with the part's own stable id (`ActionSpec::named("gitlab.mr.approve", &binding)`; ids are written out, never made from a label or a key). The Ink renderer over IPC draws it and `Headless` turns it into text for tests; a screen without one shows "no view for this screen" | each frame, and before routing input |
 | `section_view(section, cx) -> Option<SectionView>` | As `view`, for a settings section: rows, the field being typed into, the detail and the row's actions | each frame |
-| `intent(scope, pane, &Intent) -> Outcome` | What the user did on a screen or section, from any frontend: `Select`, `Activate`, `Context`, `Fold` on a target, `Invoke` an action by its id, a `Key`. Movement and scrolling are the frontend's; you get the selection. Match your action ids in `Invoke`; an action you do not match runs by the key your view lists for it (the host's transitional fallback, M11 A0b), so an action without a key must be matched by id | input |
+| `intent(scope, pane, &Intent) -> Outcome` | What the user did on a screen or section, from Ink: `Select`, `Activate`, `Context`, `Fold` on a target, `Invoke` an action by its id, a `Key`. Movement and scrolling are the frontend's; you get the selection. Match your action ids in `Invoke`; an action you do not match runs by the key your view lists for it (the host's transitional fallback, M11 A0b), so an action without a key must be matched by id | input |
 | `pictures(source)` | How the pictures in your rich text are fetched, with your own account | while drawing |
 | `panes(screen)` | Panes `tab`, `h`/`l` and `1`..`9` move through. Default `Nav, Middle, Detail` | on those keys |
 | `hints(screen, pane)` | Status-line keys **only while `capturing()`**, e.g. `⏎ keep  esc cancel` | each frame, only while capturing |
@@ -282,7 +279,7 @@ and **detail** in code, comments, docs and on screen, not rail, tree, preview, s
 left/right pane (a *tree* is the widget that may fill the middle pane, a *preview* the card
 that may fill the detail pane). A screen may draw them
 however it likes (GitLab's Repositories is nav │ middle │ detail; at narrow widths the
-frontend shows only the focused one: `fit` in `view_tui.rs`). `Host.focus` is the focused pane; start-up focus is
+renderer shows only the focused one). `Host.focus` is the focused pane; start-up focus is
 `Middle`. Settings is nav │ section │ detail at 120 columns and wider; below that, the
 section and detail stack beside the nav. All three are in `panes()`. Detail takes
 `↑↓ j k Home End`; `PgUp/PgDn` scroll it from any settings pane. Changing the
@@ -307,18 +304,17 @@ panes.
 
 Mouse: what can be pointed at is a `Target` in the view data, a part's (rows, cells,
 tabs, action lines) and the host's (`chrome:*`: tabs, the mode, source tabs, settings
-rows, menu rows, status-line keys). The Ratatui adapters (`view_tui` for parts, `shell`
-for the chrome) mark each target's area while painting (`cx.hit_pane`, `hit_row`,
-`hit_rows`, `hit_label`, `hit`; 2.5 has the sizes; later areas win, so the pane first and
-its rows after). What is under the pointer is lit and the pointer is a hand there (2.5).
-A press reaches the part as `Intent::Select`/`Activate` on its target and the chrome as
-`Intent::Activate` on its `chrome:*` target, the intents every frontend sends. A click
+rows, menu rows, status-line keys). Ink lays the panes out, records the area of each
+target it draws (the sizes are in 2.5; later areas win, so the pane first and its rows
+after) and finds the target under the pointer itself. What is under the pointer is lit and
+the pointer is a hand there (2.5). A press reaches the part as `Intent::Select`/`Activate`
+on its target and the chrome as `Intent::Activate` on its `chrome:*` target. A click
 on a row focuses its pane and selects the row at once; a click on a pane's empty space or
 border **only focuses it** (its cursor stays). Two presses on the same area within 400 ms
 behave as `⏎`. The wheel focuses the pane under the pointer and sends it `j`/`k`; over
-nothing scrollable it does nothing. Ink, which lays the panes out itself, sends
+nothing scrollable it does nothing. Ink sends
 `Intent::Select` on `pane:<id>` for a press on a pane's empty space and before the wheel's
-`j`/`k`; the host focuses that pane and no part sees it. The agent dock (Ink's): the wheel
+`j`/`k`; the host focuses that pane and no part sees it. The agent dock: the wheel
 over it scrolls its transcript and moves no focus, the wheel over a pane never types into
 the composer, the dock's keys (`↑ ↓ PgUp PgDn Home End` included) never reach the pane
 under it, a press outside it takes the keys from it, and no pane draws focused while it has
@@ -339,15 +335,14 @@ variable. A custom `TERM` can make Foot appear unidentified. Other terminal host
 decide whether to pass the button through.
 Another right-click replaces the open `x` menu with the clicked row's actions (or
 dismisses it over empty space). Other menus remain modal. With a menu open the left
-mouse button belongs to the menu. The runner keeps the left button: a press
-reaches the host as a click when it is let go without moving; a drag selects text as a
-terminal would (`select.rs`, the cells shown reversed) and letting go copies it, through
+mouse button belongs to the menu. Ink keeps the left button: a press
+reaches the host as an intent when it is let go without moving; a drag selects text as a
+terminal would (the cells shown reversed) and letting go copies it, through
 the same ways as `Effect::Copy`. Parts do nothing for this. Pointer moves (no button down)
-go to `Host::hover`: only the latest of those waiting is used and the screen is drawn
-again only when what is lit changed. In tests send `Event::Mouse` to the host after
-rendering a frame (the hits are filled by drawing; see
-`clicking_out_of_and_back_into_a_pane_keeps_its_cursor` in `crates/radar-gitlab/src/lib.rs`)
-and `host.hover(Some(at))`; live, send SGR mouse sequences through tmux (3.4).
+stay in Ink, which lights the target under the pointer without a round trip to the host. In
+tests send the intent a click would send (`Intent::Select`, `Activate` or `Context` on a
+target, as `host_ink_intent_tests` in radar-core does); live, send SGR mouse sequences
+through tmux (`ink-live click`, 3.4).
 
 ### 1.6 The bus
 
@@ -431,7 +426,7 @@ allowlist.
   `system::state_home`); use that in live checks.
 - **Settings sections**: `sections()` lists `SectionSpec{id, name, group}`; the host shows a
   tree of groups (uppercase headings, no fold markers; `ChromeView::settings`, the
-  `SettingsNav` every frontend paints) │ your `section_view`'s body │ its detail. `name` is unique under its group and is the nav row and panel
+  `SettingsNav` Ink paints) │ your `section_view`'s body │ its detail. `name` is unique under its group and is the nav row and panel
   title; a name two groups share is titled with the group's name in front ("Jira
   connection", `Host::section_title`). A part's first section is its `connection`
   (2.11a). Keep the selected row of each section in the plugin
@@ -533,17 +528,17 @@ table of their own, `[icons]`, edited in `General › icons`.
   mode's note as the last line before the buttons when the mode refuses it
   (`.noting(note)`, `radar_core::writes`, 2.23). All three set `Menu::question`, which is
   what draws a menu as a dialog.
-- **As view data**: the open menu or question reaches every frontend as
+- **As view data**: the open menu or question reaches Ink as
   `view::MenuView` (in `Host::chrome_view`, or `Host::menu_view`): its id, title (the
   question, which may run to several lines), icon, whether it is a question, the write it
   is before, each row as a `Choice` (value, label, hint, key and the key column's words,
   icon, heading or note, muted, a sample's look, and a target `chrome:menu:<i>` for the
   rows that can be chosen), the highlighted row, the field's text and caret, why the part
   refuses the text, where a context click opened it and how far it is scrolled. The
-  Ratatui shell (`shell/menu.rs`) lays it out and paints it from that alone; the host's
-  viewport only takes what the frame measured, for the paging keys. `Intent::Invoke`
+  Ink lays it out and paints it from that alone; the host's
+  viewport only takes what Ink measured, for the paging keys. `Intent::Invoke`
   with a choice's value answers it, `Intent::Activate`/`Select` on a row's target chooses
-  or highlights it, whichever frontend sends it.
+  or highlights it.
 - **Text input**: always `radar_core::input::TextInput`. `TextInput::new(value)`,
   `key(KeyEvent) -> Edit::{Submit(text), Cancel, Typing}`, `paste(&str)`,
   `value()`, and `render(theme, row_rect, buf, cx.cursor)`, which draws one row scrolled to
@@ -583,8 +578,7 @@ table of their own, `[icons]`, edited in `General › icons`.
 returns a `CliTask` resolving to the text to print. Mirror what the TUI shows and offer
 `--json`: `radar gitlab list [--view NAME] [--filter TEXT] [--json]`. The runner's
 own commands are `radar config path|show`, `radar icons list|export|path`, `radar setup
-[STEP]` (the TUI, opened on setup), `radar terminal`, `radar licenses`, `radar shot`
-(3.1a), the audited `radar work` commands (1.6a), and `radar mcp`, the relay an agent CLI
+[STEP]` (the TUI, opened on setup), `radar terminal`, `radar licenses`, the audited `radar work` commands (1.6a), and `radar mcp`, the relay an agent CLI
 starts (`src/main.rs`); a part's id may not be one of them.
 `run_cli` takes `&self`: copy what you need out
 of `self` before the `async` block, as `GitlabPlugin::run_cli` does.
@@ -1200,47 +1194,35 @@ radar-<id>`, clippy, its live check) and CI passes (which runs `scripts/check-mi
 ### 1.15 The kit: `radar_core::ui`
 
 **The registry is [`docs/components.md`](components.md):** every element, which view type
-carries it, who draws it in each renderer, its states, slots, glyphs and keys, the one
+carries it, how Ink draws it, its states, slots, glyphs and keys, the one
 canonical form of each shared concept, and the drift still to fix. Look there before you
 draw anything, and update it in the same commit as the element.
 
-**Parts draw with the kit; they do not hand-roll an element the kit has.** If a part needs
+**Parts describe with the kit; they do not hand-roll an element the kit has.** The kit is
+the set of view types and helpers in radar-core (`view`, the rich document model, rows,
+scroll state, widths and icons) plus the Ink components that draw them. If a part needs
 one the kit lacks, or a variant of one, it goes into the kit first (a small radar-core
-change, 1.14), with its snapshots, and then the part uses it. A part keeps only what is
-its own: which rows, which words, which look words, which slots.
+change, 1.14, and an Ink component with a story), and then the part uses it. A part keeps
+only what is its own: which rows, which words, which look words, which slots.
 
 Every element is generic (no tool words; the guard in `tests/parts.rs` checks), draws only
 with theme slots, and takes styles a part resolved from its look words where the user can
-choose them. Each has snapshots at 80 and 160 wide in `crates/radar-core/src/ui/tests.rs`.
+choose them. Each Ink component has stories at 80 and 160 wide (`ink/stories`).
 
-**See them live**, without any part:
+**See them live**, without any part: Storybook is the gallery.
 
 ```bash
-cargo run -p radar-core --example gallery
+cd ink && npm run storybook      # http://localhost:6016, MCP at /mcp
 ```
 
-`[`/`]` switch tabs (`1`..`9` jump), `j`/`k` move, `space` folds, `PgUp`/`PgDn` scroll the
-card, `c` steps through the colour levels (terminal's own, full, 256, 16, none), `q`
-quits; resize the terminal to see columns drop. The Motion tab shows each motion effect
-(1.17). Its drawing is `ui::gallery` and is snapshotted per tab at 80x24 and 160x40, as
-text and as styles (3.1a). A new element gets a place in the gallery.
+Each story draws a component from recorded view data in each of its states, side by side:
+selected, without focus, empty, loading, failed, too long. **To show a new element or
+state:** add a story to the component's file (or a new file next to it), recorded from view
+data a Rust test produced, title each panel with the state it shows, and run
+`npm run manifest` so `docs/storybook/components.json` follows. Look at it once in
+Storybook, and for the whole screen with `scripts/shots --compare main` (3.1a).
 
-The first nine tabs (through Motion) are each element live. After them are the **stories**
-(`ui/stories.rs`): Colours (every slot, and each text colour on each background), Tones
-(tones, marks, checks, verdicts, key hints), Row states, Grid states (table and tree),
-Waiting (loading, busy, empty, set up, failed), Long text (cut, wrapped, columns
-dropped, wide characters, markdown at two widths) and Icons. Each shows an element in each of its
-states, side by side: selected, without focus, empty, loading, failed, too long. They
-scroll (`j`/`k`, `PgUp`/`PgDn`). **To show a new element or state:** add a panel to the
-story that fits, or write `fn my_story(theme, area, buf, frame) -> u16` with the
-story's `Board` (panels in bands, side by side wide, stacked narrow; it returns the rows it
-used) and add one line to `STORIES`. Draw with the kit's own functions on neutral samples,
-title each panel with the state it shows, then accept its text and style snapshots after
-reading them, and look at it once with `radar shot --place gallery.<page> --size 160x60`.
-Places and the colour snapshots enumerate the tabs (`gallery::tab_names()`), so a new tab
-or story needs no edit to either.
-
-Every element, its API, file, states, keys and gallery tab is in
+Every element, its API, file, states and keys is in
 [`docs/components.md`](components.md) section 3; this guide does not repeat the list.
 
 When to use which:
@@ -1256,11 +1238,10 @@ When to use which:
   `Table` or a `RowList`, which keep the cursor in view themselves. Keep one `Scroll` per
   scrolling panel on the plugin (it holds `Cell`s, so drawing through `&self` can clamp it),
   reset it with `top()` when the selection changes, and hand it keys with `key()` (2.4).
-- **Clicks**: elements return the areas of what can be clicked (tab labels with their
-  padding, full-width rows); the part marks them with the `Cx::hit_*` helpers (2.5). The
-  banded tree returns the lines that hold its rows; find the row with
-  `TreeState::rendered_at`. Whatever is marked is lit under the pointer and must act when
-  clicked: `radar_core::check` checks it in the part's tests (3.2).
+- **Clicks**: a part gives each clickable thing a `Target` in its view data (tab labels,
+  rows); Ink records the area of each target it draws (2.5). Whatever has a target is lit
+  under the pointer and must act when clicked: `radar_core::check` checks it in the part's
+  tests (3.2).
 - **Look words**: a tree's lines, band and heading shade come from the part's look words
   through `TreeLook::from_specs`; a stage's style from the part's word for that state;
   everything else uses core slots or a `Tone`.
@@ -1315,17 +1296,12 @@ cannot open the words). `rich::plain(&doc, width)` is the same words with no sty
 command line or a test. Lines put after others (a header, a reply's indent) move their
 images with `Placed::moved(lines_before, cells_in)`.
 
-**Links.** Every link in rich text is a terminal hyperlink when the runner turned them on
+**Links.** Every link in rich text is a terminal hyperlink when the terminal takes them
 (`[theme] hyperlinks = auto|on|off`; auto: Ghostty, kitty, WezTerm, iTerm2, VTE, Windows
-Terminal and the like, never inside tmux or over ssh by guess). For your own link places,
-draw the words with `ui::link::span(text, style, url)`, a whole row with
-`ui::link::line(line, url)`, and other parts' chips with `ui::chips::chip(theme, &chip)`
-(a `Chip` may carry `.link(url)`). How it works: a link rides in the cell's style as an id
-in the underline colour (ratatui has no hyperlink field), and the runner's backend
-(`ui::link::Links`) writes each run of cells with one id inside OSC 8 and drops the id, so
-text, widths, the diffing renderer and `to_text` are untouched. Only `http(s)` and
-`mailto` urls without control characters are handed to the terminal. Tests run with links
-off; `ui::link::set(true)` turns them on for the test's own thread. `o`, `y` and the Links
+Terminal and the like, never inside tmux or over ssh by guess). A part puts a link in its
+view data (an inline link or a `Chip` carrying `.link(url)`); Ink underlines the words and
+wraps each run of cells in OSC 8. Only `http(s)` and `mailto` urls without control
+characters are handed to the terminal. `o`, `y` and the Links
 tabs still open links the radar way (`Effect::Open`).
 
 **Images.** Where the terminal answers for kitty's, sixel or iTerm2's graphics
@@ -1363,11 +1339,9 @@ depend on `tachyonfx`** and never animate anything themselves; they say what cha
 where it is, and the host decides what moves.
 
 How it works: the host compares what is on screen before and after each event and
-queues a `Cue` (`Host::take_cues`); while drawing, the shell and the parts mark where
-things are (`motion::region`, `motion::row`, `motion::loading`, thread-local marks
-started afresh each frame); the runner's `motion::Engine` turns each cue into an effect
-bound to its mark, applies it after `shell::render`, and redraws on a 30 ms frame tick
-only while one runs. Idle, radar draws on events alone, as before.
+queues a `Cue` (`Host::take_cues`) and sends it to Ink with the view data; Ink turns each
+cue into an effect on the region or row it marks, and redraws on a frame tick
+only while one runs. Idle, radar draws on events alone.
 
 | Effect | Cue (who) | Where | Time | `subtle` | `full` |
 |---|---|---|---|---|---|
@@ -1377,15 +1351,14 @@ only while one runs. Idle, radar draws on events alone, as before.
 | Popup sweeps open | a menu or confirm appeared (host); closing it is instant | the popup | 180 ms | yes | yes |
 | Row glows (accent background that fades) | a sync changed the row (part: `Effect::Changed`) | the row | 450 ms | yes | yes |
 | New row sweeps in | a sync added the row (part) | the row | 320 ms | glows | yes |
-| Message sweeps in | a marked message appeared (gallery primitive) | the message | 250 ms | | yes |
-| Message fades out | the marked message left (gallery primitive) | where it was | 200 ms | | yes |
+| Message sweeps in | a marked message appeared (status line) | the message | 250 ms | | yes |
+| Message fades out | the marked message left (status line) | where it was | 200 ms | | yes |
 | Loading outlines, repeating | a panel waits for its first data (part: `motion::loading`): its blank rows show the shape rows will have (icon slot, name, state, age, `motion::outline`), and a light wave runs down them | the panel | 1.4 s a pass | | yes |
 
 Host notices are composited after motion, outside retained frames. A notice reads
 in from the right edge over its first 120 ms and goes back into it over its last
-120 ms (`ui::notices::EDGE_MS`), whenever motion is not `off`; both are worked out
-from its age, so nothing is kept after it expires. The gallery message primitive
-and its native/Ink cell fixtures exercise the status line's message instead.
+120 ms, whenever motion is not `off`; both are worked out
+from its age, so nothing is kept after it expires.
 
 **What a part does.**
 
@@ -1400,7 +1373,7 @@ and its native/Ink cell fixtures exercise the status line's message instead.
    (`SlackPlugin::threads`: each thread's first message, whose reply count and latest
    reply say when it moved).
 2. Give each tree row in your view its key: `TreeRow::glow(key)` (`view.rs`). The
-   frontend marks the rows it draws (`motion::row` in `view_tui.rs`); a part marks nothing
+   renderer marks the rows it draws; a part marks nothing
    itself. A row not drawn in the frame after the cue is let go; a row that moves (the
    sync re-sorted the list) glows where it is now.
 3. Where a panel waits for its first data (`Loading from …`, a page's `loading…`), call
@@ -1436,17 +1409,16 @@ and its native/Ink cell fixtures exercise the status line's message instead.
   braille elsewhere. Skipped before 1.5 s (`splash::EARLY_MS`), its line moves to the status
   line for 5 s. Any key, click or
   paste ends it and acts on the screen under it. radar-core works out every cell
-  (`splash::frame`); the Ratatui runner paints it (`splash::draw`), the bridge sends it as
-  `Snapshot.splash` for Ink. `[theme] splash = "auto" | "off"` (Settings › General ›
+  (`splash::frame`); the bridge sends it as `Snapshot.splash` and Ink paints it. `[theme] splash = "auto" | "off"` (Settings › General ›
   colours, `splash` row).
-- Tests and snapshots never run effects: `shell::to_text` draws without them, so a
-  snapshot cannot change because of motion. Test the facility with the injected clock
+- Rust tests never run effects: the view-data text form carries no motion, so a
+  snapshot cannot change because of it. Test the facility with the injected clock
   (`motion::ManualClock`, `crates/radar-core/src/motion/tests.rs`), the cues through
   `Host::take_cues` (`what_changed_on_screen_is_cued_for_motion`), and a part's change
-  and marks with `motion::take()` after `to_text` (e.g.
-  `a_sync_says_which_merge_requests_changed_and_the_tree_marks_their_rows`).
-- See every effect live in the gallery's Motion tab (`s m g p n t l` start them, `f`
-  steps the level; switching tabs is a screen switch). In tmux, capture a few frames
+  and marks with `motion::take()` after the part's view call (e.g.
+  `a_sync_says_which_merge_requests_changed_and_the_tree_marks_their_rows`). How an
+  effect looks is Ink's to test (`ink/test`, `ink/stories`).
+- See an effect live with `ink-live` (3.4): capture a few frames
   within the effect with `capture-pane -e` to see the colours move and settle.
 
 ### 1.18 Icons: `radar_core::ui::icon`
@@ -1541,17 +1513,16 @@ does not fit; `r` gives it back to the pack).
 characters: an emoji or a CJK character is two cells, a combining mark none, a wide
 character is never cut in half. Do the same in a part's own drawing code: no
 `.chars().count()` and no `format!("{:<N}")` for anything drawn in columns. Text
-snapshots (`shell::to_text`, `shell::row_text`) show a wide character once, as the
-terminal does, so columns in a snapshot read as on screen. The kit's tests put emoji and
-CJK in tree rows, tables, columns and cards (`ui/tests.rs`, "Wide text").
+snapshots (the view-data text form) show a wide character once, as the
+terminal does, so columns in a snapshot read as on screen. Ink's tests put emoji and
+CJK in tree rows, tables, columns and cards.
 
 **Testing.** Tests run with icons off (auto is off there), so existing snapshots never
 change because of icons; a part's icon snapshots load a config with `[theme] icons =
 "unicode"` or `"nerd"` (Private Use Area glyphs are fine in a snapshot), at 80x24 and
 160x40. Each pack's glyph table is a unit test in radar-core (`ui/icon/tests.rs`); the mix
-check draws one screen per pack.
-`radar shot --icons <pack>` (default `nerd`) draws with any pack, and the SVG's fonts put
-Nerd Fonts first (`visual::FONTS`); the gallery's Icons story shows every pack.
+check keeps one screen per pack. Storybook's Icons story shows every pack, and
+`scripts/shots` draws with the pack in the fixture, its SVG fonts putting Nerd Fonts first.
 
 ---
 
@@ -1578,7 +1549,7 @@ screen.
 separate letter before or after a visual action word. Tabs, hints, menus and
 buttons underline the key inside a meaningful word. The host supplies
 `mnemonic_at` (a Unicode scalar position) and `mnemonic_shift` on `Hint`, `Choice`,
-`ActionSpec` and keyed rich lines; both renderers underline the complete grapheme
+`ActionSpec` and keyed rich lines; Ink underlines the complete grapheme
 at that position, without searching for another matching letter. Uppercase
 bindings retain their dispatch and show `shift` explicitly. Named and glyph
 keys stay before the word; numeric custom-provider choices also keep their
@@ -1589,7 +1560,7 @@ shortcut must remain discoverable in every output mode.
 
 **The top bar takes the keys too.** `↑` (or `k`) on the first row of any pane of a screen
 (not inside an item page, where `↑` at the top does nothing) gives the keys to the top
-bar (`Host::bar`): its tab draws focused and no pane does (`Cx::bar`, `Cx::has_focus`),
+bar (`Host::bar`): its tab draws focused and no pane does (the view's focus),
 `← →` / `h l` switch screens as they go, and `↓`, `j`, `⏎` or `esc` go back into the
 screen, to the pane it had focused last (the first pane the first time). The letters,
 `,` and clicks work as anywhere; the status line shows `←→ screens · ↓ enter` and the `x`
@@ -1631,28 +1602,26 @@ hit, and clicking in and out of a pane keeps its cursor.
   focuses it and keeps its cursor; the cursor of a pane you left stays visible
   (`row_style`); two clicks within 400 ms are `⏎`. A click on the status line's `q quit`,
   `x menu`, `b bulk`, `+/-` (each half), `u rebase` … presses that key, with a menu open and
-  while typing too (the host draws those, `Hit::Key`). A click on the screen showing gives
+  while typing too (the status line's key targets). A click on the screen showing gives
   its tab the keys, as `↑` does. While something is typed, clicks elsewhere wait for `⏎`
   or `esc`.
 - **Hover.** What a click would act on is lit under the pointer (`bg.hover`, quieter
   than the selection; underlined with 16 colours or none; the cursor row keeps its own
-  look): the line of the hit under the pointer. Over a menu the menu's highlight moves to
+  look): the line of the target under the pointer. Over a menu the menu's highlight moves to
   the item under the pointer. Nothing is lit over a pane's background, a menu's frame or
   heading, empty space, or when the pointer leaves the window (the terminal lost focus).
-  The host does all of it from the hits a part marked; motion settings do not apply.
+  Ink does all of it from the targets in the view data; motion settings do not apply.
 - **Pointer.** Where the terminal takes OSC 22 (Ghostty, kitty, foot, WezTerm; never
   inside tmux or screen unless `on`) the pointer is a hand over what a click acts on, a
   text cursor while a drag selects, the terminal's own elsewhere and after radar stops
-  (`[theme] pointer = auto|on|off`, Settings › colours › terminal; `ui::pointer`).
-- **Target sizes.** Mark with the kit's helpers, never only a row's text:
-  `cx.hit_row(inner, y, pane, id)` (the whole width of the panel), `cx.hit_rows(area, n,
-  pane, id)` (a tree's or list's drawn rows, not the empty space under them; the banded
-  tree returns exactly that), `cx.hit_label(label, line, pane, id)` (a tab, chip, heading
-  or mark: a cell either side, never under 3 cells), `cx.hit_pane(area, pane)` (a pane's
-  background: focuses, never lit), and `PageAreas::hit(cx, pane)` for a page's tabs (no
-  dead cell between them; the tab showing is not a target) and body. The kit's row
-  elements (`RowList`, `Table`, `Entries`, `LogView`, `DiffView`) return full-width rows.
-- **Every target acts, every key shown acts.** Each click target a part marks must do
+  (`[theme] pointer = auto|on|off`, Settings › colours › terminal).
+- **Target sizes.** A part gives a target to the thing, never only a row's text; Ink
+  sizes the area: a row's whole width of the panel, a tree's or list's drawn rows (not the
+  empty space under them), a tab, chip, heading or mark with a cell either side (never under
+  3 cells), a pane's background (focuses, never lit), a page's tabs with no dead cell
+  between them (the tab showing is not a target) and its body. The kit's row
+  elements (`RowList`, `Table`, `Entries`, `LogView`, `DiffView`) are full-width rows.
+- **Every target acts, every key shown acts.** Each click target a part gives must do
   something when clicked, each `x` row's key must reach the part and be taken, an `x`
   row's key must not be one the host keeps (`q x ? b w z h l j k g G [ ] / : + = -`,
   space, `tab`, `←` `→`, digits, the settings key `,`, history's `H` and any screen's
@@ -1742,8 +1711,7 @@ and what radar found is a question, never a change made for you.
 
 **2.12 No chevrons, no `[+]`/`[-]`, no useless counts.** Folding is shown by tree lines and
 indentation, not `▸▾` or `[+]`/`[-]`. Things that belong together share a band; colours
-stay configurable. A part sends its tree as view data and the kit draws it
-(`ui::tree::BandedTree`, from `view_tui.rs` in Ratatui, the same in Ink): each row's own
+stay configurable. A part sends its tree as view data and Ink draws it: each row's own
 tree line (`├─`/`└─`) comes before its text, with its room taken before the name is
 fitted so columns stay aligned; there is no left-edge stripe. A `│` line runs past
 a block that is not the last, with
@@ -1800,12 +1768,10 @@ ticket keys (`WATCH-12`). Older fixtures use `acme/team-a`, `alice` and `ABC-12`
 values live in `~/.config/radar/config.toml`. The hooks in `scripts/hooks` refuse a commit
 that adds a word from the private list kept outside the repository.
 
-**2.21 Use the ecosystem before drawing by hand.** Trees are `tui-tree-widget`, inputs
-`TextInput` (`ratatui-textarea`), menus `tui-popup` via the host, spinners
-`throbber-widgets-tui`, long panels `tui-scrollview` or ratatui's `Scrollbar`, all through
-the kit (1.15), which wraps them in radar's look once for every part. Do not say a library is
-in use unless it is. *Why:* the ecosystem's widgets look and behave better than ones
-drawn by hand.
+**2.21 Use what the kit has before drawing by hand.** Trees, tables, inputs, menus,
+spinners and scrolled bodies are view types the kit (1.15) draws once in radar's look for
+every part; inputs are `TextInput`. Do not say a library is in use unless it is. *Why:* one
+drawing of each element looks and behaves the same in every part.
 
 **2.22 Works in every environment.** macOS, Linux (Wayland and X11), Windows, WSL, SSH,
 tmux, no display. Open links and copy only through `Effect::Open`/`Effect::Copy`; never
@@ -1968,12 +1934,12 @@ wording of its own. Live checks run with `RADAR_MODE=read-only`.
   at 0.
 
 **2.29a Panels and detail panes use one layout.** The host owns the pane positions and focus;
-the part draws one `ui::card::panel` frame for a list or one `ui::card::card` for a
-scrolling detail pane. Use the panel's inner width for content. The panel title names the
+the part sends one panel for a list or one card for a
+scrolling detail pane, and Ink draws the frame. Use the panel's inner width for content. The panel title names the
 selected item or current view. Within a detail pane, start with the item's identity and
 state, then group related details in sections: a part's view puts them in a
-`view::Block::section` (or `section_of` for lines), which both renderers draw as
-`ui::card::section` with each row inset as `section_body`, and an action's line with its
+`view::Block::section` (or `section_of` for lines), which Ink draws as
+a section with each row inset, and an action's line with its
 key at the edge is `Block::keyed`. A section has a short noun title, an optional icon and a quiet rule;
 put counts or recent state in its optional detail. Leave one blank row between the
 identity and the first section, and between sections. Wrap rich content to the width
@@ -2085,62 +2051,58 @@ looks a row up the old way; read it, fix the one test, and rerun that one mix
 
 - Plain unit tests next to the code (`#[cfg(test)] mod tests`): filter grammar, validation,
   classification, config round trip, system `Env` cases.
-- Rendered screens: build the real host and render it as text.
-  `radar_core::shell::to_text(&host, w, h)` renders in the mono tier. The helpers in
+- Screens: build the real host and read the view data it returns as text.
+  `radar_core::headless::text_of(&host, w, h)` (or `Headless::text()`) gives per pane a rule
+  naming it and its title, then one line per row (`>` on the selected row, cells two spaces
+  apart, chips in `[ ]`, the row's target in `{ }`), then the open menu and the status line's
+  keys. It names no colour, width or cell, so a look change in Ink moves no part's snapshot.
+  What a screen looks like is Ink's to test, from view fixtures, in vitest. The helpers in
   `crates/radar-gitlab/src/demo.rs` (`sample()`) and `lib.rs` (`hosted()`) are the pattern: a sample plugin
   with fixture data (`acme/team-a`, `alice`), wrapped in `radar_core::Host::new(..)`, then
   `host.load_config(Some(""))` and the sample put back (loading a config reconfigures the
   plugin). `radar_core::host::tests::Probe` is crate-private; write your own fixtures.
-- Snapshot with `insta::assert_snapshot!(to_text(&host, 80, 24))` and again at 160x40, for
-  the screen and for each settings section (`merge_requests_80x24`, `merge_requests_160x40`,
-  `settings_tenancies_80x24`, ...), plus the `x` menu (`keys_menu_80x40`). A snapshot
-  proves layout, not colour: for colour, look at a picture (3.1a).
+- Snapshot with `insta::assert_snapshot!(text_of(&host, 160, 40))` for
+  the screen and for each settings section (`merge_requests`, `settings_tenancies`, ...),
+  plus the `x` menu (`keys_menu`). A snapshot proves content and order, not layout or colour:
+  for those, look at a picture (3.1a).
 - **Read the diff before accepting a snapshot.** `INSTA_UPDATE=always cargo test` rewrites
   blindly. Run `cargo test`, read the old/new lines it prints, decide each change is
   intended, then accept (`cargo insta review` if installed, or `INSTA_UPDATE=always`
   for that crate) and look at `git diff` of the `.snap` files. A failed run leaves
   `*.snap.new` files (gitignored): delete the ones you do not accept.
-- Draw a frame before pressing keys that depend on what is visible: `tui-tree-widget`
-  knows its rows only after rendering (`let _ = to_text(&host, 160, 40);` before each
-  key, as the tests do).
+- Read the view before pressing keys that depend on what is visible: the host knows a
+  tree's rows only after the screen's view was built (`let _ = text_of(&host, 160, 40);`
+  before each key, as the tests do).
+- **A test that crosses crates is a smell.** A crate's tests test that crate, with its own
+  fixtures. When a change in one crate makes another crate's tests fail, that failure is a
+  coupling defect: the test leans on another crate's rendering, text or internals. Fix the
+  test so it no longer depends across the boundary; do not re-record the other crate's
+  snapshot. Only the mix tests in `tests/` and contract tests at a published boundary
+  (view data, the IPC protocol) span crates on purpose.
 
 ### 3.1a Shots: seeing what was drawn
 
 A text snapshot cannot show a wrong colour, a lost highlight or a missing bold. Shots can:
-they draw a screen with every cell at its colour.
+Ink draws a screen and every cell is kept at its colour.
 
-- `radar_core::shell::to_svg(&host, w, h)` renders the host as an SVG (full colour, bold,
-  italic, underline, reversed and dim honoured, wide characters on two cells; fonts
-  `visual::FONTS`: 0xProto Nerd Font Mono, Symbols Nerd Font Mono, JetBrainsMono Nerd
-  Font, JetBrains Mono, then monospace, so icons draw). The same screen gives the same bytes, so two SVGs diff.
-  `radar_core::shell::to_styles(&host, w, h)` gives each line's runs with their colours as
-  slot names (`"Books" fg:text.emphasis bg:bg.selection bold`), for a snapshot that must
-  notice a colour change (`visual::style_dump` for a plain buffer).
-- `radar shot` draws a named place from sample data, never a live service or your config:
-  `radar shot --list`, then `radar shot --place repositories --size 160x40 --out shots/`
-  (SVG and PNG; `--format svg` for SVG only; `--icons <pack>`, default `nerd`). Places are the screens (`repositories`),
-  settings sections (`settings.gitlab.connection`) and gallery pages (`gallery.tree`).
-  A part's screens have data when it implements `Plugin::demo` (its `demo` cargo feature
-  makes its test sample, `demo.rs`, part of the build; the binary's default `shots`
-  feature turns them on, with the PNG renderer `resvg`). A new part: move its sample
-  into `demo.rs` behind `#[cfg(any(test, feature = "demo"))]`, add `demo = []`, implement
-  `demo()` as `*self = demo::sample()`, and add `"radar-<part>?/demo"` to the root `demo`
-  feature.
+- A place is a recorded view fixture (`ink/test/fixtures/*.json`, made from the mix
+  recordings). `scripts/shots` has Ink draw each one through the whole App to styled
+  cells (`ink/tools/shots/draw.test.tsx`), turns the cells into SVG (`ink/tools/shots/svg.ts`:
+  full colour, bold, italic, underline, reversed and dim honoured, wide characters on two
+  cells; fonts 0xProto Nerd Font Mono, Symbols Nerd Font Mono, JetBrainsMono Nerd Font,
+  JetBrains Mono, then monospace, so icons draw) and then PNG with `rsvg-convert`. The
+  same screen gives the same bytes, so two SVGs diff. Shots never touch a live service or
+  your config.
 - `scripts/shots` draws every place at 80x24 and 160x40 into `shots/` and writes
   `shots/index.html`: a grid with titles, a dark or light page behind it (the button at
   the top), SVGs one click away. `scripts/shots --compare <git-ref>` also draws the places
-  at that ref (in a temporary worktree) and shows each place that changed as before | after,
-  with unchanged ones folded away, new ones marked. A ref older than `radar shot` gets the
-  tooling cherry-picked onto it first.
+  from that ref's fixtures and Ink source (in a temporary worktree) and shows each place
+  that changed as before | after, with unchanged ones folded away, new ones marked.
 - **When to use them.** Changing a colour, a style, a highlight, a border or a layout in
   the kit or a part: run `scripts/shots --compare main` and look at what changed before you
-  hand over; if you have no time for the grid, `radar shot --place <place>` for the one place
-  and open the PNG. Reviewing a branch: open the compare page. Adding a kit element or a
-  state: show it in the gallery stories (1.15). Tests: the gallery's colour snapshots
-  (`gallery_styles_*`, in `ui/tests.rs`) fail when a colour in the kit moves; read their
-  diff as slot names (`fg:accent.primary` became `fg:text.primary` is a focus colour
-  lost). A part's own screens keep text snapshots; add a `to_styles` snapshot for one only
-  when its colour is the point of the screen.
+  hand over. Reviewing a branch: open the compare page. Adding a kit element or a state:
+  show it in a story (1.15). Ink's own tests (`ink/test`) fail when a colour moves; a
+  part's screens keep text snapshots of their view data.
 
 ### 3.2 The row check: every `x` row and target, at unit speed
 
@@ -2148,13 +2110,13 @@ Each part has a table test over its places with `radar_core::check`
 (`every_row_and_target_is_taken` in `crates/radar-gitlab/src/lib.rs`, and in the
 `tests.rs` of radar-jira, radar-slack, radar-git and radar-workspace). It works on the plugin
 alone, with no host: for each place it makes a fresh plugin, presses the keys that lead
-there, draws only the part's area, then
+there, builds the part's view, then
 
 - for every row `keys()` (or `section_keys()`) offers: the key must not be one the host
   keeps (`check::host_keeps`), and pressed on a fresh plugin at that place it must be
   taken (`Outcome::Handled`), unless the host acts on it when the part does not
   (`check::host_falls_back`: `esc`, arrows, `PgUp`/`PgDn`, `+`/`-`, `⏎` on the nav pane);
-- for every click target the draw marked (not a pane's background): clicked on a fresh
+- for every click target the view carries (not a pane's background): selected on a fresh
   plugin, it must be taken.
 
 For target-sensitive popup keys, also exercise the real host: open `x`, deliver a
@@ -2222,8 +2184,9 @@ a row does once taken (the part's targeted tests).
 - Typing into every input through `host.update(Event::Key(..))`, including paste and a
   rejected value.
 - Each validation rule, both outcomes.
-- Mouse: `Event::Mouse` after a rendered frame; a click on a row selects it, one on empty
-  space only focuses; double click acts.
+- Mouse: the intents a click sends (`Intent::Select` on a row's target selects it,
+  `Select` on `pane:<id>` only focuses, `Activate` acts, `Context` opens the row's `x`
+  actions).
 - The row check (2.5, 3.2) over a place of every kind your sample data has (give it a
   row of every kind: every page, tab and state you draw differently); a gap names the
   place and the row or target.
@@ -2256,9 +2219,8 @@ tmux -L radarcheck kill-session -t radar                  # always
   clipboard and the status line must say so; `tmux set-clipboard on` is needed inside that
   server).
 - Press each action in the `x` menu on a real item and see that it did what it says.
-- The block above runs whichever renderer is the default (Ink). `scripts/ink-live/ink-live`
-  does the same for Ink and proves Ink drew the screen, not a fallback; run it with
-  `RADAR_RENDERER=ratatui` beside it to compare. `tests/ink_pty.rs` is the automated form.
+- `scripts/ink-live/ink-live` does the same for Ink and proves Ink drew the screen.
+  `tests/ink_pty.rs` is the automated form.
 - To prove an idle pause without waiting half an hour, set `idle_minutes = 1` under `[general]`
   in the scratch config and wait for `refreshing paused` in the scratch `radar.log`
   (`until grep -q "refreshing paused" $S/state/radar/radar.log; do sleep 2; done`).
@@ -2371,8 +2333,7 @@ beside each step; keep names from real work out of everything you write (2.20).
 - [ ] `↑`/`↓` move through a focused detail pane; `PgUp`/`PgDn` scroll it (2.4).
 - [ ] Every input is a `TextInput`, validates as you type, refuses with a reason, and the
       service-checkable ones ask to be checked (2.10, 2.11). Every config key has a row.
-- [ ] Mouse: every row clickable across its panel, focus memory kept, double click acts,
-      marks made with the `Cx::hit_*` helpers; the row check finds no gap (2.5, 3.2); no test is flagged SLOW (3).
+- [ ] Mouse: every row has a target, focus memory kept, `Activate` acts; the row check finds no gap (2.5, 3.2); no test is flagged SLOW (3).
 - [ ] Links and copies go through `Effect::Open`/`Copy`; run with `NO_COLOR=1`, over
       `SSH_CONNECTION`, and with the stand-in opener (3.4).
 - [ ] Anything that changes a service or this machine asks first, is disabled in words

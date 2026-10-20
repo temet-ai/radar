@@ -1,6 +1,6 @@
 ---
 name: radar-visual-diagnosis
-description: Diagnose Radar renderer regressions using cheap deterministic fixture, semantic, protocol and text/layout checks before image inspection. Use for Ratatui/Ink checkpoint mismatch, stale or missing visual fixtures, actionable diff artifacts, and deciding what visual evidence is still needed. Not for live-service verification or automatic golden approval.
+description: Diagnose Radar renderer regressions using cheap deterministic fixture, semantic, protocol and text/layout checks before image inspection. Use for Ink checkpoint mismatch, stale or missing visual fixtures, actionable diff artifacts, and deciding what visual evidence is still needed. Not for live-service verification or automatic golden approval.
 ---
 
 # Spend visual inspection on what machine checks cannot establish
@@ -35,9 +35,9 @@ result never qualifies renderer parity.
    combining-mark differences unless the production contract defines that
    normalization; preserve raw captures for diagnosis.
 4. **Style and images only where needed:** existing `scripts/shots` produces
-   deterministic SVG and optional PNG from sample-data rendering; use it when
-   authorized and prerequisites are available. A Ratatui shot is not proof Ink
-   drew it. For real terminal Ink behavior, the `radar-ink-live` skill explains
+   deterministic SVG and optional PNG drawn by Ink from sample-data rendering
+   (`--compare REF` writes a before and after pair); use it when
+   authorized and prerequisites are available. For real terminal Ink behavior, the `radar-ink-live` skill explains
    verified renderer identity, text/colour/mode checks and teardown. Use its offline
    fixture route; this skill does not authorize real-service config or credentials.
    Do not bypass denied socket/process access. Report the unsupported layer.

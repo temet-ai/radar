@@ -63,17 +63,15 @@ GitHub token; the public distribution route is simpler.
 
 ## Terminal renderer
 
-radar draws its TUI with one of two renderers, chosen by one switch,
-`RADAR_RENDERER=ink|ratatui`:
+radar draws its TUI with one renderer, Ink/React: a child process that draws the
+host's views over radar's IPC ([ink-ipc.md](ink-ipc.md)). There is no switch and no
+fallback. When Ink cannot start (no `radar-js`, no bundle or node, a refused
+protocol, a crash loop), radar restores the terminal, prints
+`radar: the renderer did not start: <why>` and `run scripts/install to rebuild it`,
+and exits 1.
 
-- `ratatui`: the Rust runner in the radar process, being retired.
-- `ink`: the Ink/React renderer, a child process that draws the same views
-  over radar's IPC ([ink-ipc.md](ink-ipc.md)).
-- Unset (or any other value): the build's default, `DEFAULT_RENDERER` in
-  `src/lib.rs`: Ink.
-
-`RADAR_RENDERER=ratatui radar` is the one way back from Ink. There is no second
-switch (no flag, config key or feature).
+Release notes carry one line for this: to go back to an earlier renderer, pin the
+previous release.
 
 ### radar's runtime: one file, no node
 

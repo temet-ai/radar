@@ -2,8 +2,8 @@
 
 A Rust terminal workspace over GitLab, GitHub, Jira,
 Slack and local Git, built as a host (`crates/radar-core`) plus one crate per part. The host
-owns all state and sends view data; two renderers draw it: Ratatui (in radar-core) and
-Ink/React (`ink/`, the default). Read this file first; it points to the rest.
+owns all state and sends view data; Ink/React (`ink/`) draws it and is the only renderer.
+Read this file first; it points to the rest.
 
 ## Where things are
 
@@ -11,7 +11,7 @@ Ink/React (`ink/`, the default). Read this file first; it points to the rest.
 |---|---|
 | How radar is built, the UX contract, testing | `docs/GUIDE.md` (sections 1, 2, 3) |
 | Every UI element, who draws it, canonical forms, known drift | `docs/components.md` |
-| Host, plugin contract, theme, UI kit, Ratatui renderer | `crates/radar-core` (`ui/`, `design/`, `view.rs`, `view_tui.rs`, `shell.rs`) |
+| Host, plugin contract, theme, view data and its text form, IPC to Ink | `crates/radar-core` (`design/`, `view.rs`, `headless/`, `ipc/`, `host.rs`) |
 | Parts | `crates/radar-gitlab`, `radar-github`, `radar-jira`, `radar-slack`, `radar-git`, `radar-workspace`, `radar-workbench` |
 | Ink renderer | `ink/src` (`app`, `chrome`, `dock`, `editor`, `input`, `media`, `motion`, `nodes`, `state`, `terminal`, `text`, `transport`, `workarea`); protocol types are generated into `ink/src/protocol/generated/` from the Rust types, never edited by hand |
 | Agent sessions: the adapter contract, event envelope, cursor store, fake provider, briefs, and the state the agent dock draws | `crates/radar-sessions` |
@@ -28,15 +28,13 @@ scripts/check                       # clippy, tests, mixes, Ink: the batch check
 cargo nextest run -p radar-<crate>     # test only the crate you changed (cargo test -p if no nextest)
 cargo clippy --workspace --all-features --all-targets --keep-going -- -D warnings   # every failing crate, not the first
 scripts/check-mixes                 # none, each part alone, all; when features, src/lib.rs or tests/mix.rs change (CI runs it)
-scripts/shots --compare main        # when a colour, style or layout changed
-cargo run -p radar-core --example gallery   # every kit element live
+scripts/shots --compare main        # when a colour, style or layout changed: an SVG pair drawn by Ink
 cd ink && npm run typecheck && npm test  # Ink
 cd ink && npm run storybook         # component docs on http://localhost:6016, MCP at /mcp
 cd ink && npm run manifest          # after adding or removing a story: rewrites docs/storybook/components.json
 cd ink && npm run check-static      # after build-storybook: one story must render from storybook-static (headless Chrome)
 scripts/install                     # build release and install as ~/.local/bin/radar
 scripts/build-runtime               # Ink + the Claude sidecar as one Node executable (radar-js); install and release embed it
-RADAR_RENDERER=ratatui radar              # the Ratatui renderer, for side-by-side comparison
 ```
 
 - **Testing pyramid:** unit-heavy, a few integration tests per part, a tiny end-to-end per
@@ -66,13 +64,14 @@ RADAR_RENDERER=ratatui radar              # the Ratatui renderer, for side-by-si
 
 The full set is in `docs/components.md` section 1 and GUIDE sections 1.15, 1.18 and 2.
 
-- **Parts draw with the kit.** A missing element goes into the kit first, with gallery
-  snapshots at 80 and 160 wide, then into `docs/components.md`.
+- **Parts draw with the kit.** A missing element goes into the kit first, with a story
+  at 80 and 160 wide, then into `docs/components.md`.
 - **Nothing visual is hard-coded:** colours are theme slots and look words; glyphs come
   from the icon pack (`ui::icon`); widths are display cells (`ui::width`), never
   `chars().count()` or `{:<N}`.
-- **Both renderers draw the same picture.** While Ratatui is the reference, a look change
-  lands in both; a difference is a defect.
+- **Ink draws every picture.** The host and the parts hold no terminal or renderer type;
+  a look change is made in `ink/` and checked with `scripts/shots --compare` or `ink-live`.
+  When Ink cannot start, radar prints why, tells you to run `scripts/install` and exits 1.
 - **No chevrons** (▸ ▾ › ⌄, `[+]`, `[-]`) for folding: tree lines show open, a folded row
   ends in `⋯ n`.
 - **No pill shapes, no left-edge stripes.** Chips, counts, keys and buttons are square.
@@ -91,7 +90,7 @@ The full set is in `docs/components.md` section 1 and GUIDE sections 1.15, 1.18 
   gitleaks finds. Without the list they refuse every commit. Contributors need none of this;
   CI runs gitleaks on every pull request.
 - Worktrees go under `.claude/worktrees/<name>` (ignored by git), never beside the checkout.
-- `scripts/ink-live/ink-live` runs the real radar in tmux with the Ink renderer (or Ratatui)
+- `scripts/ink-live/ink-live` runs the real radar in tmux with the Ink renderer
   and reads its screen as text or colour: the live check for anything visible.
 - A recording of a real agent CLI for the adapter tests is scrubbed with
   `scripts/scan-secrets` before it is committed.

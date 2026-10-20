@@ -141,7 +141,7 @@ def preflight(root):
         raise Failure("preflight", "semantic checkpoint must be the GitHub overview (scope=github, no page)")
     expected = normalize(expected_raw)
     if len(expected_raw.splitlines()) != 40:
-        raise Failure("preflight", "Ratatui fixture must contain 40 rows; display-cell widths are not checked")
+        raise Failure("preflight", "text fixture must contain 40 rows; display-cell widths are not checked")
     if MARKER not in json.dumps(screen, ensure_ascii=False) or MARKER not in expected:
         raise Failure("preflight", f"both fixtures must contain semantic marker {MARKER!r}")
     identities = [{"path": str(path.relative_to(root)), "sha256": hashlib.sha256(text.encode()).hexdigest()}
@@ -281,7 +281,7 @@ def run_checks(root, output, *, preflight_only=False, timeout=300, runner=run_pr
                 if result.returncode:
                     raise Failure(stage, f"fixed command exited {result.returncode}; inspect {stage}.log", result.returncode)
                 if stage == "ink" and report.get("first_difference"):
-                    raise Failure("text-parity", "normalized Ink and Ratatui text differ")
+                    raise Failure("text-parity", "normalized Ink text and the committed text frame differ")
             report["status"] = "passed"
             report["qualification"] = "fresh producer checkpoint and real Ink replay agree on normalized text only"
             code = 0

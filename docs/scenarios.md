@@ -56,7 +56,7 @@ SIGTERM exits with status 143 rather than returning to the menu.
 
 Fault selection means choosing one of these fixed recipes. The launcher does not
 inject arbitrary errors, pause at runtime breakpoints, step through a live UI,
-launch Ink or Ratatui, or export Storybook checkpoints. Its interactive option is
+launch Ink, or export Storybook checkpoints. Its interactive option is
 only a text selection/replay loop. Passing these tests does not verify renderer
 layout or a real provider's behavior.
 
@@ -172,8 +172,8 @@ renderer checkpoints; they do not replace them.
 
 `github-denied-detail` also verifies the committed 120×40 GitHub refresh checkpoint
 against a new run. The JSON contains the actual host chrome, screen and focus; the
-text is the actual Ratatui frame at the same point with icons off. The focused Ink
-App test draws that JSON and compares visible text rows with Ratatui. It does not
+text is the committed text frame at the same point with icons off. The focused Ink
+App test draws that JSON and compares visible text rows with the frame. It does not
 check cell colors or modifiers for this checkpoint.
 
 After installing the locked dependencies in `ink/`, run:
@@ -309,19 +309,9 @@ need a separately isolated Git write boundary.
 
 ## Protect a checkpoint's rendering cost
 
-`Scenario::costs()` returns an owned snapshot. The `shell_frames` field counts
-actual Ratatui shell renders on that scenario's Host, including raw `to_text`,
-`to_svg`, `to_styles` and renders before the Host was adopted. A neutral-view
-inspection does not render a frame. The GitHub checkpoint asserts one frame;
-the other root journeys assert zero before closing their journal. The migrated
-GitLab confirmation contract similarly asserts its one necessary pending frame.
-
-```rust
-assert_eq!(scenario.costs().shell_frames, 0, "selected-ticket rules need no frame");
-```
-
-The remaining fields (`dispatched_events`, `returned_effect_envelopes`,
-`spawned_completion_tasks`) describe cumulative work routed through this driver.
+`Scenario::costs()` returns an owned snapshot. Its fields (`dispatched_events`,
+`returned_effect_envelopes`, `spawned_completion_tasks`) describe cumulative work
+routed through this driver.
 They do not count detached Sessions jobs, Git subprocesses or all work inside a
 future. Scheduling-dependent pump totals should not become arbitrary exact limits.
 Choose a measured, purposeful bound only for a stable boundary. These counters

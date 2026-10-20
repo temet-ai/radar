@@ -25,7 +25,8 @@ links radar could not open, and crashes with where they happened.
 | a part says "not set up" | press `s` on its screen to walk its setup step, or `⏎` to open its section in Settings |
 | a write says "radar is read only" | change the [mode](README.md#the-mode) |
 | right-click does nothing | your terminal does not pass right-clicks through (`radar terminal` says what radar detected); use `x` |
-| the screen looks wrong or garbled | start with the other renderer to compare: `RADAR_RENDERER=ratatui radar`. If it looks right there, report the difference |
+| radar exits with `radar: the renderer did not start: <why>` | the Ink renderer is missing or crashed; the reason follows the colon. Run `scripts/install` to rebuild it (a release install: reinstall the release) |
+| the screen looks wrong or garbled | check your terminal's truecolor and font support, then report it with the terminal name |
 | empty boxes instead of icons | set the icon pack to `unicode`, or use a Nerd Font |
 | Slack says it needs a user token | use an `xoxp-` token; a bot token does not work |
 | nothing refreshes | input resumes an idle pause; an explicit pause lasts until you press `z` again |

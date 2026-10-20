@@ -40,7 +40,7 @@ key=$(printf '%s|%s' "$root" "${TMPDIR:-}" | cksum | cut -d ' ' -f 1)
 die() { echo "ink-live: $*" >&2; exit 1; }
 t() { local n=$1; shift; tmux -L "radar-live-$key-$n" "$@"; }
 # Ink's socket is <state>/radar/ink-<pid>.sock and must be under 100 bytes, else (and when
-# TMPDIR is long too) every start fails and radar falls back to Ratatui: keep the run short.
+# TMPDIR is long too) every start fails and radar exits with "the renderer did not start": keep the run short.
 dir_of() {
   local d="$base/$1"
   if [ ${#d} -gt 60 ]; then d="/tmp/radar-live-$(id -u)/$key-$1"; fi

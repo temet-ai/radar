@@ -35,7 +35,7 @@ To see links open from a build you run by hand, use `RADAR_SANDBOX= cargo run`.
 
 radar is a host (`crates/radar-core`) plus one crate per part (GitLab, GitHub, Jira, Slack,
 local Git, workspaces, the work area and agent sessions). The host owns all state and sends
-view data to a renderer: Ink (`ink/`, the default) or Ratatui (inside radar-core).
+view data to the renderer, Ink (`ink/`).
 [AGENTS.md](AGENTS.md) maps the repository; [docs/GUIDE.md](docs/GUIDE.md) explains how
 radar is built and its UX rules; [docs/components.md](docs/components.md) lists every UI
 element.
@@ -45,7 +45,7 @@ A few rules hold in every change:
 - Parts draw with the shared UI kit and never depend on one another.
 - Nothing visual is hard-coded: colours are theme slots, glyphs come from the icon pack,
   widths are display cells.
-- Both renderers draw the same picture. A change to how something looks is made in both.
+- Ink draws every picture. A change to how something looks is made in `ink/`.
 - Test data uses made-up names, never a real organisation, person, project or ticket.
   New test data takes its names from Terry Pratchett's Discworld (`Sam Vimes`,
   `ankh-morpork/watch`, `WATCH-12`); older fixtures use `acme`, `alice` and `ABC-12`.
